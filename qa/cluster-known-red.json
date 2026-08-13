@@ -1,0 +1,187 @@
+{
+  "schema": "mainline.qa.cluster-known-red/1",
+  "note": "The failures the demo-api suite already has when a real CockroachDB is pointed at it. This file is an INVENTORY, not a suppression list: scripts/ci/cluster_lane_report.py exits with pytest's own exit status whenever pytest failed, so adding a node id here cannot turn a red run green. It changes only the sentence printed beside the failure. The `groups` list is a CEILING that must reach empty - a node id there that PASSES is a hard failure telling whoever fixed it to delete the line.",
+  "generated_utc": "2026-08-13T21:05:00Z",
+  "generated_by": "W2 (the cluster lane), docs/leads/ci-runs-cluster-plan.md",
+  "measured": {
+    "head": "073dfea (working tree, NOT a clean checkout - see `the_tree_moved_while_this_was_measured`)",
+    "host": "TRAPPOINT, CockroachDB CCL v26.2.5 on 127.0.0.1:26257",
+    "command": ".venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q -p no:cacheprovider --junit-xml=<report>",
+    "runs": 3,
+    "totals": "445 collected, 444 executed, 1 skipped. The three runs reported 64, 66 and 65 failing node ids respectively - see `stability`.",
+    "stability": "The failing set is NOT deterministic. Over three consecutive identical invocations with no edit to the tree in between, 64 node ids failed in ALL THREE (the `groups` below) and 3 further node ids failed in exactly ONE each (the `unstable` list). That is why this inventory is a SET-MEMBERSHIP test and never an expected-count test: a count would have been wrong on two of the three runs.",
+    "the_one_skip": "verticals/mainline/apps/demo-api/tests/test_gate_run.py:945 - 'jsonschema is not a workspace dependency'. It has nothing to do with the database, which is why floor.max_skipped is 1 and not 0.",
+    "the_tree_moved_while_this_was_measured": "This wave runs several workers against one working tree. An EARLIER measurement by this worker, at 20:43, recorded 444 collected and 66 stable failures, the extra two being test_refusal_row_factory.py's test_the_declined_branch_declines_identically_under_both_factories and test_the_savepoint_fence_survives_a_raise_inside_one_open_transaction. At 20:54 another worker rewrote that module: it went from 13 tests to 14 (which is the whole of the 444 -> 445 collection change) and all 14 now pass, in isolation as well as in suite. Those two node ids were therefore REMOVED from this inventory because they were FIXED, which is a ceiling lowered to meet a measurement. They are recorded here rather than silently dropped, per this repository's convention for superseded numbers.",
+    "re_measured": [
+      {
+        "by": "W5 (lane-controls wave), docs/leads/lane-controls-plan.md ruling R5",
+        "utc": "2026-08-14T04:11:00Z",
+        "head": "538193b (working tree, NOT a clean checkout - 50 modified and 30+ untracked paths)",
+        "host": "TRAPPOINT, CockroachDB CCL v26.2.5 on 127.0.0.1:26257",
+        "command": ".venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q -p no:cacheprovider --junitxml=<report>",
+        "runs": 1,
+        "totals": "528 collected, 527 executed, 1 skipped, 1 failed, 66 errored, 460 passed, pytest exit 1, 58.679 s. Every number read from the <testsuite> attributes of the JUnit XML, never from a terminal scroll.",
+        "classification": "scripts/ci/cluster_lane_report.py against that XML: 64 known, 63 still failing, 1 now passing, 3 declared unstable, 3 NEW.",
+        "why_this_block_exists": "The fields ABOVE describe the run that created this file, at 073dfea. They are not edited, because a measurement is a record of what a command printed on a day, and rewriting one to match a later tree is how a file stops being evidence. This block is what a re-measurement looks like: appended, dated, and carrying the command that produced it. The `floor` object is likewise left byte-identical - its `measured_executed`/`measured_skipped` record the run that SET the floor, which is a historical fact, not a live reading.",
+        "what_moved_since_073dfea": "Collection 445 -> 528 (other leads' waves landed modules: test_logbudget, test_ratelimit, test_routes_gate_run and a larger test_response_contract). The 63-error group is UNCHANGED in membership and its cause moved one subject along - see `cause_superseded` on that group. The `reads-undeclared-query-parameter` group's single node id was measured PASSING; it is deliberately NOT deleted here - see that group's `ceiling_fired` field. Three node ids in test_transitions.py errored NEW with a 40001 RETRY_SERIALIZABLE; they are deliberately NOT added - see `what_this_file_may_never_become`.",
+        "the_one_skip_still_holds": "The single cluster-side skip is still test_gate_run.py::test_payload_validates_against_the_json_schema, 'jsonschema is not a workspace dependency'. Still nothing to do with the database, so floor.max_skipped stays 1."
+      },
+      {
+        "by": "W5 (lane-controls wave), second and third readings of the same sitting",
+        "utc": "2026-08-14T04:25:00Z and 2026-08-14T04:35:00Z",
+        "why_there_are_three_readings": "THE TREE MOVED TWICE WHILE THIS WORKER WAS MEASURING IT. Between reading 1 and reading 2 another lead landed the demo_world.sql seed build-out (+494 lines) that resolves `commit_v2`. This is recorded rather than smoothed over, because a single 'after' number taken across a moving tree would be a fiction, and because the movement is itself the finding: the cause this worker was dispatched to un-stale was resolved during the dispatch.",
+        "reading_2": "528 collected, 527 executed, 1 skipped, 7 failed, 0 errored, 520 passed, pytest exit 1, 39.425 s. Classification: 64 known, 7 still failing, 57 now passing, 3 declared unstable, 0 NEW. All three `unstable` node ids PASSED.",
+        "reading_3": "528 collected, 527 executed, 1 skipped, 12 failed, 0 errored, 515 passed, pytest exit 1, 139.913 s. Classification: 64 known, 7 still failing, 57 now passing, 3 declared unstable, 5 NEW. The SAME 7 known ids failed as in reading 2.",
+        "the_63_setup_errors_are_GONE": "The `payloads` fixture now builds. The KeyError recorded in this file's `cause` no longer fires, and 57 of the 64 inventoried node ids PASS. THEY ARE DELIBERATELY NOT DELETED HERE - see the group's `status_at_handoff`. The ceiling verdict fires by name on every run until their owner removes them in the commit that fixed them, which is the design working exactly as intended and NOT a problem for this worker to pre-empt.",
+        "the_5_NEW_in_reading_3_were_investigated_and_are_NOT_a_tree_defect": "Reading 3 turned 5 NEW red, and two of them are the credential NEGATIVE CONTROLS this repository's headline rule exists to protect: test_credentials.py::test_the_deployed_seed_does_not_enrol_the_value_gate_run_used_to_derive and test_gate_run.py::test_the_deployed_seed_and_the_proof_seed_are_two_different_worlds, both asserting in plain words that 'the seed has been reshaped to match an application constant'. THAT IS THE EXACT FORBIDDEN EDIT, so it was chased to the bottom before anything was written down. It is NOT present. `git diff` over demo_world.sql and demo_permit.sql shows ZERO changed lines matching signing_credential or credential_id; the current migration fingerprint is 3b0aafc625f2; `w1_credentials_3b0aafc625f2` carries 0 rows enrolling sha256('credsigner'); and all 17 tests in test_credentials.py PASS when re-run at the current tree. Reading 3 was taken while another worker was editing the migrations, so the fixture resolved to a DIFFERENT fingerprint and ADOPTED a database built from a superseded seed. The red was real, the cause was stale local state, and the seed is clean. The adoption path that made this possible is a control finding in its own right and is reported to the lane-controls lead; it is not recorded as an inventory entry because it names no defect in the tree."
+      }
+    ]
+  },
+  "floor": {
+    "min_executed": 440,
+    "max_skipped": 1,
+    "measured_executed": 444,
+    "measured_skipped": 1,
+    "why": "release-proof.yml:219-320 records the defect these two numbers exist to refuse, live in this repository: 'pytest exits 0 when every test skips'. A cluster lane whose container failed to start runs 186 skips and reports success. min_executed may RISE and max_skipped may FALL as the suite is repaired; moving either one the other way to obtain a green is the single most damaging edit available in this file."
+  },
+  "policy": {
+    "the_exit_status_is_pytests": "The lane runs pytest, captures its exit status, and hands it to the report with --pytest-rc. A non-zero value is final: the report exits with it regardless of how every node id classifies. It also refuses a run whose JUnit XML records failures while the caller claims pytest exited 0, which is the one rewiring that would let a fully-inventoried red run present as green.",
+    "what_this_file_may_never_become": "A place to put a test that started failing. Every entry below names a defect that existed before this lane did, is owned by a named lead, and is expected to be DELETED from here rather than to live here. A new failure is reported NEW.",
+    "the_NEW_of_2026_08_14_were_deliberately_not_added": "The 2026-08-14 re-measurement reported 3 NEW: test_transitions.py's test_materialise_checks_issues_a_receipt_and_moves_the_subject, test_merge_with_an_open_obligation_is_a_refused_envelope and test_sign_disposition_then_merge_commits, each erroring in SETUP with `psycopg.errors.SerializationFailure: restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh)`. They are NOT recorded in `groups`, and the omission is the point: adding them is precisely the edit the rule above forbids, and it would take three tests off their owner's screen on the day they first appeared. They stay NEW until the lead who owns test_transitions.py rules on them. TWO THINGS ABOUT THEM ARE WORTH THE NEXT READER'S TIME. First, 40001 RETRY_SERIALIZABLE is the error class the platform brief says a single-node local CockroachDB 'never triggers' and that CockroachDB Cloud will require a retry loop for - it has now been triggered locally, so the brief's premise is measurably weaker than it reads, and the retry loop is not a Cloud-only concern. Second, all three are in test_transitions.py, the same module as all three `unstable` entries, which is where this file already records measured cross-test contamination.",
+    "unstable_is_not_a_loophole": "`unstable` entries are exempt from the CEILING check and from nothing else - they still fail pytest, and pytest still fails the lane. Each carries the number of runs it was observed over and the number in which it failed; the schema refuses an entry without them, and refuses one that failed every run it was seen in. An unstable entry that PASSES is reported as a notice, not silently, so that a genuine fix to the contamination is still visible to whoever made it."
+  },
+  "groups": [
+    {
+      "slug": "reads-payloads-fixture-refuses-to-invent-a-subject",
+      "cause": "KeyError: \"'commit_v2' is not an identifier the deployed demo seed produces\", raised in the `payloads` fixture during SETUP, which is why these are errors and not failures. The fixture is deliberate and its own message says so: the database is built by applying the two seed files scripts/deploy/seed_demo.py applies to CockroachDB Cloud, so a name that is absent is a ROW THE DEPLOYED DEMO DOES NOT CARRY. Resolving this by minting the row in the fixture is the edit this repository has already caught once and reverted. The fixture names the subjects it CAN offer, and as of 2026-08-14 that list is: check_id, clause_gen, clause_uuid, commit_id, countersigner_credential_id, countersigner_sub, cr_external_ref, cr_id, cr_state, cr_target_ref, doc_id, event_id, permit_external_ref, permit_id, permit_state, policy_version, receipt_id, run_id, signer_credential_id, signer_sub, silence_receipt_id, site_code, site_id, site_role. `commit_v2` is absent from it; `cr_id` is present, which is the evidence that the superseded cause below was genuinely resolved rather than merely re-worded.",
+      "cause_superseded": [
+        {
+          "text": "KeyError: \"'cr_id' is not an identifier the deployed demo seed produces\", raised in the `payloads` fixture during SETUP, which is why these are errors and not failures. The fixture is deliberate and its own message says so: the database is built by applying the two seed files scripts/deploy/seed_demo.py applies to CockroachDB Cloud, so a name that is absent is a ROW THE DEPLOYED DEMO DOES NOT CARRY. Resolving this by minting the row in the fixture is the edit this repository has already caught once and reverted.",
+          "recorded_utc": "2026-08-13T21:05:00Z",
+          "superseded_utc": "2026-08-14T04:11:00Z",
+          "superseded_by": "W5 (lane-controls wave), against a JUnit XML it produced itself; see measured.re_measured",
+          "why_it_moved": "An earlier worker seeded a change-request row, so `cr_id` became resolvable and the fixture walked on to the NEXT subject the seed does not carry. The 63 node ids did not move: the `payloads` fixture is session-scoped and builds all twelve read resources before any test runs, so one missing subject errors the whole group and fixing it only reveals the next one. That is why the membership of this group is stable while its cause is not, and it is why a `cause` field has to be re-measured rather than assumed.",
+          "why_editing_this_field_is_not_the_forbidden_edit": "A `cause` is a DESCRIPTION OF AN OBSERVATION. Nothing is checked against it - scripts/ci/cluster_lane_report.py requires only that it be non-empty, precisely so that a node id cannot be filed here without a reason. It is not a floor, a ceiling, a fixture, a seed or an expected value, so correcting it against a fresh measurement does not move an authoritative side to match a derived one; leaving it stale, on the other hand, certifies the wrong defect. The superseded text is preserved here rather than overwritten, per this file's own convention for superseded numbers."
+        }
+      ],
+      "owner": "the demo-seed lead (demo_world.sql), not this lane",
+      "count_when_recorded": 63,
+      "count_when_re_measured": "63, unchanged, on 2026-08-14 at HEAD 538193b + working tree. The membership is byte-identical to the list recorded at 073dfea.",
+      "status_at_handoff": {
+        "utc": "2026-08-14T04:35:00Z",
+        "the_cause_above_NO_LONGER_FIRES": "Read this before trusting the `cause` field. It was re-measured and corrected at 04:11 and it was accurate then. At approximately 04:25 another lead landed the demo_world.sql seed build-out, the `payloads` fixture began to build, and the 63 setup errors went to ZERO. The `cause` is preserved as the last cause that explained this group AS A GROUP; it is not a description of the current run. This field is the current description, and it is placed inside the group so that no reader can meet the label without it.",
+        "56_of_the_63_now_PASS": "Plus the single member of the other group, for 57 of 64 inventoried ids passing. scripts/ci/cluster_lane_report.py reports them FIXED and raises its CEILING verdict naming them.",
+        "7_still_fail_FOR_A_DIFFERENT_REASON": "The remaining 7 are all in test_reads.py and none of them is a KeyError. They are content-level disagreements between the seed and the suite - the seed now carries the subjects, but not the VALUES the suite asserts. Measured, identical in readings 2 and 3: test_the_clause_version_reports_its_witnesses_as_a_positive_claim (assert 'introduce' == 'strengthen' - the second clause version is still not seeded); test_the_ancestry_resolves_the_closure_into_events_edges_and_a_commit_chain (assert 1 == 2); test_silence_flags_the_one_sentence_no_column_produced (assert 1 == 2); test_the_audit_surface_reports_the_caps_it_ran_under (assert 0 == 1); test_the_disposition_carries_the_lattice_and_the_projected_requirements (assert set() == {'MECHANISM_PRESENT_AND_VERIFIED','SCOPE_EXCLUDES_HAZARD'}); test_the_projected_counter_agrees_with_the_re_derivation (assert 'dispositioned' == 'draft'); test_open_is_derived_and_the_projections_are_columns ('the fixture signs a disposition, so the check is closed').",
+        "what_the_owner_should_do": "Delete this group in the commit that finishes the seed work, and if the 7 survive that commit, record them as a NEW group with the content-level cause above and their own owner. Splitting them out is a MEMBERSHIP change to `nodeids` and therefore belongs to the fixing commit, not to this one: W5 did not fix them and may not move them. This worker's whole permission was over prose."
+      },
+      "nodeids": [
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_inclusion_proof_verifies_against_the_checkpoint_it_names",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[audit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[change_request]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[clause_ancestry]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[clause_version]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[disposition]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[exposure_receipt]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[ledger]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[permit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[propagation]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[recall_run]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_provenance_pointer_addresses_something_real[silence]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[audit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[change_request]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[clause_ancestry]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[clause_version]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[disposition]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[exposure_receipt]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[ledger]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[permit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[propagation]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[recall_run]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_satisfies_its_committed_contract[silence]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[audit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[change_request]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[clause_ancestry]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[clause_version]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[disposition]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[exposure_receipt]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[ledger]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[permit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[propagation]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[recall_run]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_every_read_survives_the_clients_own_post_conditions[silence]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[audit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[change_request]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[clause_ancestry]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[clause_version]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[disposition]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[exposure_receipt]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[ledger]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[permit]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[propagation]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[recall_run]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_no_read_silently_drops_a_provenance_claim[silence]",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_open_is_derived_and_the_projections_are_columns",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_propagation_is_staged_in_full_and_names_the_three_absent_tables",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_silence_flags_the_one_sentence_no_column_produced",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_ancestor_cap_is_parsed_out_of_the_check_that_declares_it",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_ancestry_resolves_the_closure_into_events_edges_and_a_commit_chain",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_audit_surface_reports_the_caps_it_ran_under",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_change_request_gate_is_smaller_and_says_so",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_clause_version_reports_its_witnesses_as_a_positive_claim",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_consistency_proof_between_the_two_checkpoints_is_present",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_disposition_carries_the_lattice_and_the_projected_requirements",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_exposure_receipt_renders_its_hlc_as_an_exact_string",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_permit_gate_constraints_come_from_the_catalog",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_projected_counter_agrees_with_the_re_derivation",
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_the_recall_run_conserves_its_candidates"
+      ]
+    },
+    {
+      "slug": "reads-undeclared-query-parameter",
+      "cause": "assert [] == [0, 1] - the refusal this test asserts is not being produced for an undeclared query parameter.",
+      "ceiling_fired": {
+        "utc": "2026-08-14T04:11:00Z",
+        "observed_by": "W5 (lane-controls wave), from a JUnit XML it produced itself; see measured.re_measured",
+        "what_was_measured": "This node id PASSED. scripts/ci/cluster_lane_report.py reported it as `FIXED` and raised its CEILING verdict by name: '1 known-red test(s) now PASS ... Remove them from qa/cluster-known-red.json in the commit that fixed them.'",
+        "why_it_was_NOT_deleted_here": "The CEILING is the one direction this file may move, and it may move only in the commit that FIXES the entry. W5 did not fix it - another lead's uncommitted work in this shared tree did. Deleting it here would detach the ceiling from the change that earned it, hand the list a second owner, and leave the fixing commit with nothing to show. The lane-controls plan rules this explicitly (R5.iii): 'Entries leave it only in the commit that FIXES them.' So the entry STAYS, the lane STAYS red on this verdict, and the verdict keeps naming the id until its owner deletes it. A ceiling nobody is made to lower is a ceiling that never falls - and a ceiling lowered by somebody who did not do the work is a ceiling that fell for free.",
+        "action": "The demo-correctness lead deletes this group in the commit that carries the fix. Nothing else in this file is waiting on it."
+      },
+      "owner": "the demo-correctness lead",
+      "count_when_recorded": 1,
+      "nodeids": [
+        "verticals/mainline/apps/demo-api/tests/test_reads.py::test_an_undeclared_query_parameter_is_refused_rather_than_ignored"
+      ]
+    }
+  ],
+  "unstable": [
+    {
+      "nodeid": "verticals/mainline/apps/demo-api/tests/test_transitions.py::test_gate_run_is_reachable_through_handle_transition",
+      "runs_observed": 3,
+      "runs_failed": 1,
+      "reason": "Fails only in suite and only sometimes, in the same module and the same run as the other two. Grouped with them because they move together, not because the mechanism is proven.",
+      "evidence": "Three consecutive identical invocations of the whole suite, no edit to the tree in between: this node id failed in exactly one of them. 64 other node ids failed in all three.",
+      "owner": "the demo-suite lead"
+    },
+    {
+      "nodeid": "verticals/mainline/apps/demo-api/tests/test_transitions.py::test_suspending_a_merged_permit_commits",
+      "runs_observed": 3,
+      "runs_failed": 1,
+      "reason": "Fails only in suite and only sometimes, in the same module and the same run as the other two. Grouped with them because they move together, not because the mechanism is proven.",
+      "evidence": "Three consecutive identical invocations of the whole suite, no edit to the tree in between: this node id failed in exactly one of them. 64 other node ids failed in all three.",
+      "owner": "the demo-suite lead"
+    },
+    {
+      "nodeid": "verticals/mainline/apps/demo-api/tests/test_transitions.py::test_the_request_after_a_sign_disposition_is_not_a_503",
+      "runs_observed": 3,
+      "runs_failed": 1,
+      "reason": "One of the pair that exists to catch a 503 caused by a connection left in a bad state by an earlier test - the same warm-Lambda connection reuse the deployed function has. Its flapping IS the defect it was written to detect.",
+      "evidence": "Three consecutive identical invocations of the whole suite, no edit to the tree in between: this node id failed in exactly one of them. 64 other node ids failed in all three.",
+      "owner": "the demo-suite lead"
+    }
+  ],
+  "cross_test_contamination": "ALL THREE unstable node ids are in test_transitions.py and they move together: the run that had one had all of the ones it had, and the stable 64 are in a different module entirely. The wave brief names ONE such test (test_the_request_after_a_gate_run_is_not_a_503, which this worker measured PASSING in all six of its runs). The measurement here says the contaminated set is at least three node ids wide and does not include that one. This is a finding for the lead who owns test_transitions.py, not something this lane can fix: it is reported, not routed around."
+}

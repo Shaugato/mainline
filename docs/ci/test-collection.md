@@ -456,3 +456,230 @@ other workers and the change would be an edit to a test module:
    unobservable. The mechanism that matches the claim is a snapshot of `sys.modules` taken
    immediately before the three imports and diffed immediately after, or the three imports
    performed in a clean subprocess. `test_envelope.py` is W4's file and was not edited here.
+
+---
+
+## 9. The sequel: collection is not execution
+
+**Added 2026-08-13 by W5 of the CI-RUNS-THE-CLUSTER wave**, on TRAPPOINT, against the working
+tree at `D:/CoackroachDBxAWS/mainline` (local HEAD `073dfea`, two commits ahead of the public tip
+`2dc5c86`) with `.venv/Scripts/python.exe`. Every number below is printed beside the command that
+produced it, run in the same sitting as this section. Sections 1-8 are left exactly as their
+author measured them; nothing above this line was edited.
+
+**§1-§8 closed a real gap, and this section is about what closing it did not buy.** The
+declaration landed, the suite is collected, three further defects were found and two were fixed —
+and the demo API's cluster-backed tests **still have never executed in continuous integration,
+not once, on any lane, on any commit.**
+
+### 9.1 The testpath is on `master`, and the runner proves it
+
+Not inferred from the file: read out of the lane's own output. `docs/HONESTY.md` quotes `ci`'s
+`pytest --crdb=none` job from run `31657309517`, taken before the declaration landed:
+
+```
+5 failed, 8467 passed, 839 skipped, 13 deselected, 2 warnings in 267.96s (0:04:27)
+```
+
+The same job on `ci` run
+[31699545661](https://github.com/Shaugato/mainline/actions/runs/31699545661) — dispatched by this
+worker at `12:20:17Z` on 2026-08-13 against `2dc5c86`, read warm:
+
+```
+8 failed, 8629 passed, 1003 skipped, 13 deselected, 2 warnings in 339.20s (0:05:39)
+```
+
+`8 + 8629 + 1003 + 13 = 9653`. Two of the eight name files under this directory —
+`test_envelope.py::test_no_web_framework_or_aws_sdk_is_imported` (§8.2, exactly as predicted) and
+`test_response_contract.py::test_the_one_unmeasured_response_is_bounded_by_construction`.
+**A test from this directory can now make a CI lane red**, which was not true when §1 was
+written. That is the whole of what the testpath bought, and it is worth having.
+
+**The second of those two is a finding this document records for the first time**, because only a
+Linux runner could produce it:
+
+```
+OSError: [Errno 36] File name too long:
+  '/tmp/pytest-of-runner/pytest-0/test_the_one_unmeasured_respon0/web/assets/aaaa...aaa.js'
+```
+
+The test builds a very long filename to probe a size bound. Windows and Linux disagree about
+where a path stops being legal, so the case passes on this workstation and fails on the runner.
+It is a defect in the test rather than in the product, it belongs to the demo-api domain, and it
+is named here rather than fixed because this document owns no test module.
+
+### 9.2 And the suite still does not run
+
+```
+$ .venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests --collect-only -q
+445 tests collected in 0.66s
+
+$ .venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests --crdb=none -q
+258 passed, 187 skipped in 13.60s
+
+$ .venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q
+4 failed, 376 passed, 1 skipped, 64 errors in 52.15s
+```
+
+**187 of 445 — 42.0% of the suite that covers the product's headline path — execute in no CI lane
+anywhere.** They are collected, they are counted inside `ci`'s `1003 skipped`, and every one of
+them carries the reason its own fixture wrote. A skip with a reason is enormously better than a
+test nobody walked. It is still not a test that ran.
+
+The one skip that survives a cluster is not a cluster skip: `test_gate_run.py`, *"jsonschema is
+not a workspace dependency"*. So the executable population under a real node is **444**, and the
+`--crdb=reuse` line above is the only place in this repository where that population has ever
+been put to a database — a developer workstation, in one worker's sitting, published in a
+document. **That is not continuous integration. It is an anecdote with a timestamp.**
+
+### 9.3 No lane points a cluster at this directory. Measured, not asserted.
+
+```
+$ git grep -n "demo-api" 2dc5c86 -- .github/workflows/ ; echo "exit=$?"
+exit=1                              # no match, in any of the eighteen files
+
+$ git grep -c 'docker run -d' 2dc5c86 -- .github/workflows/
+cloud-verify.yml:1   custody-chain.yml:3   db-schema.yml:1   db.yml:1
+mutation-ratchet.yml:1   nightly-differential.yml:2   release-proof.yml:2   schema.yml:2
+                                    # 8 files, 13 stand-ups
+```
+
+**Eight of the eighteen workflows start a pinned CockroachDB. Not one of them names this
+directory.** The only lane that runs the whole-repo `testpaths` collection is `ci`'s
+`hermetic-tests`, and it runs it `--crdb=none` on purpose — correctly, because that is what makes
+the skips print a reason instead of dialling a node the session declined (§4, §5).
+
+Each half is individually right, and their conjunction is the hole:
+
+> **The lane that reaches this directory has no cluster. Every lane that has a cluster is pointed
+> somewhere else.**
+
+### 9.4 The same shape, at repository scale
+
+The exact argv `ci.yml`'s `hermetic-tests` job runs, plus `-ra` so every skip carries its reason.
+Run by this worker in this sitting, 606 s wall clock, on the local tree:
+
+```
+$ .venv/Scripts/python.exe -m pytest --crdb=none -q -m "not (g4alpha or pl2_red)" -ra
+4 failed, 8832 passed, 988 skipped, 15 deselected, 2 warnings in 606.03s (0:10:06)
+```
+
+`4 + 8832 + 988 + 15 = 9839`. Classifying all 988 `SKIPPED [n] file:line: reason` lines by their
+reason string:
+
+```
+974  skipped for want of a CockroachDB      (98.6% of all skips)
+ 14  skipped for anything else              (OPA binary, live-AWS opt-in, an uncommitted SBOM,
+                                             a nightly arm, sentence-transformers weights,
+                                             an undeclared fleet spec, an MCP write opt-in)
+ 46  distinct reason strings
+```
+
+Per test root, from the same run:
+
+| root | skipped | of which want a cluster |
+|---|---:|---:|
+| `tests/integration` | 542 | 539 |
+| `packages/trappoint-conformance` | 187 | 187 |
+| **`verticals/mainline/apps/demo-api`** | **187** | **187** |
+| `packages/trappoint-diagnose` | 17 | 17 |
+| `tests/concurrency` | 16 | 15 |
+| `tests/release` | 15 | 15 |
+| `packages/trappoint-model` | 11 | 11 |
+| `tests/boundary` | 6 | 0 |
+| `tests/unit` | 3 | 1 |
+| `packages/trappoint-testkit` | 2 | 2 |
+| `tests/security` | 2 | 0 |
+
+**Which of those roots a lane actually executes against a cluster is not answered here, and must
+not be guessed.** The lead of this wave tried to derive it by checking whether each skipped
+file's path, or any prefix of it, appears in a non-comment line of any workflow; the method
+returned `968 covered / 19 uncovered`, which is nonsense — `demo-api/tests/conftest.py` came back
+"covered by eleven workflows" because the substring `verticals` occurs in eleven files. The only
+sound method is to lift each lane's exact pytest argv out of its workflow and run it with
+`--collect-only`, recording the node ids it reaches. That census is `qa/skip-ratchet.json`'s
+subject and it has not landed. **Its absence is why this table stops at "skipped" and does not
+claim "unlanded".**
+
+### 9.5 Three totals that do not agree, and why none of them is wrong
+
+`qa/ci-skip-census.json` — written by `scripts/qa/ci_skip_census.py` at `12:04:05Z` the same
+morning, by another worker on this wave — records `collected 9839`, `skipped 988` and `46`
+distinct reasons for the same argv. Its `passed` is `8829` where this sitting measured `8832`,
+and a `--collect-only` taken after both runs reported `9842`:
+
+```
+$ .venv/Scripts/python.exe -m pytest --collect-only -q --crdb=none
+9842 tests collected in 11.73s
+```
+
+**Three totals, three timestamps, one moving tree.** Five other workers were writing into this
+working directory throughout; at the close of the sitting
+`git status --porcelain -uno | wc -l` reported 32 tracked files modified and
+`git status --porcelain | grep -c '^??'` reported 31 untracked paths, both larger than when
+the first of the three totals was taken. A pair of totals taken hours apart is
+arithmetic about other people's edits — the trap §1's *"before and after, taken in one sitting"*
+already names. **The honest form is the ratio, taken inside one run**: 988 of 9839, and 974 of
+those 988 for want of a database. That ratio is stable across all three measurements; the
+absolute totals are not, and this section does not pretend otherwise.
+
+**And the demo-api totals in §9.2 moved before this section was finished, which is the same
+point made against this document's own numbers.** Re-run at the close of the same sitting, with
+nothing changed in this file or in any test module by its author — who wrote three markdown
+files and nothing else:
+
+```
+# first re-run
+$ pytest verticals/mainline/apps/demo-api/tests --crdb=none  -q
+5 failed, 310 passed, 187 skipped in 16.21s            # 499 collected; was 258/187 of 445
+$ pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q
+6 failed, 429 passed, 1 skipped, 63 errors in 153.31s
+
+# second re-run, minutes later, same command, nothing changed by this author
+$ pytest verticals/mainline/apps/demo-api/tests --crdb=none  -q
+5 failed, 310 passed, 187 skipped in 15.46s            # 502 collected
+$ pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q
+6 failed, 432 passed, 1 skipped, 63 errors in 53.22s
+```
+
+The suite went 445 → 499 → 502 collected while this was being written: another worker landed
+836 lines across `mainline_demo_api/static_site.py` and `tests/test_response_contract.py`, and
+five of the new cases fail with no database at all. **None of that delta belongs to this
+document and none of it is claimed here.** All three pairs are printed because a single "after"
+number would have silently taken credit — or blame — for somebody else's in-flight change.
+
+**What did not move across any of the three is the number this section is about: 187 skipped,
+every time, for want of a CockroachDB, in a directory no workflow points a cluster at.** The
+denominator drifted by 57 tests in an afternoon; the hole did not move at all.
+
+### 9.6 The lane that would end this is written, and is not yet a lane
+
+`.github/workflows/cluster-tests.yml` exists in this working tree. It stands up the pinned node,
+asks the server its own `SELECT version()`, and runs this directory with `--crdb=reuse` behind an
+executed floor. Measured, in this sitting:
+
+```
+$ git status --porcelain .github/workflows/cluster-tests.yml
+?? .github/workflows/cluster-tests.yml
+
+$ gh workflow list --all --json name --jq '.[].name' | grep -ci cluster
+0
+```
+
+**Untracked, absent from the remote, never dispatched, no run id.** By this repository's own
+standard — `docs/CI-STATE.md` §0.2, *"a repair without a run id is a plan, and this page counts
+plans as red"* — it is not yet a lane, and this document will not credit it as one. When it is
+pushed and dispatched, the number to check is not its colour: it is **`tests − skipped ≥ 440`**
+in its own executed-floor step, because a lane that runs zero tests and exits 0 is worse than no
+lane at all.
+
+### 9.7 The sentence this document exists for
+
+§1 established that **a test that is not collected is not enforcement.** Closing that gap produced
+the sharper form, and it is the one the next reader needs:
+
+> **Collection is not execution.** A suite can be walked by every census, counted in every total
+> and printed in every summary — and still be a suite that has never met the database it is
+> written about. `testpaths` decides what pytest *looks at*; `--crdb` decides what actually
+> *ran*. A repository that watches only the first has moved its defects from invisible to
+> skipped, which on a dashboard is the same colour as fixed.

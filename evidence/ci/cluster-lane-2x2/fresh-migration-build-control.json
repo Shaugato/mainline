@@ -1,0 +1,18 @@
+{
+  "question": "Is the partial fresh-database build failure seen in cell 4 caused by the plant? The plant edits a SEED; migrations run before any seed is applied. This builds the same 271 migrations into throwaway databases on a CLEAN tree with no plant present.",
+  "tree": "clean (plant reverted; demo_world.sql sha256 e2aa9706ffca...)",
+  "runs": [
+    {
+      "database": "w_w4_freshbuild_1",
+      "applied": 271,
+      "failed": 0,
+      "failures": []
+    },
+    {
+      "database": "w_w4_freshbuild_2",
+      "applied": 271,
+      "failed": 0,
+      "failures": []
+    }
+  ]
+}

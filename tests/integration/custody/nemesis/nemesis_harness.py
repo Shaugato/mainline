@@ -33,7 +33,9 @@ seeded context, and the collector that the attack matrix is generated from.
 
 from __future__ import annotations
 
+import datetime as dt
 import json
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -425,23 +427,71 @@ class OutcomeRecorder:
         self.outcomes[outcome.id] = outcome.as_dict()
 
     def write(self, destination: Path) -> None:
-        """Write the run record to ``destination``, or do nothing if no attack ran.
+        """Write the run record to ``destination``, or do nothing if no attack RAN.
 
         The destination is passed in rather than held here: this module holds the shape
         of the record and ``conftest.py`` — the half that knows it is inside a pytest
         session — holds where the session's evidence lands.
+
+        **A session in which nothing executed has not produced a run record, and must not
+        overwrite one.** This guard is not a nicety; it is the defect that put K2.1 and K2.2
+        red at ``2dc5c86``, measured on 2026-08-13:
+
+            $ sha256sum evidence/CUSTODY_ATTACK_MATRIX.md   # 14 attacks, b72b7f4f…
+            $ pytest tests/integration/custody/nemesis --crdb=none -q
+            2 passed, 15 skipped
+            $ sha256sum evidence/CUSTODY_ATTACK_MATRIX.md   # 0 of 1,       932abba3…
+
+        Fifteen cluster-backed attacks skipped for want of a node, A15 recorded its
+        ``SKIP(no-credentials)`` — which needs no cluster and therefore *always* records —
+        and ``self.outcomes`` was non-empty, so a session that executed **nothing**
+        published itself as the run of record. The matrix committed at ``2dc5c86`` is that
+        render: ``attacks executed: 0 of 1``, fourteen holes, and the two K2 exit criteria
+        red against an artefact that a **passing** test run (exit 0) had emptied. The old
+        test — ``if not self.outcomes`` — could not tell a skip from a detection, so it
+        could not refuse.
+
+        A PARTIAL run still writes, and that is deliberate: ``pytest -k a13`` records one
+        executed attack, and ``matrix.py`` lists the other fourteen as ABSENT holes rather
+        than omitting them. What is refused is only the ZERO-executed case, and it is
+        refused loudly — an evidence file that silently declined to update is its own kind
+        of lie.
         """
-        if not self.outcomes:
+        if not any(outcome["ran"] for outcome in self.outcomes.values()):
+            skipped = ", ".join(sorted(self.outcomes, key=_attack_sort_key)) or "none"
+            print(
+                f"[nemesis] NOT writing {destination.name}: no attack was EXECUTED by this "
+                f"session (recorded, all skipped: {skipped}). The attack matrix is generated "
+                "from a run; a session that reached no cluster made no observation, and "
+                "publishing it would replace a record of detections with a record of "
+                "absences. The committed run record is left exactly as it was.",
+                file=sys.stderr,
+            )
             return
         destination.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "attacks": [self.outcomes[key] for key in sorted(self.outcomes, key=_attack_sort_key)],
-            "environment": self.environment,
+            # Stamped HERE, at the moment the run finished, and carried inside the record —
+            # not at render time. `matrix.py` reads it back rather than calling `now()`, so
+            # the matrix is a pure function of the run record: re-rendering an old record
+            # reproduces it byte for byte instead of re-dating somebody else's run to today.
+            "environment": {**self.environment, "generated_at": _utc_stamp()},
             "schema_version": 1,
         }
+        # `newline="\n"` because this record is EVIDENCE and the matrix is rendered from it:
+        # a bare `write_text()` translates to CRLF on the Windows box this repository is
+        # developed on and leaves LF alone on the ubuntu-24.04 runner that regenerates it,
+        # so the same fourteen attacks would produce two different files. Measured at
+        # `2dc5c86`: the committed record carried 20 CRLF and 0 bare LF. See the same
+        # argument, at length, in `matrix.write_matrix`.
         destination.write_text(
-            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
         )
+
+
+def _utc_stamp() -> str:
+    """The moment the run finished, to the second, in UTC."""
+    return dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _attack_sort_key(attack_id: str) -> int:

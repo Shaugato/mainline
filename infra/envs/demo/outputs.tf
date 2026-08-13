@@ -162,6 +162,173 @@ output "cloudfront_invoke_grant_created" {
   value       = try(module.api[0].cloudfront_invoke_grant_created, false)
 }
 
+output "api_alarm_names" {
+  description = <<-EOT
+    The four alarm names `module.api` creates — `-errors`, `-throttles`, `-duration-p99`,
+    `-concurrency` — or null when `enable_api = false`.
+
+    ALL FOUR NOW CARRY AN ACTION, which they did not before this wave: `guard_sns_topic_arn`
+    below. That topic's only subscriber stops the function, so a breach of any of these is
+    an outage and not a notification. `api_alarm_arns` exists next to it for the one
+    comparison that matters — see there.
+
+    `treat_missing_data = "missing"` on all four, so `describe-alarms` answers
+    INSUFFICIENT_DATA on a demo nobody has visited. That is the TRUE state and a consumer
+    must not read it as a pass.
+  EOT
+  value       = try(module.api[0].alarm_names, null)
+}
+
+output "api_alarm_arns" {
+  description = <<-EOT
+    The four demo-api alarm ARNs, same order as `api_alarm_names`, or null when
+    `enable_api = false`.
+
+    IT IS HERE TO BE COMPARED AGAINST `guard_alarm_arns`, AND THE COMPARISON IS AN OPEN
+    QUESTION RATHER THAN A FORMALITY. The guard's SNS topic policy admits
+    `cloudwatch.amazonaws.com` under an `ArnLike` on `aws:SourceArn` naming exactly the
+    guard's OWN three alarms. None of these four is in that list, and this root nonetheless
+    passes the guard topic as their `alarm_actions`. Whether they can publish rests on the
+    policy's first statement (SNS's default `Principal AWS:*` narrowed by
+    `AWS:SourceOwner`), and only an apply plus a real breach settles it. If they cannot,
+    four alarms carry an action SNS denies — indistinguishable in `describe-alarms` from one
+    that delivers. `evidence/deploy/cost/plan-shape.json` records both sets so the question
+    survives outside this description.
+  EOT
+  value       = try(module.api[0].alarm_arns, null)
+}
+
+output "api_published_bounds" {
+  description = <<-EOT
+    EVERY BOUND THE DEMO FUNCTION ENFORCES, IN ONE OBJECT — the six `MAINLINE_*` application
+    bounds, the two AWS-side shape values (`timeout`, `memory_size`), the two log levels and
+    the alarm thresholds. Null when `enable_api = false`.
+
+    It exists because until this wave the honest answer to "what response ceiling, what rate
+    limit, what log budget is this deployment enforcing?" was: unzip a 7.6 MB package and
+    read a Python constant. Now it is `terraform output api_published_bounds`, and — because
+    all six are also environment variables on the function — `aws lambda
+    get-function-configuration --query Environment.Variables` from any read-only credential.
+
+    EVERY FIELD IS KNOWN AT PLAN TIME, so this object is readable in the committed plan
+    artefact and not only after an apply. Whether the alarms are ARMED is deliberately not
+    one of those fields — it is `api_alarm_actions_armed` below, and it cannot be
+    plan-known — because one unknown field would render the whole object as "(known after
+    apply)" and take the readability away from all seventeen.
+  EOT
+  value       = try(module.api[0].published_bounds, null)
+}
+
+output "api_alarm_actions_armed" {
+  description = <<-EOT
+    Whether the four demo-api alarms carry an ALARM action. In this root that means the
+    cost guard's STOP topic, so `true` says a breach of `-errors`, `-throttles`,
+    `-duration-p99` or `-concurrency` takes the demo down until somebody runs
+    `scripts/deploy/kill_switch.sh --restore`. Null when `enable_api = false`.
+
+    "(known after apply)" in the plan, and not fixable: `local.guard_stop_topic_actions`
+    reaches a counted module through `try()`, which yields unknown whenever its argument
+    contains an unknown. The wiring is nonetheless provable from the plan's `configuration`
+    section — see `evidence/deploy/cost/plan-shape.json`.
+  EOT
+  value       = try(module.api[0].alarm_actions_armed, null)
+}
+
+output "api_ok_actions_armed" {
+  description = "Whether the four demo-api alarms notify anything on RECOVERY. `false`: a stop topic must not be reached by an alarm getting better, and since this wave `ok_actions` is a separate list from `alarm_actions` so that arming one cannot arm the other. Null when `enable_api = false`."
+  value       = try(module.api[0].ok_actions_armed, null)
+}
+
+# ── The cost guard — the stop, and the three alarms that reach it ─────────────────────
+#
+# `module.guard` exists exactly when `module.api` does (`count = var.enable_api ? 1 : 0`),
+# because a guard scoped to a function that does not exist is a stop mechanism whose alarms
+# sit in INSUFFICIENT_DATA and whose one API call would 404. Every output below is
+# `try(…, null)` for the same reason every site-shaped output above is: at count zero
+# `module.guard[0]` is an INVALID INDEX, not a null, and `try` is what converts that error
+# into something a JSON consumer can branch on.
+
+output "guard_enabled" {
+  description = "Whether the cost guard exists. It follows `enable_api`, and there is deliberately no separate switch: a boolean that turns the only stop in this stack off is the variable somebody turns off at 02:00 to make a curl work. The operational off-switch is `scripts/deploy/kill_switch.sh`, which leaves a trace."
+  value       = var.enable_api
+}
+
+output "guard_sns_topic_arn" {
+  description = <<-EOT
+    THE STOP TOPIC. Publishing to it invokes the responder, which calls
+    `lambda:PutFunctionConcurrency(ReservedConcurrentExecutions=0)` on the demo function.
+    Null when `enable_api = false`.
+
+    IT IS NOT A NOTIFICATION TOPIC AND MUST NEVER BE TREATED AS ONE. Anything subscribed
+    here stops the demo; anything wired to it as an alarm action stops the demo on breach.
+    This root passes it to `module.api`'s `alarm_actions` deliberately and does NOT pass it
+    to `ok_actions` — a stop fired by an alarm RECOVERING is not a trade anybody chose.
+
+    A human who wants to be told rather than to stop things wants
+    `guard_notification_emails`, and has to click the confirmation link before that
+    subscription delivers anything at all.
+  EOT
+  value       = try(module.guard[0].sns_topic_arn, null)
+}
+
+output "guard_responder_function_name" {
+  description = "The responder function's name, or null. `aws logs tail /aws/lambda/<this> --follow` after an incident: it logs one JSON line per decision — stopped, refused, ignored — and that line is the record of whether the stop actually fired."
+  value       = try(module.guard[0].responder_function_name, null)
+}
+
+output "guard_guarded_function_arn" {
+  description = <<-EOT
+    The single unqualified function ARN the responder's IAM grant names, or null.
+
+    COMPARE IT AGAINST `api_function_name`. Both are built from `local.api_function_name`,
+    so they agree by construction rather than by coincidence — that is the whole reason the
+    name is hoisted into a local instead of taken from `module.api`'s output, which would be
+    a Terraform cycle. If these two ever disagree, the guard is armed at a function that
+    does not exist and the stop is a 403 nobody sees until the incident.
+  EOT
+  value       = try(module.guard[0].guarded_function_arn, null)
+}
+
+output "guard_alarm_names" {
+  description = "The guard's three alarm names, in timescale order: 60 s invocations, 3600 s invocations, 300 s log ingestion. Null when `enable_api = false`. These are the COST alarms; `api_alarm_names` are the health ones."
+  value       = try(module.guard[0].alarm_names, null)
+}
+
+output "guard_alarm_arns" {
+  description = <<-EOT
+    The guard's three alarm ARNs, or null. These are the EXACT ARNs named in the topic
+    policy's `aws:SourceArn` condition, which is why they are emitted rather than left
+    inside the module: the set of ARNs the topic admits and the set of alarms pointed at it
+    are two different lists, and `api_alarm_arns` above is not a subset of this one.
+  EOT
+  value       = try(module.guard[0].alarm_arns, null)
+}
+
+output "guard_budget_name" {
+  description = "The budget's name, for `aws budgets describe-budget --budget-name <name>`. Null when `enable_api = false`. It is an ACTUAL-cost notification, so it fires on money already spent — on an 8-24 h Cost Explorer lag AWS documents and no setting shortens. It is the backstop, never the bound."
+  value       = try(module.guard[0].budget_name, null)
+}
+
+output "guard_thresholds" {
+  description = <<-EOT
+    Every threshold the cost guard enforces plus the reachability arithmetic behind it, so
+    that "what is actually in force?" is one command and not a read of two `variables.tf`
+    files. Null when `enable_api = false`.
+
+    `*_visible_ms` is the slowest flood each invocation alarm can SEE: at the account
+    concurrency ceiling, a flood of invocations slower than that cannot put enough of them
+    into the window to breach. That is the number an operator needs when an alarm did not
+    fire and the bill still moved, and it is the reason this object is worth an output.
+
+    These thresholds are NOT restated in this root's variables. They were derived this wave
+    inside `infra/modules/cost-guard/variables.tf`, from measured beat durations, a measured
+    per-invocation log term and a read-only Cost Explorer query, and each is guarded by a
+    `lifecycle.precondition` in that module. Copying them here would create two places that
+    can disagree about one derivation.
+  EOT
+  value       = try(module.guard[0].thresholds, null)
+}
+
 # ── The site — null in the default shape, and that is not an error ────────────────────
 
 output "distribution_id" {
@@ -231,6 +398,23 @@ output "deploy_summary" {
     dsn_parameter_name      = var.dsn_parameter_name
     aws_region              = var.aws_region
     aws_account_id          = data.aws_caller_identity.current.account_id
+
+    # ── THE GUARD, IN THE OBJECT THE DEPLOY SCRIPT ALREADY READS ──────────────────────
+    #
+    # Added rather than left to a separate `terraform output` call, because the deploy
+    # report is where an operator learns what they just created and "there is now a
+    # mechanism that can stop this URL without asking anybody" is the single most
+    # surprising thing in this apply. Adding keys is safe for both consumers: `deploy.sh`
+    # and `deploy.ps1` read named keys out of this object and ignore the rest.
+    #
+    # `guard_responder_function_name` is here specifically so that the first thing to run
+    # after an unexplained 429 is in the same output as the URL that is 429ing:
+    #   aws logs tail /aws/lambda/<guard_responder_function_name> --since 1h
+    guard_enabled                 = var.enable_api
+    guard_sns_topic_arn           = try(module.guard[0].sns_topic_arn, null)
+    guard_responder_function_name = try(module.guard[0].responder_function_name, null)
+    guard_budget_name             = try(module.guard[0].budget_name, null)
+    api_alarm_actions_armed       = try(module.api[0].published_bounds.alarm_actions_armed, false)
     phase = (
       var.enable_cloudfront
       ? (var.enable_api ? "2-cloudfront" : "1-replay")

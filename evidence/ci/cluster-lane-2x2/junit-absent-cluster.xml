@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="1" tests="78" time="19.674" timestamp="2026-08-14T04:13:45.827107+10:00" hostname="AetherX"><testcase classname="tests.test_credentials" name="test_resolves_the_credential_the_deployed_seed_enrolled[dict_row]" time="0.059" /><testcase classname="tests.test_credentials" name="test_resolves_the_credential_the_deployed_seed_enrolled[tuple_row]" time="0.007" /><testcase classname="tests.test_credentials" name="test_the_deployed_seed_does_not_enrol_the_value_gate_run_used_to_derive" time="0.007" /><testcase classname="tests.test_credentials" name="test_resolution_is_not_derivation" time="0.007" /><testcase classname="tests.test_credentials" name="test_a_revoked_credential_is_not_a_candidate" time="0.008" /><testcase classname="tests.test_credentials" name="test_a_live_credential_beside_a_revoked_one_is_still_resolved" time="0.009" /><testcase classname="tests.test_credentials" name="test_two_live_credentials_are_refused_rather_than_chosen_between" time="0.008" /><testcase classname="tests.test_credentials" name="test_an_unenrolled_subject_is_refused_by_name" time="0.006" /><testcase classname="tests.test_credentials" name="test_the_refusal_is_the_class_the_handler_already_answers_with_422" time="0.010" /><testcase classname="tests.test_credentials" name="test_no_module_derives_a_credential_id" time="0.094" /><testcase classname="tests.test_credentials" name="test_gate_run_resolves_the_credentials_it_binds" time="0.007" /><testcase classname="tests.test_credentials" name="test_the_credentials_are_resolved_before_the_beats_transaction_opens" time="0.007" /><testcase classname="tests.test_credentials" name="test_beat_four_admits_against_the_deployed_seed" time="0.923" /><testcase classname="tests.test_credentials" name="test_the_seed_files_this_suite_runs_against_are_the_ones_the_deploy_applies" time="0.009" /><testcase classname="tests.test_credentials" name="test_every_seed_file_this_suite_names_exists" time="0.001" /><testcase classname="tests.test_credentials" name="test_the_migrations_directory_this_suite_builds_from_is_present" time="0.001" /><testcase classname="tests.test_credentials" name="test_the_resolver_reads_the_table_its_refusals_name" time="0.001" /><testcase classname="tests.test_gate_run" name="test_gate_run_verdict_is_proven" time="0.945" /><testcase classname="tests.test_gate_run" name="test_beat_one_reads_both_counters" time="0.001" /><testcase classname="tests.test_gate_run" name="test_beat_two_is_23514_gate_closed_when_issued" time="0.001" /><testcase classname="tests.test_gate_run" name="test_beat_two_refusal_names_the_open_obligation" time="0.001" /><testcase classname="tests.test_gate_run" name="test_beat_three_is_p0001_fn_permit_merge_gate" time="0.001" /><testcase classname="tests.test_gate_run" name="test_beat_four_admits_with_a_server_computed_clearance_digest" time="0.001" /><testcase classname="tests.test_gate_run" name="test_all_four_beats_share_one_transaction" time="0.001" /><testcase classname="tests.test_gate_run" name="test_every_table_row_count_is_identical_across_a_gate_run" time="1.108" /><testcase classname="tests.test_gate_run" name="test_the_payload_proves_its_own_persistence_claim" time="0.001" /><testcase classname="tests.test_gate_run" name="test_two_consecutive_runs_see_the_same_subject" time="1.852" /><testcase classname="tests.test_gate_run" name="test_concurrent_runs_do_not_collide" time="2.035" /><testcase classname="tests.test_gate_run" name="test_payload_satisfies_the_governing_contract_structurally" time="0.002" /><testcase classname="tests.test_gate_run" name="test_payload_validates_against_the_json_schema" time="0.002"><skipped type="pytest.skip" message="jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added">D:\CoackroachDBxAWS\mainline\verticals\mainline\apps\demo-api\tests\test_gate_run.py:945: jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added</skipped></testcase><testcase classname="tests.test_gate_run" name="test_scenario_identifiers_are_derived_not_remembered" time="0.001" /><testcase classname="tests.test_gate_run" name="test_scenario_env_override_wins" time="0.001" /><testcase classname="tests.test_gate_run" name="test_scenario_not_seeded_is_not_a_refusal" time="0.013" /><testcase classname="tests.test_gate_run" name="test_gate_run_refuses_an_autocommit_connection" time="0.003" /><testcase classname="tests.test_gate_run" name="test_a_subject_whose_receipt_expired_is_gate_ready_and_not_beat_four_ready" time="0.001" /><testcase classname="tests.test_gate_run" name="test_a_consumed_subject_is_reported_as_consumed_not_as_an_expiry" time="0.001" /><testcase classname="tests.test_gate_run" name="test_the_fixture_yields_a_subject_beat_four_can_actually_run_on" time="0.027" /><testcase classname="tests.test_gate_run" name="test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one" time="0.107" /><testcase classname="tests.test_gate_run" name="test_the_real_handler_answers_the_deployed_seed_with_a_gate_run_envelope" time="0.981" /><testcase classname="tests.test_gate_run" name="test_all_four_beats_run_through_the_real_handler_on_the_deployed_seed" time="0.001" /><testcase classname="tests.test_gate_run" name="test_beat_four_admits_on_the_deployed_seed_rather_than_23503" time="0.001" /><testcase classname="tests.test_gate_run" name="test_the_verdict_on_the_deployed_seed_is_proven" time="0.001" /><testcase classname="tests.test_gate_run" name="test_the_admission_is_a_green_this_database_could_have_refused" time="0.911" /><testcase classname="tests.test_gate_run" name="test_the_signer_subjects_beat_four_falls_back_to_are_the_ones_the_seed_enrols" time="0.001" /><testcase classname="tests.test_gate_run" name="test_the_deployed_seed_and_the_proof_seed_are_two_different_worlds" time="0.009" /><testcase classname="tests.test_transitions" name="test_the_five_declared_resources_are_exactly_these" time="0.001" /><testcase classname="tests.test_transitions" name="test_unknown_resource_is_404_and_not_an_envelope" time="0.037" /><testcase classname="tests.test_transitions" name="test_a_malformed_identifier_is_422_and_not_an_envelope" time="0.003" /><testcase classname="tests.test_transitions" name="test_a_missing_permit_is_404" time="0.008" /><testcase classname="tests.test_transitions" name="test_a_missing_check_is_404" time="0.011" /><testcase classname="tests.test_transitions" name="test_a_one_word_clearance_is_refused_by_the_api_not_the_gate" time="0.189" /><testcase classname="tests.test_transitions" name="test_an_undeclared_disposition_kind_is_422" time="0.183" /><testcase classname="tests.test_transitions" name="test_the_demo_subject_cannot_be_mutated_through_a_transition[merge_permit]" time="0.007" /><testcase classname="tests.test_transitions" name="test_the_demo_subject_cannot_be_mutated_through_a_transition[suspend_permit]" time="0.007" /><testcase classname="tests.test_transitions" name="test_the_demo_subject_cannot_be_mutated_through_a_transition[materialise_checks]" time="0.007" /><testcase classname="tests.test_transitions" name="test_the_demo_subject_cannot_be_mutated_through_a_transition[sign_disposition]" time="0.016" /><testcase classname="tests.test_transitions" name="test_the_demo_subject_is_unchanged_by_the_attempt" time="0.033" /><testcase classname="tests.test_transitions" name="test_the_guard_survives_the_loss_of_its_environment_variable" time="0.024" /><testcase classname="tests.test_transitions" name="test_merge_with_an_open_obligation_is_a_refused_envelope" time="0.482" /><testcase classname="tests.test_transitions" name="test_a_refused_merge_persists_nothing" time="0.486" /><testcase classname="tests.test_transitions" name="test_sign_disposition_then_merge_commits" time="0.526" /><testcase classname="tests.test_transitions" name="test_merging_an_already_merged_permit_is_refused_by_the_epoch_pin" time="0.817" /><testcase classname="tests.test_transitions" name="test_suspending_a_permit_that_never_merged_is_23503_on_legal_edge" time="0.234" /><testcase classname="tests.test_transitions" name="test_suspending_a_merged_permit_commits" time="0.675" /><testcase classname="tests.test_transitions" name="test_materialise_checks_issues_a_receipt_and_moves_the_subject" time="0.285" /><testcase classname="tests.test_transitions" name="test_materialise_without_a_silence_receipt_is_422_and_fabricates_nothing" time="0.036" /><testcase classname="tests.test_transitions" name="test_gate_run_is_reachable_through_handle_transition" time="0.964" /><testcase classname="tests.test_transitions" name="test_gate_run_leaves_the_connection_usable" time="1.064" /><testcase classname="tests.test_transitions" name="test_a_non_string_run_id_is_422" time="0.004" /><testcase classname="tests.test_transitions" name="test_the_shared_connection_is_the_one_db_py_opens" time="0.004" /><testcase classname="tests.test_transitions" name="test_a_gate_run_hands_the_shared_connection_back_in_autocommit" time="1.052" /><testcase classname="tests.test_transitions" name="test_sign_disposition_hands_the_shared_connection_back_in_autocommit" time="0.433" /><testcase classname="tests.test_transitions" name="test_the_request_after_a_gate_run_is_not_a_503" time="1.843" /><testcase classname="tests.test_transitions" name="test_the_request_after_a_sign_disposition_is_not_a_503" time="0.551" /><testcase classname="tests.test_transitions" name="test_every_outcome_hands_the_connection_back" time="0.191"><error message="failed on setup with &quot;psycopg.errors.SerializationFailure: restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh): &quot;sql txn&quot; meta={id=3d4281e7 key=/Table/4076/1/&quot;@y?}\x82JK4\xb2\xfe\xf0=\xe6\xf8,p&quot;/0 iso=Serializable pri=0.00067432 epo=0 ts=1786644844.617522798,1 min=1786644844.609360415,0 seq=29} lock=true stat=PENDING rts=1786644844.609360415,0 gul=1786644845.109360415,0 obs={n1@1786644844.609360415,0}&#10;HINT:  See: https://www.cockroachlabs.com/docs/v26.2/transaction-retry-error-reference.html#retry_serializable&quot;">w4_database = 'postgresql://root@127.0.0.1:26257/w_w4_api_transitions?sslmode=disable&amp;connect_timeout=10'
+
+    @pytest.fixture
+    def fresh_history(w4_database: str) -&gt; Iterator[_History]:  # noqa: F811
+        """A brand-new permit with one open obligation. Its own subject, so tests cannot collide."""
+        import os
+    
+        with psycopg.connect(w4_database, autocommit=False) as connection:
+&gt;           yield _seed_permit(
+                connection,
+                os.environ["MAINLINE_DEMO_PERMIT_ID"],
+                os.environ["MAINLINE_DEMO_SIGNER_SUB"],
+            )
+
+verticals\mainline\apps\demo-api\tests\test_transitions.py:242: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+verticals\mainline\apps\demo-api\tests\test_transitions.py:225: in _seed_permit
+    w4_conn.commit()
+.venv\Lib\site-packages\psycopg\connection.py:305: in commit
+    self.wait(self._commit_gen())
+.venv\Lib\site-packages\psycopg\connection.py:484: in wait
+    return waiting.wait(gen, self.pgconn.socket, interval=interval)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\psycopg\waiting.py:281: in wait_select
+    s = gen.send(ready)
+        ^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\psycopg\_connection_base.py:585: in _commit_gen
+    yield from self._exec_command(b"COMMIT")
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;psycopg.Connection [BAD] at 0x165006ca210&gt;, command = b'COMMIT'
+result_format = &lt;Format.TEXT: 0&gt;
+
+    def _exec_command(
+        self, command: QueryNoTemplate, result_format: pq.Format = TEXT
+    ) -&gt; PQGen[PGresult | None]:
+        """
+        Generator to send a command and receive the result to the backend.
+    
+        Only used to implement internal commands such as "commit", with eventual
+        arguments bound client-side. The cursor can do more complex stuff.
+        """
+        self._check_connection_ok()
+    
+        if isinstance(command, str):
+            command = command.encode(self.pgconn._encoding)
+        elif isinstance(command, Composable):
+            command = command.as_bytes(self)
+    
+        if self._pipeline:
+            cmd = partial(
+                self.pgconn.send_query_params,
+                command,
+                None,
+                result_format=result_format,
+            )
+            self._pipeline.command_queue.append(cmd)
+            self._pipeline.result_queue.append(None)
+            return None
+    
+        # Unless needed, use the simple query protocol, e.g. to interact with
+        # pgbouncer. In pipeline mode we always use the advanced query protocol
+        # instead, see #350
+        if result_format == TEXT:
+            self.pgconn.send_query(command)
+        else:
+            self.pgconn.send_query_params(command, None, result_format=result_format)
+    
+        result: PGresult = (yield from generators.execute(self.pgconn))[-1]
+        if result.status != COMMAND_OK and result.status != TUPLES_OK:
+            if result.status == FATAL_ERROR:
+&gt;               raise e.error_from_result(result, encoding=self.pgconn._encoding)
+E               psycopg.errors.SerializationFailure: restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE - failed preemptive refresh): "sql txn" meta={id=3d4281e7 key=/Table/4076/1/"@y?}\x82JK4\xb2\xfe\xf0=\xe6\xf8,p"/0 iso=Serializable pri=0.00067432 epo=0 ts=1786644844.617522798,1 min=1786644844.609360415,0 seq=29} lock=true stat=PENDING rts=1786644844.609360415,0 gul=1786644845.109360415,0 obs={n1@1786644844.609360415,0}
+E               HINT:  See: https://www.cockroachlabs.com/docs/v26.2/transaction-retry-error-reference.html#retry_serializable
+
+.venv\Lib\site-packages\psycopg\_connection_base.py:483: SerializationFailure</error></testcase><testcase classname="tests.test_transitions" name="test_a_defect_escaping_the_handler_does_not_leak_the_flag" time="0.006" /><testcase classname="tests.test_transitions" name="test_a_40001_escaping_the_beats_does_not_leak_the_flag" time="0.006" /><testcase classname="tests.test_transitions" name="test_only_the_borrow_context_manager_assigns_autocommit" time="0.013" /></testsuite></testsuites>

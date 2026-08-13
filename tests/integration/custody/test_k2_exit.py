@@ -36,26 +36,36 @@ suite is what produces that evidence from a real run against a real cluster.
 Auxiliary tests in this file (the ones the evidentiary map and the check registry name)
 **skip loudly** when their dependency is absent, because they are not exit criteria.
 
-Where the six stand, measured 2026-08-10
+Where the six stand, measured 2026-08-13
 ----------------------------------------
-Three are met. K2.1 and K2.2 became green when ``evidence/CUSTODY_ATTACK_MATRIX.md`` was
-regenerated from a nemesis run that executed 14 of the 15 attacks as real SQL against a
-disposable CockroachDB v26.2.5 — A1 caught by check 3, A10 caught by check 14 in 251 ms —
-and when ``spec/custody/checks.yaml`` was corrected to record the nine structural checks as
-``implemented``, which is what they had already been for days. K2.3 was green already.
+K2.3 was green from the start. K2.1 and K2.2 turn on ``evidence/CUSTODY_ATTACK_MATRIX.md``
+recording A1 → check 3 and A10 → check 14 from a nemesis run that executed the attacks as
+real SQL against a disposable CockroachDB v26.2.5 — 14 of the 15, A10 caught by check 14 in
+251 ms — together with ``spec/custody/checks.yaml`` recording the nine structural checks as
+``implemented``, which is what they had already been for days. **That matrix has a producer
+and the producer runs.** When it has been run over both attacks the two criteria are green;
+when the committed matrix predates one of them they are red. Their colour is therefore a
+statement about a run that was or was not re-run, not about a mechanism that does not exist,
+and that is exactly why neither of them carries the by-design-RED marker described below.
 
-Three are not met, and each of the three is blocked on **an artefact that does not exist**.
-Their assertions below name that artefact by path and name its owner: the **domain**, the
-lead document that domain publishes, and where one exists the roster worker inside it —
-because "K2.4 NOT MET" tells a reader nothing they can act on, and "owner: the `sequencer`
-worker" tells a reader who has not read `docs/leads/roster.json` almost nothing either. The
-owners, resolved from `docs/leads/roster.json` and
-`docs/adr/0040-custody-red-before-green.md`:
+K2.5 went green on 2026-08-13, when the freeze of ``spec/wire/checkpoint.md`` at ``v1.0`` was
+recorded in ``spec/CHANGELOG.md`` under *Wire formats — versioned separately*. The assertion
+was not touched to get there and it stays falsifiable: delete that one bullet and this file
+goes red again.
+
+K2.4 and K2.6 are not met, and each is blocked on **an artefact that does not exist**. Their
+assertions below name that artefact by path and name its owner: the **domain**, the lead
+document that domain publishes, and where one exists the roster worker inside it — because
+"K2.4 NOT MET" tells a reader nothing they can act on, and "owner: the `sequencer` worker"
+tells a reader who has not read `docs/leads/roster.json` almost nothing either. The owners,
+resolved from `docs/leads/roster.json` and `docs/adr/0040-custody-red-before-green.md`:
 
 ===============  ==============================================================
 K2.4 measurement custody — `docs/leads/custody.md`, worker `sequencer`
 K2.4 deadman     deployment/cloud — `docs/leads/deploy-plan.md`, which owns `infra/`
-K2.5 entry       kernel — `docs/leads/kernel.md`, which owns `spec/CHANGELOG.md`
+K2.5 entry       kernel — `docs/leads/kernel.md`, which owns `spec/CHANGELOG.md`.
+                 CLOSED 2026-08-13; the row is kept because a cross-domain dependency
+                 that vanishes on the day it is met leaves no record that it existed
 K2.6 attestation custody — `docs/leads/custody.md`, worker `witness-and-custodian`
 ===============  ==============================================================
 
@@ -64,9 +74,71 @@ fail in somebody's build rather than live in a spreadsheet.
 
 The thresholds are untouched: no sample count was lowered, no field was made optional, and
 no criterion was rewritten to describe what happens to exist. **Nothing here is made green
-by writing an empty artefact at the named path** — every one of the three checks the
+by writing an empty artefact at the named path** — every one of the two checks the
 CONTENT it would have to carry, so a stub file moves the failure one line down rather than
 removing it. A criterion that cannot be met today fails today, and it says whose desk it is on.
+
+Why K2.4 and K2.6 carry ``@pytest.mark.pl2_red`` and no other case here does
+---------------------------------------------------------------------------
+``ci.yml`` splits pytest into two jobs and states in its own step summary that
+``pytest --crdb=none`` runs everything EXCEPT the assertions this repository declares
+red-by-design, so **a red there is a regression and nothing else**. Measured warm on
+2026-08-13 at commit ``2dc5c86``, that job reported ``8 failed, 8629 passed, 1003 skipped,
+13 deselected``, and three of the eight were K2.4, K2.5 and K2.6: declared incompleteness
+sitting in the lane whose colour is defined
+to mean "regression". That destroys the only distinction the two jobs exist to draw — a
+reader cannot see a new break inside a wall of intended breaks — and this repository is
+public.
+
+K2.5 was closed by closing it. K2.4 and K2.6 cannot be, and the two absences are not the same
+absence:
+
+* **K2.4 — nothing writes the path.** Six files in the tree name
+  ``evidence/k2-checkpoint-cadence.json`` and every one of them cites it: a comment above
+  ``MMD_SECONDS = 60`` in ``mainline_sequencer/sink.py``, a comment in migration
+  ``0075_ledger_checkpoint.sql``, this file, and three documents. There is no sampler and no
+  writer, so the ~60 s window has never been observed.
+* **K2.6 — the writer exists and nothing runs it.**
+  ``mainline_custody_patrol.collect.write_k2_migration_attestation()`` is present, exported and
+  deterministic, and its only callers are the package's own ``__init__`` re-export and
+  ``tests/integration/custody/test_custodian_attestation.py``. Measured 2026-08-13 the module
+  IS importable — so the first assertion of that criterion passes and its "MISSING MODULE"
+  message is retained against regression rather than because it fires — and the artefact has
+  still never been produced against a migrated cluster.
+
+Different absences, one class: each asserts that a mechanism does not exist **yet**, which is
+the registered meaning of ``pl2_red`` word for word (`pyproject.toml`, beside ``g4alpha``;
+``scripts/mi_ratchet.py`` is where the wording lives). The marker moves the two of them out of
+``hermetic-tests`` and into ``red-by-design``, which runs them and **inverts** the verdict.
+
+That is strictly stronger than leaving them where they were, and it is worth saying why,
+because four weaker things look superficially similar and every one of them is banned here:
+
+* ``xfail`` reports XPASS and exits 0 by default, so the day the artefact lands nobody is told;
+* ``skip`` reports nothing at all and is green by absence — the failure mode this whole file
+  exists to refuse;
+* deletion loses the claim, the owner and the path in one edit;
+* ``continue-on-error`` paints a green tick over any outcome whatever.
+
+The marker does the opposite of all four: ``red-by-design`` FAILS BY NAME the day either of
+these two PASSES. That day is the PL-2 transition, which is the event the discipline exists to
+notice, and it is the reason **taking the marker off is part of landing the artefact** — the
+commit that writes the cadence measurement or the migration attestation drops the marker here
+in the same diff, and until it does, ``red-by-design`` is the only thing in the repository
+saying the claim moved.
+
+Nothing was weakened to earn this. The 30-sample floor is still 30, ``chained_leaf_seq`` is
+still not optional, the fingerprint must still be stable across two consecutive computations,
+and every assertion message below is the one that was already there, sharpened in two places
+and softened in none.
+
+One cross-domain consequence, stated here rather than left to be discovered: ``ci.yml``'s
+``red-by-design`` job carries a REGISTRY of the files permitted to hold the marker, together
+with the truth each file's red reports, and this file is not in that registry. Until the owner
+of ``ci.yml`` adds the row, that job will name this file under ``UNDECLARED by-design red``.
+That is the registry doing its job — it exists precisely so the marker cannot become a quiet
+place to file a regression — and the row it wants is one line of text, not a change to
+anything asserted here.
 """
 
 from __future__ import annotations
@@ -214,12 +286,25 @@ def test_k2_3_bundle_verifies_with_no_cluster_and_no_credential() -> None:
     )
 
 
+@pytest.mark.pl2_red
 def test_k2_4_checkpoint_cadence_measured_and_deadman_defined() -> None:
     """Criterion 4 — the 60-second window is a measurement, not an aspiration.
 
     A ledger that claims a zero window of undetectable mutation is lying. Ours is ~60 s and
     the honest thing to do with that number is measure it and alarm on it. The deadman
     (``checkpoint_age_seconds``) is *defined* in K2 and *fires* from K6.
+
+    RED BY DESIGN, and the marker is what makes that legible. Measured 2026-08-13,
+    ``rg -l k2-checkpoint-cadence`` names six files and **not one of them writes it**:
+    ``mainline_sequencer/sink.py:75`` cites the path in the comment above ``MMD_SECONDS = 60``,
+    migration ``0075_ledger_checkpoint.sql:102`` cites it as one of the two readers of
+    ``issued_at``, and the remaining four are this file and three documents. There is no
+    ``write_k2_checkpoint_cadence``, no sampler, and nothing that would observe 30 consecutive
+    publications. The mechanism does not exist yet, which is the registered meaning of
+    ``pl2_red``, so this case belongs in ``red-by-design`` — where its going GREEN is the
+    failure — and not in the lane whose reds are defined to be regressions. Drop this decorator
+    in the commit that writes the artefact; see the module docstring for why the alternatives
+    (``xfail``, ``skip``, deletion, ``continue-on-error``) all throw the PL-2 transition away.
     """
     measurement = EVIDENCE / "k2-checkpoint-cadence.json"
     assert measurement.is_file(), (
@@ -295,6 +380,7 @@ def test_k2_5_checkpoint_wire_format_tagged_v1_0_with_changelog_entry() -> None:
     )
 
 
+@pytest.mark.pl2_red
 def test_k2_6_migration_attestation_chained_with_a_stable_fingerprint() -> None:
     """Criterion 6 — the deploy is itself evidence, and the fingerprint is reproducible.
 
@@ -302,6 +388,21 @@ def test_k2_6_migration_attestation_chained_with_a_stable_fingerprint() -> None:
     fingerprint differs between two consecutive computations against an unchanged database.
     A fingerprint that is not stable cannot detect a change, which makes it worse than no
     fingerprint: it produces alarm fatigue and then gets switched off.
+
+    RED BY DESIGN, and its gap has a different shape from K2.4's — which is worth stating
+    because the assertion message below already names it: **the computation exists and is
+    unwired.** Measured 2026-08-13, ``mainline_custody_patrol`` IS importable, so the first
+    assertion below passes and the module message under it is retained against regression
+    rather than because it is firing today; and
+    ``mainline_custody_patrol.collect.write_k2_migration_attestation()`` exists, is exported
+    from the package's ``__init__`` and is deterministic by construction. Its only callers are
+    that re-export and ``tests/integration/custody/test_custodian_attestation.py``. No script,
+    no workflow and no recipe runs it against a migrated cluster, so the artefact has never
+    been produced and the three assertions after the file check — two consecutive fingerprints,
+    their equality, and the chained leaf — have never executed once. A criterion whose last
+    three assertions have never run is reporting an absence, not a regression. Drop this
+    decorator in the commit that runs the producer and commits the artefact, and those three
+    start doing the work they were written for.
     """
     assert _module_available("mainline_custody_patrol"), (
         "K2.6 NOT MET — MISSING MODULE: mainline_custody_patrol is not importable, so no "
@@ -347,8 +448,11 @@ def test_k2_6_migration_attestation_chained_with_a_stable_fingerprint() -> None:
 
 
 # =======================================================================================
-# Auxiliary assertions named by other normative documents. These SKIP rather than fail:
-# they are not exit criteria, and exactly six failures is itself part of the deliverable.
+# Auxiliary assertions named by other normative documents. These SKIP rather than fail: they
+# are not exit criteria, and the count of failing CRITERIA is itself part of the deliverable —
+# an auxiliary case that failed would be added to that count and would misreport the milestone.
+# (The count was six when this file was committed red-before-green; it is measured, not fixed,
+# and `docs/adr/0040-custody-red-before-green.md` records where it has stood.)
 # =======================================================================================
 
 #: Files that normatively DEFINE the vocabulary prohibition, and must therefore be allowed

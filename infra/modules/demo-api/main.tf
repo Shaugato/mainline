@@ -154,10 +154,75 @@ locals {
     MAINLINE_SCENARIO_PERMIT_ID = var.scenario_permit_id
     MAINLINE_DEMO_PERMIT_ID     = var.scenario_permit_id
 
+    # BEAT 4'S TWO PRINCIPALS, AND THE DEFECT THEY CLOSE IS ONE STEP WORSE THAN THE ONE
+    # ABOVE. `scenario.from_env` reads `MAINLINE_DEMO_SIGNER_SUB` and
+    # `MAINLINE_DEMO_COUNTERSIGNER_SUB` (scenario.py:209-212, `ENV_PREFIX` + the two names)
+    # and falls back to the in-code constants "demo.signer" / "demo.countersigner" when they
+    # are absent. This module published NEITHER until these two lines existed, so the beat
+    # that writes a disposition - the only beat that writes anything - ran on constants
+    # compiled into the application.
+    #
+    # The permit-id case above is an override that looks configured and behaves inert. This
+    # one was the reverse and is worse: a LOAD-BEARING value that was never configured at
+    # all, therefore absent from `aws lambda get-function-configuration`, so a deployment
+    # whose seed named different principals would have failed beat 4 with nothing in the
+    # function's published configuration to point at. Now the expectation is readable off
+    # the deployed function and a divergence is a diff between two named things.
+    #
+    # The values are the SEED's, not this module's: verticals/mainline/db/seeds/demo/
+    # demo_world.sql:125 and :133 insert them into `mainline.signing_credential.signer_sub`,
+    # and `scripts/deploy/seed_demo.py` is what applies that file. variables.tf carries the
+    # citations and the reasoning; the two must differ, which is checked at plan time by a
+    # precondition on the function below because the database refuses equality at beat 4.
+    MAINLINE_DEMO_SIGNER_SUB        = var.demo_signer_sub
+    MAINLINE_DEMO_COUNTERSIGNER_SUB = var.demo_countersigner_sub
+
+    # THERE IS DELIBERATELY NO `MAINLINE_DEMO_SITE_ID`, AND ITS ABSENCE IS A MEASUREMENT.
+    # `scenario.from_env` reads a `SITE_ID` override too, so it looks like the third member
+    # of this group. It is not load-bearing: `mainline.fn_disposition_project` PROJECTS THE
+    # SITE AWAY - the demo's disposition path never reads the scenario's site id (invariant
+    # I02; gate_run.py:106-111). Publishing it would be an override that looks configured
+    # and is inert - which the permit-id comment above calls the worst of the three possible
+    # states. The two subs above are published BECAUSE they are load-bearing, and this one is
+    # omitted for the same reason, applied the other way round.
+
     # Published because it is the conventional name an operator looks for. What actually
     # filters records in the managed python3.13 runtime is `logging_config
     # .application_log_level` below, which is set from the same variable.
     LOG_LEVEL = var.log_level
+
+    # ── THE SIX BOUNDS THAT WERE ENFORCED AND UNREADABLE ────────────────────────────────
+    #
+    # Every one of these is a REAL, ENFORCED bound that lives in the application, and until
+    # this wave this module published NONE of them. So the honest description of the
+    # deployed function was: it enforces a response ceiling, two rate limits and a log
+    # budget, and the only way to find out what any of them are is to unzip a 7.6 MB
+    # package and read a Python constant. `aws lambda get-function-configuration` answered
+    # nothing.
+    #
+    # That is the SAME defect the two signer subs above close, one notch milder: not a
+    # value that could differ from the environment's truth, but a value nobody could read.
+    # The permit-id comment above calls an override that looks configured and is inert "the
+    # worst of the three possible states"; a bound that is in force and invisible is the
+    # second worst, because an operator cannot even discover that there is a question.
+    #
+    # THE VALUES MIRROR THE CODE AND DO NOT DEFINE IT. variables.tf carries the citation
+    # for each constant and the parse rule each one falls back under. Every parser reverts
+    # to its compiled-in default on a value it cannot read, so a typo here degrades to the
+    # pre-existing behaviour rather than to "unbounded" - and the `validation` blocks in
+    # variables.tf refuse the typo at plan time anyway, because a silent revert is still an
+    # override that looks configured and is not.
+    #
+    # `tostring()` is explicit rather than implicit on every one. A Lambda environment is a
+    # map(string) and Terraform would convert a number for us; spelling it makes the type
+    # boundary visible at the point where an integer becomes a string a Python `int()` has
+    # to parse back.
+    MAINLINE_MAX_RESPONSE_BYTES = tostring(var.max_response_bytes)
+    MAINLINE_RATE_GLOBAL_RPS    = tostring(var.rate_global_rps)
+    MAINLINE_RATE_GLOBAL_BURST  = tostring(var.rate_global_burst)
+    MAINLINE_RATE_IP_RPS        = tostring(var.rate_ip_rps)
+    MAINLINE_RATE_IP_BURST      = tostring(var.rate_ip_burst)
+    MAINLINE_LOG_BUDGET_BYTES   = tostring(var.log_budget_bytes)
 
     # WHERE THE SPA LIVES INSIDE THE PACKAGE. Under D1 this function serves the console and
     # the signed bundle as well as `/v1/*`, from one origin, because there is no CloudFront
@@ -288,6 +353,23 @@ resource "aws_lambda_function" "this" {
   # format Lambda has no structured level to filter on. `log_group` is the managed group
   # above, so the "create the group before the function" ordering is a real edge in the
   # dependency graph and not a naming convention two resources happen to agree on.
+  #
+  # THE TWO LEVELS ARE DIFFERENT KNOBS AND ONLY ONE OF THEM IS OURS TO SET FROM A VARIABLE.
+  # AWS's `LoggingConfig` API reference (`API_LoggingConfig.html`, retrieved 2026-08-14)
+  # defines `ApplicationLogLevel` over `TRACE | DEBUG | INFO | WARN | ERROR | FATAL` and
+  # `SystemLogLevel` over `DEBUG | INFO | WARN` ONLY, each sending logs "at the selected
+  # level of detail and lower". So `WARN` is already the quietest system setting the API
+  # accepts - there is no ERROR, no FATAL, no OFF - which is why this one is a constant and
+  # not a variable: the only two other legal values are louder.
+  #
+  # WHAT IT DOES NOT BUY, RECORDED AS A GAP RATHER THAN GUESSED AT. AWS publishes no
+  # mapping from a system log level to the platform event types, so NOTHING IN THE
+  # REFERENCE ESTABLISHES THAT `platform.start` / `platform.report` / `platform.runtimeDone`
+  # ARE SUPPRESSED AT `WARN`. W3 hit the same wall (`infra/modules/cost-guard/variables.tf`,
+  # `log_bytes_per_invocation_ceiling`) and took the pessimistic reading: 956 B of runtime
+  # accounting per invocation, counted as PRESENT. Every ingestion threshold in the guard is
+  # derived from that figure, so if AWS does in fact drop those lines at WARN, every margin
+  # downstream is larger than stated - the safe direction. See `var.log_level`.
   logging_config {
     log_format            = "JSON"
     application_log_level = var.log_level
@@ -317,6 +399,23 @@ resource "aws_lambda_function" "this" {
     precondition {
       condition     = try(jsondecode(file("${var.package_path}.json")).handler, "mainline_demo_api.app.handler") == "mainline_demo_api.app.handler"
       error_message = "The package manifest beside ${var.package_path} declares a handler other than mainline_demo_api.app.handler, which is what this function is configured to call."
+    }
+
+    precondition {
+      # THE DATABASE'S RULE, CHECKED AT PLAN TIME INSTEAD OF AT BEAT 4. `mainline.disposition`
+      # refuses a self-countersignature outright - `needs_second_signer CHECK
+      # (req_second_signer = false OR (countersigner_credential_id IS NOT NULL AND
+      # countersigner_sub <> signer_sub))`, 0066_disposition.sql:176 - so publishing the same
+      # string under both names does not produce a slightly worse demo; it produces a CHECK
+      # violation inside the admit beat, in front of whoever is watching, with two
+      # environment variables that both look correctly set.
+      #
+      # It is a precondition and not a `validation` block for the reason `duration_p99` and
+      # `concurrency` are: the check reads TWO variables, cross-variable validation needs
+      # Terraform >= 1.9, and this module's floor is 1.6. Both sides are plain variables, so
+      # this costs one plan evaluation and no API call.
+      condition     = var.demo_signer_sub != var.demo_countersigner_sub
+      error_message = "demo_signer_sub and demo_countersigner_sub are both \"${var.demo_signer_sub}\", and beat 4 signs and countersigns as two DIFFERENT principals. mainline.disposition refuses the equal case in the database - CONSTRAINT needs_second_signer CHECK (req_second_signer = false OR (countersigner_credential_id IS NOT NULL AND countersigner_sub <> signer_sub)), verticals/mainline/db/migrations/0066_disposition.sql:176, with the credential-level twin `distinct_credential` at :171 - so this configuration deploys cleanly and then fails the one beat that writes anything. The authoritative pair is what verticals/mainline/db/seeds/demo/demo_world.sql seeds into mainline.signing_credential.signer_sub at lines 125 and 133; set these two variables to those two values, or to whatever pair YOUR seed inserted."
     }
   }
 }
@@ -395,8 +494,32 @@ resource "aws_lambda_permission" "cloudfront_invoke" {
 
 # ── Observability: four alarms and a dashboard, all inside free tiers ───────────────
 #
-# CloudWatch's first ten alarms per account are free, and these are four of them. None has
-# an action by default (see `var.alarm_actions`); they exist to be READ.
+# CloudWatch's first ten alarms per account are free, and these are four of them.
+#
+# ── THESE ALARMS NOW HAVE AN ACTION, AND THAT SENTENCE USED TO SAY THE OPPOSITE ────────
+#
+# This header read "None has an action by default (see `var.alarm_actions`); they exist to
+# be READ." The first half is still true of the MODULE - `var.alarm_actions` defaults to
+# `[]` - and it is no longer true of the deployment: `infra/envs/demo/main.tf` passes
+# `module.guard[0].sns_topic_arn`, and that topic is a STOP topic. Every subscriber to it
+# invokes a responder that calls `PutFunctionConcurrency(ReservedConcurrentExecutions=0)`
+# on this function. So in the shipping configuration a breach of ANY of the four below
+# takes the demo down until a human runs `scripts/deploy/kill_switch.sh --restore`.
+#
+# Three of the four are health signals and one is an abuse signal, so that wiring converts
+# three health signals into self-inflicted outages. It is done on purpose, under the
+# ranking `docs/leads/cost-finish-plan.md` sec 0.5 states: an outage is recoverable by one
+# command and a bill is not. The consequence table alarm-by-alarm is at the wiring site in
+# the env root, not here, because it is a property of THAT configuration and a caller who
+# leaves `var.alarm_actions` empty still gets four alarms that only report.
+#
+# ONE CONSEQUENCE IS REFUSED RATHER THAN ACCEPTED, and it is the only one the ranking above
+# does not excuse: `duration_p99` breaching on a COLD START. A cold start is not an
+# incident, it is the first click of the judging session, so that alarm now carries a FLOOR
+# precondition as well as its ceiling one - see `var.modelled_worst_legitimate_duration_ms`
+# and the resource below. `ok_actions` is a separate list from `alarm_actions` for the same
+# family of reason and defaults to empty: a stop fired by an alarm RECOVERING is not a
+# trade anybody chose.
 #
 # WHO ACTUALLY READS THEM. This block used to say they were read "by the hourly
 # `demo-health` workflow, which calls `describe-alarms`". IT DOES NOT, and no workflow in
@@ -416,10 +539,12 @@ resource "aws_lambda_permission" "cloudfront_invoke" {
 #   * `aws_cloudwatch_dashboard.this` below - its fifth widget is an `alarm` widget over
 #     all four ARNs, which is why the dashboard is worth its one free slot;
 #   * `scripts/deploy/aws_live_probe.py`, run from a workstation that HAS a credential;
-#   * an SNS topic - and ONLY once `var.alarm_actions` is non-empty AND the subscription
-#     is CONFIRMED. An unconfirmed subscription is a control that looks present and is not,
-#     which is exactly why that variable defaults to empty rather than to a topic nobody
-#     has clicked the link in.
+#   * an SNS topic - and, for a HUMAN-facing topic, only once `var.alarm_actions` is
+#     non-empty AND the subscription is CONFIRMED. An unconfirmed subscription is a control
+#     that looks present and is not, which is why that variable defaults to empty rather
+#     than to a topic nobody has clicked the link in. `infra/envs/demo` passes something
+#     else entirely: `module.guard`'s STOP topic, whose subscriber is a Lambda and needs no
+#     confirmation. See the section header above for what that costs.
 #
 # THE RULE THIS SECTION FOLLOWS, stated once here so it is not re-derived per alarm:
 #
@@ -476,8 +601,15 @@ resource "aws_cloudwatch_metric_alarm" "errors" {
   treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
-  ok_actions    = var.alarm_actions
-  tags          = local.tags
+  # A SEPARATE LIST SINCE THIS WAVE, AND IT IS EMPTY. This used to read
+  # `ok_actions = var.alarm_actions`, which was invisible while that list was empty and
+  # becomes a defect the moment it holds a STOP topic: every RECOVERY of every alarm would
+  # invoke the responder that reserves 0 concurrency. `infra/modules/cost-guard` states the
+  # rule - none of its three alarms has `ok_actions`, because the place to not do that is
+  # where the action is chosen, and the responder's own refusal is the second belt rather
+  # than the first. See `var.ok_actions`.
+  ok_actions = var.ok_actions
+  tags       = local.tags
 }
 
 resource "aws_cloudwatch_metric_alarm" "throttles" {
@@ -502,8 +634,15 @@ resource "aws_cloudwatch_metric_alarm" "throttles" {
   treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
-  ok_actions    = var.alarm_actions
-  tags          = local.tags
+  # A SEPARATE LIST SINCE THIS WAVE, AND IT IS EMPTY. This used to read
+  # `ok_actions = var.alarm_actions`, which was invisible while that list was empty and
+  # becomes a defect the moment it holds a STOP topic: every RECOVERY of every alarm would
+  # invoke the responder that reserves 0 concurrency. `infra/modules/cost-guard` states the
+  # rule - none of its three alarms has `ok_actions`, because the place to not do that is
+  # where the action is chosen, and the responder's own refusal is the second belt rather
+  # than the first. See `var.ok_actions`.
+  ok_actions = var.ok_actions
+  tags       = local.tags
 }
 
 resource "aws_cloudwatch_metric_alarm" "duration_p99" {
@@ -531,18 +670,86 @@ resource "aws_cloudwatch_metric_alarm" "duration_p99" {
   treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
-  ok_actions    = var.alarm_actions
-  tags          = local.tags
+  # A SEPARATE LIST SINCE THIS WAVE, AND IT IS EMPTY. This used to read
+  # `ok_actions = var.alarm_actions`, which was invisible while that list was empty and
+  # becomes a defect the moment it holds a STOP topic: every RECOVERY of every alarm would
+  # invoke the responder that reserves 0 concurrency. `infra/modules/cost-guard` states the
+  # rule - none of its three alarms has `ok_actions`, because the place to not do that is
+  # where the action is chosen, and the responder's own refusal is the second belt rather
+  # than the first. See `var.ok_actions`.
+  ok_actions = var.ok_actions
+  tags       = local.tags
 
   lifecycle {
     precondition {
-      # An alarm threshold at or above the timeout is an alarm that cannot fire: Lambda
-      # kills the invocation at `timeout` and the Duration datapoint is capped there. Both
-      # sides are plain variables, so this is checked at PLAN time and costs nothing.
-      # It exists because the D1 timeout drop from 25 s to 15 s would otherwise have left
-      # the default threshold of 20 000 ms sitting silently above a 15 000 ms ceiling.
+      # THE CEILING. An alarm threshold at or above the timeout is an alarm that cannot
+      # fire: Lambda kills the invocation at `timeout` and the Duration datapoint is capped
+      # there. Both sides are plain variables, so this is checked at PLAN time and costs
+      # nothing. It exists because the D1 timeout drop from 25 s to 15 s would otherwise
+      # have left the default threshold of 20 000 ms sitting silently above a 15 000 ms
+      # ceiling.
       condition     = var.duration_p99_threshold_ms < var.timeout * 1000
       error_message = "duration_p99_threshold_ms (${var.duration_p99_threshold_ms} ms) is not below the function timeout (${var.timeout} s = ${var.timeout * 1000} ms). Lambda terminates the invocation at the timeout and the Duration datapoint is capped there, so this alarm could never breach - a control that looks present and is not. Lower duration_p99_threshold_ms, or raise timeout."
+    }
+
+    precondition {
+      # THE FLOOR, AND IT IS NEW BECAUSE THE ALARM IS NEW. Everything above this resource
+      # in this file guards ONE failure mode - an alarm that cannot fire. Wiring an ACTION
+      # onto an alarm creates the mirror image, and it is the more expensive one here: this
+      # alarm's action list is `module.guard`'s SNS topic, whose subscriber calls
+      # `PutFunctionConcurrency(0)`. A threshold below what the model already calls a
+      # LEGITIMATE invocation therefore does not merely report a false positive - it STOPS
+      # THE DEMO, and it stays stopped until a human runs
+      # `scripts/deploy/kill_switch.sh --restore`.
+      #
+      # `docs/deploy/LATENCY.md` sec 5.1's binding case is a COLD start at 256 MB with a 2x
+      # worse tail: 13 022.9 ms. `var.timeout` is the smallest whole second that clears it.
+      # A p99 alarm underneath it would fire on a cold start, which is not an incident - it
+      # is the first click of the judging session.
+      #
+      # ── IT WAS WRITTEN CONDITIONAL FIRST, AND THE CONDITIONAL VERSION DID NOT FIRE ────
+      #
+      # The first draft read:
+      #
+      #     length(var.alarm_actions) == 0
+      #     || var.duration_p99_threshold_ms > var.modelled_worst_legitimate_duration_ms
+      #
+      # on the reasoning that an alarm which only REPORTS has no reason to carry a floor.
+      # The reasoning is fine and the expression is not. MEASURED, this machine, Terraform
+      # v1.14.8, by planting the violation rather than by reading the code:
+      #
+      #     terraform plan -var api_duration_p99_threshold_ms=12000   Plan: 24 to add   <- !
+      #     terraform plan -var api_duration_p99_threshold_ms=13022   Plan: 24 to add   <- !
+      #
+      # Both should have been refused and neither was. `infra/envs/demo` reaches the topic
+      # through `try([module.guard[0].sns_topic_arn], [])`, and `try()` returns a WHOLLY
+      # UNKNOWN value when its argument contains an unknown - so `length(var.alarm_actions)`
+      # is unknown at plan time, the whole `||` is unknown, and TERRAFORM DEFERS AN UNKNOWN
+      # PRECONDITION TO APPLY INSTEAD OF FAILING THE PLAN. The plan output says so in the
+      # open: every one of the four alarms shows `alarm_actions = (known after apply)`.
+      #
+      # A precondition that cannot be evaluated at plan time is a control that looks
+      # present and is not - the exact defect the rule at the head of this section exists
+      # to refuse, and it would have shipped unnoticed if the falsification had been
+      # skipped. So the guard clause is GONE and this reads two plain variables, which is
+      # what makes it plan-time evaluable. It is a strictly TIGHTER check than the one it
+      # replaces, never a looser one.
+      #
+      # WHAT THE UNCONDITIONAL FORM COSTS, AND WHY IT IS NOT MUCH. A caller with
+      # `alarm_actions = []` can no longer set a deliberately sensitive p99 warning below
+      # the modelled worst legitimate invocation. That is a smaller loss than it sounds:
+      # an alarm that fires on every cold start is noise whether or not it acts, and the
+      # honest way to move the floor is to move the MODEL -
+      # `var.modelled_worst_legitimate_duration_ms` is exactly the caller's own figure for
+      # the worst legitimate invocation, and lowering it to a measured value is the change
+      # that should carry the threshold down with it.
+      #
+      # THE FIX FOR A FAILURE HERE IS NEVER TO DELETE THIS BLOCK. Either raise
+      # duration_p99_threshold_ms into the band, or lower
+      # modelled_worst_legitimate_duration_ms to a figure you have MEASURED. If the band is
+      # empty, `timeout` is too small for `memory_size` and THAT is the finding.
+      condition     = var.duration_p99_threshold_ms > var.modelled_worst_legitimate_duration_ms
+      error_message = "duration_p99_threshold_ms (${var.duration_p99_threshold_ms} ms) is not strictly above modelled_worst_legitimate_duration_ms (${var.modelled_worst_legitimate_duration_ms} ms). docs/deploy/LATENCY.md 5.1 models the worst LEGITIMATE invocation of this function - a COLD start at memory_size ${var.memory_size} MB with a 2x worse tail - at that figure, so a p99 threshold at or below it breaches on a judge's first click rather than on abuse. That matters because this alarm has an ACTION in the shipping configuration: infra/envs/demo passes module.guard's SNS topic as alarm_actions, and every subscriber to that topic calls lambda:PutFunctionConcurrency(ReservedConcurrentExecutions=0) on this function - so a breach is not a notification, it is an outage that persists until somebody runs scripts/deploy/kill_switch.sh --restore. The admissible band is ${var.modelled_worst_legitimate_duration_ms} < duration_p99_threshold_ms < ${var.timeout * 1000}. Raise duration_p99_threshold_ms into it, or lower modelled_worst_legitimate_duration_ms to a figure you have MEASURED rather than modelled. If that band is empty, timeout is too small for memory_size and THAT is the finding. Do not widen this check, and do not raise timeout to make an alarm fit - timeout is a reliability bound derived from the cold path, not a knob."
     }
   }
 }
@@ -605,8 +812,15 @@ resource "aws_cloudwatch_metric_alarm" "concurrency" {
   treat_missing_data = "missing"
 
   alarm_actions = var.alarm_actions
-  ok_actions    = var.alarm_actions
-  tags          = local.tags
+  # A SEPARATE LIST SINCE THIS WAVE, AND IT IS EMPTY. This used to read
+  # `ok_actions = var.alarm_actions`, which was invisible while that list was empty and
+  # becomes a defect the moment it holds a STOP topic: every RECOVERY of every alarm would
+  # invoke the responder that reserves 0 concurrency. `infra/modules/cost-guard` states the
+  # rule - none of its three alarms has `ok_actions`, because the place to not do that is
+  # where the action is chosen, and the responder's own refusal is the second belt rather
+  # than the first. See `var.ok_actions`.
+  ok_actions = var.ok_actions
+  tags       = local.tags
 
   lifecycle {
     precondition {

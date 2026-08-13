@@ -22,8 +22,20 @@ Three things, before anything else: what to click, what to run, and what we are 
 ```
 
 **This is a placeholder and it is deliberately not a hostname.** Terraform has never been applied
-(`evidence/deploy/terraform-plan-furl.txt` is a *plan*, `Plan: 11 to add, 0 to change, 0 to
-destroy` at line 339), so no origin exists yet. When the apply runs it prints a Lambda Function
+(`evidence/deploy/terraform-plan-furl.txt` is a *plan*, `Plan: 24 to add, 0 to change, 0 to destroy` at line 843),
+so no origin exists yet. The count is **24, not the 11 an earlier revision of this page quoted**:
+the plan now creates 11 resources in `module.api[0]` and 13 in `module.guard[0]`, because
+`infra/envs/demo/main.tf:631` instantiates the cost guard that used to be written and never
+wired in. The guard module declares 14 `resource` blocks and the plan creates 13 of them, so
+the arithmetic is checked rather than assumed: the fourteenth is
+`aws_sns_topic_subscription.email` at `infra/modules/cost-guard/main.tf:337`, which is
+`for_each = toset(var.notification_emails)` over a `guard_notification_emails` that defaults to
+`[]` (`infra/envs/demo/variables.tf:619`), so it plans **zero** instances. An unconfirmed email
+subscription is a control that looks present and is not, which is why the default is empty and
+why nothing here is silently missing. 11 + 13 = 24 creates, plus one data-source read
+(`module.guard[0].data.aws_iam_policy_document.topic`) for 25 `resource_changes` in
+`evidence/deploy/terraform-plan-furl.json`. Re-derive it rather than believing this paragraph:
+`grep -n '^Plan:' evidence/deploy/terraform-plan-furl.txt`. When the apply runs it prints a Lambda Function
 URL of the shape `https://<id>.lambda-url.ap-southeast-1.on.aws`, and **that string, not an
 invented one, is what replaces the token above** and what goes into
 `docs/submission/SUBMISSION.json`, which holds `"demo_url": "UNRESOLVED"` until then.
@@ -629,7 +641,7 @@ previously listed as the reasons for the red are gone; the red is not.
 |---|---|
 | `POST /v1/demo/gate-run` is not routed — the endpoint 404s | **fixed** at commit `b0fe884`. `app.ROUTES` is **17** rows and the seventeenth is `Route(POST /v1/demo/gate-run -> demo_gate_run)`, re-derived today with `python -c "…; print(len(app.ROUTES))"`. `evidence/deploy/gate-run-reachable.json` is the artefact and `tests/test_routes_gate_run.py` pins it |
 | `scenario.resolve()` unpacks an 8-tuple against `row_factory=dict_row` | **fixed** in the three modules that own it. [`evidence/deploy/rowfactory-defect.json`](../../evidence/deploy/rowfactory-defect.json) records the diagnosis, the fix shape (a cursor-level row factory, not a connection-level one) and a new contract test that makes the claim twice — once through the real production factory |
-| the API and the seed disagree on the demo subject | **fixed.** [`evidence/deploy/permit-id-agreement.json`](../../evidence/deploy/permit-id-agreement.json) read the live database in a read-only transaction on 2026-08-12: exactly **one** permit exists, `dec0de00-0006-4000-8000-000000000001`. The Terraform default now carries that value — `evidence/deploy/terraform-plan-furl.txt:308,310` — and the plan shape is unchanged at `Plan: 11 to add, 0 to change, 0 to destroy` |
+| the API and the seed disagree on the demo subject | **fixed.** [`evidence/deploy/permit-id-agreement.json`](../../evidence/deploy/permit-id-agreement.json) read the live database in a read-only transaction on 2026-08-12: exactly **one** permit exists, `dec0de00-0006-4000-8000-000000000001`. The Terraform default now carries that value — `evidence/deploy/terraform-plan-furl.txt:323,332` — and that fix changed no resource. **The plan shape has since moved for a different reason**: the artefact was regenerated on 2026-08-14 with the cost guard instantiated, and now reads `Plan: 24 to add, 0 to change, 0 to destroy` — 11 in `module.api[0]`, 13 in `module.guard[0]` — where the revision of this page that recorded the permit-id fix still said 11 |
 
 **Two blockers remain, and they are why the verdict above has not been superseded.** Neither is a
 fault in the gate; both are named with the line that causes them.
@@ -784,7 +796,9 @@ finding about the product rather than about the pack.
 
 *Measured against CockroachDB Cloud `mainline-dev` (Basic, `aws-ap-southeast-1`, v26.2.5). The
 credential, MCP and question-pack facts in §2, §3 and §4 were measured **2026-08-11**; the permit
-and Terraform-plan facts in §2.4 and §6 **2026-08-12**; the route count, the SQLSTATE
-reproduction in §2.3, the grant and migration counts, and this rewrite **2026-08-13**. Every
+facts in §2.4 and §6 **2026-08-12**; the route count, the SQLSTATE
+reproduction in §2.3, the grant and migration counts, and the previous rewrite **2026-08-13**; the
+Terraform-plan count in §0.1 and §6 was re-read from the artefact regenerated **2026-08-14** and
+moved 11 → 24 on that reading. Every
 number on this page names the command or the artefact it came from, because the repository is
 public and a remembered count is a claim we cannot defend to a stranger.*

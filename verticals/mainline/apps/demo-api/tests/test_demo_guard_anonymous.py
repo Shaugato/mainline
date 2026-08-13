@@ -101,8 +101,18 @@ _COMMITTING_POSTS: Final[tuple[tuple[str, str, dict[str, Any]], ...]] = (
 )
 
 #: One statement, so every count is read at ONE moment and cannot be assembled out of two
-#: different instants. `mainline.permit` is counted globally as well: a transition that
+#: different instants. `mainline.permit` is covered globally as well: a transition that
 #: created a subject rather than moving one would otherwise pass a per-subject diff.
+#:
+#: THE GLOBAL CLAUSE CARRIES IDENTITIES AND NOT ONLY A COUNT, since 2026-08-13, and the
+#: reason is written up in `docs/diagnosis/refusal-that-writes.md`. A count is weaker than
+#: a set twice over. It cannot see an INSERT paired with a DELETE. And when it does
+#: change, `116 != 117` is a number with no author: attributing that one took reconstructing
+#: the baseline run from `opened_at` timestamps, and the answer turned out to be a row minted
+#: by `test_transitions.py:137` in a SECOND pytest process sharing this scratch database.
+#: `permit_ids` makes the same assertion strictly stronger and makes its failures name the
+#: row, its `external_ref` and the moment it was opened — so the next reader is told in
+#: one line whether the product wrote it or a stranger did.
 _SNAPSHOT_SQL: Final = """
 SELECT p.state::STRING, p.head_seq, p.gate_epoch, p.open_blocking,
        (SELECT count(*) FROM mainline.permit_event e WHERE e.permit_id = p.permit_id),
@@ -113,7 +123,9 @@ SELECT p.state::STRING, p.head_seq, p.gate_epoch, p.open_blocking,
           JOIN mainline.exposure_receipt r2 ON r2.receipt_id = l.receipt_id
          WHERE r2.permit_id = p.permit_id),
        (SELECT count(*) FROM mainline.blocking_check bc WHERE bc.permit_id = p.permit_id),
-       (SELECT count(*) FROM mainline.permit)
+       (SELECT count(*) FROM mainline.permit),
+       (SELECT coalesce(array_agg(q.permit_id::STRING), ARRAY[]::STRING[])
+          FROM mainline.permit q)
   FROM mainline.permit p
  WHERE p.permit_id = %s
 """
@@ -130,6 +142,16 @@ _SNAPSHOT_FIELDS: Final = (
     "exposure_line_rows",
     "blocking_check_rows",
     "permit_rows_total",
+    "permit_ids",
+)
+
+#: Where each `external_ref` prefix in this scratch database is minted. Nothing branches on
+#: this table — it turns a uuid in a failure message into a file a reader can open, and a
+#: prefix that is in none of these is reported as unattributed rather than guessed at.
+_MINTED_BY: Final[tuple[tuple[str, str], ...]] = (
+    ("PTW-W4-", "tests/test_transitions.py:137 (_seed_permit, via the fresh_history fixture)"),
+    ("PTW-BARE-", "tests/test_transitions.py:267 (the bare_permit fixture)"),
+    ("PTW-PROOF-", "scripts/proof/gate_refusal.py::seed_history — the demo subject itself"),
 )
 
 
@@ -145,7 +167,60 @@ def snapshot(dsn: str, permit_id: str) -> dict[str, Any]:
     with psycopg.connect(dsn, autocommit=True, connect_timeout=10) as probe:
         row = probe.execute(_SNAPSHOT_SQL, (permit_id,)).fetchone()
     assert row is not None, f"the demo subject {permit_id} is not in this database"
-    return dict(zip(_SNAPSHOT_FIELDS, row, strict=True))
+    taken = dict(zip(_SNAPSHOT_FIELDS, row, strict=True))
+    taken["permit_ids"] = frozenset(taken["permit_ids"])
+    return taken
+
+
+def _provenance(dsn: str, permit_ids: set[str]) -> list[str]:
+    """Name each permit in *permit_ids*: its ``external_ref``, when it was opened, by whom.
+
+    Diagnosis only — nothing here is asserted on. It runs on the failure path of
+    :func:`changed`, where the question a reader actually has is not "how many" but
+    "which row, and who wrote it".
+    """
+    if not permit_ids:
+        return []
+    with psycopg.connect(dsn, autocommit=True, connect_timeout=10) as probe:
+        rows = probe.execute(
+            "SELECT permit_id::STRING, external_ref, opened_at FROM mainline.permit "
+            "WHERE permit_id::STRING = ANY(%s) ORDER BY opened_at",
+            (sorted(permit_ids),),
+        ).fetchall()
+    known = {pid: (ref, at) for pid, ref, at in rows}
+    named = []
+    for pid in sorted(permit_ids):
+        ref, at = known.get(pid, ("(no longer present)", None))
+        source = next(
+            (where for prefix, where in _MINTED_BY if str(ref).startswith(prefix)),
+            "no fixture in this suite mints that external_ref — this is the API's own write",
+        )
+        named.append(f"{pid} external_ref={ref!r} opened_at={at} minted by {source}")
+    return named
+
+
+def changed(dsn: str, before: Mapping[str, Any], after: Mapping[str, Any]) -> dict[str, Any]:
+    """Every field that moved between two snapshots, with the permit set named rather than dumped.
+
+    The assertion is unchanged and unweakened — ``after == before``, every field, the
+    global permit set included. This only decides what a red SAYS: two frozensets of two
+    hundred uuids printed in full are a diff nobody reads, whereas the rows that appeared,
+    with the fixture that mints their ``external_ref``, are the answer.
+    """
+    moved: dict[str, Any] = {}
+    for key in before:
+        if before[key] == after[key]:
+            continue
+        if key == "permit_ids":
+            appeared = set(after[key]) - set(before[key])
+            vanished = set(before[key]) - set(after[key])
+            if appeared:
+                moved["permits_that_appeared"] = _provenance(dsn, appeared)
+            if vanished:
+                moved["permits_that_vanished"] = sorted(vanished)
+        else:
+            moved[key] = (before[key], after[key])
+    return moved
 
 
 @pytest.fixture
@@ -301,9 +376,7 @@ def test_the_four_refusals_leave_the_subject_and_every_row_count_unchanged(
     assert outcomes == dict.fromkeys(
         (r for r, _, _ in _COMMITTING_POSTS), (423, "demo_subject_write_protected")
     )
-    assert after == before, {
-        key: (before[key], after[key]) for key in before if before[key] != after[key]
-    }
+    assert after == before, changed(w4_database, before, after)
 
 
 def test_the_guard_does_not_refuse_traffic_that_is_not_the_demo_subject(
@@ -475,9 +548,7 @@ def test_the_four_posts_are_refused_with_the_permit_id_variable_unset(
         "Function URL with authorization_type = NONE these four are reachable by anyone. "
         f"Got: {refused}"
     )
-    assert after == before, {
-        key: (before[key], after[key]) for key in before if before[key] != after[key]
-    }
+    assert after == before, changed(w4_database, before, after)
 
 
 def test_a_deployment_that_owns_its_database_can_still_lift_the_guard(

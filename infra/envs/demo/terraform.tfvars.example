@@ -82,6 +82,137 @@ dsn_parameter_name = "/mainline/demo/cockroach_dsn"
 # Short, and never 0 — an unexpiring log group is the one line item here with no ceiling.
 log_retention_days = 7
 
+# ── THE SHAPE OF THE FUNCTION ─────────────────────────────────────────────────────────
+#
+# Both of these were module defaults nobody in this environment had chosen, and both of
+# those defaults are falsified by docs/deploy/LATENCY.md, which measured every beat.
+#
+# api_timeout_seconds IS A RELIABILITY BOUND AND NOT A SPEND BOUND. Lambda bills actual
+# duration, so a 5.66 ms invocation costs the same at 14 s as at 3 s — this number moves
+# the bill by nothing, and nobody may present it as a cost lever. The 3 s that was asked
+# for is refused on arithmetic: it is 0.80x the warm in-region gate_run p99 corrected to
+# Lambda (3,729 ms) and would truncate the headline beat, which is the only beat that
+# writes anything and the one on screen. 14 is the smallest whole second that clears
+# LATENCY.md 5.1's binding case — a cold start at 256 MB with a 2x worse tail, 13,022.9 ms
+# — and it clears it by 1.07x.
+#
+# api_memory_size_mb 256 is the only lever in the menu that is duration-independent: it
+# halves the compute term outright AND roughly halves the flood rate. What it costs lands
+# on a judge's first click — the modelled cold start rises from 5,248 ms to 6,511 ms — and
+# there is NO measurement of a 256 MB Lambda anywhere in this evidence, only a throttled-
+# core proxy. Raising it back to 512 is a TWO-variable change: the p99 alarm's floor is
+# derived from the cold path at this memory.
+api_timeout_seconds = 14
+api_memory_size_mb  = 256
+
+# THE p99 ALARM NOW STOPS THE DEMO, so its threshold is pinned between a floor and a
+# ceiling rather than set to a fraction of the timeout:
+#
+#   FLOOR   13,023 ms  LATENCY.md 5.1's binding case — a COLD start at 256 MB with a 2x
+#                      worse tail. Below it, a judge's first click stops the demo.
+#   CEILING 14,000 ms  api_timeout_seconds * 1000. Lambda caps the Duration datapoint at
+#                      the timeout, so at or above it the alarm cannot fire at all.
+#
+# Both edges are lifecycle.preconditions in infra/modules/demo-api/main.tf, checked at
+# PLAN time, and both are FALSIFIED rather than asserted: 12,000 and 13,022 are refused,
+# 13,023 and the shipping 13,500 pass, 14,000 is refused by the ceiling half. The floor is
+# UNCONDITIONAL — its first draft applied only when the alarm had an action, and that
+# version did not fire, because this root reaches the topic through try() and Terraform
+# defers an UNKNOWN precondition to apply instead of failing the plan. If the band is ever
+# empty, the finding is that the timeout is too small for the memory size — it is never
+# that a precondition should be widened.
+api_duration_p99_threshold_ms = 13500
+
+# WARN, down from INFO. Ingestion is billed on ARRIVAL and log_retention_days bounds
+# STORAGE only. It costs nothing a reader wants: a working handler was measured emitting
+# p50 = 0 bytes of its own per invocation. This is the APPLICATION level; the SYSTEM level
+# (Lambda's own platform.* accounting) is a different field, already at the quietest value
+# its enum allows, and AWS publishes no mapping from that level to event types — so this
+# repository counts START/REPORT as present and every downstream margin is conservative.
+api_log_level = "WARN"
+
+# ── THE MEASURED ACCOUNT FACT, PASSED TO BOTH MODULES FROM ONE PLACE ──────────────────
+#
+# demo-api and cost-guard each default this to 10 independently, and every reachability
+# precondition in both divides by it. Two defaults for one fact is two things that drift.
+# Measured 2026-08-13, both regions, `aws lambda get-account-settings` and
+# `aws service-quotas get-service-quota --quota-code L-B99A9384`: 10, Adjustable: true.
+#
+# RAISING THIS DOES NOT RAISE ANY LIMIT. It tells the modules what your limit already is.
+# Raising it to silence a precondition without raising the real quota re-creates the exact
+# defect the precondition refuses. The 30-day worst case is LINEAR in it.
+account_concurrency_ceiling = 10
+
+# ── THE SIX BOUNDS THAT WERE IN FORCE AND UNREADABLE ──────────────────────────────────
+#
+# static_site.py, ratelimit.py and logbudget.py each enforce a real bound and each reads an
+# environment variable that overrides it. NONE was published, so all six ran on constants
+# compiled into the application — correct, enforced, and invisible to
+# `aws lambda get-function-configuration`. Publishing them does not SET them: every parser
+# falls back to its compiled-in default on a value it cannot read, so a typo degrades to
+# the previous behaviour rather than to "unbounded".
+#
+# THE APPLICATION IS AUTHORITATIVE, NOT THIS FILE. Each value mirrors a named constant. If
+# a code default moves, THESE MOVE TO MATCH — the same rule demo_signer_sub follows toward
+# the seed, pointed at the application instead. A published value that disagrees with the
+# code is worse than none, because the environment variable WINS at runtime while reading
+# like documentation.
+#
+#   139264 = 136 KiB   static_site.DEFAULT_MAX_RESPONSE_BYTES, derived from the DEPLOYED
+#                      tree: 1.122x the largest .gz object that actually ships (124,127 B).
+#                      Measured on WIRE bytes, not on the 33 %-larger base64 envelope.
+#   10 / 100           ratelimit.DEFAULT_GLOBAL_RPS / _BURST, per execution environment —
+#                      so the FLEET bound is 10 x account_concurrency_ceiling = 100 rps.
+#                      This is the first order-of-magnitude lever in the whole cost model.
+#   5 / 50             ratelimit.DEFAULT_IP_RPS / _BURST. Bounds a CALLER, not an attacker.
+#   4096               logbudget.DEFAULT_BUDGET_BYTES. Raising it REQUIRES raising
+#                      cost-guard's log_incoming_bytes_threshold proportionally.
+api_max_response_bytes = 139264
+api_rate_global_rps    = 10
+api_rate_global_burst  = 100
+api_rate_ip_rps        = 5
+api_rate_ip_burst      = 50
+api_log_budget_bytes   = 4096
+
+# ── WHO FINDS OUT THAT THE DEMO STOPPED ───────────────────────────────────────────────
+#
+# EMPTY, AND AN UNCONFIRMED SUBSCRIPTION IS A CONTROL THAT LOOKS PRESENT AND IS NOT. An
+# email subscription is created in PendingConfirmation and delivers nothing until somebody
+# clicks the link; Terraform reports it created either way and cannot click it. It gates
+# NOTHING in the stop path — the responder's subscription is a Lambda and is unconditional
+# — so the only thing an empty list costs is that the demo stops without anyone being told.
+# `scripts/deploy/kill_switch.sh --status` is the answer to an unexplained 429.
+#
+# Adding an address is two steps and the second is not Terraform's: apply, then open the
+# mail and click, then confirm with `aws sns list-subscriptions-by-topic`.
+guard_notification_emails = []
+
+# ── THE TWO PRINCIPALS BEAT 4 SIGNS AS ────────────────────────────────────────────────
+#
+# THE SEED IS AUTHORITATIVE, NOT THIS FILE AND NOT THE MODULE. Both values below mirror
+# verticals/mainline/db/seeds/demo/demo_world.sql lines 125 and 133, which insert them into
+# mainline.signing_credential.signer_sub; scripts/deploy/seed_demo.py applies that file to
+# the database this deploy points at. If your database was seeded with different
+# principals, change THESE LINES — never the seed.
+#
+# They are published because they are load-bearing and were silently unpublished, which is
+# worse than an inert override: scenario.from_env (scenario.py:209-212) falls back to the
+# constants "demo.signer" / "demo.countersigner" compiled into the application, and
+# mainline.fn_disposition_project joins mainline.person on both strings
+# (0102_fn_disposition_project.sql:155,174). A blank value is NOT an unset value — it is
+# `.strip() or <constant>`, i.e. a silent revert — so both variables refuse the empty and
+# the padded string at plan time.
+#
+# They must DIFFER. mainline.disposition refuses a self-countersignature in the database
+# (needs_second_signer, 0066_disposition.sql:176), so equality is not a milder demo, it is
+# a CHECK violation in the only beat that writes anything. module.api refuses it at plan
+# time instead.
+#
+# There is no demo_site_id here on purpose: the same projector projects the site away
+# (invariant I02), so publishing it would be an override that looks configured and is inert.
+demo_signer_sub        = "demo.signer"
+demo_countersigner_sub = "demo.countersigner"
+
 # ── Read only when enable_cloudfront = true ───────────────────────────────────────────
 
 # Leave empty to derive "<name_prefix>-site-<account-id>", which is globally unique

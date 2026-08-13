@@ -37,12 +37,25 @@
     statement about the CONTENT. Two builds of the same tree print the same sha256;
     evidence/deploy/lambda-bundle.json records both.
 
-    SOURCE MAPS ARE KEPT ON PURPOSE
-    web/assets/*.js.map is about 2.4 MB of the package. They stay: a judge who opens
-    DevTools on the demo sees real component names and real stack frames instead of
-    `surface-Bv8EMlU6.js:1:20481`, and this project's whole argument is that its claims
-    are checkable. There is ample room, and -StripSourceMaps exists for the day there
-    is not.
+    SOURCE MAPS ARE STRIPPED BY DEFAULT, AND THE SERVED TREE SHIPS PRE-COMPRESSED
+    This file used to argue that web/assets/*.js.map should stay, so a judge who opens
+    DevTools on the demo sees real component names instead of
+    `surface-Bv8EMlU6.js:1:20481`. That argument was sound while the package was a thing
+    an operator downloaded. It stopped being sound the moment the same tree went behind a
+    Lambda Function URL with `authorization_type = NONE`: every byte under web/ is then
+    egress any caller on the internet can bill to this account at will, and the maps are
+    18 files, 2,586,960 B -- 72.42 % of the 3,571,990 B served tree (measured
+    2026-08-13) -- for a debugging convenience nobody has used on the deployed URL.
+    -KeepSourceMaps builds the debuggable package on demand; the default builds the one
+    that gets deployed.
+
+    The same build writes a `<name>.gz` sibling beside every compressible web/** entry:
+    gzip level 9, mtime 0, no filename in the gzip header, so the zip stays
+    byte-reproducible. 289,312 B of siblings against 2,586,960 B removed, and the largest
+    object the handler can put on the wire falls from 1,554,168 B to 433,396 B identity /
+    124,127 B gzipped. That is interface I1 of docs/leads/cost-bound-plan.md; the serving
+    half -- content negotiation, and a 404 for a direct request to a .gz path, because one
+    set of bytes must not have two names -- belongs to static_site.py, not to this script.
 
     PLATFORM TAGS ARE MEASURED PER ARCHITECTURE, NOT GUESSED (2026-08-10, this machine):
 
@@ -83,8 +96,14 @@
 .PARAMETER RefreshWheels
     Re-download the wheels even when the wheelhouse already holds them.
 
+.PARAMETER KeepSourceMaps
+    KEEP web/**/*.map (18 files, 2,586,960 B, 72.42 % of the served tree). Stripped by
+    default, because that tree is served from a public Function URL and every byte of it
+    is billable egress. Use this to build a package whose stack traces map in DevTools.
+
 .PARAMETER StripSourceMaps
-    Drop web/**/*.map from the package (about 2.4 MB). Kept by default.
+    Accepted, and already the default; kept so a command line recorded before 2026-08-13
+    still runs. It is not silently ignored -- it says so.
 
 .PARAMETER KeepStage
     Leave the staging tree and the extracted packer in place for inspection.
@@ -92,7 +111,7 @@
 .EXAMPLE
     pwsh scripts/deploy/build_lambda.ps1
     pwsh scripts/deploy/build_lambda.ps1 -Arch x86_64
-    pwsh scripts/deploy/build_lambda.ps1 -StripSourceMaps -KeepStage
+    pwsh scripts/deploy/build_lambda.ps1 -KeepSourceMaps -KeepStage
 #>
 
 [CmdletBinding()]
@@ -111,6 +130,8 @@ param(
     [string]$Wheelhouse = '',
 
     [switch]$RefreshWheels,
+
+    [switch]$KeepSourceMaps,
 
     [switch]$StripSourceMaps,
 
@@ -192,8 +213,15 @@ if ([string]::IsNullOrWhiteSpace($Wheelhouse)) {
 # scripts/submission/audit_public_readiness.py, and this manifest is quoted in
 # evidence/deploy/lambda-bundle.json.
 $CommandLine = "scripts/deploy/build_lambda.ps1 -Arch $Arch"
-if ($StripSourceMaps) { $CommandLine += ' -StripSourceMaps' }
+if ($KeepSourceMaps) { $CommandLine += ' -KeepSourceMaps' }
 if ($RefreshWheels) { $CommandLine += ' -RefreshWheels' }
+
+# Stripping is the default as of 2026-08-13. -StripSourceMaps is not silently ignored:
+# it says so, because a flag that quietly does nothing is how an operator comes to
+# believe a build did something it did not.
+if ($StripSourceMaps) {
+    Step 'note      -StripSourceMaps is the default now; -KeepSourceMaps is the opt-out'
+}
 
 # `pip --version` is NOT used: it prints the absolute path of the pip package, which
 # would put a D:\... path into a tracked evidence file.
@@ -236,10 +264,32 @@ Nothing here reads the environment, consults a clock, or resolves the repository
 Every input is a path handed in by the wrapper, so two runs that differ only in WHEN they
 happened cannot differ in WHAT they produce.
 
+WHAT THE WEB TREE COSTS, AND WHY THIS PROGRAM SHAPES IT
+-------------------------------------------------------
+Under decision D1 this zip is the whole public origin, reached through a Lambda Function
+URL whose authorization_type is NONE. Every byte under web/ is therefore egress that any
+caller on the internet can bill to this account at will, and the served tree is the only
+place a build can bound it. Two mechanisms, both here:
+
+  * source maps are STRIPPED by default (--keep-source-maps builds the debuggable
+    package). Measured 2026-08-13: 18 files, 2,586,960 B, 72.42 % of a 3,571,990 B tree,
+    for a debugging convenience that is worth having on a laptop and is not worth
+    publishing on an unauthenticated URL;
+  * every compressible web/** entry gets a <name>.gz sibling at level 9. Measured on the
+    same tree: 289,312 B of siblings against 2,586,960 B removed, and the largest object
+    the handler can put on the wire falls from 1,554,168 B to 433,396 B identity /
+    124,127 B gzipped.
+
+Interface I1 in docs/leads/cost-bound-plan.md sec 2 fixes the contract this half of it
+implements: the sibling carries no filename in its gzip header and mtime 0, so the zip
+stays byte-reproducible; static_site.py owns serving it, and owes a 404 on a direct
+request for a path ending .gz, because one set of bytes must not have two names.
+
 Three modes:
   --mode preflight   refuse, before pip runs, if an input the package needs is absent
   --mode wheelcheck  say whether a wheelhouse already holds both pinned wheels
-  --mode build       copy, prune, pack, hash, gate on size, write the sidecar manifest
+  --mode build       copy, prune, strip, pre-compress, pack, hash, gate on size, write
+                     the sidecar manifest
 """
 
 import argparse
@@ -250,6 +300,7 @@ import re
 import shutil
 import sys
 import zipfile
+import zlib
 
 EPOCH = (1980, 1, 1, 0, 0, 0)
 COMPRESSLEVEL = 9
@@ -257,6 +308,30 @@ MODE_EXEC = 0o755
 MODE_FILE = 0o644
 LAMBDA_MAX_ZIPPED = 50 * 1024 * 1024
 LAMBDA_MAX_UNZIPPED = 250 * 1024 * 1024
+
+# Suffix -> does a second compression pass buy anything. Held in step with
+# static_site.MEDIA_TYPES: exactly the entries that table marks as text, JavaScript,
+# JSON, SVG or wasm. The image and font types it also names -- .png .jpg .jpeg .webp
+# .ico .woff .woff2 -- are already-compressed containers, and a .gz beside one of those
+# costs package bytes, costs build time and saves nothing on the wire.
+COMPRESSIBLE_SUFFIXES = (
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".map",
+    ".mjs",
+    ".svg",
+    ".txt",
+    ".wasm",
+    ".webmanifest",
+)
+GZ_SUFFIX = ".gz"
+
+# Reported, not enforced. A gzipped object above this is the one a wire ceiling has to
+# be chosen around, so the count belongs in the manifest where W3's ceiling test and
+# W7's cost model can both read it instead of re-deriving it.
+GZ_LARGE_OBJECT = 64 * 1024
 
 PNPM_BUILD = (
     "cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && "
@@ -429,8 +504,48 @@ def prune(stage):
     return sorted(removed)
 
 
+def web_files(stage):
+    """Every file under web/, as (repo-style relative path, absolute path), byte-sorted."""
+    rows = []
+    web = os.path.join(stage, "web")
+    if not os.path.isdir(web):
+        return rows
+    for dirpath, dirnames, filenames in os.walk(web):
+        dirnames.sort()
+        for name in sorted(filenames):
+            full = os.path.join(dirpath, name)
+            rows.append((os.path.relpath(full, stage).replace(os.sep, "/"), full))
+    rows.sort(key=lambda row: row[0].encode("utf-8"))
+    return rows
+
+
+def web_census(stage):
+    """Entries and bytes under web/. The number every cost figure starts from."""
+    rows = web_files(stage)
+    return {"entries": len(rows), "bytes": sum(os.path.getsize(full) for _rel, full in rows)}
+
+
+def largest_web(stage, want_gz):
+    """The biggest object under web/ that the handler could put on the wire.
+
+    A .gz sibling and its identity twin are two names for one set of bytes, and under
+    interface I1 a direct request for a path ending .gz is a 404 -- the sibling is
+    reachable only through content negotiation. So the two are measured apart: the
+    identity number bounds a caller that sent no accept-encoding, the gz number bounds
+    every modern browser, and a wire ceiling has to be chosen against both.
+    """
+    best = None
+    for rel, full in web_files(stage):
+        if rel.endswith(GZ_SUFFIX) != want_gz:
+            continue
+        size = os.path.getsize(full)
+        if best is None or size > best["bytes"]:
+            best = {"path": rel, "bytes": size}
+    return best
+
+
 def strip_maps(stage):
-    """Remove web/**/*.map. Off by default; the wrapper's help says why."""
+    """Remove web/**/*.map. The DEFAULT; --keep-source-maps opts out."""
     removed = []
     web = os.path.join(stage, "web")
     for dirpath, _dirnames, filenames in os.walk(web):
@@ -442,6 +557,89 @@ def strip_maps(stage):
     return sorted(removed)
 
 
+def gzip_bytes(data):
+    """Level-9 gzip with every field a writer could take from its surroundings pinned.
+
+    NOT gzip.compress. That helper writes the OS byte of the zlib the interpreter was
+    linked against and, on older interpreters, the current clock into MTIME -- so the
+    same input would produce different files on the Windows workstation and the Linux
+    runner this project builds on, and the zip's sha256 would move for a reason that is
+    not content. The container is therefore written out by hand:
+
+        1f 8b   magic
+        08      deflate
+        00      flags: NO FNAME. The name is the zip entry's job, and a filename in the
+                header would carry a staging path into a tracked artefact.
+        00 x4   MTIME 0. There is no clock in this program.
+        02      XFL: the compressor used maximum compression.
+        ff      OS: unknown, on purpose -- 03 (Unix) or 0b (Windows) would make the
+                artefact a statement about the machine that built it.
+
+    then the raw deflate stream, then CRC32 and ISIZE little-endian, which is what RFC
+    1952 sec 2.2 specifies and what every gzip reader checks.
+    """
+    compressor = zlib.compressobj(9, zlib.DEFLATED, -zlib.MAX_WBITS)
+    body = compressor.compress(data) + compressor.flush()
+    return (
+        b"\x1f\x8b\x08\x00\x00\x00\x00\x00\x02\xff"
+        + body
+        + (zlib.crc32(data) & 0xFFFFFFFF).to_bytes(4, "little")
+        + (len(data) & 0xFFFFFFFF).to_bytes(4, "little")
+    )
+
+
+def gzip_siblings(stage):
+    """Write <name>.gz beside every compressible web/** entry. Interface I1.
+
+    The whole served tree is pre-compressed at build time rather than per request for
+    two reasons that are both measured: gzipping the 433,396 B asset in the handler costs
+    25.9 ms at level 9 on the build workstation, which is charged to every request and
+    to the invocation duration the cost model turns on; and a build-time sibling can be
+    level 9 for free, where a request-time compressor has to be level 6 to be affordable.
+
+    The listing is taken BEFORE anything is written, so this walks a tree it is not also
+    growing, and its output cannot depend on whether a filesystem reports a file created
+    mid-walk.
+    """
+    written = []
+    for rel, full in web_files(stage):
+        if rel.endswith(GZ_SUFFIX):
+            # Under I1 the handler 404s a direct request for a .gz path and serves the
+            # sibling only through content negotiation. A .gz that arrived in dist/ has
+            # no identity twin this build can vouch for, so refusing beats guessing.
+            refuse(
+                "GZ COLLISION",
+                "%s is already a .gz. This build writes the pre-compressed siblings and "
+                "interface I1 gives them no name of their own; a .gz that came from the "
+                "console build would be one set of bytes with two names. Remove it from "
+                "dist/, or from the evidence bundle, and rebuild." % rel,
+            )
+            continue
+        if os.path.splitext(rel)[1].lower() not in COMPRESSIBLE_SUFFIXES:
+            continue
+        handle = open(full, "rb")
+        try:
+            data = handle.read()
+        finally:
+            handle.close()
+        blob = gzip_bytes(data)
+        handle = open(full + GZ_SUFFIX, "wb")
+        try:
+            handle.write(blob)
+        finally:
+            handle.close()
+        written.append(
+            {
+                "source": rel,
+                "sibling": rel + GZ_SUFFIX,
+                "bytes": len(data),
+                "gz_bytes": len(blob),
+            }
+        )
+    written.sort(key=lambda row: row["sibling"].encode("utf-8"))
+    return written
+
+
 def probe_console(stage):
     """Report which build-time source variables the console artefact actually carries.
 
@@ -450,6 +648,9 @@ def probe_console(stage):
     console renders its NO SOURCE panel on every surface: a site that loads, is honest,
     and shows nothing. That is a console-build fact and not a packaging fact, so this
     reports it loudly and does not refuse -- this program does not own dist/.
+
+    Only *.js is read, so the *.js.gz siblings written beside them are not scanned twice
+    and are not read as text.
     """
     found = {}
     modes = set()
@@ -551,7 +752,16 @@ def build(args):
     shutil.copytree(args.bundle, os.path.join(stage, "web", "bundle"))
 
     pruned = prune(stage)
-    stripped = strip_maps(stage) if args.strip_source_maps else []
+
+    # The three censuses are taken from the staging tree at three moments, so the
+    # sidecar can state what the two egress levers actually did on THIS tree rather than
+    # repeat a figure someone measured once. evidence/deploy/cost/package-shape.json is
+    # rebuilt from the finished zips and must agree with these.
+    before = web_census(stage)
+    stripped = [] if args.keep_source_maps else strip_maps(stage)
+    after_strip = web_census(stage)
+    siblings = gzip_siblings(stage)
+    after_gzip = web_census(stage)
 
     # A zip missing one of these is a 502, or a blank page, at 03:00 rather than a failed
     # build at 15:00. The same five are re-checked from the finished zip by
@@ -568,6 +778,35 @@ def build(args):
             refuse("MISSING", "the staging tree holds no %s" % name)
     if refusals:
         return None
+
+    shape = {
+        "web_before": before,
+        "web_after_strip": after_strip,
+        "web_after_gzip_siblings": after_gzip,
+        "source_maps_removed": {
+            "entries": len(stripped),
+            "bytes": before["bytes"] - after_strip["bytes"],
+        },
+        "gzip_siblings": {
+            "entries": len(siblings),
+            "bytes": sum(row["gz_bytes"] for row in siblings),
+            "identity_bytes": sum(row["bytes"] for row in siblings),
+            "above_large_object": sum(
+                1 for row in siblings if row["gz_bytes"] > GZ_LARGE_OBJECT
+            ),
+            "large_object_threshold": GZ_LARGE_OBJECT,
+        },
+        "largest_identity_object": largest_web(stage, False),
+        "largest_gz_object": largest_web(stage, True),
+        "compressible_suffixes": list(COMPRESSIBLE_SUFFIXES),
+        "note": (
+            "web_before is the tree as the console build and the evidence bundle left it. "
+            "largest_identity_object is what a caller that sent no accept-encoding can "
+            "pull; largest_gz_object is what every modern browser pulls. Under interface "
+            "I1 a direct request for a path ending .gz is a 404, so the two are the same "
+            "bytes under one name."
+        ),
+    }
 
     console = probe_console(stage)
     entries, unzipped = pack(stage, args.out)
@@ -597,8 +836,10 @@ def build(args):
         "layout": layout,
         "distributions": sorted(name for name in top if name.endswith(".dist-info")),
         "pruned": pruned,
-        "source_maps": "stripped" if args.strip_source_maps else "kept",
+        "source_maps": "kept" if args.keep_source_maps else "stripped",
         "source_maps_stripped": stripped,
+        "gzip_siblings": [row["sibling"] for row in siblings],
+        "package_shape": shape,
         "console": console,
         "build": {
             "builder": args.builder,
@@ -632,6 +873,30 @@ def build(args):
         % (zipped, zipped / 1048576.0, LAMBDA_MAX_ZIPPED, LAMBDA_MAX_ZIPPED // 1048576)
     )
     say("maps      %s" % manifest["source_maps"])
+    say("web       %5d entries %10d bytes  as the console and the bundle left it"
+        % (before["entries"], before["bytes"]))
+    say("          %5d entries %10d bytes  after the source-map strip (-%d files, -%d bytes)"
+        % (
+            after_strip["entries"],
+            after_strip["bytes"],
+            shape["source_maps_removed"]["entries"],
+            shape["source_maps_removed"]["bytes"],
+        ))
+    say("          %5d entries %10d bytes  with the .gz siblings (+%d files, +%d bytes)"
+        % (
+            after_gzip["entries"],
+            after_gzip["bytes"],
+            shape["gzip_siblings"]["entries"],
+            shape["gzip_siblings"]["bytes"],
+        ))
+    if shape["largest_identity_object"]:
+        say("wire      largest identity %10d bytes  %s"
+            % (shape["largest_identity_object"]["bytes"], shape["largest_identity_object"]["path"]))
+    if shape["largest_gz_object"]:
+        say("          largest gzipped  %10d bytes  %s"
+            % (shape["largest_gz_object"]["bytes"], shape["largest_gz_object"]["path"]))
+    say("          %d gz object(s) above %d bytes" % (
+        shape["gzip_siblings"]["above_large_object"], GZ_LARGE_OBJECT))
     if console["configured"]:
         pairs = sorted(console["configured"].items())
         say("console   %s" % ", ".join("%s=%s" % (k, v if v else "(empty)") for k, v in pairs))
@@ -646,10 +911,10 @@ def build(args):
     if zipped > LAMBDA_MAX_ZIPPED:
         refuse(
             "SIZE",
-            "zipped is %d bytes, %d over Lambda's 50 MB direct-upload ceiling. Either "
-            "drop the source maps (--strip-source-maps, about 2.4 MB of this tree) or "
-            "move the package to S3, which infra/modules/demo-api does not do."
-            % (zipped, zipped - LAMBDA_MAX_ZIPPED),
+            "zipped is %d bytes, %d over Lambda's 50 MB direct-upload ceiling. The source "
+            "maps are already stripped by default, so the remaining moves are dropping a "
+            "dependency or moving the package to S3, which infra/modules/demo-api does not "
+            "do." % (zipped, zipped - LAMBDA_MAX_ZIPPED),
         )
     if unzipped > LAMBDA_MAX_UNZIPPED:
         refuse(
@@ -681,7 +946,10 @@ def main(argv=None):
     parser.add_argument("--command-line", default="")
     parser.add_argument("--builder", default="")
     parser.add_argument("--packer-sha256", default="")
-    parser.add_argument("--strip-source-maps", action="store_true")
+    # The default is STRIP. This flag is the opt-out, and it is spelled as the thing it
+    # does rather than as the negation of a flag that no longer exists, so a reader of a
+    # recorded command line can see what was built without knowing this file's history.
+    parser.add_argument("--keep-source-maps", action="store_true")
     args = parser.parse_args(argv)
 
     if args.mode == "wheelcheck":
@@ -857,7 +1125,7 @@ try {
         '--builder', 'scripts/deploy/build_lambda.ps1',
         '--packer-sha256', $PackerSha
     )
-    if ($StripSourceMaps) { $packArgs += '--strip-source-maps' }
+    if ($KeepSourceMaps) { $packArgs += '--keep-source-maps' }
 
     & $Python $PackerPath @packArgs
     if ($LASTEXITCODE -ne 0) { Fail "the packer refused this build (exit $LASTEXITCODE)" }

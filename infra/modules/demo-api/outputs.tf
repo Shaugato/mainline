@@ -162,6 +162,105 @@ output "alarm_names" {
   ]
 }
 
+output "alarm_arns" {
+  description = <<-EOT
+    The four alarm ARNs, in the same order as `alarm_names`.
+
+    IT EXISTS TO BE COMPARED AGAINST ONE OTHER LIST. `infra/modules/cost-guard`'s SNS topic
+    policy admits `cloudwatch.amazonaws.com` under an `ArnLike` on `aws:SourceArn` naming
+    exactly ITS OWN three alarm ARNs (`cost-guard/outputs.tf`, `alarm_arns`). None of these
+    four is in that list, and `infra/envs/demo` nonetheless passes that topic as
+    `var.alarm_actions` here. Whether these four can publish to it therefore depends on the
+    policy's first statement - SNS's default `Principal AWS:*` scoped by `AWS:SourceOwner` -
+    and NOTHING SHORT OF AN APPLY AND A REAL BREACH SETTLES IT. Emitting both lists as
+    outputs makes the comparison one command instead of two policy documents:
+
+        aws cloudwatch describe-alarms --alarm-names $(terraform output -json api_alarm_names)
+        aws sns get-topic-attributes --topic-arn $(terraform output -raw guard_sns_topic_arn)
+
+    A topic policy that does not admit an alarm turns that alarm's action into a denied
+    publish, which `describe-alarms` cannot distinguish from a delivered one.
+  EOT
+  value = [
+    aws_cloudwatch_metric_alarm.errors.arn,
+    aws_cloudwatch_metric_alarm.throttles.arn,
+    aws_cloudwatch_metric_alarm.duration_p99.arn,
+    aws_cloudwatch_metric_alarm.concurrency.arn,
+  ]
+}
+
+output "published_bounds" {
+  description = <<-EOT
+    EVERY BOUND THIS FUNCTION ENFORCES, AS ONE OBJECT, so that "what is actually in force?"
+    is one `terraform output` and not an unzip of a 7.6 MB package.
+
+    All six `MAINLINE_*` values are also environment variables on the function itself, which
+    is the readable-from-AWS half of the same claim - `aws lambda
+    get-function-configuration --function-name <name> --query Environment.Variables`. This
+    output is the readable-from-Terraform half, and it carries the two numbers that are NOT
+    environment variables because they are AWS-side configuration rather than application
+    configuration: the timeout and the memory size.
+
+    EVERY FIELD HERE IS KNOWN AT PLAN TIME, DELIBERATELY, and that is why
+    `alarm_actions_armed` is a SEPARATE output rather than a field in this object. It is
+    derived from `length(var.alarm_actions)`, the env root reaches that list through a
+    `try()` over a counted module, and `try()` returns a wholly UNKNOWN value when its
+    argument contains one - so a single boolean would have rendered this entire object as
+    "(known after apply)" in the committed plan. The whole point of the object is that a
+    reviewer can read the bounds in force off the plan artefact without an apply and
+    without decoding a zip; one unknown field would have taken that away for all seventeen.
+  EOT
+  value = {
+    max_response_bytes                    = var.max_response_bytes
+    rate_global_rps                       = var.rate_global_rps
+    rate_global_burst                     = var.rate_global_burst
+    rate_ip_rps                           = var.rate_ip_rps
+    rate_ip_burst                         = var.rate_ip_burst
+    log_budget_bytes                      = var.log_budget_bytes
+    timeout_seconds                       = var.timeout
+    memory_size_mb                        = var.memory_size
+    application_log_level                 = var.log_level
+    system_log_level                      = "WARN"
+    duration_p99_threshold_ms             = var.duration_p99_threshold_ms
+    modelled_worst_legitimate_duration_ms = var.modelled_worst_legitimate_duration_ms
+    concurrency_alarm_threshold           = var.concurrency_alarm_threshold
+    account_concurrency_ceiling           = var.account_concurrency_ceiling
+    reserved_concurrent_executions        = var.reserved_concurrent_executions
+  }
+}
+
+output "alarm_actions_armed" {
+  description = <<-EOT
+    Whether the four alarms have any ALARM action at all. `false` means they report and
+    nothing else; `true` means a breach of any one of them publishes to whatever is in
+    `var.alarm_actions` - and in `infra/envs/demo` that is the cost guard's STOP topic, so
+    `true` there means a breach takes the demo down until a human runs
+    `scripts/deploy/kill_switch.sh --restore`.
+
+    IT IS "(known after apply)" IN THE PLAN AND THAT IS NOT AVOIDABLE. The env root reaches
+    the topic through `try([module.guard[0].sns_topic_arn], [])`, and `try()` yields an
+    unknown value whenever its argument contains one - so the list's LENGTH is unknown at
+    plan time even though its shape is not. What IS provable from the plan artefact is the
+    wiring itself, in the `configuration` section rather than in `planned_values`:
+    `module_calls.api.expressions.alarm_actions.references` reads
+    `["local.guard_stop_topic_actions"]`, and the four alarms' `alarm_actions` sit in
+    `after_unknown` while their `ok_actions` do not - which is exactly the signature of one
+    list wired to a resource that does not exist yet and one list that is empty.
+    `evidence/deploy/cost/plan-shape.json` records both facts.
+  EOT
+  value       = length(var.alarm_actions) > 0
+}
+
+output "ok_actions_armed" {
+  description = <<-EOT
+    Whether the four alarms notify anything on RECOVERY. `false`, and it is a different
+    list from `alarm_actions` since this wave precisely so that arming one does not arm the
+    other: an OK transition reaching a topic whose only verb is "stop" would fire the stop
+    responder on the demo getting BETTER. See `var.ok_actions`.
+  EOT
+  value       = length(var.ok_actions) > 0
+}
+
 output "dashboard_name" {
   description = "CloudWatch dashboard name, or null when `create_dashboard = false`."
   value       = var.create_dashboard ? aws_cloudwatch_dashboard.this[0].dashboard_name : null

@@ -354,15 +354,15 @@ cluster-backed test skips with the reason its own fixture wrote) and once with
 
 | | no cluster | one shared cluster |
 |---|---|---|
-| targets | 26 [src: qa/test-state.json#totals.none.targets] | 26 [src: qa/test-state.json#totals.cluster.targets] |
-| tests | 8845 [src: qa/test-state.json#totals.none.tests] | 7187 [src: qa/test-state.json#totals.cluster.tests] |
-| passed | 8065 [src: qa/test-state.json#totals.none.passed] | 6960 [src: qa/test-state.json#totals.cluster.passed] |
-| failed | 44 [src: qa/test-state.json#totals.none.failed] | 29 [src: qa/test-state.json#totals.cluster.failed] |
-| errored | 0 [src: qa/test-state.json#totals.none.errored] | 182 [src: qa/test-state.json#totals.cluster.errored] |
-| skipped | 736 [src: qa/test-state.json#totals.none.skipped] | 16 [src: qa/test-state.json#totals.cluster.skipped] |
+| targets | 27 [src: qa/test-state.json#totals.none.targets] | 27 [src: qa/test-state.json#totals.cluster.targets] |
+| tests | 9290 [src: qa/test-state.json#totals.none.tests] | 7632 [src: qa/test-state.json#totals.cluster.tests] |
+| passed | 8323 [src: qa/test-state.json#totals.none.passed] | 7340 [src: qa/test-state.json#totals.cluster.passed] |
+| failed | 44 [src: qa/test-state.json#totals.none.failed] | 30 [src: qa/test-state.json#totals.cluster.failed] |
+| errored | 0 [src: qa/test-state.json#totals.none.errored] | 245 [src: qa/test-state.json#totals.cluster.errored] |
+| skipped | 923 [src: qa/test-state.json#totals.none.skipped] | 17 [src: qa/test-state.json#totals.cluster.skipped] |
 | targets that timed out | 0 [src: qa/test-state.json#totals.none.timed_out_targets] | 1 [src: qa/test-state.json#totals.cluster.timed_out_targets] |
 
-Distinct skip reason strings, no-cluster pass: 43 [src: qa/test-state.json#skip_reasons.none|len].
+Distinct skip reason strings, no-cluster pass: 44 [src: qa/test-state.json#skip_reasons.none|len].
 Every one of them is printed verbatim, with its count, in
 [`docs/release/test-state.md`](release/test-state.md). A skip with no reason is
 indistinguishable from a test that was quietly deleted, so the census refuses to record
@@ -373,6 +373,39 @@ measured against a tree in which those files did not exist, so every row above i
 statement about that tree, not about the one in the working directory. Retaking it is
 cheap and nobody has done it; until they do, reading these counts as current is the
 reader's error and this sentence is here to prevent it.
+
+**And it is now a MIXTURE, which is a second reason not to read it as one measurement.**
+On `2026-08-13` a single target — `verticals/mainline/apps/demo-api` — was measured afresh
+and folded in through this file's own `merges` mechanism, which recomputes the totals from
+every row present rather than carrying a stored sum forward. So the table above is a sum
+over one row taken today and twenty-six taken before the producer migrations. That is why
+every figure in it moved even though only one target was re-run. Both caveats stand
+together: the old rows are stale, and the totals are no longer simultaneous.
+
+**The row that did not exist at all until that merge.** Until `2026-08-13` this census had
+twenty-six targets and the demo API — the product's headline path, the suite behind the
+demo URL — was not one of them, because `scripts/qa/report_test_state.py` enumerated
+`packages/*` and `verticals/*/packages/*` and never `verticals/*/apps/*`. That is the same
+one-directory-level miss as the `testpaths` defect below, in a second file, found second.
+
+| `verticals/mainline/apps/demo-api` | no cluster | one shared cluster |
+|---|---|---|
+| tests | 445 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.none.tests] | 445 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.cluster.tests] |
+| passed | 258 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.none.passed] | 380 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.cluster.passed] |
+| failed | 0 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.none.failed] | 1 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.cluster.failed] |
+| errored | 0 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.none.errored] | 63 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.cluster.errored] |
+| skipped | 187 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.none.skipped] | 1 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.cluster.skipped] |
+
+**Read the two columns against each other, because that pair is the finding.** With no
+database, 187 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.none.skipped]
+of 445 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.none.tests]
+skip. With one, all but a single `jsonschema` skip execute — and they find a defect the
+no-cluster column reports as neither a pass nor a failure but as
+63 [src: qa/test-state.json#packages.verticals/mainline/apps/demo-api.runs.cluster.errored]
+errors. **No CI lane in this repository has ever run that right-hand column.** The closing
+section of [`docs/ci/test-collection.md`](ci/test-collection.md) carries the measurement and
+the workflow census behind that sentence, and [`docs/CI-STATE.md`](CI-STATE.md) carries the
+board it appears on.
 
 Three further things about this table are worth saying out loud rather than leaving for a
 reader to notice.
@@ -593,7 +626,17 @@ did not last week, and nothing guarantees they will next week.
 > the prose had not absorbed, which is the correct colour for that condition. The same
 > trap is still armed for every future run in that directory.
 
-### The suite that would have caught the demo's `500` has never been collected
+### The suite that would have caught the demo's `500` was never collected — and now that it is, it still does not run
+
+> **WHAT CHANGED, and where this section stops being current.** Everything from the next
+> paragraph down to *"the only thing that has changed is that it is now written down"* was
+> true when it was written and describes a state this repository has left. On `2026-08-13`
+> `verticals/*/apps/demo-api/tests` entered `testpaths`; the suite is collected, it is
+> counted, and a case inside it can now turn a CI lane red. **The paragraphs are kept
+> verbatim rather than edited, because a page whose credibility rests on showing its own
+> movement may not quietly rewrite where it moved from.** Read them as history. The
+> sub-section *"And collection turned out not to be execution"* at the end of this section
+> states what is true today, and it is worse than a reader would guess from the repair.
 
 **This is the worst thing on this page and it was invisible to every count on it.** Every
 other admission here is a number that is bad. This one is a number that does not exist,
@@ -657,6 +700,76 @@ check — and neither can see this, because both watch the numerator. A director
 this document is a figure about the directories `testpaths` names**, which is a smaller
 claim than the one a reader will hear. That was true before this section existed; the only
 thing that has changed is that it is now written down.
+
+#### And collection turned out not to be execution
+
+**Measured `2026-08-13` by W5 of the CI-RUNS-THE-CLUSTER wave, in the sitting that published
+this paragraph.** The declaration landed:
+
+```toml
+testpaths = [
+    "tests",
+    "packages",
+    "verticals/*/packages/*/tests",
+    "verticals/*/apps/demo-api/tests",   # ← added 2026-08-13
+]
+```
+
+The `*` deliberately stays on the vertical rather than moving to the app: the app segment is
+where this repository's Python/TypeScript boundary lies, and `verticals/*/apps/*/tests` would
+have handed the console's vitest tree to pytest.
+
+The repair is real and it is visible from the runner rather than inferred from the file. The
+`ci` lane's `pytest --crdb=none` job on run `31699545661`, dispatched by this worker at
+`12:20:17Z` against `2dc5c86` and read warm, prints:
+
+```
+8 failed, 8629 passed, 1003 skipped, 13 deselected, 2 warnings in 339.20s (0:05:39)
+```
+
+against the `5 failed, 8467 passed, 839 skipped, 13 deselected` of run `31657309517` quoted
+above. **Two of those eight failures name modules in this directory** — one of them a
+`sys.modules` defect in `test_envelope.py` that only a shared session could expose, the other
+an `OSError: [Errno 36] File name too long` that only a Linux runner could. A case in this
+suite can now make a lane red. That is the whole of what the testpath bought.
+
+**And then the second half of the sentence.** The suite is walked; its cluster-backed cases
+still do not run, anywhere, on any lane:
+
+```
+$ pytest verticals/mainline/apps/demo-api/tests --crdb=none  -q
+258 passed, 187 skipped in 13.60s
+
+$ pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q
+4 failed, 376 passed, 1 skipped, 64 errors in 52.15s
+
+$ git grep -n "demo-api" 2dc5c86 -- .github/workflows/ ; echo "exit=$?"
+exit=1                        # no match, in any of the eighteen workflow files
+
+$ git grep -c 'docker run -d' 2dc5c86 -- .github/workflows/
+8 files, 13 stand-ups         # and not one of them names that directory
+```
+
+`test_row_factory_contract.py` — the file the paragraphs above are about — is inside the
+`258 passed` and inside the `--crdb=reuse` column, so the sentence *"it has never executed,
+not once"* is no longer true of a developer workstation. **It remains true of CI**, which is
+the only place the claim was ever worth anything. The whole-repo shape is the same one:
+
+```
+$ pytest --crdb=none -q -m "not (g4alpha or pl2_red)" -ra   # ci.yml's own argv
+4 failed, 8832 passed, 988 skipped, 15 deselected, 2 warnings in 606.03s (0:10:06)
+
+974 of those 988 skips name a CockroachDB, a DSN or a cluster.  46 distinct reason strings.
+```
+
+So the correction to this section is not that its finding was wrong. It is that **the finding
+had a second half nobody had written down**: a directory outside `testpaths` is missing from
+the denominator, and a directory inside `testpaths` whose tests all skip is inside the
+denominator and still asserting nothing. The first is invisible; the second is a skip with a
+reason, which is enormously better and is still not a test that ran. **On a dashboard the two
+are the same colour as fixed.** The full measurement, the workflow census behind it and the
+per-root skip table are in [`docs/ci/test-collection.md`](ci/test-collection.md); the board
+that lane sits on is in [`docs/CI-STATE.md`](CI-STATE.md).
 
 ### The conformance suite has still not been demonstrated
 

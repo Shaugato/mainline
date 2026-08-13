@@ -2202,27 +2202,149 @@
           "stderr_tail": ""
         }
       }
+    },
+    "verticals/mainline/apps/demo-api": {
+      "path": "verticals/mainline/apps/demo-api/tests",
+      "kind": "distribution",
+      "distribution": "demo-api",
+      "runs": {
+        "none": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/apps/demo-api/tests",
+            "--crdb=none",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-otiablty\\junit.xml"
+          ],
+          "exit_code": 0,
+          "exit_meaning": "all collected tests passed",
+          "duration_seconds": 16.18,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 445,
+          "passed": 258,
+          "failed": 0,
+          "errored": 0,
+          "skipped": 187,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "the session obtained no CockroachDB, so this cluster-backed test is skipped rather than allowed to reach a node the session declined to obtain. trappoint-testkit says: --crdb=none: this session declined to obtain a CockroachDB, so every test that needs one is skipped rather than allowed to start a private container",
+              "count": 187
+            }
+          ],
+          "failed_tests": [],
+          "errored_tests": [],
+          "names_truncated": false,
+          "stderr_tail": ""
+        },
+        "cluster": {
+          "argv": [
+            "-m",
+            "pytest",
+            "verticals/mainline/apps/demo-api/tests",
+            "--crdb=reuse",
+            "-q",
+            "--no-header",
+            "-p",
+            "no:cacheprovider",
+            "--junit-xml",
+            "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-census-t13u8eu7\\junit.xml"
+          ],
+          "exit_code": 1,
+          "exit_meaning": "tests were collected and at least one failed",
+          "duration_seconds": 45.7,
+          "timed_out": false,
+          "junit_written": true,
+          "tests": 445,
+          "passed": 380,
+          "failed": 1,
+          "errored": 63,
+          "skipped": 1,
+          "xfailed": 0,
+          "xpassed": 0,
+          "skip_reasons": [
+            {
+              "reason": "jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added",
+              "count": 1
+            }
+          ],
+          "failed_tests": [
+            "tests.test_reads::test_an_undeclared_query_parameter_is_refused_rather_than_ignored"
+          ],
+          "errored_tests": [
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[audit]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[blocking_checks]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[change_request]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[clause_ancestry]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[clause_version]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[disposition]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[exposure_receipt]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[ledger]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[permit]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[propagation]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[recall_run]",
+            "tests.test_reads::test_every_read_satisfies_its_committed_contract[silence]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[audit]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[blocking_checks]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[change_request]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[clause_ancestry]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[clause_version]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[disposition]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[exposure_receipt]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[ledger]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[permit]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[propagation]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[recall_run]",
+            "tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[silence]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[audit]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[blocking_checks]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[change_request]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[clause_ancestry]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[clause_version]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[disposition]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[exposure_receipt]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[ledger]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[permit]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[propagation]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[recall_run]",
+            "tests.test_reads::test_every_provenance_pointer_addresses_something_real[silence]",
+            "tests.test_reads::test_no_read_silently_drops_a_provenance_claim[audit]",
+            "tests.test_reads::test_no_read_silently_drops_a_provenance_claim[blocking_checks]",
+            "tests.test_reads::test_no_read_silently_drops_a_provenance_claim[change_request]",
+            "tests.test_reads::test_no_read_silently_drops_a_provenance_claim[clause_ancestry]"
+          ],
+          "names_truncated": true,
+          "stderr_tail": ""
+        }
+      }
     }
   },
   "totals": {
     "none": {
-      "targets": 26,
-      "tests": 8845,
-      "passed": 8065,
+      "targets": 27,
+      "tests": 9290,
+      "passed": 8323,
       "failed": 44,
       "errored": 0,
-      "skipped": 736,
+      "skipped": 923,
       "xfailed": 0,
       "timed_out_targets": 0,
       "unmeasured_targets": 0
     },
     "cluster": {
-      "targets": 26,
-      "tests": 7187,
-      "passed": 6960,
-      "failed": 29,
-      "errored": 182,
-      "skipped": 16,
+      "targets": 27,
+      "tests": 7632,
+      "passed": 7340,
+      "failed": 30,
+      "errored": 245,
+      "skipped": 17,
       "xfailed": 0,
       "timed_out_targets": 1,
       "unmeasured_targets": 1
@@ -2233,6 +2355,10 @@
       {
         "reason": "no cluster: set TRAPPOINT_DSN (or LOCAL_DSN). For a local single-node node \u2014 `docker compose up -d crdb` then TRAPPOINT_DSN=<dsn>",
         "count": 211
+      },
+      {
+        "reason": "the session obtained no CockroachDB, so this cluster-backed test is skipped rather than allowed to reach a node the session declined to obtain. trappoint-testkit says: --crdb=none: this session declined to obtain a CockroachDB, so every test that needs one is skipped rather than allowed to start a private container",
+        "count": 187
       },
       {
         "reason": "SKIP WITH REASON: no TRAPPOINT_DSN or LOCAL_DSN. These assertions are about what a database does; without one there is nothing to assert and pretending otherwise would be a suite that passes by absence. `just up && just migrate`.",
@@ -2429,6 +2555,10 @@
         "count": 1
       },
       {
+        "reason": "jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added",
+        "count": 1
+      },
+      {
         "reason": "live IAM simulation not attempted: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1. The plan-time assertions in this module still hold; this one does not, and is not counted as a pass.",
         "count": 1
       },
@@ -2487,6 +2617,53 @@
         "cluster"
       ],
       "per_target_timeout_seconds": 600,
+      "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
+    },
+    {
+      "merged_utc": "2026-08-13T11:22:26Z",
+      "targets": [
+        "verticals/mainline/apps/demo-api"
+      ],
+      "passes": [
+        "none",
+        "cluster"
+      ],
+      "per_target_timeout_seconds": 900,
+      "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
+    },
+    {
+      "merged_utc": "2026-08-13T11:39:20Z",
+      "targets": [
+        "verticals/mainline/apps/demo-api"
+      ],
+      "passes": [
+        "cluster"
+      ],
+      "per_target_timeout_seconds": 900,
+      "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
+    },
+    {
+      "merged_utc": "2026-08-13T11:45:26Z",
+      "targets": [
+        "verticals/mainline/apps/demo-api"
+      ],
+      "passes": [
+        "cluster"
+      ],
+      "per_target_timeout_seconds": 900,
+      "dsn_host": "127.0.0.1:26257",
+      "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
+    },
+    {
+      "merged_utc": "2026-08-13T11:50:38Z",
+      "targets": [
+        "verticals/mainline/apps/demo-api"
+      ],
+      "passes": [
+        "cluster"
+      ],
+      "per_target_timeout_seconds": 900,
+      "dsn_host": "127.0.0.1:26257",
       "why": "these rows were re-measured and replaced; totals and skip_reasons were recomputed from every row present, never carried forward"
     }
   ],

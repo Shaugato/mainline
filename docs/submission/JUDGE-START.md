@@ -223,9 +223,14 @@ promise.
 **There is no demo URL yet.** `docs/submission/SUBMISSION.json` holds the literal
 `UNRESOLVED` for `demo_url` and for `video_url`, because `terraform apply` has not been run
 and the film has not been shot. The plan that would create the origin is committed at
-`evidence/deploy/terraform-plan-furl.txt` (11 to add, 0 to change, 0 to destroy). Writing a
-hostname into that file before it exists would turn our own gate green and still hand you a
-404, which is precisely the failure that file exists to prevent.
+`evidence/deploy/terraform-plan-furl.txt` — `Plan: 24 to add, 0 to change, 0 to destroy` at line 843:
+11 resources in `module.api[0]` and 13 in `module.guard[0]`, the cost guard that
+`infra/envs/demo/main.tf:631` now instantiates. **An earlier version of this page said 11**,
+which was the count before the guard was wired in; the artefact is the authority and this
+sentence is derived from it, so re-read it with
+`grep -n '^Plan:' evidence/deploy/terraform-plan-furl.txt` rather than trusting us. Writing a
+hostname into `SUBMISSION.json` before the origin exists would turn our own gate green and still
+hand you a 404, which is precisely the failure that file exists to prevent.
 [`RULES-MATRIX.md`](RULES-MATRIX.md) carries the rule-by-rule verdicts, each with the command
 that re-derives it.
 

@@ -50,6 +50,7 @@ rather than a fake envelope:
 405  the path exists under a different method
 409  the row exists and its contract cannot express it — the field is named
 413  the body this handler built is larger than the per-response byte ceiling
+429  the request rate is above the declared bound — see :mod:`ratelimit`
 501  a POST whose implementation module is not deployed
 503  no DSN, or the database did not answer
 500  anything else, with the SQLSTATE when the driver gave one
@@ -66,9 +67,31 @@ happens to produce. The refusal is a problem document, never an exception — se
 :func:`_too_large`, which is deliberately not routed through :func:`_response` so that
 the refusal can never itself be refused.
 
-**It bounds bytes per request and nothing else.** Request *rate* is bounded only by the
-account's concurrency ceiling; a flood of small responses is untouched by this. Said
-plainly here so nobody reads a 413 as a rate limit.
+**It bounds bytes per request and nothing else.** A flood of small responses is untouched
+by it. Said plainly here so nobody reads a 413 as a rate limit — the rate bound is a
+different control with a different status code, immediately below.
+
+WHAT ONE INSTANCE MAY BE ASKED FOR
+----------------------------------
+:func:`mainline_demo_api.ratelimit.check` is the **first** statement in :func:`handler` —
+before the OPTIONS branch, before the ``/v1`` fork, before the path is even decoded — so a
+refused request reads no file and opens no database connection. Two token buckets: one
+global to this execution environment, which is the only one of the two that bounds a
+*distributed* flood, and one per source address, which is the only one of the two that can
+refuse an abuser without refusing everybody. Their limits and their limitations are set out
+in that module's docstring, including the part that matters most: **neither bounds the
+invocation charge**, because Lambda bills a 429 exactly as it bills a 200.
+
+Until 2026-08-13 this docstring said request rate was "bounded only by the account's
+concurrency ceiling". That sentence was true when it was written and this wave made it
+false; it is replaced rather than left standing.
+
+**Every byte this handler logs is bounded too** — :mod:`mainline_demo_api.logbudget`,
+interface **I5**. :func:`handler` opens each invocation with ``logbudget.begin()``, and a
+filter on this module's logger caps what the invocation may emit. CloudWatch bills log
+*ingestion*; ``log_retention_days`` bounds storage and bounds ingestion not at all, so an
+unbounded log line on the refusal path would be a second bill hidden inside the control
+meant to prevent the first.
 
 **A refused transition is NOT an error.** It arrives from ``transitions`` as an
 ``invoke`` envelope with ``outcome: "refused"`` and a specification refusal payload, and
@@ -102,13 +125,17 @@ from typing import Any, Final
 
 import psycopg
 
-from . import db, reads, static_site
+from . import db, logbudget, ratelimit, reads, static_site
 from .envelope import SCHEMA_IDS, dumps
 from .health import HEALTH_PATH, health
 
 __all__ = ["ROUTES", "Route", "handler", "lambda_handler", "route"]
 
 _log = logging.getLogger("mainline_demo_api")
+
+# At import, not on the first request: a cold start is exactly when this handler logs, and
+# a ceiling installed by the first invocation would leave the cold one unbounded.
+logbudget.install()
 
 #: Cache-Control for the twelve reads. Ten seconds is long enough for CloudFront to
 #: absorb a room full of judges refreshing at once and short enough that the gate
@@ -265,6 +292,40 @@ def _query(event: Mapping[str, Any]) -> dict[str, str]:
     return {str(key): str(value) for key, value in params.items() if value is not None}
 
 
+def _accept_encoding(event: Mapping[str, Any]) -> str | None:
+    """Return the request's ``Accept-Encoding`` field value verbatim, or ``None``.
+
+    **Verbatim is the whole contract.** Nothing here decides what the value means:
+    :func:`mainline_demo_api.static_site.accepts_gzip` owns that, because the two clauses
+    that are easy to get wrong — ``gzip;q=0`` is a *refusal* and not a mention, and
+    ``x-gzip-nope`` is a different token that merely contains the letters — are properties
+    of RFC 9110 §12.5.3, not of this event shape. A second implementation here would be a
+    second place for them to be got wrong, and the one that answered would be whichever ran
+    first. So this function's entire job is to find the string and hand it over unread.
+
+    A Function URL (payload format 2.0) lower-cases every header name and joins repeated
+    ones with ``", "``, so ``event["headers"]["accept-encoding"]`` is the value AWS
+    delivers. The lookup below is nevertheless case-insensitive, for two reasons that are
+    both real rather than defensive habit: payload format **1.0** and an API Gateway proxy
+    integration preserve the sender's case, and every hand-built event in this repository's
+    tests is written by a person. A case-sensitive read would work in production and return
+    ``None`` in a test, which is the direction of failure that hides.
+
+    Absent ``headers``, an absent ``accept-encoding``, and a non-string value all mean
+    ``None``, which :func:`~mainline_demo_api.static_site.serve` reads as identity — the
+    coding every client can decode. Identity is the safe default in both directions: a
+    caller that would have taken gzip gets a larger body, which costs money; a caller that
+    could not read gzip and was sent it gets a broken page, which costs the demo.
+    """
+    headers = event.get("headers")
+    if not isinstance(headers, Mapping):
+        return None
+    for name, value in headers.items():
+        if str(name).lower() == "accept-encoding":
+            return value if isinstance(value, str) else None
+    return None
+
+
 def _body(event: Mapping[str, Any]) -> Any:
     raw = event.get("body")
     if raw is None or raw == "":
@@ -371,9 +432,14 @@ def _problem(status: int, kind: str, detail: str, **extra: Any) -> dict[str, Any
 # ── The handler ─────────────────────────────────────────────────────────────────────
 
 
-def handler(  # noqa: PLR0911 - one return per HTTP status, and the statuses are the
-    # interface: collapsing them into a single exit would mean composing the status from
-    # a variable, which is how a 404 becomes a 500 in a refactor nobody reviewed.
+def handler(  # noqa: PLR0911, PLR0912 - one return per HTTP status, and the statuses are
+    # the interface: collapsing them into a single exit would mean composing the status
+    # from a variable, which is how a 404 becomes a 500 in a refactor nobody reviewed. The
+    # branch count crossed twelve when the rate bound landed on 2026-08-13; the honest
+    # remedy would be to move a status out of this function, and there is no status here
+    # that belongs anywhere else. Extracting one for a lint's benefit would put a return
+    # code behind a call boundary where the next reader cannot see it, which is the trade
+    # this comment refuses.
     event: Mapping[str, Any] | None,
     context: Any = None,  # noqa: ARG001 - AWS passes it; nothing here reads it, and a
     # handler that quietly depended on the runtime context would not be callable from a
@@ -389,6 +455,27 @@ def handler(  # noqa: PLR0911 - one return per HTTP status, and the statuses are
     """
     started = time.monotonic()
     event = event or {}
+
+    # THE TWO ENTRY-POINT COST CONTROLS, AND THEY ARE THE FIRST TWO STATEMENTS ON PURPOSE.
+    #
+    # `begin` opens this invocation's log allowance; it has to precede the rate check
+    # because the throttle line the rate check may emit is itself a charged byte.
+    #
+    # `check` is before the OPTIONS branch, before the `/v1` fork and before `_method` and
+    # `_path` are even called, so a refused request touches no filesystem and asks
+    # `db.connection()` for nothing. Placing it after the fork would have left the static
+    # surface — the largest bodies this origin emits — outside the bound, which is the
+    # exact shape of defect this repository refuses: a control on the path somebody
+    # thought of and absent from the rest.
+    #
+    # The 429 is returned as `ratelimit` built it and is NOT passed through `_response`.
+    # `_response` measures against the per-response ceiling, and a refusal that can itself
+    # be refused is not a control — the same argument `_too_large` makes about the 413.
+    logbudget.begin()
+    refused = ratelimit.check(event)
+    if refused is not None:
+        return refused
+
     method = _method(event)
     path = _path(event)
 
@@ -402,7 +489,16 @@ def handler(  # noqa: PLR0911 - one return per HTTP status, and the statuses are
     # API route can never be answered with HTML. `/v1/health` is inside the prefix, so
     # the health check below is reached exactly as it was before the site existed.
     if not static_site.is_api_path(path):
-        return static_site.serve(method, path)
+        # THE REQUEST HEADER THE STATIC SURFACE HAS TO SEE, AND UNTIL 2026-08-13 IT DID NOT.
+        # `static_site.serve` has taken `accept_encoding` since interface I1 landed, its
+        # default is `None`, and this call site passed nothing — so the 57 pre-compressed
+        # siblings the packer ships (289,312 B in the deployed artefact) had no code path
+        # that could emit one, and every browser that sent `Accept-Encoding: gzip` was
+        # answered with the identity bytes anyway. A parameter with a safe default is
+        # exactly the kind of half-connected control that reads as finished in a diff.
+        # `docs/leads/cost-finish-plan.md` §0.5 puts the difference at $159,598 -> $46,294
+        # of modelled 30-day egress, on the strength of this one argument.
+        return static_site.serve(method, path, accept_encoding=_accept_encoding(event))
 
     if path in (HEALTH_PATH, f"{HEALTH_PATH}/"):
         if method != "GET":

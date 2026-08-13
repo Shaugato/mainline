@@ -18,17 +18,38 @@ two test files and not the conftest, and pytest's default ``prepend`` import mod
 tests directory on ``sys.path``. The ``w4_`` prefix keeps these clear of the fixtures
 ``w3-api-core-reads`` declares in ``tests/conftest.py`` under the names ``demo_database``
 and ``conn``.
+
+AND THE CONNECTION IS BORROWED, WHICH IS THE LAST SECTION OF THIS FILE
+----------------------------------------------------------------------
+Every test above takes ``w4_conn``, a connection this file opened with
+``autocommit=False``. That is the right fixture for "what does the transition do", and it
+is structurally incapable of seeing what the transitions did to the connection itself: the
+flag they cleared was already clear, so clearing it again and never putting it back looked
+like nothing at all. The Lambda's connection is the opposite — ``db._open`` opens it with
+``autocommit=True``, module-scope, reused across invocations — and on that connection the
+same code left the flag cleared, so the request AFTER any gate run or signature inherited a
+session whose promise ``health.py`` publishes in prose had been silently withdrawn.
+
+The last section therefore drives the transitions on ``db.connection()`` itself and asserts
+what the caller gets back, not merely what the caller was told. Same lesson as the row
+factory, in a third costume: a fixture that cannot disagree with the code proves nothing.
 """
 
 from __future__ import annotations
 
+import ast
+import contextlib
 import uuid
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import psycopg
 import pytest
+from mainline_demo_api import db as db_mod
+from mainline_demo_api import transitions as transitions_mod
 from mainline_demo_api.gate_run import GATE_RUN_SCHEMA_ID
+from mainline_demo_api.health import health
 from mainline_demo_api.transitions import (
     INVOKE_SCHEMA_ID,
     TRANSITION_RESOURCES,
@@ -783,3 +804,303 @@ def test_a_non_string_run_id_is_422(w4_conn: psycopg.Connection[Any]) -> None:
     status, payload = handle_transition("demo_gate_run", {}, {"run_id": 7}, w4_conn)
     assert status == 422
     assert "run_id" in payload["detail"]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# the shared connection is handed back the way it was borrowed
+#
+# THE DEFECT THIS SECTION EXISTS FOR, MEASURED BEFORE IT WAS FIXED. `transitions._prepare`
+# and `transitions._demo_gate_run` each did `if conn.autocommit: conn.autocommit = False`
+# on the MODULE-SCOPE connection and never restored it, while `db._open` opens that
+# connection with `autocommit=True` and `health.py:106` publishes that fact in prose as the
+# reason the health path is structurally incapable of answering 503 on a marker-less
+# database. Driven through `handle_transition` against a seeded local node on 2026-08-13,
+# before the fix:
+#
+#     POST /v1/demo/gate-run  -> 200, and conn.autocommit False afterwards
+#     the next SELECT 1       -> answered, and left the session INTRANS
+#     GET  /v1/health         -> 503 unreachable
+#                                [25P02] current transaction is aborted, commands ignored
+#                                until end of transaction block
+#
+# On the deployed marker-carrying cluster the same leak does not 503: it strands the warm
+# connection idle-in-transaction, which is a 40001 amplifier no alarm in this repository
+# can see. Both consequences have one cause, and it is that the connection was borrowed and
+# not given back.
+#
+# EVERY ASSERTION BELOW RUNS ON `db.connection()`, not on an imitation of it. That is the
+# whole point: `w4_conn` above opens with `autocommit=False`, so no test in the first eight
+# hundred lines of this file could have disagreed with the code about this.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+@pytest.fixture
+def shared_conn(w4_database: str) -> Iterator[psycopg.Connection[Any]]:  # noqa: F811
+    """The REAL module-scope connection — ``db.connection()`` — exactly as a warm Lambda has it.
+
+    Not ``psycopg.connect(dsn, autocommit=True)``: an imitation would prove that this file
+    agrees with itself, and what has to hold is that ``db.py``'s choice survives a request
+    through ``transitions.py``. The teardown restores and drops it so a leak this suite
+    catches cannot escape into the next test and be reported there instead.
+    """
+    conn = db_mod.connection(dsn=w4_database)
+    try:
+        yield conn
+    finally:
+        # `contextlib.suppress` rather than a bare `except`: the only way these raise is a
+        # socket that died mid-test, which is the test's failure to report and not this
+        # fixture's to mask with a second exception on the way out.
+        with contextlib.suppress(psycopg.Error):
+            conn.rollback()
+            conn.autocommit = True
+        db_mod.close()
+
+
+def _idle(conn: psycopg.Connection[Any]) -> bool:
+    return conn.info.transaction_status is psycopg.pq.TransactionStatus.IDLE
+
+
+def test_the_shared_connection_is_the_one_db_py_opens(
+    shared_conn: psycopg.Connection[Any],
+    w4_database: str,  # noqa: F811
+) -> None:
+    """The premise every assertion below rests on, pinned rather than assumed."""
+    assert shared_conn.autocommit is True
+    assert db_mod.connection(dsn=w4_database) is shared_conn, (
+        "db.connection() handed back a different object for the same DSN, so the "
+        "'second request' assertions below would not be about the connection the first "
+        "request used and would prove nothing"
+    )
+
+
+def test_a_gate_run_hands_the_shared_connection_back_in_autocommit(
+    shared_conn: psycopg.Connection[Any],
+) -> None:
+    """``POST /v1/demo/gate-run`` needs the flag off. It does not get to keep it off."""
+    status, payload = handle_transition(
+        "demo_gate_run", {}, {"run_id": "w7-borrow-gate-run"}, shared_conn
+    )
+    assert status == 200, payload
+    assert shared_conn.autocommit is True, (
+        "the gate run kept the autocommit flag it cleared. db._open opens this connection "
+        "with autocommit=True and health.py documents that as the reason the health path "
+        "cannot 503; a request that withdraws it silently makes that prose false"
+    )
+    assert _idle(shared_conn), shared_conn.info.transaction_status
+
+
+def test_sign_disposition_hands_the_shared_connection_back_in_autocommit(
+    shared_conn: psycopg.Connection[Any], fresh_history: Any
+) -> None:
+    """The other half of the leak: ``_prepare``, reached through the signing endpoint."""
+    status, payload = handle_transition(
+        "sign_disposition",
+        {"check_id": str(fresh_history.check_id)},
+        {"kind": "applied", "rationale": _GUARD_RATIONALE},
+        shared_conn,
+    )
+    assert status == 200, payload
+    assert shared_conn.autocommit is True, (
+        "sign_disposition kept the autocommit flag transitions._prepare cleared"
+    )
+    assert _idle(shared_conn), shared_conn.info.transaction_status
+
+
+def test_the_request_after_a_gate_run_is_not_a_503(
+    shared_conn: psycopg.Connection[Any],
+    w4_database: str,  # noqa: F811
+) -> None:
+    """The consequence, asserted as the consequence: what the NEXT caller gets.
+
+    ``GET /v1/health`` is the request that measured 503 ``[25P02]`` before the fix, and it
+    is the right one to assert on: it is the only endpoint whose own module states, in
+    prose, that it cannot fail this way.
+    """
+    assert handle_transition("demo_gate_run", {}, {"run_id": "w7-then-next"}, shared_conn)[0] == 200
+
+    status, body = health(dsn=w4_database)
+    assert status == 200, body
+    assert body["ok"] is True
+    assert "25P02" not in str(body), body
+
+    again, payload = handle_transition(
+        "demo_gate_run", {}, {"run_id": "w7-second-request"}, shared_conn
+    )
+    assert again == 200, payload
+    assert payload["data"]["verdict"] == "PROVEN", payload["data"]["failures"]
+
+
+def test_the_request_after_a_sign_disposition_is_not_a_503(
+    shared_conn: psycopg.Connection[Any],
+    w4_database: str,  # noqa: F811
+    fresh_history: Any,
+) -> None:
+    """Same assertion, on the path that commits rather than the one that rolls back."""
+    signed, payload = handle_transition(
+        "sign_disposition",
+        {"check_id": str(fresh_history.check_id)},
+        {"kind": "applied", "rationale": _GUARD_RATIONALE},
+        shared_conn,
+    )
+    assert signed == 200, payload
+
+    status, body = health(dsn=w4_database)
+    assert status == 200, body
+    assert body["ok"] is True
+    assert "25P02" not in str(body), body
+
+    merged, payload = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, shared_conn
+    )
+    assert merged == 200, payload
+
+
+def test_every_outcome_hands_the_connection_back(
+    shared_conn: psycopg.Connection[Any], fresh_history: Any, demo_check_id: str
+) -> None:
+    """404, 422, 423 and 409 as well — an early return is an exit path like any other.
+
+    A restore written at the bottom of the happy path would pass the two tests above and
+    leak on all four of these, which is the shape the original defect had.
+    """
+    import os
+
+    cases: tuple[tuple[str, str, dict[str, Any], Any, int], ...] = (
+        ("unknown resource", "delete_everything", {}, {}, 404),
+        ("malformed identifier", "merge_permit", {"permit_id": "../etc/passwd"}, {}, 422),
+        ("no such permit", "merge_permit", {"permit_id": str(uuid.uuid4())}, {}, 404),
+        (
+            "the write-protected demo subject",
+            "merge_permit",
+            {"permit_id": os.environ["MAINLINE_DEMO_PERMIT_ID"]},
+            {},
+            423,
+        ),
+        (
+            "a one-word clearance",
+            "sign_disposition",
+            {"check_id": demo_check_id},
+            {"rationale": "fine"},
+            422,
+        ),
+        (
+            "the gate refusing a merge",
+            "merge_permit",
+            {"permit_id": str(fresh_history.permit_id)},
+            {},
+            409,
+        ),
+    )
+    for name, resource, params, body, expected in cases:
+        status, payload = handle_transition(resource, params, body, shared_conn)
+        assert status == expected, (name, status, payload)
+        assert shared_conn.autocommit is True, f"{name} left the connection out of autocommit"
+        assert _idle(shared_conn), (name, shared_conn.info.transaction_status)
+
+
+def _plant_in_gate_run(
+    monkeypatch: pytest.MonkeyPatch, planted: Exception, *, after_a_statement: bool = True
+) -> None:
+    """Make ``gate_run`` issue one statement and then raise *planted*.
+
+    The statement matters: it leaves the connection ``INTRANS`` exactly as a real beat
+    would, so the assertion that follows is about a restore that had to roll a live
+    transaction back first, not about a flag on an idle socket.
+    """
+
+    def boom(conn: psycopg.Connection[Any], *_args: Any, **_kwargs: Any) -> None:
+        if after_a_statement:
+            conn.execute("SELECT 1")
+        raise planted
+
+    monkeypatch.setattr(transitions_mod, "gate_run", boom)
+
+
+def test_a_defect_escaping_the_handler_does_not_leak_the_flag(
+    shared_conn: psycopg.Connection[Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The path ``handle_transition`` deliberately does NOT translate: a defect in this module.
+
+    Its docstring says so — *"only a defect in this module reaches the caller as an
+    exception, and it should"* — which makes this the one exit that skips every ``return``
+    in the function. A restore written before any of those returns would leak here.
+    """
+    _plant_in_gate_run(monkeypatch, RuntimeError("a planted defect in this module"))
+    with pytest.raises(RuntimeError, match="a planted defect"):
+        handle_transition("demo_gate_run", {}, {}, shared_conn)
+
+    assert shared_conn.autocommit is True
+    assert _idle(shared_conn), shared_conn.info.transaction_status
+
+
+def test_a_40001_escaping_the_beats_does_not_leak_the_flag(
+    shared_conn: psycopg.Connection[Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A serialization failure that no ``except psycopg.Error`` inside a transition caught.
+
+    ``psycopg.errors.SerializationFailure`` inherits from ``psycopg.OperationalError``
+    (measured: ``SerializationFailure -> OperationalError -> DatabaseError -> Error``), so
+    ``handle_transition``'s last handler claims it and answers ``503
+    database_unreachable`` rather than re-raising. That is asserted here as the behaviour
+    it IS, not as the behaviour it should be — this test is about the connection, and a
+    test that quietly asserted a nicer taxonomy than the code has would be the same lie
+    this section was written to close.
+
+    What matters for the flag is that this is a third distinct door out — not a return
+    from a transition, not a raise through the caller — and it too gives the connection
+    back. The managed cluster is where 40001 actually happens; the demo runs on one.
+    """
+    _plant_in_gate_run(
+        monkeypatch, psycopg.errors.SerializationFailure("a planted 40001 escaping the beats")
+    )
+    status, payload = handle_transition("demo_gate_run", {}, {}, shared_conn)
+
+    assert status == 503, payload
+    assert payload["error"] == "database_unreachable"
+    assert shared_conn.autocommit is True
+    assert _idle(shared_conn), shared_conn.info.transaction_status
+
+
+#: The one function in ``transitions.py`` permitted to assign ``conn.autocommit``.
+_AUTOCOMMIT_OWNER = "_borrowed"
+
+
+def _autocommit_assignment_sites(source: str) -> list[tuple[str, int]]:
+    """Every ``<expr>.autocommit = …`` in *source*, paired with the function it sits in."""
+    found: list[tuple[str, int]] = []
+
+    def walk(node: ast.AST, owner: str) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef):
+                walk(child, child.name)
+                continue
+            if isinstance(child, ast.Assign):
+                for target in child.targets:
+                    if isinstance(target, ast.Attribute) and target.attr == "autocommit":
+                        found.append((owner, child.lineno))
+            walk(child, owner)
+
+    walk(ast.parse(source), "<module>")
+    return found
+
+
+def test_only_the_borrow_context_manager_assigns_autocommit() -> None:
+    """Close the CLASS, not the instance — the whole reason this defect reached its third wave.
+
+    Two functions cleared the flag and neither restored it. Fixing both and stopping there
+    leaves the next function free to make it three. This reads ``transitions.py`` and
+    requires that the only assignment to ``.autocommit`` anywhere in it lives in
+    :func:`transitions._borrowed`, whose ``finally`` is what puts it back. A third caller
+    that clears the flag by hand fails here even if its own tests are green.
+    """
+    source = Path(transitions_mod.__file__).read_text(encoding="utf-8")
+    sites = _autocommit_assignment_sites(source)
+    assert sites, (
+        "no assignment to `.autocommit` was found in transitions.py at all, so this test "
+        "has lost its subject and is asserting nothing"
+    )
+    assert {owner for owner, _line in sites} == {_AUTOCOMMIT_OWNER}, (
+        f"transitions.py assigns .autocommit outside {_AUTOCOMMIT_OWNER}(): {sites}. "
+        "The flag belongs to db.connection() and is borrowed for one request; a clear "
+        "written anywhere but beside its own restore is how this defect survived two waves"
+    )

@@ -40,8 +40,66 @@ The committed plans are read back in prose in
 > **This root is not blocked by that.** Decision D1
 > ([`docs/leads/ship-final.md`](../../../docs/leads/ship-final.md) §1.4) moved the hostname
 > to the Lambda Function URL, `var.enable_cloudfront` defaults to `false`, and the default
-> configuration plans eleven resources of which none is a `aws_cloudfront_*`. The
+> configuration plans **twenty-four** resources of which none is a `aws_cloudfront_*`. The
 > distribution is an upgrade you apply the day the hold lifts.
+
+> ## ⚠ This root can stop its own demo, and that is the point
+>
+> `module "guard"` — [`../../modules/cost-guard`](../../modules/cost-guard) — is instantiated
+> here. It creates an SNS topic whose only subscriber is a Lambda that calls
+> `lambda:PutFunctionConcurrency(ReservedConcurrentExecutions=0)` on the demo function, three
+> CloudWatch alarms that publish to it (invocations/60 s, invocations/3600 s, log
+> ingestion/300 s) and one AWS Budget that publishes to it as a backstop. **This root also
+> wires that topic into `module.api`'s four alarms**, so `-errors`, `-throttles`,
+> `-duration-p99` and `-concurrency` stop the demo as well.
+>
+> A stop is **not self-clearing**. The URL answers `HTTP 429` with no body, to everyone,
+> until a human runs `scripts/deploy/kill_switch.{sh,ps1} --restore`. `--status` reads the
+> current state without changing it.
+>
+> **It converts a cost attack into an availability attack, deliberately.** The Function URL
+> has no authentication by the founder's explicit choice, so anyone at all can trip the
+> burst alarm and take the demo down. That is the trade
+> [`docs/leads/cost-finish-plan.md`](../../../docs/leads/cost-finish-plan.md) §0.5 states and
+> chooses: **an outage is recoverable by one command and a bill is not.** It belongs in a
+> residual column, not in a footnote, and `docs/deploy/COST-BOUND.md` is where it is costed.
+
+---
+
+## The guard — what actually stops the bill
+
+Until this wave `infra/modules/cost-guard` was complete, `terraform validate`-clean and
+covered by 30 KB of `botocore.stub.Stubber` tests — **and never instantiated.**
+`var.alarm_actions` stayed `[]`, every alarm on the demo function was actionless, and the
+committed plan read `Plan: 11 to add`. The previous wave's own finding — *the bound is
+documented and not implemented* — had reproduced one level up as *coded and not
+instantiated*, which on a plan output is the same picture.
+
+| | |
+|---|---|
+| **The stop is real and it is one API call.** | An alarm or the budget publishes to `module.guard[0].sns_topic_arn`; the responder calls `PutFunctionConcurrency(0)`. Its IAM grant names exactly one unqualified function ARN, with an explicit `Deny` on `DeleteFunctionConcurrency` so it cannot undo its own stop. |
+| **The restore is a human, on purpose.** | `scripts/deploy/kill_switch.{sh,ps1} --restore`. Nothing re-arms the function automatically, because "it came back on its own" and "it never stopped" are indistinguishable from a bill. |
+| **Three timescales, not one tripwire.** | 60 s catches the flood; 3,600 s catches a caller pacing under the 60 s line; 300 s log ingestion catches **bytes decoupled from invocations** — a traceback storm or a library logging per row, where neither invocation alarm moves. The Budget is the backstop for what all three miss, on an 8–24 h Cost Explorer lag AWS documents and no setting shortens. |
+| **`count = var.enable_api ? 1 : 0`.** | A guard scoped to a function that does not exist is a stop whose alarms sit in `INSUFFICIENT_DATA` and whose one call would 404. There is **no `enable_cost_guard` variable** and there will not be one: a boolean that turns off the only stop in this stack is the variable somebody turns off at 02:00 to make a `curl` work. |
+| **One token from a cycle, and the local is what removes the token.** | `local.api_function_name` is computed from `var.name_prefix` and handed to **both** modules as a constant. **Measured, not assumed:** planting `guarded_function_name = module.api[0].function_name` plans cleanly at 24 to add — the *indexed* form is fine, because the two references land on different resources (`aws_lambda_function.this` out, the four alarms in). Planting `one(module.api[*].function_name)` returns `Error: Cycle:` naming **`module.api (close)`**, exactly the 2026-08-10 rule below. So the hazard is the splat, and `[0]` → `[*]` is one refactor away; a constant cannot be splatted. It also makes `guard_guarded_function_arn` a concrete string in the committed plan instead of `(known after apply)`. |
+
+### One hazard this root records rather than resolves
+
+The guard's SNS **topic policy** admits `cloudwatch.amazonaws.com` under an `ArnLike` on
+`aws:SourceArn` naming exactly the guard's **own three** alarm ARNs. **None of `module.api`'s
+four is in that list**, and this root passes the topic to them anyway. Whether they can
+publish rests on the policy's first statement — SNS's default `Principal AWS:*` narrowed by
+`AWS:SourceOwner` — and **only an apply plus a real breach settles it.** Both outcomes are
+recorded because they are opposite defects:
+
+* **admitted** → the four alarms stop the demo, as described in the box above;
+* **denied** → the four carry an action SNS refuses, which `aws cloudwatch describe-alarms`
+  renders identically to one that delivers — *a control that looks present and is not.*
+
+`terraform output api_alarm_arns` and `terraform output guard_alarm_arns` print the two sets;
+`evidence/deploy/cost/plan-shape.json` records them side by side. **The resolution is not to
+unwire the alarms and not to widen the topic policy's principal** — it is for `cost-guard` to
+take an explicit list of additional publisher ARNs, which is that module's change.
 
 ---
 
@@ -119,8 +177,9 @@ alarm belongs to `infra/modules/demo-api`, not to this root — but this variabl
 reason it needs fixing, and an alarm that cannot fire is the "control that looks present
 and is not" the module's `lifecycle.precondition` idiom exists to refuse.
 
-**The resource set does not move.** This changes one attribute value; the plan still reads
-`Plan: 11 to add, 0 to change, 0 to destroy`.
+**The resource set did not move for THAT change.** `-1` altered one attribute value and the
+plan still read `Plan: 11 to add, 0 to change, 0 to destroy`. It reads **`Plan: 24 to add`**
+today, and the thirteen extra resources are `module.guard` — see "The guard" above.
 
 ---
 
@@ -130,8 +189,8 @@ and is not" the module's `lifecycle.precondition` idiom exists to refuse.
 |---|---|
 | `versions.tf` | `terraform >= 1.10`, `aws >= 5.60 < 7.0`, and the reason for each floor |
 | `backend.tf` | S3 backend, `use_lockfile = true`, **no DynamoDB table**, bucket supplied at `init` |
-| `variables.tf` | Eleven variables, every one with a working default; `enable_cloudfront` is the switch and `lambda_reserved_concurrency` is what makes the plan appliable |
-| `main.tf` | The provider, the two modules, and the wiring — including the cycle rules |
+| `variables.tf` | Twenty-two variables, every one with a working default. `enable_cloudfront` is the switch; `lambda_reserved_concurrency` is what makes the plan appliable; the `api_*` group and `account_concurrency_ceiling` exist because those values were module defaults **nobody in this environment had chosen** |
+| `main.tf` | The provider, the **three** modules, and the wiring — including the cycle rules |
 | `outputs.tf` | What the deploy and teardown scripts read back; everything site-shaped is nullable |
 | `terraform.tfvars.example` | Copy-if-you-want. You do not need it; the defaults are what the deploy script uses. |
 
@@ -319,6 +378,29 @@ row is the intended refusal: with both switches off this root creates nothing, s
 `demo_url` has no source and says so rather than returning `""`. The first two plans are
 committed verbatim under `evidence/deploy/`.
 
+**Re-measured 2026-08-13 after `module "guard"` was instantiated**, same Terraform v1.14.8,
+same `hashicorp/aws v6.58.0`, plus `hashicorp/archive v2.8.0` which the guard needs for its
+responder zip. **Three of the four counts moved and the fourth is unchanged**, which is the
+shape you would expect from a module gated on `enable_api`:
+
+```
+terraform validate                                    Success! The configuration is valid.
+terraform plan -var enable_cloudfront=false           Plan: 24 to add, 0 to change, 0 to destroy.
+terraform plan -var enable_cloudfront=true            Plan: 35 to add, 0 to change, 0 to destroy.
+terraform plan -var enable_cloudfront=true                 -var enable_api=false                  Plan:  9 to add, 0 to change, 0 to destroy.
+terraform plan -var enable_cloudfront=false                -var enable_api=false                  Error: Module output value precondition failed
+terraform fmt -check -recursive infra/                (no output; exit 0)
+```
+
+`11 → 24` and `22 → 35` are both **+13**: one SNS topic, one topic policy, one responder
+subscription, one responder function, its log group, its role, the managed-policy
+attachment, its inline stop policy, the SNS invoke permission, one budget and three alarms.
+The `enable_api = false` row does **not** move, because `module "guard"` is
+`count = var.enable_api ? 1 : 0` — a guard scoped to a function that does not exist would be
+a stop whose alarms never leave `INSUFFICIENT_DATA`. **All 85 plan-time checks pass in the
+shipping shape**, up from 44: ten resource `lifecycle.precondition`s, seventy-four variable
+`validation`s and one output precondition.
+
 Re-measured 2026-08-13, same Terraform and same provider, after `lambda_reserved_concurrency`
 was introduced — the recipe is a throwaway `backend "local"` override pointed outside the
 repository, `terraform init -reconfigure`, `terraform plan`, then **delete the override**
@@ -338,8 +420,19 @@ terraform fmt -check -recursive infra/                (no output; exit 0)
 
 Diffed against the same plan taken minutes earlier at the old value, the **only**
 substantive line that moved was `reserved_concurrent_executions` from `20` to `-1`. The
-resource set is byte-identical, which is the constraint: `Plan: 11 to add` is quoted
-verbatim in five documents this root does not own.
+resource set was byte-identical, which was the constraint at the time: `Plan: 11 to add` is
+quoted verbatim in five documents this root does not own.
+
+**That constraint no longer holds and could not.** Instantiating `module "guard"` adds
+thirteen resources by construction, so the shipping plan is `Plan: 24 to add` and every
+document quoting `11 to add` is now stale — including
+[`docs/deploy/JUDGE-PACK.md`](../../../docs/deploy/JUDGE-PACK.md),
+[`docs/deploy/terraform-plan.md`](../../../docs/deploy/terraform-plan.md) and
+`scripts/submission/check_submission_ready.py`. Keeping the count at eleven to protect five
+quotations would have meant not instantiating the only mechanism in this repository that can
+stop a bill, which is the exact trade the wave refused. The regenerated artefacts are
+`evidence/deploy/terraform-plan-furl.{txt,json}` and
+`evidence/deploy/cost/plan-shape.json`.
 
 ---
 
@@ -359,6 +452,14 @@ clauses exist *only* because the harness above found them; they are not style.
 | `dsn_parameter_name` | string | **Name only.** Terraform never holds the DSN. |
 | `cloudfront_distribution_arn` | string | The `SourceArn` on the one invoke grant. `""` when there is no distribution. |
 | `reserved_concurrent_executions` | number | **From `var.lambda_reserved_concurrency`, default `-1`.** The module's own default of 20 is unappliable here: the account's measured ceiling is 10, and AWS refuses every positive reservation against it. `min(20, 10) = 10`, so this raises no cost ceiling. See "The concurrency ceiling" above. |
+| `timeout` | number | **14 s, from `var.api_timeout_seconds`.** A **reliability** bound, never a spend bound — Lambda bills actual duration, so this moves the bill by nothing. The smallest whole second clearing `LATENCY.md` §5.1's binding case (13,022.9 ms). |
+| `memory_size` | number | **256 MB, from `var.api_memory_size_mb`.** The only lever in the menu that is duration-independent. Costs a slower cold start on a judge's first click. |
+| `duration_p99_threshold_ms` | number | **13,500, from `var.api_duration_p99_threshold_ms`.** Pinned by two plan-time preconditions into `13,023 < T < 14,000` — a floor because the alarm now **acts**, a ceiling because Lambda caps the datapoint at the timeout. |
+| `log_level` | string | **`WARN`, from `var.api_log_level`.** The APPLICATION level. The SYSTEM level is a separate field already at the quietest value its enum permits. |
+| `account_concurrency_ceiling` | number | **10, from `var.account_concurrency_ceiling` — passed to `cost-guard` from the same variable** so two modules cannot hold two ideas of one measured account fact. |
+| `alarm_actions` | list(string) | **`[module.guard[0].sns_topic_arn]`.** A **STOP** topic on all four alarms. See the guard section above. |
+| `ok_actions` | list(string) | **`[]`, and separate from `alarm_actions` since this wave.** A stop fired by an alarm *recovering* is not a trade anybody chose. |
+| `max_response_bytes` `rate_global_rps` `rate_global_burst` `rate_ip_rps` `rate_ip_burst` `log_budget_bytes` | number | The six bounds that were **enforced and unreadable**. Published as `MAINLINE_*` environment variables so `aws lambda get-function-configuration` answers "what is in force?" without decoding a 7.6 MB zip. Each mirrors a named application constant; **the code is authoritative and Terraform mirrors it.** |
 | `log_retention_days` | number | |
 | `tags` | map | |
 
@@ -379,6 +480,23 @@ Required outputs: `function_name`, `function_url`, `function_url_domain`,
 | `api_origin_domain` | string | Bare hostname, no scheme, no path. May be unknown at plan time. `""` means no second origin. |
 | `price_class` | string | |
 | `tags` | map | Merged on top of `default_tags`. |
+
+### `cost-guard` — the stop, `count`-gated on `enable_api`
+
+| Input | Type | Meaning |
+|---|---|---|
+| `guarded_function_name` | string | **A bare NAME, never an ARN, and never `module.api[0].function_name`.** From `local.api_function_name`. The module builds the one unqualified ARN itself from `aws_caller_identity`/`aws_region`/`aws_partition`, which is precisely what makes the wiring acyclic. |
+| `account_concurrency_ceiling` | number | The same measured 10 `demo-api` gets, from one root variable. Every reachability precondition in the module divides by it. |
+| `notification_emails` | list(string) | `[]`. An email subscription is created in `PendingConfirmation` and delivers nothing until a human clicks the link — a control that looks present and is not. It gates **nothing** in the stop path. |
+| `tags` | map | Merged under the module's own `project`/`component`/`managed_by`. |
+
+**Its three thresholds and its budget limit are deliberately NOT restated in this root.**
+They were derived inside `cost-guard/variables.tf` from measured beat durations, a measured
+per-invocation log term and a read-only Cost Explorer query, and each is guarded by a
+`lifecycle.precondition` there. Copying them here would create two places that can disagree
+about one derivation, and the preconditions would go on guarding the copy that is not the
+reason. `terraform output guard_thresholds` prints what is in force. This is the *opposite*
+choice from the `api_*` group above, and the difference is where the derivation lives.
 
 Required outputs: `bucket_name`, `distribution_id`, `distribution_arn`,
 `distribution_domain_name`.

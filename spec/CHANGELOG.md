@@ -19,6 +19,46 @@ Nothing yet.
 
 ---
 
+## Wire formats — versioned separately from this specification
+
+The documents under `spec/wire/` carry **their own** version line and do not move with the
+`1.0.0-rc.*` series below. `rc.1`'s *Not in this version* note already says they are versioned
+separately; it does not say what version they are at, and this section is where that is
+recorded. A freeze written only inside the document it freezes is announced to exactly the
+people who already knew the document exists — everyone except the third-party implementer
+the format was frozen for.
+
+### Frozen 2026-08-07, before a single real leaf was written
+
+- **`wire/checkpoint.md` at `v1.0`** — media type `application/vnd.trappoint.checkpoint`; a
+  profile of [c2sp.org/tlog-checkpoint](https://c2sp.org/tlog-checkpoint) over
+  [c2sp.org/signed-note@v1.0.0](https://c2sp.org/signed-note). §7 carries the complete worked
+  note — key, five leaves, root hash, signature — and §10 an eight-item conformance list an
+  independent verifier can be worked through without any cooperation from us.
+- **`wire/evidence-bundle.md` at `v1.0`** and **`wire/receipt.md` at `v1.0`** — frozen in the
+  same act and for the same reason: the bundle is what a stranger verifies offline, and the
+  receipt is what a caller keeps.
+
+**Compatibility, normative.** Additive changes are MINOR and require nothing of a consumer,
+because a verifier ignores what it does not know: a new signature line of any type, a new
+extension-line name, a new `payload_ver` alongside a new canonicaliser registry entry. Four
+changes are breaking and take a new document version — the meaning or order of note lines
+1–3, the log signature type or its encoding or key-ID derivation, the removal of an extension
+line that was present, and the `canon:` hashing rule. **Every checkpoint signed under a
+frozen version stays valid under that version forever**, and there is no mechanism for
+reissuing one: a
+defective entry is answered by a *new* entry recording the defect, never by a corrected old
+one, because repairing history to make verification pass is the behaviour this product exists
+to detect.
+
+The decision and its five rulings are
+[ADR 0041](../docs/adr/0041-checkpoint-wire-format.md). This section is not decoration: the
+exit criterion `test_k2_5_checkpoint_wire_format_tagged_v1_0_with_changelog_entry` in
+`tests/integration/custody/test_k2_exit.py` reads this file, and deleting the first bullet
+above turns it red.
+
+---
+
 ## [1.0.0-rc.1] — amended 2026-08-07, before tagging
 
 `rc.1` was never tagged and has no downstream consumer, so these four corrections are folded into it

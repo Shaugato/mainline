@@ -91,8 +91,14 @@ def _requests(seed: dict[str, str]) -> dict[str, tuple[dict[str, str], dict[str,
         "blocking_checks": ({"permit_id": seed["permit_id"]}, {}),
         "disposition": ({"check_id": seed["check_id"]}, {}),
         "exposure_receipt": ({"receipt_id": seed["receipt_id"]}, {}),
+        # THE COMMIT THE BLOCKING CHECK CITES, which is the commit the CONSOLE addresses:
+        # `features/gate/useGateData.ts` builds this very request with
+        # `commit_id: subjectCheck?.commit_id`. `conftest._CHECK_SQL` reads `commit_id` off
+        # that same `mainline.blocking_check` row, so the fixture and the console name one
+        # commit. This used to read `seed["commit_v2"]`, a survivor of the parallel world
+        # `5ddaa3a`'s conftest built; see docs/decisions/demo-clause-version-singleton.md.
         "clause_version": (
-            {"clause_uuid": seed["clause_uuid"], "commit_id": seed["commit_v2"]},
+            {"clause_uuid": seed["clause_uuid"], "commit_id": seed["commit_id"]},
             {},
         ),
         "clause_ancestry": ({"clause_uuid": seed["clause_uuid"]}, {}),
@@ -245,23 +251,43 @@ def test_the_projected_counter_agrees_with_the_re_derivation(
 ) -> None:
     """P2 in one assertion: the counter is a PROJECTION, and here it agrees with the truth.
 
-    The fixture never writes ``mainline.permit.open_blocking``. It inserts one
-    ``blocking_check`` — ``check_materialised`` raises the counter to 1 — and then signs
-    one disposition, at which point ``disposition_close`` lowers it to 0. The value this
-    API reports is whatever those two triggers left behind, which is what makes
-    ``db:column`` an honest chip for it.
+    THE SEED NEVER WRITES ``mainline.permit.open_blocking``. ``demo_permit.sql`` says so in
+    its own header — *"THE COUNTER IS NOT WRITTEN HERE"* — and names the trigger that does:
+    ``check_materialised`` (migration 0121 → ``mainline.fn_check_materialised``) raises it to
+    1 when the blocking check is inserted. Nothing lowers it again, because **the demo seeds
+    no disposition at all**. The obligation is left open so that a judge closes it, and the
+    same header spells the three outcomes out — ``23514`` on ``gate_closed_when_issued``,
+    then ``P0001`` from the re-derivation when the counter is forced to zero out of band,
+    then ``00000`` *"after one signed disposition against ``dec0de00-0007-…``"*. That last
+    one is beat 4. It belongs to the demo, not to the seed.
+
+    THIS TEST USED TO ASSERT ``state == 'draft'`` AND A COUNTER OF ZERO, and both were
+    readings of the parallel world the old conftest built at ``5ddaa3a``, in which the
+    FIXTURE signed a disposition. The rewrite that made the fixture apply the deployment's
+    own seed deleted that world; this file was not updated. See
+    ``docs/decisions/demo-clause-version-singleton.md`` §5 — this is the same survivor class
+    as ``commit_v2``, found by the same fixture refusing to invent a subject.
+
+    ``mainline.subject_state`` has no member called ``open``: the alphabet is draft /
+    checks_materialised / dispositioned / merged / suspended / closed / abandoned (migration
+    0011), and ``dispositioned`` is the state in which the client CLAIMS every obligation now
+    carries a signed disposition. It does not. That claim is precisely what the gate exists
+    to disbelieve, and the whole demo is the database checking it instead of believing it.
 
     The second assertion is the interesting one, and it is the whole product in miniature:
-    the projected counter and the count re-derived from the base tables agree. The gate's
-    third beat is what happens when they do not.
+    the projected counter and the count re-derived from the base tables agree. It is also
+    STRICTLY STRONGER here than it was at zero. ``0 == 0`` is satisfied by a permit that has
+    no obligations at all — by a projection that never counted anything — whereas ``1 == 1``
+    is satisfied only by a projection that actually counted the open one. The gate's third
+    beat is what happens when the two disagree.
     """
     import psycopg
 
     data = payloads["permit"]["data"]
     checks = payloads["blocking_checks"]["data"]["checks"]
-    assert data["state"] == "draft"
+    assert data["state"] == "dispositioned"
     assert len(checks) == 1, "one obligation was materialised"
-    assert data["counters"]["open_blocking"] == sum(1 for check in checks if check["open"]) == 0
+    assert data["counters"]["open_blocking"] == sum(1 for check in checks if check["open"]) == 1
 
     dsn, seed = demo_database
     with psycopg.connect(dsn, autocommit=True) as raw:
@@ -305,19 +331,39 @@ def test_open_is_derived_and_the_projections_are_columns(
 ) -> None:
     """``severity``/``virulence``/``closure_gen`` are overwritten by ``fn_check_project``.
 
-    The fixture inserts the check with ``severity 0`` and ``virulence 'routine'``. The
-    closure bands it ``blood_major`` at severity 4, and the trigger overwrites both on the
+    ``demo_world.sql`` inserts the check with a severity and a virulence of its own choosing;
+    the closure bands it ``blood_major`` at severity 4 and the trigger overwrites both on the
     way in. That is why ``db:column`` is the right chip: nobody who wrote the check chose
     these.
+
+    ``open`` AND ``disposition_id`` ARE THE OTHER HALF, and they are ``derived`` rather than
+    columns — no such columns exist. ``open`` is *"no non-retracted disposition names this
+    check"*, and on the deployed seed that is TRUE: ``mainline.disposition`` holds **no
+    rows**, by design (``demo_permit.sql``: ``disposition = NO ROWS``). So the positive claim
+    this test makes is that the reader DERIVED an open check from an empty table rather than
+    reporting a column, and that it reports ``None`` for the disposition it does not have
+    instead of inventing one.
+
+    THIS USED TO ASSERT THE OPPOSITE — ``open is False``, a non-null ``disposition_id`` and a
+    precursor ``'INC-W3-1'`` — because the old conftest at ``5ddaa3a`` signed a disposition
+    in the fixture and named its own incident after its own worker. The deployed seed's
+    incident is ``DEMO-INC-0001``. Same survivor class as ``commit_v2``; see
+    ``docs/decisions/demo-clause-version-singleton.md`` §5.
     """
     data = payloads["blocking_checks"]["data"]
     assert len(data["checks"]) == 1
     check = data["checks"][0]
     assert check["severity"] == 4
     assert check["virulence"] == "blood_major"
-    assert check["open"] is False, "the fixture signs a disposition, so the check is closed"
-    assert check["disposition_id"] is not None
-    assert check["precursor"]["external_ref"] == "INC-W3-1"
+    assert check["open"] is True, (
+        "the demo seeds NO disposition — the obligation is left open so that beat 4 signs it "
+        "in front of a judge — so an open check here is the gate having something to refuse"
+    )
+    assert check["disposition_id"] is None, (
+        "no disposition row names this check, and the honest report of that is null rather "
+        "than an identifier for a row that is not there"
+    )
+    assert check["precursor"]["external_ref"] == "DEMO-INC-0001"
 
     chips = {entry["pointer"]: entry["chip"] for entry in payloads["blocking_checks"]["provenance"]}
     assert chips["/checks/0/open"] == "derived"
@@ -328,7 +374,39 @@ def test_open_is_derived_and_the_projections_are_columns(
 def test_the_disposition_carries_the_lattice_and_the_projected_requirements(
     payloads: dict[str, dict[str, Any]],
 ) -> None:
-    """The lattice is every row for the virulence; a missing pair is a NON-EXISTENT option."""
+    """The lattice is every row for the virulence; a missing pair is a NON-EXISTENT option.
+
+    ⚠ THIS TEST IS EXPECTED TO FAIL ON THE DEPLOYED SEED, AND THE FAILING ASSERTION IS LEFT
+    STANDING DELIBERATELY. ``mainline.defeater_option`` holds **zero rows**, so the
+    ``defeater_options`` assertion below fails. It has NOT been moved to match the seed,
+    because on this one the seed is the side that is wrong. The evidence is entirely outside
+    both the seed and this file:
+
+    * ``0064_defeater_option.sql`` — *"generated per check, so no global 'N/A' exists"*. The
+      vocabulary is per check by construction and there is no fallback anywhere.
+    * ``console/src/a11y/contract.ts`` declares step ``id: 'defeater'`` —
+      *"choose a defeater from the per-check vocabulary"*, ``pointerOnly: false`` — inside
+      the path it asserts is *"the complete path from the refusal to the signature … with no
+      pointer-only step"*. With an empty vocabulary that step has nothing to operate on and
+      the declared path is broken at it.
+    * ``console/src/app/surfaces.ts`` describes the disposition surface as carrying *"a
+      per-check defeater vocabulary with no global 'not applicable'"*, and
+      ``resources.ts`` describes the resource itself as carrying *"the per-check defeater
+      vocabulary"*. ``types.generated.ts`` declares ``defeater_options`` non-optional.
+    * **Nothing in this tree writes a ``mainline.defeater_option`` row** — not the seed, not
+      a migration, not the runtime. Verified by search.
+
+    So a judge who reaches the disposition screen cannot choose a defeater, and therefore
+    cannot sign. Under the tiebreaker this repository already uses — the console is the
+    authority for what the demo must CARRY — the seed owes this row set. Weakening this
+    assertion to ``== set()`` would convert a real, currently-visible defect into a permanent
+    invisible one, which is the single thing this repository has been burned by most. It is
+    reported instead, and it belongs to ``demo_world.sql``'s owner.
+
+    Everything after the ``defeater_options`` line was ALSO a reading of the old parallel
+    world and has been corrected, so that when the vocabulary is seeded this test goes green
+    on that change alone rather than requiring a second archaeology pass.
+    """
     data = payloads["disposition"]["data"]
     assert data["virulence"] == "blood_major"
     assert {row["virulence"] for row in data["lattice"]} == {"blood_major"}
@@ -339,16 +417,20 @@ def test_the_disposition_carries_the_lattice_and_the_projected_requirements(
     }
     assert data["reading_floor"] is None, "S19's components are on no table in this tree"
 
-    signed = data["signed"]
-    assert signed is not None
-    assert signed["kind"] == "applied"
-    assert signed["signature"]["user_verified"] is True
-    assert len(signed["rationale"]) >= 120, "CONSTRAINT substantive"
-    # req_second_signer is PROJECTED onto the row from clearance_legal by a BEFORE
-    # trigger; the fixture supplies false for every flag and the lattice decides.
+    # NO SIGNATURE IS SEEDED. `mainline.disposition` holds no rows — `demo_permit.sql` says
+    # `disposition = NO ROWS` — because signing is beat 4, performed in front of a judge.
+    # `null` here is the positive claim that nothing has been signed yet; a fabricated
+    # `signed` block would be the demo asserting the obligation was already answered, which
+    # is the exact claim the gate exists to disbelieve.
+    assert data["signed"] is None, (
+        "the demo seeds no disposition, so the honest report is that this check carries no "
+        "signature — not a signature block with nulls in it"
+    )
+    # The lattice is still fully populated even with nothing signed: it is the clearance
+    # rows for the virulence, and it is what TELLS a signer what signing will require.
     lattice_applied = next(row for row in data["lattice"] if row["kind"] == "applied")
-    assert signed["requirements"]["req_second_signer"] == lattice_applied["req_second_signer"]
-    assert signed["requirements"]["min_signer_rank"] == lattice_applied["min_signer_rank"]
+    assert lattice_applied["req_second_signer"] is not None
+    assert lattice_applied["min_signer_rank"] is not None
 
 
 def test_the_exposure_receipt_renders_its_hlc_as_an_exact_string(
@@ -365,17 +447,92 @@ def test_the_exposure_receipt_renders_its_hlc_as_an_exact_string(
 def test_the_clause_version_reports_its_witnesses_as_a_positive_claim(
     payloads: dict[str, dict[str, Any]],
 ) -> None:
-    """``[]`` and ``null`` are different sentences and this API makes the stronger one."""
-    data = payloads["clause_version"]["data"]
-    assert data["version"]["control_delta"] == "strengthen"
-    assert data["version"]["anchor_set"] == ["LOTO", "ZERO_ENERGY", "WITNESS"]
-    assert data["parent"] is not None, "gen 1 is resolvable from parent_version"
-    assert data["parent"]["gen"] == 1
+    """``[]`` and ``null`` are different sentences and this API makes the stronger one.
+
+    THE DEMO HAS EXACTLY ONE CLAUSE VERSION. It is an ORIGIN version — ``gen`` 1,
+    ``control_delta`` ``introduce``, anchors ``['LOTO', 'ZERO_ENERGY']``, no parent — and the
+    ruling that it stays that way, with the console evidence that decided it, is
+    ``docs/decisions/demo-clause-version-singleton.md``. This test previously described a
+    second, ``strengthen`` version carrying a ``WITNESS`` anchor and an ``R6_VERIFICATION``
+    witness. No such row has ever been in the deployed seed; the description survived the
+    deletion of the parallel world the old conftest built at ``5ddaa3a``.
+
+    THE POSITIVE CLAIM THE NAME PROMISES IS MADE HERE, AND IT IS SHARPER ON THIS SEED THAN
+    IT WAS ON THE INVENTED ONE, because on this seed the witness list is EMPTY and an empty
+    list is exactly where ``[]`` and ``null`` stop being interchangeable:
+
+    * ``clause.schema.json`` ``$defs.delta_verdict`` — *"``witnesses`` may be null … which
+      the console renders as WITNESS UNAVAILABLE. An empty array is a DIFFERENT claim: the
+      emitter says there are none."*
+    * ``console/src/features/diff/engine/witness.ts`` turns that into three states:
+      ``witnesses === null ? 'unavailable' : witnesses.length === 0 ? 'asserted_none' :
+      'present'``, and ``parts/WitnessTable.tsx`` renders **WITNESS UNAVAILABLE** for the
+      first and **NO WITNESSES** — *"the emitter reports that there are none. That is a
+      claim, and it is a different claim from an absent witness member"* — for the second.
+
+    So ``witnesses == []`` asserts the console shows NO WITNESSES rather than WITNESS
+    UNAVAILABLE. A reader that stopped querying ``mainline.delta_witness`` and emitted
+    ``null`` would still satisfy the schema and would still render a screen — the wrong one.
+    This catches that.
+
+    ``minimal is None`` IS THE FALSIFIABLE ONE. ``read_clause_version`` computes it as
+    ``all(minimal_flags) if minimal_flags else None``, and in Python ``all([])`` is ``True``.
+    Drop the guard and this payload claims the empty witness set is a MINIMAL unsatisfiable
+    subset — an unproven claim of minimality, which the contract calls *"worse than none"*.
+    The assertion below is the only thing standing between that one-token edit and a demo
+    that asserts a proof it never performed.
+    """
+    payload = payloads["clause_version"]
+    data = payload["data"]
+    version = data["version"]
+
+    # The commit this payload is ABOUT is the commit the blocking check cites — the same
+    # addressing `features/gate/useGateData.ts` performs when it builds this very request as
+    # `commit_id: subjectCheck?.commit_id`. Cross-checked between two payloads rather than
+    # against a literal, so a seed that re-pointed one and not the other fails here.
+    assert version["commit_id"] == payloads["blocking_checks"]["data"]["checks"][0]["commit_id"]
+
+    assert version["gen"] == 1
+    assert version["control_delta"] == "introduce"
+    assert version["delta_basis"] == "lattice"
+    assert version["anchor_set"] == ["LOTO", "ZERO_ENERGY"]
+
+    # AN ORIGIN VERSION, ASSERTED AS SUCH — which takes BOTH halves. `comparabilityOf()` in
+    # `features/diff/engine/build.ts` reads `origin_version` only when the version NAMES no
+    # parent *and* none was carried; a version that names one and carries none is
+    # `parent_unresolved`, a different console screen ("NO DIFF — ANCESTOR NOT CARRIED"
+    # against "NO DIFF — ORIGIN VERSION"). Asserting `parent is None` alone would be
+    # satisfied by the broken one too, so both are asserted.
+    assert version["parent_version"] is None, "an origin version names no parent"
+    assert data["parent"] is None, "and so none is carried: this is `origin_version`"
+
+    # `[]` and `null` are different sentences. This is the stronger one.
+    assert data["delta"]["witnesses"] == [], (
+        "the reader queried mainline.delta_witness and found no rows, so it asserts THERE "
+        "ARE NONE. `null` would be WITNESS UNAVAILABLE — the emitter saying nothing — and "
+        "the console renders a different panel for it"
+    )
     assert data["delta"]["witnesses"] is not None
-    assert [witness["rule_id"] for witness in data["delta"]["witnesses"]] == ["R6_VERIFICATION"]
-    assert data["delta"]["minimal"] is True
-    chips = {entry["pointer"]: entry["chip"] for entry in payloads["clause_version"]["provenance"]}
+    assert data["delta"]["minimal"] is None, (
+        "minimality of an empty witness set is not established by the absence of rows. "
+        "`all([])` is True, so an unguarded `all(minimal_flags)` would claim it here"
+    )
+
+    # The verdict and the columns agree. `collectFindings` raises `verdict_disagrees_with_
+    # column` / `basis_disagrees_with_column` as DISCREPANCIES when they do not, so these
+    # two are the red panels a judge would otherwise be the first to see.
+    assert data["delta"]["delta"] == version["control_delta"]
+    assert data["delta"]["basis"] == version["delta_basis"]
+
+    chips = {entry["pointer"]: entry["chip"] for entry in payload["provenance"]}
     assert chips["/delta/minimal"] == "derived"
+    assert "/parent" not in chips, (
+        "the reader chips `/parent` only when it carried one, so a chip beside an absent "
+        "parent would be a provenance claim about nothing"
+    )
+    assert not any(pointer.startswith("/delta/witnesses/") for pointer in chips), (
+        "no witness rows, so no per-witness chips"
+    )
 
 
 def test_the_ancestor_cap_is_parsed_out_of_the_check_that_declares_it(
@@ -400,13 +557,35 @@ def test_the_ancestor_cap_is_parsed_out_of_the_check_that_declares_it(
 def test_the_ancestry_resolves_the_closure_into_events_edges_and_a_commit_chain(
     payloads: dict[str, dict[str, Any]],
 ) -> None:
+    """One incident, one blame edge, one commit in the chain — and each asserted as a fact.
+
+    THE COMMIT CHAIN IS THE TELL. This test used to assert ``[link['gen'] for link in
+    commit_chain] == [1, 2]`` — TWO clause generations — against a database that carries
+    exactly one ``mainline.clause_version`` row. ``[1, 2]`` is not a thin reading of the
+    deployed seed, it is a reading of a different database: the parallel world the old
+    conftest built at ``5ddaa3a`` with ``clause-v1`` and ``clause-v2``. It is the same
+    survivor as ``commit_v2`` two tests up, and it is settled by the same ruling —
+    ``docs/decisions/demo-clause-version-singleton.md``. ``ancestor_count == 2``,
+    ``len(events) == 2`` and ``len(blame_edges) == 2`` came from the same place.
+
+    ``event_edges`` IS EMPTY AND THAT IS A CLAIM, not a gap. A ``recurrence_of`` edge is an
+    edge BETWEEN two precursor events; the demo recalls one incident, so there is no second
+    event for it to point at. An edge here would be an assertion that this incident recurred,
+    which is a thing the seed does not know.
+    """
     data = payloads["clause_ancestry"]["data"]
-    assert data["closure"]["ancestor_count"] == 2
+    assert data["closure"]["ancestor_count"] == 1
     assert data["closure"]["virulence"] == "blood_major"
-    assert len(data["events"]) == 2
-    assert {edge["relation"] for edge in data["event_edges"]} == {"recurrence_of"}
-    assert len(data["blame_edges"]) == 2
-    assert [link["gen"] for link in data["commit_chain"]] == [1, 2]
+    assert len(data["events"]) == 1
+    assert data["events"][0]["external_ref"] == "DEMO-INC-0001"
+    assert data["event_edges"] == [], (
+        "one recalled incident, so there is no second event a `recurrence_of` edge could "
+        "reach. An edge here would claim a recurrence the seed never observed"
+    )
+    assert len(data["blame_edges"]) == 1
+    assert [link["gen"] for link in data["commit_chain"]] == [1], (
+        "the demo has ONE clause version and it is the origin, so the chain is one link long"
+    )
     assert data["corpus_root"] is not None, "the site has a checkpoint, so the root is a column"
     # NO PERSON APPEARS IN THIS CONTRACT. The events carry titles and severities.
     rendered = json.dumps(data)
@@ -483,7 +662,23 @@ def test_the_consistency_proof_between_the_two_checkpoints_is_present(
 def test_silence_flags_the_one_sentence_no_column_produced(
     payloads: dict[str, dict[str, Any]],
 ) -> None:
-    """The bound statement is staged, the note says why, and everything else is a column."""
+    """The bound statement is staged, the note says why, and everything else is a column.
+
+    ``s == n == 1``, AND THE EMPTY LEDGER IS THE CONSEQUENCE OF IT, not a thin seed. ``s`` is
+    the boundary index and ``n`` the candidate count, under ``CHECK boundary_sane`` (``s <=
+    n``, restated by the console at ``features/silence/model.ts::boundarySane``). ``s == n``
+    is the state the console models as ``boundaryAtEnd`` — the boundary sits at the end of
+    the score-sorted candidate multiset, so **nothing was excluded**, so
+    ``mainline_meas.silence_ledger`` correctly holds no row. W1's ``boundary_proof`` is built
+    for exactly this state and says so: ``'leaf_s_plus_1', 'null'::JSONB  -- s = n: nothing
+    was excluded, so there is no s+1``. Asserting ``s == 2, n == 4`` here would now
+    contradict the committed proof beside it.
+
+    ``LedgerList.tsx`` renders the empty case as a first-class panel rather than a blank —
+    *"The ledger carries no rows for this subject. That is the absence of a row, not proof
+    that nothing was declined"* — so this is a screen the console offers, not one it breaks
+    on. The old ``s == 2 / n == 4 / one below_tau entry`` was the parallel world again.
+    """
     payload = payloads["silence"]
     data = payload["data"]
     assert payload["staged"] is True
@@ -491,14 +686,25 @@ def test_silence_flags_the_one_sentence_no_column_produced(
     assert "mainline_meas.silence_receipt" in payload["staged_note"]
     assert data["receipt"]["bound"]["statement"] == reads.PER_BOUND_SENTENCE
     assert data["receipt"]["bound"]["index_generation"] == "g1"
-    assert data["receipt"]["s"] == 2
-    assert data["receipt"]["n"] == 4
-    assert len(data["entries"]) == 1
-    assert data["entries"][0]["reason"] == "below_tau"
+    assert data["receipt"]["s"] == 1
+    assert data["receipt"]["n"] == 1
+    assert data["receipt"]["s"] <= data["receipt"]["n"], "CHECK boundary_sane"
+    assert data["entries"] == [], (
+        "s == n, so the boundary is at the end of the candidate list and nothing was "
+        "excluded. A ledger row here would name something silenced that the receipt says "
+        "was not"
+    )
+    # The boundary proof is the disclosure that makes `s` checkable, and at `s == n` its
+    # `leaf_s_plus_1` is null BECAUSE there is no s+1 — an explicit end, not a missing field.
+    proof = data["receipt"]["boundary_proof"]
+    assert proof["leaf_s"]["index"] == 0, "s == 1 and Merkle indices are 0-based"
+    assert proof["leaf_s_plus_1"] is None, "nothing was excluded, so there is no next leaf"
     chips = {entry["pointer"]: entry["chip"] for entry in payload["provenance"]}
     assert chips["/receipt/bound/statement"] == "staged"
     assert chips["/receipt/bound/index_generation"] == "db:column"
-    assert chips["/entries/0"] == "db:column"
+    assert not any(pointer.startswith("/entries/") for pointer in chips), (
+        "no ledger rows, so no per-entry chips: a chip beside nothing is worse than no chip"
+    )
 
 
 def test_the_recall_run_conserves_its_candidates(payloads: dict[str, dict[str, Any]]) -> None:
@@ -566,10 +772,21 @@ def test_the_audit_surface_reports_the_caps_it_ran_under(
         assert view["limits"]["bytes_returned"] <= reads.AUDIT_BYTE_CAP
         assert view["statement"].startswith("SELECT * FROM mainline_audit.")
         assert len(view["columns"]) >= 1
-    # `calls` is a column: mainline_meas.agent_action has a producer on this tree.
-    assert len(data["calls"]) == 1
-    assert data["calls"][0]["transport"] == "pgwire"
-    assert data["calls"][0]["outcome"] == "ok"
+    # `calls` IS EMPTY, AND THE EMPTY LOG IS ITSELF THE CLAIM. `mainline_meas.agent_action`
+    # is written by the Managed-MCP service account; the demo API connects as the demo's own
+    # read role and never as that account — which is the very reason `unreachable` below
+    # exists — so no call was carried into this database and none is reported. The console
+    # renders that as a first-class row (`features/audit/parts/CallLog.tsx`): "No call was
+    # carried. An empty log is a claim that nothing was recorded, not a claim that nothing
+    # ran." The old `len(calls) == 1 / transport 'pgwire' / outcome 'ok'` described the row
+    # the parallel-world conftest inserted for itself at `5ddaa3a`; the only INSERT into
+    # that table anywhere in this tree today is in
+    # `tests/integration/schema/test_agent_action_producer.py`, which is a test and not the
+    # product. Emitting `[]` rather than omitting the member is what keeps this a claim.
+    assert data["calls"] == [], (
+        "nothing wrote mainline_meas.agent_action in this database, and an empty log is the "
+        "honest report of that — not an omitted member and not an invented call"
+    )
     # The negative assertion this API is NOT entitled to make.
     assert data["unreachable"][0]["outcome"] == "not_probed"
 
@@ -592,6 +809,56 @@ def test_an_unknown_permit_is_404_naming_the_table(
             reads.read_resource(
                 conn, "clause_version", {"clause_uuid": str(uuid.uuid4()), "commit_id": "zz"}, {}
             )
+    finally:
+        demo_db.reset_dsn_cache()
+
+
+def test_an_unknown_change_request_is_404_and_not_an_empty_envelope(
+    demo_database: tuple[str, dict[str, str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A ``cr_id`` the seed does not carry is REFUSED, at the reader and at the route.
+
+    THE OTHER HALF OF THE LEAD'S RULING. ``demo_world.sql`` §10 seeds the change request
+    because the console declares the resource, and asserting a 404 *instead* would have
+    certified the demo's second gated subject as furniture. But the 404 is a separate
+    claim and it is worth its own test: the subject that exists and the subject that does
+    not must be answered differently, and the failure this guards against is not a 500 —
+    it is the reader that returns ``None`` for a missing row and lets the envelope go out
+    with nulls in it, which reads to the console as "this change request exists and every
+    field about it is unknown".
+
+    Two levels, because they can fail independently: ``read_change_request``
+    (``reads.py``) must RAISE, and the route (``app.py``) must turn that raise into a
+    **404** carrying the resource name. A reader that raises behind a route that answers
+    500 is still an outage as far as the console's error handling is concerned.
+    """
+    dsn, seed = demo_database
+    absent = str(uuid.uuid4())
+    assert absent != seed["cr_id"], "the point of this test is a cr_id the seed does not carry"
+
+    monkeypatch.setenv("MAINLINE_DSN", dsn)
+    demo_db.reset_dsn_cache()
+    conn = demo_db.connection(dsn=dsn)
+    try:
+        with pytest.raises(reads.NotFound, match=r"mainline\.change_request") as caught:
+            reads.read_resource(conn, "change_request", {"cr_id": absent}, {})
+        assert caught.value.resource == "change_request"
+        assert caught.value.status == 404
+        assert absent in str(caught.value), "the refusal names the id it could not find"
+
+        # And the same absence over the real event shape, because the status code is the
+        # only part of this the console ever sees.
+        missing = app.handler(_event("GET", f"/v1/change-requests/{absent}"))
+        assert missing["statusCode"] == 404, missing["body"]
+        error = json.loads(missing["body"])["error"]
+        assert error["kind"] == "notfound"
+        assert error["resource"] == "change_request"
+
+        # The seeded one is still a 200 through the same route, so the 404 above is about
+        # THIS id and not about the resource being unreachable.
+        present = app.handler(_event("GET", f"/v1/change-requests/{seed['cr_id']}"))
+        assert present["statusCode"] == 200, present["body"]
+        assert json.loads(present["body"])["data"]["cr_id"] == seed["cr_id"]
     finally:
         demo_db.reset_dsn_cache()
 

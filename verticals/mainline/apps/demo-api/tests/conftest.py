@@ -13,21 +13,42 @@ special. **Every skip carries the reason it skipped.** A skip with no reason is
 indistinguishable from a deleted test, which is the failure mode that lets a suite go
 green while asserting nothing.
 
-**2. A migrated database, cached by the fingerprint of the migration tree.**
+**2. A migrated database, cached by the fingerprint of everything that builds it.**
 Applying 271 files takes 46.7 s on this machine, which is fine once and intolerable per
-run. The database is named for the SHA-256 of every migration's name and bytes, so a
-second run reuses it and a single edited migration builds a new one. The marker table
-``w3_fixture.ready`` carries the fingerprint AND the seeded identifiers, so a reused
+run. The database is named for the SHA-256 of every migration's name and bytes **and of
+the seed files' names and bytes**, so a second run reuses it while a single edited
+migration — or a single edited line of ``demo_world.sql`` — builds a new one. The marker
+table ``w3_fixture.ready`` carries the fingerprint AND the seeded identifiers, so a reused
 database hands back the same permit id it was seeded with rather than being re-seeded.
 **A marker is a claim that the database was built, never that it is still usable**, so it
 is checked against the rows before it is believed: the seeded history's one perishable row
-is a two-hour exposure receipt, and a database adopted the next day carries a dead one.
+is the exposure receipt, and a database adopted after its window closed carries a dead one.
 
-**3. A seeded history that exercises all twelve resources.** Not the minimum for one
-claim — the minimum for twelve reads, which is a different and larger thing: two events
-with an edge between them, a two-checkpoint ledger with four leaves so the RFC 6962
-consistency proof has something to prove, a signed disposition, a change request, and a
-silence receipt whose ``boundary_proof`` actually has the shape the contract demands.
+**3. The seeded history is THE SEED THE DEPLOYMENT APPLIES, and nothing else.**
+``scripts/deploy/seed_demo.py`` applies ``demo_world.sql`` then ``demo_permit.sql`` to
+CockroachDB Cloud. This fixture applies the same two files, in the same order, through
+the same ``cloud_chain.Applier`` and its ``40001`` retry loop, and it obtains the file
+list by **importing** ``SEED_FILES`` rather than restating it. Every identifier the
+``seed`` dict hands out is then read back out of the seeded database with a query.
+
+This file used to build a parallel world instead: its own site, its own signer, and a
+credential id it computed as a SHA-256 over two hardcoded words — by *the same helper the
+code under test used*. The test and the code agreed because they read one constant;
+neither had ever met the file the deployment applies, which derives that credential from
+``digest('mainline-demo/credential/demo.signer', 'sha256')``. So beat 4 of the demo failed
+``23503 disposition_signer_credential_id_fkey`` against the deployed database while 291
+tests here stayed green. That is the third recurrence of one shape — the permit-id
+near-miss and the ``dict_row`` 500 were the first two. **A test that cannot disagree with
+the code it tests proves nothing**, and the only way to make disagreement possible is for
+the fixture's world and the deployed world to be one world.
+
+**WHAT THIS FIXTURE MAY THEREFORE NOT DO: add a row the deployed seed does not carry.**
+``demo_permit.sql`` says the database holds *exactly one gated subject*, and
+``demo_world.sql``'s closing census enumerates the rest. Where a read surface has no rows
+in the deployed database it has none here either, and the test that wanted them fails —
+loudly, naming the table. That failure is the fixture working: it is a gap in what the
+demo deploys, and it belongs to the seed's owner, not to a fixture quietly minting the
+row so the suite stays green. ``_Seed.__missing__`` below says so at the point of use.
 
 **4. A JSON Schema validator, over the contract files the CONSOLE loads.**
 ``jsonschema`` is not installed in this repository's virtualenv and installing it would
@@ -46,7 +67,7 @@ import json
 import re
 import sys
 import uuid
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any, Final
 from urllib.parse import urldefrag, urljoin
@@ -139,14 +160,19 @@ CONTRACTS_DIR: Final = REPO_ROOT / "verticals/mainline/apps/console/contracts"
 MIGRATIONS_DIR: Final = REPO_ROOT / "verticals/mainline/db/migrations"
 RESOURCES_TS: Final = REPO_ROOT / "verticals/mainline/apps/console/src/data/resources.ts"
 
+#: The directory ``scripts/deploy/seed_demo.py`` reads its seed files out of, and the
+#: deployer itself. The FILE NAMES are not stated here — they are read off the deployer's
+#: ``SEED_FILES`` — because a second copy of that tuple is the same class of defect this
+#: fixture was rewritten to close.
+SEEDS_DIR: Final = REPO_ROOT / "verticals/mainline/db/seeds/demo"
+SEED_DEMO_PY: Final = REPO_ROOT / "scripts/deploy/seed_demo.py"
+
 #: The four names ``trappoint_testkit.cluster`` publishes a shared DSN under.
 _DSN_ENV_NAMES: Final = ("MAINLINE_TEST_DSN", "COCKROACH_URL", "CRDB_URL", "TRAPPOINT_DSN")
 
 #: Cloud runs ``gc.ttlseconds = 4500``; the local node defaults to 14400. Pinning the
 #: stricter value locally means a `AS OF SYSTEM TIME` that works here works there.
 _CLOUD_GC_TTL_SECONDS: Final = 4500
-
-_ZERO32: Final = b"\x00" * 32
 
 
 # ── The cluster ─────────────────────────────────────────────────────────────────────
@@ -272,11 +298,63 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
     )
 
 
+def _deployer() -> Any:
+    """``scripts/deploy/seed_demo``, loaded by path, with ``sys.path`` handed straight back.
+
+    IMPORTED, NEVER RESTATED. The seed file list, the order they go in, the one-batch-per-
+    file rule and the ``40001`` retry loop are all read off this module, so a change to what
+    the deployment applies is a change to what this fixture applies. That is the whole point
+    of the rewrite: the deployment and the fixture must not be able to disagree.
+
+    Loaded by path rather than by ``import scripts.deploy.seed_demo`` because that name
+    resolves only with the repository ROOT on ``sys.path``, and this conftest is imported
+    into a session that collects 9600 tests. A repository root left on the path makes eight
+    top-level directories — ``tests``, ``packages``, ``docs``, ``spec``, ``scripts``,
+    ``infra``, ``evidence``, ``verticals`` — importable as namespace packages for everything
+    that collects afterwards, which is a session-wide change no worker owns. ``seed_demo``
+    inserts the root itself so that its own sibling import of ``cloud_chain`` resolves; the
+    insertion is undone here the moment the module has finished loading, and the loaded
+    module is cached under a private name so nothing else can be shadowed by it either.
+    """
+    import importlib.util
+
+    name = "mainline_seed_demo_for_tests"
+    cached = sys.modules.get(name)
+    if cached is not None:
+        return cached
+    spec = importlib.util.spec_from_file_location(name, SEED_DEMO_PY)
+    if spec is None or spec.loader is None:  # pragma: no cover - the file is committed
+        raise RuntimeError(f"no importable module at {SEED_DEMO_PY}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    restore = list(sys.path)
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        sys.modules.pop(name, None)
+        raise
+    finally:
+        sys.path[:] = restore
+    return module
+
+
 def _fingerprint() -> str:
+    """SHA-256 over everything that BUILDS this database: the migrations AND the seed.
+
+    The seed is in the key because the seed is now part of the build. While the history was
+    Python in this file, an edit to it changed the fixture's own module and nothing else
+    could be stale; now that ``demo_world.sql`` is what populates the database, a cached
+    database built from an older copy of it would be adopted silently. That is the same
+    "the marker says BUILT, never that it is USABLE" failure the adoption probe below exists
+    to catch, one layer further up, and the cheapest place to catch it is the name.
+    """
     digest = hashlib.sha256()
     for path in sorted(MIGRATIONS_DIR.glob("*.sql"), key=lambda p: p.name):
         digest.update(path.name.encode("utf-8"))
         digest.update(path.read_bytes())
+    for name in _deployer().SEED_FILES:
+        digest.update(name.encode("utf-8"))
+        digest.update((SEEDS_DIR / name).read_bytes())
     return digest.hexdigest()[:12]
 
 
@@ -316,566 +394,259 @@ def _apply_chain(dsn: str) -> tuple[int, list[str]]:
     return applied, failures
 
 
-# ── The seeded history ──────────────────────────────────────────────────────────────
+# ── The seeded history: the seed the DEPLOYMENT applies, read back out of the database ─
+#
+# THE FIXTURE APPLIES `demo_world.sql` AND `demo_permit.sql`. It does not build a world of
+# its own, and it does not add a row to theirs. Everything below is either the deployer's
+# own code being called, or a query that reads the deployer's result back.
 
 
-def _sha(*parts: bytes | str) -> bytes:
-    digest = hashlib.sha256()
-    for part in parts:
-        digest.update(part.encode("utf-8") if isinstance(part, str) else part)
-    return digest.digest()
+class _Seed(dict[str, str]):
+    """The identifiers the deployed seed produced — and a ``KeyError`` that says why not.
 
-
-def _jcs(payload: Mapping[str, Any]) -> bytes:
-    return json.dumps(
-        dict(payload), sort_keys=True, separators=(",", ":"), ensure_ascii=False
-    ).encode("utf-8")
-
-
-def _mth(leaves: Sequence[bytes]) -> bytes:
-    """RFC 6962 Merkle Tree Hash over already-hashed leaves — the fixture's own copy.
-
-    Written out again here rather than imported from the module under test, so that the
-    ledger fixture's checkpoint roots are not produced by the same code the test then
-    checks the proofs against. A fixture that borrows the implementation it is testing
-    proves the implementation is self-consistent and nothing else.
+    A plain ``dict`` answers a name the deployed seed does not carry with ``KeyError:
+    'cr_id'``, which reads like a typo. It is not a typo: it is the deployed demo not
+    having a change request at all, surfacing at the first line of a test that assumed one.
+    The message below is that diagnosis, delivered where the assumption is made, because a
+    fixture that fails obscurely is a fixture somebody patches by inventing the row.
     """
-    if not leaves:
-        return hashlib.sha256(b"").digest()
-    if len(leaves) == 1:
-        return leaves[0]
-    split = 1 << (len(leaves) - 1).bit_length() - 1
-    return hashlib.sha256(b"\x01" + _mth(leaves[:split]) + _mth(leaves[split:])).digest()
 
-
-def _seed(conn: psycopg.Connection[Any]) -> dict[str, str]:
-    """Insert the smallest history in which all twelve reads have something true to say."""
-    site_id = uuid.uuid4()
-    # `mainline.fn_recall_policy_anchored` compares ledger_checkpoint.site_code against
-    # site_id::STRING, so the ledger partition key for a site is its own identifier.
-    # A quirk of the shipped function, matched rather than worked around.
-    site_code = str(site_id)
-    site_role = "w3_site"
-    signer, countersigner = "w3.signer", "w3.countersigner"
-    signer_cred, cosign_cred = _sha("cred", "signer"), _sha("cred", "cosigner")
-    commit_v1, commit_v2 = _sha("commit", "clause-v1"), _sha("commit", "clause-v2")
-    clause_uuid, doc_id = uuid.uuid4(), uuid.uuid4()
-    event_a, event_b = uuid.uuid4(), uuid.uuid4()
-    permit_id, cr_id = uuid.uuid4(), uuid.uuid4()
-    activity_root = "w3/isolation"
-    competency = {"authorisations": ["ISOLATION_AUTHORITY"], "training": ["LOTO-3"], "source": "w3"}
-
-    conn.execute(
-        "INSERT INTO mainline.site (site_id, site_code, site_role, tenant_id, taxonomy_ver) "
-        "VALUES (%s, %s, %s, %s, 1)",
-        (site_id, site_code, site_role, uuid.uuid4()),
-    )
-    for sub, org, rank in ((signer, "w3-operator", 5), (countersigner, "w3-assurer", 5)):
-        conn.execute(
-            "INSERT INTO mainline.person (signer_sub, effective_from, org, rank, "
-            "competency_source_id, competency_sha256, competency_snapshot, identity_source, "
-            "enrolment_assurance) VALUES (%s, now() - INTERVAL '30 days', %s, %s, %s, %s, %s, %s, "
-            "%s)",
-            (
-                sub,
-                org,
-                rank,
-                uuid.uuid4(),
-                _sha("competency", sub),
-                Jsonb(competency),
-                "hr_system_of_record",
-                "hr_system_of_record",
-            ),
-        )
-    for cred, sub in ((signer_cred, signer), (cosign_cred, countersigner)):
-        conn.execute(
-            "INSERT INTO mainline.signing_credential (credential_id, signer_sub, public_key_cose, "
-            "aaguid, transports, attachment, enrolment_assurance) "
-            "VALUES (%s, %s, %s, %s, ARRAY['usb'], 'cross-platform', 'hr_system_of_record')",
-            (cred, sub, _sha("cose", sub), _sha("aaguid", sub)[:16]),
+    def __missing__(self, key: str) -> str:
+        raise KeyError(
+            f"{key!r} is not an identifier the deployed demo seed produces. This database "
+            "was built by applying verticals/mainline/db/seeds/demo/{demo_world,"
+            "demo_permit}.sql — the two files scripts/deploy/seed_demo.py applies to "
+            "CockroachDB Cloud — and every name below was read back out of it with a "
+            "query. A name that is absent is therefore a ROW THE DEPLOYED DEMO DOES NOT "
+            "CARRY, not a gap in this fixture. It offers: " + ", ".join(sorted(self)) + ". "
+            "Do NOT mint the row here: a fixture that invents a subject the deployment "
+            "does not have is the parallel world this file was rewritten to delete, and it "
+            "is how beat 4 reached a judge behind 291 green tests. Seed it in "
+            "demo_world.sql so the deployment carries it too, or assert the 404."
         )
 
-    for index, commit_id in enumerate((commit_v1, commit_v2), start=1):
-        envelope = {"kind": "w3-commit", "clause": str(clause_uuid), "gen": index}
-        conn.execute(
-            "INSERT INTO mainline.commit_obj (commit_id, site_id, gen, ref_name, author_sub, "
-            "message, envelope, envelope_bytes) "
-            "VALUES (%s, %s, %s, 'refs/heads/main', %s, %s, %s, %s)",
-            (
-                commit_id,
-                site_id,
-                index,
-                signer,
-                f"clause version {index}",
-                Jsonb(envelope),
-                _jcs(envelope),
-            ),
+
+def _apply_seeds(dsn: str) -> list[str]:
+    """Apply the deployment's seed files, in its order, through its own applier.
+
+    ``seed_demo.apply_seeds`` is CALLED, not copied. It is the function that puts the demo
+    into CockroachDB Cloud: it reads its file list from ``SEED_FILES``, applies each file as
+    ONE statement batch — ``demo_permit.sql``'s second ``permit_event`` reads the first
+    one's trigger-computed ``chain_digest``, so splitting a file would change *what* is
+    seeded and not merely how — and runs each batch through ``cloud_chain.Applier``, whose
+    loop retries ``40001`` with backoff and rebuilds a socket the cluster dropped. Calling
+    it is what makes "this fixture applies what the deployment applies" a property of the
+    code rather than a claim in a comment: there is no second list, no second order, and no
+    second retry loop to fix and forget.
+
+    Returns one line per file that did not apply, and an empty list when all of them did.
+    """
+    deployer = _deployer()
+    applier = deployer.Applier(dsn)
+    try:
+        rows = deployer.apply_seeds(applier, SEEDS_DIR)
+    finally:
+        applier.close()
+    return [
+        f"{row['file']} did not apply [{row['sqlstate']}]: {row['error']}"
+        for row in rows
+        if row["error"]
+    ]
+
+
+def _sole(
+    conn: psycopg.Connection[Any], sql: str, params: tuple[Any, ...], subject: str
+) -> dict[str, Any]:
+    """The one row *sql* must return, or a refusal saying how many it actually returned.
+
+    EXACTLY ONE, never "the first". ``scripts/deploy/seed_demo.py`` makes the same claim
+    about the deployed database — it counts permits three ways and treats a second one as a
+    failure — because "the seed is present" and "the seed is the only thing present" are
+    different sentences, and only the second says the ``seed`` dict names the subject a test
+    is about to drive. A ``LIMIT 1`` here would turn leftovers from a half-finished rebuild
+    into a silently different subject, which is the failure mode this whole file is about.
+    """
+    rows = conn.execute(sql, params).fetchall()
+    if len(rows) != 1:
+        raise AssertionError(
+            f"{subject}: the seeded database holds {len(rows)} such rows where exactly one "
+            f"is required. This database was built by applying "
+            f"{', '.join(_deployer().SEED_FILES)} out of {SEEDS_DIR}; if those files no "
+            "longer produce this row then the DEPLOYED demo no longer carries it either, "
+            "and that is the defect — not this assertion."
         )
-    conn.execute(
-        "INSERT INTO mainline.doc (doc_id, site_id, doc_code, title) VALUES (%s, %s, %s, %s)",
-        (doc_id, site_id, "w3-sop-1", "Isolation of stored energy"),
-    )
-    conn.execute(
-        "INSERT INTO mainline.clause (clause_uuid, site_id, birth_commit, activity_root, "
-        "head_commit) "
-        "VALUES (%s, %s, %s, %s, %s)",
-        (clause_uuid, site_id, commit_v1, activity_root, commit_v2),
-    )
+    return dict(rows[0])
 
-    text_v1 = (
-        "Before any intrusive work, stored energy shall be isolated, locked and verified at "
-        "zero by a competent person."
-    )
-    text_v2 = (
-        "Before any intrusive work, stored energy shall be isolated, locked and verified at "
-        "zero by a competent person, and the verification shall be witnessed and recorded."
-    )
-    conn.execute(
-        "INSERT INTO mainline.clause_version (clause_uuid, gen, commit_id, site_id, doc_id, "
-        "activity_root, ordinal, printed_label, raw_text, canon_text, canon_version, canon_sha256, "
-        "anchor_set, cat_confidence, control_delta, delta_basis, blood_root, blood_peaks, "
-        "blood_size, "
-        "sev_max) VALUES (%s, 1, %s, %s, %s, %s, 1, '7.3.2(b)', %s, %s, 1, %s, "
-        "ARRAY['LOTO','ZERO_ENERGY'], 'ok', 'introduce', 'lattice', %s, ARRAY[]::BYTES[], 0, 4)",
-        (
-            clause_uuid,
-            commit_v1,
-            site_id,
-            doc_id,
-            activity_root,
-            text_v1,
-            text_v1,
-            _sha(text_v1),
-            _ZERO32,
-        ),
-    )
-    conn.execute(
-        "INSERT INTO mainline.clause_version (clause_uuid, gen, commit_id, site_id, doc_id, "
-        "activity_root, parent_version, ordinal, printed_label, raw_text, canon_text, "
-        "canon_version, "
-        "canon_sha256, anchor_set, cat_confidence, control_delta, delta_basis, blood_root, "
-        "blood_peaks, blood_size, sev_max) "
-        "VALUES (%s, 2, %s, %s, %s, %s, %s, 1, '7.3.2(b)', %s, %s, 1, %s, "
-        "ARRAY['LOTO','ZERO_ENERGY','WITNESS'], 'ok', 'strengthen', 'lattice', %s, "
-        "ARRAY[]::BYTES[], 0, 4)",
-        (
-            clause_uuid,
-            commit_v2,
-            site_id,
-            doc_id,
-            activity_root,
-            commit_v1,
-            text_v2,
-            text_v2,
-            _sha(text_v2),
-            _ZERO32,
-        ),
-    )
-    conn.execute(
-        "INSERT INTO mainline.delta_witness (clause_uuid, commit_id, witness_ord, rule_id, field, "
-        "from_repr, to_repr, note, minimal) "
-        "VALUES (%s, %s, 0, 'R6_VERIFICATION', 'verification', %s, %s, %s, true)",
-        (
-            clause_uuid,
-            commit_v2,
-            "verified at zero",
-            "verified at zero, witnessed and recorded",
-            "The verification obligation acquires a witness and a record; the control tightens.",
-        ),
-    )
 
-    for event_id, ref, title, days in (
-        (event_a, "INC-W3-1", "Stored energy release during intrusive work", 400),
-        (event_b, "INC-W3-2", "Repeat release on the same isolation point", 120),
-    ):
-        conn.execute(
-            "INSERT INTO mainline.event (event_id, site_id, external_ref, occurred_at, "
-            "ingested_at, "
-            "kind, title, narrative, source_object_key, source_sha256, severity_actual, "
-            "severity_potential, severity_gate, severity_basis, canon_version) "
-            # `make_interval(days => n)` is a syntax error on CockroachDB v26.2.5 — named
-            # arguments are not accepted — so the multiplication is spelled out.
-            "VALUES (%s, %s, %s, now() - (%s * INTERVAL '1 day'), now() - INTERVAL '2 days', "
-            "'incident', %s, %s, %s, %s, 4, 4, 4, 'human_rated', 1)",
-            (
-                event_id,
-                site_id,
-                ref,
-                days,
-                title,
-                (
-                    "An isolation was signed off without verification at zero; residual "
-                    "hydraulic pressure released while the guard was removed."
-                ),
-                f"w3/{ref.lower()}.pdf",
-                _sha("incident", ref),
-            ),
+#: EVERY permit in the database. No predicate and no ``LIMIT``: the fixture database holds
+#: the seed and nothing else, so "exactly one row" is an assertion about the whole database
+#: rather than about whichever row a scan reached first.
+_PERMIT_SQL: Final = """
+SELECT p.permit_id::STRING AS permit_id,
+       p.site_id::STRING   AS site_id,
+       p.site_role::STRING AS site_role,
+       p.external_ref      AS permit_external_ref,
+       p.state::STRING     AS permit_state,
+       s.site_code         AS site_code
+  FROM mainline.permit AS p
+  JOIN mainline.site   AS s ON s.site_id = p.site_id
+"""
+
+#: THE SECOND GATED SUBJECT, and — like the permit above — EVERY one of them in the
+#: database, for the same reason: no predicate and no ``LIMIT``, so "exactly one row" is an
+#: assertion about the whole database rather than about whichever row a scan reached first.
+#:
+#: ``demo_world.sql`` §10 seeds it because the console DECLARES it: ``change_request`` is in
+#: ``RESOURCE_KEYS`` and ``GET /v1/change-requests/{cr_id}`` is routed at it against a
+#: committed contract, over a table, a nine-edge transition alphabet and a reader that all
+#: ship. The seed fixes ``cr_id`` as a literal so the DEPLOYED demo and this fixture name the
+#: same row; this query is how the fixture LEARNS what that literal is, and the reasoning is
+#: in ``docs/decisions/demo-change-request.md``. Nothing here computes an identifier — for
+#: the same reason nothing here computes a credential id.
+_CR_SQL: Final = """
+SELECT cr.cr_id::STRING  AS cr_id,
+       cr.external_ref   AS cr_external_ref,
+       cr.state::STRING  AS cr_state,
+       cr.target_ref     AS cr_target_ref
+  FROM mainline.change_request AS cr
+"""
+
+#: The obligation, and the four things the seed hangs off it. ``commit_id`` is taken from
+#: the CHECK rather than from ``permit_clause.relation = 'relies_on'`` so that no string
+#: literal out of the seed file is restated here: the check already names the commit it was
+#: projected against, and reading it is one fewer place for the two to disagree.
+_CHECK_SQL: Final = """
+SELECT c.check_id::STRING           AS check_id,
+       c.clause_uuid::STRING        AS clause_uuid,
+       encode(c.commit_id, 'hex')   AS commit_id,
+       c.precursor_event_id::STRING AS event_id,
+       c.recall_run_id::STRING      AS run_id
+  FROM mainline.blocking_check AS c
+ WHERE c.permit_id = %s
+"""
+
+#: WHO THE SEED PUT IN FRONT OF THE OBLIGATION, and the authority for saying so.
+#: ``mainline.exposure_receipt.actor_sub`` records the person the evidence was actually
+#: shown to, and ``fn_disposition_project`` will not accept a signature from anybody else.
+#: Reading the signer off this row rather than matching a name means this file never spells
+#: ``'demo.signer'`` at all — which is the point: a fixture that spells it has re-declared
+#: it, and a re-declared constant is what put a `23503` in front of a judge.
+_RECEIPT_SQL: Final = """
+SELECT r.receipt_id::STRING         AS receipt_id,
+       r.actor_sub                  AS signer_sub,
+       r.silence_receipt_id::STRING AS silence_receipt_id,
+       r.policy_version             AS policy_version
+  FROM mainline.exposure_receipt AS r
+ WHERE r.permit_id = %s
+"""
+
+#: The second person. A ``blood_major`` obligation takes a countersignature, so the seed
+#: enrols two people and the one who is not the receipt's actor is the other one. Written as
+#: a query rather than a name so that a seed which grows a third person is a refusal here
+#: instead of an arbitrary choice made silently.
+_OTHER_PERSON_SQL: Final = """
+SELECT DISTINCT p.signer_sub AS countersigner_sub
+  FROM mainline.person AS p
+ WHERE p.signer_sub <> %s
+"""
+
+#: THE ROW BLOCKER 1 WAS ABOUT. ``mainline.signing_credential`` is where a credential id
+#: comes from: it is the FK target of ``mainline.disposition.signer_credential_id``, and in
+#: the real product the value arrives from a WebAuthn enrolment and is derivable by nobody.
+#: So this fixture READS it. It must never compute it — four files agreeing on a SHA-256
+#: over two hardcoded words, while the deployed seed wrote
+#: ``digest('mainline-demo/credential/demo.signer', 'sha256')``, is precisely how beat 4 came
+#: to fail ``23503 disposition_signer_credential_id_fkey`` against a database that 291 green
+#: tests had never once been pointed at.
+_CREDENTIAL_SQL: Final = """
+SELECT encode(c.credential_id, 'hex') AS credential_id
+  FROM mainline.signing_credential AS c
+ WHERE c.signer_sub = %s AND c.revoked_at IS NULL
+"""
+
+#: The clause version the check cites, and the document it was printed from.
+_CLAUSE_VERSION_SQL: Final = """
+SELECT v.doc_id::STRING AS doc_id,
+       v.gen::STRING    AS clause_gen
+  FROM mainline.clause_version AS v
+ WHERE v.clause_uuid = %s AND v.commit_id = decode(%s, 'hex')
+"""
+
+
+def _identifiers(conn: psycopg.Connection[Any]) -> _Seed:
+    """Read the seeded world's identifiers OUT OF the seeded world.
+
+    Not parsed out of the SQL, and not restated from it. Parsing would make this file a
+    second reader of the seed's syntax; restating would make it a second DEFINITION of the
+    seed's values, which is the defect being closed rather than a smaller version of it. A
+    query is the only form that cannot drift: when the database does not hold the row there
+    is no value to hand out, and the refusal names the table instead of handing back a
+    plausible identifier for a row that is not there.
+    """
+    seed = _Seed()
+    permit = _sole(conn, _PERMIT_SQL, (), "mainline.permit — the demo's one gated subject")
+    seed.update({key: str(value) for key, value in permit.items()})
+
+    change_request = _sole(
+        conn, _CR_SQL, (), "mainline.change_request — the demo's second gated subject"
+    )
+    seed.update({key: str(value) for key, value in change_request.items()})
+
+    check = _sole(
+        conn,
+        _CHECK_SQL,
+        (seed["permit_id"],),
+        f"mainline.blocking_check for permit {seed['permit_id']}",
+    )
+    seed.update({key: str(value) for key, value in check.items()})
+
+    receipt = _sole(
+        conn,
+        _RECEIPT_SQL,
+        (seed["permit_id"],),
+        f"mainline.exposure_receipt for permit {seed['permit_id']}",
+    )
+    seed.update({key: str(value) for key, value in receipt.items()})
+
+    other = _sole(
+        conn,
+        _OTHER_PERSON_SQL,
+        (seed["signer_sub"],),
+        f"the one row in mainline.person that is not {seed['signer_sub']!r}",
+    )
+    seed["countersigner_sub"] = str(other["countersigner_sub"])
+
+    version = _sole(
+        conn,
+        _CLAUSE_VERSION_SQL,
+        (seed["clause_uuid"], seed["commit_id"]),
+        f"mainline.clause_version {seed['clause_uuid']} at the commit the check cites",
+    )
+    seed.update({key: str(value) for key, value in version.items()})
+
+    for role in ("signer", "countersigner"):
+        sub = seed[f"{role}_sub"]
+        credential = _sole(
+            conn, _CREDENTIAL_SQL, (sub,), f"mainline.signing_credential for {sub!r}"
         )
-    conn.execute(
-        "INSERT INTO mainline.event_edge (child_event_id, parent_event_id, relation) "
-        "VALUES (%s, %s, 'recurrence_of')",
-        (event_b, event_a),
-    )
-    conn.execute(
-        "INSERT INTO mainline.control_failure (failure_id, event_id, control_class, barrier_role, "
-        "failure_mode, icam_tier, hazard_energy, evidence_span, quote_sha256) "
-        "VALUES (%s, %s, 'zero_energy_verification', 'preventive', 'not_verified', "
-        "'absent_or_failed_defence', 'pressure', ARRAY[0, 96], %s)",
-        (uuid.uuid4(), event_a, _sha("quote", "w3-1")),
-    )
-
-    for event_id in (event_a, event_b):
-        conn.execute(
-            "INSERT INTO mainline.blame_edge (event_id, clause_uuid, basis, state, site_id, "
-            "commit_id, features, attribution, evidence_doc_id, evidence_quote_sha256) "
-            "VALUES (%s, %s, 'asserted_document', 'active', %s, %s, %s, %s, %s, %s)",
-            (
-                event_id,
-                clause_uuid,
-                site_id,
-                commit_v2,
-                Jsonb({"quote_offsets": [0, 96], "source": "investigation report §4"}),
-                "The investigation names this clause as the control that failed.",
-                doc_id,
-                _sha("quote", str(event_id)),
-            ),
-        )
-    # `fn_closure_guard` demands the FIRST generation for a clause version be zero.
-    conn.execute(
-        "INSERT INTO mainline.clause_blame_closure (clause_uuid, as_of_commit, closure_gen, "
-        "site_id, "
-        "ancestor_events, ancestor_count, max_severity, virulence, depth, truncated, computed_by, "
-        "projector_ver) VALUES (%s, %s, 0, %s, ARRAY[%s, %s]::UUID[], 2, 4, 'blood_major', 2, "
-        "false, "
-        "'tests/conftest.py', 'w3-1')",
-        (clause_uuid, commit_v2, site_id, event_a, event_b),
-    )
-
-    conn.execute(
-        "INSERT INTO mainline.permit (permit_id, site_id, site_role, external_ref, ref_name, "
-        "horizon_at) VALUES (%s, %s, %s, 'PTW-W3-1', 'refs/permits/w3-1', "
-        "now() + INTERVAL '30 days')",
-        (permit_id, site_id, site_role),
-    )
-    conn.execute(
-        "INSERT INTO mainline.permit_clause (permit_id, clause_uuid, commit_id, relation) "
-        "VALUES (%s, %s, %s, 'relies_on')",
-        (permit_id, clause_uuid, commit_v2),
-    )
-    conn.execute(
-        "INSERT INTO mainline.boundary_certificate (permit_id, cert_gen, asset_graph_version, "
-        "tags_declared, tags_resolved, tags_unmodelled, under_declared) "
-        "VALUES (%s, 1, 'w3-asset-graph-1', 3, 3, 0, 0)",
-        (permit_id,),
-    )
-    conn.execute(
-        "INSERT INTO mainline.cbm_account (site_id, commit_id, account_gen, inherited, carried, "
-        "split_carried, merge_carried, residue_open, residue_disposed, computed_by, wrote_as, "
-        "projector_ver) VALUES (%s, %s, 0, 0, 0, 0, 0, 0, 0, 'tests/conftest.py', current_user, "
-        "'w3-1')",
-        (site_id, commit_v2),
-    )
-    conn.execute(
-        "INSERT INTO mainline.change_request (cr_id, site_id, site_role, external_ref, ref_name, "
-        "target_ref) VALUES (%s, %s, %s, 'MOC-2026-0413', 'refs/changes/w3-1', 'refs/heads/main')",
-        (cr_id, site_id, site_role),
-    )
-
-    # ── The ledger: two checkpoints over four leaves, so a consistency proof exists.
-    leaf_hashes: list[bytes] = []
-    prev_link = _ZERO32
-    entries: list[tuple[uuid.UUID, bytes, bytes]] = []
-    for seq in range(4):
-        entry_id = uuid.uuid4()
-        payload = {"kind": "w3-entry", "seq": seq, "subject": str(permit_id)}
-        canon = _jcs(payload)
-        leaf_hash = hashlib.sha256(b"\x00" + canon).digest()
-        link_hash = _sha(prev_link, leaf_hash)
-        conn.execute(
-            "INSERT INTO mainline.ledger_intake (entry_id, site_code, entry_kind, subject_id, "
-            "actor, "
-            "actor_kind, payload, canon_bytes, payload_ver, leaf_hash, is_sandbox, hlc, "
-            "recorded_at) "
-            "VALUES (%s, %s, 'permit_event', %s, %s, 'service', %s, %s, 1, %s, false, %s, now())",
-            (
-                entry_id,
-                site_code,
-                permit_id,
-                "w3/sequencer",
-                Jsonb(payload),
-                canon,
-                leaf_hash,
-                seq + 1,
-            ),
-        )
-        conn.execute(
-            "INSERT INTO mainline.ledger_leaf (site_code, seq, entry_id, leaf_hash, "
-            "prev_link_hash, "
-            "link_hash, batch_id) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-            (site_code, seq, entry_id, leaf_hash, prev_link, link_hash, uuid.uuid4()),
-        )
-        entries.append((entry_id, leaf_hash, link_hash))
-        leaf_hashes.append(leaf_hash)
-        prev_link = link_hash
-
-    for tree_size in (2, 4):
-        root = _mth(leaf_hashes[:tree_size])
-        conn.execute(
-            "INSERT INTO mainline.ledger_checkpoint (site_code, tree_size, root_hash, body, "
-            "beacon, "
-            "log_sig, tsa_token, canon_src_sha256, admissible) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, true)",
-            (
-                site_code,
-                tree_size,
-                root,
-                f"mainline/{site_code}\n{tree_size}\n{root.hex()}\n",
-                Jsonb({"drand_round": tree_size, "nist_pulse": tree_size}),
-                _sha("logsig", site_code, str(tree_size)),
-                _sha("tsa", str(tree_size)),
-                _sha("canon-src"),
-            ),
-        )
-        conn.execute(
-            "INSERT INTO mainline.cosignature (site_code, tree_size, witness_id, trust_domain, "
-            "adverse, sig) VALUES (%s, %s, 'witness.w3/hsr-1', 'union_hsr', true, %s)",
-            (site_code, tree_size, _sha("cosig", site_code, str(tree_size))),
-        )
-    for level, index_, value in ((1, 0, _mth(leaf_hashes[:2])), (1, 1, _mth(leaf_hashes[2:4]))):
-        conn.execute(
-            "INSERT INTO mainline.ledger_node (site_code, level, idx, hash) VALUES (%s, %s, %s, "
-            "%s)",
-            (site_code, level, index_, value),
-        )
-    conn.execute(
-        "INSERT INTO mainline.unwitnessed_debt (debt_id, site_code, permit_id, incurred_at, "
-        "discharged_tree_size) VALUES (%s, %s, %s, now() - INTERVAL '1 hour', 4)",
-        (uuid.uuid4(), site_code, permit_id),
-    )
-
-    # ── The recall pass, its silence, and its receipt.
-    policy_version = "w3-recall-1.0"
-    conn.execute(
-        "INSERT INTO mainline_meas.recall_policy (policy_version, taxonomy_ver, embed_model, "
-        "gen_model, prompt_version, beam_size, tau, arms, calibration_set_sha256, author_sub, "
-        "signature, anchored_tree_size, anchored_at) "
-        "VALUES (%s, 1, 'amazon.titan-embed-text-v2:0', 'au.anthropic.claude', 'p-1', 8, %s, %s, "
-        "%s, "
-        "%s, %s, 4, now())",
-        (
-            policy_version,
-            Jsonb({"tau0": 5, "rho": 4}),
-            Jsonb({"lexical": True, "vector": True}),
-            _sha("calibration"),
-            signer,
-            _sha("policy-sig"),
-        ),
-    )
-    run_id = uuid.uuid4()
-    conn.execute(
-        "INSERT INTO mainline_meas.recall_run (run_id, permit_id, site_id, corpus_commit, "
-        "policy_version, index_plan_digest, index_generation, n_candidates, n_blocking, "
-        "n_advisory, "
-        "n_silenced, n_deduped, n_bonded_sev5, n_bonded_sev5_blocking, latency_ms) "
-        "VALUES (%s, %s, %s, %s, %s, %s, 'g1', 4, 1, 1, 1, 1, 0, 0, 412)",
-        (run_id, permit_id, site_id, commit_v2, policy_version, _sha("plan")),
-    )
-    silence_receipt_id = uuid.uuid4()
-    boundary_proof = {
-        "leaf_s": {
-            "index": 1,
-            "leaf_hash_hex": leaf_hashes[1].hex(),
-            "score": 0.51,
-            "path_hex": [leaf_hashes[0].hex(), _mth(leaf_hashes[2:4]).hex()],
-        },
-        "leaf_s_plus_1": {
-            "index": 2,
-            "leaf_hash_hex": leaf_hashes[2].hex(),
-            "score": 0.31,
-            "path_hex": [leaf_hashes[3].hex(), _mth(leaf_hashes[:2]).hex()],
-        },
-    }
-    conn.execute(
-        "INSERT INTO mainline_meas.silence_receipt (silence_receipt_id, run_id, permit_id, "
-        "corpus_root, candidate_root, theta, s, n, boundary_proof, policy_version) "
-        "VALUES (%s, %s, %s, %s, %s, 0.45, 2, 4, %s, %s)",
-        (
-            silence_receipt_id,
-            run_id,
-            permit_id,
-            _mth(leaf_hashes).hex() and _mth(leaf_hashes),
-            _sha("candidate-root"),
-            Jsonb(boundary_proof),
-            policy_version,
-        ),
-    )
-    conn.execute(
-        "INSERT INTO mainline_meas.silence_ledger (silence_id, site_id, source, reason, "
-        "subject_kind, "
-        "subject_id, severity, score, threshold, arithmetic, policy_version, at) "
-        "VALUES (%s, %s, 'recall', 'below_tau', 'permit', %s, 3, 0.31, 0.45, %s, %s, now())",
-        (
-            uuid.uuid4(),
-            site_id,
-            permit_id,
-            Jsonb(
-                {
-                    "components": {"lexical": 0.12, "vector": 0.19},
-                    "model": "titan-embed-text-v2",
-                    "tau": 0.45,
-                    "calibration_commit": commit_v2.hex(),
-                }
-            ),
-            policy_version,
-        ),
-    )
-
-    # ── The obligation, the vocabulary offered against it, and the exposure receipt.
-    check_id = uuid.uuid4()
-    conn.execute(
-        "INSERT INTO mainline.blocking_check (check_id, subject_kind, permit_id, site_id, "
-        "clause_uuid, "
-        "commit_id, precursor_event_id, origin, severity, virulence, closure_gen, recall_run_id, "
-        "evidence_summary) VALUES (%s, 'permit', %s, %s, %s, %s, %s, 'blame_ancestry', 0, "
-        "'routine', "
-        "0, %s, %s)",
-        (
-            check_id,
-            permit_id,
-            site_id,
-            clause_uuid,
-            commit_v2,
-            event_a,
-            run_id,
-            "Recalled precursor INC-W3-1 reaches the clause this permit relies on.",
-        ),
-    )
-    vocab = _sha("defeater-vocab")
-    for code, prompt in (
-        ("MECHANISM_PRESENT_AND_VERIFIED", "which precondition of this mechanism is absent?"),
-        ("SCOPE_EXCLUDES_HAZARD", "which part of this permit's scope excludes the hazard energy?"),
-    ):
-        conn.execute(
-            "INSERT INTO mainline.defeater_option (check_id, defeater_code, prompt, vocab_sha256) "
-            "VALUES (%s, %s, %s, %s)",
-            (check_id, code, prompt, vocab),
-        )
-
-    # THE ONLY ROW IN THIS FIXTURE THAT AGES. Two hours is what the product does —
-    # `scripts/proof/gate_refusal.py::seed_history` issues the same window — and it is NOT
-    # widened here to make a test convenient: a fixture that models a twelve-hour exposure
-    # would be asserting against a system nobody ships. `_receipt_is_dead` below detects the
-    # expiry on a reused database and `_reissue_receipt` repairs it, which is what the
-    # product's own remedy is (`0102_fn_disposition_project`: "exposure receipt absent or
-    # expired — re-materialise before signing"). Issued ten minutes in the past so that
-    # `reading_floor_met` is genuinely met rather than papered over.
-    receipt_id = uuid.uuid4()
-    conn.execute(
-        "INSERT INTO mainline.exposure_receipt (receipt_id, subject_kind, permit_id, actor_sub, "
-        "issued_at, issued_hlc, expires_at, corpus_root, silence_receipt_id, policy_version, "
-        "total_tokens, receipt_digest) "
-        "VALUES (%s, 'permit', %s, %s, now() - INTERVAL '10 minutes', %s, "
-        "now() + INTERVAL '2 hours', "
-        "%s, %s, %s, 200, %s)",
-        (
-            receipt_id,
-            permit_id,
-            signer,
-            4,
-            _mth(leaf_hashes),
-            silence_receipt_id,
-            policy_version,
-            _sha("receipt", str(receipt_id)),
-        ),
-    )
-    conn.execute(
-        "INSERT INTO mainline.exposure_line (receipt_id, check_id, payload_digest, tokens) "
-        "VALUES (%s, %s, %s, 200)",
-        (receipt_id, check_id, _sha("line", str(check_id))),
-    )
-
-    # ── One signed disposition. Almost every column here is overwritten by
-    #    `fn_disposition_project` from authoritative rows; what the signer chooses is
-    #    the kind, the defeater code, the rationale and the signature.
-    disposition_id = uuid.uuid4()
-    rationale = (
-        "The recalled precursor INC-W3-1 is answered by a verified zero-energy isolation "
-        "procedure that was re-issued after the incident, and the permit's scope is covered by "
-        "that procedure in full. Verification at zero is witnessed and recorded before any "
-        "intrusive work begins, so the mechanism the incident found missing is present and "
-        "exercised on this permit."
-    )
-    conn.execute(
-        "INSERT INTO mainline.disposition (disposition_id, check_id, receipt_id, subject_kind, "
-        "permit_id, site_id, kind, virulence, closure_gen, defeater_code, defeater_vocab_sha256, "
-        "rationale, evidence_sha256, signer_sub, signer_rank, signer_org, signer_credential_id, "
-        "countersigner_sub, countersigner_credential_id, signature_alg, authenticator_data, "
-        "client_data_json, user_verified, competency_snapshot, competency_source_id, "
-        "competency_sha256, req_compensating, req_second_signer, req_foreign_org, req_predicate, "
-        "req_reassert, min_signer_rank, severity_snapshot, deliberation_seconds, evidence_opened, "
-        "prior_override_count) "
-        "VALUES (%s, %s, %s, 'permit', %s, %s, 'applied', 'routine', 0, "
-        "'MECHANISM_PRESENT_AND_VERIFIED', %s, %s, %s, %s, 1, 'x', %s, %s, %s, 'ES256', %s, %s, "
-        "true, "
-        "%s, %s, %s, false, false, false, false, false, 1, 0, 0, true, 0)",
-        (
-            disposition_id,
-            check_id,
-            receipt_id,
-            permit_id,
-            site_id,
-            vocab,
-            rationale,
-            _sha("evidence", str(disposition_id)),
-            signer,
-            signer_cred,
-            countersigner,
-            cosign_cred,
-            _sha("authenticator", str(disposition_id)),
-            _jcs({"challenge": disposition_id.hex, "type": "webauthn.get"}),
-            Jsonb(competency),
-            uuid.uuid4(),
-            _sha("competency", signer),
-        ),
-    )
-
-    # ── One agent action, so the audit surface's call log is a column and not a hole.
-    conn.execute(
-        "INSERT INTO mainline_meas.agent_action (action_id, agent_role, tool, transport, model_id, "
-        "prompt_version, subject_kind, subject_id, input_sha256, output_sha256, granted_scopes, "
-        "outcome, sqlstate, latency_ms, at) "
-        "VALUES (%s, 'agent_reader', 'sql_select', 'pgwire', NULL, NULL, 'permit', %s, %s, %s, "
-        "ARRAY['mainline_audit:select'], 'ok', NULL, 37, now())",
-        (uuid.uuid4(), permit_id, _sha("mcp-in"), _sha("mcp-out")),
-    )
-
-    return {
-        "site_id": str(site_id),
-        "site_code": site_code,
-        "permit_id": str(permit_id),
-        "cr_id": str(cr_id),
-        "clause_uuid": str(clause_uuid),
-        "commit_v1": commit_v1.hex(),
-        "commit_v2": commit_v2.hex(),
-        "event_a": str(event_a),
-        "event_b": str(event_b),
-        "check_id": str(check_id),
-        "receipt_id": str(receipt_id),
-        "run_id": str(run_id),
-        "silence_receipt_id": str(silence_receipt_id),
-        "disposition_id": str(disposition_id),
-        "signer_sub": signer,
-    }
+        seed[f"{role}_credential_id"] = str(credential["credential_id"])
+    return seed
 
 
 # ── Adopting a database somebody else's session built ───────────────────────────────
 #
 # THE MARKER SAYS THE DATABASE WAS BUILT. IT DOES NOT SAY IT IS STILL USABLE.
-# `w3_fixture.ready` carries the migration fingerprint and the seeded identifiers, so a
-# second run reuses the database rather than paying 46.7 s to apply 271 files again. Every
-# row `_seed` writes lands in an append-only table and cannot drift — except one. The
-# exposure receipt has a two-hour window, and a database seeded yesterday is adopted today
-# with a dead one. Nothing about the marker changes when that happens.
+# `w3_fixture.ready` carries the build fingerprint and the seeded identifiers, so a second
+# run reuses the database rather than paying 46.7 s to apply 271 files again. Every row the
+# seed files write lands in an append-only table and cannot drift — except one. The exposure
+# receipt has a window, and a database adopted after that window closed carries a dead one.
+# Nothing about the marker changes when that happens.
+#
+# `demo_permit.sql` §4 dates its receipt `2027-01-01`, and says in the file why: the
+# admission beat has to keep working for every judge for the whole judging period rather
+# than for two hours after somebody ran the deploy. That is a longer fuse than the two-hour
+# window this fixture used to seed, not the absence of one — so the probe stays, and the
+# repair stays, and they will matter on the first run after that date.
 #
 # The cost of missing it is not hypothetical: the sibling fixture in `tests/test_gate_run.py`
 # had the same shape, and on 2026-08-12 five tests there reported `observed outcome='skipped'`
@@ -897,22 +668,29 @@ SELECT (SELECT count(*) FROM mainline.permit WHERE permit_id = %(permit)s) AS pe
 #: carries an ``append_only`` weld (``0128d_trg_refuse_mutation_exposure_receipt``) that
 #: refuses UPDATE and DELETE with ``P0001``, so extending the window in place is not merely
 #: discouraged — it is refused by the schema, and a new receipt is the only repair there is.
+#:
+#: The replacement's digest is computed BY THE DATABASE, with ``digest(...)`` over a string
+#: that says what it is — the naming scheme every other digest in ``demo_world.sql`` uses.
+#: The fixture no longer owns a hashing helper at all. The one it had is what computed the
+#: credential id that beat 4 died on, and a test file keeping a private SHA-256 helper
+#: around keeps the means to re-declare a value the database is the authority for.
 _REISSUE_RECEIPT_SQL: Final = """
 INSERT INTO mainline.exposure_receipt
        (receipt_id, subject_kind, permit_id, actor_sub, issued_at, issued_hlc, expires_at,
         corpus_root, silence_receipt_id, policy_version, total_tokens, receipt_digest)
-SELECT %s, r.subject_kind, r.permit_id, r.actor_sub,
+SELECT %(new)s, r.subject_kind, r.permit_id, r.actor_sub,
        now() - INTERVAL '10 minutes', r.issued_hlc, now() + INTERVAL '2 hours',
-       r.corpus_root, r.silence_receipt_id, r.policy_version, r.total_tokens, %s
+       r.corpus_root, r.silence_receipt_id, r.policy_version, r.total_tokens,
+       digest('mainline-demo/receipt/reissued/' || %(new)s::STRING, 'sha256')
   FROM mainline.exposure_receipt r
- WHERE r.receipt_id = %s
+ WHERE r.receipt_id = %(old)s
 """
 
 _REISSUE_LINES_SQL: Final = """
 INSERT INTO mainline.exposure_line (receipt_id, check_id, payload_digest, tokens)
-SELECT %s, l.check_id, l.payload_digest, l.tokens
+SELECT %(new)s, l.check_id, l.payload_digest, l.tokens
   FROM mainline.exposure_line l
- WHERE l.receipt_id = %s
+ WHERE l.receipt_id = %(old)s
 """
 
 
@@ -928,11 +706,8 @@ def _adoption_state(conn: psycopg.Connection[Any], seed: Mapping[str, str]) -> d
 def _reissue_receipt(conn: psycopg.Connection[Any], seed: dict[str, str]) -> str:
     """Issue a fresh receipt cloning the seeded one, carrying its exposure lines forward."""
     receipt_id = uuid.uuid4()
-    conn.execute(
-        _REISSUE_RECEIPT_SQL,
-        (receipt_id, _sha("receipt", str(receipt_id)), seed["receipt_id"]),
-    )
-    conn.execute(_REISSUE_LINES_SQL, (receipt_id, seed["receipt_id"]))
+    conn.execute(_REISSUE_RECEIPT_SQL, {"new": receipt_id, "old": seed["receipt_id"]})
+    conn.execute(_REISSUE_LINES_SQL, {"new": receipt_id, "old": seed["receipt_id"]})
     return str(receipt_id)
 
 
@@ -950,9 +725,33 @@ def _adoption_refusal(state: Mapping[str, Any]) -> str | None:
     return None
 
 
+def _live_receipt(conn: psycopg.Connection[Any], seed: dict[str, str]) -> str | None:
+    """Reissue the seeded receipt if it has aged out; return why it is still unusable.
+
+    Run on the FRESH-BUILD path as well as the adoption path, and that is not belt and
+    braces. ``demo_permit.sql`` pins ``expires_at`` to a literal ``2027-01-01``, so a
+    database seeded from it on 2027-01-02 is born with a dead receipt — the one state a
+    freshly-built database was previously assumed to be incapable of. The probe and the
+    repair are the same two calls on both paths, so neither path can acquire a fix the
+    other one misses.
+    """
+    state = _adoption_state(conn, seed)
+    if state["receipts"] and state["expires_at"] <= state["observed_at"]:
+        seed["receipt_id"] = _reissue_receipt(conn, seed)
+        state = _adoption_state(conn, seed)
+    return _adoption_refusal(state)
+
+
 @pytest.fixture(scope="session")
 def demo_database(admin_dsn: str) -> tuple[str, dict[str, str]]:
-    """A migrated, seeded database, cached by the fingerprint of the migration tree."""
+    """A migrated database carrying THE DEPLOYED SEED, cached by the build's fingerprint.
+
+    The database name is left as ``w3_demo_api_…``. It names the worker whose fixture this
+    is, not the world inside it — the world is now ``demo_world.sql`` — and
+    ``test_reads.py`` asserts the prefix when it checks what ``/v1/health`` reports about
+    the database it is on. Renaming it would break an assertion about something else
+    entirely, which is not a thing a rename gets to do.
+    """
     fingerprint = _fingerprint()
     database = f"w3_demo_api_{fingerprint}"
     dsn = _dsn_for(admin_dsn, database)
@@ -974,16 +773,15 @@ def demo_database(admin_dsn: str) -> tuple[str, dict[str, str]]:
     except psycopg.Error:
         marker = None
     if marker is not None:
-        seed = dict(marker["seed"])
+        # `_Seed`, not `dict`: the marker's JSONB comes back as a plain mapping, and a plain
+        # mapping answers an absent name with a bare `KeyError` instead of the diagnosis.
+        # An adopted database must behave exactly like a freshly built one.
+        seed = _Seed(marker["seed"])
         with psycopg.connect(dsn, autocommit=True, row_factory=dict_row) as adopt:
-            state = _adoption_state(adopt, seed)
             # The one repair worth attempting: the history is intact and only its exposure
             # has aged out. Anything else falls through to a rebuild, because a fixture that
             # patches a database it does not understand is worse than one that rebuilds.
-            if state["receipts"] and state["expires_at"] <= state["observed_at"]:
-                seed["receipt_id"] = _reissue_receipt(adopt, seed)
-                state = _adoption_state(adopt, seed)
-            refusal = _adoption_refusal(state)
+            refusal = _live_receipt(adopt, seed)
             if refusal is None:
                 # The marker carries the identifiers a LATER session will adopt, so the
                 # re-issued receipt has to land in it. Without this the repair would be
@@ -1011,8 +809,29 @@ def demo_database(admin_dsn: str) -> tuple[str, dict[str, str]]:
             "First three: " + "; ".join(failures[:3])
         )
 
+    # THE SEED IS THE DEPLOYMENT'S SEED, APPLIED BY THE DEPLOYMENT'S CODE.
+    # A seed file that does not apply is a FAILURE and not a skip: `demo_world.sql` and
+    # `demo_permit.sql` are committed files against a schema this session has just built
+    # from the committed migration chain, so nothing about the environment can explain one
+    # of them refusing. Skipping here would mean the demo's own seed breaking silently,
+    # which is the shape of defect this fixture exists to make impossible.
+    seed_failures = _apply_seeds(dsn)
+    if seed_failures:
+        pytest.fail(
+            f"the deployed demo seed did not apply into {database}. This is the seed "
+            "scripts/deploy/seed_demo.py applies to CockroachDB Cloud, so a failure here is "
+            "a failure there. " + "; ".join(seed_failures)
+        )
+
     with psycopg.connect(dsn, autocommit=True, row_factory=dict_row) as conn:
-        seed = _seed(conn)
+        seed = _identifiers(conn)
+        refusal = _live_receipt(conn, seed)
+        if refusal is not None:
+            pytest.fail(
+                f"the freshly seeded database in {database} is not usable: {refusal}. The "
+                "seed applied, so this is what the seed files produce today — not a stale "
+                "cache and not an adoption problem."
+            )
         conn.execute("CREATE SCHEMA IF NOT EXISTS w3_fixture")
         conn.execute(
             "CREATE TABLE IF NOT EXISTS w3_fixture.ready ("
@@ -1036,7 +855,13 @@ def demo_dsn(demo_database: tuple[str, dict[str, str]]) -> str:
 
 @pytest.fixture(scope="session")
 def seed(demo_database: tuple[str, dict[str, str]]) -> dict[str, str]:
-    """The identifiers the fixture minted, so a test names its own subject."""
+    """The identifiers the DEPLOYED seed produced, read back out of the database.
+
+    Not minted here. Every value was obtained with a query after ``demo_world.sql`` and
+    ``demo_permit.sql`` were applied, so naming one of them in a test names the row a judge
+    will drive. A name this mapping does not carry is a row the deployment does not carry;
+    ``_Seed.__missing__`` says which, and what to do about it.
+    """
     return demo_database[1]
 
 

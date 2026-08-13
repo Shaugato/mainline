@@ -252,8 +252,38 @@ def _demo_ready(dsn: str) -> tuple[Any, Any] | None:
 
 
 @pytest.fixture(scope="session")
-def w1_database() -> Iterator[str]:
-    """A migrated database holding one demo history with a LIVE exposure receipt."""
+def _w1_built() -> tuple[str, str, str]:
+    """Build (or adopt) the scratch database. Returns ``(dsn, permit_id, site_id)``.
+
+    **Touches no environment variable.**
+
+    Split out of :func:`w1_database` on 2026-08-13 because the two halves have different
+    lifetimes and combining them was an ordering defect, measured and reproduced:
+
+    * **Building** is expensive — 271 migrations, ~50 s — and belongs to the session.
+    * **Saying which permit the demo is** is a statement about the database THE CURRENT
+      TEST is talking to, and belongs to the current test.
+
+    While both lived here, this fixture published ``MAINLINE_DEMO_PERMIT_ID`` and three
+    siblings for the WHOLE session, and so did ``test_gate_run.py::w4_database`` — a
+    different scratch database (``w_w4_api_transitions``) whose ``PTW-PROOF-1`` permit is a
+    different ``uuid4`` (``scripts/proof/gate_refusal.py::seed_history`` mints one per
+    seeding). Whichever ran LAST owned those four names for the rest of the session, so a
+    test's connection and the environment describing it could name two different databases.
+    Reproduced in three node ids, run in this order, 0.68 s::
+
+        test_transitions.py::test_the_shared_connection_is_the_one_db_py_opens
+        test_row_factory_contract.py::test_the_production_connection_really_is_dict_row
+        test_transitions.py::test_the_request_after_a_gate_run_is_not_a_503
+        -> assert 422 == 200          # ScenarioNotSeeded, w1's permit against w4's database
+
+    and in the other direction under ``demo_suite_order.py shuffle --seed 7``, where six
+    tests IN THIS FILE failed ``ScenarioNotSeeded: no mainline.permit with permit_id
+    199adc10-… in this database`` — w4's permit, looked for in w1's database.
+
+    The repair is NOT to pin the order. An order pin is a green that certifies itself, and
+    the leaking state would still be there for the next reader to be surprised by.
+    """
     admin = _admin_dsn()
     try:
         psycopg.connect(admin, autocommit=True).close()
@@ -304,6 +334,25 @@ def w1_database() -> Iterator[str]:
         "state 'dispositioned' with an open obligation under a live exposure receipt"
     )
     permit_id, site_id = ready
+    return dsn, str(permit_id), str(site_id)
+
+
+@pytest.fixture
+def w1_database(_w1_built: tuple[str, str, str]) -> Iterator[str]:
+    """The scratch DSN, with the environment pointed at ITS subject for THIS test only.
+
+    Function-scoped deliberately — see :func:`_w1_built` for the ordering defect that made
+    it so. It opens no connection of its own: the identifiers were read out of the database
+    once, by the session-scoped build, and a re-read here would cost one connection per
+    test — 0.23 s against this node over IPv4 and **10.2 s** over a DSN spelled ``localhost``
+    (docs/ci/demo-suite-order.md §5.1). Publishing four strings is not worth a round trip.
+
+    ``os.environ`` directly rather than ``monkeypatch``: this fixture is imported by nothing
+    and requested by name, so the restore order is this fixture's own ``finally``, whereas a
+    ``monkeypatch`` here would interleave with the ``monkeypatch`` a test may itself request
+    and the two undos would race for the same four names.
+    """
+    dsn, permit_id, site_id = _w1_built
 
     previous = {
         key: os.environ.get(key)
@@ -314,8 +363,8 @@ def w1_database() -> Iterator[str]:
             "MAINLINE_DEMO_COUNTERSIGNER_SUB",
         )
     }
-    os.environ["MAINLINE_DEMO_PERMIT_ID"] = str(permit_id)
-    os.environ["MAINLINE_DEMO_SITE_ID"] = str(site_id)
+    os.environ["MAINLINE_DEMO_PERMIT_ID"] = permit_id
+    os.environ["MAINLINE_DEMO_SITE_ID"] = site_id
     os.environ["MAINLINE_DEMO_SIGNER_SUB"] = "proof.signer"
     os.environ["MAINLINE_DEMO_COUNTERSIGNER_SUB"] = "proof.countersigner"
     try:

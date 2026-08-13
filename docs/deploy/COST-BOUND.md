@@ -6,24 +6,287 @@ SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 # COST-BOUND — what the demo can cost, what actually bounds it, and the one command that stops it
 
 **Owner:** W6 (deploy-safety) · **Measured:** 2026-08-13, this machine, `AWS_PROFILE=mainline-dev`
+**Model re-derived as a program:** 2026-08-14 · `scripts/deploy/cost_model.py` →
+[`evidence/deploy/cost/cost-model.json`](../../evidence/deploy/cost/cost-model.json)
 **Status:** decision material. Nothing in this document has been applied. No `terraform apply`
 was run to produce it, and no mutating AWS call was made.
+
+> **§0, §0.1 and §0.2 supersede the arithmetic below them.** §1–§9 are preserved as the
+> **reproduction baseline** — `scripts/deploy/cost_model.py` must re-derive §2.2's
+> $33,251.87 and §1.2's $11,701 / $31,049.79 / $10,949 from the inputs that produced them
+> *before* it is allowed to publish anything in §0.1, and
+> `tests/deploy/test_cost_model.py` fails the build if it cannot. Where §1–§9 and §0.1
+> disagree, §0.1 is later and measured; §1–§9 are kept because a bound nobody can re-derive
+> is not a bound, and deleting the old answer would destroy the only thing the new one can
+> be checked against.
+>
+> **Where a §1–§9 sentence has since become false, it is struck through or annotated in
+> place, never removed** (§3.2, §3.3, §3.6, §5, §5.1, §6, §9). A claim deleted is not a claim
+> corrected, and the corrections are only checkable against the claims they correct.
+>
+> **§0.1 is the one table.** Every figure in it is a lookup into
+> `evidence/deploy/cost/cost-model.json`, named cell by cell in that table's last column. If
+> a cell and the JSON disagree, **the JSON is authoritative and the cell is the defect** —
+> the fix is to re-read the model, never to retype the model to match the prose.
 
 ---
 
 ## 0 · The answer in five lines
 
-The demo's origin is a Lambda Function URL with `authorization_type = NONE`. Its largest
-single response is a **1,554,168-byte source map**. The account can run **10** concurrent
-executions. Multiply those three facts by 30 days and the worst case is
+The demo's origin is a Lambda Function URL with `authorization_type = NONE`. The account can
+run **10** concurrent executions. The published figure for one month of sustained abuse was
 
-> **USD 11,700 – 33,250** for one month of sustained abuse — against a card whose three
-> budgets are set at $10, $5 and $1 and are **already breached** by unrelated projects.
+> ~~**USD 11,700 – 33,250**~~ — **a floor, and it is understated about 7×.**
 
-Exactly **one** real bound exists today, and it is an AWS account default nobody chose. Every
-other control that looks like a bound — the reserved concurrency, the abuse alarm, the AWS
-Budgets — bounds nothing. §3 is the menu of levers that would change that; §6 is the
-recommendation.
+That range assumed a **100 ms** invocation. Nobody had measured one.
+[`docs/deploy/LATENCY.md`](LATENCY.md) since measured every beat over a real socket: the
+static beats — the *only* beats a flood uses — run at **5.66 ms** and **14.11 ms** p50, an
+order of magnitude faster. Egress and requests scale as **1/duration**. Putting the measured
+number into the same arithmetic gives **USD 229,805 / 30 d** for the package as it stood, and
+that is the honest "today" the founder was never given.
+
+**What has changed since, and what has not:**
+
+| | then | now |
+|---|---|---|
+| invocation duration | 100 ms, assumed | **5.66 / 14.11 ms, measured** |
+| source maps in the package | 18 files, 2,586,960 B | **0 — the strip is the default in both builders** |
+| largest servable response | 1,554,168 B | **124,127 B** on the wire (gzip sibling) |
+| response ceiling | 2 MiB, above everything it governed | **139,264 B**, derived from the tree and binding |
+| the stop | described | **built _and instantiated_** — `infra/modules/cost-guard`, three alarms → SNS → `PutFunctionConcurrency(0)`, wired into the environment root at `infra/envs/demo/main.tf:631` |
+
+The claim that **exactly one real bound exists and it is an AWS account default nobody
+chose** was true when written and is **no longer true**: the response ceiling binds, the
+rate limiter runs as the first statement of the handler, and the stop exists in code **and
+in the environment root**.
+
+This section used to end *"the one thing that has not changed is that the guard is not
+instantiated"*. **That sentence was true when written and is false now**, and it is
+corrected rather than deleted because it is the finding this wave closed: `module "guard"`
+is declared, the shipping plan moved **11 → 24**, and the demo function's alarms carry the
+stop topic. §0.2 records that from the tree and from the committed plan artefact, with the
+one consequence no plan can settle. §0.1 is the whole ladder; §3 is the original menu; §6 is
+the original recommendation.
+
+---
+
+## 0.1 · THE TABLE — worst case USD before and after, per layer, with the residual and the trade
+
+**This is the one table.** The ladder L0–L5 is **worst case USD / 30 d**; L6 onward each name
+their own window in their own row, because they are not monthly quantities and printing them
+as though they were would be a lie of units. Nothing that belongs in it lives in a footnote —
+including row **T**, which is not a dollar figure and is in the table anyway.
+
+Every figure below is produced by `scripts/deploy/cost_model.py` and re-derivable with
+`python scripts/deploy/cost_model.py`. Convention: **`audit-decimal`** (GB = 10⁹, tiers at
+10,000 / 50,000 / 150,000 GB) — the conservative reading, the one that reproduces §2.2. The
+`binary-gb-api-tiers` column is in the JSON for every row and runs ~6.6 % lower.
+
+**THIS IS A MODEL BOUND, NOT A FORECAST.** Every row holds concurrency pinned at the account
+ceiling of 10 and divides by a measured duration, which assumes AWS *sustains* the resulting
+egress. Row L1 assumes **708 rps × 1,554,168 B = 1.10 GB/s out of ten 512 MB execution
+environments**. **Nobody has observed that**, here or anywhere in this repository's evidence.
+It is what the tariff and the ceiling *permit*, not what AWS would deliver. The `GB/s` column
+is printed so every row can be disbelieved individually.
+
+**Every scalar carries its window.** The ladder is 30 d; the stop and the in-window residual
+are priced over the window named in their own row, because a dollar figure quoted without
+the interval it accrued over is the same defect as the 100 ms assumption — a number that
+looks like an answer and is missing its denominator.
+
+| # | Layer / residual — **window** | Before | **After** | ÷ | GB/s | Bounds — and what it does **not** bound | `cost-model.json` |
+|---|---|---:|---:|---:|---:|---|---|
+| L0 | the published headline, 100 ms **assumed** — **30 d** | — | **$33,251.87** | — | 0.155 | nothing; it is the baseline. Superseded: a floor understated ~6.9× | `…layers` `L0-modelled-100ms` |
+| L1 | **the same flood at the measured 14.106 ms** — **30 d** | $33,251.87 | **$229,804.98** | **×6.91 ↑** | **1.102** | nothing. *No lever was applied here.* The only edit is that the duration is now a measurement — this is the honest **"before"** | `…layers` `L1-measured-duration` |
+| L2 | strip source maps — already shipped, default in both builders — **30 d** | $229,804.98 | **$160,667.84** | ÷1.43 | 0.766 | bytes/request, **÷3.59**. **Not** the request rate, which **rose ×2.49** and gave most of it back | `…layers` `L2-strip-source-maps` |
+| L3 | serve the `.gz` sibling on the wire — **30 d** | $160,667.84 | **$47,363.92** | ÷3.39 | 0.219 | bytes on the wire, and duration does **not** fall with it. **Not** the request rate | `…layers` `L3-gzip-on-the-wire` |
+| L4 | `memory_size` 512 → 256 MB — **30 d** | $47,363.92 | **$47,277.52** | ÷1.002 | 0.219 | compute only — **$86.40**, 0.2 %. **Not** the other 99.8 % | `…layers` `L4-memory-512-to-256` |
+| L5 | the in-code rate bound (100 rps fleet-wide) — **30 d** | $47,277.52 | **$4,172.63** | ÷11.33 | 0.013 | egress from a paced caller. **Not the invocation charge** — a 429 is a billed invocation, and $1,002 of what remains is requests + compute | `…layers` `L5-rate-bound` |
+| L6 | **THE STOP** — **one 5 min window** | $47,277.52 | **$8.01** | **÷5,902** | 0.219 | everything, from the moment it lands. **Not** the interval before it lands — which is rows R4–R6 | `the_stop.rows` `stop-5min` |
+| L6′ | the stop — **one 1 h window** | $47,277.52 | **$96.13** | ÷492 | 0.219 | as above, an hour of not looking | `the_stop.rows` `stop-1h` |
+| R1 | **residual — paced under both alarms** — **24 h** Budgets lag | — | **$5.44** | — | — | the 124,127 B gzip sibling, which is what the **139,264 B** ceiling admits. Bounded only by Cost Explorer's lag | `residual.worst_usd` |
+| R2 | residual — paced — **8 h** Budgets lag | — | $1.81 | — | — | the near edge of the same lag | `residual.rows` `residual-gzip-sibling-8h` |
+| R3 | residual — paced, **30 d**, if nobody looks at all | — | **$564.04** | — | — | nothing looks at it; this is the unattended month | `residual.if_nobody_looks_for_30_days_usd` |
+| R3′ | *counterfactual:* R1 if the ceiling were raised above 433,396 B — **24 h** | — | $18.80 | ×3.5 ↑ | — | published because the ceiling is a code constant one commit from moving | `residual.rows` `residual-identity-24h`, = `residual.worst_if_the_ceiling_were_lifted_usd` |
+| R3″ | same counterfactual — **8 h** | — | $6.27 | ×3.5 ↑ | — | the near edge of the same counterfactual | `residual.rows` `residual-identity-8h` |
+| R4 | **residual — in-window, at flood rate (1,767 rps)** — **per 60 s of detection lag** | — | **$1.60** | — | 0.219 | **a floor.** It counts the burst alarm's own evaluation window (`period 60 × evaluation_periods 1`) and **nothing after it** | `…in_window.published_figures` `floor` |
+| R5 | same — **per 75 s**, the only two terms with a read-only upper bound | — | $2.00 | — | 0.219 | the alarm window **plus** the responder's configured 15 s timeout. **Still not the answer** — five delivery-path terms are unbounded and additive | `…published_figures` `bounded-terms-only` |
+| R6 | same, as a rate — **USD per minute of detection lag** | — | **$1.6022 / min** | — | 0.219 | linear: a window this short never leaves egress tier 1, so any lag budget prices by multiplying | `…in_window.usd_per_minute_of_detection_lag` |
+| **T** | **THE TRADE — what the stop costs that is not measured in dollars** | — | **not a dollar figure** | — | — | **THE GUARD CONVERTS A COST ATTACK INTO AN AVAILABILITY ATTACK.** The URL is `authorization_type = NONE` by the founder's explicit choice, so **anyone at all** can trip the burst alarm, and the responder's stop is **not aimed at attackers** — it stops **the demo, for everyone**, at reserved concurrency 0, until a human runs `scripts/deploy/kill_switch.{sh,ps1} --restore`. **An outage is recoverable by one command and an unbounded bill is not — and it is still a trade.** | `residual.the_trade_this_makes` |
+
+`…layers` is `conventions["audit-decimal"].layers[]`, matched on `label`; `…in_window` is
+`residual.in_window`. **Every figure above is a lookup, not a retyping** — if a cell and the
+JSON disagree, the JSON is authoritative and the cell is the defect.
+
+**Row T is a row and not a footnote, deliberately.** It was a blockquote under this table
+until 2026-08-14, which is a footnote wearing a heading. A trade the founder accepted on the
+condition that the numbers are honest has to sit in the same table as the numbers, or the
+reader who scans the table and stops has been told the good half.
+
+**Read the column downward and four things are not arguable.**
+
+1. **The byte levers are self-limiting, and the table has to show it.** L2 cut bytes **3.59×**
+   and the bill **1.43×**. A smaller object is faster to serve, so the request rate rose
+   **2.49×** and ate two thirds of the saving. Every byte lever on a concurrency-bound
+   origin behaves this way. L4 is worth taking *because it is duration-independent*, not
+   because it is large.
+2. **Every byte lever multiplied together still leaves five figures.** $229,805 → $47,278.
+3. **The stop is the whole answer**, and it is the only lever whose effect is not eroded by
+   the rate rising to meet it.
+4. **The two residuals are added, not swapped.** R1–R3 and R4–R6 describe **two different
+   attackers**, and both are real: R1–R3 is a caller who *paces under every threshold* and is
+   therefore caught only by Budgets; R4–R6 is a *flood* that trips the burst alarm and bills
+   at full rate until the stop lands. Quoting the flood figure at a paced caller overstates
+   it by two orders of magnitude; quoting the paced figure at a flood understates it.
+   (`residual.in_window.additive_to_the_paced_residual_not_a_replacement`.)
+
+### R1–R3 — the paced residual, computed at the alarm line and not at flood rate
+
+The caller worth arguing about **paces under both `Invocations` alarms** and is therefore
+caught only by AWS Budgets, on an 8–24 h Cost Explorer lag.
+
+The binding line is the **hourly** alarm: `invocations_hourly_threshold = 15,000` over a
+3,600 s period = **4.1667 rps** (the burst alarm permits 3,000/60 s = 50 rps, so it is not
+what binds). `GreaterThanThreshold` means a caller *at* the line does not breach.
+
+**Quoting $1,993.99 here would be wrong.** That is
+`residual.flood_rate_24h_for_contrast_usd` — the 24-hour figure at *flood* rate — and a
+caller under the alarm is by definition not at flood rate. It overstates R1 by **367×** and
+describes a caller the burst alarm catches in the first minute. *(This paragraph said
+"$2,002" until 2026-08-14. The model says $1,993.99, the model is authoritative, and the
+prose was moved to it — not the other way round.)*
+
+### R4–R6 — the in-window residual: how much is spent before the stop lands
+
+`residual.in_window` answers the question nobody had quantified: **how much can be spent
+inside one CloudWatch alarm evaluation window, before `PutFunctionConcurrency(0)` takes
+effect?**
+
+* **Flood rate** = concurrency ceiling 10 ÷ the measured 5.66 ms `asset_js` p50 =
+  **1,766.784 rps**. The in-code rate limiter does not reduce it: its counter is
+  per-execution-environment with no shared store, so a distributed flood defeats it — the
+  same reason L6 is priced upstream of L5 and takes its "before" from L4.
+* **Detection floor** = `period × evaluation_periods` = 60 × 1 = **60 s**, from the burst
+  alarm. `datapoints_to_alarm` is the **M of an M-of-N evaluation, not a multiplier**;
+  multiplying by it is harmless here only because it happens to equal 1, and would silently
+  overstate the floor the day either alarm is retuned. At flood rate the 3,000 threshold is
+  crossed in **1.70 s**, but the datapoint does not exist until the period *closes*, so the
+  worst case is the **full** period and not the time-to-threshold.
+* **Why R4 is a floor and not the answer.** Publishing `60 s × rate` as *the* residual would
+  assume every term between the period closing and the stop landing costs zero seconds —
+  the identical shape of error as the $33,251.87 headline, which multiplied a real tariff by
+  an invocation duration nobody had measured. Of the seven terms in
+  `residual.in_window.lag_budget`, **two carry a read-only bound** (the 60 s alarm window,
+  read from HCL; the responder's 15 s configured timeout, read from HCL — and that one bounds
+  *one attempt* of its invoke phase, not the path) and **five are named as unknowns rather
+  than guessed**: metric publication delay, alarm evaluation delay, SNS delivery to the
+  responder, the responder's async retry if it is itself throttled, and reserved-concurrency
+  propagation. AWS publishes no numeric upper bound for any of the five, and none can be
+  measured without an apply.
+* **The one term that *is* bounded without any AWS documentation**: the in-flight drain. At
+  the instant the stop lands at most 10 invocations are in flight and each serves at most one
+  more response — **$0.000151**. It is priced so that "in-flight requests still drain" cannot
+  be gestured at as if it were the missing term. It is not; the delivery-path terms are.
+* **Do not obtain this by dividing the 24-hour flood figure by 1,440.** That yields
+  $1.3847/min and **understates the correct rate by 13.57 %**, because the 24-hour figure
+  accumulates enough volume to reach the $0.085 and $0.082 egress tiers that a window of
+  minutes never reaches. Every window here is priced **directly from tier 1**, which is this
+  file's stated convention and errs conservative.
+  (`residual.in_window.the_wrong_way_to_get_this`.)
+
+Sensitivity, all from `residual.in_window.sensitivity`, linear at **$1.6022/min** because no
+window this short leaves egress tier 1 — so **the founder can price any lag budget by
+multiplying**: 60 s **$1.60** · 120 s $3.20 · 180 s $4.81 · 300 s **$8.01** · 600 s $16.02 ·
+900 s $24.03.
+
+### What this table depends on that could move
+
+* **The response ceiling is a code constant.** `static_site.DEFAULT_MAX_RESPONSE_BYTES` is
+  **139,264 B** today and is read at model time, not copied. Raise it above 433,396 B and the
+  reachable residual is **3.5×** larger (R1 → R3′) and the in-window rate moves with it
+  ($1.6022 → $5.5364 per minute). Both cases are published for exactly that reason.
+* **The durations are workstation-loopback p50s.** `LATENCY.md` measures the cloud column at
+  up to **2.2×** the local one. The *local* figure is used because it is faster, therefore a
+  higher request rate, therefore the larger bill.
+* **The guard is instantiated, and the stop rows are therefore reachable.** This bullet read
+  *"The guard is not instantiated … it does not yet"* until 2026-08-14 and was **false against
+  its own repository**. §0.2 records the instantiation from the tree and from the committed
+  plan artefact. What is still open is not the instantiation but one consequence of it, which
+  §0.2 names and no plan can settle.
+
+---
+
+## 0.2 · The guard **is** instantiated — read from the tree, confirmed in the plan
+
+**This document said three times that it was not.** §0 said *"the guard is not instantiated
+in the environment root"*; §0.1's last bullet said *"It does not yet"*; §5.1's table row said
+**BUILT, NOT INSTANTIATED** and *"there is no `module "guard"` in `infra/envs/demo/main.tf`,
+so `var.alarm_actions` is `[]`"*. Every one of those was true when written and **all three
+are false against this tree**. They are corrected in place rather than deleted, because the
+finding they record — *coded and not instantiated is indistinguishable, on a plan output,
+from not existing* — is the reason the module was wired in at all.
+
+### What is in the tree
+
+| Fact | Value | Read from |
+|---|---|---|
+| the module block | `module "guard" {` on **line 631**, `source = "../../modules/cost-guard"` on **632**, closing `}` on **652** | `infra/envs/demo/main.tf` |
+| its instantiation condition | `count = var.enable_api ? 1 : 0` on **line 633** — present in every configuration that has an API, which is the shipping one | same |
+| `resource` blocks the module declares | **14** | `infra/modules/cost-guard/main.tf` |
+| …of which **created** under shipping defaults | **13** | `evidence/deploy/terraform-plan-furl.json` |
+| the 14th, and why it is absent | `aws_sns_topic_subscription.email` is **`for_each = toset(var.notification_emails)`** (`cost-guard/main.tf:337–338`), and `guard_notification_emails` defaults to **empty** — so it has zero instances, by design | `infra/envs/demo/variables.tf:619` |
+| the demo function's alarms | `alarm_actions = local.guard_stop_topic_actions` (`main.tf:586`) = `try([module.guard[0].sns_topic_arn], [])` (`main.tf:292`) — **no longer the constant `[]`**. The plan renders it *unknown*, not empty (`plan-shape.json`: `alarm_actions_known_at_plan = false`), because the ARN does not exist until apply | `infra/envs/demo/main.tf` |
+
+**11 + 14 = 25, and the plan says 24. That is not an off-by-one; it is the email
+subscription**, and it was confirmed against the plan JSON rather than assumed:
+`evidence/deploy/terraform-plan-furl.json` carries **24 creates + 1 read**, of which
+**13 are `module.guard[0].*`** and **11 are not**. The 13 are the SNS topic, its policy, the
+responder's subscription, the responder's log group, role, role-policy, policy attachment,
+the responder function, its SNS invoke permission, the budget, and the three metric alarms.
+
+### What that did to the shipping plan
+
+The count moved **11 → 24**. `evidence/deploy/terraform-plan-furl.txt` reads
+`Plan: 24 to add, 0 to change, 0 to destroy.` at line 843, and the JSON above is the same
+run decomposed. **11 is no longer supported by any committed plan artefact** and this
+document quotes it only as history, never as a current count.
+
+**The other configuration agrees, and that is the check that matters.** The CloudFront
+variant's artefact was regenerated on 2026-08-14 and moved **22 → 35** — the same **+13**,
+with the same 13 `module.guard[0].*` addresses over 22 non-guard resources. Two independent
+configurations both gaining exactly the guard's 13 is what rules out an off-by-one that
+happens to net out. *(Until that regeneration the CloudFront artefact still reported 22 and
+was stale; a count read off it before 04:43 would have been a pre-instantiation number.
+Read the shipping count off the **FURL** artefact — the CloudFront one describes a
+configuration this demo does not ship, because this account is refused CloudFront, §3.8.)*
+
+### The one consequence no plan can settle, recorded rather than assumed
+
+Arming `alarm_actions` on the demo function points **all four** of that module's alarms at
+the stop topic — `-errors`, `-throttles`, `-duration-p99` and `-concurrency`. Only the last
+is unambiguously a cost signal; **the other three are health signals, and stopping on them is
+a self-inflicted outage.** That is done knowingly, on the ranking in row **T**: the URL is
+already `authorization_type = NONE`, so anyone can already trip the guard's own burst alarm
+and stop the demo — these four widen the set of ways it can happen, they do not create it.
+
+And there is a hazard that **no `terraform plan` can decide.** The guard's SNS topic policy
+admits `cloudwatch.amazonaws.com` under an `ArnLike` on `aws:SourceArn` naming exactly the
+guard's **own three** alarm ARNs (`cost-guard/main.tf`, sid `TheseThreeAlarmsMayPublishAStop`).
+**None of demo-api's four alarms is in that list.** Whether they can publish therefore rests
+on the policy's first statement — SNS's default idiom, `Principal AWS:*` narrowed by
+`AWS:SourceOwner` — and settling it takes a real breach on a real apply. Both outcomes are
+recorded because they are opposite defects:
+
+* **admitted** → the four alarms stop the demo, as described above;
+* **denied** → the four alarms carry an action SNS refuses, which `describe-alarms` renders
+  **identically to a delivered one** — a control that looks present and is not, which is the
+  exact defect this document exists to refuse.
+
+`evidence/deploy/cost/plan-shape.json` records both ARN sets side by side, under
+`open_hazard_topic_policy_source_arn`: `alarms_named_in_the_topic_policy` holds the guard's
+three, `alarms_pointed_at_the_topic_but_not_named_in_it` holds demo-api's four. The question
+therefore lives in the evidence rather than in one worker's head. **Nothing here has been
+applied**, so this is written as an open question and not as a result.
 
 ---
 
@@ -222,9 +485,17 @@ it, not because it is safety.*
 
 ### 3.2 · L2 — strip the source maps
 
+> **SHIPPED. This section is the decision record; the switch has been thrown.** Stripping is
+> now the **default** in both builders, `--keep-source-maps` / `-KeepSourceMaps` is the
+> opt-out, and the artefact confirms it:
+> [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json)
+> reads **0 source maps, 0 B** where it once read 18 files and 2,586,960 B. The sentence
+> below — "it is off by default" — was true when written and is **false now**. See §0.1 L2
+> for what it was actually worth: bytes fell 3.59× and the bill fell only 1.43×.
+
 Already implemented as `--strip-source-maps` in `scripts/deploy/build_lambda.sh`
 (lines 105, 122, 537, 583, 830) and `-StripSourceMaps` in the `.ps1`. It records
-`source_maps: kept|stripped` in the manifest. **It is off by default, on purpose** — the
+`source_maps: kept|stripped` in the manifest. ~~**It is off by default, on purpose**~~ — the
 header at line 41 explains why, and that reasoning is sound: a judge opening DevTools sees
 real component names.
 
@@ -243,6 +514,17 @@ manifest assertions. W6 costs it; the orchestrator executes it if it is taken.
 ### 3.3 · L3 — the handler response cap (W4)
 
 A declared ceiling above which the handler returns 413 instead of a body.
+
+> **SHIPPED, AND AT A DIFFERENT NUMBER THAN THIS SECTION PROPOSES.**
+> `static_site.DEFAULT_MAX_RESPONSE_BYTES` is **139,264 B (136 KiB)**, not 512 KiB. The
+> reasoning below — "at 512 KiB this costs literally nothing" — was the *problem*, not the
+> recommendation: a ceiling that refuses nothing in the tree it governs is a decoration, and
+> once the strip landed (§3.2) the 512 KiB line refused **zero** of 114 entries. The ceiling
+> is now **derived from the deployed tree** rather than chosen, and it binds: it refuses the
+> 433,396 B identity bundle, which every real browser avoids by sending
+> `Accept-Encoding: gzip` and receiving the 124,127 B sibling instead. That consequence is
+> deliberate and is stated loudly in `static_site.py` rather than avoided by picking a
+> looser number.
 
 **At 512 KiB = 524,288 B this costs literally nothing**, and I5/I6 are why:
 
@@ -312,7 +594,18 @@ budget must first be breached before the action can trigger, and all three budge
 essentially all of the money is. **It is a backstop, not a bound**, and it must never be
 presented on the same line as one.
 
-If taken, it ships `count = 0` by default so the plan stays at 11 resources.
+~~If taken, it ships `count = 0` by default so the plan stays at 11 resources.~~
+
+> **TAKEN, AND AT A DIFFERENT SHAPE THAN THIS SECTION PROPOSES.** It did **not** ship
+> `count = 0`. `module "guard"` is instantiated at `infra/envs/demo/main.tf:631` under
+> `count = var.enable_api ? 1 : 0`, so it is present in every configuration that has an API
+> — which is the shipping one — and the plan moved **11 → 24**, not "stayed at 11" (§0.2).
+> The reasoning above still stands where it was aimed: **Budgets** remains a backstop with an
+> 8–24 h lag and must never be presented as a bound. What the module actually ships is three
+> **CloudWatch alarms** on `Invocations` and log `IncomingBytes`, whose detection window is
+> **60 s** rather than 8–24 h; the budget is one of its 13 resources and is the slowest of
+> them. §0.1 rows R4–R6 price the fast path; row R1 prices what still escapes on the
+> Budgets lag.
 
 ### 3.7 · L7 — reducing memory and timeout is **not** a cost control
 
@@ -409,7 +702,11 @@ same category error as L7.
 
 ## 5 · What bounds the demo today
 
-| Claimed bound | Real? | What it actually bounds |
+**This table is superseded. It is kept because the finding it records — "one real bound, and
+it is an AWS default nobody chose" — is what caused everything above, and deleting it would
+erase why any of this exists.** The live table is immediately below it.
+
+| Claimed bound | Real? *(as of 2026-08-13, superseded)* | What it actually bounds |
 |---|---|---|
 | `reserved_concurrent_executions = 20` | **NO** — unappliable | nothing; the apply dies on it |
 | Account ceiling of 10 | **YES** — and it is the only one | concurrency → rate → ≈ everything |
@@ -418,7 +715,34 @@ same category error as L7.
 | The handler's rolled-back transaction | **YES** | database *state*, not spend |
 | AWS Budgets ×3 | **NO** — no actions, already breached | nothing |
 
-**One real bound, and it is an AWS default nobody chose.** That is the finding.
+~~**One real bound, and it is an AWS default nobody chose.**~~ **No longer true.** Three code
+bounds have landed since, and the reason the sentence survived so long is that all three
+were *coded and not instantiated*, which on a plan output looks identical to absent. **They
+are instantiated now** (§0.2); the sentence is kept struck through rather than removed
+because the reason it survived is the finding.
+
+### 5.1 · What bounds it now — live, 2026-08-14
+
+| Bound | Real? | In force where | What it bounds |
+|---|---|---|---|
+| Account ceiling of 10 | **YES** | AWS account default, quota `L-B99A9384` | concurrency → request rate → everything |
+| `DEFAULT_MAX_RESPONSE_BYTES = 139,264` | **YES** | `static_site.py`, code default | bytes per response, **and it binds** — derived from the tree, asserted against it |
+| `ratelimit` global/per-IP token buckets | **YES, partially** | `app.py`, first statement of the handler | egress from a paced caller; **not** the invocation charge, and the counter is per execution environment |
+| Source maps stripped | **YES** | both builders, default | the largest object that can exist, not the rate |
+| `-invocations-burst` / `-hourly` / `-log-ingestion` alarms → SNS → `PutFunctionConcurrency(0)` | **BUILT _AND INSTANTIATED_** — *in plan; nothing is applied* | `infra/modules/cost-guard/`, instantiated at `infra/envs/demo/main.tf:631` under `count = var.enable_api ? 1 : 0` | the flood, from the moment the stop lands — worth **$8.01 per 5 min window** it does not land in (§0.1 R4–R6). This row read **BUILT, NOT INSTANTIATED** until 2026-08-14 and was false; §0.2 has the plan evidence |
+| the demo function's own four alarms → the same stop topic | **YES in plan, and _unsettled_ in fact** | `alarm_actions = local.guard_stop_topic_actions`, `infra/envs/demo/main.tf:586` | possibly nothing: the guard's topic policy names only its **own three** alarm ARNs, and no plan can decide whether these four may publish (§0.2). Recorded, not assumed |
+| `scripts/deploy/kill_switch.{sh,ps1}` | **YES**, manual | committed, never run in mutating mode | everything, from the moment a human runs it |
+| AWS Budgets ×3 | **NO** — no actions, already breached | | nothing |
+| CockroachDB Basic $25 cap | **YES**, but irrelevant | | the database, which the flood never touches (§2.5) |
+
+**The finding has moved up one level twice, and the second move closed it.** It was
+*documented and not implemented*; it became *implemented and not instantiated*, which a
+reviewer reading `terraform plan` cannot tell apart from absent; it is now **instantiated,
+and the plan says so** — `Plan: 24 to add, 0 to change, 0 to destroy.` at line 843 of
+`evidence/deploy/terraform-plan-furl.txt`, up from 11. What is left is not a gap between the
+code and the plan but a gap between the plan and reality: **nothing has been applied**, and
+one consequence of the wiring (§0.2, the topic-policy question) cannot be settled until
+something is.
 
 ---
 
@@ -446,7 +770,11 @@ Worth taking on those terms and no others.
 ### Layer 3 — arm the floor.
 
 * **L9** as a one-command script, ready before the apply, not written during the incident.
-* **L6** default-off (`count = 0`), so the founder can enable it *knowing its 8–24 h lag*.
+* ~~**L6** default-off (`count = 0`), so the founder can enable it *knowing its 8–24 h lag*.~~
+  **Superseded — it ships ON.** `module "guard"` is instantiated at
+  `infra/envs/demo/main.tf:631` (§0.2), and the recommendation the founder is actually being
+  asked to accept is therefore row **T** of §0.1: the stop is armed, and **anyone at all can
+  trip it**.
 
 ### Reject
 
@@ -540,9 +868,20 @@ time anyone writes them.
   against a function that does not exist. They ship labelled.
 * **The $230 floor assumes the attacker keeps invoking after being rejected.** A rational one
   stops, and the real number is lower. The floor is the worst case, not the expectation.
-* **100 ms is an estimate.** It is the fast end of a static-asset read from a warm arm64
-  Lambda serving from its own package. Measured invocation timings would sharpen the range,
-  and cannot be taken without deploying.
+* ~~**100 ms is an estimate.**~~ **Closed, and it was the largest error in this document.**
+  `docs/deploy/LATENCY.md` measured every beat over a real socket: the static beats run at
+  **5.66 / 14.11 ms** p50, not 100 ms. Because egress and requests scale as 1/duration, the
+  headline was a **floor understated about 7×**. §0.1 carries the corrected ladder. The
+  measurement is workstation-loopback and the cloud column runs up to 2.2× slower, which
+  moves the bill *down*; the local figure is headlined because it is the conservative one.
 * **The GB convention is unresolved to ±7 %** (§1.2), and the conservative side is headlined.
+  It is now an **explicit input** with three named readings rather than an assumption —
+  `scripts/deploy/cost_model.py` reproduces all three to their published precision, which is
+  how the 0.06 % disagreement between this document and the lead's independent run was
+  resolved: it was never floating-point tolerance, it was the tier-boundary choice.
+* **The sustained egress rate in §0.1 is unobserved.** 1.1 GB/s out of ten 512 MB execution
+  environments is what the tariff and the concurrency ceiling *permit*. Settling it needs one
+  load test against a deployed function, which needs an apply, which no wave here performs.
+  Every §0.1 figure is a **model bound** and is labelled so in the JSON payload itself.
 * **Nothing here has been applied.** Every figure describes an exposure that does not exist
   yet, which is the only useful moment to read it.

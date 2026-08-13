@@ -1,0 +1,494 @@
+<title>MAINLINE — State of the Build</title>
+<style>
+  /* ── Tokens: complete light palette on bare :root ─────────────────────── */
+  :root{
+    --ground:#f2f4f6;
+    --surface:#ffffff;
+    --surface-2:#e9edf1;
+    --ink:#161c22;
+    --ink-2:#454f59;
+    --ink-3:#6d7883;
+    --rule:#d2d9e0;
+    --rule-2:#bcc6d0;
+    --brass:#8a6a1f;
+    --brass-ink:#6b5115;
+    --proven:#1d6b45;
+    --proven-bg:#dcefe4;
+    --unproven:#8a5a12;
+    --unproven-bg:#f6e9d2;
+    --broken:#a12a29;
+    --broken-bg:#f7dedd;
+    --shadow:0 1px 2px rgba(22,28,34,.06),0 8px 24px -12px rgba(22,28,34,.18);
+    --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --serif:Charter,"Bitstream Charter","Iowan Old Style",Georgia,serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0e1319;
+      --surface:#151c24;
+      --surface-2:#1d262f;
+      --ink:#e4eaf0;
+      --ink-2:#a9b5c1;
+      --ink-3:#7d8996;
+      --rule:#28323c;
+      --rule-2:#3a4653;
+      --brass:#d2a84c;
+      --brass-ink:#e0bc6f;
+      --proven:#5cc08d;
+      --proven-bg:#12301f;
+      --unproven:#d9a94e;
+      --unproven-bg:#33270f;
+      --broken:#f0817f;
+      --broken-bg:#3a1817;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0e1319;
+    --surface:#151c24;
+    --surface-2:#1d262f;
+    --ink:#e4eaf0;
+    --ink-2:#a9b5c1;
+    --ink-3:#7d8996;
+    --rule:#28323c;
+    --rule-2:#3a4653;
+    --brass:#d2a84c;
+    --brass-ink:#e0bc6f;
+    --proven:#5cc08d;
+    --proven-bg:#12301f;
+    --unproven:#d9a94e;
+    --unproven-bg:#33270f;
+    --broken:#f0817f;
+    --broken-bg:#3a1817;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--serif);font-size:17px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 96px}
+
+  /* ── Masthead ─────────────────────────────────────────────────────────── */
+  header.mast{
+    border-bottom:2px solid var(--ink);
+    padding:44px 0 20px;margin-bottom:40px;
+  }
+  .eyebrow{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-3);
+    display:flex;flex-wrap:wrap;gap:10px 20px;margin-bottom:22px;
+  }
+  .eyebrow b{color:var(--brass-ink);font-weight:600}
+  h1{
+    font-family:var(--mono);font-weight:600;
+    font-size:clamp(30px,5vw,50px);line-height:1.04;letter-spacing:-.02em;
+    margin:0 0 6px;text-wrap:balance;
+  }
+  .sub{font-size:19px;color:var(--ink-2);margin:0;max-width:64ch}
+
+  /* ── Verdict slab ─────────────────────────────────────────────────────── */
+  .verdict{
+    display:flex;flex-wrap:wrap;align-items:center;gap:20px 32px;
+    background:var(--surface);border:1px solid var(--rule);
+    border-left:5px solid var(--broken);
+    border-radius:3px;padding:24px 28px;margin:32px 0 12px;box-shadow:var(--shadow);
+  }
+  .verdict .big{
+    font-family:var(--mono);font-size:44px;font-weight:700;
+    letter-spacing:-.03em;color:var(--broken);line-height:1;
+  }
+  .verdict p{margin:0;color:var(--ink-2);font-size:16px;max-width:60ch}
+  .verdict .ord{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:5px;
+  }
+
+  /* ── Criteria board ───────────────────────────────────────────────────── */
+  .board{
+    display:grid;gap:1px;background:var(--rule);
+    border:1px solid var(--rule);border-radius:3px;overflow:hidden;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin:28px 0 0;
+  }
+  .crit{background:var(--surface);padding:16px 18px;display:flex;flex-direction:column;gap:9px}
+  .crit .name{font-size:14.5px;color:var(--ink-2);line-height:1.4}
+  .pill{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;padding:3px 9px;border-radius:2px;align-self:flex-start;
+  }
+  .met{background:var(--proven-bg);color:var(--proven)}
+  .unmet{background:var(--broken-bg);color:var(--broken)}
+  .partial{background:var(--unproven-bg);color:var(--unproven)}
+
+  /* ── Layout ───────────────────────────────────────────────────────────── */
+  .cols{display:grid;grid-template-columns:1fr;gap:48px;margin-top:56px}
+  @media(min-width:1000px){.cols{grid-template-columns:190px 1fr;gap:56px}}
+  nav.toc{align-self:start}
+  @media(min-width:1000px){nav.toc{position:sticky;top:28px}}
+  nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  nav.toc a{
+    font-family:var(--mono);font-size:12px;letter-spacing:.02em;
+    color:var(--ink-3);text-decoration:none;display:block;
+    padding:6px 0 6px 12px;border-left:2px solid var(--rule);
+  }
+  nav.toc a:hover{color:var(--brass-ink);border-left-color:var(--brass)}
+  nav.toc a:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+  main{min-width:0}
+  section{margin-bottom:60px;scroll-margin-top:24px}
+  h2{
+    font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--brass-ink);
+    margin:0 0 18px;padding-bottom:9px;border-bottom:1px solid var(--rule-2);
+    display:flex;gap:12px;align-items:baseline;
+  }
+  h2 .n{color:var(--ink-3);font-variant-numeric:tabular-nums}
+  h3{
+    font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:-.01em;
+    margin:30px 0 10px;color:var(--ink);
+  }
+  p{margin:0 0 15px;max-width:68ch}
+  strong{font-weight:700;color:var(--ink)}
+  code{
+    font-family:var(--mono);font-size:.86em;background:var(--surface-2);
+    padding:1.5px 5px;border-radius:2px;color:var(--ink);
+    overflow-wrap:break-word;
+  }
+
+  .scroll{overflow-x:auto;margin:0 0 18px;border:1px solid var(--rule);border-radius:3px;background:var(--surface)}
+  pre{
+    font-family:var(--mono);font-size:12.5px;line-height:1.62;
+    margin:0;padding:16px 18px;color:var(--ink-2);white-space:pre;
+  }
+  pre b{color:var(--ink);font-weight:600}
+  pre .g{color:var(--proven);font-weight:600}
+  pre .r{color:var(--broken);font-weight:600}
+
+  table{border-collapse:collapse;width:100%;font-size:14.5px;font-family:var(--serif)}
+  .scroll table{border:0}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:600;background:var(--surface-2);white-space:nowrap;
+  }
+  tbody tr:last-child td{border-bottom:0}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .callout{
+    background:var(--surface);border:1px solid var(--rule);
+    border-left:4px solid var(--brass);border-radius:3px;
+    padding:18px 22px;margin:22px 0;
+  }
+  .callout p:last-child{margin-bottom:0}
+  .callout .lbl{
+    font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--brass-ink);display:block;margin-bottom:7px;font-weight:600;
+  }
+  .callout.bad{border-left-color:var(--broken)}
+  .callout.bad .lbl{color:var(--broken)}
+  .callout.good{border-left-color:var(--proven)}
+  .callout.good .lbl{color:var(--proven)}
+
+  ul.acts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+  ul.acts li{
+    display:grid;grid-template-columns:26px 1fr;gap:13px;align-items:start;
+    font-size:15.5px;line-height:1.55;
+  }
+  ul.acts .mk{
+    font-family:var(--mono);font-size:11px;font-weight:600;color:var(--brass-ink);
+    background:var(--surface-2);border-radius:2px;text-align:center;
+    padding:3px 0;margin-top:3px;font-variant-numeric:tabular-nums;
+  }
+  .two{display:grid;grid-template-columns:1fr;gap:32px}
+  @media(min-width:780px){.two{grid-template-columns:1fr 1fr;gap:40px}}
+
+  footer{
+    margin-top:72px;padding-top:22px;border-top:2px solid var(--ink);
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;
+    color:var(--ink-3);display:flex;flex-wrap:wrap;gap:8px 26px;
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="mast">
+  <div class="eyebrow">
+    <span>Project <b>MAINLINE</b></span>
+    <span>Re-verification №<b>4</b></span>
+    <span>2026-08-14</span>
+    <span>Tree <b>073dfea</b> + 48 modified, 12 untracked</span>
+    <span>Deadline <b>2026-08-18</b></span>
+  </div>
+  <h1>State of the Build</h1>
+  <p class="sub">Every number here was produced by a command this agent ran itself, today, on this machine. No worker self-report is repeated unless it was re-measured and agreed.</p>
+</header>
+
+<div class="verdict">
+  <div>
+    <span class="ord">Deploy verdict</span>
+    <div class="big">NO-GO</div>
+  </div>
+  <p><strong>The wave was honest — no shortcut was taken.</strong> Beat 4 now reaches <code>PROVEN</code> against the deployed seed and cost is bounded in code. But the demo suite is still red against a real cluster, and the CI lane built to catch that was never committed and has never run.</p>
+</div>
+
+<div class="board">
+  <div class="crit"><span class="pill met">Met</span><span class="name">No shortcut found</span></div>
+  <div class="crit"><span class="pill unmet">Not met</span><span class="name">Suite green on a real cluster, any order</span></div>
+  <div class="crit"><span class="pill unmet">Not met</span><span class="name">CI runs those tests, lane falsified</span></div>
+  <div class="crit"><span class="pill met">Met</span><span class="name">Beat 4 PROVEN on the deployed seed</span></div>
+  <div class="crit"><span class="pill met">Met</span><span class="name">Cost bounded in code</span></div>
+</div>
+
+<div class="cols">
+<nav class="toc" aria-label="Contents">
+  <ol>
+    <li><a href="#s1">01 · Shortcut check</a></li>
+    <li><a href="#s2">02 · The suite</a></li>
+    <li><a href="#s3">03 · CI &amp; the cluster</a></li>
+    <li><a href="#s4">04 · New regression</a></li>
+    <li><a href="#s5">05 · Beat 4</a></li>
+    <li><a href="#s6">06 · Cost bound</a></li>
+    <li><a href="#s7">07 · Terraform</a></li>
+    <li><a href="#s8">08 · Status</a></li>
+    <li><a href="#s9">09 · Next actions</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="s1">
+  <h2><span class="n">01</span> The shortcut check — passed</h2>
+  <p>This came first, because everything else is worthless if the suite was bent to fit. A previous worker was caught editing <code>demo_world.sql</code> to enrol a constant the code derived. Three authoritative files moved this wave; each was checked for the question <em>did this move an authoritative side to match a derived one?</em></p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>File</th><th>Change</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><code>demo_world.sql</code></td><td>+144 lines: a new §10 seeding a <code>change_request</code> subject</td><td><strong>Addition, not reshaping</strong></td></tr>
+      <tr><td><code>test_refusal_row_factory.py</code></td><td><code>_RAISES</code> moved to <code>identity_conserved_when_issued</code></td><td><strong>Instrument moved, assertion intact</strong></td></tr>
+      <tr><td><code>static_site.py</code></td><td>response ceiling 2 MiB → 136 KiB</td><td>Tightening — but left the suite red (§04)</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>The seed adds a subject the console already declared and the database already had a table, route, reader, contract and nine seeded transitions for. It alters no pre-existing value. Verified independently rather than taken from the file's own comment:</p>
+  <ul class="acts">
+    <li><span class="mk">1</span><span>Every new identifier — <code>dec0de00-000c-…</code>, <code>DEMO-MOC-0001</code>, <code>refs/changes/demo-0001</code> — <strong>appears nowhere under <code>apps/demo-api/src/</code></strong>. Had the seed been reshaped to match a constant, the constant would be in the code.</span></li>
+    <li><span class="mk">2</span><span>The fixture <strong>learns</strong> the id with <code>SELECT cr.cr_id … FROM mainline.change_request</code> — no predicate, no <code>LIMIT</code>. It asserts no literal.</span></li>
+    <li><span class="mk">3</span><span>The <code>_Seed.__missing__</code> refusal that produced the 63 errors is <strong>still in place and still refusing</strong>.</span></li>
+  </ul>
+
+  <div class="callout good">
+    <span class="lbl">First clean pass in four waves</span>
+    <p>The refusal test is the same story: the requirement was always <em>a permit whose projected counter is zero</em>, and the constraint name was only the instrument. <code>gate_closed_when_issued</code> cannot return — <code>test_gate_run.py</code> needs that same counter ≥ 1 on the same permit. The wave measured all six counters, moved to one genuinely zero, and <strong>added</strong> a test pinning the premise. That is a ceiling added, not relaxed.</p>
+  </div>
+</section>
+
+<section id="s2">
+  <h2><span class="n">02</span> The suite against a real cluster — still red</h2>
+  <div class="scroll"><pre>pytest verticals/mainline/apps/demo-api/tests --crdb=reuse   (run 1)
+  -&gt;  <b class="r">7 failed</b>, <b class="g">453 passed</b>, 1 skipped, <b class="r">63 errors</b>   in 44.34s
+                                                             (run 2)
+  -&gt;  <b class="r">7 failed</b>, <b class="g">453 passed</b>, 1 skipped, <b class="r">63 errors</b>   in 43.69s
+
+baseline recorded in the brief
+  -&gt;  5 failed,  375 passed,             63 errors</pre></div>
+  <p>Passes rose by 78. <strong>Errors did not move at all, and failures rose by two.</strong></p>
+
+  <h3>The 63 errors were not fixed. They moved.</h3>
+  <p>This is the finding that matters most here, and it is not what the wave believed it had done. The <code>cr_id</code> gap <em>is</em> closed — it now appears in the fixture's offered set. But the fixture immediately names the next missing identifier:</p>
+  <div class="scroll"><pre>KeyError: "'<b class="r">commit_v2</b>' is not an identifier the deployed demo seed produces.
+ It offers: check_id, clause_gen, clause_uuid, commit_id, countersigner_credential_id,
+ countersigner_sub, <b class="g">cr_id</b>, cr_external_ref, cr_state, cr_target_ref, doc_id, …"</pre></div>
+  <p><code>demo_world.sql</code> seeds two commits but only <strong>one</strong> clause version. <code>test_reads.py:95</code> needs a second — <code>commit_v2</code> — to exercise clause-ancestry and clause-version reads across an amendment. The same 63 tests are blocked by the same fixture for the same class of reason, one layer deeper. The identical count is a coincidence of which tests use that fixture, which is exactly why a count is a poor instrument and set membership is the right one.</p>
+
+  <div class="callout">
+    <span class="lbl">The fixture is right to refuse</span>
+    <p>The resolution is the same as last time and in the same direction: seed the second clause version in <code>demo_world.sql</code> so the deployment carries it, or narrow the tests that need it. It is <strong>not</strong> to mint it in the fixture.</p>
+  </div>
+
+  <h3>The 7 failures, classified</h3>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">№</th><th>Node</th><th>Classification</th></tr></thead>
+    <tbody>
+      <tr><td class="num">5</td><td><code>test_response_contract.py</code> — ceiling family</td><td><strong>New regression, introduced by this wave</strong> (§04)</td></tr>
+      <tr><td class="num">1</td><td><code>test_seed_covers_every_console_resource…[silence]</code></td><td>Genuine defect, newly exposed</td></tr>
+      <tr><td class="num">1</td><td><code>test_an_undeclared_query_parameter_is_refused…</code></td><td>Pre-existing, known-red</td></tr>
+    </tbody>
+  </table></div>
+  <p>The <code>silence</code> failure is a real product defect a new test correctly caught: the seeded receipt carries a <code>boundary_proof</code> with keys <code>['leaf_s','leaf_s_plus_1','source','synthetic']</code> where the committed contract declares only the first two — so <strong>a link in the console</strong> answers with an error rather than a page. The reader refusing to render it is correct; the seed or the contract must move, deliberately.</p>
+
+  <h3>Randomised order — not run</h3>
+  <p>Neither <code>pytest-randomly</code> nor <code>pytest-random-order</code> is installed; <code>-p randomly</code> fails with <code>ImportError</code>. <strong>The randomised-order run the brief requires could not be performed, and this agent will not claim it was.</strong> Two identical sequential runs are reported instead — a weaker instrument, labelled as one: file order was the same both times, so it cannot separate "the contamination is fixed" from "this order does not trigger it".</p>
+  <p>Worth noting anyway: both runs produced the <em>identical</em> failing set, node id for node id, and none of the inventory's three <code>unstable</code> ids failed in either — including <code>test_the_request_after_a_gate_run_is_not_a_503</code>, the brief's failure #4. Suggestive, not proven.</p>
+</section>
+
+<section id="s3">
+  <h2><span class="n">03</span> Does CI run the cluster? — no</h2>
+  <p>This is the most important finding of the verification, and it reproduces the exact structural defect behind the three previous NO-GO verdicts. Two workflows were written this wave and both are <strong>well designed</strong>: <code>cluster-tests.yml</code> runs the demo-api suite against a real CockroachDB, and <code>cluster-lane-bites.yml</code> is a genuine 2×2 falsifiability matrix proving a defect invisible to <code>--crdb=none</code> goes red under <code>--crdb=reuse</code>.</p>
+
+  <div class="callout bad">
+    <span class="lbl">Neither file is tracked by git</span>
+    <div class="scroll" style="margin:10px 0 0"><pre>$ git ls-files --error-unmatch .github/workflows/cluster-tests.yml
+<b class="r">error: pathspec … did not match any file(s) known to git</b>
+
+$ gh run list --limit 12
+   <b class="r">(no `cluster-tests` run — not once, ever)</b></pre></div>
+  </div>
+
+  <p>They exist only in this working tree. Never committed, never pushed, never dispatched, never executed a single test in CI. <strong>The lane is not falsified, because the lane has never run.</strong> A workflow that exists as an uncommitted file is exactly as protective as no workflow at all — the same "invisible vs. skipped" equivalence this whole wave existed to end.</p>
+
+  <p>Two further defects, found by reading the lane:</p>
+  <ul class="acts">
+    <li><span class="mk">!</span><span><code>cluster-tests.yml</code> claims of <code>cluster_lane_report.py</code>: <em>"Both properties are exercised by controls; see that file."</em> <strong>There are no controls.</strong> The string <code>control</code> does not occur anywhere in that 401-line file, and no test references it. The claim is false as written.</span></li>
+    <li><span class="mk">!</span><span><code>qa/cluster-known-red.json</code> declares its <code>groups</code> a <em>ceiling</em> where a passing node id is a hard failure. 63 of its 64 entries name the <code>cr_id</code> cause, which is now a <code>commit_v2</code> cause. The inventory is already stale against the tree it ships with.</span></li>
+  </ul>
+</section>
+
+<section id="s4">
+  <h2><span class="n">04</span> The regression this wave introduced</h2>
+  <div class="scroll"><pre>at HEAD — code and test agreed
+  static_site.DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024    <b class="g"># 2,097,152</b>
+  test_the_default_ceiling_is_two_mebibytes                   <b class="g"># PASSED</b>
+
+in the working tree — they do not
+  static_site.DEFAULT_MAX_RESPONSE_BYTES = 136 * 1024         <b># 139,264</b>
+  infra/modules/demo-api/variables.tf    = 139264             <b># agrees</b>
+  test_the_default_ceiling_is_five_hundred_and_twelve_kibibytes
+    -&gt; <b class="r">E  assert 139264 == (512 * 1024)</b></pre></div>
+  <p><strong>Three values, two of which agree.</strong> Code and Terraform agree at 139,264; the test alone says 524,288. So the test is the stale side and the ceiling itself is sound — but the wave moved a threshold and left five tests red, which is self-inflicted, and by this repository's own rule <em>a fix that breaks a passing test is worse than the defect</em>.</p>
+  <div class="callout">
+    <span class="lbl">Deliberately not reconciled here</span>
+    <p>Choosing the number is an authoring decision with a cost argument behind it, not a verification one — and editing the test to match the code is precisely the motion this repository punishes.</p>
+  </div>
+</section>
+
+<section id="s5">
+  <h2><span class="n">05</span> Beat 4 — PROVEN</h2>
+  <p>The real handler was invoked against a database built by applying the migration tree and <strong>both deployed seed files through the deployment's own applier</strong>, under exactly the environment Terraform publishes.</p>
+  <div class="scroll"><pre>HTTP          <b class="g">200</b>
+VERDICT       <b class="g">'PROVEN'</b>
+persisted     False        persistence_check.identical  True
+
+1. read                      expected read          -&gt; <b class="g">read      00000</b>   matched=<b class="g">True</b>
+2. merge                     expected refused 23514
+                             gate_closed_when_issued -&gt; <b class="g">refused   23514</b>   matched=<b class="g">True</b>
+   failed to satisfy CHECK ((state != 'merged') OR (open_blocking = 0))
+3. projection_drift_attack   expected refused P0001
+                             fn_permit_merge_gate    -&gt; <b class="g">refused   P0001</b>   matched=<b class="g">True</b>
+   re-derived open obligation count is 1 while the projected counter reads zero
+4. admit                     expected admitted      -&gt; <b class="g">admitted  00000</b>   matched=<b class="g">True</b></pre></div>
+  <p>All four beats matched. <strong>The 200 carries <code>PROVEN</code>, not an internal <code>NOT PROVEN</code>.</strong> The credential-resolution fix holds against the real seed: beat 4 signs and countersigns without the <code>23503</code> that defeated it before.</p>
+  <p><em>Caveat, stated rather than hidden:</em> in this agent's harness <code>0119a_fn_explain_refusal.sql</code> did not apply (<code>trappoint</code> schema absent — an artefact of the minimal applier, not the seed). It is not on the gate-run path and affected no beat, but this run applied 270 of 271 migrations.</p>
+
+  <h3>And the standalone gate proof</h3>
+  <div class="scroll"><pre>chain      271/271 applied, 0 failed, 63.486s
+PROJECTION 10/10 held — open_blocking 0-&gt;1 — gate_epoch 0-&gt;1 — outbox 'check_opened'
+REFUSAL    <b class="g">REFUSED [23514]</b> gate_closed_when_issued (reported)
+DRIFT      <b class="g">REFUSED [P0001]</b> mainline.fn_permit_merge_gate (parsed)
+ADMISSION  <b class="g">ADMITTED [00000]</b>
+caveats    (none) — nothing in this run is unproven-but-tolerated
+VERDICT    <b class="g">PROVEN</b></pre></div>
+</section>
+
+<section id="s6">
+  <h2><span class="n">06</span> The cost bound — now genuinely in code</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Layer</th><th>Mechanism</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Response size</td><td><code>DEFAULT_MAX_RESPONSE_BYTES</code></td><td class="num">139,264 B <span style="color:var(--ink-3)">(was 2 MiB)</span></td></tr>
+      <tr><td>Source maps</td><td><code>--strip-source-maps</code> now the default, both builders</td><td class="num">0 files <span style="color:var(--ink-3)">(was 18 / 2.59 MB)</span></td></tr>
+      <tr><td>Request rate</td><td><code>ratelimit</code>, first statement of the handler, 429</td><td class="num">10 rps · 5 rps/IP</td></tr>
+      <tr><td>Log volume</td><td><code>logbudget</code>, per invocation</td><td class="num">4,096 B</td></tr>
+      <tr><td>The stop</td><td><code>cost-guard</code> → 3 alarms → SNS → <code>PutFunctionConcurrency(0)</code></td><td class="num">14 resources, in the plan</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Worst case USD / 30 d.</strong> The published <code>11,700 – 33,250</code> was a <em>floor</em>, understated roughly 7×: it assumed a 100 ms invocation nobody had measured, while the static beats a flood actually uses run at <strong>5.66 / 14.11 ms p50</strong>, and both egress and request cost scale as 1/duration. Re-derived on the measured duration that is <strong>≈ USD 229,805 / 30 d</strong> before — the honest figure the founder was never given. After the strip and the 139,264-byte ceiling the per-response term falls by about 11×, and the concurrency stop is what makes the tail finite rather than merely smaller.</p>
+  <div class="callout">
+    <span class="lbl">One doc defect, in the safe direction</span>
+    <p><code>COST-BOUND.md</code> §0 still says <em>"the guard is not instantiated in the environment root"</em>. <strong>That is now false</strong> — <code>main.tf:632</code> instantiates <code>module "guard"</code> and the plan carries <code>module.guard[0]</code> with 14 resources. The doc understates the protection, so nobody is misled into feeling safer than they are.</p>
+  </div>
+  <p><strong>Residual, named:</strong> the guard reacts on a CloudWatch evaluation period, so the worst case is bounded by how much can be spent <em>inside one alarm window</em>, not by zero. Nobody — including this agent — has multiplied that window into a dollar figure.</p>
+</section>
+
+<section id="s7">
+  <h2><span class="n">07</span> Terraform — validates; plan not re-run</h2>
+  <div class="scroll"><pre>terraform init -backend=false   -&gt;  <b class="g">success</b>
+terraform validate              -&gt;  <b class="g">Success! The configuration is valid.</b>
+terraform plan                  -&gt;  <b class="r">NOT RUN</b></pre></div>
+  <p>The plan could not be reproduced here: <code>backend.tf</code> is a partial S3 backend and <code>init</code> fails with <code>The attribute "bucket" is required</code>, with no <code>-backend-config</code> present. This agent will not report a plan it did not produce. The recorded evidence, regenerated this wave, reads <strong>25 resource changes — 24 create, 1 read</strong>, split <code>module.api[0]</code> 11 and <code>module.guard[0]</code> 14.</p>
+  <p><code>docs/deploy/terraform-plan.md</code> still narrates <code>Plan: 11</code> / <code>Plan: 22</code> and says <em>"the resource count did not move"</em>. <strong>It moved: 22 → 24</strong>, because the cost guard is now instantiated. The doc is stale against its own evidence file.</p>
+  <p><strong>No <code>terraform apply</code> was run. No mutating AWS call was made.</strong></p>
+</section>
+
+<section id="s8">
+  <h2><span class="n">08</span> Status of each claim</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>State</th><th>Claim</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill met">Proven</span></td><td>Gate refuses, refuses drift it cannot see, and admits — no caveats. Beat 4 <code>PROVEN</code> on the deployed seed. Credential twin closed, ratchet falsified. Cost bounded in code at four layers with a stop in Terraform. No shortcut taken.</td></tr>
+      <tr><td><span class="pill partial">Built, unproven</span></td><td>The cluster CI lane and its 2×2 matrix — written, never committed, never run. <code>cluster_lane_report.py</code>'s two safety properties — claimed, uncontrolled. The Terraform plan — valid, not reproducible here.</td></tr>
+      <tr><td><span class="pill unmet">Broken</span></td><td>63 errors: no second clause version (<code>commit_v2</code>). 5 response-contract failures (§04). 1 <code>silence</code> contract failure. 1 undeclared-query-parameter refusal. Three documents stale against the tree they ship with.</td></tr>
+      <tr><td><span class="pill unmet">Not built</span></td><td>Any CI execution of a cluster-backed demo test — still zero, as at the start of the wave. A randomised-order run. A demo URL. A video.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The rules matrix</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>Rule</th><th>Held?</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Never change a seed/fixture/ceiling to obtain a green</td><td><span class="pill met">Held</span></td><td>§01 — seed is an addition; refusal test added a ceiling</td></tr>
+      <tr><td>Never weaken an assertion or ratchet</td><td><span class="pill met">Held</span></td><td>none weakened; one premise test added</td></tr>
+      <tr><td>Never <code>terraform apply</code></td><td><span class="pill met">Held</span></td><td>init/validate only</td></tr>
+      <tr><td>Never print a credential</td><td><span class="pill met">Held</span></td><td>none printed</td></tr>
+      <tr><td><code>continue-on-error</code> / <code>|| true</code> banned</td><td><span class="pill met">Held</span></td><td>lane exits with pytest's own status</td></tr>
+      <tr><td>Run the full suite before and after</td><td><span class="pill met">Held</span></td><td>§02, two runs, both reported</td></tr>
+      <tr><td>A fix that breaks a passing test is worse than the defect</td><td><span class="pill unmet">Broken</span></td><td>§04 — five tests were green at <code>073dfea</code></td></tr>
+      <tr><td>CI must execute what it claims to execute</td><td><span class="pill unmet">Broken</span></td><td>§03 — the lane was never committed</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="s9">
+  <h2><span class="n">09</span> What happens next</h2>
+  <div class="two">
+    <div>
+      <h3>Only the founder can do these</h3>
+      <ul class="acts">
+        <li><span class="mk">01</span><span><strong>Decide the response ceiling</strong> — 139,264 B (code + Terraform) or 524,288 B (test). A cost-versus-fidelity call; no engineer should settle it by editing whichever side is easier. Unblocks §04 entirely.</span></li>
+        <li><span class="mk">02</span><span><strong>Decide <code>commit_v2</code></strong> — either the demo tells a two-version amendment story and the seed carries it, or it does not and the tests narrow. 63 errors ride on this one choice.</span></li>
+        <li><span class="mk">03</span><span><strong>Decide the <code>silence</code> contract</strong> — the seed stops writing <code>source</code>/<code>synthetic</code>, or the schema widens deliberately with the reason recorded. A console link is broken until then.</span></li>
+        <li><span class="mk">04</span><span><strong>Authorise the commit and push</strong> of the 48 modified and 12 untracked files. Nothing in §03 can be proven until this tree is on <code>master</code> — and this agent did not push it: the tree is red, and putting a red tree on a public repository is the founder's call.</span></li>
+        <li><span class="mk">05</span><span><strong>Supply the Terraform backend bucket</strong> (or confirm no state exists yet) so the plan can be reproduced rather than quoted.</span></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Engineering remaining</h3>
+      <ul class="acts">
+        <li><span class="mk">→</span><span>Commit the two cluster workflows and <strong>prove the lane bites</strong> by running the 2×2 in CI. Until a plant goes red in a real run, the lane is a file.</span></li>
+        <li><span class="mk">→</span><span>Write the controls <code>cluster-tests.yml</code> already claims exist for <code>cluster_lane_report.py</code>.</span></li>
+        <li><span class="mk">→</span><span>Regenerate <code>qa/cluster-known-red.json</code> against the current cause — as an inventory, never a suppression list.</span></li>
+        <li><span class="mk">→</span><span>Install a randomisation plugin and re-run, to settle the contamination question this agent could not test. Cheapest remaining item in the report.</span></li>
+        <li><span class="mk">→</span><span>Correct the three stale documents named in §06–§08.</span></li>
+        <li><span class="mk">→</span><span>Multiply the one-alarm-window residual into a dollar figure.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout bad" style="margin-top:32px">
+    <span class="lbl">The pattern to break</span>
+    <p>What is different this time is worth saying plainly: <strong>the wave was honest.</strong> It took no shortcut, moved no authoritative value to buy a green, and left failing tests failing where a previous wave would have made them pass. Two of the four named failures were genuinely resolved, beat 4 reaches <code>PROVEN</code> on the real seed, and the cost bound went from a description to code. That is real progress.</p>
+    <p>But the second and third GO criteria are the same failure this project has now had four times: <strong>work that would make a defect visible was built, and then not wired up.</strong> Last wave the tests existed and no lane ran them. This wave the lane exists and no commit carries it. The pattern to break is not a technical one.</p>
+  </div>
+</section>
+
+<footer>
+  <span>MAINLINE · State of the Build</span>
+  <span>Re-verification №4 · 2026-08-14</span>
+  <span>Verdict: NO-GO</span>
+  <span>No <code style="background:none;padding:0">terraform apply</code> · no mutating AWS call</span>
+</footer>
+
+</main>
+</div>
+</div>

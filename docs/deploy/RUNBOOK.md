@@ -277,6 +277,21 @@ exit codes `0`, `1` and `3` respectively.
 
 ### 5.1 · State backend
 
+> ## ⚠ THIS IS THE FIRST MUTATING ACTION OF THE WHOLE DEPLOY
+>
+> Everything before this line — stage 0, `--dry-run`, `--preflight-only`, and the entire plan
+> reproduction in §5.6.1 — creates, changes and deletes nothing. `bootstrap_state.sh` without
+> `--print-backend-config` calls `s3api create-bucket`, `put-bucket-versioning`,
+> `put-bucket-encryption`, `put-bucket-tagging` and `put-bucket-lifecycle-configuration`
+> (`scripts/deploy/bootstrap_state.sh:194–262`). Those write.
+>
+> **It belongs to the orchestrator, with the founder — the same pair who authorise the apply.
+> No worker runs it,** and no agent runs it on the strength of a document telling it to.
+>
+> `--print-backend-config` is the mode that is always safe: the script documents at line 92
+> that it makes **zero** AWS calls, and it prints the exact `-backend-config` line without
+> touching anything.
+
 `scripts/deploy/bootstrap_state.sh` creates `mainline-demo-tfstate-<account>` if absent and
 re-asserts its configuration every run. Measured, first run:
 
@@ -405,6 +420,192 @@ The apply, when approved, applies **the saved plan file**, not a fresh one. What
 founder reviewed is what runs.
 
 **If it says the state is locked:** see § 7.
+
+---
+
+#### 5.6.1 · Reproducing the plan with no mutating AWS call
+
+**The founder must approve the plan that will actually run, and until 2026-08-14 that plan
+was unreproducible on a clean checkout.** `infra/envs/demo/backend.tf` declares a **partial**
+S3 backend: key, region, `encrypt`, `use_lockfile` — and no bucket, because an S3 bucket name
+must be globally unique across every AWS customer and therefore cannot be a constant in a
+repository anybody can clone. So `terraform init` alone cannot complete;
+`terraform init -backend=false` completes but leaves `plan` refusing with *"Changes to
+backend configurations require reinitialization"*; and the only documented way to get a real
+bucket is §5.1, which **writes**. Reading the plan required a mutating call first, which is
+backwards.
+
+One command, read-only, on a clean checkout:
+
+```bash
+scripts/deploy/plan_repro.sh                 # the shipping plan (enable_cloudfront = false)
+scripts/deploy/plan_repro.sh --cloudfront    # the enable_cloudfront variant
+scripts/deploy/plan_repro.sh --json          # also emit `terraform show -json`
+```
+
+It needs **read-only AWS credentials** — a plan is not credential-free, because the root
+reads `data.aws_caller_identity.current` — and it needs the Terraform and AWS CLI versions in
+§4. It writes the plan text to a directory **outside the repository** and refuses an
+`--out-dir` inside it.
+
+**THE PROCEDURE, AND THE FACT IT RESTS ON, IN ONE PARAGRAPH.** The script points Terraform at
+a **local** backend — a `backend_override.tf` it writes into `infra/envs/demo` and removes in
+a trap on *any* exit — whose state file lives outside the repository and starts empty; it then
+runs `terraform init -reconfigure`, `terraform validate` and `terraform plan`. That is a
+faithful reproduction of the shipping plan **only because nothing has been applied: the remote
+S3 state is empty, an empty local state and an empty remote state hold the same zero
+resources, and a plan is a function of the configuration plus the state — so the same
+configuration against the same empty state produces the same plan. THAT EQUIVALENCE EXPIRES AT
+THE FIRST `terraform apply`.** From the moment one resource exists in the remote state, a plan
+against an empty local state reports creating resources that already exist, and every count it
+prints is wrong in the direction that reads like success. After the first apply the only
+correct plan is the one against the real backend, §5.6.2 below.
+
+**The expiry is measured, not merely promised.** Stage 2 of the script asks AWS three
+read-only questions on every run — does any `mainline-demo-tfstate-*` bucket exist
+(`s3api list-buckets`); if one does, does it hold `demo/terraform.tfstate`
+(`s3api head-object`); and, independently of any bucket name, does the demo Lambda already
+exist (`lambda get-function`) — and it **refuses with exit 5** if any of them says the stack
+has been applied, or if any of them cannot be answered, because *"I could not tell"* is not
+*"the state is empty"*. The third question is the one that closes the hole in the first two:
+an operator who bootstrapped a non-default bucket name would pass them for the wrong reason.
+
+> **One residue to know about.** `backend_override.tf` is **not** in `.gitignore`. The script
+> refuses to start if one already exists — it will not clobber somebody else's — and removes
+> its own in a trap on any exit, including a failed plan; the 2026-08-14 run left
+> `git status -- infra/envs/demo` byte-identical to what it found. But a hard-killed process
+> runs no trap, and a committed `backend_override.tf` would silently point every clone's
+> Terraform at a local state file. **After an interrupted run, check `git status` before you
+> commit.**
+
+Measured on this machine, **2026-08-14**. The account id is masked and the absolute scratch
+paths are replaced by their meaning; every other byte, and the order of every line, is as the
+script printed it:
+
+```
+plan_repro — reproducing the shipping plan with no mutating AWS call
+
+== 1 · identity (read-only)
+  caller                 arn:aws:iam::<account>:user/mainline-dev
+  region                 ap-southeast-1
+  profile                mainline-dev
+
+== 2 · the empty-state equivalence, measured read-only
+  state buckets          none — no mainline-demo-tfstate-* bucket in this account
+  lambda mainline-demo-api does not exist   [equivalence holds]
+
+  NOTHING HAS BEEN APPLIED, so the remote S3 state is empty, so a plan against an
+  empty LOCAL state is resource-identical to a plan against the empty remote state.
+  THIS EQUIVALENCE EXPIRES AT THE FIRST APPLY, and stage 2 re-measures it every run.
+
+== 3 · a local backend, outside the repository, starting empty
+  override               infra/envs/demo/backend_override.tf  (removed on exit, any exit)
+  state path             <scratch>/demo-plan.tfstate
+  state now              absent/empty
+
+== 4 · terraform init -reconfigure / validate / plan
+  init                   ok   (<scratch>/init-furl.log)
+  validate               Success! The configuration is valid.
+  plan                   ok   (<scratch>/terraform-plan-furl.txt)
+
+== 5 · the plan, and the committed artefact
+  fresh plan             Plan: 24 to add, 0 to change, 0 to destroy.
+  committed artefact     evidence/deploy/terraform-plan-furl.txt  says Plan: 24 to add
+  G6 reservation         reserved_concurrent_executions = -1
+  G7 zero-mask           0 occurrence(s) of twelve zeros   (expected 0)
+  account id             12 occurrence(s) in the RAW plan text — mask before it enters evidence/
+
+  The plan the founder would approve is Plan: 24 to add, and the committed
+  artefact agrees. No AWS resource was created, changed or deleted by this run.
+  Raw plan (UNMASKED account id): <scratch>/terraform-plan-furl.txt
+exit=0
+```
+
+`exit=0` is the shell's report of the script's status, not a line the script prints.
+
+**It cannot apply, and that is a mechanism rather than a promise.** Every Terraform
+invocation in the script passes one wrapper carrying an allowlist of `init`, `validate`,
+`plan`, `show`, `version`; `apply`, `destroy`, `import`, `state`, `taint`, `force-unlock` and
+`plan -destroy` are refused by name, before `terraform` is executed. Both refusals are
+falsifiable in about a second:
+
+```bash
+scripts/deploy/plan_repro.sh --prove-refusal
+#   terraform apply        REFUSED, exit 2   [ok]      … seven of these, then:
+#   Seven refusals, seven exits of 2. The allowlist is: init validate plan show version
+
+scripts/deploy/plan_repro.sh --prove-expiry-refusal <a function that exists> --region <its region>
+#   plan_repro: THE EQUIVALENCE HAS EXPIRED — the Lambda '…' already exists in …
+#   verdict                REFUSED with exit 5   [ok — the expiry guard fires]
+```
+
+**Two traps this script exists to have already stepped in, both measured here.**
+
+* **The two halves must be the same identity.** The first version proved an identity with
+  `aws --profile mainline-dev` and then let Terraform resolve its own credentials. On this
+  machine no `AWS_*` variable is set, so the provider fell through to the default chain and
+  `plan` died on `InvalidClientTokenId: The security token included in the request is
+  invalid` — *after* printing a plausible output diff. The profile is now exported, and
+  static keys alongside a profile are refused rather than ranked, because the CLI would
+  honour the profile and the provider would honour the keys.
+* **The raw plan contains the AWS account id, and a correct plan always will.** Twelve
+  occurrences in the FURL plan, nineteen in the CloudFront one — `data.aws_caller_identity`
+  puts them there. Zero is a property of the **committed, masked** artefact
+  (`docs/deploy/terraform-plan.md` §1.2), never of the raw output. The script counts them and
+  says so; it does not mask the file, because a file described as verbatim should not be
+  quietly rewritten on its way to disk.
+
+**If it exits 6, the committed artefact is stale — regenerate the artefact, never the
+number.** `plan_repro.sh --cloudfront` exits 6 today: the committed CloudFront artefact
+predates the `cost-guard` instantiation at `infra/envs/demo/main.tf:632` and no longer
+describes what that configuration would create. Regenerating it belongs to whoever owns
+`evidence/deploy/`; **the plan is the fact and the artefact is the record**, so the artefact
+moves to the plan and never the other way round.
+
+---
+
+#### 5.6.2 · The real S3 backend — the path the founder applies from
+
+This is the path for the actual deploy, and it is the *only* correct path once anything has
+been applied. In order:
+
+1. **Get the backend line.** Read-only; §5.1's script makes zero AWS calls in this mode.
+
+   ```bash
+   scripts/deploy/plan_repro.sh --print-backend-config
+   # or:  scripts/deploy/bootstrap_state.sh --print-backend-config --bucket <name>
+   #
+   #   terraform init \
+   #     -backend-config="bucket=mainline-demo-tfstate-<account>" \
+   #     -backend-config="region=ap-southeast-1"
+   ```
+
+   That line carries your account id. It is not a credential, but do not paste it into a
+   tracked file — `scripts/submission/audit_public_readiness.py` fails the build on a literal
+   occurrence (decision D2).
+
+2. **Create the bucket — THE FIRST MUTATING ACTION.** §5.1. Orchestrator and founder only.
+
+   ```bash
+   scripts/deploy/bootstrap_state.sh --expect-account <id>
+   ```
+
+3. **Init against the real backend and plan.** From here the state is real, `use_lockfile`
+   takes and releases an S3 lock, and §5.6.1's local-override reproduction is no longer
+   equivalent and must not be used to check the count.
+
+   ```bash
+   cd infra/envs/demo
+   terraform init -reconfigure -backend-config="bucket=<the bucket>" -backend-config="region=ap-southeast-1"
+   terraform plan -no-color -input=false -out=<scratch>/tfplan.binary
+   ```
+
+4. **Or just run the deploy script**, which does all of the above and stops at the approval
+   gate: `scripts/deploy/deploy.sh --expect-account <id>` → exit 7, §5.6.
+
+**Whichever path produced it, the plan the founder approves is the plan that is applied**, as
+a saved plan file. `plan_repro.sh` is for *reading* the plan before there is a backend; it is
+not a substitute for stage 6, which is what actually runs.
 
 ### 5.7 · Publish, and prove the hostname over HTTPS
 
@@ -658,16 +859,21 @@ that bound sits at four to five orders of magnitude higher.
 | | Steady state | Adversarial |
 |---|---|---|
 | Who is calling | judges, a health cron, us | anyone who finds an `on.aws` hostname |
-| What bounds it | the free tiers below | **the account concurrency ceiling of 10, and nothing else** |
-| 30 days | **≈ $0.02** | **USD 11,538 – 33,257** |
+| What bounds it | the free tiers below | **the account concurrency ceiling of 10, and the shipped levers** |
+| 30 days | **≈ $0.02** | **see [`COST-BOUND.md`](COST-BOUND.md) — one authority, no copy here** |
 | Measured in | §8.1 below | [`COST-BOUND.md`](COST-BOUND.md) |
 
-Both numbers are measured. Neither is a guess, and **neither is a substitute for the
-other.** An earlier version of this section ended *"round it to two cents a month, and call
-the worst case a dollar"* — a sentence that was wrong by a factor of about thirty thousand,
-and wrong in the direction that gets a founder's card charged. It is deleted rather than
-softened, because a reader who took it at face value would have had no reason to open
-`COST-BOUND.md` at all.
+The steady-state number is measured, and §8.1 shows the arithmetic. **The adversarial number
+is deliberately not restated in this runbook.** This table used to carry *"USD 11,538 –
+33,257"*, and that range assumed a **100 ms** invocation nobody had measured; at the measured
+duration it is understated about sevenfold. A second copy of a figure is a second thing that
+can go stale, and this one already had. Read `COST-BOUND.md` before the apply — not after.
+
+An earlier version of this section ended *"round it to two cents a month, and call the worst
+case a dollar"* — a sentence that was wrong by a factor of about thirty thousand, and wrong
+in the direction that gets a founder's card charged. It is deleted rather than softened,
+because a reader who took it at face value would have had no reason to open `COST-BOUND.md`
+at all.
 
 ### 8.1 · Steady state — ≈ $0.02/month
 
@@ -725,7 +931,12 @@ fast.
 
 The answer, measured: **10**. `L-B99A9384` "Concurrent executions" reads `Value 10.0` in
 `ap-southeast-1`, and `ConcurrentExecutions` cannot physically exceed it. Multiplied by 30
-days and by the largest response the package can emit, that is **USD 11,538 – 33,257**.
+days and by the largest response the package can emit, that is a figure with five digits in
+front of the decimal point — **and this page no longer names it, because it named it wrong
+for a week.** The published *"USD 11,538 – 33,257"* was built on an assumed 100 ms
+invocation; the measured duration is 14.106 ms, which makes the true number roughly seven
+times larger. `COST-BOUND.md` carries it, derives it from `scripts/deploy/cost_model.py`, and
+is the only place it is written down.
 
 **The arithmetic, the inputs it is built from, and the menu of levers that change it are in
 [`docs/deploy/COST-BOUND.md`](COST-BOUND.md), and are not repeated here.** Read it before
@@ -768,8 +979,17 @@ would cost in lag.
 
 Honesty is the moat, so this section is explicit.
 
-**Measured on this machine, against live systems, 2026-08-10 and 2026-08-11:**
+**Measured on this machine, against live systems, 2026-08-10, 2026-08-11 and 2026-08-14:**
 
+* **§5.6.1 end to end, 2026-08-14.** `scripts/deploy/plan_repro.sh` run in the published
+  order on this machine: stage 2's three read-only checks, `init -reconfigure`, `validate`
+  (*Success! The configuration is valid.*), `plan` → **`Plan: 24 to add, 0 to change, 0 to
+  destroy.`**, agreeing with `evidence/deploy/terraform-plan-furl.txt`; exit 0;
+  `git status --porcelain -- infra/envs/demo` identical before and after, and
+  `backend_override.tf` gone. Both refusals were exercised as negative controls the same day:
+  **seven refusals at exit 2** — `apply`, `destroy`, `import`, `taint`, `force-unlock`,
+  `state`, and `plan -destroy` — and the expiry guard at **exit 5** when pointed at a Lambda
+  that does exist. A runbook nobody has run is a hypothesis; this one has been run
 * `terraform validate` and `terraform plan` against the real modules — no cycle, one pass
 * the cycle and the `Invalid count` error that shaped the wiring — both reproduced, both
   transcribed in `infra/envs/demo/README.md`
@@ -811,7 +1031,16 @@ Honesty is the moat, so this section is explicit.
   the state bucket and stage 2 to write the real `mainline_api` DSN to SSM. Stage 6 is
   therefore verified statically — exactly one executable `terraform apply`, unreachable
   without `MAINLINE_APPLY_APPROVED=1` — and by the `apply gate CLOSED` line the preflight
-  prints on every run. Its first execution will be the approved one.
+  prints on every run. Its first execution will be the approved one. **§5.6.1 does not close
+  this gap and does not claim to:** it proves the plan is reproducible read-only, not that
+  stage 6 behaves as written.
+* **§5.6.2, the real-S3-backend path, has NOT been run in this wave.** Step 2 of it is
+  `bootstrap_state.sh` without `--print-backend-config`, which creates a bucket — a mutating
+  call, and this wave is read-only, so it was not run and its transcript is the 2026-08-10
+  one quoted in §5.1 rather than a fresh one. What *was* verified read-only on 2026-08-14 is
+  step 1, `--print-backend-config`, which emits the two `-backend-config` lines and makes no
+  AWS call. **Steps 2 and 3 are documented, not demonstrated.** Saying so is cheaper than
+  discovering it at the gate.
 * **Stage 7's HTTPS proof.** It cannot run before something is deployed. Its assertions are
   written against the measured shape of `health.py`, not against a guess.
 * **`deploy.ps1` stages 1–9.** Its preflight and `-DryRun` were run here and behave

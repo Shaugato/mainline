@@ -30,7 +30,7 @@ identical between them.
 
 ```
  judge's browser ──► https://<id>.lambda-url.ap-southeast-1.on.aws   HTTPS, AWS cert
-                     │  AWS Lambda · python3.13 · 512 MB · 15 s      ONE origin
+                     │  AWS Lambda · python3.13 · 256 MB · 14 s      ONE origin
                      │
                      │   GET  /                → index.html (console SPA)
                      │   GET  /assets/*        → hashed js/css, immutable
@@ -178,17 +178,25 @@ module "demo_api" {
 | `restrict_kms_to_parameter` | `bool` | `true` | Add `kms:EncryptionContext:PARAMETER_ARN` to the `Decrypt` grant. |
 | `demo_database` | `string` | `mainline_demo` | Published as `$MAINLINE_DEMO_DATABASE`. Declarative — see [environment](#environment-variables). |
 | `scenario_permit_id` | `string` | `dec0de00-…0001` | The permit the three beats drive — the row `seed_demo.py` actually seeds, read back out of `mainline_demo` on 2026-08-12. Published under two names — see [environment](#environment-variables). |
-| `log_level` | `string` | `INFO` | Published as `$LOG_LEVEL` **and** wired into `logging_config.application_log_level`. |
-| `memory_size` | `number` | `512` | MB. CPU scales with it; the free tier is not the binding constraint. |
-| `timeout` | `number` | **`15`** | Seconds. Was 25. See [the timeout is 15 s](#the-timeout-is-15-s-and-the-number-is-arithmetic). Still capped at 29 so every configuration stays valid for CloudFront's 30 s origin read timeout. |
+| **`demo_signer_sub`** | `string` | **`demo.signer`** | The principal beat 4 signs as, published as `$MAINLINE_DEMO_SIGNER_SUB`. **The seed is authoritative, not this default:** `verticals/mainline/db/seeds/demo/demo_world.sql:125` inserts it into `mainline.signing_credential.signer_sub`. Load-bearing — `fn_disposition_project` joins `mainline.person` on it (`0102_fn_disposition_project.sql:155`). Refuses the empty and the padded string, because `scenario.from_env` computes `.strip() or "demo.signer"` and a blank value is a silent revert, not an unset. |
+| **`demo_countersigner_sub`** | `string` | **`demo.countersigner`** | The second principal beat 4 countersigns as, published as `$MAINLINE_DEMO_COUNTERSIGNER_SUB`. Authoritative source `demo_world.sql:133`; joined on at `0102_fn_disposition_project.sql:174`. **Must differ from `demo_signer_sub`** — the database refuses a self-countersignature (`needs_second_signer`, `0066_disposition.sql:176`), so a plan-time precondition on the function refuses it first. |
+| `log_level` | `string` | **`WARN`** | The **application** level. Published as `$LOG_LEVEL` **and** wired into `logging_config.application_log_level`. Was `INFO`; ingestion is billed on arrival and a working handler was measured emitting p50 = 0 bytes of its own per invocation, so the level only decides how loud a *misbehaving* one may be. The **system** level is a different field, hard-coded to `WARN` because that is the quietest its enum allows, and AWS publishes no level-to-event mapping — so `platform.start`/`platform.report` are counted as present. |
+| `memory_size` | `number` | **`256`** | MB. Was `512`, justified by a sentence that was false ("lowering this makes cold starts worse *without making the bill smaller*"). It is the **only** lever that is duration-independent: it halves compute outright and roughly halves the flood rate. It costs a slower cold start on a judge's first click, and there is **no measurement of a 256 MB Lambda anywhere in this evidence.** |
+| `timeout` | `number` | **`14`** | Seconds. Was 25, then 15. A **reliability** bound — Lambda bills actual duration, so this moves the bill by nothing. See [the timeout is 14 s](#the-timeout-is-14-s-it-is-a-reliability-bound-and-the-number-is-arithmetic). Still capped at 29 so every configuration stays valid for CloudFront's 30 s origin read timeout. |
+| **`max_response_bytes`** | `number` | **`139264`** | Published as `$MAINLINE_MAX_RESPONSE_BYTES`. Mirrors `static_site.DEFAULT_MAX_RESPONSE_BYTES = 136 * 1024`, which is **derived from the deployed tree**: 1.122x the largest `.gz` object that ships (124,127 B). Measured on **wire** bytes, not on the 33 %-larger base64 envelope. |
+| **`rate_global_rps`** / **`rate_global_burst`** | `number` | **`10`** / **`100`** | Published as `$MAINLINE_RATE_GLOBAL_RPS` / `_BURST`. Mirror `ratelimit.DEFAULT_GLOBAL_RPS` / `_BURST`. Per **execution environment**, so the fleet bound is `rps x account_concurrency_ceiling` = 100 rps. This is the first order-of-magnitude lever in the whole cost model and it was running unpublished. |
+| **`rate_ip_rps`** / **`rate_ip_burst`** | `number` | **`5`** / **`50`** | Published as `$MAINLINE_RATE_IP_RPS` / `_BURST`. Mirror `ratelimit.DEFAULT_IP_RPS` / `_BURST` — half the global pair. Bounds a **caller**, not an attacker. |
+| **`log_budget_bytes`** | `number` | **`4096`** | Published as `$MAINLINE_LOG_BUDGET_BYTES`. Mirrors `logbudget.DEFAULT_BUDGET_BYTES`. **Raising it requires raising `cost-guard`'s `log_incoming_bytes_threshold` proportionally** — that threshold is derived from it. |
 | `reserved_concurrent_executions` | `number` | **`-1`** | **Was `20`, and `20` cannot be applied on this account.** `-1` = reserve nothing, draw from the account pool. Not a cost cap and never was — `min(20, 10) = 10`. `0` is the documented kill switch. |
 | `log_retention_days` | `number` | `7` | CloudWatch retention. `0` (never expire) is not offered. **Unchanged by D1.** |
-| `duration_p99_threshold_ms` | `number` | **`12000`** | p99 alarm threshold, 80 % of the 15 s timeout. Moved *because* the timeout moved — a 20 000 ms threshold on a 15 000 ms ceiling can never breach. A plan-time precondition refuses any value not strictly below `timeout × 1000`. |
+| `duration_p99_threshold_ms` | `number` | **`13500`** | p99 alarm threshold. Was `12000`, and it went **up** because the alarm now **acts**: `infra/envs/demo` wires a stop topic into `alarm_actions`, so a breach is an outage rather than a red square. Pinned by **two** plan-time preconditions into `13,022 < T < 14,000` — a floor so a cold start cannot stop the demo, a ceiling because Lambda caps the `Duration` datapoint at the timeout. |
+| **`modelled_worst_legitimate_duration_ms`** | `number` | **`13022`** | The **unconditional** floor under the row above. `docs/deploy/LATENCY.md` §5.1's binding case: a **cold** start at 256 MB with a 2x worse tail. It is a **model, not a measurement**, and it is labelled that way in `LATENCY.md` too — if an apply ever yields real `Duration` percentiles, this is the number to replace. It was written conditional on `alarm_actions` first and the conditional form was **measured not to fire**; see below. |
 | `concurrency_alarm_threshold` | `number` | **`8`** | Abuse tripwire, on the **account-level** `ConcurrentExecutions` metric. **Was `20`, above a physical ceiling of `10`** — an alarm that could not fire. A plan-time precondition refuses any value not strictly below `account_concurrency_ceiling`. |
 | **`account_concurrency_ceiling`** | `number` | **`10`** | The account's measured Lambda concurrency quota — the maximum `ConcurrentExecutions` can physically take, and the bound every concurrency threshold here must sit strictly below. A variable and not a `data` lookup so both sides of the precondition are known at *plan* time and the plan stays byte-reproducible. A caller on another account sets it to what `get-account-settings` returns for theirs. |
-| `alarm_actions` | `list(string)` | `[]` | SNS topics. Empty on purpose — an unconfirmed subscription is a control that looks present and is not. The alarms exist to be *read*. |
+| `alarm_actions` | `list(string)` | `[]` | SNS topics notified on ALARM, on **all four** alarms. The module default is still empty, but **`infra/envs/demo` passes the cost guard's STOP topic**, so in the shipping configuration a breach of any of the four takes the demo down until a human runs `kill_switch.sh --restore`. See [these four now STOP the demo](#these-four-now-stop-the-demo-and-one-consequence-is-refused-rather-than-accepted). |
+| **`ok_actions`** | `list(string)` | `[]` | SNS topics notified on **recovery**. A separate list since this wave: all four alarms used to read `ok_actions = var.alarm_actions`, which with a stop topic in it means a stop fired by the demo getting *better*. The default is byte-for-byte what the old expression evaluated to in every configuration that existed. |
 | `create_dashboard` | `bool` | `true` | First three dashboards per account are free. |
-| `extra_environment` | `map(string)` | `{}` | Merged in. Cannot carry `MAINLINE_DSN`, a Lambda reserved name, or a key this module sets — now including `MAINLINE_WEB_ROOT`, which has its own variable. |
+| `extra_environment` | `map(string)` | `{}` | Merged in. Cannot carry `MAINLINE_DSN`, a Lambda reserved name, or a key this module sets — now including `MAINLINE_WEB_ROOT`, the two signer subs, and the six `MAINLINE_*` bounds, each of which has its own variable. `local.environment` is `merge(extra_environment, {…module keys…})` and `merge`'s last argument wins, so a key set in both would be silently discarded; the validation makes that a plan-time refusal instead. |
 | `tags` | `map(string)` | `{}` | Merged **under** the mandatory three, which a caller cannot override. |
 
 There is still **no** variable that can carry the DSN value, and there never will be; that
@@ -214,6 +222,9 @@ the reversal is explained at the top of `variables.tf` rather than quietly perfo
 | `architecture` | `arm64` | deploy report |
 | `package_sha256_base64` | `0h5puChORMwV9wzxVmRP2KKkuq/B/bl7Ba7RYIF/KMU=` | deploy report |
 | `alarm_names` | 4 names | `aws cloudwatch describe-alarms --alarm-names <these>`, from a workstation that **has** a credential — `scripts/deploy/aws_live_probe.py`. **Not** the `demo-health` workflow: it has no AWS credential and neither does any other workflow here. All four return `INSUFFICIENT_DATA` until the demo is exercised, by design. |
+| **`alarm_arns`** | 4 ARNs | to be **compared against `cost-guard`'s `alarm_arns`**. The guard's topic policy admits `cloudwatch.amazonaws.com` only for its own three alarm ARNs; none of these four is in that list, and the env root points them at that topic anyway. Whether they can publish rests on the policy's default `Principal AWS:*` statement, and only an apply settles it. |
+| **`published_bounds`** | 15 fields, **all plan-known** | "what is actually in force?" in one command, instead of unzipping a 7.6 MB package to read a Python constant. `alarm_actions_armed` is deliberately **not** a field here: it cannot be plan-known, and one unknown field renders the whole object `(known after apply)`. |
+| **`alarm_actions_armed`** / **`ok_actions_armed`** | `true` / `false` | `(known after apply)` — `try()` over a counted module yields unknown. The wiring itself is provable from the plan's `configuration` section; see `evidence/deploy/cost/plan-shape.json`. |
 | `dashboard_name` | `mainline-demo-api` or `null` | — |
 
 ---
@@ -339,7 +350,30 @@ If a future caller ever serves the console from a second hostname, the repair is
 block naming *that hostname*, in the same commit as the second hostname — never `*` — and
 it belongs at *this* layer, not in the handler.
 
-### The timeout is 15 s, and the number is arithmetic
+### The timeout is 14 s, it is a RELIABILITY bound, and the number is arithmetic
+
+> **It moved from 15 s to 14 s on 2026-08-13, and `memory_size` from 512 MB to 256 MB with
+> it.** The paragraphs below are the original cold-path reasoning and they are kept because
+> the *shape* of the argument is unchanged: a cold invocation pays runtime init, a psycopg
+> import, an SSM read with a KMS decrypt behind it, a TLS+pgwire connect, and then six round
+> trips. What changed is that `docs/deploy/LATENCY.md` **measured** those terms instead of
+> bounding them by the only figure anyone had. §5.1's binding case — a cold start at 256 MB
+> with a 2x worse tail — is 13,022.9 ms, and 14 s is the smallest whole second that clears
+> it, by 1.07x.
+>
+> **This number is not a spend bound and nobody may sell it as one.** Lambda bills actual
+> duration, so a 5.66 ms invocation costs exactly the same at 14 s as at 3 s. The 3 s that
+> was asked for is refused on arithmetic: it is 0.80x the warm in-region `gate_run` p99
+> corrected to Lambda (3,729 ms) and would truncate the headline beat — the only beat that
+> writes anything and the one on screen — with no cold start and no `40001` retry involved.
+> A truncated headline beat is a far worse defect than a larger bill, and here it is not
+> even a trade.
+>
+> **The 2.91 s figure below is superseded, not deleted.** It was a workstation-to-Singapore
+> connect across the public internet from Australia and it was honestly labelled a ceiling
+> rather than the Lambda figure. `LATENCY.md` §3 method B is the in-region correction.
+
+
 
 A cold invocation pays, in order: python3.13 runtime init; `import psycopg` plus
 `psycopg_binary` (a 6.7 MB C extension being `dlopen`'d); one SigV4 `ssm:GetParameter` and
@@ -624,12 +658,20 @@ shells out to `uv run` is dead here.
 | `MAINLINE_DEMO_DATABASE` | **nothing** | Declarative. See below. |
 | `MAINLINE_SCENARIO_PERMIT_ID` | **nothing** | The name this module was specified to publish. |
 | `MAINLINE_DEMO_PERMIT_ID` | `mainline_demo_api.scenario.from_env` | The name the code actually reads. Same value. |
+| **`MAINLINE_DEMO_SIGNER_SUB`** | `mainline_demo_api.scenario.from_env` | **New.** The principal beat 4 signs as. From `var.demo_signer_sub`; the authoritative value is `demo_world.sql:125`. See the fourth note below — this one was **load-bearing and unpublished**, which is worse than inert. |
+| **`MAINLINE_DEMO_COUNTERSIGNER_SUB`** | `mainline_demo_api.scenario.from_env` | **New.** The principal beat 4 countersigns as. From `var.demo_countersigner_sub`; authoritative value `demo_world.sql:133`. Must differ from the signer — a plan-time precondition refuses equality. |
+| *(no `MAINLINE_DEMO_SITE_ID`)* | — | **Deliberately absent.** `scenario.from_env` reads a `SITE_ID` override, but `fn_disposition_project` projects the site away (invariant I02, `gate_run.py:106-111`), so publishing it would be an override that looks configured and is inert. |
 | **`MAINLINE_WEB_ROOT`** | `mainline_demo_api.app` | **New under D1.** Where the console SPA lives inside the package: `/var/task/web` (`$LAMBDA_TASK_ROOT` + the `web/` directory the build script writes). Load-bearing — this function serves `/` as well as `/v1/*`, and a wrong value gives the judges a 404 at `/` beside a perfectly green `/v1/health`. From `var.web_root`; also emitted as an output so the deploy script can assert the zip contains it. |
-| `LOG_LEVEL` | **nothing** | Conventional name. `logging_config.application_log_level` is what filters. |
+| `LOG_LEVEL` | **nothing** | Conventional name. `logging_config.application_log_level` is what filters. `WARN` since this wave. |
+| **`MAINLINE_MAX_RESPONSE_BYTES`** | `mainline_demo_api.static_site.max_response_bytes()` | **New.** `139264`. The wire-byte ceiling on any single response. Mirrors `DEFAULT_MAX_RESPONSE_BYTES = 136 * 1024`, itself derived from the deployed tree at 1.122x the largest shipping `.gz` object. |
+| **`MAINLINE_RATE_GLOBAL_RPS`** / **`_BURST`** | `mainline_demo_api.ratelimit` | **New.** `10` / `100`, per execution environment — fleet bound `10 x 10 = 100 rps`. The first order-of-magnitude lever in the cost model, and it was running unpublished. |
+| **`MAINLINE_RATE_IP_RPS`** / **`_BURST`** | `mainline_demo_api.ratelimit` | **New.** `5` / `50`. Bounds a caller, not an attacker. |
+| **`MAINLINE_LOG_BUDGET_BYTES`** | `mainline_demo_api.logbudget` | **New.** `4096` per invocation. Raising it requires raising `cost-guard`'s `log_incoming_bytes_threshold` proportionally. |
 | *(anything in `extra_environment`)* | varies | e.g. `MAINLINE_DEMO_ALLOW_MUTATION`, `MAINLINE_DEBUG`. |
 
-Three honest notes, because a variable that looks configured and behaves inert is worse
-than one that is absent:
+Five honest notes, because a variable that looks configured and behaves inert is worse
+than one that is absent — and, as the fourth and fifth record, a *load-bearing* variable
+that is never published at all is worse than either:
 
 * **`MAINLINE_SCENARIO_PERMIT_ID` is not read by anything.** `scenario.py` builds its
   override names as `ENV_PREFIX + "PERMIT_ID"` where `ENV_PREFIX = "MAINLINE_DEMO_"`, so
@@ -647,6 +689,36 @@ than one that is absent:
 * **`LOG_LEVEL` does not filter anything by itself.** `logging_config.log_format = "JSON"`
   plus `application_log_level` is what the managed runtime honours, and it is set from the
   same variable, so the two cannot drift.
+* **The two signer subs were load-bearing and unpublished, and that is the worse defect,
+  not the milder one.** `scenario.from_env` reads `MAINLINE_DEMO_SIGNER_SUB` and
+  `MAINLINE_DEMO_COUNTERSIGNER_SUB` (`scenario.py:209-212`) and falls back to the constants
+  `"demo.signer"` / `"demo.countersigner"` compiled into the application. This module
+  published **neither**, so the only beat that writes a disposition ran on values no
+  deployed configuration named. The values were *correct* — they equal what
+  `demo_world.sql:125,133` seeds — but they agreed with the seed by coincidence, and a
+  database seeded with different principals would have failed beat 4 with **nothing in
+  `aws lambda get-function-configuration` to point at.** `MAINLINE_SCENARIO_PERMIT_ID`
+  above is an override that looks configured and is inert; this was the reverse, and the
+  reverse is harder to diagnose because there is no wrong value to find. They are published
+  now, so the expectation is readable off the deployed function and a divergence between
+  Terraform and the seed is a diff between two named things. **The seed remains
+  authoritative in both directions:** if the two disagree, the fix is this module's default,
+  never `demo_world.sql`.
+* **The six `MAINLINE_*` bounds were ENFORCED and UNREADABLE, which is the same defect one
+  notch milder.** `static_site.py`, `ratelimit.py` and `logbudget.py` each carry a real,
+  enforced bound and each reads an environment variable that overrides it. This module
+  published **none** of them, so all six ran on constants compiled into the application. An
+  operator asking *"what response ceiling is this function actually enforcing?"* had to
+  unzip a 7.6 MB deployment package and read a Python constant; `get-function-configuration`
+  answered nothing. That is not a wrong value — it is the absence of a question. **The
+  application is authoritative and Terraform mirrors it**, the same rule the two subs follow
+  toward the seed, pointed the other way: each default cites the constant it copies, and a
+  published value that *disagrees* with the code would be worse than none, because the
+  environment variable wins at runtime while reading like documentation. **Publishing does
+  not disarm:** every parser falls back to its compiled-in default on a value it cannot
+  read — `float("inf")` and `float("nan")` both parse, which is exactly why
+  `ratelimit._rate()` is not a bare `try: float(...)` — so the worst a typo does is revert
+  to the previous behaviour, and a `validation` block refuses the typo at plan time anyway.
 
 `MAINLINE_DSN` — a DSN passed directly — is **rejected** by `extra_environment`'s
 validation. It is the escape hatch `db.py` offers for local development, and letting it
@@ -656,16 +728,101 @@ through here would put the password back in Terraform state through the side doo
 
 ## Alarms and dashboard
 
-The first ten CloudWatch alarms per account are free; these are four of them. None has an
-action by default: an SNS topic whose email subscription nobody confirmed is a control
-that looks present and is not.
+The first ten CloudWatch alarms per account are free; these are four of them. The module
+still defaults `var.alarm_actions` to `[]` — an SNS topic whose email subscription nobody
+confirmed is a control that looks present and is not — **but `infra/envs/demo` no longer
+leaves it empty.** Read the next subsection before the table.
 
 | Alarm | Metric | Condition | Why |
 |---|---|---|---|
 | `<fn>-errors` | `Errors` Sum, per function | `> 0` over 5 min | The handler is written never to raise: refusals are 200s with a `REFUSED` verdict, failures are JSON problem documents. An `Errors` datapoint means it raised anyway. |
 | `<fn>-throttles` | `Throttles` Sum, per function | `> 0` over 5 min | The account concurrency ceiling is biting. A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler — user-visible and undiagnosable from the browser. |
-| `<fn>-duration-p99` | `Duration` p99, per function | `> 12 000 ms` | Approaching the 15 s timeout (80 % of it). On this stack that is nearly always the pgwire round trip, not the handler — `/v1/health` reports connect time separately. **Plan-time precondition:** threshold must be `< timeout × 1000`. |
+| `<fn>-duration-p99` | `Duration` p99, per function | `> 13 500 ms` | Approaching the 14 s timeout. On this stack that is nearly always the pgwire round trip, not the handler — `/v1/health` reports connect time separately. **Two plan-time preconditions:** `< timeout × 1000` always, and `> modelled_worst_legitimate_duration_ms` whenever the alarm has an action. |
 | `<fn>-concurrency` | `ConcurrentExecutions` Max, **account-level** | `> 8` | Abuse tripwire, against a measured ceiling of **10**. A judging session is a few browsers making four requests each. **Plan-time precondition:** threshold must be `< account_concurrency_ceiling`. |
+
+### These four now STOP the demo, and one consequence is refused rather than accepted
+
+`infra/envs/demo` passes `module.guard[0].sns_topic_arn` as `var.alarm_actions`. That topic
+is a **stop** topic: everything subscribed to it invokes a responder that calls
+`lambda:PutFunctionConcurrency(ReservedConcurrentExecutions=0)` on this function. So in the
+shipping configuration a breach of any row above takes the demo down — `HTTP 429`, no body,
+to everyone — until a human runs `scripts/deploy/kill_switch.{sh,ps1} --restore`.
+
+**Three of the four are health signals and stopping on them is a self-inflicted outage.**
+`infra/modules/cost-guard/outputs.tf` says exactly that about the ARN it exports, and it is
+right. The env root wires it anyway under a ranking this project states out loud
+(`docs/leads/cost-finish-plan.md` §0.5): *an outage is recoverable by one command and a bill
+is not.* Under the founder's bounded-but-open posture the URL has no authentication, so
+anyone can already trip the guard's own burst alarm; these four widen the set of ways that
+can happen, they do not create it. **That trade belongs in a residual column, and
+`docs/deploy/COST-BOUND.md` is where it is costed.**
+
+**The one consequence that ranking does not excuse is `-duration-p99` firing on a cold
+start.** A cold start is not abuse and not an incident — it is a judge's first click. At
+`memory_size = 256` the modelled cold path is 6,511 ms and its 2x tail binding case is
+13,022.9 ms (`docs/deploy/LATENCY.md` §5.1), so the old 12,000 ms threshold would have
+stopped the demo on it. The alarm therefore carries a **floor** as well as its ceiling:
+
+```
+                 13,022 ms                  13,500 ms         14,000 ms
+   ------------------|-------------------------|-----------------|-------------->
+   modelled worst legitimate            the threshold      timeout x 1000
+   (cold @ 256 MB, 2x tail)                                (Duration is capped here)
+          |                                                       |
+          +-- below this, a cold start STOPS the demo             +-- at or above this,
+                                                                      the alarm CANNOT fire
+```
+
+Both edges are `lifecycle.precondition`s, checked at plan time, costing one evaluation and
+no API call. If the band is ever empty, the finding is that `timeout` is too small for
+`memory_size` — *never* that a precondition should be widened.
+
+**The floor is UNCONDITIONAL, and the reason is a measurement of my own first attempt.** It
+was written as `length(var.alarm_actions) == 0 || <the comparison>`, so that an alarm which
+only *reports* would not carry a floor. That reasoning is fine and the expression did not
+work: `infra/envs/demo` reaches the stop topic through
+`try([module.guard[0].sns_topic_arn], [])`, `try()` returns a **wholly unknown** value when
+its argument contains an unknown, and **Terraform defers an unknown precondition to apply
+instead of failing the plan.** Planting the violation is what found it:
+
+```console
+$ terraform plan -var api_duration_p99_threshold_ms=12000   # the OLD default
+Plan: 24 to add, 0 to change, 0 to destroy.          # <- should have been refused
+$ terraform plan -var api_duration_p99_threshold_ms=13022   # exactly ON the floor
+Plan: 24 to add, 0 to change, 0 to destroy.          # <- should have been refused
+```
+
+A precondition that cannot be evaluated at plan time is *a control that looks present and is
+not* — the exact defect the rule at the head of this section exists to refuse — so the guard
+clause was **deleted, not repaired**, leaving two plain variables. Re-run after the fix, all
+four edges exercised:
+
+```console
+$ terraform plan -var api_duration_p99_threshold_ms=12000   Error: Resource precondition failed
+$ terraform plan -var api_duration_p99_threshold_ms=13022   Error: Resource precondition failed
+$ terraform plan -var api_duration_p99_threshold_ms=13023   Plan: 24 to add   # one ms inside
+$ terraform plan -var api_duration_p99_threshold_ms=14000   Error: Resource precondition failed
+$ terraform plan                                            Plan: 24 to add   # 13 500, shipping
+```
+
+**What the unconditional form costs:** a caller with `alarm_actions = []` can no longer set a
+deliberately sensitive p99 warning below the modelled worst legitimate invocation. That is a
+smaller loss than it sounds — an alarm that fires on every cold start is noise whether or not
+it acts — and the honest repair is to lower `modelled_worst_legitimate_duration_ms` to a
+figure you have *measured*, which carries the threshold down with it.
+
+### `ok_actions` is a separate list, and it is empty
+
+All four alarms used to read `ok_actions = var.alarm_actions`. Under the old empty default
+that was invisible; with a stop topic in the list it means **every recovery of every alarm
+fires the stop responder again** — a stop triggered by the demo getting better. The
+responder refuses an OK transition on its own, but `infra/modules/cost-guard` states the
+rule this module was the exception to: the place to not do that is where the action is
+chosen, and the responder's refusal is the second belt rather than the first.
+
+`var.ok_actions` defaults to `[]`, which is byte-for-byte what the expression evaluated to in
+every configuration that previously existed. **Nothing is weakened by the split**; what
+changed is that arming one list no longer arms the other by accident.
 
 ### The rule, stated once so it is not re-derived
 
@@ -781,7 +938,7 @@ question. The readers that actually exist:
 | the CloudWatch console | yes (a human session) | — |
 | the dashboard's alarm widget | yes | fifth widget, all four ARNs at a glance — why the dashboard earns its free slot |
 | `scripts/deploy/aws_live_probe.py` | yes | run from a workstation that **has** one |
-| an SNS topic via `var.alarm_actions` | n/a | **only** once the variable is non-empty *and* the subscription is `CONFIRMED`. An unconfirmed subscription is a control that looks present and is not — which is why the variable defaults to empty rather than to a topic nobody clicked the link in. |
+| an SNS topic via `var.alarm_actions` | n/a | **In `infra/envs/demo` this is now the cost guard's STOP topic, whose subscriber is a Lambda and needs no confirmation.** The "unconfirmed subscription" caveat still applies to any *human-facing* topic and is why the module's default stays empty. **One hazard is open and no plan can settle it:** the guard's topic policy admits `cloudwatch.amazonaws.com` under an `ArnLike` on `aws:SourceArn` naming exactly the guard's own three alarm ARNs, and none of these four is in that list. Whether they can publish rests on the policy's first statement (SNS's default `Principal AWS:*` narrowed by `AWS:SourceOwner`). If they cannot, four alarms carry an action SNS denies — which `describe-alarms` renders identically to one that delivers. `terraform output api_alarm_arns` / `guard_alarm_arns` print the two sets; `evidence/deploy/cost/plan-shape.json` records them side by side. |
 
 The dashboard carries a text header, invocations + errors, duration p50/p99 with the alarm
 threshold and the timeout drawn as annotations, concurrency + throttles, and an alarm-state
@@ -798,7 +955,9 @@ $ aws cloudwatch put-dashboard --dashboard-name mainline-demo-api-w6-validate \
 ## Cost
 
 Everything is inside a perpetual free tier. Lambda: 1 M requests and 400 000 GB-s/month
-free, against 512 MB × ~300 ms × 10 000 requests = 1 536 GB-s. Logs: 7-day retention, far
+free, against **256 MB** × ~300 ms × 10 000 requests = **768 GB-s** (it was
+512 MB × ~300 ms = 1 536 GB-s before `memory_size` halved; the free tier was never the
+binding constraint in either case — see `var.memory_size`). Logs: 7-day retention, far
 under the 5 GB free ingest. Alarms: 4 of the first 10. Dashboard: 1 of the first 3. SSM
 Parameter Store Standard: free. Function URL: no charge beyond the invocation.
 **≈ $0.00/month under judging load.** The full itemisation, re-checked under D1, is in
@@ -888,7 +1047,9 @@ provider knows the value without applying, which is what makes it usable as an a
 before the deploy rather than after. `function_url` is `(known after apply)` and always
 will be: the `url_id` is minted by AWS.
 
-And the planned function configuration, from `terraform show -json`:
+And the planned function configuration, from `terraform show -json` — **re-run on
+2026-08-13** after `demo_signer_sub` and `demo_countersigner_sub` were added, so the two
+new lines below are read out of a real plan rather than predicted from the diff:
 
 ```
 timeout          15
@@ -903,8 +1064,90 @@ env MAINLINE_DSN_PARAM      = /mainline/demo/dsn
 env MAINLINE_DEMO_DATABASE  = mainline_demo
 env MAINLINE_DEMO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001
 env MAINLINE_SCENARIO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001
+env MAINLINE_DEMO_SIGNER_SUB        = demo.signer
+env MAINLINE_DEMO_COUNTERSIGNER_SUB = demo.countersigner
 env LOG_LEVEL               = INFO
 ```
+
+**Six of those lines moved on 2026-08-13 and eight lines were added.** The block above is
+kept as the dated record it is; the block below is the same read taken from the plan the
+env root produces today, and every difference has a derivation behind it rather than a
+preference:
+
+```
+timeout          14            ← was 15. LATENCY.md §5.1: smallest whole second clearing
+                                 the binding case (cold at 256 MB, 2× tail) of 13,022.9 ms.
+                                 A RELIABILITY bound. Lambda bills actual duration, so this
+                                 moves the bill by NOTHING.
+memory_size      256           ← was 512. The only lever in the menu that is
+                                 duration-independent. Costs a slower cold start on a
+                                 judge's first click, and that cost is stated not buried.
+architectures    ['arm64']
+url auth_type    NONE
+url cors         []            ← absent, not empty-permissive
+url invoke_mode  BUFFERED
+p99 threshold    13500         ← was 12000, and it went UP because the alarm now ACTS.
+                                 Pinned by two plan-time preconditions into
+                                 13,022 < T < 14,000: a floor so a cold start cannot stop
+                                 the demo, a ceiling so the alarm can still fire.
+system log level WARN          ← unchanged, and already the quietest value its enum allows
+env LOG_LEVEL               = WARN          ← was INFO
+env MAINLINE_WEB_ROOT       = /var/task/web
+env MAINLINE_DSN_PARAM      = /mainline/demo/cockroach_dsn
+env MAINLINE_DEMO_DATABASE  = mainline_demo
+env MAINLINE_DEMO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001
+env MAINLINE_SCENARIO_PERMIT_ID = dec0de00-0006-4000-8000-000000000001
+env MAINLINE_DEMO_SIGNER_SUB        = demo.signer
+env MAINLINE_DEMO_COUNTERSIGNER_SUB = demo.countersigner
+env MAINLINE_MAX_RESPONSE_BYTES = 139264    ← NEW
+env MAINLINE_RATE_GLOBAL_RPS    = 10        ← NEW
+env MAINLINE_RATE_GLOBAL_BURST  = 100       ← NEW
+env MAINLINE_RATE_IP_RPS        = 5         ← NEW
+env MAINLINE_RATE_IP_BURST      = 50        ← NEW
+env MAINLINE_LOG_BUDGET_BYTES   = 4096      ← NEW
+```
+
+> **The six new keys were ENFORCED AND UNREADABLE, which is a worse state than an inert
+> override.** `static_site.py`, `ratelimit.py` and `logbudget.py` each carry a real bound and
+> each reads an environment variable that overrides it. This module published none of them,
+> so all six ran on constants compiled into the application: correct, in force, and invisible
+> to `aws lambda get-function-configuration`. The permit-id note further down calls an
+> override that looks configured and is inert "the worst of the three possible states"; a
+> bound that is in force and unreadable is the second worst, because an operator cannot
+> discover that there is a question to ask.
+>
+> **The application is authoritative and Terraform mirrors it** — the same rule the two
+> signer subs follow toward `demo_world.sql`, pointed the other way. Each default cites the
+> constant it copies. A published value that DISAGREES with the code is worse than none,
+> because the environment variable wins at runtime while reading like documentation.
+>
+> **Publishing does not disarm.** Every parser falls back to its compiled-in default on a
+> value it cannot read — `float("inf")` and `float("nan")` both parse, which is exactly why
+> `ratelimit._rate()` is not a bare `try: float(...)` — so the worst a typo does is revert to
+> the previous behaviour. The `validation` blocks refuse the typo at plan time anyway,
+> because a silent revert is still an override that looks configured and is not.
+
+> **The two subs are additions, and the plan was otherwise byte-identical.** *(Dated
+> record. The env root's plan is `Plan: 24 to add` today, because `module "guard"` was
+> instantiated afterwards and adds thirteen resources — see
+> `infra/envs/demo/README.md`. The measurement below is left as it was taken.)* The env root
+> was planned twice on 2026-08-13 against the same package — once from `HEAD`, once with
+> this change — and diffed: `Plan: 11 to add, 0 to change, 0 to destroy` both times, and the
+> **only** substantive hunk is the two new keys in `environment.variables`. The check tally
+> went **44/44 pass → 48/48 pass**, the four additions being
+> `var.demo_signer_sub` / `var.demo_countersigner_sub` at the root and the same two inside
+> `module.api`; nothing was removed and nothing moved from pass. The new
+> `lifecycle.precondition` on `aws_lambda_function.this` adds no check *object* — Terraform
+> groups conditions under the resource — which is why the resource count stays at 6.
+>
+> **All three new refusals were exercised, not asserted.** `-var 'demo_signer_sub='` and
+> `-var 'demo_signer_sub= demo.signer '` are both refused with `Invalid value for variable`
+> (a blank value is `.strip() or "demo.signer"`, i.e. a silent revert to the in-code
+> constant, and a padded one is stripped before use so the published string is not the
+> string the handler matched on); `-var 'demo_countersigner_sub=demo.signer'` is refused
+> with `Resource precondition failed` naming
+> `verticals/mainline/db/migrations/0066_disposition.sql:176`. A control that cannot refuse
+> is not a control.
 
 > **The two permit lines were `077a6fdd-2167-559c-b2ff-8e3c8352504d` until 2026-08-12.**
 > That is `scenario.py:77`'s uuid5 fallback and **no row with that id has ever been
@@ -959,6 +1202,29 @@ In the spirit of [`docs/HONESTY.md`](../../../docs/HONESTY.md):
   403 to an unsigned `curl`" are both AWS's documented behaviour, not observations of *this*
   function. What *is* measured is which resources each shape plans, and with which
   attributes.
+* **`MAINLINE_DEMO_SIGNER_SUB` and `MAINLINE_DEMO_COUNTERSIGNER_SUB` are checked against the
+  seed *file*, not against the deployed cluster.** The two defaults were not read off the
+  source line and retyped — the seed's own bytes were executed. On 2026-08-13 the full
+  chain (54 `trappoint-ref` + **271** `mainline` migrations) was applied to a scratch
+  database on the local CockroachDB **v26.2.5** node, `demo_world.sql` was applied to it,
+  and the database was asked what it holds:
+
+  ```
+  SELECT signer_sub, encode(credential_id,'hex') FROM mainline.signing_credential ORDER BY signer_sub;
+    demo.countersigner   8d7b089f4c0aec7d…
+    demo.signer          ff356d1461921438…
+  SELECT signer_sub FROM mainline.person ORDER BY signer_sub;
+    ['demo.countersigner', 'demo.signer']
+  ```
+
+  Both Terraform defaults equal what the seed actually inserts. **Nobody has run that
+  `SELECT` against `mainline-dev` / `mainline_demo` in Singapore in this wave** —
+  `scripts/deploy/seed_demo.py` applies the same bytes, so the cloud values follow by
+  argument and not by observation of the cloud row. And what Terraform now guarantees is
+  narrower than "the demo works", so it is worth stating exactly: the deployed function
+  **publishes** the pair, so a divergence between this configuration and the seed is visible
+  in `aws lambda get-function-configuration` instead of surfacing as a constraint failure
+  inside beat 4.
 * `MAINLINE_WEB_ROOT = /var/task/web` is asserted, not verified end to end. It is correct
   if and only if the build script places the console at `web/` in the package root — W2's
   contract. The `web_root` output exists so the deploy script can check that claim against

@@ -117,6 +117,62 @@ _PATH_VALUE = re.compile(r"^[A-Za-z0-9._~-]{1,128}$")
 _HEX = re.compile(r"^([0-9a-f]{2})+$")
 
 
+#: The most caller-supplied text one refusal built here may carry back, and the most
+#: caller-supplied NAMES it may list. Both bound the same thing: an anonymous caller's
+#: ability to choose the length of a response it is not paying for. The demo is one Lambda
+#: Function URL with ``authorization_type = NONE`` — there is no authoriser between the
+#: internet and these branches.
+#:
+#: **Measured on 2026-08-13, before these existed.** 100,000 bytes of path segment, query
+#: value or query *name* came back as a 400 ``detail`` of 100,034 – 100,118 bytes through
+#: every one of the six refusals below: ratios 1.00, 1.00, 1.00, 1.00, 1.00, 1.00. The
+#: per-response ceiling in :func:`mainline_demo_api.static_site.max_response_bytes` does
+#: bound the result — it is 512 KiB and it is now a ceiling that refuses things — but it
+#: bounds it *at the exit*: the route had matched, the parameter had been parsed, and a
+#: half-megabyte string had been built and JSON-encoded before anything weighed it. A bound
+#: at the point of construction refuses the work as well as the delivery, and it is the
+#: only one of the two that can.
+#:
+#: 128 is not a round number, it is :data:`_PATH_VALUE`'s own maximum. A path parameter may
+#: legally be 128 characters, a ``site_code`` 64, a UUID 36, a ``commit_id`` 40 hex; the
+#: declared query names top out at ``clause_uuid``, 11. So **any value this truncates was
+#: already outside the contract the refusal is explaining**, and its first 128 characters
+#: are what identifies it to whoever reads the log. 8 names is likewise past the point:
+#: the widest resource declares three.
+MAX_ECHOED_VALUE: Final = 128
+MAX_ECHOED_NAMES: Final = 8
+
+
+def _echo(value: object) -> str:
+    """Render a caller-supplied *value* for a refusal, cut to a length THIS module chose.
+
+    One helper rather than a rule everyone remembers. Every ``!r`` in this file that could
+    hold something a caller sent goes through here, including the two that are already
+    bounded upstream by :func:`_param` — an echo site that is safe today because of what
+    calls it is one refactor from being the exception, and the exception is where the next
+    unbounded body comes from. The bounded ones cost a comparison.
+
+    ``repr`` first, then the cut, so the rendering a reader sees is the rendering the
+    refusals always used and control characters are still escaped rather than emitted.
+    """
+    text = repr(value)
+    if len(text) <= MAX_ECHOED_VALUE:
+        return text
+    return f"{text[:MAX_ECHOED_VALUE]}… ({len(text)} characters, truncated)"
+
+
+def _echo_names(names: Sequence[str]) -> str:
+    """Render caller-supplied parameter *names* for a refusal, bounded in count AND length.
+
+    Two bounds because a caller controls both: ``?a=1&b=1&…`` a thousand times over is a
+    thousand short names, which no per-name limit would have caught.
+    """
+    shown = [_echo(name) for name in names[:MAX_ECHOED_NAMES]]
+    if len(names) > MAX_ECHOED_NAMES:
+        shown.append(f"… and {len(names) - MAX_ECHOED_NAMES} more")
+    return "[" + ", ".join(shown) + "]"
+
+
 #: Resource key → (path parameters, query parameters), transcribed from
 #: ``console/src/data/resources.ts``. The console rejects an undeclared query parameter
 #: *before it is sent*; this API rejects one on arrival, because the console is not the
@@ -150,14 +206,15 @@ def _check_request(resource: str, params: Mapping[str, str], query: Mapping[str,
     unexpected_path = sorted(set(params) - set(path_names))
     if unexpected_path:
         raise BadRequest(
-            f"resource {resource!r} has no path parameter(s) {unexpected_path}. "
+            f"resource {resource!r} has no path parameter(s) {_echo_names(unexpected_path)}. "
             f"Declared: {list(path_names) or '(none)'}.",
             resource=resource,
         )
     unexpected_query = sorted(set(query) - set(query_names))
     if unexpected_query:
         raise BadRequest(
-            f"resource {resource!r} does not declare query parameter(s) {unexpected_query}. "
+            f"resource {resource!r} does not declare query parameter(s) "
+            f"{_echo_names(unexpected_query)}. "
             f"Declared: {list(query_names) or '(none)'}.",
             resource=resource,
         )
@@ -1727,6 +1784,61 @@ SELECT sr.silence_receipt_id, sr.run_id, sr.permit_id,
 #: honest thing is to say so on the same screen as the arithmetic.
 PER_BOUND_SENTENCE: Final = "PER proves exhaustion of the retrieval that ran, not of the corpus."
 
+#: The members ``silence.schema.json`` declares on ``boundary_proof`` and on each
+#: ``boundary_leaf``. Both carry ``additionalProperties: false``, so these sets are exact
+#: rather than minimal. They are named here as THE SHAPE THIS READER REFUSES TO VIOLATE,
+#: not as a copy of the contract kept for convenience: this deployment package's dependency
+#: closure is psycopg plus the standard library, so the reader cannot load the console's
+#: schema, and the only alternative to naming the members is emitting the row and letting
+#: the browser reject it — which is precisely the outcome the 409 below exists to prevent.
+_BOUNDARY_PROOF_MEMBERS: Final = frozenset({"leaf_s", "leaf_s_plus_1"})
+_BOUNDARY_LEAF_MEMBERS: Final = frozenset({"index", "leaf_hash_hex", "score", "path_hex"})
+
+
+def _members_fault(value: Any, field: str, declared: frozenset[str]) -> str | None:
+    """``None`` when *value* is an object declaring exactly *declared*; else why not."""
+    if not isinstance(value, Mapping):
+        return f"{field} is {type(value).__name__}, not the object the contract declares"
+    members = set(value)
+    if members == declared:
+        return None
+    missing = sorted(declared - members)
+    undeclared = sorted(members - declared)
+    detail = f"{field} carries {sorted(members)} where the contract declares {sorted(declared)}"
+    if missing:
+        detail += f"; missing {missing}"
+    if undeclared:
+        detail += f"; undeclared {undeclared}"
+    return detail
+
+
+def _boundary_proof_fault(proof: Any) -> str | None:
+    """``None`` when *proof* can be rendered as ``boundary_proof``; else the reason it cannot.
+
+    THE CHECK THIS REPLACED ASKED ONLY WHETHER ``leaf_s`` WAS PRESENT, and that is not the
+    shape the contract demands: a proof carrying ``leaf_s: []`` passes "is the key there?"
+    and then fails the console's validator on three counts at once — ``leaf_s`` is an array
+    where ``boundary_leaf`` is an object, ``leaf_s_plus_1`` likewise, and any extra member
+    is refused outright by ``additionalProperties: false``. Measured against the deployed
+    demo seed on 2026-08-13: ``$/data/receipt: matched 0 of 2 oneOf branches``. A guard
+    whose docstring promises "checked for the shape the contract demands before it goes
+    out" and which then emits an envelope the console rejects is worse than no guard, since
+    it is read as having already asked the question.
+    """
+    fault = _members_fault(proof, "boundary_proof", _BOUNDARY_PROOF_MEMBERS)
+    if fault is not None:
+        return fault
+    fault = _members_fault(proof["leaf_s"], "boundary_proof.leaf_s", _BOUNDARY_LEAF_MEMBERS)
+    if fault is not None:
+        return fault
+    if proof["leaf_s_plus_1"] is None:
+        # The contract's own `oneOf` — s+1 is absent when s is the last candidate.
+        return None
+    return _members_fault(
+        proof["leaf_s_plus_1"], "boundary_proof.leaf_s_plus_1", _BOUNDARY_LEAF_MEMBERS
+    )
+
+
 _SILENCE_STAGED_NOTE: Final = (
     "receipt.bound.statement is the only value in this payload that no column produced. "
     "mainline_meas.silence_receipt carries silence_receipt_id, run_id, permit_id, corpus_root, "
@@ -1787,12 +1899,14 @@ def read_silence(
     receipt: dict[str, Any] | None = None
     if receipt_row is not None:
         proof = receipt_row["boundary_proof"]
-        if not isinstance(proof, Mapping) or "leaf_s" not in proof:
+        proof_fault = _boundary_proof_fault(proof)
+        if proof_fault is not None:
             raise Unrepresentable(
                 f"mainline_meas.silence_receipt {receipt_row['silence_receipt_id']} carries a "
-                f"boundary_proof of shape {type(proof).__name__} without a leaf_s member. "
-                "silence.schema.json requires boundary_proof.leaf_s as an inclusion path, so this "
-                "receipt cannot be rendered under the contract the console holds.",
+                f"boundary_proof silence.schema.json cannot express: {proof_fault}. PER's entire "
+                "claim is that leaves s and s+1 bracket theta in a SCORE-SORTED commitment, so a "
+                "receipt whose boundary pair is not there establishes nothing and may not be "
+                "rendered as though it did.",
                 resource="silence",
             )
         if receipt_row["index_generation"] is None or receipt_row["index_plan_digest"] is None:

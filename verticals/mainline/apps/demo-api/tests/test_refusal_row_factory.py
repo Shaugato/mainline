@@ -43,8 +43,59 @@ NOTHING HERE WRITES
 subject these tests name already exists in the seeded history. The two constraints used
 are chosen so that both branches of :func:`refusal._explain` are exercised without an
 INSERT: ``epoch_pin_permit`` reaches the decomposition and RETURNS a payload — the branch
-that carried the defect — and ``gate_closed_when_issued`` against a permit whose projected
-counter is zero RAISES ``P0001``, which is the branch the ``SAVEPOINT`` exists for.
+that carried the defect — and ``identity_conserved_when_issued`` against a permit whose
+projected counter is zero RAISES ``P0001``, which is the branch the ``SAVEPOINT`` exists
+for.
+
+THE RAISING CONSTRAINT, MEASURED — AND WHY IT IS NOT THE FLAGSHIP ANY MORE
+-------------------------------------------------------------------------
+This file used to name ``gate_closed_when_issued`` as the raising constraint, on the
+stated premise that the seeded permit's ``open_blocking`` was 0. **The premise did not
+rot: the WORLD under it was replaced, on purpose, and this file was not told.** The
+fixture that built the permit used to mint one — a random uuid, ``state='draft'``, its one
+blocking check already carrying a live ``applied`` disposition, therefore
+``open_blocking = 0`` and ``gate_closed_when_issued`` genuinely unable to decompose.
+``conftest.py`` was then rewritten to stop inventing a subject and to apply
+``demo_world.sql`` + ``demo_permit.sql`` — the two files ``scripts/deploy/seed_demo.py``
+puts into CockroachDB Cloud — and **the deployed world has an OPEN obligation**, because
+an open obligation is what the demo is about. Measured side by side on 2026-08-13: the
+parallel world's permit ``80c6bd4a-…`` ``draft`` ``open_blocking=0``, one check, one live
+disposition; the deployed world's permit ``dec0de00-0006-…`` ``dispositioned``
+``open_blocking=1``, one check, **zero** dispositions.
+
+So the two tests below were not testing what they said from the moment the fixture became
+honest, and nothing in the suite noticed for as long as no one ran it against a cluster.
+
+``gate_closed_when_issued`` also cannot come back. ``gate_run.CF01_EXHIBIT`` *is* that
+constraint, beat 2 of every gate run refuses on it, and ``test_gate_run.py`` requires
+``open_blocking_projected >= 1`` on this same permit (``:667``) and a ``23514`` naming it
+(``:678``). One permit cannot have that counter both non-zero for the demo and zero for
+this file. The requirement here has always been *a permit whose projected counter is zero*
+— the constraint name was only ever the instrument for reaching it — so the instrument
+moves and the requirement does not.
+
+Measured 2026-08-13 against ``w3_demo_api_123396ff6486`` (fingerprint of the migration
+chain plus ``demo_world.sql`` + ``demo_permit.sql`` at ``073dfea``), on the seed's one
+permit ``dec0de00-0006-4000-8000-000000000001`` (``state='dispositioned'``,
+``gate_epoch=1``), all six ``mainline.permit`` counter constraints (``0050:114-122``)::
+
+    open_blocking          = 1   gate_closed_when_issued        -> RETURNS declarative
+    open_residue           = 0   identity_conserved_when_issued -> RAISES  P0001
+    open_conflicts         = 0   conflicts_resolved_when_issued -> RAISES  P0001
+    open_warrants          = 0   no_open_warrant_when_issued    -> RAISES  P0001
+    unmodelled_asset_count = 0   boundary_certified_when_issued -> RAISES  P0001
+    unmet_floor_count      = 0   reading_floor_when_issued      -> RAISES  P0001
+
+Five were available; ``open_residue`` is the one taken, because it is the one whose being
+zero is a CLAIM THE DEMO MAKES rather than an accident of what nobody got round to
+seeding. ``permit.open_residue`` is projected by ``fn_residue_counter`` over
+``mainline.identity_residue`` (``0145b:54-56``); that table holds 0 rows in the seeded
+database, and ``demo_world.sql`` §7 states the same thing about the commit it seeds —
+*"Nothing in this world is residue"* — which is why its ``cbm_account`` is a balanced zero
+a judge can be invited to confirm on camera. A counter the demo asserts is zero will not
+drift the way the counter the demo exists to MOVE did.
+:func:`test_the_counter_behind_the_raising_constraint_is_zero` pins the measurement so the
+next drift names itself instead of arriving as a dict that is not ``None``.
 """
 
 from __future__ import annotations
@@ -79,10 +130,18 @@ _MEASURED_COLUMN = "explain_refusal"
 #: (``0119a`` §3), so the branch that carried the defect runs without seeding anything.
 _RETURNS = "epoch_pin_permit"
 
-#: The flagship counter refusal. Against the seeded permit ``open_blocking`` is 0, so
-#: ``0119a`` refuses on drift with ``P0001`` rather than emit a plausible reason set —
-#: which is the branch the ``SAVEPOINT`` fence exists to survive.
-_RAISES = "gate_closed_when_issued"
+#: A real ``mainline.permit`` CHECK (``0050:115``) whose projected counter is measured
+#: zero, so ``0119a`` refuses to decompose it with ``P0001`` rather than emit a plausible
+#: reason set — the branch the ``SAVEPOINT`` fence exists to survive. Measured 2026-08-13:
+#: ``open_residue = 0`` on the seeded permit, ``mainline.identity_residue`` empty. It is
+#: NOT ``gate_closed_when_issued`` any more: that counter is 1, because it is the one the
+#: demo's beat 2 refuses on. The module docstring carries all six measurements.
+_RAISES = "identity_conserved_when_issued"
+
+#: The counter ``_RAISES`` decomposes, and the statement that reads it. Written out rather
+#: than interpolated so the column name is visible in the file that depends on it.
+_RAISES_COUNTER = "open_residue"
+_RAISES_COUNTER_SQL = "SELECT open_residue FROM mainline.permit WHERE permit_id = %s"
 
 _ATTEMPT: dict[str, Any] = {"kind": "merge", "gate_epoch": 0}
 
@@ -223,6 +282,38 @@ def test_the_answer_does_not_depend_on_that_column_name(
     )
 
 
+def test_the_counter_behind_the_raising_constraint_is_zero(
+    production_conn: psycopg.Connection[Any], permit_id: str
+) -> None:
+    """THE PRECONDITION, measured — so the next drift names itself.
+
+    Two tests below need ``0119a`` to REFUSE to decompose ``_RAISES``, and it refuses
+    exactly when the counter behind that constraint is null or non-positive
+    (``0119a:189``). That is a fact about the SEED, not about this file, and when it
+    changed the two tests failed with ``assert {...} is not None`` — a message that names
+    neither the counter nor the seed. This one does.
+
+    It is the same instrument as the two negative controls above: a measurement pinned as
+    a premise, allowed to fail, and updated deliberately rather than by drift. It reads
+    and writes nothing, in keeping with the module docstring.
+    """
+    with _in_transaction(production_conn) as live:
+        cursor = live.cursor(row_factory=tuple_row)
+        row = cursor.execute(_RAISES_COUNTER_SQL, (permit_id,)).fetchone()
+
+    assert row is not None, f"no permit {permit_id}"
+    assert row[0] == 0, (
+        f"mainline.permit.{_RAISES_COUNTER} is {row[0]}, not 0, on the seeded permit, so "
+        f"trappoint.explain_refusal will now DECOMPOSE {_RAISES!r} instead of refusing to "
+        "(0119a:189). The two tests below need a constraint whose projected counter is "
+        "zero; the constraint NAME is only the instrument for reaching that state. "
+        "Re-measure all six permit counters against the seeded permit, move _RAISES to "
+        "one that is genuinely zero, and record the measurement and its date in this "
+        "file's docstring — do NOT weaken the assertions below, and do NOT reshape the "
+        "seed to restore this number."
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════════════
 # _explain — both factories, then equality
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -330,6 +421,12 @@ def test_refusal_payload_returns_the_same_answer_under_both_factories(
     never touched the defective line and could therefore agree across factories while the
     branch that mattered did not. Asserting only the branch that was broken would leave
     the other free to break next.
+
+    This case is worth reading alongside the drift it survived: while ``_RAISES`` named a
+    constraint whose counter had stopped being zero, this parametrisation ran BOTH of its
+    cases through the decomposition and exercised the early-return branch not at all — and
+    it stayed green throughout, because equality across factories held either way. A green
+    parametrised case is not evidence that both of its parameters mean what they say.
     """
     with _in_transaction(production_conn) as live:
         try:
@@ -351,7 +448,14 @@ def test_the_declined_branch_declines_identically_under_both_factories(
     tuple_conn: psycopg.Connection[Any],
     permit_id: str,
 ) -> None:
-    """``0119a`` raises on drift; both factories must hear the same refusal to explain."""
+    """``0119a`` raises on drift; both factories must hear the same refusal to explain.
+
+    ``_RAISES`` is ``identity_conserved_when_issued`` because ``mainline.permit
+    .open_residue`` was measured 0 on the seeded permit on 2026-08-13 while
+    ``open_blocking`` was 1 — see the module docstring for all six counters, and
+    :func:`test_the_counter_behind_the_raising_constraint_is_zero` for the machine-checked
+    form of that premise.
+    """
     with _in_transaction(production_conn) as live:
         production_answer = refusal_mod._explain(live, "permit", permit_id, _RAISES, _ATTEMPT)
 
@@ -381,6 +485,11 @@ def test_the_savepoint_fence_survives_a_raise_inside_one_open_transaction(
     abort that transaction — turning a refusal the demo is supposed to SHOW into a lost
     run. Three calls in one transaction, the middle one raising, and the transaction has
     to still be usable afterwards.
+
+    The middle call raises because ``mainline.permit.open_residue`` was measured 0 on the
+    seeded permit on 2026-08-13, which is what makes ``0119a`` refuse to decompose
+    ``_RAISES``. If that counter moves, this test stops fencing anything and
+    :func:`test_the_counter_behind_the_raising_constraint_is_zero` says so first.
     """
     with _in_transaction(production_conn) as live:
         first = refusal_mod._explain(live, "permit", permit_id, _RETURNS, _ATTEMPT)

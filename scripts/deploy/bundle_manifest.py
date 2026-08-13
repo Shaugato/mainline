@@ -33,9 +33,35 @@ missing any of these is a demo URL that answers with something the judges cannot
                         source 404s and the fallback the whole demo leans on is gone
 ====================  ================================================================
 
+**Forbidden import roots** (gating, always). ``demo-api/pyproject.toml`` declares this
+distribution's dependencies, and the zip is the only place that declaration can be
+checked against bytes. :data:`DEFAULT_FORBIDDEN` names the twelve roots the declaration
+excludes — every web framework, every AWS SDK and the three HTTP clients — and a package
+carrying any of them is refused. There is no build mode of this package in which one of
+them is legitimate, which is why this gate takes no flag: a Lambda invocation is already
+a function call with a dict argument, so there is nothing for a server to do, and
+``mainline_demo_api.db`` signs its one SSM ``GetParameter`` with ``hashlib`` and ``hmac``
+so the package's behaviour does not depend on which boto3 the runtime image happens to
+ship this month.
+
+This is a statement about the ARTEFACT, and that is the point of making it here.
+``demo-api/tests/test_envelope.py`` makes the matching statement about the import
+CLOSURE, and it makes it in a fresh interpreter for the same reason: the earlier version
+of that test read ``sys.modules`` in the shared pytest process, so a sibling package that
+imported ``pydantic`` two thousand tests earlier made it report that *the deployment
+package* had pulled ``pydantic`` in. It had not. A check whose verdict is decided by
+something other than its subject is not a check, and this program's subject is a file.
+
 **Size limits** (gating, always). Lambda refuses a direct upload over **50 MB zipped**
 and refuses to unpack over **250 MB**. Both ceilings are AWS's, both are checked here
 against the real numbers rather than assumed from a build that fitted last week.
+
+**Source maps** (gating under ``--forbid-source-maps``). ``web/**/*.map`` is egress no
+caller needs: 18 files and 2,586,960 B on the console build measured 2026-08-13, which is
+72.42 % of the served tree. ``build_lambda`` strips them by default, so the gate exists to
+catch a build that stopped stripping. It is a flag rather than a default because
+``build_lambda --keep-source-maps`` is a legitimate, documented debug build, and a
+describer that refused the artefact it was asked to make would not be a describer.
 
 **Determinism properties** (reported always, gating under ``--strict``). These are
 readable from the zip's own central directory and are exactly the fields a non-
@@ -50,12 +76,28 @@ A zip that satisfies all four will hash identically to a rebuild from the same t
 zip that fails one of them may still be a perfectly good Lambda package — which is why
 they gate only under ``--strict``, and why ``build_lambda`` passes ``--strict``.
 
+**The shape of the served tree** (reported always, gating never). Under decision D1 this
+package is the whole public origin behind a Function URL whose ``authorization_type`` is
+``NONE``, so every byte under ``web/`` is egress any caller can bill to the account at
+will. :func:`web_shape` reads the central directory and says what that tree costs: how
+much of it is identity bytes and how much is the pre-compressed ``.gz`` siblings of
+interface I1, the largest object a caller can pull with and without ``accept-encoding``,
+how many gzipped objects clear 64 KiB, and — the two that catch a regression — which
+compressible entries have **no** sibling and which siblings have **no** identity twin.
+
+It does not gate, deliberately. This program must stay runnable against any zip,
+including one with no ``web/`` at all, and a describer that refuses an input it was
+built to describe is no longer a describer. The gating statement about the served tree
+is the wire-ceiling assertion in the demo-api's own tests, which is measured over this
+same package and fails when an asset outgrows the ceiling.
+
 EXIT CODES
 ----------
 ====  ============================================================================
 0     every gating check passed
-2     a required root is missing, a size limit is exceeded, or ``--strict`` and a
-      determinism property failed
+2     a required root is missing, a forbidden import root is present, a size limit is
+      exceeded, ``--forbid-source-maps`` and the served tree has one, or ``--strict``
+      and a determinism property failed
 1     usage error, unreadable file, or not a zip
 ====  ============================================================================
 
@@ -68,6 +110,7 @@ USAGE
     python scripts/deploy/bundle_manifest.py <zip> --json out/lambda/manifest.json --quiet
     python scripts/deploy/bundle_manifest.py <zip> --strict \
         --require mainline_demo_api/app.py --require web/bundle/manifest.json
+    python scripts/deploy/bundle_manifest.py <zip> --forbid-source-maps --forbid psycopg_pool
 """
 
 from __future__ import annotations
@@ -81,13 +124,22 @@ from pathlib import Path
 from typing import Any
 
 __all__ = [
+    "COMPRESSIBLE_SUFFIXES",
+    "DEFAULT_FORBIDDEN",
     "DEFAULT_REQUIRED",
     "EPOCH",
+    "GZ_LARGE_OBJECT_BYTES",
+    "GZ_SUFFIX",
     "LAMBDA_MAX_UNZIPPED_BYTES",
     "LAMBDA_MAX_ZIPPED_BYTES",
+    "MODULE_SUFFIXES",
+    "SOURCE_MAP_SUFFIX",
+    "WEB_ROOT",
     "check",
     "describe",
+    "importable_as",
     "main",
+    "web_shape",
 ]
 
 #: The four roots the D1 single-origin demo cannot be served without. A trailing ``/``
@@ -97,6 +149,32 @@ DEFAULT_REQUIRED: tuple[str, ...] = (
     "psycopg/",
     "web/index.html",
     "web/bundle/",
+)
+
+#: The twelve import roots ``demo-api/pyproject.toml`` declares this distribution does
+#: not depend on: six web frameworks and the Lambda adapter, the AWS SDK and its core,
+#: and the three HTTP clients. Unlike the source-map gate these are refused with no flag,
+#: because no build mode of this package legitimately contains one — see this module's
+#: docstring for why the handler needs neither a server nor an SDK.
+#:
+#: Held identical to ``BANNED_IMPORT_ROOTS`` in
+#: ``verticals/mainline/apps/demo-api/tests/test_envelope.py``, which makes the same
+#: statement about the import closure rather than about the bytes;
+#: ``test_the_closure_claim_and_the_artefact_claim_name_the_same_roots`` fails if the two
+#: lists drift apart.
+DEFAULT_FORBIDDEN: tuple[str, ...] = (
+    "aiohttp",
+    "boto3",
+    "botocore",
+    "django",
+    "fastapi",
+    "flask",
+    "httpx",
+    "mangum",
+    "pydantic",
+    "requests",
+    "starlette",
+    "uvicorn",
 )
 
 #: The DOS epoch. ``zipfile`` cannot store anything earlier, so it is the canonical
@@ -110,6 +188,45 @@ LAMBDA_MAX_UNZIPPED_BYTES = 250 * 1024 * 1024
 #: The two modes ``build_lambda`` writes: 0755 for shared objects, 0644 for everything
 #: else. Any other mode means some other writer produced the entry.
 FIXED_MODES = (0o644, 0o755)
+
+#: The prefix the served site lives under, and the only part of the package a caller on
+#: the internet can pull bytes from.
+WEB_ROOT = "web/"
+
+#: The suffix interface I1 gives the pre-compressed sibling.
+GZ_SUFFIX = ".gz"
+
+#: The suffix of a JavaScript source map, the thing ``--forbid-source-maps`` refuses.
+SOURCE_MAP_SUFFIX = ".map"
+
+#: The final suffixes a top-level SINGLE-FILE module can carry. Checked as well as the
+#: ``root/`` directory shape, because a distribution that ships one module -- and several
+#: on the forbidden list have shipped one at some point in their history -- would sail
+#: past a check that only looked for a folder.
+MODULE_SUFFIXES: tuple[str, ...] = ("py", "pyc", "pyd", "so")
+
+#: Suffixes whose bytes compress. Held in step with the packer embedded in
+#: ``build_lambda.{sh,ps1}`` and with ``mainline_demo_api.static_site.MEDIA_TYPES``:
+#: exactly the entries that table marks as text, JavaScript, JSON, SVG or wasm. The image
+#: and font types it also names are already-compressed containers, and this program uses
+#: the list only to report which compressible entries are missing a sibling — so a
+#: divergence from the packer shows up as a finding here rather than as silent egress.
+COMPRESSIBLE_SUFFIXES: tuple[str, ...] = (
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".map",
+    ".mjs",
+    ".svg",
+    ".txt",
+    ".wasm",
+    ".webmanifest",
+)
+
+#: A gzipped object above this is one a wire ceiling has to be chosen around rather than
+#: over. Reported, never enforced here.
+GZ_LARGE_OBJECT_BYTES = 64 * 1024
 
 _READ_BLOCK = 1 << 20
 
@@ -131,6 +248,89 @@ def _sha256_member(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> str:
         for block in iter(lambda: handle.read(_READ_BLOCK), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _suffix(name: str) -> str:
+    base = name.rsplit("/", 1)[-1]
+    dot = base.rfind(".")
+    return base[dot:].lower() if dot > 0 else ""
+
+
+def importable_as(name: str, root: str) -> bool:
+    """Would ``import root`` find zip entry *name* with the package root on ``sys.path``?
+
+    Pure, and deliberately narrow. Only the FIRST path segment can answer an unqualified
+    import, so ``psycopg/vendor/boto3/x.py`` is not a hit — vendored bytes inside another
+    distribution are that distribution's business and are not importable as ``boto3``.
+
+    Two shapes count. ``root/…`` is the package directory. ``root.py`` and its compiled
+    forms are a single-file module, and the tail is compared rather than the whole suffix
+    so an extension module's platform tag — ``_psycopg.cpython-313-x86_64-linux-gnu.so``
+    — is recognised. ``psycopg_binary.libs/`` is therefore NOT a hit for
+    ``psycopg_binary``: ``libs`` is not one of :data:`MODULE_SUFFIXES`, and that directory
+    holds shared objects the loader finds by path, not by import.
+    """
+    head = name.split("/", 1)[0]
+    if head == root:
+        return True
+    stem, dot, tail = head.partition(".")
+    return bool(dot) and stem == root and tail.rsplit(".", 1)[-1].lower() in MODULE_SUFFIXES
+
+
+def web_shape(entries: list[dict[str, Any]], *, root: str = WEB_ROOT) -> dict[str, Any]:
+    """What the served tree costs, from the central directory alone. Pure.
+
+    Two numbers matter and they are not the same number. ``largest_identity_object`` is
+    what a caller that sent no ``accept-encoding`` can pull in one request;
+    ``largest_gz_object`` is what every modern browser pulls. Under interface I1 a direct
+    request for a path ending ``.gz`` is a 404, so the sibling is reachable only through
+    negotiation and the two are one object under one name.
+
+    ``compressible_without_sibling`` and ``gz_without_identity`` are the regression
+    detectors. The first is a text object that will go out uncompressed — the exact
+    failure a build that quietly stopped pre-compressing would produce, and one that no
+    size total would reveal, because dropping the siblings makes the package *smaller*.
+    The second is dead weight that can never be served.
+    """
+    web = [e for e in entries if e["path"].startswith(root) and not e["is_dir"]]
+    identity = [e for e in web if not e["path"].endswith(GZ_SUFFIX)]
+    siblings = [e for e in web if e["path"].endswith(GZ_SUFFIX)]
+
+    identity_names = {e["path"] for e in identity}
+    sibling_names = {e["path"] for e in siblings}
+
+    def biggest(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+        if not rows:
+            return None
+        top = max(rows, key=lambda e: e["bytes"])
+        return {"path": top["path"], "bytes": top["bytes"]}
+
+    maps = [e for e in identity if e["path"].endswith(".map")]
+
+    return {
+        "root": root,
+        "entries": len(web),
+        "bytes": sum(e["bytes"] for e in web),
+        "identity": {"entries": len(identity), "bytes": sum(e["bytes"] for e in identity)},
+        "gz": {
+            "entries": len(siblings),
+            "bytes": sum(e["bytes"] for e in siblings),
+            "above_large_object": sum(1 for e in siblings if e["bytes"] > GZ_LARGE_OBJECT_BYTES),
+            "large_object_threshold": GZ_LARGE_OBJECT_BYTES,
+        },
+        "source_maps": {"entries": len(maps), "bytes": sum(e["bytes"] for e in maps)},
+        "largest_identity_object": biggest(identity),
+        "largest_gz_object": biggest(siblings),
+        "compressible_without_sibling": sorted(
+            e["path"]
+            for e in identity
+            if _suffix(e["path"]) in COMPRESSIBLE_SUFFIXES
+            and e["path"] + GZ_SUFFIX not in sibling_names
+        ),
+        "gz_without_identity": sorted(
+            name for name in sibling_names if name[: -len(GZ_SUFFIX)] not in identity_names
+        ),
+    }
 
 
 def describe(path: str, *, hash_entries: bool = True) -> dict[str, Any]:
@@ -185,6 +385,7 @@ def describe(path: str, *, hash_entries: bool = True) -> dict[str, Any]:
             "fixed_modes": all(e["mode"] in FIXED_MODES for e in entries if not e["is_dir"]),
             "no_directory_entries": not any(e["is_dir"] for e in entries),
         },
+        "web_shape": web_shape(entries),
         "entries": entries,
     }
 
@@ -200,6 +401,8 @@ def check(
     manifest: dict[str, Any],
     *,
     required: tuple[str, ...] = DEFAULT_REQUIRED,
+    forbidden: tuple[str, ...] = DEFAULT_FORBIDDEN,
+    forbid_source_maps: bool = False,
     strict: bool = False,
     max_zipped: int = LAMBDA_MAX_ZIPPED_BYTES,
     max_unzipped: int = LAMBDA_MAX_UNZIPPED_BYTES,
@@ -207,6 +410,7 @@ def check(
     """Turn a manifest into a verdict. Pure: takes a dict, returns a dict."""
     names = [entry["path"] for entry in manifest["entries"]]
     name_set = set(names)
+    sizes = {entry["path"]: entry["bytes"] for entry in manifest["entries"]}
 
     roots: list[dict[str, Any]] = []
     for want in required:
@@ -219,6 +423,40 @@ def check(
         roots.append({"root": want, "present": present, "entries": matched})
 
     missing = [row["root"] for row in roots if not row["present"]]
+
+    # Every forbidden root is reported, present or absent, so the JSON says what was
+    # LOOKED FOR and not only what was found. A gate that records nothing when it passes
+    # cannot be told apart later from a gate that was never run.
+    forbidden_rows: list[dict[str, Any]] = []
+    for banned in forbidden:
+        hits = sorted(name for name in names if importable_as(name, banned))
+        forbidden_rows.append(
+            {
+                "root": banned,
+                # Where the ban came from, so the refusal can cite the right authority.
+                # A root the pyproject declares absent and a root the caller typed on the
+                # command line are both refused, but only one of them is a broken promise.
+                "source": "pyproject" if banned in DEFAULT_FORBIDDEN else "--forbid",
+                "present": bool(hits),
+                "entries": len(hits),
+                "bytes": sum(sizes[name] for name in hits),
+                "example": hits[0] if hits else None,
+            }
+        )
+    forbidden_present = [row["root"] for row in forbidden_rows if row["present"]]
+
+    map_entries = [
+        name
+        for name in names
+        if name.startswith(WEB_ROOT) and name.lower().endswith(SOURCE_MAP_SUFFIX)
+    ]
+    source_maps = {
+        "entries": len(map_entries),
+        "bytes": sum(sizes[name] for name in map_entries),
+        "gating": forbid_source_maps,
+        "ok": not (forbid_source_maps and map_entries),
+        "example": map_entries[0] if map_entries else None,
+    }
 
     limits = [
         {
@@ -244,6 +482,24 @@ def check(
     refusals: list[str] = []
     for root in missing:
         refusals.append(f"REFUSED [MISSING ROOT] {root} is not in this package")
+    for root in forbidden_present:
+        row = next(item for item in forbidden_rows if item["root"] == root)
+        why = (
+            "the demo-api pyproject declares it absent"
+            if row["source"] == "pyproject"
+            else "it was named with --forbid"
+        )
+        refusals.append(
+            "REFUSED [FORBIDDEN ROOT] {root} is importable from this package -- {entries} "
+            "entries, {bytes} bytes, e.g. {example}. Refused because {why}.".format(**row, why=why)
+        )
+    if not source_maps["ok"]:
+        refusals.append(
+            "REFUSED [SOURCE MAPS] {} entries under {} total {} bytes -- e.g. {}. This build "
+            "asked for none, and nothing serves them.".format(
+                source_maps["entries"], WEB_ROOT, source_maps["bytes"], source_maps["example"]
+            )
+        )
     for name in exceeded:
         row = next(item for item in limits if item["limit"] == name)
         # ASCII only in everything this program PRINTS: a Windows console is cp1252 by
@@ -263,6 +519,9 @@ def check(
     return {
         "required_roots": roots,
         "missing_roots": missing,
+        "forbidden_roots": forbidden_rows,
+        "forbidden_present": forbidden_present,
+        "source_maps": source_maps,
         "limits": limits,
         "limits_exceeded": exceeded,
         "determinism": determinism,
@@ -278,6 +537,34 @@ def check(
 
 def _mb(value: int) -> str:
     return f"{value / 1048576.0:.2f} MB"
+
+
+def _gate_lines(verdict: dict[str, Any]) -> list[str]:
+    """The two gates that describe what was LOOKED FOR, not only what was found.
+
+    Both counts are printed even when the answer is zero. "0 present" and "nobody
+    checked" render identically otherwise, and the second is the state this program
+    exists to make impossible to mistake for the first.
+    """
+    lines = [
+        "  forbidden import roots             {:>7} declared, {} present".format(
+            len(verdict["forbidden_roots"]), len(verdict["forbidden_present"])
+        )
+    ]
+    lines.extend(
+        "  {:<34} {:>7}  {:>11}  e.g. {}".format(
+            row["root"], row["entries"], row["bytes"], row["example"]
+        )
+        for row in verdict["forbidden_roots"]
+        if row["present"]
+    )
+    maps = verdict["source_maps"]
+    lines.append(
+        "  source maps                        {:>7}  {:>11}  gating={}".format(
+            maps["entries"], maps["bytes"], "yes" if maps["gating"] else "no"
+        )
+    )
+    return lines
 
 
 def _render(manifest: dict[str, Any], verdict: dict[str, Any], *, listing: bool) -> str:
@@ -305,6 +592,9 @@ def _render(manifest: dict[str, Any], verdict: dict[str, Any], *, listing: bool)
         mark = "yes" if row["present"] else "NO"
         out.append(f"  {row['root']:<34} {mark:>7}  {row['entries']:>11}")
     out.append("")
+    out.extend(_gate_lines(verdict))
+
+    out.append("")
     out.append("  limit          measured        ceiling   ok")
     out.append("  " + "-" * 60)
     for row in verdict["limits"]:
@@ -320,6 +610,52 @@ def _render(manifest: dict[str, Any], verdict: dict[str, Any], *, listing: bool)
     out.append(f"  determinism   {flags}")
     if verdict["strict"]:
         out.append("  determinism is GATING (--strict)")
+
+    shape = manifest["web_shape"]
+    if shape["entries"]:
+        out.append("")
+        out.append(f"  served tree ({shape['root']})            entries        bytes")
+        out.append("  " + "-" * 60)
+        out.append(
+            "  {:<34} {:>7}  {:>11}".format(
+                "identity", shape["identity"]["entries"], shape["identity"]["bytes"]
+            )
+        )
+        out.append(
+            "  {:<34} {:>7}  {:>11}".format(
+                "pre-compressed .gz siblings", shape["gz"]["entries"], shape["gz"]["bytes"]
+            )
+        )
+        out.append(
+            "  {:<34} {:>7}  {:>11}".format(
+                "of which source maps",
+                shape["source_maps"]["entries"],
+                shape["source_maps"]["bytes"],
+            )
+        )
+        for label, key in (
+            ("largest identity", "largest_identity_object"),
+            ("largest gz", "largest_gz_object"),
+        ):
+            row = shape[key]
+            if row:
+                out.append(f"  {label:<34} {row['bytes']:>20}  {row['path']}")
+        out.append(
+            "  {:<34} {:>20}  (threshold {})".format(
+                "gz objects above the threshold",
+                shape["gz"]["above_large_object"],
+                shape["gz"]["large_object_threshold"],
+            )
+        )
+        # Not refusals. A finding here means the served tree costs more than it should,
+        # which is a bill, not a broken package — see this module's docstring.
+        for label, key in (
+            ("compressible, NO .gz sibling", "compressible_without_sibling"),
+            (".gz with NO identity twin", "gz_without_identity"),
+        ):
+            rows = shape[key]
+            if rows:
+                out.append(f"  {label:<34} {len(rows):>20}  e.g. {rows[0]}")
 
     if listing:
         out.append("")
@@ -375,6 +711,25 @@ def _parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--forbid",
+        action="append",
+        default=[],
+        metavar="ROOT",
+        help=(
+            "an additional import root this package must not contain. Matches ROOT/ and "
+            "top-level ROOT.py|.pyc|.pyd|.so. Repeatable. The twelve roots the pyproject "
+            "declares absent are always forbidden and need no flag."
+        ),
+    )
+    parser.add_argument(
+        "--forbid-source-maps",
+        action="store_true",
+        help=(
+            "also refuse when web/**/*.map is present. A flag rather than a default "
+            "because build_lambda --keep-source-maps is a legitimate debug build."
+        ),
+    )
+    parser.add_argument(
         "--strict",
         action="store_true",
         help="also refuse when a determinism property of the archive is false",
@@ -418,9 +773,14 @@ def main(argv: list[str] | None = None) -> int:
     required = tuple(DEFAULT_REQUIRED) + tuple(
         item for item in args.require if item not in DEFAULT_REQUIRED
     )
+    forbidden = tuple(DEFAULT_FORBIDDEN) + tuple(
+        item for item in args.forbid if item not in DEFAULT_FORBIDDEN
+    )
     verdict = check(
         manifest,
         required=required,
+        forbidden=forbidden,
+        forbid_source_maps=args.forbid_source_maps,
         strict=args.strict,
         max_zipped=int(args.max_zipped_mb * 1048576),
         max_unzipped=int(args.max_unzipped_mb * 1048576),

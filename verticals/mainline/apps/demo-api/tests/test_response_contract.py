@@ -29,15 +29,27 @@ naming that one hostname, landed in the same commit as the hostname; not a wildc
 open against a caller nobody has had yet.
 
 **A declared ceiling on the bytes one response may carry, and it REFUSES something.** The
-largest object this origin can emit is the multiplier in a sustained-egress flood: at
-1,554,168 B for the console's largest source map, concurrency 10 for 30 days is roughly
-USD 33,000. Until 2026-08-13 the ceiling stood at 2 MiB and refused **0 of the 75 objects
-this origin serves** — an independent verifier measured exactly that and reported the
-control as non-binding, which it was. A ceiling above everything it governs is a
-decoration: it cannot fail, so it proves nothing, which is the same defect as a test that
-cannot disagree with its code. It now stands at 512 KiB, refuses the source map by name and
-serves the other 74, and the tests in section (c) are what keep that true rather than
-merely stated.
+largest object this origin can emit is the multiplier in a sustained-egress flood, so the
+ceiling turns that multiplier from whatever the build happened to produce into a declared
+number. A ceiling above everything it governs is a decoration: it cannot fail, so it proves
+nothing, which is the same defect as a test that cannot disagree with its code. It has been
+a decoration twice — at 2 MiB, which an independent verifier measured as refusing 0 of 75,
+and then at 512 KiB, which refused 0 of 57 the moment ``build_lambda`` began stripping
+source maps and removed the only object it had ever refused. Both times the declarations in
+section (c) below said otherwise, and both times they said otherwise for the same reason:
+**they had been measured over the packer's INPUT tree rather than over the tree that
+deploys.**
+
+That is the question this file got wrong, and section (c) now answers it out loud rather
+than by choosing a fallback directory. **The deployed tree is authoritative.** Cost is
+incurred by bytes leaving the deployed origin, so an object that never reaches the deployed
+package cannot be evidence about a cost control; ``console/dist`` still carries eighteen
+source maps that the packer strips, and a ceiling justified by refusing them would be a
+ceiling justified by refusing objects that are not there.
+`docs/decisions/response-ceiling-authoritative-tree.md` is the ruling and its arithmetic.
+The ceiling stands at 136 KiB, it is a **consequence** of interface I3 applied to the
+deployed tree rather than an input to it, and it refuses exactly one of the 57 identity
+objects — on the identity path only.
 
 **A declared bound on the request path, which is the only thing a caller writes into a
 body.** Every refusal this origin emits echoes the path it refused, so the length of a
@@ -69,7 +81,9 @@ from __future__ import annotations
 
 import ast
 import base64
+import functools
 import json
+import zipfile
 from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any, Final
@@ -88,41 +102,92 @@ _CORS_HEADER: Final = "access-control-allow-origin"
 #: response builder outside this list is a response nothing in this file checks.
 _RESPONSE_MODULES: Final = (app, ratelimit, static_site)
 
-# ── The built web tree, as measured on 2026-08-13 ───────────────────────────────────
+# ── The DEPLOYED web tree, as measured on 2026-08-14 ────────────────────────────────
 #
-# `zipfile` over `out/lambda/mainline-demo-api-arm64.zip`, and independently over the two
-# directories the packer copies into `web/`. The two agree exactly: 75 files, 0 size
-# mismatches, identical key sets. That agreement is why the directory pair below is an
-# honest stand-in for the artefact when the zip has not been built.
-_WEB_TREE_FILES: Final = 75
-_WEB_TREE_BYTES: Final = 3_571_990
+# `zipfile` over the central directory of `out/lambda/mainline-demo-api-arm64.zip` (built
+# 2026-08-13 15:54). **This is the tree that deploys**, and under the ruling it is the only
+# tree these declarations may be measured over. Reproduce it with:
+#
+#     python -c "import zipfile;z=zipfile.ZipFile('out/lambda/mainline-demo-api-arm64.zip');
+#                w=[i for i in z.infolist() if i.filename.startswith('web/') and not i.is_dir()];
+#                print(len(w), sum(i.file_size for i in w))"
+#
+#     web/ entries        114 files   1,274,342 B
+#       identity objects   57 files     985,030 B
+#       .gz siblings       57 files     289,312 B   one per identity object, no orphans
+#       source maps         0 files           0 B   stripped by build_lambda's default
+#
+# WHAT THESE NUMBERS ARE NOT. They are not the packer's input tree — `console/dist` +
+# `console/fixtures/bundles/demo-cloud`, 75 files and 3,571,990 B, of which eighteen are
+# source maps totalling 2,586,960 B. Until 2026-08-14 the constants below were that tree's,
+# and every one of them was therefore a statement about bytes this origin cannot emit. The
+# lists are not merely differently-sized: the input tree's refusal set is
+# `['assets/index-BjAGxrVJ.js', 3 x *.js.map]` and the deployed tree's is
+# `['assets/index-BjAGxrVJ.js']` alone, because the maps are absent **by construction**
+# rather than absent by measurement.
+_WEB_TREE_ENTRIES: Final = 114
+_WEB_TREE_BYTES: Final = 1_274_342
+_IDENTITY_OBJECTS: Final = 57
+_IDENTITY_BYTES: Final = 985_030
+_SIBLING_BYTES: Final = 289_312
 
-#: The largest single object in the tree, which is **no longer the largest this origin can
-#: emit**: at a 512 KiB ceiling it is the one object of the 75 that answers 413. It stays
-#: declared because it is the number the USD 33,000 flood arithmetic was computed from, and
-#: because a ceiling is only demonstrably binding if something is known to sit above it.
-_LARGEST_WEB_OBJECT: Final = "assets/index-BjAGxrVJ.js.map"
-_LARGEST_WEB_OBJECT_BYTES: Final = 1_554_168
+#: The largest single object the deployed tree holds, and the largest number of bytes any
+#: caller can ask this origin for by name. It is **above** the ceiling, which is what makes
+#: the ceiling demonstrably binding: a bound is only a bound if something is known to sit
+#: over it. It is not the largest thing that can be EMITTED — see below — because the object
+#: has two representations and this is the one nobody with a browser ever receives.
+_LARGEST_WEB_OBJECT: Final = "assets/index-BjAGxrVJ.js"
+_LARGEST_WEB_OBJECT_BYTES: Final = 433_396
 
-#: The largest object the origin actually SERVES, and therefore the multiplier in force in
-#: the flood arithmetic. **This constant is the ratchet.** It may only be raised by somebody
-#: who re-measured it and decided the new number is acceptable; it may never drift upward
-#: on its own, which is what `test_the_built_web_tree_has_not_outgrown_its_declaration`
-#: enforces. It is deliberately a *declaration*, not a lookup: a number read out of the
-#: tree at test time would agree with the tree by construction and assert nothing.
+#: The largest number of bytes the origin actually PUTS ON THE WIRE for one response, and
+#: therefore the multiplier in force in the flood arithmetic and the input to interface I3.
+#:
+#: It is **the same object as above**, and that is the whole point rather than a coincidence
+#: to be tidied away. Every one of the 57 identity objects ships a `.gz` sibling and every
+#: browser sends `Accept-Encoding: gzip`, so the bytes that leave are the compressed column
+#: throughout: `assets/index-BjAGxrVJ.js` is 433,396 B to a client that refuses compression
+#: and 124,127 B to one that does not. The ceiling sits between those two numbers, so one
+#: object is a 413 and a 200 depending only on a request header — asserted end-to-end in
+#: `test_the_default_ceiling_refuses_the_declared_object_and_serves_the_declared_asset`.
+#:
+#: **This constant is the ratchet.** It may only be raised by somebody who re-measured it
+#: and decided the new number is acceptable; it may never drift upward on its own. It is
+#: deliberately a *declaration*, not a lookup: a number read out of the tree at test time
+#: would agree with the tree by construction and assert nothing.
 _LARGEST_SERVED_OBJECT: Final = "assets/index-BjAGxrVJ.js"
-_LARGEST_SERVED_OBJECT_BYTES: Final = 433_396
+_LARGEST_SERVED_CODING: Final = "assets/index-BjAGxrVJ.js.gz"
+_LARGEST_SERVED_OBJECT_BYTES: Final = 124_127
 
-#: Every object of the 75 that the default ceiling refuses, by name. **This is the
-#: anti-vacuity declaration and the reason this file can claim the ceiling binds.** An
-#: empty tuple here would mean the control refuses nothing, which is where it stood before
-#: 2026-08-13; `test_the_ceiling_refuses_something_it_governs` fails on an empty tuple by
-#: construction. Serving all eighteen source maps was 2,586,960 B — 72.42 % of the tree —
-#: of debug artefact billable to this account by anyone on the internet.
-_REFUSED_BY_THE_CEILING: Final = ("assets/index-BjAGxrVJ.js.map",)
+#: The widest response the origin can emit to a client that refuses compression *and is
+#: still served*. Declared because it is what says nothing else in the tree is anywhere near
+#: this bound: the refusal below is one object and the next one down is 51,266 B, 37 % of
+#: the ceiling. A ceiling that refused the second-largest object too would be a different
+#: trade and would have to be argued for separately.
+_WIDEST_SERVED_IDENTITY: Final = "assets/surface-Csi7pmRe.js"
+_WIDEST_SERVED_IDENTITY_BYTES: Final = 51_266
 
-_CONSOLE_DIST: Final = REPO_ROOT / "verticals/mainline/apps/console/dist"
-_EVIDENCE_BUNDLE: Final = REPO_ROOT / "verticals/mainline/apps/console/fixtures/bundles/demo-cloud"
+#: Every object of the 57 that the default ceiling refuses, **by name and on the identity
+#: path**. This is the anti-vacuity declaration and the reason this file can claim the
+#: ceiling binds; `test_the_ceiling_refuses_something_it_governs` fails on an empty tuple by
+#: construction.
+#:
+#: **A `.gz` sibling may never appear in this tuple**, and that is a rule rather than an
+#: observation. Interface I1 makes a direct request for any path ending `.gz` a **404** —
+#: one set of bytes gets one name — so enumerating all 114 `web/` entries and collecting
+#: every non-200 would file 57 404s here as "refusals" and make a control that refuses one
+#: object look like a control that refuses fifty-eight. The enumeration below therefore
+#: walks identity objects, and the siblings' 404 is asserted as its own property in
+#: `test_the_compressed_sibling_has_no_url_of_its_own_and_is_not_a_ceiling_refusal`.
+_REFUSED_BY_THE_CEILING: Final = ("assets/index-BjAGxrVJ.js",)
+
+#: The deployed artefact these declarations are measured over. `test_static_site.py` reads
+#: the same file for interface I3's derivation, and the two must not disagree about what the
+#: origin serves — until 2026-08-14 they did, this file declaring 433,396 B and that one
+#: 124,127 B for the same quantity.
+_PACKAGE: Final = REPO_ROOT / "out/lambda/mainline-demo-api-arm64.zip"
+
+#: The value of `Accept-Encoding` every browser that will ever load this console sends.
+_BROWSER: Final = "gzip, deflate, br"
 
 
 # ── Fixtures and helpers ────────────────────────────────────────────────────────────
@@ -423,21 +488,101 @@ def test_a_head_on_an_oversize_asset_is_refused_exactly_as_the_get_is(
 def test_base64_inflation_is_measured_and_not_assumed(
     monkeypatch: pytest.MonkeyPatch, web_root: Path
 ) -> None:
-    """A file 19 % under the ceiling becomes a body 7 % over it once base64 is applied.
+    """The inflation is still MEASURED. What moved is which side of it a ceiling reads.
 
-    This is the assertion that makes the pre-read ``stat`` check an optimisation rather
-    than the control. 3,300 bytes of non-UTF-8 pass the first check under a 4,096 ceiling
-    and produce a 4,400-byte body, which only the second check sees.
+    **This test used to assert a 413 here and it was right to, under the metric it was
+    written against.** 3,300 bytes of non-UTF-8 under a 4,096 ceiling produce a 4,400-
+    character body, and a control weighing that body refuses it. Interface **I2**
+    (`docs/leads/cost-finish-plan.md` §I2) reverses the metric on a fact about the platform:
+    a Function URL decodes ``isBase64Encoded`` before anything leaves, AWS bills egress on
+    what leaves, so the ceiling reads the **decoded** length and this is a 200.
+
+    The name is not the casualty of that. The obligation the name states — *measured, not
+    assumed* — is the whole of what is asserted below, in four parts, none of which is
+    ``assert 200``:
+
+    1. **The inflation is measured on a real response.** 3,300 B in, exactly 4,400
+       characters out, and ``4 x ceil(n/3)`` reproduces it. That formula is used again in
+       part 4, so it is validated here rather than trusted there.
+    2. **The ceiling is applied to the DECODED length.** The case still straddles —
+       ``3,300 < 4,096 < 4,400`` — so a control that read the envelope would answer 413 and
+       this assertion would catch it. The failure mode is refusing 3,300 billable bytes as
+       though they were 4,400: over-refusing by exactly the encoding's overhead, which at
+       the deployed ceiling is the 124,127 B compressed entry bundle weighed as 165,504 B.
+    3. **The decoded length is computed, never decoded.** ``_wire_bytes`` runs on every
+       response this module emits, so a version that called ``b64decode`` would allocate a
+       second copy of every body. That is a structural claim about the function's source and
+       is checked as one; a behavioural test cannot tell the two implementations apart.
+    4. **The ENCODED payload stays under Lambda's response-payload quota** — the one bound
+       in this module's world that really is measured on the base64 string, and which
+       nothing in this repository asserted before 2026-08-14. It is asserted with a
+       falsification, because a bound that no setting can breach is not a bound.
     """
     monkeypatch.setenv(static_site.RESPONSE_BYTES_ENV, "4096")
     (web_root / "assets" / "font-Bbbbbbbb.woff2").write_bytes(b"\xff\xfe" * 1650)  # 3300 B
 
     response = static_site.serve("GET", "/assets/font-Bbbbbbbb.woff2", root=web_root)
-    assert response["statusCode"] == 413
-    error = json.loads(response["body"])["error"]
-    assert error["bytes_on_disk"] == 3300
-    assert error["bytes"] == 4400
-    assert error["bytes_on_disk"] < error["ceiling_bytes"] < error["bytes"]
+    envelope = str(response["body"])
+    ceiling = static_site.max_response_bytes()
+
+    # (1) The inflation, measured.
+    assert response["isBase64Encoded"] is True, "nothing is being inflated, so nothing is measured"
+    assert len(envelope) == 4400
+    assert len(envelope) == 4 * ((3300 + 2) // 3), "the 4-per-3 packing formula does not hold"
+    assert len(base64.b64decode(envelope, validate=True)) == 3300
+
+    # (2) …and the ceiling reads the decoded side of it. The straddle is asserted first, so
+    # a case that stopped straddling fails as "this test stopped testing" rather than as a
+    # status mismatch nobody can interpret.
+    assert 3300 < ceiling < len(envelope), "the case no longer straddles the ceiling"
+    assert response["statusCode"] == 200, (
+        f"a 3,300 B object was refused under a {ceiling} B ceiling because its "
+        f"{len(envelope)}-character base64 envelope was weighed instead of the bytes AWS "
+        "bills. That is interface I2 inverted, and it over-refuses by 33 % on every binary "
+        "object this origin serves."
+    )
+    assert static_site._wire_bytes(response) == 3300
+    assert int(response["headers"]["content-length"]) == 3300
+
+    # (3) Arithmetically, without decoding. `_wire_bytes` runs on every response.
+    source = ast.parse(Path(static_site.__file__ or "").read_text(encoding="utf-8"))
+    wire_fn = next(
+        node
+        for node in ast.walk(source)
+        if isinstance(node, ast.FunctionDef) and node.name == "_wire_bytes"
+    )
+    decoders = [
+        node
+        for node in ast.walk(wire_fn)
+        if isinstance(node, ast.Attribute) and "decode" in node.attr and node.attr != "decode"
+    ]
+    assert decoders == [], (
+        "_wire_bytes decodes the body to measure it. The decoded length is "
+        "len(body) // 4 * 3 minus the padding, computed from the string's own length; "
+        "decoding allocates a second copy of every response this module emits."
+    )
+    assert "base64" not in {node.id for node in ast.walk(wire_fn) if isinstance(node, ast.Name)}, (
+        "_wire_bytes reaches for base64; the length is arithmetic, not a decode"
+    )
+
+    # (4) The other direction: the ENCODED string against Lambda's response-payload quota.
+    # This is where the envelope IS the quantity, and the formula validated in (1) is what
+    # bounds it. At the default ceiling the widest payload `_file` can build is 185,688
+    # characters — 32x under — so nothing enforces this at runtime and nothing should.
+    quota = static_site.LAMBDA_RESPONSE_PAYLOAD_BYTES
+    widest_payload = 4 * ((static_site.DEFAULT_MAX_RESPONSE_BYTES + 2) // 3)
+    assert widest_payload == 185_688
+    assert widest_payload < quota, (
+        f"a response at the {static_site.DEFAULT_MAX_RESPONSE_BYTES} B wire ceiling encodes "
+        f"to {widest_payload} characters, over Lambda's {quota} B response payload quota. "
+        "The ceiling bounds the wire; the quota bounds the envelope; a ceiling above three "
+        "quarters of the quota breaches the second while satisfying the first."
+    )
+    # The falsification. Without it the line above holds for every ceiling anybody would
+    # plausibly set, which makes it a comment rather than a check.
+    assert quota < 4 * ((5 * 1024 * 1024 + 2) // 3), (
+        "the quota assertion cannot fail at any ceiling, so it asserts nothing"
+    )
 
 
 def test_a_file_under_the_ceiling_is_still_served(
@@ -687,84 +832,154 @@ def test_the_rate_bound_and_the_byte_ceiling_are_different_controls() -> None:
 
 
 # ── (c) The ratchet: the biggest thing this origin can emit ─────────────────────────
+#
+# WHICH TREE THESE ASSERTIONS READ, AND WHY IT IS NOT THE ONE THEY USED TO READ.
+#
+# Every assertion below reads the **deployed** tree: the `web/` entries of
+# `out/lambda/mainline-demo-api-arm64.zip`. Until 2026-08-14 they read the first of two
+# sources that happened to exist, and on a developer box that was `console/dist` +
+# `console/fixtures/bundles/demo-cloud` — the packer's INPUT tree. The two are not
+# interchangeable and the difference is not a rounding: the input tree carries eighteen
+# source maps that `build_lambda` strips by default, so the objects it reported the ceiling
+# as refusing are objects the deployed origin cannot emit at all.
+#
+# The ruling is `docs/decisions/response-ceiling-authoritative-tree.md`: **cost is incurred
+# by bytes leaving the deployed origin, so an object that never reaches the deployed package
+# cannot be evidence about a cost control.** `test_static_site.py` §(f) already derived
+# interface I3 over this same package and already said in writing that this file's fallback
+# was the mistake; the two files declared different values — 433,396 B here and 124,127 B
+# there — for one quantity, "the largest object the origin serves". This section is that
+# contradiction resolved in the direction the deployed artefact settles.
+#
+# The input-tree fallback is **deleted rather than demoted**. A fallback that answers a cost
+# question with the wrong tree is worse than no answer: the skip below says the assertion did
+# not run, which is true and actionable, whereas the fallback said it ran and passed. No
+# Python lane in `.github/workflows/` builds the console or the package, so these assertions
+# already skipped in CI before this change and still do; what changed is that a developer box
+# with a stale `console/dist` can no longer report a green that means nothing.
 
 
-def _web_tree_sources() -> tuple[list[tuple[str, Path]], str]:
-    """Locate the built web tree. Returns ``([(prefix, root), …], label)``; may be empty.
+@functools.cache
+def _deployed_entries() -> tuple[Mapping[str, int], str]:
+    """``({name inside web/: bytes}, label)`` for the tree that deploys; may be empty.
 
-    Two layouts, in order:
-
-    1. **Deployed.** ``static_site.web_root()`` — ``$MAINLINE_WEB_ROOT``, or ``web/``
-       beside the package. This is what the Lambda serves from, and it is one directory.
-    2. **Inputs.** ``console/dist`` mounted at the root plus
-       ``console/fixtures/bundles/demo-cloud`` mounted at ``bundle/``. This is what the
-       packer copies, and it was verified byte-for-byte against the ``web/`` entries of
-       ``out/lambda/mainline-demo-api-arm64.zip`` on 2026-08-13: same 75 keys, zero size
-       mismatches.
-
-    Both are build outputs — ``.gitignore`` lines 9 and 10 — so a clean checkout that has
-    not built the console has neither, and the ratchet skips loudly rather than passing
-    silently. That is the honest limit of this assertion and it is stated in the skip.
+    Read from the zip's **central directory**, so it costs no unpacking and cannot be
+    perturbed by a test that monkeypatches ``$MAINLINE_WEB_ROOT``. One source, named, and no
+    fallback: the unpacked root a Lambda serves from is this file unpacked, not a second
+    measurement of anything.
     """
-    deployed = static_site.web_root()
-    if deployed.is_dir():
-        return [("", deployed)], f"the deployed web root at {deployed}"
-    if _CONSOLE_DIST.is_dir() and _EVIDENCE_BUNDLE.is_dir():
-        return (
-            [("", _CONSOLE_DIST), ("bundle/", _EVIDENCE_BUNDLE)],
-            f"the packer's inputs: {_CONSOLE_DIST} + {_EVIDENCE_BUNDLE} at bundle/",
-        )
-    return [], ""
+    if not _PACKAGE.is_file():
+        return {}, ""
+    with zipfile.ZipFile(_PACKAGE) as archive:
+        entries = {
+            info.filename[len("web/") :]: info.file_size
+            for info in archive.infolist()
+            if info.filename.startswith("web/") and not info.is_dir()
+        }
+    return entries, f"the web/ entries of {_PACKAGE}"
 
 
-def _built_web_tree() -> tuple[list[tuple[str, Path, Path]], str]:
-    """``[(relative_in_web_tree, absolute_path, serve_root), …]`` and where it came from."""
-    sources, label = _web_tree_sources()
-    files: list[tuple[str, Path, Path]] = []
-    for prefix, root in sources:
-        for path in sorted(root.rglob("*")):
-            if path.is_file():
-                files.append((prefix + path.relative_to(root).as_posix(), path, root))
-    return files, label
+def _require_built_tree() -> tuple[Mapping[str, int], str]:
+    """The deployed tree, or a skip that says the ratchet did not run and how to arm it.
 
-
-def _require_built_tree() -> tuple[list[tuple[str, Path, Path]], str]:
-    files, label = _built_web_tree()
-    if not files:
+    **Not softened into a silent skip and not allowed to become one.** A skip here means the
+    tree-reading half of this section did not execute; the declaration-only half
+    (:func:`test_the_declared_numbers_straddle_the_ceiling_rather_than_sitting_under_it` and
+    :func:`test_the_ceiling_refuses_something_it_governs`) takes no tree and runs anyway, so
+    a machine with no build output still fails on a ceiling that refuses nothing.
+    """
+    entries, label = _deployed_entries()
+    if not entries:
         pytest.skip(
-            "no built web tree is present, so the ratchet did NOT run in this session. "
-            f"Looked for the deployed root ({static_site.web_root()}) and the packer's "
-            f"inputs ({_CONSOLE_DIST} + {_EVIDENCE_BUNDLE}). Both are .gitignore'd build "
-            "outputs; build the console to arm this assertion."
+            "the deployed package is not built, so the tree-reading half of the ratchet "
+            f"did NOT run in this session. Looked for {_PACKAGE}, which is a .gitignore'd "
+            "build output; run scripts/deploy/build_lambda.ps1 (or .sh) to arm it. The "
+            "declaration-only assertions in this section still ran, and the packer's input "
+            "tree is deliberately NOT accepted as a stand-in — see the note above."
         )
-    return files, label
+    return entries, label
+
+
+def _identity_and_siblings(
+    entries: Mapping[str, int],
+) -> tuple[dict[str, int], dict[str, int]]:
+    """Split the tree into the objects that have URLs and the codings that do not."""
+    identity = {n: b for n, b in entries.items() if not n.lower().endswith(static_site.GZ_SUFFIX)}
+    siblings = {n: b for n, b in entries.items() if n.lower().endswith(static_site.GZ_SUFFIX)}
+    return identity, siblings
+
+
+@pytest.fixture(scope="session")
+def deployed_root(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """The deployed ``web/`` tree, unpacked once, so the real code can serve the real bytes.
+
+    Session-scoped because unpacking 114 entries per test would be paid fourteen times for
+    one answer. Unpacked rather than read from the archive because ``static_site.serve``
+    takes a filesystem root — and serving the artefact through the shipped code is the whole
+    difference between measuring file sizes and measuring what this origin emits.
+    """
+    entries, _ = _require_built_tree()
+    root = tmp_path_factory.mktemp("deployed-web")
+    with zipfile.ZipFile(_PACKAGE) as archive:
+        for name in entries:
+            target = root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(archive.read("web/" + name))
+    return root
 
 
 def test_the_declared_numbers_straddle_the_ceiling_rather_than_sitting_under_it() -> None:
-    """Runs everywhere, tree or no tree: the three declared numbers and the arithmetic.
+    """Runs everywhere, tree or no tree: the declared numbers and the arithmetic in the open.
 
     This is what the ceiling was chosen from, and the shape of the assertion is the point.
-    It used to say *every* declared object is under the ceiling, with a headroom of
-    542,984 B — which is exactly the statement of a control that refuses nothing. The
-    declaration now straddles: the largest object in the tree is ABOVE the ceiling, the
-    largest object the console needs to run is BELOW it, and the gap between them is the
-    debug artefact this origin no longer pays to hand out.
+    It used to say *every* declared object is under the ceiling — which is exactly the
+    statement of a control that refuses nothing. The declaration straddles: the largest
+    object the deployed tree holds is ABOVE the ceiling on the identity path, the largest
+    number of bytes the origin actually emits is BELOW it, and the gap between them is the
+    compression every browser asks for and this origin had been shipping unused.
 
-    The cost is real and is named rather than hidden: DevTools can no longer map a stack
-    trace from the deployed origin. The artefact it would have mapped is not in the
-    deployed package either — ``build_lambda`` strips ``web/**/*.map`` by default as of
-    2026-08-13 — so the ceiling and the packer agree, and ``--keep-source-maps`` builds the
-    debuggable package for anyone who needs one.
+    **Every number here is DERIVED, not transcribed.** The I3 rule is recomputed from
+    ``_LARGEST_SERVED_OBJECT_BYTES`` on the line above the assertion that checks it, so a
+    reader can follow ``1.10 x 124,127 = 136,539.7`` → next 8 KiB boundary → 139,264 by hand.
+    A constant that merely happens to equal what a run printed is not evidence, and this
+    section had exactly that defect twice.
+
+    The cost is real and is named rather than hidden: a client that will not accept gzip
+    cannot fetch the console's entry bundle at all. ``curl`` without ``--compressed`` is such
+    a client. The alternative is a ceiling that leaves the flood multiplier at 433,396 B,
+    which makes the 124,127 B row of the cost model a number no attacker has to accept.
     """
     ceiling = static_site.DEFAULT_MAX_RESPONSE_BYTES
     assert 0 < _LARGEST_SERVED_OBJECT_BYTES < ceiling < _LARGEST_WEB_OBJECT_BYTES
 
-    headroom = ceiling - _LARGEST_SERVED_OBJECT_BYTES
-    assert headroom == 90_892, f"the declared headroom moved: {headroom} B"
+    # The two names are ONE object with two codings. Asserted rather than left to a reader,
+    # because it is the fact that makes a 413 and a 200 for the same URL correct.
+    assert _LARGEST_SERVED_OBJECT == _LARGEST_WEB_OBJECT
+    assert _LARGEST_SERVED_CODING == _LARGEST_WEB_OBJECT + static_site.GZ_SUFFIX
 
-    # The flood's multiplier, before and after, as a ratio somebody can check by hand.
+    # Interface I3, recomputed from the measurement rather than quoted from the ruling.
+    floor = 1.10 * _LARGEST_SERVED_OBJECT_BYTES
+    assert round(floor, 1) == 136_539.7
+    rounding = 8 * 1024
+    derived = -(-int(floor) // rounding) * rounding
+    assert derived == ceiling == 139_264 == 136 * 1024, (
+        f"the I3 rule over {_LARGEST_SERVED_OBJECT_BYTES} B derives {derived}, and the "
+        f"constant is {ceiling}. The constant is the CONSEQUENCE; re-derive it, never "
+        "re-choose it."
+    )
+    ratio = ceiling / _LARGEST_SERVED_OBJECT_BYTES
+    assert _LARGEST_SERVED_OBJECT_BYTES <= ceiling < 1.20 * _LARGEST_SERVED_OBJECT_BYTES
+    assert round(ratio, 3) == 1.122, f"the I3 ratio moved: {ratio}"
+
+    headroom = ceiling - _LARGEST_SERVED_OBJECT_BYTES
+    assert headroom == 15_137, f"the declared headroom moved: {headroom} B"
+
+    # The flood's multiplier, before and after negotiation, as a ratio somebody can check by
+    # hand. 433,396 / 124,127 = 3.491553…, which is 3.4916 to four places — NOT the 3.4917
+    # the ruling's prose carries, and not the 3.586 this assertion used to hold (that was
+    # 1,554,168 / 433,396: the source-map strip's cut, a different pair of numbers entirely).
     cut = _LARGEST_WEB_OBJECT_BYTES / _LARGEST_SERVED_OBJECT_BYTES
-    assert round(cut, 3) == 3.586, f"the declared reduction moved: {cut}"
+    assert round(cut, 4) == 3.4916, f"the declared reduction moved: {cut}"
 
 
 def test_the_ceiling_refuses_something_it_governs() -> None:
@@ -775,157 +990,309 @@ def test_the_ceiling_refuses_something_it_governs() -> None:
     stayed green — because "everything is under the ceiling" is satisfied most easily by a
     ceiling nothing can reach.
 
-    It runs **everywhere**, with no built tree, because the two objects it needs are
-    written from the declared sizes rather than looked up: one file of exactly
-    ``_LARGEST_WEB_OBJECT_BYTES`` and one of exactly ``_LARGEST_SERVED_OBJECT_BYTES``,
-    served through the real code at the real default ceiling. Making it depend on a
-    ``.gitignore``'d build output would mean the one assertion that proves the control
-    binds is also the one most likely to skip.
+    It takes **no tree**, deliberately: making the one assertion that proves the control
+    binds depend on a ``.gitignore``'d build output would make it the one most likely to
+    skip. When a tree IS present it additionally checks that each declared refusal is a real
+    object and really is over the ceiling, so the declaration cannot name a fiction.
+
+    The second assertion is interface **I1** applied to the declaration itself. A ``.gz``
+    sibling has no URL, so a direct request for one is a 404 and never a 413; a sibling
+    appearing in this tuple would mean somebody had enumerated all 114 ``web/`` entries and
+    filed 57 404s as ceiling refusals, turning a control that refuses one object into one
+    that appears to refuse fifty-eight. That is the exact hazard this section is shaped
+    around, and here it is refused at the declaration rather than caught downstream.
     """
-    files, _ = _built_web_tree()
     assert _REFUSED_BY_THE_CEILING, "the ceiling refuses nothing, so it bounds nothing"
-    if files:
-        declared = {relative for relative, _, _ in files}
-        assert set(_REFUSED_BY_THE_CEILING) <= declared, "a refusal names an absent object"
+    siblings_declared = [
+        n for n in _REFUSED_BY_THE_CEILING if n.lower().endswith(static_site.GZ_SUFFIX)
+    ]
+    assert siblings_declared == [], (
+        "a .gz sibling is declared as a ceiling refusal. Interface I1 makes a direct request "
+        "for one a 404, not a 413, so this is a 404 mis-filed as a cost control."
+    )
+
+    entries, label = _deployed_entries()
+    if entries:
+        assert set(_REFUSED_BY_THE_CEILING) <= set(entries), (
+            f"a declared refusal names an object {label} does not contain"
+        )
+        for name in _REFUSED_BY_THE_CEILING:
+            assert entries[name] > static_site.DEFAULT_MAX_RESPONSE_BYTES, (
+                f"{name} is declared as refused but is {entries[name]} B, under the "
+                f"{static_site.DEFAULT_MAX_RESPONSE_BYTES} B ceiling. A refusal that does "
+                "not happen is a declaration this file cannot back."
+            )
 
 
 def test_the_default_ceiling_refuses_the_declared_object_and_serves_the_declared_asset(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """The straddle again, through ``serve`` rather than through arithmetic.
+    """The straddle again, through ``serve`` rather than through arithmetic — **one URL**.
 
-    Two files whose sizes are the two declared numbers, under the DEFAULT ceiling with no
+    Three files whose sizes are the three declared numbers, under the DEFAULT ceiling with no
     environment override in sight, because the value that matters is the one a deploy that
     sets nothing will enforce.
+
+    What this asserts that no arithmetic can: the 413 and the 200 are **the same object at
+    the same path**, separated only by a request header. That is the deployed truth of a
+    136 KiB ceiling over a tree where every object ships a ``.gz`` sibling, it is the
+    sentence the module docstring makes in prose, and before 2026-08-14 nothing anywhere
+    asserted it at the default ceiling — this test wrote two unrelated files called
+    ``over.js`` and ``under.js`` and so could not have noticed if negotiation stopped working
+    altogether.
     """
     monkeypatch.delenv(static_site.RESPONSE_BYTES_ENV, raising=False)
     root = tmp_path / "web"
     (root / "assets").mkdir(parents=True)
     (root / "index.html").write_bytes(_INDEX.encode("utf-8"))
-    (root / "assets" / "over.js").write_bytes(b"x" * _LARGEST_WEB_OBJECT_BYTES)
-    (root / "assets" / "under.js").write_bytes(b"x" * _LARGEST_SERVED_OBJECT_BYTES)
 
-    over = static_site.serve("GET", "/assets/over.js", root=root)
-    assert over["statusCode"] == 413, f"{_LARGEST_WEB_OBJECT} would still be served"
-    error = json.loads(over["body"])["error"]
+    name = _LARGEST_WEB_OBJECT.split("/", 1)[1]
+    (root / "assets" / name).write_bytes(b"x" * _LARGEST_WEB_OBJECT_BYTES)
+    (root / "assets" / (name + static_site.GZ_SUFFIX)).write_bytes(
+        b"y" * _LARGEST_SERVED_OBJECT_BYTES
+    )
+    second = _WIDEST_SERVED_IDENTITY.split("/", 1)[1]
+    (root / "assets" / second).write_bytes(b"z" * _WIDEST_SERVED_IDENTITY_BYTES)
+
+    identity = static_site.serve("GET", "/" + _LARGEST_WEB_OBJECT, root=root)
+    assert identity["statusCode"] == 413, f"{_LARGEST_WEB_OBJECT} would still be served whole"
+    error = json.loads(identity["body"])["error"]
     assert error["kind"] == "response_too_large"
     assert error["bytes"] == _LARGEST_WEB_OBJECT_BYTES
+    assert error["bytes_on_disk"] == _LARGEST_WEB_OBJECT_BYTES
     assert error["ceiling_bytes"] == static_site.DEFAULT_MAX_RESPONSE_BYTES
+    # Without `vary`, a shared cache would replay this refusal to a browser that would have
+    # been served — the refusal depends on the request header exactly as the 200 does.
+    assert identity["headers"]["vary"] == static_site.VARY_ACCEPT_ENCODING
 
-    under = static_site.serve("GET", "/assets/under.js", root=root)
-    assert under["statusCode"] == 200, "the ceiling refuses the console's own entry bundle"
-    assert len(under["body"].encode("utf-8")) == _LARGEST_SERVED_OBJECT_BYTES
+    negotiated = static_site.serve(
+        "GET", "/" + _LARGEST_SERVED_OBJECT, root=root, accept_encoding=_BROWSER
+    )
+    assert negotiated["statusCode"] == 200, "the ceiling refuses the console's own entry bundle"
+    assert negotiated["headers"]["content-encoding"] == static_site.GZIP_CODING
+    assert negotiated["isBase64Encoded"] is True
+    assert static_site._wire_bytes(negotiated) == _LARGEST_SERVED_OBJECT_BYTES
+    assert int(negotiated["headers"]["content-length"]) == _LARGEST_SERVED_OBJECT_BYTES
+
+    # And the ceiling is not a wall on the identity path either: the next object down is
+    # served whole to a client that refuses compression.
+    plain = static_site.serve("GET", "/" + _WIDEST_SERVED_IDENTITY, root=root)
+    assert plain["statusCode"] == 200
+    assert static_site._wire_bytes(plain) == _WIDEST_SERVED_IDENTITY_BYTES
 
 
 def test_the_largest_file_in_the_built_web_tree_is_the_one_the_ceiling_refuses() -> None:
-    """**The ratchet.** The biggest thing in the tree, measured, and where it falls.
+    """**The ratchet.** The biggest thing in the deployed tree, measured, and where it falls.
 
-    Not the declaration — the tree. A constant asserted against itself proves nothing;
-    this walks whatever was actually built and finds the maximum in it. What changed on
-    2026-08-13 is which side of the ceiling the maximum is allowed to be on: it is now
-    required to be an object this file has *named as refused*, so an unrecognised giant
-    appearing in the tree fails here instead of quietly becoming the new multiplier.
+    Not the declaration — the tree. A constant asserted against itself proves nothing; this
+    walks the artefact and finds the maximum in it. The maximum is required to be an object
+    this file has *named as refused*, so an unrecognised giant appearing in the tree fails
+    here instead of quietly becoming the new multiplier.
+
+    It walks identity objects. A ``.gz`` sibling is not a candidate for "the largest object
+    the ceiling refuses" because it is not addressable at all.
     """
-    files, label = _require_built_tree()
+    entries, label = _require_built_tree()
+    identity, _ = _identity_and_siblings(entries)
     ceiling = static_site.DEFAULT_MAX_RESPONSE_BYTES
-    relative, path, _ = max(files, key=lambda item: item[1].stat().st_size)
-    size = path.stat().st_size
+    name, size = max(identity.items(), key=lambda item: item[1])
     if size < ceiling:
         assert size <= _LARGEST_SERVED_OBJECT_BYTES, (
-            f"{relative} is {size} B in {label} — under the ceiling but above the declared "
+            f"{name} is {size} B in {label} — under the ceiling but above the declared "
             f"served maximum of {_LARGEST_SERVED_OBJECT_BYTES} B. Re-measure and declare it."
         )
         return
-    assert relative in _REFUSED_BY_THE_CEILING, (
-        f"{relative} is {size} B in {label}, at or above the {ceiling} B ceiling, and this "
-        "file does not name it as refused. This origin would 413 an asset nobody decided "
-        "to stop serving. Strip it, declare it in _REFUSED_BY_THE_CEILING, or raise the "
-        "ceiling deliberately — do not raise it to make this pass."
+    assert name in _REFUSED_BY_THE_CEILING, (
+        f"{name} is {size} B in {label}, at or above the {ceiling} B ceiling, and this file "
+        "does not name it as refused. This origin would 413 an asset nobody decided to stop "
+        "serving. Strip it, declare it in _REFUSED_BY_THE_CEILING, or raise the ceiling "
+        "deliberately — do not raise it to make this pass."
     )
 
 
 def test_the_built_web_tree_has_not_outgrown_its_declaration() -> None:
     """Growth must be declared. That is the difference between a ratchet and a limit.
 
-    The ceiling says the emitted maximum is *safe*; this says it is *known*. Without it
-    the largest object could drift from 1.5 MB to 2.0 MB — a 35 % rise in the flood's
-    multiplier, tens of thousands of dollars in the worst case — while every test in this
-    file stayed green, because it would still be under the ceiling the whole way.
+    The ceiling says the emitted maximum is *safe*; this says it is *known*. Both halves are
+    checked, because the tree now has two columns and only one of them is what leaves: the
+    identity maximum bounds what a caller can ASK for, and the sibling maximum bounds what
+    this origin actually EMITS — and it is the second that is the multiplier in the flood
+    arithmetic and the input to I3. A build that stopped compressing well would move the
+    second without moving the first, which is a rise in what this origin costs and would
+    have been invisible to a ratchet that watched file sizes alone.
     """
-    files, label = _require_built_tree()
-    relative, path, _ = max(files, key=lambda item: item[1].stat().st_size)
-    size = path.stat().st_size
+    entries, label = _require_built_tree()
+    identity, siblings = _identity_and_siblings(entries)
+
+    name, size = max(identity.items(), key=lambda item: item[1])
     assert size <= _LARGEST_WEB_OBJECT_BYTES, (
-        f"the largest object in {label} is now {relative} at {size} B, above the declared "
-        f"{_LARGEST_WEB_OBJECT} at {_LARGEST_WEB_OBJECT_BYTES} B. Re-measure, decide the "
-        "new number is acceptable at concurrency 10 for 30 days, then update "
+        f"the largest object in {label} is now {name} at {size} B, above the declared "
+        f"{_LARGEST_WEB_OBJECT} at {_LARGEST_WEB_OBJECT_BYTES} B. Re-measure, decide the new "
+        "number is acceptable at concurrency 10 for 30 days, then update "
         "_LARGEST_WEB_OBJECT_BYTES in this file. Do not delete this assertion."
     )
 
+    coding, wire = max(siblings.items(), key=lambda item: item[1])
+    assert wire <= _LARGEST_SERVED_OBJECT_BYTES, (
+        f"the widest response {label} can emit is now {coding} at {wire} B, above the "
+        f"declared {_LARGEST_SERVED_CODING} at {_LARGEST_SERVED_OBJECT_BYTES} B. That number "
+        "is the input to interface I3, so raising it re-derives the ceiling. Re-derive it; "
+        "do not re-declare this one to match."
+    )
 
-def test_every_file_in_the_built_web_tree_serves_or_is_a_declared_refusal() -> None:
-    """The end-to-end form: serve all 75 objects and let the real code decide.
 
-    The file-size ratchet above compares bytes on disk. This compares bytes **on the
-    wire**, which is what egress is billed in and what base64 inflates by a third — a
-    1.6 MiB font would pass the ratchet and emit 2.1 MiB. Only running the server catches
-    that, so the server is what runs.
+def test_every_identity_object_in_the_deployed_tree_serves_or_is_a_declared_refusal(
+    deployed_root: Path,
+) -> None:
+    """The end-to-end form: serve all 57 objects, both ways round, and let the real code decide.
 
-    It used to assert ``refused == []``. That assertion and a binding ceiling cannot both
-    be true, and when they collided it was the ceiling that had been quietly chosen to
-    satisfy the test rather than the other way round — a 2 MiB bound above a 1,554,168 B
-    maximum, refusing nothing, on the ONE control the cost documents quote. So the empty
-    list becomes an **exact set**: what is refused must be what this file declared, no more
-    and no less. A new refusal fails here, and so does the disappearance of the only one.
+    The file-size ratchets above compare bytes on disk. This compares bytes **on the wire**,
+    which is what egress is billed in — and for the 57 negotiated responses and every binary
+    object the two are not the same number, because those bodies travel base64 and the
+    envelope is a third larger. So the measurement is :func:`static_site._wire_bytes`, never
+    ``len`` of the body string; the previous version of this test took the latter and would
+    have reported every ``.gz`` response as 33 % wider than it is.
+
+    **Both ways round, because an anonymous caller picks.** The ceiling exists to bound the
+    choice a caller makes, not the choice we would prefer they made, so each object is served
+    once with no ``Accept-Encoding`` and once as a browser sends it.
+
+    ``refused`` is an **exact map**, not a bound: what is refused must be what this file
+    declared, on the path it declared, no more and no less. A new refusal fails here, so does
+    the disappearance of the only one, and so does the same object starting to be refused on
+    the negotiated path — which would mean the console had stopped loading at all.
+
+    It enumerates **identity objects only.** Every path ending ``.gz`` is a 404 by interface
+    I1, so sweeping all 114 entries would file 57 404s in ``refused`` and drown the one real
+    refusal in them. Those 404s are asserted next door, as the property they are.
     """
-    files, label = _require_built_tree()
+    entries, label = _require_built_tree()
+    identity, _ = _identity_and_siblings(entries)
+    assert len(identity) == _IDENTITY_OBJECTS
     ceiling = static_site.DEFAULT_MAX_RESPONSE_BYTES
 
     refused: dict[str, int] = {}
-    widest = ("", 0)
-    for relative, path, root in files:
-        request_path = "/" + path.relative_to(root).as_posix()
-        response = static_site.serve("GET", request_path, root=root)
-        if response["statusCode"] != 200:
-            refused[relative] = int(response["statusCode"])
-            continue
-        wire = len(str(response["body"]).encode("utf-8"))
-        if wire > widest[1]:
-            widest = (relative, wire)
+    widest: dict[str, tuple[str, int]] = {"identity": ("", 0), "gzip": ("", 0)}
+    for name in sorted(identity):
+        for coding, accept in (("identity", None), ("gzip", _BROWSER)):
+            response = static_site.serve(
+                "GET", "/" + name, root=deployed_root, accept_encoding=accept
+            )
+            if response["statusCode"] != 200:
+                refused[f"{name} [{coding}]"] = int(response["statusCode"])
+                continue
+            wire = static_site._wire_bytes(response)
+            assert wire == int(response["headers"]["content-length"]), (
+                f"{name} [{coding}] reports a content-length the client will not receive"
+            )
+            if wire > widest[coding][1]:
+                widest[coding] = (name, wire)
 
-    assert set(refused) == set(_REFUSED_BY_THE_CEILING), (
+    assert refused == {f"{n} [identity]": 413 for n in _REFUSED_BY_THE_CEILING}, (
         f"{label} refuses {sorted(refused)}; this file declares "
-        f"{sorted(_REFUSED_BY_THE_CEILING)}. Every difference is either an object that "
-        "started being refused without anybody deciding to stop serving it, or a bound "
-        "that stopped biting. Both are changes to what this origin costs."
+        f"{sorted(f'{n} [identity]' for n in _REFUSED_BY_THE_CEILING)}. Every difference is "
+        "either an object that started being refused without anybody deciding to stop "
+        "serving it, or a bound that stopped biting. Both are changes to what this origin "
+        "costs."
     )
-    assert set(refused.values()) <= {413}, f"a refusal that is not the ceiling's: {refused}"
-    assert refused, "the ceiling refused nothing in the tree it governs; it is a decoration"
+    assert set(refused.values()) == {413}, f"a refusal that is not the ceiling's: {refused}"
 
-    assert widest[1] < ceiling, (
-        f"the widest response {label} can emit is {widest[0]} at {widest[1]} B on the "
-        f"wire, at or above the {ceiling} B ceiling."
+    # The multiplier, derived from the responses rather than from the declaration.
+    assert widest["gzip"] == (_LARGEST_SERVED_OBJECT, _LARGEST_SERVED_OBJECT_BYTES), (
+        f"the widest response {label} can emit is {widest['gzip']}; the declared multiplier "
+        f"is {_LARGEST_SERVED_CODING} at {_LARGEST_SERVED_OBJECT_BYTES} B."
     )
-    assert widest[1] == _LARGEST_SERVED_OBJECT_BYTES, (
-        f"the widest response {label} can emit is {widest[0]} at {widest[1]} B; the "
-        f"declared multiplier is {_LARGEST_SERVED_OBJECT} at {_LARGEST_SERVED_OBJECT_BYTES}."
+    assert widest["identity"] == (_WIDEST_SERVED_IDENTITY, _WIDEST_SERVED_IDENTITY_BYTES)
+    assert widest["gzip"][1] < ceiling
+    assert widest["identity"][1] < ceiling
+
+
+def test_the_compressed_sibling_has_no_url_of_its_own_and_is_not_a_ceiling_refusal(
+    deployed_root: Path,
+) -> None:
+    """**The hazard, asserted as a property instead of routed around.**
+
+    57 of the deployed tree's 114 entries answer non-200 to a direct request, and none of
+    them is a cost control refusing anything: interface I1 gives one set of bytes one name,
+    so ``<name>.gz`` is reachable by sending ``accept-encoding: gzip`` to ``<name>`` and by
+    nothing else. An enumeration that collected every non-200 over all 114 entries would file
+    those 57 404s beside the one 413 and report a ceiling that refuses fifty-eight objects.
+
+    The last block is the **negative control** for that mistake: it performs the naive sweep
+    on purpose, shows it yields 58, and separates the 57 that are 404s from the 1 that is the
+    ceiling. Without it, "the enumeration covers identity objects" is a convention somebody
+    can undo in a refactor without anything going red.
+    """
+    entries, _ = _require_built_tree()
+    _, siblings = _identity_and_siblings(entries)
+    assert len(siblings) == _IDENTITY_OBJECTS, "a sibling is missing or an orphan appeared"
+
+    for name in sorted(siblings):
+        response = static_site.serve("GET", "/" + name, root=deployed_root)
+        assert response["statusCode"] == 404, f"{name} answered {response['statusCode']}"
+        error = json.loads(response["body"])["error"]
+        assert error["kind"] == "asset_not_found", name
+        # The sibling exists on disk and is under the ceiling, so a 413 here would not even
+        # be the ceiling doing its job — it would be a mis-routed refusal.
+        assert error["kind"] != "response_too_large", name
+
+    # The negative control: the sweep this section must NOT perform, performed once.
+    naive = {
+        name: int(static_site.serve("GET", "/" + name, root=deployed_root)["statusCode"])
+        for name in sorted(entries)
+    }
+    non_200 = {name: status for name, status in naive.items() if status != 200}
+    assert len(non_200) == len(siblings) + len(_REFUSED_BY_THE_CEILING) == 58, (
+        f"the naive whole-tree sweep yields {sorted(non_200.items())}"
     )
+    assert sorted(name for name, status in non_200.items() if status == 404) == sorted(siblings)
+    assert [name for name, status in non_200.items() if status == 413] == list(
+        _REFUSED_BY_THE_CEILING
+    ), "the naive sweep's ONE genuine ceiling refusal is not the declared one"
 
 
 def test_the_built_web_tree_matches_the_shape_the_flood_arithmetic_assumed() -> None:
-    """A soft check on the two totals the USD figures were derived from.
+    """The totals the USD figures are derived from, and the pairing that makes them true.
 
-    Reported, not asserted equal: the file count and total bytes move with every console
-    change, and a test that pinned them would fail for reasons that have nothing to do
-    with the exposure. What IS asserted is that the tree is non-trivial — a stub or an
-    empty directory must not be able to satisfy the ratchet above by having nothing in it.
+    Equalities rather than bounds, and that is a change of shape. It used to *report* the
+    file count and total bytes and assert only that the tree was non-trivial — while pinning
+    ``(75, 3,571,990)`` against itself, which is a tautology that survives any tree at all. A
+    bound would let the tree grow toward the ceiling without anybody deciding that was
+    acceptable, which is precisely how the largest object drifted while every test stayed
+    green last time.
+
+    The pairing is the load-bearing one and nothing here asserted it before: **every identity
+    object has a sibling and no sibling is an orphan.** That is what makes
+    ``largest_served_wire_bytes`` the compressed column throughout rather than a mixture of
+    the two columns, and the whole I3 derivation rests on it. If one object lost its sibling,
+    the bytes this origin emits for it would jump to the identity size and the ceiling would
+    be derived over a tree that no longer exists — silently, because every other number here
+    would still add up.
     """
-    files, label = _require_built_tree()
-    total = sum(path.stat().st_size for _, path, _ in files)
-    assert len(files) >= 20, f"{label} holds only {len(files)} files; that is not a built site"
-    assert total > 1_000_000, f"{label} holds only {total} B; that is not a built site"
-    # The measured shape on 2026-08-13, for whoever reads this test's output next.
-    assert (_WEB_TREE_FILES, _WEB_TREE_BYTES) == (75, 3_571_990)
+    entries, label = _require_built_tree()
+    identity, siblings = _identity_and_siblings(entries)
+
+    assert len(entries) == _WEB_TREE_ENTRIES, f"{label} holds {len(entries)} entries"
+    assert len(identity) == len(siblings) == _IDENTITY_OBJECTS
+    assert sum(entries.values()) == _WEB_TREE_BYTES
+    assert sum(identity.values()) == _IDENTITY_BYTES
+    assert sum(siblings.values()) == _SIBLING_BYTES
+    assert _IDENTITY_BYTES + _SIBLING_BYTES == _WEB_TREE_BYTES
+    assert _IDENTITY_OBJECTS * 2 == _WEB_TREE_ENTRIES
+
+    assert sorted(siblings) == sorted(n + static_site.GZ_SUFFIX for n in identity), (
+        f"{label} no longer pairs one sibling to one object. The I3 derivation reads the "
+        "compressed column for every object; an unpaired object is served identity and its "
+        "size, not its sibling's, is what this origin emits."
+    )
+
+    # Zero source maps, and this is the assertion that would notice the strip being turned
+    # off — 2,586,960 B of debug artefact billable to this account by anyone on the internet.
+    assert [n for n in entries if n.lower().endswith(".map")] == [], (
+        f"{label} carries source maps. build_lambda strips web/**/*.map by default; a build "
+        "that shipped them would put the whole of this file's arithmetic back on the wrong "
+        "tree."
+    )
 
 
 # ── (d) The billed quantity: what a base64 body costs, and what it does not ─────────
@@ -1029,13 +1396,20 @@ def test_a_body_under_the_ceiling_on_the_wire_is_served_though_its_envelope_is_o
     (`docs/leads/cost-finish-plan.md` §0.5, $159,598 → $46,294) depends on callers taking.
 
     **This assertion and** ``test_base64_inflation_is_measured_and_not_assumed`` **above
-    cannot both hold**, and that is deliberate rather than an oversight. That test pins the
-    older semantics — the envelope is the measured quantity — which interface I2 reverses on
-    a fact about the platform: a Function URL decodes ``isBase64Encoded`` before the bytes
-    leave, and egress is billed on what leaves. The older assertion is not deleted here.
-    Reconciling it is a re-derivation owned by whoever owns the ceiling, and W2 reports it
-    rather than resolving it quietly; a contradiction two readers can see is worth more
-    than a green obtained by removing one side of it.
+    could not both hold**, and the contradiction was left standing on purpose until somebody
+    owned the ceiling: that test pinned the older semantics, in which the envelope is the
+    measured quantity. It was **resolved on 2026-08-14 in I2's favour, and the deciding
+    evidence was that I2 is ratified outside the module that changed** — a module that moves
+    a metric and documents the move in its own docstring is a module marking its own
+    homework. `docs/leads/cost-finish-plan.md` fixes the wire as the billed quantity because
+    a Function URL decodes ``isBase64Encoded`` before the bytes leave and AWS bills what
+    leaves. Had that ratification not existed outside `static_site.py`, the older assertion
+    would have been the authoritative side and this one would have moved instead.
+
+    What the older test did **not** lose is its obligation: it still measures the inflation,
+    still requires the case to straddle the ceiling, and now also bounds the encoded string
+    against Lambda's response-payload quota — the one place the envelope really is the
+    number that counts. See its docstring for the four parts.
     """
     monkeypatch.setenv(static_site.RESPONSE_BYTES_ENV, "4096")
     _binary_asset(web_root, "under-Bbbbbbbb.woff2", 4000)

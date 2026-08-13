@@ -23,6 +23,23 @@ a judge can make from a browser:
    always refuses is broken, not safe*, and this beat is the only thing that proves ours is
    not.
 
+WHERE BEAT 4's CREDENTIAL IDS COME FROM
+---------------------------------------
+``signer_credential_id`` and ``countersigner_credential_id`` are FOREIGN KEYS onto
+``mainline.signing_credential``. This module used to DERIVE them —
+``sha256(b"cred" + b"signer")`` — while ``db/seeds/demo/demo_world.sql`` enrolled
+``digest('mainline-demo/credential/demo.signer','sha256')``, so beat 4 failed
+``23503 disposition_signer_credential_id_fkey`` against the database that is actually
+deployed and the run answered ``200`` carrying its own verdict as ``NOT PROVEN``. They are
+now READ from the table that owns them, by ``signer_sub``, through
+:func:`mainline_demo_api.credentials.resolve_credential_id` — and read BEFORE the beats'
+transaction is opened, so a subject with no enrolled credential is a typed refusal that
+names the subject and the table (``422 demo_history_not_seeded``) rather than a foreign-key
+violation caught inside beat 4's savepoint and reported as though the GATE had spoken. It
+had not; nothing about the product is demonstrated by a missing row. See
+``credentials.py``'s module docstring for why resolving beats deriving in every seed this
+demo can meet.
+
 WHY IT PERSISTS NOTHING, AND WHY THAT IS NOT A COMPROMISE
 ---------------------------------------------------------
 All four beats run inside ONE ``SERIALIZABLE`` transaction. Each write beat is fenced by
@@ -73,6 +90,7 @@ from typing import Any, Final
 import psycopg
 from psycopg.types.json import Jsonb
 
+from .credentials import resolve_credential_id
 from .refusal import Diagnosis, classify, diagnose, refusal_payload, rfc3339
 from .scenario import ResolvedScenario, Scenario, positional, resolve
 
@@ -403,6 +421,12 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
     Raises:
         ScenarioNotSeeded: the demo history is not in this database. Distinct from every
             outcome above: "there was nothing to ask" is not "the gate did not refuse".
+        CredentialNotEnrolled: no unrevoked credential is enrolled for the signer or the
+            countersigner. A ``ScenarioNotSeeded``, and raised before the beats' transaction
+            opens, so an unenrolled subject costs a 422 that names it rather than a 23503
+            inside beat 4 dressed up as a refusal the gate never made.
+        CredentialAmbiguous: a subject holds several live credentials and a disposition
+            names one.
     """
     if conn.autocommit:
         raise ValueError(
@@ -418,7 +442,19 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
     #    fingerprint is the COMMITTED state rather than anything the beats can see.
     #    `resolve` raises ScenarioNotSeeded here, before a transaction has been opened for
     #    the beats — so a wrong database costs a 422, not a dangling transaction.
-    before = _fingerprint(conn, resolve(conn, scenario).permit_id)
+    opening = resolve(conn, scenario)
+    before = _fingerprint(conn, opening.permit_id)
+
+    #    THE TWO CREDENTIAL IDS BEAT 4 SIGNS WITH ARE RESOLVED HERE, IN THIS SAME READ-ONLY
+    #    TRANSACTION, FOR THE SAME REASON. They are foreign keys onto
+    #    `mainline.signing_credential` and this module does not derive them; a subject with
+    #    no enrolled credential is a PRECONDITION that fails, and it fails while there is
+    #    still nothing to roll back. Resolving them inside beat 4 instead would turn a
+    #    missing row into `23503 disposition_signer_credential_id_fkey`, caught by the
+    #    savepoint, diagnosed by `refusal.diagnose` and reported as a refusal — an exhibit
+    #    the gate never produced, on a run that would still answer 200.
+    signer_credential_id = resolve_credential_id(conn, opening.scenario.signer_sub)
+    countersigner_credential_id = resolve_credential_id(conn, opening.scenario.countersigner_sub)
     conn.rollback()
 
     conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
@@ -573,9 +609,12 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
                         _RATIONALE,
                         _sha("evidence", str(disposition_id)),
                         resolved.scenario.signer_sub,
-                        _sha("cred", "signer"),
+                        # Read from `mainline.signing_credential` before this transaction
+                        # opened; see the module docstring. Never derived here — the table
+                        # owns the value and the foreign key says so.
+                        signer_credential_id,
                         resolved.scenario.countersigner_sub,
-                        _sha("cred", "cosigner"),
+                        countersigner_credential_id,
                         _sha("authenticator", str(disposition_id)),
                         canonical_json({"challenge": disposition_id.hex, "type": "webauthn.get"})[
                             0

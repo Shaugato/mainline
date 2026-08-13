@@ -21,6 +21,10 @@ Taken `2026-08-09T22:44:59Z` with `pytest 9.1.1` on Python 3.13.14 (win32), 2414
 * `2026-08-09T23:27:46Z` — `tests/integration`, `--crdb=reuse`, ceiling 2400 s
 * `2026-08-09T23:35:43Z` — `tests/integration`, `--crdb=none`, ceiling 600 s
 * `2026-08-09T23:38:55Z` — `tests/release`, `--crdb=none`, `--crdb=reuse`, ceiling 600 s
+* `2026-08-13T11:22:26Z` — `verticals/mainline/apps/demo-api`, `--crdb=none`, `--crdb=reuse`, ceiling 900 s
+* `2026-08-13T11:39:20Z` — `verticals/mainline/apps/demo-api`, `--crdb=reuse`, ceiling 900 s
+* `2026-08-13T11:45:26Z` — `verticals/mainline/apps/demo-api`, `--crdb=reuse`, ceiling 900 s, dialled `127.0.0.1:26257`
+* `2026-08-13T11:50:38Z` — `verticals/mainline/apps/demo-api`, `--crdb=reuse`, ceiling 900 s, dialled `127.0.0.1:26257`
 
 Cluster pass ran against `<dsn>` — CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5), `gc.ttlseconds = 14400`.
 
@@ -28,8 +32,8 @@ Cluster pass ran against `<dsn>` — CockroachDB CCL v26.2.5 (x86_64-pc-linux-gn
 
 | pass | targets | tests | passed | failed | errored | skipped | xfailed | timed out |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `--crdb=none` | 26 | 8845 | 8065 | 44 | 0 | 736 | 0 | 0 |
-| `--crdb=reuse` | 26 | 7187 | 6960 | 29 | 182 | 16 | 0 | 1 |
+| `--crdb=none` | 27 | 9290 | 8323 | 44 | 0 | 923 | 0 | 0 |
+| `--crdb=reuse` | 27 | 7632 | 7340 | 30 | 245 | 17 | 0 | 1 |
 
 `P` passed · `F` failed · `E` errored (including collection errors) · `S` skipped ·
 `X` xfailed. A bold count is non-zero.
@@ -64,12 +68,14 @@ Cluster pass ran against `<dsn>` — CockroachDB CCL v26.2.5 (x86_64-pc-linux-gn
 | `tests/release` | test-root | 119P **4F** 8S | 127P **4F** |
 | `tests/security` | test-root | 458P **1F** 2S | 458P **1F** 2S |
 | `tests/unit` | test-root | 3432P **2F** 3S | 3432P **2F** 3S |
+| `verticals/mainline/apps/demo-api` | distribution | 258P 187S | 380P **1F** **63E** 1S |
 
 ## Every skip reason — `--crdb=none` pass
 
 | count | reason string, verbatim |
 |---:|---|
 | 211 | no cluster: set TRAPPOINT_DSN (or LOCAL_DSN). For a local single-node node — `docker compose up -d crdb` then TRAPPOINT_DSN=<dsn> |
+| 187 | the session obtained no CockroachDB, so this cluster-backed test is skipped rather than allowed to reach a node the session declined to obtain. trappoint-testkit says: --crdb=none: this session declined to obtain a CockroachDB, so every test that needs one is skipped rather than allowed to start a private container |
 | 183 | SKIP WITH REASON: no TRAPPOINT_DSN or LOCAL_DSN. These assertions are about what a database does; without one there is nothing to assert and pretending otherwise would be a suite that passes by absence. `just up && just migrate`. |
 | 36 | no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. Decision D8 is NOT verified by a skipped run. |
 | 31 | no CockroachDB v26.2 reachable: set MAINLINE_TEST_DSN, or put `cockroach` on PATH, or start the Docker daemon so the suite can run `docker run cockroachdb/cockroach:v26.2.5 start-single-node --insecure`. CONSERVATION OF BLAME MASS is NOT verified by a skipped run. |
@@ -123,6 +129,7 @@ Cluster pass ran against `<dsn>` — CockroachDB CCL v26.2.5 (x86_64-pc-linux-gn
 | 1 | N=64 is the nightly arm: set TRAPPOINT_NIGHTLY=1. It is skipped rather than scaled down because a 64-way race that quietly ran 8-way would report a contention level nobody measured. |
 | 1 | SKIP WITH REASON: the cluster holds none of the gate's objects, so there is no source text to attest. Run `just migrate` first. |
 | 1 | TAXONOMY INTEGRATION LANE OWED: migrations ['0032_activity_node.sql', '0033_event.sql'] have landed, so mainline.activity_node and mainline.event now exist and the LMB/bond writers can be exercised against a real cluster. This lane must be built against them (apply the migrations, insert a fonds / series / file chain and an event, run LevelMaterialisedBondWriter and BondWriter, assert the row counts and the unique-constraint behaviour). Until then the writers are proven only by the unit suite. |
+| 1 | jsonschema is not a workspace dependency; the structural check above is what runs today and this turns green the day it is added |
 | 1 | live IAM simulation not attempted: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1. The plan-time assertions in this module still hold; this one does not, and is not counted as a pass. |
 | 1 | live IAM simulation unavailable: MAINLINE_BOUNDARY_LIVE_AWS is not set to 1 |
 | 1 | mainline-delta-oracle is installed in this environment; the AST checks still prove the lattice does not import it, but the stronger 'it is not even here' claim is not available from this run |
@@ -335,6 +342,53 @@ exit `1` (tests were collected and at least one failed), 2 failed, 0 errored.
 
 * `tests.unit.domain.novelty.test_novelty_manifest::test_every_cited_test_path_exists[deltalattice]`
 * `tests.unit.domain.novelty.test_novelty_manifest::test_every_implementation_path_exists[directrix]`
+
+### `verticals/mainline/apps/demo-api` — `--crdb=reuse`
+
+exit `1` (tests were collected and at least one failed), 1 failed, 63 errored.
+
+* `tests.test_reads::test_an_undeclared_query_parameter_is_refused_rather_than_ignored`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[audit]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[blocking_checks]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[change_request]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[clause_ancestry]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[clause_version]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[disposition]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[exposure_receipt]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[ledger]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[permit]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[propagation]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[recall_run]`
+* `tests.test_reads::test_every_read_satisfies_its_committed_contract[silence]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[audit]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[blocking_checks]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[change_request]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[clause_ancestry]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[clause_version]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[disposition]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[exposure_receipt]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[ledger]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[permit]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[propagation]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[recall_run]`
+* `tests.test_reads::test_every_read_survives_the_clients_own_post_conditions[silence]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[audit]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[blocking_checks]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[change_request]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[clause_ancestry]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[clause_version]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[disposition]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[exposure_receipt]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[ledger]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[permit]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[propagation]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[recall_run]`
+* `tests.test_reads::test_every_provenance_pointer_addresses_something_real[silence]`
+* `tests.test_reads::test_no_read_silently_drops_a_provenance_claim[audit]`
+* `tests.test_reads::test_no_read_silently_drops_a_provenance_claim[blocking_checks]`
+* `tests.test_reads::test_no_read_silently_drops_a_provenance_claim[change_request]`
+* `tests.test_reads::test_no_read_silently_drops_a_provenance_claim[clause_ancestry]`
+* … more than 40 named; see the JSON.
 
 
 ## Checks a stranger runs that pytest does not collect

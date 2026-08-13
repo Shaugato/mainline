@@ -293,10 +293,24 @@ a finding with its own exit code rather than a short table.
 `var.alarm_actions` takes a list of ARNs. Setting it is one variable — but the reader only
 becomes real at the end of a chain, and **every link has to be verified, not assumed**:
 
-1. **Create an SNS topic *outside this stack*.** `alarm_actions` takes an ARN; the module
-   does not create a topic. This matters beyond tidiness: `Plan: 11 to add, 0 to change, 0 to
-   destroy` is quoted verbatim in five other documents, and a topic plus a subscription is a
-   twelfth and thirteenth resource. Point at a topic created by hand and the count stays 11.
+1. ~~**Create an SNS topic *outside this stack*.**~~ **No longer necessary, and no longer the
+   recommendation.** `infra/modules/cost-guard/` now creates the topic
+   (`aws_sns_topic.guard`), its access policy, the responder Lambda that calls
+   `PutFunctionConcurrency(0)`, and all three alarms — and it **exports `sns_topic_arn`**,
+   which is what `var.alarm_actions` on the demo-api module is meant to be fed.
+
+   The remaining gap is that `infra/envs/demo/main.tf` has **no `module "guard"` block**, so
+   `var.alarm_actions` is still `[]` and every alarm on the demo function is actionless. A
+   hand-made topic would page a human; the module stops the function. Instantiating it is
+   strictly better and is the open item.
+
+   **The resource count will move when it lands, and this document does not guess the new
+   number.** `Plan: 11 to add, 0 to change, 0 to destroy` is what
+   [`evidence/deploy/terraform-plan-furl.txt`](../../evidence/deploy/terraform-plan-furl.txt)
+   records **today**, and that file is the authority — the count here and in the five other
+   documents that quote it is checked against it by
+   `tests/deploy/test_cost_model.py::test_the_shipping_plan_count_in_the_docs_matches_the_plan_evidence`,
+   which goes red the moment the plan is regenerated and a document still says 11.
 2. **Subscribe an address** — `aws sns subscribe --protocol email --notification-endpoint …`.
 3. **Click the confirmation link AWS emails to that address.** This is the step that is
    actually a decision, and the one that gets skipped.

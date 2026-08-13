@@ -6,6 +6,9 @@ SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 # PRE-APPLY — the ordered gate the orchestrator walks before `terraform apply`
 
 **Owner:** W7 (deploy-safety) · **Measured:** 2026-08-13, this machine, `AWS_PROFILE=mainline-dev`
+**G1, G2, G3, G6 and G7 re-measured 2026-08-14** — G7 now has an executable form,
+[`scripts/deploy/plan_repro.sh`](../../scripts/deploy/plan_repro.sh), and the plan it
+reproduces is no longer eleven resources.
 **Every command on this page is read-only.** Nothing here creates, changes or deletes an AWS
 resource, and no `terraform apply` was run to produce it.
 
@@ -52,8 +55,8 @@ fixed.
 **G3 is the only gate `terraform apply` cannot fail on.** Terraform *constructs* the parameter
 ARN from `var.dsn_parameter_name` (`infra/modules/demo-api/main.tf:118`); it never reads the
 parameter, and there is no `data "aws_ssm_parameter"` anywhere in this tree. So an apply with
-no parameter in Parameter Store **succeeds, creates all eleven resources, and produces a demo
-whose first request cannot reach a database.** The handler resolves `$MAINLINE_DSN_PARAM` on
+no parameter in Parameter Store **succeeds, creates all twenty-four resources, and produces a
+demo whose first request cannot reach a database.** The handler resolves `$MAINLINE_DSN_PARAM` on
 cold start, the signed `GetParameter` comes back `400 ParameterNotFound`, and `db.py` raises
 `DsnUnavailable` — a type that exists precisely because *"nobody told this function where the
 database is"* and *"the database did not answer"* are fixed by different people.
@@ -63,7 +66,7 @@ It is not undetectable, and the distinction matters for how much this gate is wo
 refuses to print a URL unless `database` equals `mainline_demo`, and a missing parameter
 surfaces there as `503 dsn_unset` ([`RUNBOOK.md` §5.7](RUNBOOK.md#57--publish-and-prove-the-hostname-over-https)).
 So the cost of skipping G3 is not a silent broken demo — it is a **failed deploy after the
-billable, irreversible step**, with eleven resources standing and a teardown to run. Two
+billable, irreversible step**, with twenty-four resources standing and a teardown to run. Two
 seconds here, or a full apply-and-destroy cycle there.
 
 ---
@@ -79,14 +82,24 @@ seconds here, or a full apply-and-destroy cycle there.
 | G4 | CockroachDB Cloud carries the schema and the one seeded permit | `seed_demo.py --check` | no |
 | G5 | The Lambda zip exists and its manifest matches it byte for byte | `bundle_manifest.py` | no |
 | G6 | The account concurrency ceiling still reads 10, and the plan asks for `-1` | `get-account-settings` | no |
-| G7 | The plan is 11 resources and is the artefact the founder reviewed | `terraform plan` | no |
+| G7 | The plan is 24 resources and is the artefact the founder reviewed | `plan_repro.sh` | no |
 | G8 | The cost decision has been taken and recorded | read `COST-BOUND.md` §6 | — |
 | G9 | `MAINLINE_APPLY_APPROVED=1` is set by a human who read G7 | `echo` | no |
 
-The order is not cosmetic. G2 must precede G7 because `terraform init` fails without the
-bucket. G6 must precede G7 because a plan carrying a positive reservation is a plan that
-dies at its sixth API call with five resources already created. G9 is last because it is the
-only gate whose subject is a person.
+The order is not cosmetic. G6 must precede G7 because a plan carrying a positive reservation
+is a plan that dies partway through the apply with resources already created. G9 is last
+because it is the only gate whose subject is a person.
+
+**One ordering constraint was removed on 2026-08-14, and saying so is the point.** This page
+used to read *"G2 must precede G7 because `terraform init` fails without the bucket"* — which
+made the plan the founder approves unreachable until somebody had created an S3 bucket, i.e.
+until after the first mutating AWS call. It no longer holds:
+[`scripts/deploy/plan_repro.sh`](../../scripts/deploy/plan_repro.sh) reproduces the shipping
+plan against a **local** backend and makes no mutating call, so **G7 can be walked before
+G2**, by a reviewer with read-only credentials, on a clean checkout. G2 remains a gate for
+the apply — the apply writes real state and needs the real bucket — but it is no longer a
+gate for *reading the plan*. The equivalence that makes the local reproduction faithful, and
+the moment it expires, are in G7.
 
 ---
 
@@ -181,10 +194,31 @@ It **refuses any bucket name outside the `mainline-demo-` prefix** (exit 2) befo
 single AWS call, because `teardown.sh` keys its own refusal on that prefix: a state bucket
 named anything else would be created by our tools and then be undeletable by them.
 
-To see the exact `-backend-config` line without writing anything:
+> **`bootstrap_state.sh` WITHOUT `--print-backend-config` IS THE FIRST MUTATING ACTION OF
+> THE ENTIRE DEPLOY.** `s3api create-bucket`, `put-bucket-versioning`,
+> `put-bucket-encryption`, `put-bucket-tagging` and `put-bucket-lifecycle-configuration`
+> (`scripts/deploy/bootstrap_state.sh:194–262`) all write. It belongs to **the orchestrator,
+> with the founder** — the same pair who authorise the apply — and **no worker runs it**.
+> Everything else on this page, and every step of
+> [`RUNBOOK.md` §5.6.1](RUNBOOK.md#561--reproducing-the-plan-with-no-mutating-aws-call), is
+> read-only and can be walked before this bucket exists.
+
+To see the exact `-backend-config` line without writing anything — the script documents this
+mode at `bootstrap_state.sh:92` as making **zero** AWS calls:
 
 ```bash
 scripts/deploy/bootstrap_state.sh --print-backend-config --bucket "$BUCKET"
+
+# or, deriving the name from the live caller identity (one read-only sts call):
+scripts/deploy/plan_repro.sh --print-backend-config
+```
+
+Measured 2026-08-14, account masked:
+
+```
+  terraform init \
+    -backend-config="bucket=mainline-demo-tfstate-<account>" \
+    -backend-config="region=ap-southeast-1"
 ```
 
 **If it fails with 403 on `head-bucket`:** the name is taken by another AWS customer — S3
@@ -353,88 +387,195 @@ aws service-quotas get-service-quota --service-code lambda \
 
 Measured today: `10`, and `["Concurrent executions", 10.0, true]`.
 
+Measured 2026-08-14: `[10, 10]`, unchanged.
+
 Then, in the plan artefact G7 produces:
 
 ```bash
-grep 'reserved_concurrent_executions' <the plan text>
-# expect: reserved_concurrent_executions = -1
+grep -E '^ *\+ *reserved_concurrent_executions +=' <the plan text>
+# expect: + reserved_concurrent_executions = -1
 # a POSITIVE value here means the apply WILL fail — see below
 ```
 
-**Why this gate is not paperwork.** `PutFunctionConcurrency` is the **sixth of eleven** API
-calls in this apply. Any positive reservation is refused on an account whose
-`UnreservedConcurrentExecutions` is 10, and by the time it is refused **five resources
-already exist**. `-1` removes the reservation; because `min(20, 10) = 10`, the physical bound
-is unchanged and the cost ceiling does not move — it was always the account, never the
-reservation.
+> **The pattern is anchored on the assignment, and the earlier revision of this page was
+> not.** A bare `grep reserved_concurrent_executions` now matches the concurrency alarm's
+> `alarm_description` first, because that prose explains why the reservation is `-1`. It
+> prints a paragraph and looks like it answered — the same failure G4 records for
+> `grep -A2 … | grep default`. `plan_repro.sh` asserts this one for you and exits **9** on a
+> positive reservation.
+
+**Why this gate is not paperwork.** Any positive reservation is refused on an account whose
+`UnreservedConcurrentExecutions` is 10, and `PutFunctionConcurrency` happens *after* the
+function it configures exists — so when it is refused, resources are already standing and
+the deploy has to be torn down rather than retried. `-1` removes the reservation; because
+`min(20, 10) = 10`, the physical bound is unchanged and the cost ceiling does not move — it
+was always the account, never the reservation.
+
+> **A number was removed here rather than updated, on purpose.** This paragraph used to say
+> `PutFunctionConcurrency` is *"the sixth of eleven API calls"* and that *"five resources
+> already exist"* when it fails. Those ordinals were derived from an eleven-resource plan;
+> the plan is now twenty-four, the call order is Terraform's dependency graph, and **the only
+> way to observe the real ordinal is to run an apply** — which is the one thing this page
+> exists to gate. An ordinal that cannot be re-measured read-only is not evidence, so it is
+> gone rather than guessed at. The property that matters survives without it: the refusal
+> lands after creation has started.
 
 > **STANDING WARNING — `L-B99A9384` is `Adjustable: true` at 10, and nobody requests an
 > increase.**
 >
-> That ceiling is the **only real bound** on a Function URL with `authorization_type = NONE`.
-> Every dollar in [`COST-BOUND.md`](COST-BOUND.md) scales very nearly linearly with it: at a
-> quota of 100 the 30-day worst case is ≈ $325,000; at AWS's usual default of 1 000 it is
-> ≈ $3.2 M. It got to 10 by accident and it is one support ticket away from being gone. Not
-> for load testing, not "temporarily for judging". **A change that appears to need a higher
-> ceiling is a change that is wrong.**
+> That ceiling was the **only real bound** on a Function URL with `authorization_type = NONE`
+> when this warning was written. It is no longer the only one — the response ceiling
+> (139,264 B, derived from the deployed tree), the source-map strip, and the in-handler rate
+> limiter have all landed since — **but it is still the load-bearing one**, because every
+> other bound divides a number that this one sets.
+>
+> Every dollar in [`COST-BOUND.md` §0.1](COST-BOUND.md) scales very nearly linearly with it:
+> at a quota of 100 the 30-day worst case is ≈ $325,000; at AWS's usual default of 1 000 it
+> is ≈ $3.2 M. It got to 10 by accident and it is one support ticket away from being gone.
+> Not for load testing, not "temporarily for judging". **A change that appears to need a
+> higher ceiling is a change that is wrong.**
+>
+> The worst case at the quota of 10 is also **not $33,250** — that figure assumed a 100 ms
+> invocation nobody had measured. At the measured duration it is **$229,805** before the
+> shipped levers and **$47,278** after them, which is why the stop
+> (`infra/modules/cost-guard/`) is the item on this checklist that matters most.
+>
+> **That parenthesis used to end "still not instantiated", and that is no longer true.** The
+> module is instantiated at `infra/envs/demo/main.tf:632`, it contributes thirteen of the
+> twenty-four resources in G7's plan, and its three alarms appear in the plan text as
+> `mainline-demo-api-invocations-burst`, `-invocations-hourly` and `-log-ingestion`. The
+> sentence is corrected rather than deleted, because a checklist that quietly drops the item
+> it was most worried about reads, afterwards, as if nobody had been worried.
 
 ---
 
-## G7 · The plan — 11 resources, and the one the founder reviewed
+## G7 · The plan — 24 resources, and the one the founder reviewed
 
 **Must be true:** `terraform plan` regenerates the artefact the founder approved, and the
-count has not moved.
+count has not moved *since that artefact was committed*.
+
+One command, and it is the whole gate:
+
+```bash
+scripts/deploy/plan_repro.sh
+```
+
+Measured on this machine, **2026-08-14**. **This is an ABRIDGEMENT, not a verbatim copy** —
+the account id is masked, absolute scratch paths are dropped, and so are the script's own
+explanatory lines, leaving the lines this gate asserts on. No value is changed and no line is
+reordered. The unabridged transcript is in
+[`RUNBOOK.md` §5.6.1](RUNBOOK.md#561--reproducing-the-plan-with-no-mutating-aws-call), and the
+authority is the command, which takes about fifteen seconds to re-run.
+
+```
+plan_repro — reproducing the shipping plan with no mutating AWS call
+
+== 1 · identity (read-only)
+  caller                 arn:aws:iam::<account>:user/mainline-dev
+  region                 ap-southeast-1
+  profile                mainline-dev
+
+== 2 · the empty-state equivalence, measured read-only
+  state buckets          none — no mainline-demo-tfstate-* bucket in this account
+  lambda mainline-demo-api does not exist   [equivalence holds]
+
+== 3 · a local backend, outside the repository, starting empty
+  override               infra/envs/demo/backend_override.tf  (removed on exit, any exit)
+  state now              absent/empty
+
+== 4 · terraform init -reconfigure / validate / plan
+  init                   ok
+  validate               Success! The configuration is valid.
+  plan                   ok
+
+== 5 · the plan, and the committed artefact
+  fresh plan             Plan: 24 to add, 0 to change, 0 to destroy.
+  committed artefact     evidence/deploy/terraform-plan-furl.txt  says Plan: 24 to add
+  G6 reservation         reserved_concurrent_executions = -1
+  G7 zero-mask           0 occurrence(s) of twelve zeros   (expected 0)
+  account id             12 occurrence(s) in the RAW plan text — mask before it enters evidence/
+exit=0
+```
+
+### Why a local backend is a faithful reproduction, and when it stops being one
 
 `terraform init -backend=false` is **not sufficient** on this tree — `plan` then refuses with
 *"Changes to backend configurations require reinitialization"*, because `backend.tf` declares
-S3. The recipe that works, with **no apply anywhere in it**:
+S3 — and a real `-backend-config` needs an S3 bucket that does not exist yet and cannot be
+created without a mutating call (G2). So the reproduction points Terraform at a **local**
+backend whose state file lives outside the repository and starts empty. **That is faithful
+only because nothing has been applied: the remote S3 state is empty, an empty local state and
+an empty remote state hold the same zero resources, and a plan is a function of the
+configuration plus the state — so same configuration plus same empty state gives the same
+plan. THIS EQUIVALENCE EXPIRES AT THE FIRST `terraform apply`.** From the moment one resource
+exists remotely, a plan against an empty local state reports creating things that already
+exist, and every count it prints is wrong in the direction that reads like success. After the
+first apply, the only correct plan is the one against the real backend —
+[`RUNBOOK.md` §5.6.2](RUNBOOK.md#562--the-real-s3-backend--the-path-the-founder-applies-from).
+
+`plan_repro.sh` does not merely assert that precondition, it **measures it on every run**
+(stage 2, three read-only calls: `s3api list-buckets`, `s3api head-object`,
+`lambda get-function`) and refuses with **exit 5** when it no longer holds. The refusal is
+falsifiable in one command, pointed at a Lambda that does exist elsewhere in the account:
 
 ```bash
-cd infra/envs/demo
-cat > backend_override.tf <<'EOF'
-terraform {
-  backend "local" {
-    path = "<scratch>/demo-plan.tfstate"
-  }
-}
-EOF
-AWS_PROFILE=mainline-dev terraform init -reconfigure -input=false
-AWS_PROFILE=mainline-dev terraform plan -no-color -input=false
-rm -f backend_override.tf          # NEVER commit this file
+scripts/deploy/plan_repro.sh --prove-expiry-refusal <an existing function> --region <its region>
+# measured 2026-08-14: "THE EQUIVALENCE HAS EXPIRED", verdict REFUSED with exit 5   [ok]
 ```
 
-Expected, and the number five other documents quote verbatim:
+### 24 is a contract
 
-```
-Plan: 11 to add, 0 to change, 0 to destroy.
-```
-
-**11 is a contract.** It is quoted in `JUDGE-PACK.md`, `docs/submission/DEVPOST.md`,
+The count is quoted across `JUDGE-PACK.md`, `docs/submission/DEVPOST.md`,
 `docs/submission/JUDGE-START.md`, `docs/STATE-OF-THE-BUILD.md` and
-`scripts/submission/check_submission_ready.py`. A plan that adds a twelfth resource has not
-just changed the infrastructure — it has falsified five documents nobody edited.
+`scripts/submission/check_submission_ready.py`. A plan that adds a twenty-fifth resource has
+not just changed the infrastructure — it has falsified five documents nobody edited.
 
-Also assert, on the plan text:
+**Do not take that list on trust; it rots.** The live authority is
+`tests/deploy/test_cost_model.py::test_the_shipping_plan_count_in_the_docs_matches_the_plan_evidence`,
+which fails naming *every* live document quoting a count no committed artefact supports, and
+its sibling `…_is_actually_stated_somewhere_live`, which fails if the count is deleted rather
+than corrected. **The committed plan artefact is authoritative and the prose is derived.**
+Never regenerate or reconfigure a plan in order to obtain the number a document already
+carries.
 
-* `reserved_concurrent_executions = -1` (G6)
+The count moved 11 → 24 when `module "guard"` was instantiated at
+`infra/envs/demo/main.tf:632`. It is 11 + 13, not 11 + 14: `cost-guard` declares fourteen
+`resource` blocks, and `aws_sns_topic_subscription.email` is `count =
+length(var.notification_emails)` over a list that defaults to empty.
+
+### Also assert, on the plan text
+
+* `reserved_concurrent_executions = -1` (G6) — `plan_repro.sh` exits **9** if it is positive
 * the `-concurrency` alarm's `threshold` is **below 10** — a threshold at or above the
   account ceiling is an alarm that cannot fire, which is a control that looks present and is
-  not
-* **zero** occurrences of the real account id, and **zero** occurrences of a twelve-zero
-  placeholder — two checkers disagreed about whether twelve identical digits is a mask or a
-  value, and the resolution recorded in [`docs/CI-STATE.md`](../CI-STATE.md) is to remove the
-  digits rather than relax either checker
+  not. Measured in the 2026-08-14 plan: `8`
+* **zero** occurrences of a twelve-zero placeholder — two checkers disagreed about whether
+  twelve identical digits is a mask or a value, and the resolution recorded in
+  [`docs/CI-STATE.md`](../CI-STATE.md) is to remove the digits rather than relax either
+  checker
 
 ```bash
 grep -cE '(^|[^0-9])0{12}([^0-9]|$)' <the plan text>     # expect: 0
-grep -cE '(^|[^0-9])[0-9]{12}([^0-9]|$)' <the plan text> # expect: 0 — no bare account id
 ```
 
 (The pattern is written as a repeat rather than spelled out, so that this gate does not
 itself become an occurrence of the string it is checking for.)
 
-**Nothing on this page runs `terraform apply`.** The orchestrator applies, after the founder
-re-authorises, and it applies **the saved plan file** — what was reviewed is what runs.
+> **A correction this gate owes its own reader.** The earlier revision also demanded *"zero
+> occurrences of the real account id"* **in the plan text**, and that is false of any plan
+> anybody actually runs: the root reads `data.aws_caller_identity.current`, so the account id
+> is in the output by construction — **12 occurrences** in the 2026-08-14 FURL plan, 19 in
+> the CloudFront variant. Zero is the property of the **committed, masked artefact**, not of
+> the raw plan, and conflating the two makes a correct plan look like a leak. `plan_repro.sh`
+> therefore *counts* the occurrences and says plainly that the raw file must be masked before
+> it enters `evidence/`; it writes that file **outside the repository** and refuses an
+> `--out-dir` inside it.
+
+**Nothing on this page runs `terraform apply`.** `plan_repro.sh` cannot: every Terraform
+invocation in it passes one allowlist of `init`, `validate`, `plan`, `show`, `version`, and
+`--prove-refusal` demonstrates seven refusals in about a second. The orchestrator applies,
+after the founder re-authorises, and it applies **the saved plan file** — what was reviewed
+is what runs.
 
 ---
 
@@ -453,8 +594,12 @@ Record, in the approval:
 
 - [ ] which levers are taken, by number
 - [ ] the resulting worst case, from the menu row — not re-derived
-- [ ] that `RUNBOOK.md` §8's two-bill split has been read: **≈ $0.02/month steady state, USD
-      11,538–33,257 adversarial**, and that the second number is bounded only by G6's ceiling
+- [ ] that `RUNBOOK.md` §8's two-bill split has been read: a steady state of ≈ $0.02/month,
+      and an adversarial case bounded only by G6's ceiling. **Take the adversarial figure
+      from `COST-BOUND.md` and from nowhere else.** This checklist used to carry the range
+      *"USD 11,538–33,257"*; that range assumed a 100 ms invocation nobody had measured, is
+      understated about sevenfold at the measured duration, and is not restated here —
+      a second copy of a number is a second thing that can be stale, and this one already was
 - [ ] that the kill switch has been located before it is needed:
       `scripts/deploy/kill_switch.sh --status` is read-only and answers in one line
 
@@ -505,12 +650,18 @@ echo "== G5 package ==";   .venv/Scripts/python.exe scripts/deploy/bundle_manife
     out/lambda/mainline-demo-api-arm64.zip --quiet
 echo "== G6 ceiling ==";   aws lambda get-account-settings --region "$REGION" \
     --query 'AccountLimit.[ConcurrentExecutions,UnreservedConcurrentExecutions]' --output json
+echo "== G7 plan ==";      scripts/deploy/plan_repro.sh     # local backend, no mutating call
 echo "== G9 approval ==";  echo "MAINLINE_APPLY_APPROVED=${MAINLINE_APPLY_APPROVED:-<unset>}"
 ```
 
-Run against this account today, that pass prints an ARN, **`[]`**, **`[]`**, a green
-database, `VERDICT PASS`, `[10,10]`, and `<unset>`. **Two empty brackets and an unset
-variable: the apply is three gates away, and the two empty ones are G2 and G3.**
+Run against this account on 2026-08-14, that pass prints an ARN, **`[]`**, **`[]`**, a green
+database, `VERDICT PASS`, `[10,10]`, `Plan: 24 to add` at exit 0, and `<unset>`. **Two empty
+brackets and an unset variable: the apply is three gates away, and the two empty ones are G2
+and G3.**
+
+**G7 is now in that pass, and it was not before.** It could not be, while reading the plan
+required a state bucket that only a mutating call creates. `plan_repro.sh` takes about
+fifteen seconds and is the only line above that runs Terraform at all.
 
 ---
 
@@ -525,6 +676,19 @@ you will want it inside a minute:
 
 Read-only, free, and the **only alarm reader that can exist** — there is no CI reader,
 because no AWS credential exists in any workflow in this repository.
-[`OBSERVABILITY.md`](OBSERVABILITY.md) §3 says why, and what each alarm state means. Today
-that command exits `3` and prints four `DOES NOT EXIST` lines, which is the correct answer
-for an unapplied stack and is exactly the reading this page's G2 and G3 predict.
+[`OBSERVABILITY.md`](OBSERVABILITY.md) §3 says why, and what each alarm state means. Measured
+2026-08-14, that command exits `3` and prints four `DOES NOT EXIST` lines, which is the
+correct answer for an unapplied stack and is exactly the reading this page's G2 and G3
+predict.
+
+> **Four, and the plan now creates seven. Read this before trusting a green from it.**
+> `aws_live_probe.py:179` carries `ALARM_SUFFIXES = ("-errors", "-throttles",
+> "-duration-p99", "-concurrency")` — a hard-coded four. The 2026-08-14 plan creates **seven**
+> alarms whose names begin `mainline-demo-api`: those four plus
+> `-invocations-burst`, `-invocations-hourly` and `-log-ingestion`, which are the guard's, and
+> the guard's are the ones wired to the stop. So *after* the apply this probe will report
+> *"All 4 alarms exist and none is in ALARM"* while never having looked at the three that
+> matter most — a reader that is complete-looking and is not. **This is a finding against
+> `scripts/deploy/aws_live_probe.py`, which this page does not own**; it is recorded here
+> because this page is where the command is learned, and a caveat that lives only in the
+> owner's backlog is a caveat nobody reads at 3 a.m.

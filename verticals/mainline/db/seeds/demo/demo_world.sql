@@ -385,33 +385,366 @@ WHERE NOT EXISTS (
 );
 
 -- ──────────────────────────────────────────────────────────────────────────────────────────────
--- 8 · THE CUSTODY ANCHOR
+-- 8 · THE CUSTODY LEDGER, AND THE CHECKPOINTS THAT COMMIT TO IT
 --
--- A recall run may not cite an unanchored policy, and a policy's anchor must sit inside a
--- COSIGNED, admissible checkpoint (`fn_recall_policy_anchored`, migration 0112). So the
--- checkpoint and its witness signature are seeded before the policy that leans on them, and the
--- trigger chain is walked rather than bypassed.
+-- WHAT THIS SECTION USED TO DO, AND WHY THAT WAS A DEFECT RATHER THAN A THIN SEED.
+--
+-- Until 2026-08-14 this section seeded ONE checkpoint, `tree_size = 1`, with a `root_hash` of
+-- `digest('mainline-demo/ledger/root/1', 'sha256')` — a hash of a STRING NAMING ITSELF — over a
+-- `mainline.ledger_leaf` that held zero rows. `mainline.ledger_node` held zero rows too. So the
+-- demo's transparency log published a signed commitment to a tree of size one with NOTHING
+-- BEHIND IT, in the one surface whose entire purpose is that claims have something behind them.
+-- A judge who clicked "verify" got an inclusion-proof array that was empty because the reader
+-- (`reads.read_ledger`) correctly refuses to emit a proof over a window it cannot cover — so the
+-- console's honesty machinery was the only thing standing between that row and a false exhibit.
+--
+-- That is not a decoration to be tidied. `docs/decisions/demo-ledger-seeding.md` records the
+-- ruling and the evidence. This section now seeds a REAL four-leaf log.
+--
+-- ⚠ EVERY HASH BELOW IS COMPUTED BY THE DATABASE. NOT ONE IS TYPED.
+--
+-- This is the whole point, and it is the rule this repository has already been burned for
+-- breaking once (see `tests/ci/test_demo_seed_is_frozen.py`, and the credential enrolment on the
+-- line this file's §2 marks). The temptation in a seed like this is to run the arithmetic
+-- offline, paste sixty-four hex characters per row, and get a green. That would be hand-rolling
+-- a transparency log — a chain of numbers nobody can recompute, which is the exact property an
+-- evidentiary hash must not have. So:
+--
+--   * `leaf_hash`      = `digest(0x00 || canon_bytes)`, computed here from the canonical bytes,
+--                        per RFC 6962 §2.1 leaf-domain separation.
+--   * `prev_link_hash` \  computed by `mainline.fn_ledger_cas_append` (migration 0119), the
+--   * `link_hash`      /  product's OWN gap-free compare-and-swap appender. This file does not
+--                        INSERT into `mainline.ledger_leaf` at all. `seq` is derived in-txn as
+--                        `coalesce(max(seq)+1, 0)`, genesis `prev_link_hash` is 32 zero bytes and
+--                        not NULL (custody CU-1), and the two UNIQUE constraints that make a fork
+--                        physically impossible are walked rather than bypassed.
+--   * interior nodes   = `digest(0x01 || left || right)`, read back OUT of the leaves the
+--                        appender wrote.
+--   * checkpoint roots = read back OUT of `mainline.ledger_node`. The `tree_size = 2` root IS
+--                        node (1,0); the `tree_size = 4` root IS node (2,0). Storing the root as
+--                        a node and then reading it into the checkpoint means the redundancy is
+--                        CHECKABLE — `SELECT` them and compare — instead of two independent
+--                        assertions that happen to agree.
+--
+-- THE ONE THING SQL CANNOT DO, STATED RATHER THAN HIDDEN. `canon_bytes` is RFC 8785 JCS and is
+-- produced by the CLIENT (`trappoint_jcs.canon_v1`); migration 0072's header says so and says
+-- DO NOT COMPUTE `leaf_hash` IN SQL. That prohibition names two failure modes — CockroachDB's
+-- `sha256()` returns a hex STRING rather than BYTES (cockroach#73896), and JSONB normalises and
+-- reorders keys, so `sha256(payload::STRING)` is a value no third party reproduces. NEITHER
+-- applies here: `digest(...)` returns BYTES, and the hash below is taken over the literal
+-- `canon_bytes` — never over `payload`. The canonicalisation itself is not performed in SQL; the
+-- canonical bytes are written out longhand, sorted and whitespace-free, and `payload` is CAST
+-- FROM THE SAME LITERAL so the two cannot drift. Each literal was verified to be byte-identical
+-- to `canon_v1.canonicalise_payload()` of that object; the check is reproducible and is recorded
+-- in `docs/decisions/demo-ledger-seeding.md` §4.
+--
+-- WHY FOUR LEAVES AND WHY CHECKPOINTS AT 2 AND 4. The four leaves are the four custody-relevant
+-- facts THIS FILE has already established, in the order it established them: the document (§4),
+-- the clause version (§4), the precursor event (§5) and the blame closure (§6). Nothing is
+-- forward-referenced — every `subject_id` names a row that exists by the time this section runs.
+-- Two checkpoints exist because a log that has checkpointed once cannot demonstrate CONSISTENCY;
+-- RFC 6962 §2.1.2 is the check that catches delete-leaf-k-and-renumber, and it needs two tree
+-- sizes to be a check at all. A log that publishes at 2 and again at 4 is a log behaving
+-- normally, and it is what the in-browser verifier is built to consume.
+--
+-- WHAT THE CHECKPOINT ROW STILL DOES NOT PROVE. `log_sig`, `tsa_token` and `beacon` remain
+-- synthetic and are marked so. A real checkpoint's value is that it LEFT the trust boundary
+-- before we could change our minds about the tree; these did not. `canon_src_sha256` is likewise
+-- a named placeholder rather than the live hash of the canonicaliser source, because a seed that
+-- pinned that hash would go red on any edit to a file it does not own. What IS now true, and was
+-- not before, is that `root_hash` commits to leaves that exist and that anyone can recompute.
 --
 -- The witness here is our own; `DEMO-HONESTY.md` §4 already says adverse witnesses are not
 -- running, and this row does not change that. `adverse = true` is the column's declared value for
 -- a witness in a different trust domain, and the honest reading of this seed is "the mechanism is
 -- exercised", never "an independent party signed this".
+--
+-- A recall run may not cite an unanchored policy, and a policy's anchor must sit inside a
+-- COSIGNED, admissible checkpoint (`fn_recall_policy_anchored`, migration 0112). So the
+-- checkpoints and their witness signatures are seeded before the policy that leans on them, and
+-- the trigger chain is walked rather than bypassed. §9's `anchored_tree_size = 1` is satisfied by
+-- both checkpoints below, since 0112 asks for `cp.tree_size >= anchored_size`.
+--
+-- IDEMPOTENCE, WHICH IS SHARPER HERE THAN ANYWHERE ELSE IN THIS FILE. An APPENDER is by
+-- definition not idempotent: calling `fn_ledger_cas_append` twice appends twice, and the demo's
+-- row counts would become a function of how many times somebody pressed deploy. Fixed
+-- `entry_id`s make `ledger_leaf_entry_unique` refuse the replay — but refusing means 23505, and
+-- an exception aborts the whole batch. So every append below is GUARDED by an anti-join against
+-- `mainline.ledger_leaf`: on a second run the guard selects zero rows and the function is never
+-- called. `ON CONFLICT DO NOTHING` cannot be used for this, because the function's INSERT is
+-- inside a PL/pgSQL body where this file's `ON CONFLICT` clause does not reach.
 -- ──────────────────────────────────────────────────────────────────────────────────────────────
+
+-- 8.1 · THE FOUR INTAKE ENTRIES
+--
+-- `canon_bytes` is the evidence; `payload` is the human rendering and is NEVER hashed. Both are
+-- cast from the SAME single-quoted literal `c.j`, which is what makes a substitution between them
+-- impossible to introduce by editing one and forgetting the other. `hlc` is ADVISORY and nothing
+-- may read it (migration 0072a puts that sentence in the database itself), so a fixed literal is
+-- correct here and `cluster_logical_timestamp()` would only make this file non-deterministic.
+
+INSERT INTO mainline.ledger_intake (
+  entry_id, site_code, entry_kind, subject_id, actor, actor_kind,
+  payload, canon_bytes, payload_ver, leaf_hash, is_sandbox, hlc, recorded_at
+)
+SELECT
+  'dec0de00-000e-4000-8000-000000000001',
+  'dec0de00-0001-4000-8000-000000000001',
+  'doc_registered',
+  'dec0de00-0003-4000-8000-000000000001',
+  'verticals/mainline/db/seeds/demo/demo_world.sql',
+  'service',
+  c.j::JSONB,
+  c.j::BYTES,
+  1,
+  digest(decode('00', 'hex') || c.j::BYTES, 'sha256'),
+  false,
+  1,
+  TIMESTAMPTZ '2026-08-01 00:10:00+00'
+FROM (
+  SELECT '{"doc_id":"dec0de00-0003-4000-8000-000000000001","entry_kind":"doc_registered","site_code":"dec0de00-0001-4000-8000-000000000001","source":"verticals/mainline/db/seeds/demo/demo_world.sql","synthetic":true}' AS j
+) AS c
+WHERE NOT EXISTS (
+  SELECT 1 FROM mainline.ledger_intake
+   WHERE entry_id = 'dec0de00-000e-4000-8000-000000000001'
+);
+
+INSERT INTO mainline.ledger_intake (
+  entry_id, site_code, entry_kind, subject_id, actor, actor_kind,
+  payload, canon_bytes, payload_ver, leaf_hash, is_sandbox, hlc, recorded_at
+)
+SELECT
+  'dec0de00-000e-4000-8000-000000000002',
+  'dec0de00-0001-4000-8000-000000000001',
+  'clause_version_committed',
+  'dec0de00-0004-4000-8000-000000000001',
+  'verticals/mainline/db/seeds/demo/demo_world.sql',
+  'service',
+  c.j::JSONB,
+  c.j::BYTES,
+  1,
+  digest(decode('00', 'hex') || c.j::BYTES, 'sha256'),
+  false,
+  2,
+  TIMESTAMPTZ '2026-08-01 00:20:00+00'
+FROM (
+  SELECT '{"clause_uuid":"dec0de00-0004-4000-8000-000000000001","entry_kind":"clause_version_committed","gen":1,"site_code":"dec0de00-0001-4000-8000-000000000001","source":"verticals/mainline/db/seeds/demo/demo_world.sql","synthetic":true}' AS j
+) AS c
+WHERE NOT EXISTS (
+  SELECT 1 FROM mainline.ledger_intake
+   WHERE entry_id = 'dec0de00-000e-4000-8000-000000000002'
+);
+
+INSERT INTO mainline.ledger_intake (
+  entry_id, site_code, entry_kind, subject_id, actor, actor_kind,
+  payload, canon_bytes, payload_ver, leaf_hash, is_sandbox, hlc, recorded_at
+)
+SELECT
+  'dec0de00-000e-4000-8000-000000000003',
+  'dec0de00-0001-4000-8000-000000000001',
+  'precursor_event_ingested',
+  'dec0de00-0005-4000-8000-000000000001',
+  'verticals/mainline/db/seeds/demo/demo_world.sql',
+  'service',
+  c.j::JSONB,
+  c.j::BYTES,
+  1,
+  digest(decode('00', 'hex') || c.j::BYTES, 'sha256'),
+  false,
+  3,
+  TIMESTAMPTZ '2026-08-01 00:30:00+00'
+FROM (
+  SELECT '{"entry_kind":"precursor_event_ingested","event_id":"dec0de00-0005-4000-8000-000000000001","site_code":"dec0de00-0001-4000-8000-000000000001","source":"verticals/mainline/db/seeds/demo/demo_world.sql","synthetic":true}' AS j
+) AS c
+WHERE NOT EXISTS (
+  SELECT 1 FROM mainline.ledger_intake
+   WHERE entry_id = 'dec0de00-000e-4000-8000-000000000003'
+);
+
+INSERT INTO mainline.ledger_intake (
+  entry_id, site_code, entry_kind, subject_id, actor, actor_kind,
+  payload, canon_bytes, payload_ver, leaf_hash, is_sandbox, hlc, recorded_at
+)
+SELECT
+  'dec0de00-000e-4000-8000-000000000004',
+  'dec0de00-0001-4000-8000-000000000001',
+  'blame_closure_computed',
+  'dec0de00-0004-4000-8000-000000000001',
+  'verticals/mainline/db/seeds/demo/demo_world.sql',
+  'service',
+  c.j::JSONB,
+  c.j::BYTES,
+  1,
+  digest(decode('00', 'hex') || c.j::BYTES, 'sha256'),
+  false,
+  4,
+  TIMESTAMPTZ '2026-08-01 00:40:00+00'
+FROM (
+  SELECT '{"clause_uuid":"dec0de00-0004-4000-8000-000000000001","closure_gen":0,"entry_kind":"blame_closure_computed","site_code":"dec0de00-0001-4000-8000-000000000001","source":"verticals/mainline/db/seeds/demo/demo_world.sql","synthetic":true}' AS j
+) AS c
+WHERE NOT EXISTS (
+  SELECT 1 FROM mainline.ledger_intake
+   WHERE entry_id = 'dec0de00-000e-4000-8000-000000000004'
+);
+
+-- 8.2 · SEQUENCING THEM — through the product's own appender, one position at a time
+--
+-- Four separate statements, in order, because `seq` is derived from `max(seq)` INSIDE the
+-- transaction: a single set-returning call over four intake rows would leave the order of the
+-- side effects to the optimiser, and this log's whole claim is that its order is not incidental.
+-- The `batch_id` records which sequencer run produced the leaf and commits to nothing.
+
+SELECT mainline.fn_ledger_cas_append(
+         'dec0de00-0001-4000-8000-000000000001', i.entry_id, i.leaf_hash,
+         'dec0de00-000f-4000-8000-000000000001'::UUID)
+  FROM mainline.ledger_intake i
+ WHERE i.entry_id = 'dec0de00-000e-4000-8000-000000000001'
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_leaf l
+      WHERE l.site_code = 'dec0de00-0001-4000-8000-000000000001'
+        AND l.entry_id = i.entry_id
+   );
+
+SELECT mainline.fn_ledger_cas_append(
+         'dec0de00-0001-4000-8000-000000000001', i.entry_id, i.leaf_hash,
+         'dec0de00-000f-4000-8000-000000000001'::UUID)
+  FROM mainline.ledger_intake i
+ WHERE i.entry_id = 'dec0de00-000e-4000-8000-000000000002'
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_leaf l
+      WHERE l.site_code = 'dec0de00-0001-4000-8000-000000000001'
+        AND l.entry_id = i.entry_id
+   );
+
+SELECT mainline.fn_ledger_cas_append(
+         'dec0de00-0001-4000-8000-000000000001', i.entry_id, i.leaf_hash,
+         'dec0de00-000f-4000-8000-000000000002'::UUID)
+  FROM mainline.ledger_intake i
+ WHERE i.entry_id = 'dec0de00-000e-4000-8000-000000000003'
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_leaf l
+      WHERE l.site_code = 'dec0de00-0001-4000-8000-000000000001'
+        AND l.entry_id = i.entry_id
+   );
+
+SELECT mainline.fn_ledger_cas_append(
+         'dec0de00-0001-4000-8000-000000000001', i.entry_id, i.leaf_hash,
+         'dec0de00-000f-4000-8000-000000000002'::UUID)
+  FROM mainline.ledger_intake i
+ WHERE i.entry_id = 'dec0de00-000e-4000-8000-000000000004'
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_leaf l
+      WHERE l.site_code = 'dec0de00-0001-4000-8000-000000000001'
+        AND l.entry_id = i.entry_id
+   );
+
+-- 8.3 · THE INTERIOR NODES — RFC 6962 §2.1, read back out of the leaves
+--
+-- `(level, idx)` is the RFC 6962 coordinate: level L node I covers leaves [I·2^L, (I+1)·2^L).
+-- Level 1 node 0 covers leaves 0-1, level 1 node 1 covers leaves 2-3, and level 2 node 0 is the
+-- root of the whole four-leaf tree. `0x01` is the INTERIOR domain separator; applying the leaf
+-- prefix `0x00` a second time here is the classic way to produce a proof that verifies against
+-- nothing, and `reads._mth` documents the same trap from the reader's side.
+
+INSERT INTO mainline.ledger_node (site_code, level, idx, hash)
+SELECT 'dec0de00-0001-4000-8000-000000000001', 1, 0,
+       digest(decode('01', 'hex') || l0.leaf_hash || l1.leaf_hash, 'sha256')
+  FROM mainline.ledger_leaf l0, mainline.ledger_leaf l1
+ WHERE l0.site_code = 'dec0de00-0001-4000-8000-000000000001' AND l0.seq = 0
+   AND l1.site_code = 'dec0de00-0001-4000-8000-000000000001' AND l1.seq = 1
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_node
+      WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND level = 1 AND idx = 0
+   );
+
+INSERT INTO mainline.ledger_node (site_code, level, idx, hash)
+SELECT 'dec0de00-0001-4000-8000-000000000001', 1, 1,
+       digest(decode('01', 'hex') || l2.leaf_hash || l3.leaf_hash, 'sha256')
+  FROM mainline.ledger_leaf l2, mainline.ledger_leaf l3
+ WHERE l2.site_code = 'dec0de00-0001-4000-8000-000000000001' AND l2.seq = 2
+   AND l3.site_code = 'dec0de00-0001-4000-8000-000000000001' AND l3.seq = 3
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_node
+      WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND level = 1 AND idx = 1
+   );
+
+INSERT INTO mainline.ledger_node (site_code, level, idx, hash)
+SELECT 'dec0de00-0001-4000-8000-000000000001', 2, 0,
+       digest(decode('01', 'hex') || n0.hash || n1.hash, 'sha256')
+  FROM mainline.ledger_node n0, mainline.ledger_node n1
+ WHERE n0.site_code = 'dec0de00-0001-4000-8000-000000000001' AND n0.level = 1 AND n0.idx = 0
+   AND n1.site_code = 'dec0de00-0001-4000-8000-000000000001' AND n1.level = 1 AND n1.idx = 1
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_node
+      WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND level = 2 AND idx = 0
+   );
+
+-- 8.4 · THE TWO CHECKPOINTS
+--
+-- `root_hash` is SELECTED from `mainline.ledger_node`, so the checkpoint commits to the tree the
+-- appender actually built. The note `body` is the C2SP tlog-checkpoint text, and `tree_size` and
+-- the root are redundant with it ON PURPOSE: a verifier parses the note and compares, and a
+-- disagreement is a finding. That redundancy is only worth having when the note is BUILT from
+-- the same expression the column is, which is why `encode(n.hash, 'hex')` appears twice here and
+-- no hex literal appears at all.
 
 INSERT INTO mainline.ledger_checkpoint (
   site_code, tree_size, root_hash, body, beacon, log_sig, canon_src_sha256, admissible, issued_at
-) VALUES (
+)
+SELECT
   'dec0de00-0001-4000-8000-000000000001',
-  1,
-  digest('mainline-demo/ledger/root/1', 'sha256'),
-  'mainline/dec0de00-0001-4000-8000-000000000001' || chr(10) || '1' || chr(10)
-    || encode(digest('mainline-demo/ledger/root/1', 'sha256'), 'hex') || chr(10),
-  '{"synthetic": true, "drand_round": 1, "nist_pulse": 1,
+  2,
+  n.hash,
+  'mainline/dec0de00-0001-4000-8000-000000000001' || chr(10) || '2' || chr(10)
+    || encode(n.hash, 'hex') || chr(10),
+  '{"synthetic": true, "drand_round": 2, "nist_pulse": 2,
     "source": "verticals/mainline/db/seeds/demo/demo_world.sql"}'::JSONB,
-  digest('mainline-demo/ledger/logsig/1', 'sha256'),
+  digest('mainline-demo/ledger/logsig/2', 'sha256'),
   digest('mainline-demo/ledger/canon-src', 'sha256'),
   true,
   TIMESTAMPTZ '2026-08-01 01:00:00+00'
+FROM mainline.ledger_node n
+ WHERE n.site_code = 'dec0de00-0001-4000-8000-000000000001' AND n.level = 1 AND n.idx = 0
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_checkpoint
+      WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND tree_size = 2
+   );
+
+INSERT INTO mainline.ledger_checkpoint (
+  site_code, tree_size, root_hash, body, beacon, log_sig, canon_src_sha256, admissible, issued_at
+)
+SELECT
+  'dec0de00-0001-4000-8000-000000000001',
+  4,
+  n.hash,
+  'mainline/dec0de00-0001-4000-8000-000000000001' || chr(10) || '4' || chr(10)
+    || encode(n.hash, 'hex') || chr(10),
+  '{"synthetic": true, "drand_round": 4, "nist_pulse": 4,
+    "source": "verticals/mainline/db/seeds/demo/demo_world.sql"}'::JSONB,
+  digest('mainline-demo/ledger/logsig/4', 'sha256'),
+  digest('mainline-demo/ledger/canon-src', 'sha256'),
+  true,
+  TIMESTAMPTZ '2026-08-01 01:30:00+00'
+FROM mainline.ledger_node n
+ WHERE n.site_code = 'dec0de00-0001-4000-8000-000000000001' AND n.level = 2 AND n.idx = 0
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_checkpoint
+      WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND tree_size = 4
+   );
+
+-- 8.5 · THE WITNESS COSIGNATURES
+--
+-- One per checkpoint. `fn_recall_policy_anchored` requires the anchor to sit inside a checkpoint
+-- that is BOTH admissible AND cosigned, so a checkpoint without its cosignature would refuse §9.
+
+INSERT INTO mainline.cosignature (
+  site_code, tree_size, witness_id, trust_domain, adverse, sig, received_at
+) VALUES (
+  'dec0de00-0001-4000-8000-000000000001',
+  2,
+  'witness.demo/hsr-1', 'union_hsr', true,
+  digest('mainline-demo/ledger/cosig/2', 'sha256'),
+  TIMESTAMPTZ '2026-08-01 01:05:00+00'
 )
 ON CONFLICT DO NOTHING;
 
@@ -419,10 +752,10 @@ INSERT INTO mainline.cosignature (
   site_code, tree_size, witness_id, trust_domain, adverse, sig, received_at
 ) VALUES (
   'dec0de00-0001-4000-8000-000000000001',
-  1,
+  4,
   'witness.demo/hsr-1', 'union_hsr', true,
-  digest('mainline-demo/ledger/cosig/1', 'sha256'),
-  TIMESTAMPTZ '2026-08-01 01:05:00+00'
+  digest('mainline-demo/ledger/cosig/4', 'sha256'),
+  TIMESTAMPTZ '2026-08-01 01:35:00+00'
 )
 ON CONFLICT DO NOTHING;
 
@@ -460,14 +793,155 @@ INSERT INTO mainline_meas.recall_policy (
 )
 ON CONFLICT DO NOTHING;
 
+-- ──────────────────────────────────────────────────────────────────────────────────────────────
+-- 10 · THE SECOND GATED SUBJECT — a change request against the clause the incident names
+--
+-- WHY THIS SUBJECT IS HERE AT ALL. `apps/console/src/data/resources.ts` declares twelve navigable
+-- resources and one of them is `change_request`: `GET /v1/change-requests/{cr_id}` (`:84-90`), in
+-- `RESOURCE_KEYS` (`:224`), against the committed contract
+-- `apps/console/contracts/change-request.schema.json`, routed by `app.py:213`, read by
+-- `reads.py::read_change_request`, over the table `0051_change_request.sql` creates, with nine
+-- legal transitions seeded by `0017b_subject_transition_seed.sql:38-46`. Seven layers of product
+-- for a subject this file did not carry: a judge who clicked the resource got a 404, and the
+-- fixture that asked for its identifier errored 63 of the demo-api suite's 444 results. The ruling
+-- to ADD the subject rather than assert the 404 is `docs/leads/demo-suite-plan.md` §1.1; the
+-- evidence, the row and the state are written down in `docs/decisions/demo-change-request.md`.
+--
+-- THIS IS AN ADDED SUBJECT, NOT A RESHAPED VALUE, AND THE DIFFERENCE IS CHECKABLE. Every
+-- identifier below is a fresh literal in the `dec0de00-…` family this file already uses, chosen to
+-- equal nothing in the codebase; `grep` for any of them under `apps/demo-api/src/` finds nothing.
+-- The test fixture READS them back out of the database with a query, exactly as it does the
+-- permit's. Nothing here was moved to make a test agree with a constant — that is the act three
+-- negative controls caught once already, and it stays caught.
+--
+-- WHAT IT SAYS. The permit is one ref of the protected branch; this is a proposed edit to the
+-- branch itself. It proposes to EDIT the very clause version §4 seeded — `DEMO-SOP-0001 §7.3.2(b)`
+-- — which is the clause the 2019 precursor of §5 reaches, so the closure of §6 arms an obligation
+-- against the change request exactly as it does against the permit. It therefore stands in
+-- `checks_materialised` with ONE open blocking obligation nobody has disposed of. `draft` would
+-- have been one INSERT and would have demonstrated no gate at all.
+--
+-- WHAT IS PROJECTED AND WHAT IS SUPPLIED — MEASURED ON THIS SCHEMA, NOT ASSUMED.
+--
+--   * `open_blocking`, `open_residue` and `open_conflicts` are NOT supplied. `fn_check_materialised`
+--     (0101, welded to `blocking_check` by 0121) takes `FOR UPDATE` on the change request and
+--     raises `open_blocking` and `gate_epoch` when the obligation below is inserted — the same
+--     trigger, on the same path, as the permit's. After this file they read 1 / 0 / 0, epoch 1.
+--   * `severity`, `virulence` and `closure_gen` on the obligation are supplied as 0 / 'routine' / 0
+--     and are OVERWRITTEN by `fn_check_project` (0100, welded by 0120) from
+--     `mainline.clause_blame_current` (MI25). They read back 4 / `blood_major` / 0.
+--   * `site_role` IS supplied, and that is the schema's doing rather than a shortcut.
+--     `0109_fn_site_role.sql` ships "DELIBERATELY UNWELDED IN THIS BAND" — the kernel's acyclicity
+--     ruling reserves a gated subject's trigger slot for the merge gate — and no migration welds it
+--     to `mainline.permit` or to `mainline.change_request`. The column is `NAME NOT NULL` with no
+--     default, so omitting it is `23502`, not a projection. `demo_permit.sql` §1 supplies it for
+--     the permit for the same reason. The value is `mainline.site.site_role`, which is the
+--     authority the unwelded function would have read.
+-- ──────────────────────────────────────────────────────────────────────────────────────────────
+
+INSERT INTO mainline.change_request (
+  cr_id, site_id, site_role, external_ref, ref_name, target_ref, opened_at
+) VALUES (
+  'dec0de00-000c-4000-8000-000000000001',
+  'dec0de00-0001-4000-8000-000000000001',   -- the site §1 opened; no second site is invented
+  'demo_site',
+  'DEMO-MOC-0001',                          -- the customer's management-of-change identifier
+  'refs/changes/demo-0001',
+  'refs/heads/main',                        -- the protected branch the commit DAG of §3 is on
+  TIMESTAMPTZ '2026-08-01 03:00:00+00'
+)
+ON CONFLICT DO NOTHING;
+
+-- WHAT THE CHANGE REQUEST PROPOSES. `relation` is drawn from `cr_clause_relation_known`
+-- ('edits' | 'introduces' | 'retires'), and `fk_cr_clause_version` names the exact
+-- (clause_uuid, commit_id) pair §4 wrote — so "this change request is about that clause version"
+-- is a foreign key rather than a sentence in a comment.
+INSERT INTO mainline.cr_clause (cr_id, clause_uuid, commit_id, relation)
+VALUES (
+  'dec0de00-000c-4000-8000-000000000001',
+  'dec0de00-0004-4000-8000-000000000001',
+  digest('mainline-demo/commit/clause-v1', 'sha256'),
+  'edits'
+)
+ON CONFLICT DO NOTHING;
+
+-- THE OBLIGATION, AND THE ONE COLUMN THAT MUST STAY NULL.
+-- `mainline.blocking_check` is subject-polymorphic over the two gated subjects, and
+-- `CONSTRAINT exactly_one_subject CHECK ((permit_id IS NULL) <> (cr_id IS NULL))` (0058) is what
+-- stops one obligation being counted twice and cleared once. So `permit_id` is ABSENT here and
+-- `cr_id` carries the subject. That is also what keeps the permit's own obligation a single row:
+-- every reader in the demo API and in the test fixture asks
+-- `FROM mainline.blocking_check WHERE permit_id = …`, and a CR obligation that also named the
+-- permit would make each of those queries return two.
+INSERT INTO mainline.blocking_check (
+  check_id, subject_kind, cr_id, site_id, clause_uuid, commit_id, precursor_event_id,
+  origin, severity, virulence, closure_gen, evidence_summary, materialised_at
+) VALUES (
+  'dec0de00-000d-4000-8000-000000000001',
+  'change_request',
+  'dec0de00-000c-4000-8000-000000000001',
+  'dec0de00-0001-4000-8000-000000000001',
+  'dec0de00-0004-4000-8000-000000000001',
+  digest('mainline-demo/commit/clause-v1', 'sha256'),
+  'dec0de00-0005-4000-8000-000000000001',
+  'blame_ancestry',
+  0, 'routine', 0,                       -- projected over by fn_check_project (MI25)
+  'SYNTHETIC — recalled precursor DEMO-INC-0001 reaches the clause version this change request '
+  'proposes to edit, so the same closure that armed the permit''s obligation arms this one.',
+  TIMESTAMPTZ '2026-08-01 03:00:10+00'
+)
+ON CONFLICT DO NOTHING;
+
+-- THE CLIENT'S CLAIM, ON THE CHANGE REQUEST'S OWN HASH CHAIN: `draft` → `checks_materialised`.
+-- `cr_legal_edge` is a foreign key onto `mainline.subject_transition`, so an illegal transition
+-- here is not refused by a rule — it is NOT REPRESENTABLE. `chain_digest` is a STORED generated
+-- column and cannot be supplied.
+--
+-- `WHERE NOT EXISTS` rather than `ON CONFLICT DO NOTHING`, for the reason stated above
+-- `clause_version`: `fn_cr_event_chain` (0106) is a BEFORE INSERT trigger that can raise, and a
+-- BEFORE trigger runs BEFORE conflict resolution, so `ON CONFLICT` cannot suppress an exception it
+-- has already raised. This is the genesis row (`seq = 1`, `prev_seq = 0`), which that function
+-- exempts from the predecessor lookup only while the chain is empty — a second offer of it would
+-- fall through to the lookup and be refused. The seed must therefore not offer the row at all.
+INSERT INTO mainline.cr_event (
+  cr_id, seq, prev_seq, from_state, to_state, subject_kind, actor_sub, payload, prev_digest, at
+)
+SELECT
+  'dec0de00-000c-4000-8000-000000000001',
+  1, 0, 'draft', 'checks_materialised', 'change_request', 'demo.signer',
+  '{"synthetic": true, "to": "checks_materialised",
+    "source": "verticals/mainline/db/seeds/demo/demo_world.sql"}'::JSONB,
+  '\x0000000000000000000000000000000000000000000000000000000000000000'::BYTES,
+  TIMESTAMPTZ '2026-08-01 03:00:20+00'
+WHERE NOT EXISTS (
+  SELECT 1 FROM mainline.cr_event
+   WHERE cr_id = 'dec0de00-000c-4000-8000-000000000001' AND seq = 1
+);
+
+-- MOVE THE HEAD, exactly as `demo_permit.sql` §6 does for the permit: the event log is the record
+-- and `state`/`head_seq` are its projection, written last and written to match the chain, so a
+-- reader who does not trust the columns can recompute them from `mainline.cr_event`.
+-- `open_blocking` and `gate_epoch` are deliberately ABSENT from this UPDATE — the trigger owns
+-- them — and `head_seq < 1` is what makes a second run change nothing. This UPDATE fires neither
+-- `cr_merge_gate` (0131) nor `z_cbm_gate_cr` (0145d): both carry `WHEN NEW.state = 'merged'`.
+UPDATE mainline.change_request
+   SET state = 'checks_materialised', head_seq = 1
+ WHERE cr_id = 'dec0de00-000c-4000-8000-000000000001'
+   AND head_seq < 1;
+
 -- ══════════════════════════════════════════════════════════════════════════════════════════════
 -- END OF THE STATIC CORPUS.
 --
 -- What exists after this file: one site, two people with credentials, a two-commit DAG, one
 -- document, one clause and its version, one severity-4 precursor, the blame edge and closure that
 -- bind the two, a balanced blame account, a cosigned custody checkpoint, and the anchored recall
--- policy. Nothing here is gated and nothing here refuses anything — this is the *history*.
+-- policy. None of that is gated and none of it refuses anything — that part is the *history*.
 --
--- `demo_permit.sql` adds the single thing that makes the history decidable: a permit that relies
--- on that clause version, and one open obligation nobody has disposed of.
+-- And, since §10, ONE GATED SUBJECT: the change request, in `checks_materialised`, carrying one
+-- open blocking obligation nobody has disposed of.
+--
+-- `demo_permit.sql` adds the other one: a permit that relies on that clause version, and one open
+-- obligation nobody has disposed of. Two gated subjects over one repository, which is the sentence
+-- the console makes about the resource — *"the repository is the protected branch; the permit is
+-- one of its refs"* — and now the sentence the data makes too.
 -- ══════════════════════════════════════════════════════════════════════════════════════════════

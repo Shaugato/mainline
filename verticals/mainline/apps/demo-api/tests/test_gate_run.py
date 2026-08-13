@@ -57,6 +57,40 @@ the test is claiming:
 by position, so it asks the CURSOR for tuples the way ``scenario.positional()`` does. That
 is the production convention for exactly this situation and it makes the helper correct
 under either factory rather than under the one it happens to be handed.
+
+THE SECOND WORLD, AND WHY ONE WAS NOT ENOUGH
+--------------------------------------------
+Everything described above runs on ``w4_database`` — the history ``scripts/proof/gate_refusal.py``
+seeds. That is the right world for the beats' *mechanics*, and it is the wrong world for the
+question "does the thing we deployed work", because **it is not the world that is deployed**.
+``scripts/deploy/seed_demo.py`` applies ``verticals/mainline/db/seeds/demo/demo_world.sql``
+and ``demo_permit.sql`` to CockroachDB Cloud; the proof seeder applies neither.
+
+That difference had a price, measured on 2026-08-13. ``gate_run`` derived
+``signer_credential_id`` as ``sha256(b"cred" + b"signer")``; the deployed seed enrols
+``digest('mainline-demo/credential/demo.signer', 'sha256')``. Beat 4 therefore failed
+``23503 disposition_signer_credential_id_fkey`` in front of a judge, the run answered
+``200`` carrying its own verdict as ``NOT PROVEN`` — and the twenty tests above stayed
+green, because the seeder they use called the same private helper the code did. **A test
+that cannot disagree with the code it tests proves nothing.**
+
+Re-measured on this tree with the derivation deliberately planted back into ``gate_run.py``:
+
+    POST /v1/demo/gate-run → 200, verdict NOT PROVEN
+    beat 4 admit  outcome=refused  sqlstate=23503  constraint=disposition_signer_credential_id_fkey
+    $ pytest tests/test_gate_run.py -q     →  20 passed, 1 skipped
+
+Twenty green against a demo that was broken. So the last section of this file runs the four
+beats **a second time, in the other world**: against ``conftest.demo_dsn`` — a database built
+by applying the two seed FILES the deployment applies — and **through** :func:`app.handler`
+rather than by calling :func:`gate_run` directly, so the router, the dispatcher,
+``_demo_gate_run``'s connection handling and the envelope are all inside the assertion. The
+plant above turns that section red; that is the whole reason it exists.
+
+It carries its own negative control rather than relying on a human to plant one:
+:func:`test_the_admission_is_a_green_this_database_could_have_refused` substitutes the
+derived value for the resolved one on the same seeded database and requires the ``23503``
+back. A green whose red is never exhibited is a green nobody has checked.
 """
 
 from __future__ import annotations
@@ -74,7 +108,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, Final
 
 import psycopg
 import pytest
@@ -91,7 +125,9 @@ _APP_SRC = _HERE.parents[1] / "src"
 if str(_APP_SRC) not in sys.path:  # the app is not installed as a distribution yet
     sys.path.insert(0, str(_APP_SRC))
 
+from mainline_demo_api import app, ratelimit  # noqa: E402
 from mainline_demo_api import db as demo_db  # noqa: E402
+from mainline_demo_api import gate_run as gate_run_mod  # noqa: E402
 from mainline_demo_api import scenario as scenario_mod  # noqa: E402
 from mainline_demo_api.gate_run import (  # noqa: E402
     ADMISSION_SQLSTATE,
@@ -1091,3 +1127,392 @@ def test_an_expired_receipt_is_repaired_by_issuing_one_not_by_editing_one(
     )
     w4_tuple_conn.rollback()
     assert _subject(w4_database).live_receipt_id == live_before, "the probe left nothing behind"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# THE SECOND WORLD — four beats, through the real handler, on the seed the cloud carries
+# ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# See the module docstring for the measurement that made this section necessary. In one
+# line: every assertion above runs on `scripts/proof/gate_refusal.py`'s history, which
+# enrols `_sha("cred", "signer")` at line 844 — the same value `gate_run` used to derive —
+# so the seeder and the code agreed with each other and neither had ever met
+# `verticals/mainline/db/seeds/demo/demo_world.sql`, which is what is DEPLOYED.
+#
+# Nothing here re-seeds anything. `conftest.demo_database` already builds a database by
+# applying the two seed FILES through `scripts/deploy/seed_demo.apply_seeds` — the
+# deployment's own applier, file list and 40001 retry loop — and hands back the identifiers
+# it then read out of that database. This section consumes `demo_dsn` and `seed` so there
+# is exactly one such fixture in this directory rather than a second one that could drift
+# from it. `w4_database` stays where it is: the two worlds are both wanted, and the point
+# of this section is that they are DIFFERENT.
+
+
+#: What ``gate_run`` used to bind: ``sha256(b"cred" + b"signer")`` and its countersigner
+#: twin. Spelled out rather than imported from ``gate_run._sha``, and the asymmetry IS the
+#: design — importing the helper is exactly what let four files agree with each other and
+#: with nothing that ships. Here the two values are pinned as results a correct run must
+#: never produce, and as the payload of the negative control below.
+_DERIVED_SIGNER_CREDENTIAL: Final = hashlib.sha256(b"credsigner").digest()
+_DERIVED_COUNTERSIGNER_CREDENTIAL: Final = hashlib.sha256(b"credcosigner").digest()
+
+#: The foreign key beat 4 died on, named once so every assertion below names the same thing
+#: ``mainline.disposition`` does (migration ``0066_disposition.sql``:117-118).
+_CREDENTIAL_FKEY: Final = "disposition_signer_credential_id_fkey"
+
+#: The four beats as the DEPLOYED seed must produce them:
+#: ``(ordinal, name, outcome, sqlstate, constraint, constraint_source)``.
+#:
+#: Restated here rather than read off ``beat["expected"]`` on purpose. ``gate_run`` computes
+#: ``matched_expectation`` by comparing what happened against expectations ``gate_run``
+#: itself declares, so a suite that asserted only that boolean would be asserting that the
+#: module under test agrees with the module under test — the shape of defect this whole
+#: section exists to close, one level up. This tuple is the second opinion, and if
+#: ``gate_run``'s own expectations are ever loosened these assertions go red anyway.
+_DEPLOYED_BEATS: Final[tuple[tuple[int, str, str, str, str | None, str | None], ...]] = (
+    (1, "read", "read", ADMISSION_SQLSTATE, None, None),
+    (2, "merge", "refused", CF01_SQLSTATE, CF01_EXHIBIT, "reported"),
+    (3, "projection_drift_attack", "refused", CF03_SQLSTATE, CF03_EXHIBIT, "parsed"),
+    (4, "admit", "admitted", ADMISSION_SQLSTATE, None, None),
+)
+
+
+def _gate_run_event(run_id: str) -> dict[str, Any]:
+    """A Lambda Function URL invocation of ``POST /v1/demo/gate-run``, payload format 2.0.
+
+    Built to the shape ``app._method``, ``app._path``, ``app._body`` and ``ratelimit.check``
+    actually read, so what is exercised below is the router's own parsing rather than a
+    convenient dict. ``sourceIp`` is present because the rate bound keys a bucket on it and
+    an event without one would exercise a different branch of ``ratelimit`` than a judge's
+    browser does.
+    """
+    return {
+        "version": "2.0",
+        "rawPath": "/v1/demo/gate-run",
+        "rawQueryString": "",
+        "headers": {"content-type": "application/json", "accept": "application/json"},
+        "requestContext": {
+            "http": {
+                "method": "POST",
+                "path": "/v1/demo/gate-run",
+                "protocol": "HTTP/1.1",
+                "sourceIp": "203.0.113.7",
+                "userAgent": "mainline-tests/w6",
+            },
+            "stage": "$default",
+        },
+        "body": json.dumps({"run_id": run_id}),
+        "isBase64Encoded": False,
+    }
+
+
+@contextlib.contextmanager
+def _published_environment(dsn: str, seed: dict[str, str]) -> Iterator[None]:
+    """The environment ``infra/modules/demo-api`` publishes, and nothing it does not.
+
+    ``MAINLINE_DEMO_PERMIT_ID`` is set because the module sets it: the seed's permit is
+    ``dec0de00-0006-…``, while ``scenario.from_env``'s fallback is the uuid5 derivation
+    ``077a6fdd-…``, so without it the run resolves nothing and 422s.
+
+    **``MAINLINE_DEMO_SIGNER_SUB`` and ``MAINLINE_DEMO_COUNTERSIGNER_SUB`` are deliberately
+    REMOVED here, and that is a measurement rather than an oversight.** At ``HEAD`` (2dc5c86)
+    the module publishes neither — ``git show HEAD:infra/modules/demo-api/main.tf`` names
+    only ``MAINLINE_DEMO_DATABASE`` and ``MAINLINE_DEMO_PERMIT_ID`` — so the deployed Lambda
+    reaches beat 4 on ``scenario.py``'s committed defaults, and those two subjects are
+    load-bearing for the credential lookup. Running with them absent is running the weaker
+    of the two configurations, which is the one worth asserting.
+    ``test_the_signer_subjects_beat_four_falls_back_to_are_the_ones_the_seed_enrols`` pins
+    the coupling that silence depends on. ``MAINLINE_DEMO_SITE_ID`` is removed for the same
+    reason and a different finding: the module publishes none and none is needed, because
+    ``fn_disposition_project`` projects the column away.
+
+    The previous values are restored on the way out. This fixture shares a process with
+    ``w4_database``, which sets three of these names to the PROOF world's identifiers for
+    the whole session; leaving them clobbered would silently point the twenty tests above at
+    a subject they were not written against.
+    """
+    absent = (
+        f"{scenario_mod.ENV_PREFIX}SIGNER_SUB",
+        f"{scenario_mod.ENV_PREFIX}COUNTERSIGNER_SUB",
+        f"{scenario_mod.ENV_PREFIX}SITE_ID",
+    )
+    present = {
+        demo_db.DSN_ENV: dsn,
+        f"{scenario_mod.ENV_PREFIX}PERMIT_ID": seed["permit_id"],
+    }
+    previous = {name: os.environ.get(name) for name in (*present, *absent)}
+    try:
+        for name in absent:
+            os.environ.pop(name, None)
+        os.environ.update(present)
+        # `db` caches the resolved DSN and the connection for the life of an execution
+        # environment, and this process IS one execution environment shared with every
+        # other test in the session. Without this the handler would answer against
+        # whichever database the previous test opened.
+        demo_db.reset_dsn_cache()
+        yield
+    finally:
+        demo_db.reset_dsn_cache()
+        for name, value in previous.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+
+
+def _invoke_gate_run(dsn: str, seed: dict[str, str]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """One ``POST /v1/demo/gate-run`` through :func:`app.handler`. Returns (response, payload).
+
+    ``ratelimit.reset()`` first, and it is not decoration: ``ratelimit``'s buckets are
+    module-scope state belonging to one execution environment, and a pytest process is one
+    execution environment shared with ``test_ratelimit.py``. A neighbour that drained the
+    global bucket would turn this into a ``429`` and the failure would name the wrong
+    module. Resetting refills; it does not reconfigure, and no environment variable can
+    disarm the limiter (``ratelimit`` module docstring).
+    """
+    ratelimit.reset()
+    with _published_environment(dsn, seed):
+        response = app.handler(_gate_run_event(str(uuid.uuid4())))
+    body = json.loads(response["body"])
+    return response, body
+
+
+@pytest.fixture(scope="session")
+def deployed_seed_response(demo_dsn: str, seed: dict[str, str]) -> tuple[dict[str, Any], Any]:
+    """One gate run on the DEPLOYED seed, through the router, shared by the assertions.
+
+    Session-scoped for the same reason :func:`run_once` is: the run is expensive and every
+    assertion below is about one payload. It is a different payload from ``run_once``'s in
+    two independent ways — a different database and a different entry point — and both
+    differences are the point.
+    """
+    return _invoke_gate_run(demo_dsn, seed)
+
+
+@pytest.fixture(scope="session")
+def deployed_seed_run(deployed_seed_response: tuple[dict[str, Any], Any]) -> dict[str, Any]:
+    """The gate-run payload out of the envelope the handler returned."""
+    _, body = deployed_seed_response
+    assert isinstance(body, dict) and "data" in body, (
+        "POST /v1/demo/gate-run did not return an invoke envelope on the deployed seed: "
+        f"{json.dumps(body)[:600]}"
+    )
+    return dict(body["data"])
+
+
+def test_the_real_handler_answers_the_deployed_seed_with_a_gate_run_envelope(
+    deployed_seed_response: tuple[dict[str, Any], Any],
+) -> None:
+    """200, ``no-store``, and the contract this payload is governed by — off the router.
+
+    Nothing here calls ``gate_run``. The path is ``app.handler`` → ``app._transition`` →
+    ``transitions.handle_transition`` → ``transitions._demo_gate_run`` → ``gate_run``, which
+    is the path a judge's POST takes, and each of those four hops is a place a working
+    ``gate_run`` has previously been rendered unreachable — ``app._routes()`` returned
+    sixteen rows and no ``/v1/demo/gate-run`` while every beat below it worked
+    (``tests/test_routes_gate_run.py``).
+    """
+    response, body = deployed_seed_response
+    assert response["statusCode"] == 200, json.dumps(body)[:600]
+    assert response["headers"]["cache-control"] == "no-store"
+    assert body["resource"] == "demo_gate_run"
+    assert body["schema_id"] == GATE_RUN_SCHEMA_ID
+
+
+def test_all_four_beats_run_through_the_real_handler_on_the_deployed_seed(
+    deployed_seed_run: dict[str, Any],
+) -> None:
+    """The four beats, on the database built from ``demo_world.sql`` + ``demo_permit.sql``.
+
+    This is the assertion the twenty above could not make: the world it runs in is the world
+    ``scripts/deploy/seed_demo.py`` puts into CockroachDB Cloud, byte for byte, so the
+    agreement between the seed and the code is now something a test can DISAGREE with.
+    """
+    observed = tuple(
+        (
+            beat["ordinal"],
+            beat["name"],
+            beat["outcome"],
+            beat["sqlstate"],
+            beat["constraint"],
+            beat["constraint_source"],
+        )
+        for beat in deployed_seed_run["beats"]
+    )
+    assert observed == _DEPLOYED_BEATS, (
+        "the four beats the DEPLOYED seed produced are not the four beats this demo "
+        f"claims. Observed {observed!r}"
+    )
+    assert all(beat["matched_expectation"] for beat in deployed_seed_run["beats"])
+
+
+def test_beat_four_admits_on_the_deployed_seed_rather_than_23503(
+    deployed_seed_run: dict[str, Any],
+) -> None:
+    """Blocker 1, as a test: the admission beat, on the deployed seed, through the handler.
+
+    ``23503`` is called out by name because it is what this beat actually did on 2026-08-13
+    and because the taxonomy in ``refusal.classify`` treats it as a REFUSAL — so the run
+    still answered ``200``, still filled a ``refusal`` payload, and reported a foreign-key
+    violation in a position a reader takes for an exhibit the gate produced. It had not.
+    """
+    admit = deployed_seed_run["beats"][3]
+    assert admit["name"] == "admit"
+    assert admit["sqlstate"] != "23503" or admit["constraint"] != _CREDENTIAL_FKEY, (
+        "beat 4 failed the credential foreign key against the database the deployment "
+        "actually builds. mainline.disposition.signer_credential_id is a FK onto "
+        "mainline.signing_credential and demo_world.sql enrols "
+        "digest('mainline-demo/credential/demo.signer','sha256'); anything gate_run "
+        "DERIVES instead of reading is a different 32 bytes. Resolve it, do not re-derive "
+        "it, and do not edit the seed to match the code."
+    )
+    assert admit["outcome"] == "admitted"
+    assert admit["sqlstate"] == ADMISSION_SQLSTATE
+    assert admit["observed"]["merge_record"] is not None, (
+        "beat 4 reported ADMITTED with no merge_record row, so nothing was written and "
+        "the clearance digest the payload carries came from nowhere"
+    )
+    assert _HEX64.match(admit["observed"]["merge_record"]["clearance_digest"])
+
+
+def test_the_verdict_on_the_deployed_seed_is_proven(deployed_seed_run: dict[str, Any]) -> None:
+    """The demo's own verdict, on the demo's own database, off the demo's own URL.
+
+    ``failures`` is asserted before ``verdict`` because it carries the sentence; asserting
+    the verdict first would report ``'NOT PROVEN' != 'PROVEN'`` and make a reader go
+    looking for the reason that was already in the payload.
+    """
+    assert deployed_seed_run["failures"] == [], deployed_seed_run["failures"]
+    assert deployed_seed_run["verdict"] == "PROVEN"
+    assert deployed_seed_run["outcome"] == "completed"
+    assert deployed_seed_run["persisted"] is False
+    assert deployed_seed_run["persistence_check"]["identical"] is True
+    assert deployed_seed_run["transaction"]["single_transaction"] is True
+
+
+def test_the_admission_is_a_green_this_database_could_have_refused(
+    demo_dsn: str, seed: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The negative control, run every time, so the green above is never taken on trust.
+
+    A test that has never been seen to fail is a claim, not a measurement. This one plants
+    the defect that shipped — ``gate_run`` binding ``sha256(b"cred" + b"signer")`` instead
+    of the value ``mainline.signing_credential`` holds — by substituting the resolver, and
+    requires the database to come back with ``23503`` on
+    ``disposition_signer_credential_id_fkey``. The substitution is on the NAME ``gate_run``
+    imported, which is where the value it binds actually comes from; patching
+    ``credentials.resolve_credential_id`` would leave ``gate_run``'s own binding untouched
+    and the control would pass while proving nothing.
+
+    It also pins the premise the control depends on: the seed does not happen to enrol the
+    derived value. If it ever did, the whole class would be invisible again and this test
+    says so before it says anything else.
+
+    THE PAYLOAD IS ROLLED BACK EXACTLY AS THE REAL RUN IS — the plant changes 32 bytes that
+    a savepoint discards, not the transaction discipline — so this leaves the shared
+    database as it found it, which the persistence check below re-measures.
+    """
+    assert bytes.fromhex(seed["signer_credential_id"]) != _DERIVED_SIGNER_CREDENTIAL, (
+        "the deployed seed enrols the value gate_run used to DERIVE, so the divergence "
+        "this control exists to exhibit does not exist in this database and every "
+        "assertion above is vacuous. Check demo_world.sql's signing_credential rows."
+    )
+
+    derived = {
+        seed["signer_sub"]: _DERIVED_SIGNER_CREDENTIAL,
+        seed["countersigner_sub"]: _DERIVED_COUNTERSIGNER_CREDENTIAL,
+    }
+
+    def _derive_instead(conn: psycopg.Connection[Any], signer_sub: str) -> bytes:  # noqa: ARG001
+        return derived[signer_sub]
+
+    monkeypatch.setattr(gate_run_mod, "resolve_credential_id", _derive_instead)
+    response, body = _invoke_gate_run(demo_dsn, seed)
+
+    assert response["statusCode"] == 200, (
+        "the planted defect changed the STATUS. That is a different finding and a better "
+        "one than the demo had: on 2026-08-13 it answered 200 and carried the failure in "
+        "its own verdict, which is why nobody noticed."
+    )
+    payload = body["data"]
+    admit = payload["beats"][3]
+    assert admit["outcome"] == "refused"
+    assert admit["sqlstate"] == "23503", admit
+    assert admit["constraint"] == _CREDENTIAL_FKEY, admit
+    assert admit["constraint_source"] == "reported"
+    assert payload["verdict"] == "NOT PROVEN"
+    assert any("beat 4 (admit)" in failure for failure in payload["failures"]), payload["failures"]
+    assert payload["persistence_check"]["identical"] is True, (
+        "the refused beat left rows behind, so this control has damaged the database the "
+        "other tests in this section share"
+    )
+
+
+def test_the_signer_subjects_beat_four_falls_back_to_are_the_ones_the_seed_enrols(
+    seed: dict[str, str],
+) -> None:
+    """The environment gap, pinned rather than papered over.
+
+    ``infra/modules/demo-api`` at ``HEAD`` publishes ``MAINLINE_DEMO_PERMIT_ID`` and does
+    NOT publish ``MAINLINE_DEMO_SIGNER_SUB`` or ``MAINLINE_DEMO_COUNTERSIGNER_SUB``, so on
+    the deployed Lambda those two names come from ``scenario.py``'s committed defaults —
+    and they are load-bearing, because ``credentials.resolve_credential_id`` looks the
+    credential up BY SUBJECT. The demo works today only because the defaults and the seed
+    happen to agree.
+
+    "Happen to agree" is not a property. It is asserted here, against the subjects read out
+    of the seeded database, so that changing either side is a red test naming both. That is
+    a report of the gap, not a repair of it: the repair is publishing the two variables, it
+    belongs to the deployment domain, and it is recorded as a cross-domain note.
+    """
+    fallback = scenario_mod.from_env({})
+    assert fallback.signer_sub == seed["signer_sub"], (
+        f"scenario.py falls back to signer_sub {fallback.signer_sub!r} while the deployed "
+        f"seed enrols {seed['signer_sub']!r}. Terraform publishes no "
+        f"{scenario_mod.ENV_PREFIX}SIGNER_SUB, so the deployed Lambda would resolve no "
+        "credential and beat 4 would 422 rather than admit."
+    )
+    assert fallback.countersigner_sub == seed["countersigner_sub"], (
+        f"scenario.py falls back to countersigner_sub {fallback.countersigner_sub!r} while "
+        f"the deployed seed enrols {seed['countersigner_sub']!r}, and Terraform publishes "
+        f"no {scenario_mod.ENV_PREFIX}COUNTERSIGNER_SUB."
+    )
+
+
+def test_the_deployed_seed_and_the_proof_seed_are_two_different_worlds(
+    demo_dsn: str, seed: dict[str, str], w4_database: str
+) -> None:
+    """Why twenty green tests could not see Blocker 1 — measured, not asserted in prose.
+
+    ``scripts/proof/gate_refusal.py:844`` enrols ``_sha("cred", "signer")``: the SAME
+    expression ``gate_run`` used to bind. Test and code read one constant, so they agreed,
+    and neither had met ``demo_world.sql``. This test reads both databases and requires them
+    to disagree — which is what makes the section above additional coverage rather than the
+    same coverage twice.
+
+    ``tuple_row`` on both connections: two probes read by position, asserting nothing about
+    ``db.py``.
+    """
+    assert demo_dsn != w4_database, "the two worlds collapsed into one database"
+
+    with psycopg.connect(demo_dsn, autocommit=True, row_factory=tuple_row) as deployed:
+        deployed_row = deployed.execute(
+            "SELECT count(*) FROM mainline.signing_credential WHERE credential_id = %s",
+            (_DERIVED_SIGNER_CREDENTIAL,),
+        ).fetchone()
+    with psycopg.connect(w4_database, autocommit=True, row_factory=tuple_row) as proof:
+        proof_row = proof.execute(
+            "SELECT count(*) FROM mainline.signing_credential WHERE credential_id = %s",
+            (_DERIVED_SIGNER_CREDENTIAL,),
+        ).fetchone()
+
+    assert deployed_row is not None and deployed_row[0] == 0, (
+        "the DEPLOYED seed enrols the derived credential id, which would make the "
+        "divergence invisible again"
+    )
+    assert proof_row is not None and proof_row[0] == 1, (
+        "scripts/proof/gate_refusal.py no longer enrols _sha('cred','signer'), so the "
+        "explanation this file gives for twenty green tests missing a 23503 is out of "
+        "date — re-measure it before editing this assertion away"
+    )
+    assert seed["signer_sub"] != "proof.signer", "the two worlds share a signer"

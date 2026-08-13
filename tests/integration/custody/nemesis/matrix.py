@@ -34,7 +34,6 @@ Run it directly:
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import json
 import sys
 from collections.abc import Sequence
@@ -318,13 +317,47 @@ def render(run: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+#: What the environment table says when the run record carries no ``generated_at``. Such a
+#: record predates :func:`nemesis_harness.OutcomeRecorder.write` stamping one, and the
+#: honest thing to print is that nobody recorded the time — not the time of the render,
+#: which is a fact about this process and not about the attacks.
+_UNSTAMPED = "unrecorded — the run record carries no generated_at"
+
+
 def write_matrix(run_path: Path, out_path: Path) -> Path:
+    """Render ``run_path`` to ``out_path``. **The output is a pure function of the input.**
+
+    Until 2026-08-13 this stamped ``generated_at = now()`` on the way through, which made
+    the matrix a function of the run record *and the clock*. Two consequences, both bad and
+    both measured on this tree:
+
+    * re-rendering an OLD run record re-dated somebody else's attacks to today, so the
+      artefact asserted that a run had just happened when none had — a hand-written value
+      in all but authorship; and
+    * ``custody-chain.yml`` regenerates the matrix immediately after the suite has already
+      written it, so a re-render was never a no-op. Measured on this tree on 2026-08-13,
+      before anything below changed: ``git diff evidence/CUSTODY_ATTACK_MATRIX.md`` read
+      ``1 insertion(+), 1 deletion(-)`` and the one line was ``generated_at``. A diff a
+      reviewer must learn to ignore is a diff that hides the next real one.
+
+    The run record now carries its own ``generated_at``, stamped by the recorder at the
+    moment the run finished. Rendering the same record twice is byte-identical, which is
+    what lets *"generated from a run, not written by hand"* be checked by a machine —
+    regenerate, then ``git diff --exit-code``.
+
+    ``newline="\\n"`` is the other half of that sentence, and it is not cosmetic. This
+    repository is developed on Windows and verified on ubuntu-24.04; a bare
+    ``write_text()`` translates every ``\\n`` to ``\\r\\n`` under the developer and leaves
+    it alone under CI, so the same run record rendered on the two machines produces two
+    different files. Measured at ``2dc5c86``: the committed matrix carried **67 CRLF and 0
+    bare LF**, having last been regenerated on Windows, while `custody-chain.yml` rewrites
+    it on Linux every run. An evidence artefact whose bytes depend on who pressed the
+    button cannot be diffed, cannot be hashed, and cannot support the claim above.
+    """
     run = json.loads(run_path.read_text(encoding="utf-8"))
-    run.setdefault("environment", {})["generated_at"] = dt.datetime.now(dt.UTC).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
+    run.setdefault("environment", {}).setdefault("generated_at", _UNSTAMPED)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(render(run), encoding="utf-8")
+    out_path.write_text(render(run), encoding="utf-8", newline="\n")
     return out_path
 
 

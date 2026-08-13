@@ -58,9 +58,47 @@ required-version = ">=0.5.0"
 # mypy targets) is a census taken with a specific analyser, and a floor that admits
 # ruff 0.6 admits a tool that would produce a different census and still satisfy
 # the declaration. The floors below are what CI and this laptop actually run.
+#
+# ── 2026-08-14: `pytest-random-order`, AND WHY IT IS THAT ONE AND NOT `pytest-randomly` ──
+#
+# WHAT WAS MISSING. Every green this repository has reported was a green IN ONE ORDER.
+# `pip list` on 2026-08-14 showed pytest 9.1.1 and pytest-timeout 2.4.0 and no shuffler of
+# any kind, so cross-test contamination in the demo-api suite was **not-observed** — which
+# is not the same sentence as **fixed**. Two runs in the same order cannot tell "the
+# contamination is gone" apart from "this order does not trigger it", and
+# `qa/cluster-known-red.json` records three node ids in `test_transitions.py` each failing
+# in exactly one of three identical runs, so the suite is measurably order-sensitive
+# already. A shuffler is the only instrument that can turn that into a measurement.
+#
+# THE CHOICE. `pytest-randomly` is the better-known package and two workflows here
+# (`schema.yml:485`, `nightly-differential.yml:182,343`) already pass `-p no:randomly`,
+# written on the assumption that it would one day be installed and ON BY DEFAULT. That
+# default is exactly why it is not the one installed:
+#
+#   * It shuffles EVERY suite in the repository the moment it is added — 9,324 collected
+#     tests across eighteen workflows — so a plugin added to measure one suite would
+#     silently change the meaning of every other lane's green in the same commit. This
+#     repository's rule is that a fix which breaks a neighbour is worse than the defect.
+#   * It also reseeds `random`, `numpy.random` and friends before every test. Sixteen
+#     modules here drive Hypothesis. A run that changes both the ORDER and the DATA cannot
+#     attribute a new failure to either, and attribution is the whole point of the exercise.
+#
+# `pytest-random-order` is inert until asked: no `--random-order` flag, no shuffle, byte-
+# identical collection (verified 2026-08-14 — two default `--collect-only` runs diffed
+# clean with the plugin installed). It shuffles only where a command asks it to, records
+# the seed it used, and `--random-order-bucket` chooses the granularity, which is what
+# separates "two tests in one module interfere" from "two MODULES interfere". That
+# distinction turned out to carry the finding: see `docs/ci/demo-suite-random-order.md`.
+#
+# CONSEQUENCE, stated rather than left for a reader to trip over: the two `-p no:randomly`
+# guards above remain INERT, because the plugin they name is still not installed. They are
+# harmless (`-p no:<name>` for an absent plugin is a no-op) but they are also not doing the
+# job their comments claim. That is a finding for whoever owns those workflows; it is not
+# repaired by installing a plugin nobody asked for.
 dev = [
     "pytest>=9.1",
     "pytest-timeout>=2.4",
+    "pytest-random-order>=1.2",
     "hypothesis>=6.165",
     "ruff>=0.16.1",
     "mypy>=2.3",

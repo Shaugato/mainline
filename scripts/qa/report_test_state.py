@@ -95,12 +95,60 @@ DSN_ENV_NAMES = ("MAINLINE_TEST_DSN", "COCKROACH_URL", "CRDB_URL", "TRAPPOINT_DS
 
 DEFAULT_DSN = "postgresql://root@localhost:26257/defaultdb?sslmode=disable"
 
+
+#: WHY THE HOST SPELLING IS RECORDED WITH EVERY MERGE, AND WHY THE DEFAULT IS UNCHANGED.
+#:
+#: `localhost` is what the project's own runbook publishes, so it stays the default. It is
+#: also, on a dual-stack machine, not the same address as `127.0.0.1`. MEASURED 2026-08-13
+#: on TRAPPOINT, where the node is published by `-p 127.0.0.1:26257:26257`:
+#:
+#:     getaddrinfo('localhost', 26257) -> [AF_INET6 ('::1', …), AF_INET ('127.0.0.1', …)]
+#:     connect ::1:26257        TimeoutError after 6.00 s   <- SYN dropped, never refused
+#:     connect 127.0.0.1:26257  connected in 0.00 s
+#:
+#: `socket.create_connection` carries a timeout and falls through to the IPv4 address after
+#: six seconds. A `psycopg.connect` given no `connect_timeout` does not: it sits in
+#: `waiting.wait_conn` -> `select.select` forever. The demo API's
+#: `tests/test_credentials.py:200` connects that way, so publishing the DSN under the four
+#: environment names as `localhost` wedges that target — twice measured here, 900.02 s and
+#: killed, `0P 0F 0E 0S`, against 43 s and a full result for the same suite on `127.0.0.1`.
+#: pytest-timeout cannot save it; the hang is inside session-scoped fixture setup.
+#:
+#: The default is therefore NOT changed to dodge it — that would hide a real defect in a
+#: suite this script exists to measure, and a CI runner resolving `localhost` to `::1`
+#: would hit exactly the same wall. Instead the host actually dialled is recorded beside
+#: every merged row, so a reader can tell which spelling produced the numbers.
+def dsn_host(dsn: str) -> str:
+    """The `host:port` a DSN dials, with any credential dropped on the floor."""
+    tail = dsn.rsplit("@", maxsplit=1)[-1]
+    return tail.split("/", maxsplit=1)[0] or "?"
+
+
 #: Wall-clock ceiling per target subprocess. Not pytest's `timeout = 120`, which is
 #: per-test and cannot interrupt session-scoped fixture setup (quality-repair plan §1.4).
 DEFAULT_TIMEOUT_SECONDS = 900
 
 #: How many failing/erroring node ids to name per target before saying so and stopping.
 MAX_NAMED_TESTS = 40
+
+#: APPLICATIONS WITH A PYTHON TEST SUITE, NAMED — NOT GLOBBED.
+#:
+#: `discover_targets` walked `packages/*` and `verticals/*/packages/*` and stopped there,
+#: so `qa/test-state.json`'s 26 targets contained no row for the demo API at all: 444
+#: tests, the product's headline path, absent from the census that `docs/HONESTY.md`
+#: cites. That is the THIRD occurrence of one defect class, one directory level across,
+#: after `testpaths = ["tests", "packages"]` (2026-08-10) and
+#: `+ verticals/*/packages/*/tests` (2026-08-13).
+#:
+#: It is a tuple of literal paths and not the glob `verticals/*/apps/*` for the reason
+#: `pyproject.toml` already gives in writing above its own `testpaths`: the app segment is
+#: exactly where this repository's Python/TypeScript boundary lies. Measured 2026-08-13,
+#: `verticals/mainline/apps/` holds three entries and only one is Python —
+#: `console/tests` is a vitest suite with 148 entries and ZERO `*.py` files, and `steward`
+#: has no `tests/` at all. Handing `console/tests` to pytest is the same category error
+#: that `[tool.uv.workspace] members` refuses one file over. Adding an app here is a
+#: deliberate line, which is the point.
+NAMED_APP_TARGETS: tuple[str, ...] = ("verticals/mainline/apps/demo-api",)
 
 _EXIT_MEANING = {
     0: "all collected tests passed",
@@ -136,18 +184,36 @@ class Target:
 def discover_targets() -> list[Target]:
     """Every distribution with a ``tests/`` directory, and every root test root.
 
+    "Distribution" here means a directory with its own ``pyproject.toml`` and its own
+    ``tests/``, whether or not it is a ``uv`` workspace member: ``mainline-demo-api`` is
+    deliberately NOT a member (``verticals/*/apps/*`` is absent from
+    ``[tool.uv.workspace] members`` because the console beside it is a pnpm workspace),
+    and a census that only counted members would inherit that exclusion as a blind spot.
+
     Ordered distributions-then-roots, and alphabetically within each, so two runs of this
     script on the same tree produce byte-identical target ordering.
     """
     targets: list[Target] = []
+    distributions: list[Target] = []
     for pattern in ("packages/*", "verticals/*/packages/*"):
         for pkg in sorted(ROOT.glob(pattern)):
             if not (pkg / "tests").is_dir():
                 continue
             rel = pkg.relative_to(ROOT).as_posix()
-            targets.append(
+            distributions.append(
                 Target(id=rel, path=f"{rel}/tests", kind="distribution", distribution=pkg.name)
             )
+    for rel in NAMED_APP_TARGETS:
+        pkg = ROOT / rel
+        if not (pkg / "tests").is_dir():
+            continue
+        distributions.append(
+            Target(id=rel, path=f"{rel}/tests", kind="distribution", distribution=pkg.name)
+        )
+    # Sorted as one list rather than appended after the globs, so the docstring's promise
+    # of alphabetical ordering holds for the named apps too. Measured: this reproduces the
+    # existing seventeen rows in their existing order and slots the app in beside them.
+    targets.extend(sorted(distributions, key=lambda target: target.id))
     tests_dir = ROOT / "tests"
     if tests_dir.is_dir():
         for child in sorted(tests_dir.iterdir()):
@@ -825,9 +891,11 @@ def _md_merges(doc: dict[str, Any]) -> list[str]:
     for entry in merges:
         targets = ", ".join(f"`{t}`" for t in entry["targets"])
         passes = ", ".join(f"`--crdb={CRDB_MODE[p]}`" for p in entry["passes"])
+        host = entry.get("dsn_host")
+        where = f", dialled `{host}`" if host else ""
         lines.append(
             f"* `{entry['merged_utc']}` — {targets}, {passes}, "
-            f"ceiling {entry['per_target_timeout_seconds']} s"
+            f"ceiling {entry['per_target_timeout_seconds']} s{where}"
         )
     lines.append("")
     return lines
@@ -1187,6 +1255,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "targets": [t.id for t in chosen],
                 "passes": list(passes),
                 "per_target_timeout_seconds": args.timeout,
+                "dsn_host": dsn_host(args.dsn),
                 "why": (
                     "these rows were re-measured and replaced; totals and skip_reasons were "
                     "recomputed from every row present, never carried forward"
