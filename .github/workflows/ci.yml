@@ -1034,7 +1034,10 @@ jobs:
           test -f "$adr"
           if grep -q 'run_url: *UNRECORDED' "$adr"; then
             if [ "${EVENT_NAME}" = "push" ] && [ "${REF}" = "refs/heads/master" ]; then
-              echo "::error file=${adr}::PL-2: the db lane's red conform run URL is still UNRECORDED."
+              echo "::error file=${adr},title=RED BY DESIGN - PL-2: the db lane's red conform run URL is still UNRECORDED::RED BY DESIGN, NOT A CI DEFECT. This job asks for the URL of a db run in which the CONFORMANCE step itself went red. No such run exists, because CONFORMANCE has never executed: db.yml stops one step earlier, at 0058_blocking_check on the missing trappoint_ref.event. Recording any other red db run would put a URL in a field that asks for a different observation, which is the precise laundering the field was created to prevent, so it stays UNRECORDED and this job stays red. WHAT TURNS IT GREEN: the producer for trappoint_ref.event lands, the next db push-run on master reaches CONFORMANCE, that step is red, and THAT run's URL replaces the word UNRECORDED in ${adr}. WHAT DOES NOT: any other red db run, deleting the line, or relaxing this check."
+              echo "PL-2: the db lane's red conform run URL is still UNRECORDED."
+              echo "THIS RED IS BY DESIGN. It is not a broken lane and not a flake: it is this"
+              echo "  repository refusing to record a red-before-green observation it has not made."
               echo "MISSING ARTEFACT: a producer for 'trappoint_ref.event' in"
               echo "  packages/trappoint-sql/refvertical/sql/ — 0058_blocking_check.sql:75 declares"
               echo "  'precursor_event_id UUID NULL REFERENCES trappoint_ref.event (event_id)' and no"

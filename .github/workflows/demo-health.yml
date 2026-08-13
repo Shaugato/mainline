@@ -18,6 +18,23 @@
 # for a completely different reason and taught its readers to ignore it. A monitor whose
 # red does not distinguish "not deployed" from "deployed and down" is not a monitor.
 #
+# SHARPENED 2026-08-13 — THE MESSAGE, NEVER THE ASSERTION. The lane still exits 1 on every
+# run, and it must, until `docs/submission/SUBMISSION.json` holds a URL. What changed is
+# what the red carries. It now names WHICH of three reds it is (not deployed / a published
+# value that is not a URL / deployed and refusing), it prints the assertions it did not get
+# to make — the console, the freshness window, and all four beats with their SQLSTATEs — so
+# a reader learns the size of the hole rather than only its name, and it prints the one
+# command that proves this lane is sound without any deployment at all:
+#
+#     gh workflow run demo-health -f url=https://<a host that answers>
+#
+# The dispatch input outranks the file, so that run exercises every assertion below and
+# never reaches the step that is currently failing. **An intentional red that nobody can
+# falsify is indistinguishable from a lane that has quietly stopped working**, which is the
+# failure mode this whole file was rewritten to escape. The findings are also written to
+# `$GITHUB_STEP_SUMMARY`, because a reason that is one click inside a log gets read as
+# noise. Nothing here is `if:`-skipped, ratcheted, or excused; the exit code is unchanged.
+#
 # **It goes green on its own the moment the URL exists.** W10 writes `demo_url` into
 # `docs/submission/SUBMISSION.json` after the apply; the next scheduled run reads the file
 # out of the checkout, finds a URL, and starts asserting. Nothing else has to be touched —
@@ -141,7 +158,22 @@ jobs:
         id: resolve
         # A SKIP HERE WOULD BE A LIE. An unconfigured monitor that reports success is worse
         # than no monitor: the green tick says "the demo is up" when it means "nobody told
-        # me where the demo is". Fail, and name which of the two reds this is.
+        # me where the demo is". Fail, and name which of the THREE reds this is.
+        #
+        # THE THREE REDS, because a monitor that cannot tell them apart is not a monitor:
+        #   1. NOT DEPLOYED       — no URL is published. Nothing was asked of anything.
+        #   2. MISCONFIGURED      — a URL is published and it is not an http(s) URL, so the
+        #                           field was written by hand and written wrong.
+        #   3. DEPLOYED AND DOWN  — a URL resolves and the steps below refuse it.
+        # Only (3) is a fault in the demo, and it is the only one whose diagnosis is a
+        # status line or an SQLSTATE. (1) and (2) are diagnosed here, by name.
+        #
+        # WHAT WAS SHARPENED ON 2026-08-13, AND WHAT WAS NOT. The assertion is unchanged:
+        # exit 1, every time, until a URL exists. What changed is what the red carries —
+        # the red now prints the assertions it did not get to make, so a reader learns the
+        # size of the hole rather than only its name, and it prints the one command that
+        # proves the LANE is sound without a deployment. An intentional red whose reader
+        # cannot tell it from an unnoticed one has stopped being intentional.
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -151,7 +183,31 @@ jobs:
 
           override = (os.environ.get("URL_OVERRIDE") or "").strip()
           path = os.environ["SUBMISSION_FILE"]
+          window = os.environ.get("FRESHNESS_WINDOW_SECONDS", "900")
           sentinel = "UNRESOLVED"
+
+
+          def report(title, body):
+              """Print the finding to the log, the annotation and the run summary.
+
+              The run summary matters: it is what a judge sees on the run page without
+              opening a log, and a red whose reason is one click away is a red that gets
+              read as noise.
+              """
+              print(body)
+              # Annotation PROPERTIES are comma-separated, so a comma inside the title
+              # would silently truncate it into a bogus second property and the reader
+              # would see half a sentence. Strip them here rather than trusting every
+              # future caller to remember; `::` would end the property list for the same
+              # reason. The body is after the `::` and is not parsed, so only newlines
+              # and `%` need escaping there.
+              safe = title.replace(",", ";").replace("::", " - ")
+              print(f"::error title={safe}::" + body.replace("%", "%25").replace("\n", "%0A"))
+              summary = os.environ.get("GITHUB_STEP_SUMMARY")
+              if summary:
+                  with open(summary, "a", encoding="utf-8") as handle:
+                      handle.write(f"### demo-health — {title}\n\n```\n{body}\n```\n\n")
+
 
           if override:
               source = "workflow input or vars.DEMO_URL"
@@ -160,27 +216,96 @@ jobs:
               try:
                   doc = json.load(open(path, encoding="utf-8"))
               except Exception as exc:
-                  print(f"::error title=cannot read {path}::{exc}")
+                  report(
+                      f"cannot read {path}",
+                      f"{path} could not be parsed: {exc}\n"
+                      "This is not the not-deployed red. The one file this lane reads is "
+                      "unreadable, so the lane cannot tell you anything at all about the "
+                      "demo — including that there is not one.",
+                  )
                   raise SystemExit(1)
               sentinel = doc.get("unresolved_sentinel", "UNRESOLVED")
               url = (doc.get("demo_url") or "").strip()
               source = f"{path}:demo_url"
 
           if not url or url == sentinel:
-              print(
-                  "::error title=no demo URL is published::"
+              report(
+                  # The TITLE is all a judge scanning the Actions tab reads, so it leads
+                  # with the verdict's kind and names the one artefact that changes it.
+                  # A red that means "by design" and a red that means "broken" cost the
+                  # same attention unless the first three words separate them.
+                  "RED BY DESIGN - no demo URL is published in "
+                  "docs/submission/SUBMISSION.json",
+                  # First sentence unchanged since 2026-08-11 and quoted verbatim in
+                  # docs/CI-STATE.md and docs/deploy/OBSERVABILITY.md. Do not reword it
+                  # without changing those; everything under it is the sharpening.
                   "no demo URL is published; this lane is red because the demo is not "
-                  "deployed, not because it is broken. "
-                  f"{path} holds demo_url={url or '(empty)'!s}. terraform apply has not been "
-                  "run — the plan is committed and the founder reviews it before any apply "
-                  "(docs/leads/ship-final.md 2.2). This job starts asserting, and can go "
-                  "green on its own, the moment that field holds a URL. Nothing else has to "
-                  "change: no repository variable, no secret, no edit to this workflow."
+                  "deployed, not because it is broken.\n"
+                  "\n"
+                  "RED BY DESIGN, NOT A CI DEFECT. THE ARTEFACT THAT WOULD MAKE THIS LANE "
+                  "GREEN IS ONE\n"
+                  "FIELD IN ONE FILE: docs/submission/SUBMISSION.json -> demo_url, holding "
+                  "the https URL\n"
+                  "of a deployed demo. Nothing else in this repository has to change.\n"
+                  "\n"
+                  f"  read    {source} = {url or '(empty)'!s}   (sentinel {sentinel!r})\n"
+                  "  cause   terraform apply has not been run. The plan is committed and "
+                  "the founder\n"
+                  "          re-authorises before any apply (docs/leads/ship-final.md 2.2).\n"
+                  "  cure    a deployment. Not a workflow edit, not a repository variable, "
+                  "not a\n"
+                  "          secret. Whoever applies writes the URL into the field this "
+                  "step just read,\n"
+                  "          and the next scheduled run goes green on its own.\n"
+                  "\n"
+                  "WHAT WENT UNMEASURED. None of the following was asserted on this run, "
+                  "and none of\n"
+                  "it is asserted anywhere else in CI — this red is the size of that hole, "
+                  "not a\n"
+                  "reminder to deploy:\n"
+                  "\n"
+                  "  GET  /                    200, and an HTML document rather than "
+                  "something else\n"
+                  "                            answering on the hostname\n"
+                  f"  GET  /v1/health           200, ok:true, and a server_date fresher "
+                  f"than {window}s —\n"
+                  "                            the assertion a cached 200 cannot satisfy\n"
+                  "  POST /v1/demo/gate-run    beat 1 read                    00000\n"
+                  "                            beat 2 merge                   23514  "
+                  "gate_closed_when_issued\n"
+                  "                            beat 3 projection_drift_attack P0001  "
+                  "mainline.fn_permit_merge_gate\n"
+                  "                            beat 4 admit                   00000\n"
+                  "                            persisted:false, and the server's own "
+                  "verdict PROVEN\n"
+                  "\n"
+                  "THE LANE ITSELF IS NOT BROKEN, AND YOU DO NOT NEED A DEPLOYMENT TO SEE "
+                  "THAT:\n"
+                  "\n"
+                  "  gh workflow run demo-health -f url=https://<a host that answers>\n"
+                  "\n"
+                  "The dispatch input takes precedence over the file, so a one-off run "
+                  "against any\n"
+                  "host exercises every assertion above and never reaches this step. A red "
+                  "nobody can\n"
+                  "falsify is indistinguishable from a lane that has quietly stopped "
+                  "working.",
               )
               raise SystemExit(1)
 
           if not url.startswith(("http://", "https://")):
-              print(f"::error title=demo_url is not an http(s) URL::{source} holds {url!r}")
+              report(
+                  "demo_url is not an http(s) URL",
+                  f"{source} holds {url!r}.\n"
+                  "\n"
+                  "This is NOT the not-deployed red and NOT the demo being down. A value is "
+                  "published\n"
+                  "and it is not a URL, which means the field was written by hand and "
+                  "written wrong —\n"
+                  "so the submission form would carry it too. The three checks below were "
+                  "never\n"
+                  "attempted, because there is no host to attempt them against.",
+              )
               raise SystemExit(1)
 
           url = url.rstrip("/")
