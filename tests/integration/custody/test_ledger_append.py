@@ -35,6 +35,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import pytest
+from trappoint_testkit import pinned_image
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEQUENCER = REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-sequencer"
@@ -56,7 +57,7 @@ from mainline_sequencer import append as append_mod  # noqa: E402
 from mainline_sequencer import batch as batch_mod  # noqa: E402
 from mainline_sequencer import sink as sink_mod  # noqa: E402
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-sequencer-integration"
 READY_TIMEOUT_S = 120.0
 LOCAL_HOSTS = frozenset({"", "localhost", "127.0.0.1", "::1", "[::1]"})

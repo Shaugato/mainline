@@ -68,6 +68,40 @@
 #     those lines "is not 'reclassify', it is 'read compose.yaml'". This is that. The
 #     lines are gone, not excused, and the HARD check above the census agrees.
 #
+# (3) 2026-08-13: THE FLOATING COUNT REACHED ZERO AND THE CEILING FOLLOWED IT DOWN.
+#
+#     The 34 were 20 files. Fourteen spelled the image
+#     `os.environ.get("MAINLINE_CRDB_IMAGE", "<the floating tag>")` — and SIX, measured
+#     rather than assumed, named it outright with no environment read at all. That
+#     second number is why the root `conftest.py`'s session-wide export was never the
+#     fix it was documented to be: a seam six files do not have cannot be used to close
+#     them, and those six ran on a tag that moves no matter what the session exported.
+#     All twenty now call `trappoint_testkit.pinned_image()`, which parses the tagged
+#     line in `compose.yaml`, with `$MAINLINE_CRDB_IMAGE` still outranking the file for
+#     an operator who deliberately sets one. The rest of the 34 were docstrings
+#     restating the tag; twelve described the discovery ladder and now name the source
+#     instead of the value, and TWO recorded which tag a past run actually used. Those
+#     two were kept as records and now spell the TAG alone rather than the whole image
+#     reference: what a run used is not editable after the fact, and a census that
+#     counts image references was never asking them to lie about it.
+#
+#     `FLOATING_CEILING: "0"` is therefore a hard zero REACHED BY MEASUREMENT, which is
+#     the outcome ruling D4 asks a ratchet to converge on — the ruling permits a
+#     truthful 34 over a fabricated 0, and this 0 is the truthful one. It stays a
+#     ratchet rather than becoming a hard check because the ratchet is the better
+#     diagnostic: it prints every offending line, so a 0 that rises names the file that
+#     raised it.
+#
+#     THE RESTATED CEILING STAYS 19 AND WAS NOT RAISED TO MEET THE TREE. It read 20 at
+#     `da77557` because `skills/designing-diachronic-gates/scripts/assert_gate_refuses.py`
+#     landed carrying a `_DEFAULT_IMAGE` constant, and that ONE line is the whole of run
+#     31624369169's `restated literal rose from 19 to 20`. The script reads the
+#     `compose.yaml` pin now, by the same marker and the same regex the testkit uses. It
+#     is a skill a stranger runs from a bare checkout, so it may not import the testkit;
+#     it therefore carries a third copy of eight lines of PARSING in order not to carry a
+#     second copy of one CONSTANT, and when no compose file can be found it asks for
+#     `--image` and exits 2 rather than inventing a version.
+#
 # No AWS account. No CockroachDB Cloud organisation. No credential of ours. That is
 # PL-1, and it is the reason this lane can be reproduced by a judge on a laptop.
 
@@ -222,7 +256,11 @@ jobs:
         # worker converts a file to the shared testkit fixture the count falls, this step
         # says so, and the ceiling should be lowered in the same commit.
         env:
-          FLOATING_CEILING: "34"
+          # 34 → 0 on 2026-08-13, in the commit that converted all twenty files to
+          # `trappoint_testkit.pinned_image()`. Measured on a fresh LF export of the
+          # committed tree with this step's own census code, not on the Windows working
+          # tree, whose line endings make byte-sensitive counts wrong. See header (3).
+          FLOATING_CEILING: "0"
           # 21 → 19 on 2026-08-12, and this is a ceiling being LOWERED to meet a
           # measurement, not raised to meet a tree. The four restating steps in
           # `cloud-verify.yml` and `release-proof.yml` now read `compose.yaml`; six lines

@@ -64,8 +64,32 @@ _RAISED_BY = re.compile(r"refused by\s+(?P<object>[A-Za-z_][A-Za-z0-9_.$]*)")
 _STARTUP_TIMEOUT_S = 90.0
 _STATEMENT_TIMEOUT_S = 120.0
 _POLL_INTERVAL_S = 1.0
-_DEFAULT_IMAGE = "cockroachdb/cockroach:v26.2.5"
 _ADMITTED = "ADMITTED"
+
+# ── where the CockroachDB version comes from, and why it is not written here ──────────────
+# THIS FILE DOES NOT NAME A VERSION. It used to carry `_DEFAULT_IMAGE = "<repo>:<version>"`,
+# which made it the twentieth restatement of a constant the repository declares exactly once,
+# in `compose.yaml`, on the line tagged `trappoint:crdb-image-pin`. A second copy of a version
+# string is a second thing to forget, and a dev/CI skew that changes DDL behaviour is the
+# precise failure a gate assertion must not introduce: a gate proven against a server nobody
+# chose has been proven about nothing in particular.
+#
+# The marker comment is parsed rather than the YAML, for the same reason and with the same
+# regex as `trappoint_testkit.image` and `trappoint_migrate.crdb.pinned_image` — this script
+# claims standard library only, and a stranger must be able to run it from a bare checkout
+# with nothing installed. That is a third copy of eight lines of parsing, and it is the
+# deliberate trade: duplicated *parsing* is recoverable, a duplicated *constant* is drift.
+#
+# When no compose file can be found, this script asks for `--image` and exits 2. It does not
+# fall back to a version: an invented default is exactly the skew above, and exit 2 means
+# "the environment could not answer", which is never reported as a passing gate.
+_IMAGE_PIN_MARKER = "trappoint:crdb-image-pin"
+_COMPOSE_FILENAMES = ("compose.yaml", "compose.yml", "docker-compose.yaml", "docker-compose.yml")
+_IMAGE_LINE = re.compile(r"^\s*image:\s*(?P<image>\S+)\s*$")
+_PIN_LOOKAHEAD = 3
+#: Every spelling the repository's testkit publishes the pin under. An explicit environment
+#: variable is a deliberate act and outranks a file; a hard-coded default is not.
+_IMAGE_ENV_NAMES = ("MAINLINE_CRDB_IMAGE", "CRDB_IMAGE", "TRAPPOINT_CRDB_IMAGE")
 
 
 def _say(text: str = "") -> None:
@@ -903,6 +927,76 @@ def _read(path: str | None) -> str:
         raise EnvironmentProblem(f"cannot read {path}: {exc}") from exc
 
 
+def _read_pin(compose_path: Path) -> str | None:
+    """Return the image on the line marked ``trappoint:crdb-image-pin``, or ``None``.
+
+    Unreadable is treated as absent on purpose: this walks over directories it does not own,
+    and a permission error three levels up is not a statement about the version constant.
+    """
+    try:
+        lines = compose_path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return None
+    for index, line in enumerate(lines):
+        if _IMAGE_PIN_MARKER not in line:
+            continue
+        for candidate in lines[index + 1 : index + 1 + _PIN_LOOKAHEAD]:
+            match = _IMAGE_LINE.match(candidate)
+            if match is not None:
+                return match.group("image")
+    return None
+
+
+def _pin_from_compose() -> str | None:
+    """Search upward from this file and from the working directory for the marked pin.
+
+    Two roots because both are ordinary. The script normally sits inside the checkout that
+    owns ``compose.yaml``; it is also copied next to the schema it is asserting about, and
+    then the pin is above the *caller*, not above the script. The first marked line found
+    wins, and a tree where the two disagree is a tree whose operator should pass ``--image``.
+    """
+    seen: set[Path] = set()
+    for origin in (Path(__file__).resolve().parent, Path.cwd().resolve()):
+        for directory in [origin, *origin.parents]:
+            if directory in seen:
+                continue
+            seen.add(directory)
+            for name in _COMPOSE_FILENAMES:
+                pin = _read_pin(directory / name)
+                if pin is not None:
+                    return pin
+    return None
+
+
+def _resolve_image(requested: str | None) -> str:
+    """Decide which image a throwaway node runs, or refuse to guess one.
+
+    Order: ``--image``, then the environment spellings the repository's testkit publishes,
+    then ``compose.yaml``. There is no fourth rung. A default here would be a second copy of
+    the version constant, which is the drift this whole ladder exists to remove.
+
+    Raises:
+        EnvironmentProblem: nothing named an image — reported as exit 2, never as a pass.
+    """
+    if requested:
+        return requested
+    for name in _IMAGE_ENV_NAMES:
+        value = os.environ.get(name)
+        if value:
+            return value
+    pin = _pin_from_compose()
+    if pin is not None:
+        return pin
+    raise EnvironmentProblem(
+        "no CockroachDB image was named: --image was not given, none of "
+        + ", ".join(_IMAGE_ENV_NAMES)
+        + " is set in the environment, and no compose file carrying a line marked "
+        f"'{_IMAGE_PIN_MARKER}' was found at or above this script or the working directory. "
+        "This script will not invent a version — a gate proven against a server nobody chose "
+        "has been proven about nothing in particular. Pass --image."
+    )
+
+
 def _acquire_cluster(args: argparse.Namespace) -> tuple[Cluster, list[object]]:
     """Return a cluster and the resources the caller must release afterwards."""
     cleanup: list[object] = []
@@ -929,7 +1023,7 @@ def _acquire_cluster(args: argparse.Namespace) -> tuple[Cluster, list[object]]:
             "--dsn was given. This is an environment problem and is reported as one (exit 2); "
             "it is NOT a passing gate assertion."
         )
-    cluster = start_docker_node(docker, args.image)
+    cluster = start_docker_node(docker, _resolve_image(args.image))
     cleanup.append(cluster)
     return cluster, cleanup
 
@@ -962,7 +1056,13 @@ def _build_parser() -> argparse.ArgumentParser:
         help="the constraint name, or for P0001 the raising object named in the message",
     )
     parser.add_argument("--dsn", help="use this cluster instead of starting one")
-    parser.add_argument("--image", default=_DEFAULT_IMAGE, help="docker image for the node")
+    parser.add_argument(
+        "--image",
+        help=(
+            "docker image for the node; defaults to $MAINLINE_CRDB_IMAGE, else the image on "
+            f"the line marked '{_IMAGE_PIN_MARKER}' in compose.yaml"
+        ),
+    )
     parser.add_argument(
         "--docker-only", action="store_true", help="ignore a `cockroach` binary on PATH"
     )

@@ -7,7 +7,7 @@ The suite needs a real CockroachDB v26.2.  It finds one in this order and
 
 1. ``MAINLINE_TEST_DSN`` (or ``COCKROACH_URL`` / ``CRDB_URL``) — a running cluster;
 2. a ``cockroach`` binary on ``PATH`` — an in-memory single node for the session;
-3. a running Docker daemon — ``cockroachdb/cockroach:latest-v26.2``.
+3. a running Docker daemon — the image ``compose.yaml`` pins.
 
 AWS credentials are not valid on the build machine and CockroachDB Cloud is not
 assumed; a local binary or a container is the intended path.  **Nothing in this
@@ -44,6 +44,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
+from trappoint_testkit import pinned_image
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _SRC = _REPO_ROOT / "verticals" / "mainline" / "packages" / "mainline-domain" / "src"
@@ -69,7 +70,7 @@ PSYCOPG_MISSING_REASON = (
     "psycopg 3 is required to talk to CockroachDB; `uv sync --extra db` installs it"
 )
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-deltalattice-test"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

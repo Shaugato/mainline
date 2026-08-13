@@ -12,7 +12,7 @@ anything if it cannot be:
 
 1. ``MAINLINE_TEST_DSN`` / ``COCKROACH_URL`` / ``CRDB_URL`` — an already-running cluster;
 2. a ``cockroach`` binary on ``PATH`` — an in-memory single node for the session;
-3. a running Docker daemon — ``cockroachdb/cockroach:latest-v26.2`` for the session.
+3. a running Docker daemon — the image ``compose.yaml`` pins, for the session.
 
 Nothing in this domain may be considered done on the basis of a skipped run, and the skip
 message names which of the three is missing. The agent-side tests in the same file need none
@@ -32,6 +32,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg",
@@ -40,7 +41,7 @@ psycopg = pytest.importorskip(
 
 from _late_recall_ddl import SCHEMA_STATEMENTS  # noqa: E402  (after importorskip, deliberately)
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-late-recall-test"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

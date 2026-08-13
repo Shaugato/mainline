@@ -39,7 +39,7 @@ reason** rather than faking anything:
    ``dm-runner``) is present — so every schema suite shares one cluster;
 2. ``$MAINLINE_TEST_DSN`` / ``$COCKROACH_URL`` / ``$CRDB_URL`` / ``$TRAPPOINT_DSN``;
 3. a ``cockroach`` binary on ``PATH`` (in-memory single node, session-scoped);
-4. a running Docker daemon (``cockroachdb/cockroach:latest-v26.2``).
+4. a running Docker daemon (the image ``compose.yaml`` pins).
 
 **Nothing in this band is done on the basis of a skipped run**, and the skip message says which of
 the four is missing. ``requires_cluster`` is used rather than the ``schema``/``shape``/``mi``
@@ -66,6 +66,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg", reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it"
@@ -219,7 +220,7 @@ VALID_I = frozenset(f"I{n:02d}" for n in range(1, 17))
 #: enforces the rule.
 CLOSURE_TABLE = "clause_blame" + "_closure"
 
-CRDB_IMAGE = "cockroachdb/cockroach:latest-v26.2"
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-spine-crdb"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

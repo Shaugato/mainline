@@ -55,6 +55,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg", reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it"
@@ -156,7 +157,7 @@ MCP_BYTE_CAP = 10 * 1024
 #: The uniform truncation contract this band publishes. Every view carries both.
 TRUNCATION_COLUMNS: tuple[str, ...] = ("group_count", "rows_complete")
 
-CRDB_IMAGE = "cockroachdb/cockroach:latest-v26.2"
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-test-views"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 20.0

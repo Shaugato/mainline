@@ -9,7 +9,7 @@ CockroachDB v26.2 and **SKIP WITH A REASON** if there is not one, in this order:
 
 1. ``MAINLINE_TEST_DSN`` (or ``COCKROACH_URL`` / ``CRDB_URL``) — an already-running cluster;
 2. a ``cockroach`` binary on ``PATH`` — an in-memory single node for the session;
-3. a running Docker daemon — ``cockroachdb/cockroach:latest-v26.2`` for the session.
+3. a running Docker daemon — the image ``compose.yaml`` pins, for the session.
 
 **Nothing in this domain may be considered proven by a skipped run.** The skip message says
 which of the three is missing, and the suite's README says what a green-with-skips run does
@@ -29,6 +29,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg",
@@ -43,7 +44,7 @@ from _support import (  # noqa: E402  (import after importorskip, deliberately)
     split_statements,
 )
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-recall-index-test"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

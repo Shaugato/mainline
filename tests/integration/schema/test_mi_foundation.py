@@ -47,7 +47,7 @@ finds a CockroachDB v26.2 in this order and **skips with a reason** rather than 
    ``dm-runner``) is present — so the two suites share one cluster;
 2. ``$MAINLINE_TEST_DSN`` / ``$COCKROACH_URL`` / ``$CRDB_URL``;
 3. a ``cockroach`` binary on ``PATH`` (in-memory single node, session-scoped);
-4. a running Docker daemon (``cockroachdb/cockroach:latest-v26.2``).
+4. a running Docker daemon (the image ``compose.yaml`` pins).
 
 Nothing in this band is done on the basis of a skipped run, and the skip message says which of the
 four is missing.
@@ -68,6 +68,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg", reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it"
@@ -252,7 +253,7 @@ BAND_TABLES = (
 
 _IDENT_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-foundation-schema-test"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

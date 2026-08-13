@@ -20,17 +20,22 @@ connect to a black-holed address raised ``ConnectionTimeout`` after **130.1 s** 
 container-spawning files check an environment DSN *first* and only reach for Docker when it is
 unset. Four spellings are in use — ``MAINLINE_TEST_DSN`` (28 occurrences), ``COCKROACH_URL``
 (19), ``CRDB_URL`` (17), ``TRAPPOINT_DSN`` (3) — and one cluster published under all four
-collapses thirteen into one. The same seam holds for the image: 33 files default to the
-FLOATING tag ``cockroachdb/cockroach:latest-v26.2`` and every one of them reads
-``MAINLINE_CRDB_IMAGE`` first, so publishing the ``compose.yaml`` pin means the floating
-default is never reached.
+collapses thirteen into one. **The same was claimed of the image and was measured false on
+2026-08-13.** Twenty files carried a hard-coded image, 34 occurrences between them. Fourteen
+read ``MAINLINE_CRDB_IMAGE`` first, so the export below did displace their default — but
+**six named the image outright, with no environment read at all**, and no export could reach
+those. They ran on a tag that moves, which is the dev/CI skew the schema fingerprint exists
+to catch. All twenty now read the pin out of ``compose.yaml`` through
+:func:`trappoint_testkit.pinned_image`, and ``MAINLINE_CRDB_IMAGE`` still outranks it when an
+operator sets one. The export below is now an optimisation — one parse for the session
+instead of twenty — and no longer the thing that makes the version right.
 
 Order matters, and it is why two things happen at **import** time rather than in
 ``pytest_configure``:
 
 * ``PGCONNECT_TIMEOUT`` — anything that connects during collection must already have it.
-* the image pin — thirty-three modules read ``MAINLINE_CRDB_IMAGE`` at *module import* time,
-  which happens during collection, so an export that waited for a fixture would be too late.
+* the image pin — twenty modules resolve their image at *module import* time, which happens
+  during collection, so an export that waited for a fixture would be too late.
 
 The DSN cannot be published this early: the session has to find or start the cluster first,
 and that belongs in ``pytest_configure``, which
@@ -48,9 +53,10 @@ a header line saying so rather than a traceback.
 The corollary, and the reason ``_report`` below exists: if the plugin ever again becomes
 unimportable, that must arrive as **one sentence naming the cause**, followed by pytest's own
 hard error. Not as a silent ``except ImportError: return``, which is what this file used to
-do — a session that quietly declines to publish the image pin runs against the FLOATING
-``latest-v26.2`` tag the testkit exists to refuse, rather than the v26.2.5 ``compose.yaml``
-pins, and is measuring a version nobody chose.
+do. Since the twenty fixture modules import :mod:`trappoint_testkit` themselves, a testkit
+this file cannot import is a testkit *they* cannot import either: the session now ends in a
+collection error rather than in a quiet run against a version nobody chose. The sentence
+below is what turns that error into a diagnosis.
 """
 
 from __future__ import annotations
@@ -133,22 +139,26 @@ def _prepare_environment() -> None:
         # almost always that `packages/trappoint-testkit/src` is absent from the checkout.
         _report(
             f"cannot import trappoint_testkit.image ({exc}). The CockroachDB image pin was "
-            f"NOT published, so any fixture that reads $MAINLINE_CRDB_IMAGE falls back to "
-            f"its own FLOATING latest-v26.2 default and this session is not measuring the "
-            f"v26.2.5 that compose.yaml pins. Looked for the package on sys.path "
-            f"and at {_TESTKIT_SRC}."
+            f"NOT published, and the twenty cluster fixtures import the same module to read "
+            f"it, so they are about to fail collection for this one reason. No fixture "
+            f"invents a version to carry on with — that is the whole point — so this line is "
+            f"the cause and everything after it is consequence. Looked for the package on "
+            f"sys.path and at {_TESTKIT_SRC}."
         )
         return
     try:
         image.export_pin(start=ROOT)
     except image.PinNotFound as exc:
-        # compose.yaml is the single source of the version constant. If it has moved, the
-        # session can still run — but every cluster fixture is now on the floating tag, and
-        # that is exactly the dev/CI skew the schema fingerprint exists to catch.
+        # compose.yaml is the single source of the version constant. Each cluster fixture
+        # calls pinned_image() itself when this export does not happen, so it will raise the
+        # same PinNotFound during collection. That is the designed behaviour — a fixture that
+        # invented a version here would reintroduce the dev/CI skew the schema fingerprint
+        # exists to catch — and this line is what names the cause before pytest names twenty
+        # symptoms.
         _report(
-            f"the CockroachDB version constant could not be read ({exc}). Fixtures will use "
-            f"their FLOATING latest-v26.2 default instead of the v26.2.5 compose.yaml "
-            f"pins. Restore the 'trappoint:crdb-image-pin' marker above the crdb service's "
+            f"the CockroachDB version constant could not be read ({exc}). Every cluster "
+            f"fixture reads it the same way and will raise the same error during collection. "
+            f"Restore the 'trappoint:crdb-image-pin' marker above the crdb service's "
             f"image: key in compose.yaml."
         )
         return

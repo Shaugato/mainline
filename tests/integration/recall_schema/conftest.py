@@ -7,7 +7,7 @@ rather than faking anything if it cannot:
 
 1. ``MAINLINE_TEST_DSN`` (or ``COCKROACH_URL``) — an already-running cluster;
 2. a ``cockroach`` binary on ``PATH`` — an in-memory single node is started for the session;
-3. a running Docker daemon — ``cockroachdb/cockroach:latest-v26.2`` is started for the session.
+3. a running Docker daemon — the image ``compose.yaml`` pins is started for the session.
 
 Nothing in this domain may be considered done on the basis of a skipped run, and the skip
 message says which of the three is missing.
@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg",
@@ -39,7 +40,7 @@ from _schema_support import (  # noqa: E402  (import after importorskip, deliber
     trigger_names,
 )
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-recall-schema-test"
 READY_TIMEOUT_S = 120.0
 #: A dead Docker daemon does not refuse `docker info`; it blocks. Short, because the only

@@ -54,11 +54,13 @@ CockroachDB v26.2 in this order and **skips with a reason** rather than faking a
 1. the session ``dsn`` fixture, if ``tests/integration/schema/conftest.py`` (``dm-runner``) exists;
 2. ``$MAINLINE_TEST_DSN`` / ``$COCKROACH_URL`` / ``$CRDB_URL`` / ``$TRAPPOINT_DSN``;
 3. a ``cockroach`` binary on ``PATH`` (in-memory single node, session-scoped);
-4. a running Docker daemon (``cockroachdb/cockroach:latest-v26.2``).
+4. a running Docker daemon (the image ``compose.yaml`` pins).
 
-Nothing here is done on the basis of a skipped run. The suite was authored and executed against
-``cockroachdb/cockroach:latest-v26.2`` in local Docker; it has **not** been run against CockroachDB
-Cloud, and no test here asserts anything that requires one.
+Nothing here is done on the basis of a skipped run. The suite was authored and executed in local
+Docker against the floating ``latest-v26.2`` tag — the tag this file used before it was converted
+to read ``compose.yaml``, recorded here because what a run used is not editable after the fact. It
+has **not** been run against CockroachDB Cloud, and no test here asserts anything that requires
+one.
 """
 
 from __future__ import annotations
@@ -80,6 +82,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg", reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it"
@@ -190,7 +193,7 @@ WRITE_TOKENS = (
     re.compile(r"\b(?:CREATE|ALTER|DROP|GRANT|REVOKE)\b", re.IGNORECASE),
 )
 
-CRDB_IMAGE = "cockroachdb/cockroach:latest-v26.2"
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-dispositiongated-crdb"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

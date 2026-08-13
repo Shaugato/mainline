@@ -58,7 +58,8 @@ rather than faking anything: ``$MAINLINE_TEST_DSN`` / ``$COCKROACH_URL`` / ``$CR
 the basis of a skipped run.
 
 Measured, not assumed: on 2026-08-10 the cluster tier ran against CockroachDB CCL **v26.2.5**
-(`cockroachdb/cockroach:latest-v26.2`) and applied 62 prerequisites plus this band with zero
+— reached, at the time, through the floating `latest-v26.2` tag this file no longer names —
+and applied 62 prerequisites plus this band with zero
 failures. The plans it observed are recorded in
 ``verticals/mainline/db/queries/EXPLAIN-ASSERTIONS.md``.
 """
@@ -81,6 +82,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from trappoint_testkit import pinned_image
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # Paths and band constants
@@ -124,7 +126,7 @@ LOAD_BEARING_NAMES: dict[str, tuple[str, ...]] = {
     "0039_clause_blame_current.sql": (),
 }
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-blame-schema-test"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

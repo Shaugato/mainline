@@ -55,6 +55,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from trappoint_testkit import pinned_image
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # Paths and band constants
@@ -113,7 +114,7 @@ LOAD_BEARING_NAMES = {
     "0036_event_severity_revision.sql": ("downgrade_needs_new_rater", "substantive"),
 }
 
-CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE", "cockroachdb/cockroach:latest-v26.2")
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-event-severity-schema-test"
 READY_TIMEOUT_S = 120.0
 DOCKER_PROBE_TIMEOUT_S = 10.0

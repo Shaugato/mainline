@@ -38,7 +38,7 @@ CockroachDB v26.2 in this order and **skips with a reason** rather than faking a
    is present, so every schema suite shares one cluster;
 2. ``$MAINLINE_TEST_DSN`` / ``$COCKROACH_URL`` / ``$CRDB_URL`` / ``$TRAPPOINT_DSN``;
 3. a ``cockroach`` binary on ``PATH`` (in-memory single node, session-scoped);
-4. a running Docker daemon (``cockroachdb/cockroach:latest-v26.2``).
+4. a running Docker daemon (the image ``compose.yaml`` pins).
 
 MI15 is NOT verified by a skipped run, and the skip message says which of the four is missing.
 """
@@ -60,6 +60,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from trappoint_testkit import pinned_image
 
 psycopg = pytest.importorskip(
     "psycopg", reason="psycopg 3 is required to talk to CockroachDB; `uv sync` installs it"
@@ -129,7 +130,7 @@ ALL_MESSAGES: tuple[str, ...] = (
 )
 
 MR5_FILENAME = re.compile(r"^\d{4}[a-z]?_[a-z0-9_]+\.sql$")
-CRDB_IMAGE = "cockroachdb/cockroach:latest-v26.2"
+CRDB_IMAGE = os.environ.get("MAINLINE_CRDB_IMAGE") or pinned_image(Path(__file__))
 CONTAINER_NAME = "mainline-mi15-test"
 READY_TIMEOUT_S = 90.0
 DOCKER_PROBE_TIMEOUT_S = 20.0
