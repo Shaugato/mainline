@@ -92,6 +92,8 @@ from typing import Any, Final, Protocol, runtime_checkable
 
 from trappoint_recall.eval.backend import (
     BLOCKING_CAP_PROBABILISTIC,
+    Channel,
+    Origin,
     RunTally,
     ScoredCandidate,
 )
@@ -172,8 +174,27 @@ Named so no downstream document can quote a threshold metric from this backend w
 naming the map it was measured under. See the module docstring for what it does and does
 not move."""
 
-CHANNEL: Final[str] = "C"
-ORIGIN: Final[str] = "recall_probabilistic"
+CHANNEL: Final[Channel] = "C"
+"""The one channel this backend produces, typed as :data:`~trappoint_recall.eval.backend.Channel`.
+
+Narrowed at the definition rather than cast at the call site on purpose. Every
+:class:`~trappoint_recall.eval.backend.ScoredCandidate` this module builds carries this
+value, and the module docstring's claim that channels A, B and D are *not* here is only
+enforceable if the constant cannot silently become one of them. Declared ``Final[str]``,
+the four construction sites type-checked against a plain string and a future edit to
+``"B"`` would have compiled — and a channel-B claim from a vector search is precisely the
+lie :meth:`BedrockBackend.declared_tally` exists to refuse. Under ``Final[Channel]`` a
+value outside the alias is a type error where it is written, not a wrong counter in a
+report."""
+
+ORIGIN: Final[Origin] = "recall_probabilistic"
+"""The origin the cap and ``P@block`` apply to, typed as
+:data:`~trappoint_recall.eval.backend.Origin`.
+
+Same reason as :data:`CHANNEL`, with a sharper consequence: ``recall_probabilistic`` is
+the *only* origin :data:`~trappoint_recall.eval.backend.BLOCKING_CAP_PROBABILISTIC`
+governs, so a drift to ``"bonded"`` or ``"deterministic_ancestry"`` would exempt this
+backend's checks from the cap without changing a single line of policy."""
 
 EMBED_TEMPLATE: Final[str] = "{activity_path} | {asset_class} | {facet}: {cue_text}"
 """The frozen embedding template, applied identically to documents and to queries.
@@ -321,7 +342,7 @@ def doc_uuid_of(external_ref: str) -> str:
 
 
 def commit_id_of(external_ref: str, corpus_commit: str) -> bytes:
-    """The ``BYTES`` half of the primary key: this document at this corpus state.
+    """Derive the ``BYTES`` half of the primary key: this document at this corpus state.
 
     Two corpus states produce two rows for the same document, which is what makes the
     sidecar's primary key ``(clause_uuid, commit_id)`` rather than the document alone.
@@ -340,7 +361,7 @@ def embed_text(*, activity_path: str, asset_class: str, facet: str, cue_text: st
 
 
 def query_embed_text(query: EvalQuery, *, facet: str = "narrative") -> str:
-    """The text a permit is embedded as: its narrative cue facet, or its work description.
+    """Build the query side of the template: a permit's cue facet, or its own text.
 
     ``facets['narrative']`` is the safety net the corpus ships (ARCHITECTURE 6.2). When a
     corpus carries no facets the permit text itself is used, and the facet label still says
@@ -425,6 +446,13 @@ class EmbeddingCache:
     misses: int = field(default=0, init=False)
 
     def __post_init__(self) -> None:
+        """Replay the JSONL file into memory, tolerating a truncated final line.
+
+        An interrupted run leaves a half-written last record. Refusing the whole file over
+        it would make the crash cost the corpus a second time, so the undecodable line is
+        dropped and every complete one before it is kept. A cache with no ``path`` is
+        memory-only and does nothing here.
+        """
         if self.path is None:
             return
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -447,6 +475,13 @@ class EmbeddingCache:
 
     @staticmethod
     def key_for(model_id: str, dimensions: int, normalize: bool, text: str) -> str:
+        """Digest the whole request, not just *text*, so two embedding spaces cannot merge.
+
+        ``normalize=False`` or a different ``dimensions`` produces a different vector for
+        identical text. Keying on the text alone would serve one of them under the other's
+        name, and the resulting index generation would be a silent mixture — visible only
+        as a recall number nobody could explain.
+        """
         material = json.dumps(
             {"model": model_id, "dimensions": dimensions, "normalize": normalize, "text": text},
             sort_keys=True,
@@ -455,6 +490,12 @@ class EmbeddingCache:
         return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
     def get(self, key: str) -> list[float] | None:
+        """Look *key* up, counting the hit or the miss on the way past.
+
+        The counters are the cost report: :meth:`TitanEmbedder.ledger` publishes them, and
+        a run that claims to have spent nothing is only believable if the hit count and the
+        InvokeModel call count add up to the corpus size.
+        """
         with self._lock:
             vector = self._entries.get(key)
             if vector is None:
@@ -464,6 +505,12 @@ class EmbeddingCache:
             return vector
 
     def put(self, key: str, vector: Sequence[float]) -> None:
+        """Record *vector* and flush it to disk before returning.
+
+        Append-and-flush per entry, not per run: an embedding that has been paid for is
+        durable the moment it arrives, so a run interrupted after 900 of 1 071 embeddings
+        does not have to buy those 900 again.
+        """
         values = [float(x) for x in vector]
         with self._lock:
             self._entries[key] = values
@@ -475,12 +522,22 @@ class EmbeddingCache:
             self._handle.flush()
 
     def close(self) -> None:
+        """Release the append handle. Idempotent, and safe on a memory-only cache.
+
+        Every entry was already flushed by :meth:`put`, so this drops a file descriptor
+        rather than committing anything; skipping it loses no embeddings.
+        """
         with self._lock:
             if self._handle is not None:
                 self._handle.close()
                 self._handle = None
 
     def to_dict(self) -> dict[str, object]:
+        """Report the cache's contribution to run cost, for the embedding ledger.
+
+        ``hits`` and ``misses`` are what make the published token count checkable: misses
+        are the calls Bedrock was actually billed for.
+        """
         return {
             "path": str(self.path) if self.path else None,
             "entries": len(self._entries),
@@ -541,6 +598,14 @@ class TitanEmbedder:
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False)
 
     def __post_init__(self) -> None:
+        """Refuse a residency or width mismatch at construction, not at the first call.
+
+        Three checks, all of which fail closed: the model id must not carry a cross-region
+        routing prefix, the region must be :data:`REQUIRED_REGION` (ARCHITECTURE 10.1 —
+        Australian safety narratives are embedded here or nowhere), and ``dimensions`` must
+        match the ``VECTOR(1024)`` the sidecar declares. Deferring any of them to the first
+        embed would let a run write vectors for hours before the index rejected them.
+        """
         assert_in_region(self.model_id)
         if self.region != REQUIRED_REGION:
             raise ResidencyRefused(
@@ -554,11 +619,16 @@ class TitanEmbedder:
             )
 
     def request_body(self, text: str) -> dict[str, Any]:
-        """The InvokeModel body, exposed so a cassette or a probe can key the exact request."""
+        """Build the InvokeModel body, exposed so a cassette can key the exact request.
+
+        Public because it is the cache key's material and a recorded probe's payload. A
+        caller that reconstructed this dict itself could drift from what :meth:`embed`
+        sends, and the cassette would then be keyed to a request that never happened.
+        """
         return {"inputText": text, "dimensions": self.dimensions, "normalize": self.normalize}
 
     def _client(self) -> InvokeModelClient:
-        """The injected transport, or a refusal naming who was supposed to supply it.
+        """Return the injected transport, or refuse and name who should have supplied it.
 
         **This class never builds an AWS client, and must not learn how.**  It lives under
         ``packages/trappoint-*``, which ARCHITECTURE.md §8.2 E3 defines as the kernel
@@ -639,6 +709,15 @@ class TitanEmbedder:
         return values
 
     def ledger(self) -> dict[str, object]:
+        """Report what this embedder spent, in the terms the cost reconciliation uses.
+
+        ``input_tokens`` is Bedrock's own ``inputTextTokenCount`` accumulated per call, not
+        a local estimate, so the fleet's cost worker can reconcile it against CloudWatch.
+        ``output_tokens`` is structurally zero — an embedding model emits none — and is
+        stated rather than omitted so a missing key cannot be read as a missing measurement.
+        ``throttle_retries`` is published for the same reason: an absorbed throttle makes
+        ``mean_latency_ms`` describe a different service than it appears to.
+        """
         return {
             "model_id": self.model_id,
             "region": self.region,
@@ -734,6 +813,12 @@ class ProbeResult:
     latency_ms: float
 
     def to_dict(self) -> dict[str, object]:
+        """Report the probe, including what the time wall removed.
+
+        ``n_wall_excluded`` is carried deliberately: a wall that silently removes nothing
+        is indistinguishable from a wall that is not there, and this counter is the only
+        thing separating the two in a run manifest.
+        """
         return {
             "n_probed": self.n_probed,
             "n_within_wall": len(self.rows),
@@ -755,7 +840,15 @@ class AnnProbe(Protocol):
         vector: Sequence[float],
         ann_limit: int,
         wall: datetime,
-    ) -> ProbeResult: ...
+    ) -> ProbeResult:
+        """Return the *ann_limit* nearest rows under the ``(site_id, activity_root)`` prefix.
+
+        Keyword-only, and the two prefix arguments are not optional: an unconstrained
+        nearest-neighbour search over the whole corpus is a different question from the one
+        this backend claims to ask. *wall* is passed down rather than applied by the caller
+        so the implementation can report how many probed rows it removed.
+        """
+        ...
 
 
 @dataclass(slots=True)
@@ -797,6 +890,18 @@ class CockroachAnnProbe:
         ann_limit: int,
         wall: datetime,
     ) -> ProbeResult:
+        """Execute :data:`ANN_SQL`, retrying only ``40001``, and partition on the wall.
+
+        Two failure modes are told apart here and only two are absorbed. A connection the
+        server has already closed is not a result — the question was never answered — so it
+        is reconnected once and re-asked, and the reconnect is counted. A
+        ``RETRY_SERIALIZABLE`` (``40001``) is the Cloud's contract and is retried with
+        full-jitter backoff, also counted. Anything else propagates: a blanket retry cannot
+        tell a serialization restart from a refusal, and in this system refusals are results.
+
+        Rows outside *wall* are counted into ``n_wall_excluded`` and dropped rather than
+        filtered in SQL, so the caller can see what the wall did.
+        """
         params = {
             "qvec": vector_literal(vector),
             "site_id": site_id,
@@ -862,11 +967,25 @@ class CockroachAnnProbe:
         )
 
     def close(self) -> None:
+        """Drop the lazily-built connection. A later :meth:`probe` will open a new one.
+
+        Idempotent, and never called by :meth:`probe` itself: the connection is reused
+        across a 396-permit pass, and closing it per query would make the run's latency a
+        measurement of connection setup.
+        """
         if self._conn is not None:
             self._conn.close()
             self._conn = None
 
     def to_dict(self) -> dict[str, object]:
+        """Report what the retry loop cost, so the loop is not taken on faith.
+
+        A single-node Docker never raises ``RETRY_SERIALIZABLE``, so ``retries_40001`` is
+        expected to be 0 locally and non-zero on the Cloud; publishing both it and
+        ``retry_attempts_configured`` is what turns the loop from superstition into a
+        quoted premium. ``reconnects`` is separate because a run that silently rebuilt its
+        connection twenty times is describing a different cluster than it appears to.
+        """
         return {
             "probes": self.probes,
             "rows_probed": self.rows_probed,
@@ -982,6 +1101,21 @@ class BedrockBackend:
         name: str | None = None,
         policy_version: str = "",
     ) -> None:
+        """Assemble the channel, refusing the two configurations that would fake a result.
+
+        *probe* has no default and ``None`` is refused: a retriever with no index returns
+        an empty candidate list, every conservation law holds vacuously over it, and the
+        run reports a clean pass for a channel that never ran. *corpus_head_wall* must be
+        timezone-aware, because a naive wall compared against ``TIMESTAMPTZ`` columns
+        silently admits or excludes rows by the runner's local offset.
+
+        The remaining arguments are policy, and every one of them is echoed by
+        :meth:`config` so a reader can re-derive the decisions: *tau_table* and
+        *policy_version* name the thresholds, *cap* the blocking limit, *ann_overfetch* and
+        *ann_limit_floor* how many rows the index is asked for before the wall is applied.
+        An absent *tau_table* falls back to ARCHITECTURE 6.4's published defaults, which are
+        declared and not fitted on this corpus.
+        """
         if probe is None:
             raise ValueError(
                 "BedrockBackend needs an AnnProbe: a retriever with no index is a "
@@ -1054,10 +1188,22 @@ class BedrockBackend:
         }
 
     def ann_limit_for(self, k: int) -> int:
+        """Size the index probe: over-fetch for *k*, never below the floor.
+
+        The time wall is a predicate on the joined parent row and cannot be pushed into the
+        vector search without losing the ``@ce_ann`` hint, so rows are fetched and then
+        filtered. Over-fetching by :data:`ANN_OVERFETCH` bounds how much the wall may remove
+        before the top-*k* is short; the floor keeps a small *k* from probing fewer rows
+        than the top-40 the rerank rubric expects.
+        """
         return max(self._ann_limit_floor, k * self._ann_overfetch)
 
     def wall_for(self, query: EvalQuery) -> datetime:
-        """A retro permit is walled at its own *t*; a routine permit replays at corpus head."""
+        """Choose the time wall: a retro permit's own *t*, else corpus head.
+
+        A retro query is a replay of a decision made at a past instant and must not see
+        anything ingested since; a routine query is asked now and replays at head.
+        """
         return query.wall if query.wall is not None else self._corpus_head_wall
 
     # -- the contract -------------------------------------------------------------------
@@ -1082,7 +1228,7 @@ class BedrockBackend:
         return self._build_candidates(run)
 
     async def declared_tally(self, query: EvalQuery) -> RunTally:
-        """The counters this run would write to ``mainline_meas.recall_run``.
+        """Re-derive the counters this run would write to ``mainline_meas.recall_run``.
 
         Derived by :func:`_declare_partition` from the probe rows and the published policy
         constants — never from the candidate list :meth:`retrieve` returned. See the module
