@@ -1,0 +1,540 @@
+{
+  "$comment": "Derived from evidence/deploy/terraform-plan-furl.json by scripts run at capture time; every count and every list below is READ out of that artefact rather than asserted. If a number here disagrees with the plan, this file is what is wrong.",
+  "generated_from": {
+    "plan_txt": {
+      "path": "evidence/deploy/terraform-plan-furl.txt",
+      "bytes": 44743,
+      "lines": 936,
+      "sha256": "0517a05de8519e3411c39eadcbab8e9449b4eacbdc55cc50daa9a45231fc7f69"
+    },
+    "plan_json": {
+      "path": "evidence/deploy/terraform-plan-furl.json",
+      "bytes": 336459,
+      "sha256": "a376623df9b96031b0a6e16db8d2400744732977afa3c473da3127236f50a587"
+    },
+    "terraform_version": "1.14.8",
+    "format_version": "1.2",
+    "plan_timestamp": "2026-08-13T15:57:11Z",
+    "applyable": true,
+    "errored": false,
+    "command": "cd infra/envs/demo && AWS_PROFILE=mainline-dev terraform plan -no-color -input=false -var enable_cloudfront=false -out=tfplan-furl.binary  (then `terraform show -no-color -json`). NO APPLY WAS RUN, and no mutating AWS call of any kind was made in producing this file.",
+    "account_id_masking": "The twelve-digit AWS account id is replaced by <first4>REDACTED<last4> in both artefacts above - 12 occurrences in the .txt, 37 in the .json - which is the repository-wide convention from commit 1d41442. Two properties are asserted over the result and both are re-checkable: zero occurrences of the real twelve digits, and zero occurrences of the all-zero mask. Twelve identical digits is the one mask two checkers read two different ways - one as a redaction, one as a value - and docs/CI-STATE.md's recorded resolution is to REMOVE the digits rather than relax either checker, which is why this sentence describes that mask instead of spelling it."
+  },
+  "plan_shape": {
+    "summary_line": "Plan: 24 to add, 0 to change, 0 to destroy.",
+    "to_add": 24,
+    "to_change": 0,
+    "to_destroy": 0,
+    "data_sources_read": 1,
+    "previous_committed_count": 11,
+    "delta": 13,
+    "why_the_count_moved": "module \"guard\" (infra/modules/cost-guard) is instantiated for the first time. It was complete, terraform-validate-clean and Stubber-tested for a whole wave and was never called, so var.alarm_actions stayed [] and every alarm on the demo function was actionless. The previous wave's finding - the bound is DOCUMENTED and NOT IMPLEMENTED - had reproduced one level up as CODED and NOT INSTANTIATED, which on a plan output is the same picture.",
+    "by_module": {
+      "module.api[0]": 11,
+      "module.guard[0]": 13
+    },
+    "other_configurations_measured_same_session": {
+      "enable_cloudfront=false enable_api=true": "Plan: 24 to add, 0 to change, 0 to destroy.",
+      "enable_cloudfront=true  enable_api=true": "Plan: 35 to add, 0 to change, 0 to destroy.",
+      "enable_cloudfront=true  enable_api=false": "Plan: 9 to add, 0 to change, 0 to destroy.",
+      "enable_cloudfront=false enable_api=false": "Error: Module output value precondition failed",
+      "$comment": "The two enable_api=true rows each moved by exactly +13. The enable_api=false row did NOT move, because module \"guard\" is count = var.enable_api ? 1 : 0 - a guard scoped to a function that does not exist would be a stop whose alarms never leave INSUFFICIENT_DATA."
+    }
+  },
+  "resources": {
+    "module.api[0]": [
+      {
+        "address": "module.api[0].aws_cloudwatch_dashboard.this[0]",
+        "type": "aws_cloudwatch_dashboard",
+        "name": "this"
+      },
+      {
+        "address": "module.api[0].aws_cloudwatch_log_group.this",
+        "type": "aws_cloudwatch_log_group",
+        "name": "this"
+      },
+      {
+        "address": "module.api[0].aws_cloudwatch_metric_alarm.concurrency",
+        "type": "aws_cloudwatch_metric_alarm",
+        "name": "concurrency"
+      },
+      {
+        "address": "module.api[0].aws_cloudwatch_metric_alarm.duration_p99",
+        "type": "aws_cloudwatch_metric_alarm",
+        "name": "duration_p99"
+      },
+      {
+        "address": "module.api[0].aws_cloudwatch_metric_alarm.errors",
+        "type": "aws_cloudwatch_metric_alarm",
+        "name": "errors"
+      },
+      {
+        "address": "module.api[0].aws_cloudwatch_metric_alarm.throttles",
+        "type": "aws_cloudwatch_metric_alarm",
+        "name": "throttles"
+      },
+      {
+        "address": "module.api[0].aws_iam_role.this",
+        "type": "aws_iam_role",
+        "name": "this"
+      },
+      {
+        "address": "module.api[0].aws_iam_role_policy.dsn_access",
+        "type": "aws_iam_role_policy",
+        "name": "dsn_access"
+      },
+      {
+        "address": "module.api[0].aws_iam_role_policy_attachment.basic_execution",
+        "type": "aws_iam_role_policy_attachment",
+        "name": "basic_execution"
+      },
+      {
+        "address": "module.api[0].aws_lambda_function.this",
+        "type": "aws_lambda_function",
+        "name": "this"
+      },
+      {
+        "address": "module.api[0].aws_lambda_function_url.this",
+        "type": "aws_lambda_function_url",
+        "name": "this"
+      }
+    ],
+    "module.guard[0]": [
+      {
+        "address": "module.guard[0].aws_budgets_budget.guard",
+        "type": "aws_budgets_budget",
+        "name": "guard"
+      },
+      {
+        "address": "module.guard[0].aws_cloudwatch_log_group.responder",
+        "type": "aws_cloudwatch_log_group",
+        "name": "responder"
+      },
+      {
+        "address": "module.guard[0].aws_cloudwatch_metric_alarm.invocations_burst",
+        "type": "aws_cloudwatch_metric_alarm",
+        "name": "invocations_burst"
+      },
+      {
+        "address": "module.guard[0].aws_cloudwatch_metric_alarm.invocations_hourly",
+        "type": "aws_cloudwatch_metric_alarm",
+        "name": "invocations_hourly"
+      },
+      {
+        "address": "module.guard[0].aws_cloudwatch_metric_alarm.log_ingestion",
+        "type": "aws_cloudwatch_metric_alarm",
+        "name": "log_ingestion"
+      },
+      {
+        "address": "module.guard[0].aws_iam_role.responder",
+        "type": "aws_iam_role",
+        "name": "responder"
+      },
+      {
+        "address": "module.guard[0].aws_iam_role_policy.responder_stop",
+        "type": "aws_iam_role_policy",
+        "name": "responder_stop"
+      },
+      {
+        "address": "module.guard[0].aws_iam_role_policy_attachment.responder_basic",
+        "type": "aws_iam_role_policy_attachment",
+        "name": "responder_basic"
+      },
+      {
+        "address": "module.guard[0].aws_lambda_function.responder",
+        "type": "aws_lambda_function",
+        "name": "responder"
+      },
+      {
+        "address": "module.guard[0].aws_lambda_permission.sns_invoke",
+        "type": "aws_lambda_permission",
+        "name": "sns_invoke"
+      },
+      {
+        "address": "module.guard[0].aws_sns_topic.guard",
+        "type": "aws_sns_topic",
+        "name": "guard"
+      },
+      {
+        "address": "module.guard[0].aws_sns_topic_policy.guard",
+        "type": "aws_sns_topic_policy",
+        "name": "guard"
+      },
+      {
+        "address": "module.guard[0].aws_sns_topic_subscription.responder",
+        "type": "aws_sns_topic_subscription",
+        "name": "responder"
+      }
+    ],
+    "root": []
+  },
+  "checks": {
+    "objects_total": 85,
+    "previous_committed_total": 44,
+    "status_counts": {
+      "pass": 85
+    },
+    "kind_counts": {
+      "resource": 10,
+      "var": 74,
+      "output_value": 1
+    },
+    "all_pass": true,
+    "resource_preconditions": [
+      "module.api.aws_cloudwatch_metric_alarm.concurrency",
+      "module.api.aws_cloudwatch_metric_alarm.duration_p99",
+      "module.api.aws_lambda_function.this",
+      "module.api.aws_lambda_permission.cloudfront_invoke",
+      "module.guard.aws_budgets_budget.guard",
+      "module.guard.aws_cloudwatch_metric_alarm.invocations_burst",
+      "module.guard.aws_cloudwatch_metric_alarm.invocations_hourly",
+      "module.guard.aws_cloudwatch_metric_alarm.log_ingestion",
+      "module.site.aws_cloudfront_distribution.site",
+      "module.site.aws_s3_bucket.site"
+    ],
+    "check_objects_with_zero_instances": [
+      "module.api.aws_lambda_permission.cloudfront_invoke",
+      "module.site.aws_cloudfront_distribution.site",
+      "module.site.aws_s3_bucket.site",
+      "module.site.var.account_id",
+      "module.site.var.api_origin_domain",
+      "module.site.var.api_origin_keepalive_timeout",
+      "module.site.var.api_origin_read_timeout",
+      "module.site.var.bucket_name",
+      "module.site.var.bucket_prefix",
+      "module.site.var.name",
+      "module.site.var.name_prefix",
+      "module.site.var.noncurrent_version_expiration_days",
+      "module.site.var.price_class",
+      "module.site.var.spa_error_caching_min_ttl"
+    ],
+    "zero_instance_note": "A check object with no instances belongs to a count=0 resource: the condition is defined in the configuration and there is no instance to evaluate it against. It is listed separately rather than folded into the pass count, because 'nothing was checked' is not 'the check passed'.",
+    "new_this_wave": {
+      "module.api.aws_cloudwatch_metric_alarm.duration_p99": "gains a SECOND, UNCONDITIONAL precondition - a FLOOR: duration_p99_threshold_ms must be strictly ABOVE modelled_worst_legitimate_duration_ms (13022 ms, docs/deploy/LATENCY.md 5.1's binding case: a cold start at 256 MB with a 2x worse tail). Terraform groups a resource's conditions under one check object, so this adds no object - the pass is visible as the object still passing with the threshold raised from 12000 to 13500. It is FALSIFIED, not asserted: see falsification below.",
+      "module.guard.*": "four resource preconditions appear for the first time: reachability on each of the three cost alarms, and the three-timescale property on invocations_hourly (threshold < burst x 60)."
+    }
+  },
+  "stop_path": {
+    "$comment": "The stop is alarm -> SNS topic -> Lambda responder -> PutFunctionConcurrency(0). Each hop below is proved from a named location in the plan JSON. WHAT A PLAN CANNOT PROVE IS STATED AS SUCH rather than asserted: an SNS topic ARN does not exist until apply, so every alarm_actions value is (known after apply) and the wiring is provable from the plan's `configuration` section instead of from `planned_values`.",
+    "hop_1_alarms_to_topic": {
+      "guard_alarms_reference_the_topic_directly": {
+        "aws_cloudwatch_metric_alarm.invocations_burst": {
+          "references": [
+            "aws_sns_topic.guard.arn",
+            "aws_sns_topic.guard"
+          ]
+        },
+        "aws_cloudwatch_metric_alarm.invocations_hourly": {
+          "references": [
+            "aws_sns_topic.guard.arn",
+            "aws_sns_topic.guard"
+          ]
+        },
+        "aws_cloudwatch_metric_alarm.log_ingestion": {
+          "references": [
+            "aws_sns_topic.guard.arn",
+            "aws_sns_topic.guard"
+          ]
+        }
+      },
+      "demo_api_alarms_reference_a_root_local": {
+        "configuration.root_module.module_calls.api.expressions.alarm_actions": {
+          "references": [
+            "local.guard_stop_topic_actions"
+          ]
+        },
+        "configuration.root_module.module_calls.api.expressions.ok_actions": {
+          "constant_value": []
+        },
+        "local_definition_in_source": "local.guard_stop_topic_actions = try([module.guard[0].sns_topic_arn], []) - infra/envs/demo/main.tf. Indexed and wrapped in try(), never a splat: a splat depends on the module (close) node and rebuilds the 2026-08-10 cycle transcribed in that file's header."
+      },
+      "corroboration_from_resource_changes": "Every alarm's alarm_actions sits in after_unknown (the topic ARN does not exist yet) while every alarm's ok_actions does NOT - which is exactly the signature of one list wired to a not-yet-created resource and one list that is empty. See `alarms` below."
+    },
+    "hop_2_topic_to_responder": {
+      "subscription": "module.guard[0].aws_sns_topic_subscription.responder",
+      "invoke_permission": "module.guard[0].aws_lambda_permission.sns_invoke",
+      "responder_function": "module.guard[0].aws_lambda_function.responder"
+    },
+    "hop_3_responder_to_stop": {
+      "iam_policy": "module.guard[0].aws_iam_role_policy.responder_stop",
+      "action": "lambda:PutFunctionConcurrency(ReservedConcurrentExecutions=0)",
+      "scoped_to": "one unqualified function ARN, no wildcard, plus an explicit Deny on lambda:DeleteFunctionConcurrency",
+      "restore": "scripts/deploy/kill_switch.{sh,ps1} --restore  (a human, deliberately)"
+    },
+    "hop_4_budget_backstop": {
+      "budget": "module.guard[0].aws_budgets_budget.guard",
+      "notification_type": "ACTUAL, not FORECASTED - it fires on money already spent",
+      "lag": "AWS Budgets evaluates against Cost Explorer, which refreshes on an 8-24 h lag AWS documents and no setting shortens. It is the backstop, never the bound."
+    }
+  },
+  "open_hazard_topic_policy_source_arn": {
+    "finding": "The guard's SNS topic policy admits cloudwatch.amazonaws.com to SNS:Publish under an ArnLike on aws:SourceArn naming exactly the guard's OWN THREE alarm ARNs. NONE of module.api's FOUR alarms is in that list, and infra/envs/demo passes that topic to them as var.alarm_actions.",
+    "statement_sid": "TheseThreeAlarmsMayPublishAStop",
+    "source_arn_references_in_configuration": [
+      "aws_cloudwatch_metric_alarm.invocations_burst.arn",
+      "aws_cloudwatch_metric_alarm.invocations_burst",
+      "aws_cloudwatch_metric_alarm.invocations_hourly.arn",
+      "aws_cloudwatch_metric_alarm.invocations_hourly",
+      "aws_cloudwatch_metric_alarm.log_ingestion.arn",
+      "aws_cloudwatch_metric_alarm.log_ingestion"
+    ],
+    "alarms_pointed_at_the_topic_but_not_named_in_it": [
+      "module.api[0].aws_cloudwatch_metric_alarm.concurrency",
+      "module.api[0].aws_cloudwatch_metric_alarm.duration_p99",
+      "module.api[0].aws_cloudwatch_metric_alarm.errors",
+      "module.api[0].aws_cloudwatch_metric_alarm.throttles"
+    ],
+    "alarms_named_in_the_topic_policy": [
+      "module.guard[0].aws_cloudwatch_metric_alarm.invocations_burst",
+      "module.guard[0].aws_cloudwatch_metric_alarm.invocations_hourly",
+      "module.guard[0].aws_cloudwatch_metric_alarm.log_ingestion"
+    ],
+    "why_no_plan_can_settle_it": "The policy's FIRST statement is SNS's own default idiom - Principal AWS:* narrowed by the condition AWS:SourceOwner = <this account> - and a same-account CloudWatch alarm may or may not be admitted by it. Deciding that requires an apply and a real breach, and no worker in this wave may apply anything.",
+    "both_outcomes_are_defects_and_they_are_opposite": {
+      "admitted": "all four demo-api alarms stop the demo. Three of them (-errors, -throttles, -duration-p99) are HEALTH signals, so this converts three health signals into self-inflicted outages. It is done deliberately under docs/leads/cost-finish-plan.md 0.5's ranking - an outage is recoverable by one command and a bill is not - and the one consequence that ranking does NOT excuse, a cold start tripping -duration-p99, is refused at plan time by the new floor precondition.",
+      "denied": "all four carry an action SNS refuses. aws cloudwatch describe-alarms renders a denied publish identically to a delivered one, so this is a control that looks present and is not - the exact defect this wave exists to close, wearing a resource-policy hat."
+    },
+    "the_resolution_is_neither_of_the_two_obvious_ones": "NOT unwiring module.api's alarms (that returns the demo to four actionless alarms) and NOT widening the topic policy's principal (that lets any same-account CloudWatch alarm stop the demo). It is for infra/modules/cost-guard to take an explicit list of ADDITIONAL publisher ARNs, which is that module's owner's change and not this worker's file.",
+    "how_to_check_it_after_an_apply": [
+      "aws cloudwatch describe-alarms --alarm-names $(terraform output -json api_alarm_names)",
+      "aws sns get-topic-attributes --topic-arn $(terraform output -raw guard_sns_topic_arn)",
+      "then breach one demo-api alarm and read the responder's log group"
+    ]
+  },
+  "falsification_of_the_duration_p99_band": {
+    "$comment": "An untriggered control is indistinguishable from no control. Every edge of the admissible band was PLANTED and the plan's response recorded. Terraform v1.14.8, hashicorp/aws v6.58.0, AWS_PROFILE=mainline-dev, read-only. NO APPLY.",
+    "band": "13022 < duration_p99_threshold_ms < 14000",
+    "runs": [
+      {
+        "var": "api_duration_p99_threshold_ms=12000",
+        "why": "the module's OLD default, and below the modelled cold-start binding case",
+        "expected": "refused by the FLOOR",
+        "observed": "Error: Resource precondition failed - 'is not strictly above modelled_worst_legitimate_duration_ms'"
+      },
+      {
+        "var": "api_duration_p99_threshold_ms=13022",
+        "why": "exactly ON the floor - the boundary, not below it",
+        "expected": "refused (the comparison is strict)",
+        "observed": "Error: Resource precondition failed"
+      },
+      {
+        "var": "api_duration_p99_threshold_ms=13023",
+        "why": "one millisecond inside the band",
+        "expected": "accepted",
+        "observed": "Plan: 24 to add, 0 to change, 0 to destroy."
+      },
+      {
+        "var": "api_duration_p99_threshold_ms=14000",
+        "why": "exactly timeout * 1000 - the datapoint ceiling",
+        "expected": "refused by the CEILING",
+        "observed": "Error: Resource precondition failed - 'is not below the function timeout'"
+      },
+      {
+        "var": "(none - the shipping default, 13500)",
+        "why": "the value that ships",
+        "expected": "accepted",
+        "observed": "Plan: 24 to add, 0 to change, 0 to destroy."
+      }
+    ],
+    "what_the_falsification_found_before_the_fix": "The FIRST draft of the floor was conditional on length(var.alarm_actions) == 0 and PLANNED CLEANLY at both 12000 and 13022 - it never fired. try() over a counted module yields an unknown, and Terraform defers an unknown precondition to apply. The guard clause was deleted rather than repaired. This entry is kept because the near-miss is the point: the check would have shipped looking present and doing nothing, which is precisely the defect it was written to prevent one level down."
+  },
+  "falsification_of_the_module_cycle_rule": {
+    "$comment": "infra/envs/demo/main.tf hoists the function name into local.api_function_name and hands it to BOTH modules, which is interface I6 of docs/leads/cost-finish-plan.md. The first draft of the comment beside that local asserted that taking the name from module.api[0].function_name instead 'produces Error: Cycle: at plan time'. THAT ASSERTION WAS WRONG and it was written without being run. Both forms were then planted. Terraform v1.14.8, hashicorp/aws v6.58.0, read-only credentials, NO APPLY.",
+    "runs": [
+      {
+        "form": "guarded_function_name = local.api_function_name",
+        "kind": "constant (shipping)",
+        "observed": "Plan: 24 to add, 0 to change, 0 to destroy."
+      },
+      {
+        "form": "guarded_function_name = module.api[0].function_name",
+        "kind": "INDEXED module output",
+        "expected_by_the_first_draft": "Error: Cycle",
+        "observed": "Plan: 24 to add, 0 to change, 0 to destroy.  NO CYCLE - the claim was false"
+      },
+      {
+        "form": "guarded_function_name = one(module.api[*].function_name)",
+        "kind": "SPLAT module output",
+        "observed": "Error: Cycle: module.api.output.alarm_actions_armed (expand), module.api.aws_cloudwatch_dashboard.this, module.api.output.dashboard_name (expand), module.api.output.alarm_names (expand), module.api (close), module.api.aws_cloudwatch_metric_alarm.concurrency, module.api.aws_cloudwatch_metric_alarm.duration_p99, module.api.aws_cloudwatch_metric_alarm.throttles, module.guard.local.name_prefix (expand), module.guard.aws_sns_topic.guard, module.guard.output.sns_topic_arn (expand), local.guard_stop_topic_actions (expand), module.api.var.alarm_actions (expand), module.api.aws_cloudwatch_metric_alarm.errors, module.api.output.alarm_arns (expand), module.guard.var.guarded_function_name (expand), module.guard.var.guarded_function_name (validation)"
+      }
+    ],
+    "the_rule_that_survives": "It is the SPLAT that is fatal, which is EXACTLY the rule infra/envs/demo/main.tf's header already recorded from 2026-08-10 - not a new one. A splat depends on the `module.api (close)` node, every alarm in that module feeds it, and those alarms now consume the guard's topic, so the loop closes. An indexed reference touches one output and its one resource. The local is kept anyway for three reasons that are NOT 'otherwise it cycles': [0] -> [*] is one refactor away and a constant cannot be splatted; the guard's name validation and its one IAM ARN become plan-time known independently of the api module, which is why guard_guarded_function_arn is a concrete string in this plan rather than (known after apply); and it is interface I6."
+  },
+  "alarms": {
+    "module.api[0].aws_cloudwatch_metric_alarm.concurrency": {
+      "alarm_name": "mainline-demo-api-concurrency",
+      "namespace": "AWS/Lambda",
+      "metric_name": "ConcurrentExecutions",
+      "period_seconds": 300,
+      "threshold": 8,
+      "extended_statistic": null,
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "missing",
+      "dimensions": null,
+      "alarm_actions_known_at_plan": false,
+      "alarm_actions_value_if_known": null,
+      "ok_actions_known_at_plan": true,
+      "ok_actions_value_if_known": null
+    },
+    "module.api[0].aws_cloudwatch_metric_alarm.duration_p99": {
+      "alarm_name": "mainline-demo-api-duration-p99",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Duration",
+      "period_seconds": 300,
+      "threshold": 13500,
+      "extended_statistic": "p99",
+      "statistic": null,
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "missing",
+      "dimensions": {
+        "FunctionName": "mainline-demo-api"
+      },
+      "alarm_actions_known_at_plan": false,
+      "alarm_actions_value_if_known": null,
+      "ok_actions_known_at_plan": true,
+      "ok_actions_value_if_known": null
+    },
+    "module.api[0].aws_cloudwatch_metric_alarm.errors": {
+      "alarm_name": "mainline-demo-api-errors",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Errors",
+      "period_seconds": 300,
+      "threshold": 0,
+      "extended_statistic": null,
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "missing",
+      "dimensions": {
+        "FunctionName": "mainline-demo-api"
+      },
+      "alarm_actions_known_at_plan": false,
+      "alarm_actions_value_if_known": null,
+      "ok_actions_known_at_plan": true,
+      "ok_actions_value_if_known": null
+    },
+    "module.api[0].aws_cloudwatch_metric_alarm.throttles": {
+      "alarm_name": "mainline-demo-api-throttles",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Throttles",
+      "period_seconds": 300,
+      "threshold": 0,
+      "extended_statistic": null,
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "missing",
+      "dimensions": {
+        "FunctionName": "mainline-demo-api"
+      },
+      "alarm_actions_known_at_plan": false,
+      "alarm_actions_value_if_known": null,
+      "ok_actions_known_at_plan": true,
+      "ok_actions_value_if_known": null
+    },
+    "module.guard[0].aws_cloudwatch_metric_alarm.invocations_burst": {
+      "alarm_name": "mainline-demo-api-invocations-burst",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Invocations",
+      "period_seconds": 60,
+      "threshold": 3000,
+      "extended_statistic": null,
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "missing",
+      "dimensions": {
+        "FunctionName": "mainline-demo-api"
+      },
+      "alarm_actions_known_at_plan": false,
+      "alarm_actions_value_if_known": null,
+      "ok_actions_known_at_plan": true,
+      "ok_actions_value_if_known": null
+    },
+    "module.guard[0].aws_cloudwatch_metric_alarm.invocations_hourly": {
+      "alarm_name": "mainline-demo-api-invocations-hourly",
+      "namespace": "AWS/Lambda",
+      "metric_name": "Invocations",
+      "period_seconds": 3600,
+      "threshold": 15000,
+      "extended_statistic": null,
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "missing",
+      "dimensions": {
+        "FunctionName": "mainline-demo-api"
+      },
+      "alarm_actions_known_at_plan": false,
+      "alarm_actions_value_if_known": null,
+      "ok_actions_known_at_plan": true,
+      "ok_actions_value_if_known": null
+    },
+    "module.guard[0].aws_cloudwatch_metric_alarm.log_ingestion": {
+      "alarm_name": "mainline-demo-api-log-ingestion",
+      "namespace": "AWS/Logs",
+      "metric_name": "IncomingBytes",
+      "period_seconds": 300,
+      "threshold": 16777216,
+      "extended_statistic": null,
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "treat_missing_data": "missing",
+      "dimensions": {
+        "LogGroupName": "/aws/lambda/mainline-demo-api"
+      },
+      "alarm_actions_known_at_plan": false,
+      "alarm_actions_value_if_known": null,
+      "ok_actions_known_at_plan": true,
+      "ok_actions_value_if_known": null
+    }
+  },
+  "published_bounds": {
+    "$comment": "Read out of resource_changes for module.api[0].aws_lambda_function.this. Until this wave the six MAINLINE_* keys below were absent, so every one of those bounds was ENFORCED and UNREADABLE: an operator asking what response ceiling the function enforces had to unzip a 7.6 MB package and read a Python constant, because aws lambda get-function-configuration answered nothing. The application is authoritative and Terraform mirrors it - each value equals a named constant.",
+    "function_name": "mainline-demo-api",
+    "architectures": [
+      "arm64"
+    ],
+    "runtime": "python3.13",
+    "timeout_seconds": 14,
+    "memory_size_mb": 256,
+    "reserved_concurrent_executions": -1,
+    "logging_config": {
+      "log_format": "JSON",
+      "application_log_level": "WARN",
+      "system_log_level": "WARN"
+    },
+    "environment_variables": {
+      "LOG_LEVEL": "WARN",
+      "MAINLINE_DEMO_COUNTERSIGNER_SUB": "demo.countersigner",
+      "MAINLINE_DEMO_DATABASE": "mainline_demo",
+      "MAINLINE_DEMO_PERMIT_ID": "dec0de00-0006-4000-8000-000000000001",
+      "MAINLINE_DEMO_SIGNER_SUB": "demo.signer",
+      "MAINLINE_DSN_PARAM": "/mainline/demo/cockroach_dsn",
+      "MAINLINE_LOG_BUDGET_BYTES": "4096",
+      "MAINLINE_MAX_RESPONSE_BYTES": "139264",
+      "MAINLINE_RATE_GLOBAL_BURST": "100",
+      "MAINLINE_RATE_GLOBAL_RPS": "10",
+      "MAINLINE_RATE_IP_BURST": "50",
+      "MAINLINE_RATE_IP_RPS": "5",
+      "MAINLINE_SCENARIO_PERMIT_ID": "dec0de00-0006-4000-8000-000000000001",
+      "MAINLINE_WEB_ROOT": "/var/task/web"
+    },
+    "six_bounds_mirrored_from_code": {
+      "MAINLINE_MAX_RESPONSE_BYTES": "static_site.DEFAULT_MAX_RESPONSE_BYTES = 136 * 1024",
+      "MAINLINE_RATE_GLOBAL_RPS": "ratelimit.DEFAULT_GLOBAL_RPS = 10.0",
+      "MAINLINE_RATE_GLOBAL_BURST": "ratelimit.DEFAULT_GLOBAL_BURST = 100",
+      "MAINLINE_RATE_IP_RPS": "ratelimit.DEFAULT_IP_RPS = 5.0",
+      "MAINLINE_RATE_IP_BURST": "ratelimit.DEFAULT_IP_BURST = 50",
+      "MAINLINE_LOG_BUDGET_BYTES": "logbudget.DEFAULT_BUDGET_BYTES = 4096"
+    },
+    "timeout_is_a_reliability_bound_not_a_spend_bound": "Lambda bills ACTUAL DURATION, so a 5.66 ms invocation costs exactly the same under a 14 s timeout as under a 3 s one: this number moves the bill by NOTHING. The 3 s that was requested is 0.80x the warm in-region gate_run p99 corrected to Lambda (3,729 ms) and would truncate the headline beat - the only beat that writes anything and the one on screen. 14 s is the smallest whole second that clears docs/deploy/LATENCY.md 5.1's binding case of 13,022.9 ms, by 1.07x.",
+    "duration_p99_band": {
+      "floor_ms": 13022,
+      "floor_source": "docs/deploy/LATENCY.md 5.1 binding case - cold start at 256 MB with a 2x worse tail",
+      "threshold_ms": 13500,
+      "ceiling_ms": 14000,
+      "ceiling_source": "timeout * 1000; Lambda caps the Duration datapoint at the timeout",
+      "band_width_ratio": 1.0751,
+      "why_the_floor_exists": "The alarm now has an ACTION. Below the floor a COLD START - a judge's first click, not abuse and not an incident - would stop the demo until a human runs scripts/deploy/kill_switch.sh --restore.",
+      "why_the_floor_is_unconditional": "It was FIRST WRITTEN conditional - `length(var.alarm_actions) == 0 || <the comparison>` - on the reasoning that an alarm which only REPORTS has no reason to carry a floor. THAT VERSION DID NOT FIRE, and it was caught by planting the violation rather than by reading the code. infra/envs/demo reaches the stop topic through try([module.guard[0].sns_topic_arn], []); try() returns a WHOLLY UNKNOWN value when its argument contains an unknown; so length(var.alarm_actions) is unknown at plan time, the whole || is unknown, and Terraform DEFERS an unknown precondition to apply instead of failing the plan. The plan says so in the open - all four demo-api alarms show alarm_actions = (known after apply). A precondition that cannot be evaluated at plan time is a control that looks present and is not, which is the exact defect this wave exists to close, so the guard clause was DELETED rather than repaired. The unconditional form reads two plain variables and is strictly TIGHTER than the one it replaces."
+    }
+  }
+}

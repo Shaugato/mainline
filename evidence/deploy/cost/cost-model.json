@@ -1,0 +1,1659 @@
+{
+ "accounting_conventions": {
+  "each_window_priced_from_tier_1": true,
+  "egress_priced_on": "response body bytes",
+  "measured_header_overhead_bytes": 147,
+  "not_priced_on": "the base64 envelope (Lambda decodes it before the bytes leave) and not response headers",
+  "timeout_is_not_in_the_arithmetic": "Lambda bills actual duration. The function timeout is a reliability bound (docs/deploy/LATENCY.md \u00a75.1) and moves no total in this file.",
+  "where_that_matters": "+0.034 % on the 433,396 B identity asset and +63 % on the 233 B refusal body. The convention therefore UNDERSTATES the rate-bound layer and essentially nothing else; the alternative figure is published beside it.",
+  "why_that_understates": "A 5-minute or 24-hour figure does not inherit the month's accumulated volume, so a short window following a flood is priced at the cheapest tiers it would not actually get. This is the convention the published 30-day figures already use and it is kept for comparability."
+ },
+ "conventions": {
+  "audit-decimal": {
+   "bytes_per_gb": 1000000000,
+   "free_gb_per_month": 0.0,
+   "layers": [
+    {
+     "billable_gb": 402840.3456,
+     "compute_usd": 172.8,
+     "egress_bytes": 402840345600000.0,
+     "egress_usd": 33027.23,
+     "factor_vs_previous_row": null,
+     "label": "L0-modelled-100ms",
+     "requests": 259200000.0,
+     "requests_per_second": 100.0,
+     "requests_usd": 51.84,
+     "sustained_egress_bytes_per_second": 155416800.0,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1200.0,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10000.0
+      },
+      {
+       "tier_gb_from": 10000.0,
+       "tier_gb_to": 50000.0,
+       "usd": 3400.0,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40000.0
+      },
+      {
+       "tier_gb_from": 50000.0,
+       "tier_gb_to": 150000.0,
+       "usd": 8200.0,
+       "usd_per_gb": 0.082,
+       "volume_gb": 100000.0
+      },
+      {
+       "tier_gb_from": 150000.0,
+       "tier_gb_to": null,
+       "usd": 20227.2276,
+       "usd_per_gb": 0.08,
+       "volume_gb": 252840.3456
+      }
+     ],
+     "total_usd": 33251.87,
+     "why": "the published headline: a 100 ms invocation nobody measured, against the pre-strip package. Carried so the ladder starts where the document ends."
+    },
+    {
+     "billable_gb": 2855808.49,
+     "compute_usd": 172.8,
+     "egress_bytes": 2855808490004253.0,
+     "egress_usd": 229264.68,
+     "factor_vs_previous_row": 0.145,
+     "label": "L1-measured-duration",
+     "requests": 1837515950.7,
+     "requests_per_second": 708.918,
+     "requests_usd": 367.5,
+     "sustained_egress_bytes_per_second": 1101777966.8,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1200.0,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10000.0
+      },
+      {
+       "tier_gb_from": 10000.0,
+       "tier_gb_to": 50000.0,
+       "usd": 3400.0,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40000.0
+      },
+      {
+       "tier_gb_from": 50000.0,
+       "tier_gb_to": 150000.0,
+       "usd": 8200.0,
+       "usd_per_gb": 0.082,
+       "volume_gb": 100000.0
+      },
+      {
+       "tier_gb_from": 150000.0,
+       "tier_gb_to": null,
+       "usd": 216464.6792,
+       "usd_per_gb": 0.08,
+       "volume_gb": 2705808.49
+      }
+     ],
+     "total_usd": 229804.98,
+     "why": "the SAME flood at the MEASURED map duration of 14.106 ms. Nothing was fixed here and nothing was changed; the only edit is that the duration is now a measurement. This is the honest 'today' the founder was never given."
+    },
+    {
+     "billable_gb": 1984739.2792,
+     "compute_usd": 172.8,
+     "egress_bytes": 1984739279151943.8,
+     "egress_usd": 159579.14,
+     "factor_vs_previous_row": 1.43,
+     "label": "L2-strip-source-maps",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 765717314.5,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1200.0,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10000.0
+      },
+      {
+       "tier_gb_from": 10000.0,
+       "tier_gb_to": 50000.0,
+       "usd": 3400.0,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40000.0
+      },
+      {
+       "tier_gb_from": 50000.0,
+       "tier_gb_to": 150000.0,
+       "usd": 8200.0,
+       "usd_per_gb": 0.082,
+       "volume_gb": 100000.0
+      },
+      {
+       "tier_gb_from": 150000.0,
+       "tier_gb_to": null,
+       "usd": 146779.1423,
+       "usd_per_gb": 0.08,
+       "volume_gb": 1834739.2792
+      }
+     ],
+     "total_usd": 160667.84,
+     "why": "source maps stripped -- ALREADY SHIPPED, the default in both builders, and confirmed at 0 maps in the artefact. Bytes fall 3.59x. THE BILL DOES NOT: a smaller object serves faster, so the request rate RISES 2.49x and most of the saving is given straight back."
+    },
+    {
+     "billable_gb": 568440.2544,
+     "compute_usd": 172.8,
+     "egress_bytes": 568440254416961.1,
+     "egress_usd": 46275.22,
+     "factor_vs_previous_row": 3.392,
+     "label": "L3-gzip-on-the-wire",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1200.0,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10000.0
+      },
+      {
+       "tier_gb_from": 10000.0,
+       "tier_gb_to": 50000.0,
+       "usd": 3400.0,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40000.0
+      },
+      {
+       "tier_gb_from": 50000.0,
+       "tier_gb_to": 150000.0,
+       "usd": 8200.0,
+       "usd_per_gb": 0.082,
+       "volume_gb": 100000.0
+      },
+      {
+       "tier_gb_from": 150000.0,
+       "tier_gb_to": null,
+       "usd": 33475.2204,
+       "usd_per_gb": 0.08,
+       "volume_gb": 418440.2544
+      }
+     ],
+     "total_usd": 47363.92,
+     "why": "the pre-compressed sibling actually served. This is the good byte lever because the sibling is already built and the duration does not fall with it."
+    },
+    {
+     "billable_gb": 568440.2544,
+     "compute_usd": 86.4,
+     "egress_bytes": 568440254416961.1,
+     "egress_usd": 46275.22,
+     "factor_vs_previous_row": 1.002,
+     "label": "L4-memory-512-to-256",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1200.0,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10000.0
+      },
+      {
+       "tier_gb_from": 10000.0,
+       "tier_gb_to": 50000.0,
+       "usd": 3400.0,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40000.0
+      },
+      {
+       "tier_gb_from": 50000.0,
+       "tier_gb_to": 150000.0,
+       "usd": 8200.0,
+       "usd_per_gb": 0.082,
+       "volume_gb": 100000.0
+      },
+      {
+       "tier_gb_from": 150000.0,
+       "tier_gb_to": null,
+       "usd": 33475.2204,
+       "usd_per_gb": 0.08,
+       "volume_gb": 418440.2544
+      }
+     ],
+     "total_usd": 47277.52,
+     "why": "memory halved. Worth taking because it is DURATION-INDEPENDENT, not because it is large -- it moves compute only, and compute is a rounding error here."
+    },
+    {
+     "billable_gb": 33180.3495,
+     "compute_usd": 86.4,
+     "egress_bytes": 33180349534982.3,
+     "egress_usd": 3170.33,
+     "factor_vs_previous_row": 11.33,
+     "label": "L5-rate-bound",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 12801060.8,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1200.0,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10000.0
+      },
+      {
+       "tier_gb_from": 10000.0,
+       "tier_gb_to": 50000.0,
+       "usd": 1970.3297,
+       "usd_per_gb": 0.085,
+       "volume_gb": 23180.3495
+      }
+     ],
+     "total_usd": 4172.63,
+     "why": "the in-code rate limiter: 100 rps served fleet-wide (10 rps/instance x 10 instances), every other invocation refused with a measured 233 B body. THE INVOCATION IS STILL BILLED: a 429 is a Lambda invocation, so requests+compute survive this lever untouched and become the floor under it."
+    }
+   ],
+   "tier_edges_gb": [
+    10000.0,
+    50000.0,
+    150000.0
+   ]
+  },
+  "binary-gb-api-tiers": {
+   "bytes_per_gb": 1073741824,
+   "free_gb_per_month": 100.0,
+   "layers": [
+    {
+     "billable_gb": 375074.3078,
+     "compute_usd": 172.8,
+     "egress_bytes": 402840345600000.0,
+     "egress_usd": 30825.14,
+     "factor_vs_previous_row": null,
+     "label": "L0-modelled-100ms",
+     "requests": 259200000.0,
+     "requests_per_second": 100.0,
+     "requests_usd": 51.84,
+     "sustained_egress_bytes_per_second": 155416800.0,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 17717.9446,
+       "usd_per_gb": 0.08,
+       "volume_gb": 221474.3078
+      }
+     ],
+     "total_usd": 31049.79,
+     "why": "the published headline: a 100 ms invocation nobody measured, against the pre-strip package. Carried so the ladder starts where the document ends."
+    },
+    {
+     "billable_gb": 2659578.9155,
+     "compute_usd": 172.8,
+     "egress_bytes": 2855808490004253.0,
+     "egress_usd": 213585.51,
+     "factor_vs_previous_row": 0.145,
+     "label": "L1-measured-duration",
+     "requests": 1837515950.7,
+     "requests_per_second": 708.918,
+     "requests_usd": 367.5,
+     "sustained_egress_bytes_per_second": 1101777966.8,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 200478.3132,
+       "usd_per_gb": 0.08,
+       "volume_gb": 2505978.9155
+      }
+     ],
+     "total_usd": 214125.82,
+     "why": "the SAME flood at the MEASURED map duration of 14.106 ms. Nothing was fixed here and nothing was changed; the only edit is that the duration is now a measurement. This is the honest 'today' the founder was never given."
+    },
+    {
+     "billable_gb": 1848332.4954,
+     "compute_usd": 172.8,
+     "egress_bytes": 1984739279151943.8,
+     "egress_usd": 148685.8,
+     "factor_vs_previous_row": 1.43,
+     "label": "L2-strip-source-maps",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 765717314.5,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 135578.5996,
+       "usd_per_gb": 0.08,
+       "volume_gb": 1694732.4954
+      }
+     ],
+     "total_usd": 149774.5,
+     "why": "source maps stripped -- ALREADY SHIPPED, the default in both builders, and confirmed at 0 maps in the artefact. Bytes fall 3.59x. THE BILL DOES NOT: a smaller object serves faster, so the request rate RISES 2.49x and most of the saving is given straight back."
+    },
+    {
+     "billable_gb": 529301.2413,
+     "compute_usd": 172.8,
+     "egress_bytes": 568440254416961.1,
+     "egress_usd": 43163.3,
+     "factor_vs_previous_row": 3.385,
+     "label": "L3-gzip-on-the-wire",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 30056.0993,
+       "usd_per_gb": 0.08,
+       "volume_gb": 375701.2413
+      }
+     ],
+     "total_usd": 44252.0,
+     "why": "the pre-compressed sibling actually served. This is the good byte lever because the sibling is already built and the duration does not fall with it."
+    },
+    {
+     "billable_gb": 529301.2413,
+     "compute_usd": 86.4,
+     "egress_bytes": 568440254416961.1,
+     "egress_usd": 43163.3,
+     "factor_vs_previous_row": 1.002,
+     "label": "L4-memory-512-to-256",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 30056.0993,
+       "usd_per_gb": 0.08,
+       "volume_gb": 375701.2413
+      }
+     ],
+     "total_usd": 44165.6,
+     "why": "memory halved. Worth taking because it is DURATION-INDEPENDENT, not because it is large -- it moves compute only, and compute is a rounding error here."
+    },
+    {
+     "billable_gb": 30801.6086,
+     "compute_usd": 86.4,
+     "egress_bytes": 33180349534982.3,
+     "egress_usd": 2976.54,
+     "factor_vs_previous_row": 11.1,
+     "label": "L5-rate-bound",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 12801060.8,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 1747.7367,
+       "usd_per_gb": 0.085,
+       "volume_gb": 20561.6086
+      }
+     ],
+     "total_usd": 3978.84,
+     "why": "the in-code rate limiter: 100 rps served fleet-wide (10 rps/instance x 10 instances), every other invocation refused with a measured 233 B body. THE INVOCATION IS STILL BILLED: a 429 is a Lambda invocation, so requests+compute survive this lever untouched and become the floor under it."
+    }
+   ],
+   "tier_edges_gb": [
+    10240.0,
+    51200.0,
+    153600.0
+   ]
+  },
+  "decimal-gb-api-tiers": {
+   "bytes_per_gb": 1000000000,
+   "free_gb_per_month": 0.0,
+   "layers": [
+    {
+     "billable_gb": 402840.3456,
+     "compute_usd": 172.8,
+     "egress_bytes": 402840345600000.0,
+     "egress_usd": 33046.43,
+     "factor_vs_previous_row": null,
+     "label": "L0-modelled-100ms",
+     "requests": 259200000.0,
+     "requests_per_second": 100.0,
+     "requests_usd": 51.84,
+     "sustained_egress_bytes_per_second": 155416800.0,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 19939.2276,
+       "usd_per_gb": 0.08,
+       "volume_gb": 249240.3456
+      }
+     ],
+     "total_usd": 33271.07,
+     "why": "the published headline: a 100 ms invocation nobody measured, against the pre-strip package. Carried so the ladder starts where the document ends."
+    },
+    {
+     "billable_gb": 2855808.49,
+     "compute_usd": 172.8,
+     "egress_bytes": 2855808490004253.0,
+     "egress_usd": 229283.88,
+     "factor_vs_previous_row": 0.145,
+     "label": "L1-measured-duration",
+     "requests": 1837515950.7,
+     "requests_per_second": 708.918,
+     "requests_usd": 367.5,
+     "sustained_egress_bytes_per_second": 1101777966.8,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 216176.6792,
+       "usd_per_gb": 0.08,
+       "volume_gb": 2702208.49
+      }
+     ],
+     "total_usd": 229824.18,
+     "why": "the SAME flood at the MEASURED map duration of 14.106 ms. Nothing was fixed here and nothing was changed; the only edit is that the duration is now a measurement. This is the honest 'today' the founder was never given."
+    },
+    {
+     "billable_gb": 1984739.2792,
+     "compute_usd": 172.8,
+     "egress_bytes": 1984739279151943.8,
+     "egress_usd": 159598.34,
+     "factor_vs_previous_row": 1.43,
+     "label": "L2-strip-source-maps",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 765717314.5,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 146491.1423,
+       "usd_per_gb": 0.08,
+       "volume_gb": 1831139.2792
+      }
+     ],
+     "total_usd": 160687.04,
+     "why": "source maps stripped -- ALREADY SHIPPED, the default in both builders, and confirmed at 0 maps in the artefact. Bytes fall 3.59x. THE BILL DOES NOT: a smaller object serves faster, so the request rate RISES 2.49x and most of the saving is given straight back."
+    },
+    {
+     "billable_gb": 568440.2544,
+     "compute_usd": 172.8,
+     "egress_bytes": 568440254416961.1,
+     "egress_usd": 46294.42,
+     "factor_vs_previous_row": 3.391,
+     "label": "L3-gzip-on-the-wire",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 33187.2204,
+       "usd_per_gb": 0.08,
+       "volume_gb": 414840.2544
+      }
+     ],
+     "total_usd": 47383.12,
+     "why": "the pre-compressed sibling actually served. This is the good byte lever because the sibling is already built and the duration does not fall with it."
+    },
+    {
+     "billable_gb": 568440.2544,
+     "compute_usd": 86.4,
+     "egress_bytes": 568440254416961.1,
+     "egress_usd": 46294.42,
+     "factor_vs_previous_row": 1.002,
+     "label": "L4-memory-512-to-256",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 33187.2204,
+       "usd_per_gb": 0.08,
+       "volume_gb": 414840.2544
+      }
+     ],
+     "total_usd": 47296.72,
+     "why": "memory halved. Worth taking because it is DURATION-INDEPENDENT, not because it is large -- it moves compute only, and compute is a rounding error here."
+    },
+    {
+     "billable_gb": 33180.3495,
+     "compute_usd": 86.4,
+     "egress_bytes": 33180349534982.3,
+     "egress_usd": 3178.73,
+     "factor_vs_previous_row": 11.312,
+     "label": "L5-rate-bound",
+     "requests": 4579505300.4,
+     "requests_per_second": 1766.784,
+     "requests_usd": 915.9,
+     "sustained_egress_bytes_per_second": 12801060.8,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 1949.9297,
+       "usd_per_gb": 0.085,
+       "volume_gb": 22940.3495
+      }
+     ],
+     "total_usd": 4181.03,
+     "why": "the in-code rate limiter: 100 rps served fleet-wide (10 rps/instance x 10 instances), every other invocation refused with a measured 233 B body. THE INVOCATION IS STILL BILLED: a 429 is a Lambda invocation, so requests+compute survive this lever untouched and become the floor under it."
+    }
+   ],
+   "tier_edges_gb": [
+    10240.0,
+    51200.0,
+    153600.0
+   ]
+  }
+ },
+ "duration_sensitivity": {
+  "band": [
+   {
+    "duration_ms": 5.66,
+    "label": "measured-local-p50",
+    "requests_per_second": 1766.78,
+    "total_usd": 47277.52
+   },
+   {
+    "duration_ms": 11.45,
+    "label": "measured-cloud-p50",
+    "requests_per_second": 873.36,
+    "total_usd": 23818.61
+   },
+   {
+    "duration_ms": 100.0,
+    "label": "modelled-100ms",
+    "requests_per_second": 100.0,
+    "total_usd": 3223.01
+   },
+   {
+    "duration_ms": 300.0,
+    "label": "modelled-300ms",
+    "requests_per_second": 33.33,
+    "total_usd": 1365.27
+   }
+  ],
+  "held_fixed": "124,127 B response, 256 MB, concurrency 10, 30 d, audit-decimal",
+  "spread_factor": 34.63,
+  "why": "Duration is the input the ladder is most exposed to: egress and requests scale as 1/duration and compute does not. The published headline assumed 100 ms and the measurement is an order of magnitude faster."
+ },
+ "generated_by": "scripts/deploy/cost_model.py",
+ "headline_convention": "audit-decimal",
+ "inputs": {
+  "account": {
+   "concurrency_ceiling": 10,
+   "quota_code": "L-B99A9384",
+   "source": "aws lambda get-account-settings --region ap-southeast-1 (COST-BOUND \u00a71 I1)"
+  },
+  "alarms": {
+   "comparison": "GreaterThanThreshold -- a caller AT the threshold does not breach",
+   "datapoints_to_alarm_is_not_a_multiplier": "datapoints_to_alarm is the M of an M-of-N evaluation, not a factor in the detection time. Worst-case time from the first breaching request to an ALARM state change is period x evaluation_periods. It is recorded here so that the distinction is visible rather than implied, and so the arithmetic stays right if either alarm is ever retuned to M != N.",
+   "invocations_burst_datapoints_to_alarm": 1,
+   "invocations_burst_evaluation_periods": 1,
+   "invocations_burst_period_s": 60,
+   "invocations_burst_threshold": 3000,
+   "invocations_hourly_datapoints_to_alarm": 1,
+   "invocations_hourly_evaluation_periods": 1,
+   "invocations_hourly_period_s": 3600,
+   "invocations_hourly_threshold": 15000,
+   "log_ingestion_evaluation_periods": 1,
+   "log_ingestion_period_s": 300,
+   "source": "infra/modules/cost-guard/{variables,main}.tf"
+  },
+  "latency": {
+   "asset_js_p50_ms": 5.66,
+   "asset_map_p50_ms": 14.106,
+   "source": "evidence/deploy/cost/latency-baseline.json",
+   "target": "local (the workstation loopback figure; the cloud column is ~2.2x)"
+  },
+  "package_shape": {
+   "after_largest_gz_bytes": 124127,
+   "after_largest_gz_path": "web/assets/index-BjAGxrVJ.js.gz",
+   "after_largest_identity_bytes": 433396,
+   "after_source_map_entries": 0,
+   "after_web_bytes": 1274342,
+   "before_largest_identity_bytes": 1554168,
+   "before_largest_identity_path": "web/assets/index-BjAGxrVJ.js.map",
+   "before_source_map_bytes": 2586960,
+   "before_source_map_entries": 18,
+   "before_web_bytes": 3571990,
+   "source": "evidence/deploy/cost/package-shape.json"
+  },
+  "rate_limit": {
+   "global_rps_per_instance": 10.0,
+   "provenance": "ratelimit.configure() with no keyword overrides: the four CODE defaults, which is what is in force because Terraform publishes none of the four MAINLINE_RATE_* variables",
+   "source": "evidence/deploy/cost/log-bytes.json"
+  },
+  "responder": {
+   "bounds_what": "one attempt of the responder's INVOKE phase. It does not bound the number of attempts, and it is not a bound on the whole alarm-to-stop path.",
+   "memory_mb": 128,
+   "source": "infra/modules/cost-guard/variables.tf",
+   "timeout_s": 15
+  }
+ },
+ "model_bound": {
+  "durations_are_workstation_loopback": "asset_js and asset_map never touch a database, so their local and cloud rows are the same code; docs/deploy/LATENCY.md measures the cloud column at up to 2.2x the local one. The local p50 is used because it is the FASTER figure and therefore the higher request rate and the larger bill.",
+  "the_assumption_that_makes_it_a_bound": "Every total holds the account concurrency ceiling of 10 pinned and divides by a measured invocation duration, which assumes AWS SUSTAINS the resulting egress rate. At the measured 14.106 ms map duration that rate is 709 rps x 1,554,168 B = 1.10 GB/s out of 10 x 512 MB execution environments. NOBODY HAS OBSERVED THAT, here or anywhere in this repository's evidence. It is what the tariff and the ceiling permit, not what AWS would deliver.",
+  "this_is_a_bound_not_a_forecast": true,
+  "what_would_settle_it": "One sustained load test against a deployed function, which requires an apply. No worker in this wave applies anything, so it stays a bound."
+ },
+ "ok": true,
+ "refusal_path": {
+  "body_bytes": 233,
+  "header_bytes": 147,
+  "method_of_measurement": "measured -- mainline_demo_api.app.handler driven in-process past its rate limiter; len(body.encode()) and the status line + header block"
+ },
+ "reproduction": {
+  "conventions": [
+   {
+    "agrees_with_every_published_digit": true,
+    "breakdown_100ms": {
+     "billable_gb": 402840.3456,
+     "compute_usd": 172.8,
+     "egress_bytes": 402840345600000.0,
+     "egress_usd": 33027.23,
+     "label": "historic-100ms",
+     "requests": 259200000.0,
+     "requests_per_second": 100.0,
+     "requests_usd": 51.84,
+     "sustained_egress_bytes_per_second": 155416800.0,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1200.0,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10000.0
+      },
+      {
+       "tier_gb_from": 10000.0,
+       "tier_gb_to": 50000.0,
+       "usd": 3400.0,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40000.0
+      },
+      {
+       "tier_gb_from": 50000.0,
+       "tier_gb_to": 150000.0,
+       "usd": 8200.0,
+       "usd_per_gb": 0.082,
+       "volume_gb": 100000.0
+      },
+      {
+       "tier_gb_from": 150000.0,
+       "tier_gb_to": null,
+       "usd": 20227.2276,
+       "usd_per_gb": 0.08,
+       "volume_gb": 252840.3456
+      }
+     ],
+     "total_usd": 33251.87
+    },
+    "checks": [
+     {
+      "agrees": true,
+      "computed_at_published_precision_usd": 33251.87,
+      "computed_usd": 33251.8685,
+      "delta_usd": 0.0,
+      "duration": "100ms",
+      "published_by": "docs/deploy/COST-BOUND.md \u00a72.2 TOTAL row",
+      "published_decimals": 2,
+      "published_usd": 33251.87
+     },
+     {
+      "agrees": true,
+      "computed_at_published_precision_usd": 11701.0,
+      "computed_usd": 11701.0503,
+      "delta_usd": 0.0,
+      "duration": "300ms",
+      "published_by": "docs/deploy/COST-BOUND.md \u00a71.2 and \u00a72.3",
+      "published_decimals": 0,
+      "published_usd": 11701.0
+     }
+    ],
+    "convention": "audit-decimal",
+    "reproduces": "docs/deploy/COST-BOUND.md \u00a71.2 headline: $33,252 / $11,701"
+   },
+   {
+    "agrees_with_every_published_digit": true,
+    "breakdown_100ms": {
+     "billable_gb": 402840.3456,
+     "compute_usd": 172.8,
+     "egress_bytes": 402840345600000.0,
+     "egress_usd": 33046.43,
+     "label": "historic-100ms",
+     "requests": 259200000.0,
+     "requests_per_second": 100.0,
+     "requests_usd": 51.84,
+     "sustained_egress_bytes_per_second": 155416800.0,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 19939.2276,
+       "usd_per_gb": 0.08,
+       "volume_gb": 249240.3456
+      }
+     ],
+     "total_usd": 33271.07
+    },
+    "checks": [
+     {
+      "agrees": true,
+      "computed_at_published_precision_usd": 33271.0,
+      "computed_usd": 33271.0685,
+      "delta_usd": 0.0,
+      "duration": "100ms",
+      "published_by": "docs/leads/cost-finish-plan.md \u00a70.5 row 1",
+      "published_decimals": 0,
+      "published_usd": 33271.0
+     },
+     {
+      "agrees": true,
+      "computed_at_published_precision_usd": 11713.0,
+      "computed_usd": 11713.0503,
+      "delta_usd": 0.0,
+      "duration": "300ms",
+      "published_by": "docs/leads/cost-finish-plan.md \u00a70.5, the 300 ms figure",
+      "published_decimals": 0,
+      "published_usd": 11713.0
+     }
+    ],
+    "convention": "decimal-gb-api-tiers",
+    "reproduces": "docs/leads/cost-finish-plan.md \u00a70.5 table: $33,271 / $11,713"
+   },
+   {
+    "agrees_with_every_published_digit": true,
+    "breakdown_100ms": {
+     "billable_gb": 375074.3078,
+     "compute_usd": 172.8,
+     "egress_bytes": 402840345600000.0,
+     "egress_usd": 30825.14,
+     "label": "historic-100ms",
+     "requests": 259200000.0,
+     "requests_per_second": 100.0,
+     "requests_usd": 51.84,
+     "sustained_egress_bytes_per_second": 155416800.0,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10240.0,
+       "usd": 1228.8,
+       "usd_per_gb": 0.12,
+       "volume_gb": 10240.0
+      },
+      {
+       "tier_gb_from": 10240.0,
+       "tier_gb_to": 51200.0,
+       "usd": 3481.6,
+       "usd_per_gb": 0.085,
+       "volume_gb": 40960.0
+      },
+      {
+       "tier_gb_from": 51200.0,
+       "tier_gb_to": 153600.0,
+       "usd": 8396.8,
+       "usd_per_gb": 0.082,
+       "volume_gb": 102400.0
+      },
+      {
+       "tier_gb_from": 153600.0,
+       "tier_gb_to": null,
+       "usd": 17717.9446,
+       "usd_per_gb": 0.08,
+       "volume_gb": 221474.3078
+      }
+     ],
+     "total_usd": 31049.79
+    },
+    "checks": [
+     {
+      "agrees": true,
+      "computed_at_published_precision_usd": 31049.79,
+      "computed_usd": 31049.7855,
+      "delta_usd": 0.0,
+      "duration": "100ms",
+      "published_by": "docs/deploy/COST-BOUND.md \u00a72.2 measured-tariff TOTAL row",
+      "published_decimals": 2,
+      "published_usd": 31049.79
+     },
+     {
+      "agrees": true,
+      "computed_at_published_precision_usd": 10949.0,
+      "computed_usd": 10948.6453,
+      "delta_usd": 0.0,
+      "duration": "300ms",
+      "published_by": "docs/deploy/COST-BOUND.md \u00a71.2 and \u00a72.3",
+      "published_decimals": 0,
+      "published_usd": 10949.0
+     }
+    ],
+    "convention": "binary-gb-api-tiers",
+    "reproduces": "docs/deploy/COST-BOUND.md \u00a71.2 measured tariff: $31,050 / $10,949"
+   }
+  ],
+  "epsilon_usd": 0.005,
+  "how_tolerance_is_set": "Agreement is required at the precision the CITED DOCUMENT printed, not at a precision this module chose. COST-BOUND \u00a72.2 prints cents and is checked to the cent; \u00a71.2 prints whole dollars and is checked to the dollar. The epsilon absorbs IEEE-754 noise only and is smaller than half the last published unit in every row.",
+  "ok": true,
+  "the_0_06_percent_delta_explained": "The lead's independent run returned $33,271 and $11,713 against the document's $33,252 and $11,701 -- 0.06 % and 0.10 %. That gap is NOT numerical tolerance and is not absorbed as such. It is one input: the document tiers on decimal boundaries (10,000/50,000/150,000 GB) and the lead tiered on the boundaries the Pricing API actually returns (10,240/51,200/153,600). Once the boundary choice is an explicit input, BOTH figures reproduce to the cent, which is why three conventions are named above instead of one tolerance being widened.",
+  "why_this_runs_first": "A model that cannot reproduce the old answer has no standing to produce a new one. build_model() refuses to emit any new figure while ok is false."
+ },
+ "residual": {
+  "binding_alarm": "hourly",
+  "budgets_lag_hours": [
+   8.0,
+   24.0
+  ],
+  "burst": {
+   "implied_rps": 50.0,
+   "period_s": 60,
+   "threshold": 3000
+  },
+  "ceiling_dependency": "The response ceiling in force is 139,264 B (static_site.DEFAULT_MAX_RESPONSE_BYTES, read at model time, not copied). It refuses the 433,396 B identity asset, so the reachable residual is the 124,127 B gzip sibling at $5.44 rather than $18.80. BOTH rows are published: the ceiling is a code constant one commit away from moving, and a residual that silently assumed the favourable one would understate this by 3.5x the moment it did.",
+  "computed_at": "the hourly Invocations alarm threshold, NOT at flood rate",
+  "flood_rate_24h_for_contrast_usd": 1993.99,
+  "hourly": {
+   "implied_rps": 4.1667,
+   "period_s": 3600,
+   "threshold": 15000
+  },
+  "if_nobody_looks_for_30_days_usd": 564.04,
+  "in_window": {
+   "additive_to_the_paced_residual_not_a_replacement": {
+    "claim": "The paced residual and the in-window residual describe two different attackers and both are real. Neither replaces the other.",
+    "in_window": {
+     "attacker": "a flood that trips the burst alarm and bills until the stop lands",
+     "bounded_by": "the alarm evaluation window plus an unmeasured delivery path",
+     "floor_usd": 1.6022,
+     "usd_per_minute": 1.6022
+    },
+    "paced": {
+     "attacker": "a caller who stays under every alarm threshold",
+     "bounded_by": "the AWS Budgets / Cost Explorer 8-24 h lag",
+     "worst_usd_24h": 5.44,
+     "worst_usd_30d_unattended": 564.04
+    },
+    "why_both": "the paced figure is computed at the hourly alarm threshold precisely BECAUSE a caller under the alarms is not at flood rate; quoting the flood figure there would overstate it by two orders of magnitude. The converse is also true: quoting the paced figure at a flood understates it. They are added, not swapped."
+   },
+   "answer_is_a_rate_times_a_lag_not_a_scalar": true,
+   "ceiling_dependency": "The ceiling in force is 139,264 B, read from static_site.DEFAULT_MAX_RESPONSE_BYTES at model time and not copied. It admits the 124,127 B gzip-sibling and that is what this rate prices. Both objects are published under `objects`, so if the ceiling moves the rate moves with it instead of silently pricing an object the origin now refuses.",
+   "detection": {
+    "candidates": [
+     {
+      "alarm": "invocations_burst",
+      "breaches_at_the_flood_rate": true,
+      "datapoints_to_alarm": 1,
+      "evaluation_periods": 1,
+      "invocations_in_one_period_at_the_flood_rate": 106007.1,
+      "metric": "Invocations",
+      "period_s": 60,
+      "seconds_to_cross_the_threshold": 1.698,
+      "threshold": 3000,
+      "worst_case_detection_s": 60.0
+     },
+     {
+      "alarm": "invocations_hourly",
+      "breaches_at_the_flood_rate": true,
+      "datapoints_to_alarm": 1,
+      "evaluation_periods": 1,
+      "invocations_in_one_period_at_the_flood_rate": 6360424.0,
+      "metric": "Invocations",
+      "period_s": 3600,
+      "seconds_to_cross_the_threshold": 8.49,
+      "threshold": 15000,
+      "worst_case_detection_s": 3600.0
+     },
+     {
+      "alarm": "log_ingestion",
+      "breaches_at_the_flood_rate": null,
+      "datapoints_to_alarm": null,
+      "evaluation_periods": 1,
+      "invocations_in_one_period_at_the_flood_rate": null,
+      "metric": "IncomingBytes",
+      "not_priced_because": "this alarm watches log-group IncomingBytes, not invocations or egress. This model has no measured bytes-of-log-per-invocation input, so whether a flood breaches it is NOT computed here. It is listed because its detection window still has to be compared against the invocation alarms', which is checkable without pricing it.",
+      "period_s": 300,
+      "seconds_to_cross_the_threshold": null,
+      "threshold": null,
+      "worst_case_detection_s": 300.0
+     }
+    ],
+    "datapoints_to_alarm_is_not_a_multiplier": "datapoints_to_alarm is the M in an M-of-N evaluation: it says how many of the last N datapoints must breach, not how many periods must elapse. Multiplying by it would be harmless in this stack only because it is 1, and would silently overstate the floor the day either alarm is retuned.",
+    "first_alarm_to_fire": "invocations_burst",
+    "floor_s": 60.0,
+    "formula": "worst_case_detection_s = period x evaluation_periods",
+    "log_ingestion_alarm": "the log-ingestion alarm's detection window (300 s) is not shorter than the first invocation alarm's (60 s), so it cannot be the first to fire and leaving it unpriced cannot make this floor too high.",
+    "why_the_floor_is_the_whole_period": "at 1,767 rps the invocations_burst threshold of 3,000 is crossed in 1.698 s, but a CloudWatch datapoint does not exist until its period closes. The worst case is therefore the FULL 60 s period, not the crossing time."
+   },
+   "every_window_priced_from_tier_1_only": true,
+   "flood_rate_derivation": "account concurrency ceiling 10 / measured 5.66 ms asset_js p50 = 1,766.784 rps. Not rate-limited: the in-code limiter's counter is per execution environment with no shared store, so a distributed flood defeats it -- the same reason `the_stop` is priced upstream of it.",
+   "flood_rate_rps": 1766.784,
+   "in_flight_drain": {
+    "basis": "bounded",
+    "requests": 10,
+    "usd": 0.000151,
+    "why_it_is_bounded": "at the instant the stop lands, at most the account concurrency ceiling of 10 invocations are in flight, and each serves at most one more response. Its cost is therefore bounded without any AWS documentation at all, and it is priced here so that 'in-flight requests still drain' cannot be gestured at as though it were the missing term. It is not: the unbounded terms are the delivery-path ones above."
+   },
+   "lag_budget": {
+    "bounded_seconds": 75.0,
+    "bounded_terms": [
+     "alarm_detection_window",
+     "responder_cold_start_and_the_stop_call"
+    ],
+    "terms": [
+     {
+      "basis": "read-from-hcl",
+      "note": "datapoints_to_alarm = 1 is the M of an M-of-N evaluation and is NOT a multiplier on this term.",
+      "seconds": 60.0,
+      "source": "infra/modules/cost-guard/main.tf :: aws_cloudwatch_metric_alarm.invocations_burst -- period 60 x evaluation_periods 1",
+      "term": "alarm_detection_window",
+      "what_it_covers": "the period must close before the datapoint exists, and evaluation_periods consecutive breaching datapoints are required before the state changes"
+     },
+     {
+      "basis": "unknown",
+      "seconds": null,
+      "term": "metric_publication_delay",
+      "what_it_covers": "the interval between an invocation being billed and its Invocations datapoint being visible to the alarm",
+      "what_would_bound_it": "one applied stack, a timestamped burst, and GetMetricData's datapoint timestamp minus the request timestamp",
+      "why_unknown": "AWS publishes no numeric upper bound on Lambda metric publication latency, and nothing in this repository can measure it: it requires a deployed function, and no worker in this wave applies anything."
+     },
+     {
+      "basis": "unknown",
+      "seconds": null,
+      "term": "alarm_evaluation_delay",
+      "what_it_covers": "the interval between the period closing and CloudWatch actually transitioning the alarm to ALARM and invoking its alarm_actions",
+      "what_would_bound_it": "DescribeAlarmHistory StateUpdatedTimestamp minus the period close, on an applied stack",
+      "why_unknown": "AWS publishes no numeric upper bound on the gap between a period close and the state transition. It is not zero, and this model refuses to set it to zero merely because it is unmeasured."
+     },
+     {
+      "basis": "unknown",
+      "seconds": null,
+      "term": "sns_delivery_to_the_responder",
+      "what_it_covers": "publish on the guard topic to the responder being invoked",
+      "what_would_bound_it": "the responder's JSON log line timestamp minus the alarm's StateUpdatedTimestamp, on an applied stack under load",
+      "why_unknown": "AWS publishes no numeric latency bound for SNS-to-Lambda delivery. This term is specifically NOT small under the conditions this figure describes: the responder ships with reserved_concurrent_executions = -1 because a positive reservation is refused at an account quota of 10, so under a saturating flood the responder's own invocation can be throttled and the stop then depends on SNS's asynchronous delivery and Lambda's async retry queue. The module's own header says so."
+     },
+     {
+      "basis": "read-from-hcl",
+      "bound_holds_only_if": "that first attempt succeeds",
+      "note": "Lambda's configured timeout bounds the invoke phase. It is an upper bound and almost certainly a loose one -- the real figure is smaller and nobody here has measured it -- so it is carried as a bound and not as an estimate.",
+      "seconds": 15.0,
+      "source": "infra/modules/cost-guard/variables.tf :: responder_timeout default",
+      "term": "responder_cold_start_and_the_stop_call",
+      "what_it_covers": "ONE attempt of the responder's invoke phase: cold import of boto3 plus one PutFunctionConcurrency(0) with botocore's retry chain, at 128 MB"
+     },
+     {
+      "basis": "unknown",
+      "seconds": null,
+      "term": "responder_async_retry_if_it_is_itself_throttled",
+      "what_it_covers": "further attempts after a throttled or failed first attempt, plus whatever delay Lambda's asynchronous invocation policy imposes between them",
+      "what_would_bound_it": "the responder's own async invocation configuration plus an observed throttle rate under load; neither exists without an apply",
+      "why_unknown": "the number of attempts depends on whether the responder is throttled, which depends on how much of the account's concurrency the flood itself is holding. This model does not guess an attempt count."
+     },
+     {
+      "basis": "unknown",
+      "seconds": null,
+      "term": "reserved_concurrency_propagation",
+      "what_it_covers": "the interval between PutFunctionConcurrency(0) returning 200 and the last execution environment refusing new work",
+      "what_would_bound_it": "the timestamp of the last 200 response after the call returned, on an applied stack under load",
+      "why_unknown": "AWS publishes no numeric propagation bound for a reserved-concurrency change. It is a control-plane setting consumed by a distributed data plane."
+     }
+    ],
+    "therefore": "total detection-to-stop lag >= 60 s. The terms carrying a read-only upper bound sum to 75 s. The remaining 5 terms have no bound this repository can establish without an apply, so NO upper bound on the total lag is published here. Read the sensitivity table at whatever lag you are willing to defend.",
+    "unknown_term_count": 5,
+    "unknown_terms": [
+     "metric_publication_delay",
+     "alarm_evaluation_delay",
+     "sns_delivery_to_the_responder",
+     "responder_async_retry_if_it_is_itself_throttled",
+     "reserved_concurrency_propagation"
+    ],
+    "what_this_is": "every term between the first breaching request and the stop taking effect, each either read out of this repository's own Terraform or named as an unknown. Nothing here is estimated."
+   },
+   "linear_in_lag": true,
+   "no_scalar_without_its_lag": "Every figure in published_figures carries detection_lag_s in the same record and repeats it inside stated_plainly, so a quote that drops the lag is visibly incomplete rather than merely wrong.",
+   "objects": [
+    {
+     "detection_lag_s": 60.0,
+     "is_the_priced_object": true,
+     "object": "gzip-sibling",
+     "object_bytes": 124127,
+     "reachable_under_the_ceiling_in_force": true,
+     "usd": 1.6022,
+     "usd_per_minute": 1.6022
+    },
+    {
+     "detection_lag_s": 60.0,
+     "is_the_priced_object": false,
+     "object": "identity",
+     "object_bytes": 433396,
+     "reachable_under_the_ceiling_in_force": false,
+     "usd": 5.5364,
+     "usd_per_minute": 5.5364
+    }
+   ],
+   "priced_object": "gzip-sibling",
+   "priced_object_bytes": 124127,
+   "published_figures": [
+    {
+     "detection_lag_s": 60.0,
+     "name": "floor",
+     "stated_plainly": "USD 1.60 per 60 s of detection lag, at 1,767 rps against the 124,127 B object.",
+     "this_is_a_floor_because": "it counts the alarm's own evaluation window and nothing after it. Every term in lag_budget beyond alarm_detection_window is additional.",
+     "usd": 1.6022
+    },
+    {
+     "detection_lag_s": 75.0,
+     "name": "bounded-terms-only",
+     "stated_plainly": "USD 2.00 per 75 s of detection lag -- the alarm window plus the responder's own configured timeout, which are the only two terms with a read-only upper bound.",
+     "this_is_still_not_the_answer_because": "5 further terms (metric_publication_delay, alarm_evaluation_delay, sns_delivery_to_the_responder, responder_async_retry_if_it_is_itself_throttled, reserved_concurrency_propagation) are unbounded here and are additive to this lag.",
+     "usd": 2.0028
+    }
+   ],
+   "question": "How much can be spent INSIDE one CloudWatch alarm evaluation window, before PutFunctionConcurrency(0) takes effect?",
+   "response_ceiling_in_force_bytes": 139264,
+   "sensitivity": [
+    {
+     "billable_gb": 13.1583,
+     "compute_usd": 0.0,
+     "detection_lag_s": 60.0,
+     "egress_bytes": 13158339222.6,
+     "egress_usd": 1.58,
+     "label": "in-window-60s",
+     "priced_from_tier_1_only": true,
+     "requests": 106007.1,
+     "requests_per_second": 1766.784,
+     "requests_usd": 0.02,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 1.579,
+       "usd_per_gb": 0.12,
+       "volume_gb": 13.1583
+      }
+     ],
+     "total_usd": 1.6,
+     "usd_per_minute": 1.6022
+    },
+    {
+     "billable_gb": 26.3167,
+     "compute_usd": 0.0,
+     "detection_lag_s": 120.0,
+     "egress_bytes": 26316678445.2,
+     "egress_usd": 3.16,
+     "label": "in-window-120s",
+     "priced_from_tier_1_only": true,
+     "requests": 212014.1,
+     "requests_per_second": 1766.784,
+     "requests_usd": 0.04,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 3.158,
+       "usd_per_gb": 0.12,
+       "volume_gb": 26.3167
+      }
+     ],
+     "total_usd": 3.2,
+     "usd_per_minute": 1.6022
+    },
+    {
+     "billable_gb": 39.475,
+     "compute_usd": 0.01,
+     "detection_lag_s": 180.0,
+     "egress_bytes": 39475017667.8,
+     "egress_usd": 4.74,
+     "label": "in-window-180s",
+     "priced_from_tier_1_only": true,
+     "requests": 318021.2,
+     "requests_per_second": 1766.784,
+     "requests_usd": 0.06,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 4.737,
+       "usd_per_gb": 0.12,
+       "volume_gb": 39.475
+      }
+     ],
+     "total_usd": 4.81,
+     "usd_per_minute": 1.6022
+    },
+    {
+     "billable_gb": 65.7917,
+     "compute_usd": 0.01,
+     "detection_lag_s": 300.0,
+     "egress_bytes": 65791696113.1,
+     "egress_usd": 7.9,
+     "label": "in-window-300s",
+     "priced_from_tier_1_only": true,
+     "requests": 530035.3,
+     "requests_per_second": 1766.784,
+     "requests_usd": 0.11,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 7.895,
+       "usd_per_gb": 0.12,
+       "volume_gb": 65.7917
+      }
+     ],
+     "total_usd": 8.01,
+     "usd_per_minute": 1.6022
+    },
+    {
+     "billable_gb": 131.5834,
+     "compute_usd": 0.02,
+     "detection_lag_s": 600.0,
+     "egress_bytes": 131583392226.1,
+     "egress_usd": 15.79,
+     "label": "in-window-600s",
+     "priced_from_tier_1_only": true,
+     "requests": 1060070.7,
+     "requests_per_second": 1766.784,
+     "requests_usd": 0.21,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 15.79,
+       "usd_per_gb": 0.12,
+       "volume_gb": 131.5834
+      }
+     ],
+     "total_usd": 16.02,
+     "usd_per_minute": 1.6022
+    },
+    {
+     "billable_gb": 197.3751,
+     "compute_usd": 0.03,
+     "detection_lag_s": 900.0,
+     "egress_bytes": 197375088339.2,
+     "egress_usd": 23.69,
+     "label": "in-window-900s",
+     "priced_from_tier_1_only": true,
+     "requests": 1590106.0,
+     "requests_per_second": 1766.784,
+     "requests_usd": 0.32,
+     "sustained_egress_bytes_per_second": 219305653.7,
+     "tiers": [
+      {
+       "tier_gb_from": 0.0,
+       "tier_gb_to": 10000.0,
+       "usd": 23.685,
+       "usd_per_gb": 0.12,
+       "volume_gb": 197.3751
+      }
+     ],
+     "total_usd": 24.03,
+     "usd_per_minute": 1.6022
+    }
+   ],
+   "the_wrong_way_to_get_this": {
+    "method": "divide flood_rate_24h_for_contrast_usd by 1440",
+    "understates_the_correct_figure_by_percent": 13.57,
+    "usd_per_minute": 1.3847,
+    "why_it_is_wrong": "the 24-hour figure accumulates enough volume to reach the $0.085 and $0.082 egress tiers, which a window of minutes never does. Averaging it back down prices a short window at tiers it would not get. Each window here is priced directly from tier 1, which is this file's stated convention and errs conservative."
+   },
+   "usd_per_minute_of_detection_lag": 1.6022,
+   "why_linear": "every window priced here stays inside the first egress tier, so USD/minute does not vary with the lag. That is the useful property: any lag budget can be priced by multiplying.",
+   "why_not_a_scalar": "Publishing `detection window x rate` as THE residual would assume every term between the period closing and the stop landing costs zero seconds. That is the same shape of error as the published USD 33,251.87 headline, which multiplied a real tariff by an invocation duration nobody had measured. The detection window is a FLOOR; the terms beyond it are enumerated below and the ones without a read-only bound are named as unknowns rather than set to zero."
+  },
+  "paced_at_requests_per_second": 4.166667,
+  "response_ceiling_in_force_bytes": 139264,
+  "rows": [
+   {
+    "billable_gb": 52.0075,
+    "ceiling_dependency": "the largest identity object, servable only while the response ceiling sits above it",
+    "compute_usd": 0.0,
+    "egress_bytes": 52007520000.0,
+    "egress_usd": 6.24,
+    "label": "residual-identity-8h",
+    "lag_hours": 8.0,
+    "object": "identity",
+    "object_bytes": 433396,
+    "reachable_under_the_ceiling_in_force": false,
+    "requests": 120000.0,
+    "requests_per_second": 4.167,
+    "requests_usd": 0.02,
+    "sustained_egress_bytes_per_second": 1805816.7,
+    "tiers": [
+     {
+      "tier_gb_from": 0.0,
+      "tier_gb_to": 10000.0,
+      "usd": 6.2409,
+      "usd_per_gb": 0.12,
+      "volume_gb": 52.0075
+     }
+    ],
+    "total_usd": 6.27
+   },
+   {
+    "billable_gb": 156.0226,
+    "ceiling_dependency": "the largest identity object, servable only while the response ceiling sits above it",
+    "compute_usd": 0.01,
+    "egress_bytes": 156022560000.0,
+    "egress_usd": 18.72,
+    "label": "residual-identity-24h",
+    "lag_hours": 24.0,
+    "object": "identity",
+    "object_bytes": 433396,
+    "reachable_under_the_ceiling_in_force": false,
+    "requests": 360000.0,
+    "requests_per_second": 4.167,
+    "requests_usd": 0.07,
+    "sustained_egress_bytes_per_second": 1805816.7,
+    "tiers": [
+     {
+      "tier_gb_from": 0.0,
+      "tier_gb_to": 10000.0,
+      "usd": 18.7227,
+      "usd_per_gb": 0.12,
+      "volume_gb": 156.0226
+     }
+    ],
+    "total_usd": 18.8
+   },
+   {
+    "billable_gb": 14.8952,
+    "ceiling_dependency": "the largest pre-compressed sibling, which is what a browser actually receives",
+    "compute_usd": 0.0,
+    "egress_bytes": 14895240000.0,
+    "egress_usd": 1.79,
+    "label": "residual-gzip-sibling-8h",
+    "lag_hours": 8.0,
+    "object": "gzip-sibling",
+    "object_bytes": 124127,
+    "reachable_under_the_ceiling_in_force": true,
+    "requests": 120000.0,
+    "requests_per_second": 4.167,
+    "requests_usd": 0.02,
+    "sustained_egress_bytes_per_second": 517195.8,
+    "tiers": [
+     {
+      "tier_gb_from": 0.0,
+      "tier_gb_to": 10000.0,
+      "usd": 1.7874,
+      "usd_per_gb": 0.12,
+      "volume_gb": 14.8952
+     }
+    ],
+    "total_usd": 1.81
+   },
+   {
+    "billable_gb": 44.6857,
+    "ceiling_dependency": "the largest pre-compressed sibling, which is what a browser actually receives",
+    "compute_usd": 0.01,
+    "egress_bytes": 44685720000.0,
+    "egress_usd": 5.36,
+    "label": "residual-gzip-sibling-24h",
+    "lag_hours": 24.0,
+    "object": "gzip-sibling",
+    "object_bytes": 124127,
+    "reachable_under_the_ceiling_in_force": true,
+    "requests": 360000.0,
+    "requests_per_second": 4.167,
+    "requests_usd": 0.07,
+    "sustained_egress_bytes_per_second": 517195.8,
+    "tiers": [
+     {
+      "tier_gb_from": 0.0,
+      "tier_gb_to": 10000.0,
+      "usd": 5.3623,
+      "usd_per_gb": 0.12,
+      "volume_gb": 44.6857
+     }
+    ],
+    "total_usd": 5.44
+   }
+  ],
+  "the_trade_this_makes": "THIS CONVERTS A COST ATTACK INTO AN AVAILABILITY ATTACK. The Function URL is authorization_type = NONE by the founder's explicit choice, so anyone at all can trip the burst alarm, and the responder's stop is not rate-limited to attackers: it stops the demo for everyone. It stays stopped at reserved concurrency 0 until a human runs scripts/deploy/kill_switch.{sh,ps1} --restore. That is the right trade -- an outage is recoverable by one command and an unbounded bill is not -- but it IS a trade, and it belongs in the residual column and not in a footnote.",
+  "why_not_flood_rate": "A caller who paces under the alarms is by definition not at flood rate. The 24-hour figure at flood rate is $1,994; quoting that as the residual would overstate it by 367x and would describe a caller the burst alarm catches in the first minute.",
+  "worst_if_the_ceiling_were_lifted_row": "residual-identity-24h",
+  "worst_if_the_ceiling_were_lifted_usd": 18.8,
+  "worst_row": "residual-gzip-sibling-24h",
+  "worst_usd": 5.44
+ },
+ "schema": "mainline/deploy/cost-model/1",
+ "self_limiting_byte_levers": {
+  "bill_fell_by": 1.43,
+  "bytes_fell_by": 3.586,
+  "claim": "A byte lever gives back most of what it takes, because a smaller object is faster to serve and the request rate rises to fill the concurrency ceiling.",
+  "duration_fell_by": 2.492,
+  "request_rate_rose_by": 2.492,
+  "stated_plainly": "bytes /3.59, rate x2.49, bill /1.43. The strip is not a 3.59x saving and was never going to be one."
+ },
+ "the_stop": {
+  "priced_on": "the UNRATE-LIMITED flood at L4 bytes and memory",
+  "rows": [
+   {
+    "billable_gb": 65.7917,
+    "compute_usd": 0.01,
+    "egress_bytes": 65791696113.1,
+    "egress_usd": 7.9,
+    "label": "stop-5min",
+    "requests": 530035.3,
+    "requests_per_second": 1766.784,
+    "requests_usd": 0.11,
+    "sustained_egress_bytes_per_second": 219305653.7,
+    "tiers": [
+     {
+      "tier_gb_from": 0.0,
+      "tier_gb_to": 10000.0,
+      "usd": 7.895,
+      "usd_per_gb": 0.12,
+      "volume_gb": 65.7917
+     }
+    ],
+    "total_usd": 8.01,
+    "window_seconds": 300.0
+   },
+   {
+    "billable_gb": 789.5004,
+    "compute_usd": 0.12,
+    "egress_bytes": 789500353356.9,
+    "egress_usd": 94.74,
+    "label": "stop-1h",
+    "requests": 6360424.0,
+    "requests_per_second": 1766.784,
+    "requests_usd": 1.27,
+    "sustained_egress_bytes_per_second": 219305653.7,
+    "tiers": [
+     {
+      "tier_gb_from": 0.0,
+      "tier_gb_to": 10000.0,
+      "usd": 94.74,
+      "usd_per_gb": 0.12,
+      "volume_gb": 789.5004
+     }
+    ],
+    "total_usd": 96.13,
+    "window_seconds": 3600.0
+   }
+  ],
+  "why_not_downstream_of_the_rate_bound": "The rate limiter's counter is per execution environment with no shared store, so a distributed flood defeats it. The stop has to be worth its keep in the case where the lever above it did not hold, so it is priced there."
+ },
+ "what_this_does_not_claim": [
+  "Nothing here has been applied, no AWS API was called, and no database was read.",
+  "The sustained egress rate in `model_bound` is unobserved. It is the load-bearing assumption of every 30-day total in this file.",
+  "L2 (strip) and L3 (gzip siblings) are priced as shipped because the artefact confirms zero source maps and 57 siblings; whether the gzip sibling is SERVED is static_site.py's contract and is asserted by its own tests, not here.",
+  "The residual assumes the responder is instantiated. It is not this model's job to assert that the guard module is wired into the environment root."
+ ],
+ "what_this_is": "The demo's worst-case spend as an executable model, layer by layer, in three named GB conventions, with the residual computed at the hourly alarm threshold."
+}

@@ -1,0 +1,780 @@
+{
+  "beats": {
+    "asset_js": {
+      "beat": "asset_js",
+      "expect_status_from_measure_beats": 200,
+      "handler_message_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "handler_wire_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "logbudget_charged_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "loggers_that_spoke": {},
+      "method": "GET",
+      "method_of_measurement": "measured",
+      "path": "/assets/index-BjAGxrVJ.js",
+      "records_outside_the_budget_filter": 0,
+      "records_per_invocation": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "request_accept_encoding": "gzip",
+      "status_ok": false,
+      "statuses_observed": {
+        "413": 200
+      },
+      "touches_database": false,
+      "warmup_discarded": 3,
+      "why": "largest non-map object in the served tree (M5: 433,396 B)"
+    },
+    "asset_map": {
+      "beat": "asset_map",
+      "expect_status_from_measure_beats": 200,
+      "handler_message_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "handler_wire_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "logbudget_charged_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "loggers_that_spoke": {},
+      "method": "GET",
+      "method_of_measurement": "measured",
+      "path": "/assets/index-BjAGxrVJ.js.map",
+      "records_outside_the_budget_filter": 0,
+      "records_per_invocation": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "request_accept_encoding": "gzip",
+      "status_ok": false,
+      "statuses_observed": {
+        "413": 200
+      },
+      "touches_database": false,
+      "warmup_discarded": 3,
+      "why": "largest emittable object in the served tree (M4: 1,554,168 B)"
+    },
+    "gate_run": {
+      "beat": "gate_run",
+      "expect_status_from_measure_beats": 200,
+      "handler_message_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "handler_wire_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "logbudget_charged_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "loggers_that_spoke": {},
+      "method": "POST",
+      "method_of_measurement": "measured",
+      "path": "/v1/demo/gate-run",
+      "records_outside_the_budget_filter": 0,
+      "records_per_invocation": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "request_accept_encoding": "gzip",
+      "status_ok": true,
+      "statuses_observed": {
+        "200": 40
+      },
+      "touches_database": true,
+      "warmup_discarded": 3,
+      "why": "the headline four-beat gate run; the beat that decides the timeout"
+    },
+    "health": {
+      "beat": "health",
+      "expect_status_from_measure_beats": 200,
+      "handler_message_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "handler_wire_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "logbudget_charged_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "loggers_that_spoke": {},
+      "method": "GET",
+      "method_of_measurement": "measured",
+      "path": "/v1/health",
+      "records_outside_the_budget_filter": 0,
+      "records_per_invocation": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 40,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": true,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "request_accept_encoding": "gzip",
+      "status_ok": true,
+      "statuses_observed": {
+        "200": 40
+      },
+      "touches_database": true,
+      "warmup_discarded": 3,
+      "why": "the cheapest database beat: one connection, one fingerprint read"
+    },
+    "index": {
+      "beat": "index",
+      "expect_status_from_measure_beats": 200,
+      "handler_message_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "handler_wire_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "logbudget_charged_bytes": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "loggers_that_spoke": {},
+      "method": "GET",
+      "method_of_measurement": "measured",
+      "path": "/",
+      "records_outside_the_budget_filter": 0,
+      "records_per_invocation": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "n": 200,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_is_max": false,
+        "p99_ms": 0.0,
+        "stdev_ms": 0.0
+      },
+      "request_accept_encoding": "gzip",
+      "status_ok": true,
+      "statuses_observed": {
+        "200": 200
+      },
+      "touches_database": false,
+      "warmup_discarded": 3,
+      "why": "the document a judge's browser asks for first"
+    }
+  },
+  "cloudwatch_accounting": {
+    "lambda_json_envelope_bytes_empty_message": 148,
+    "lambda_json_envelope_shape": "{\"timestamp\":..,\"level\":..,\"requestId\":..,\"message\":..} \u2014 the `function` event record AWS documents for log_format = JSON",
+    "method": "documented",
+    "per_event_overhead_bytes": 26,
+    "quote": "The maximum batch size is 1,048,576 bytes. This size is calculated as the sum of all event messages in UTF-8, plus 26 bytes for each log event.",
+    "source": "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html (retrieved 2026-08-13)",
+    "substitution_named": "AWS states this rule for PutLogEvents BATCH SIZE. It is applied here to INGESTION because it is the closest accounting AWS documents; AWS does not publish a separate formula for IncomingBytes. Saying so is the difference between a derived figure and an assumed one"
+  },
+  "collapse_under_concurrency": {
+    "collapse_held": true,
+    "collapse_windows_elapsed": 3,
+    "elapsed_seconds": 25.202,
+    "excess_lines": 0,
+    "invocations": 1115852,
+    "lines_permitted_by_the_collapse": 6,
+    "log_lines_observed": 3,
+    "method_of_measurement": "measured",
+    "not_the_deployment": "AWS hands one execution environment one event at a time; this regime does not occur on a Function URL. It is measured because logbudget.claim is an unlocked read-modify-write and a race would multiply the flood figure by the number of racing callers",
+    "refused_429": 1115676,
+    "threads": 8,
+    "wire_bytes_observed": 631
+  },
+  "database_target": {
+    "database": "w_w3_logbytes",
+    "host": "127.0.0.1",
+    "host_sha256_12": "12ca17b49af2",
+    "port": 26257,
+    "scheme": "postgresql"
+  },
+  "deliberate_overrun": {
+    "budget_bytes_in_force": 4096,
+    "message_ceiling": 5043,
+    "method_of_measurement": "measured",
+    "overrun_bound": 947,
+    "shapes": {
+      "exception_with_a_deep_stack": {
+        "logbudget_charged": 4372,
+        "message_bytes_that_reached_a_handler": 4374,
+        "records_admitted": 3,
+        "records_dropped": 6,
+        "wire_bytes_that_reached_a_handler": 4929,
+        "wire_over_message_ratio": 1.127,
+        "within_message_ceiling": true
+      },
+      "many_records": {
+        "logbudget_charged": 4394,
+        "message_bytes_that_reached_a_handler": 4394,
+        "records_admitted": 104,
+        "records_dropped": 4897,
+        "wire_bytes_that_reached_a_handler": 19786,
+        "wire_over_message_ratio": 4.503,
+        "within_message_ceiling": true
+      },
+      "one_exception_the_size_of_the_allowance": {
+        "logbudget_charged": 4098,
+        "message_bytes_that_reached_a_handler": 4099,
+        "records_admitted": 1,
+        "records_dropped": 0,
+        "wire_bytes_that_reached_a_handler": 4305,
+        "wire_over_message_ratio": 1.05,
+        "within_message_ceiling": true
+      },
+      "one_huge_record": {
+        "logbudget_charged": 545,
+        "message_bytes_that_reached_a_handler": 545,
+        "records_admitted": 1,
+        "records_dropped": 0,
+        "wire_bytes_that_reached_a_handler": 696,
+        "wire_over_message_ratio": 1.277,
+        "within_message_ceiling": true
+      },
+      "stack_info_true": {
+        "logbudget_charged": 4372,
+        "message_bytes_that_reached_a_handler": 4376,
+        "records_admitted": 5,
+        "records_dropped": 4,
+        "wire_bytes_that_reached_a_handler": 5407,
+        "wire_over_message_ratio": 1.236,
+        "within_message_ceiling": true
+      }
+    },
+    "what_the_ceiling_bounds": "MESSAGE bytes, which is what logbudget charges. CloudWatch is billed the WIRE bytes beside them: Lambda's JSON envelope per record plus AWS's documented 26 bytes per event. The ratio in each shape is how much a reader must multiply the code bound by to get the bill"
+  },
+  "derivation": {
+    "admissible_band": {
+      "false_positive_floor_bytes": 2814635,
+      "lower_edge_bytes": 14340015,
+      "lower_edge_rule": "the flood-path candidate, 14340015 B. BELOW this the ingestion alarm fires on 15000 invocations that emit NOTHING of their own \u2014 pure runtime lines \u2014 which is traffic the burst alarm deliberately permits. An alarm 3 under this line is a copy of alarm 1 at a lower threshold, which is the 'a control that looks like two and is one' shape cost-guard's own hourly precondition already forbids for alarms 1 and 2",
+      "standing_default_bytes": 16777216,
+      "standing_default_is_inside_the_band": true,
+      "standing_default_position": "1.17x the lower edge, 0.21x the upper edge, 5.96x the false-positive floor",
+      "upper_edge_bytes": 78915000,
+      "upper_edge_rule": "the roof candidate, 78915000 B, which is the brief's formula with the worst per-invocation term any call site here can reach. ABOVE this, no traffic the invocation alarms permit can reach the line by any route, so alarm 3 stops catching the band between the two and only catches bytes that no invocation count explains at all"
+    },
+    "against_the_standing_default": {
+      "briefs_formula_bytes": 78915000,
+      "briefs_formula_is": "ABOVE",
+      "briefs_formula_ratio_over_standing": 4.704,
+      "consequence_of_the_standing_default": "16777216 B over 300 s is 1118 B per invocation the burst alarm permits. The runtime term alone is 956 B, so the standing default leaves about 162 B per invocation for the handler \u2014 far under the 4,096 B the handler's own budget allows it. A caller pacing just under the burst alarm whose invocations each emit a full diagnostic therefore trips the INGESTION alarm without tripping either invocation alarm. Both alarms feed the same topic and the same responder, so the outcome is the same stop either way; what this costs is only that alarm 3 rather than alarm 1 is named in the notification",
+      "recommended_bytes": 16777216,
+      "standing_default_bytes": 16777216,
+      "stated_plainly": "the number the brief's formula produces, 78915000 B, is 4.70x ABOVE the standing default of 16777216 B in infra/modules/cost-guard/variables.tf. The number this file recommends, 16777216 B, is the standing default itself",
+      "the_inconvenient_half": "the brief's formula produces a threshold that permits more spend than the standing default: 78915000 B per 300 s sustained is 22.73 GB/day, about USD 12.95/day at ap-southeast-1's ~USD 0.57/GB, against the standing default's 4.83 GB/day and USD 2.75/day. It is published because it is what the arithmetic says, and it is not adopted because the measurement says the tighter end of the band is reachable without false positives. W4 owns the choice; this file owns the arithmetic for both ends of it",
+      "what_the_standing_default_would_cost_if_it_fired_wrongly": "it clears the false-positive floor by 5.96x, so a full diagnostic storm during a pessimistic 6420/h judging session reaches only 2814635 B in a 300-second window and does not trip it. A panel 6.0x that size would",
+      "worst_shape_that_no_call_site_can_reach_today": {
+        "every_shape_measured": {
+          "exception_with_a_deep_stack": 4929.0,
+          "many_records": 19786.0,
+          "one_huge_record": 696.0,
+          "stack_info_true": 5407.0
+        },
+        "shape": "many_records",
+        "when_this_stops_being_true": "the moment a fourth call site loops or passes stack_info=True. Both are one keyword away, and the byte ceiling still holds in both cases (measured above) \u2014 what changes is the WIRE figure, because each extra record pays its own envelope and 26-byte overhead. So this is the number to re-derive the threshold from, not a reason to re-derive the budget",
+        "why_it_is_not_in_the_threshold": "there are three log call sites in this distribution \u2014 app.py:515, app.py:523 and ratelimit.py:526 \u2014 none of them loops and none of them passes stack_info=True, so no input a caller controls reaches these shapes. Folding an unreachable shape into a threshold would inflate it with something nobody can provoke, which is the mirror image of understating it",
+        "wire_bytes_per_invocation": 19786.0
+      }
+    },
+    "arithmetic": [
+      {
+        "how": "platform.start + platform.report + platform.runtimeDone, sized from AWS's own example records, each plus AWS's documented 26-byte per-event overhead. NOT measured; see runtime_lines_documented",
+        "measured_cross_check": 365.0,
+        "measured_cross_check_how": "the same triple in TEXT form, MEASURED off the real public.ecr.aws/lambda/python:3.13 base image through the Runtime Interface Emulator. A different format, so a cross-check on the order of magnitude and not a substitute",
+        "method": "documented",
+        "name": "the runtime's own per-invocation bytes",
+        "step": 1,
+        "value": 956
+      },
+      {
+        "how": "the handler term is a distribution, not a number. Publishing one value for it would hide the choice being made, so all three are published and one is recommended below",
+        "method": "measured (floor, body) / code bound (roof)",
+        "name": "the handler's own per-invocation bytes",
+        "step": 2,
+        "value": "three candidates \u2014 see `candidates`"
+      },
+      {
+        "how": "invocations_burst_threshold is a strict GreaterThanThreshold on a 60-second Sum, so a caller may sustain exactly this many per minute without alarm 1 firing",
+        "method": "read from infra/modules/cost-guard/variables.tf",
+        "name": "the invocation count the burst alarm permits, per BURST window",
+        "step": 3,
+        "value": 3000
+      },
+      {
+        "how": "the ingestion alarm's period is 300 s and the burst alarm's is 60 s, so the permitted count over one ingestion window is 3000 x 300/60 = 3000 x 5 = 15000. Omitting this step is how a threshold ends up 5x too small",
+        "method": "arithmetic",
+        "name": "the same count over the INGESTION alarm's window",
+        "step": 4,
+        "value": 15000
+      },
+      {
+        "how": "the most a caller who never trips the INVOCATION alarms can put into the log group in one ingestion window. Anything above it is ingestion the invocation alarms cannot explain, which is exactly and only what alarm 3 says it exists to catch",
+        "method": "arithmetic",
+        "name": "the product",
+        "step": 5,
+        "value": "(step 1 + step 2) x step 4"
+      }
+    ],
+    "candidates": {
+      "body_worst_served_beat": {
+        "handler_bytes_basis": "MEASURED p99 of the noisiest demo beat, so ordinary judging traffic sits under it",
+        "handler_bytes_per_invocation": 0.0,
+        "threshold_bytes": 14340000
+      },
+      "floor_flood_path": {
+        "handler_bytes_basis": "MEASURED mean over a sustained 429 flood at the production rate defaults, which is the hottest path in the function and the one a flood is made of",
+        "handler_bytes_per_invocation": 0.001,
+        "threshold_bytes": 14340015
+      },
+      "roof_worst_reachable_call_site": {
+        "handler_bytes_basis": "MEASURED wire bytes of the worst shape any call site in this package can reach: one log.exception per invocation (app.py:523) with a traceback that fills the allowance. The code bound behind it is DEFAULT_BUDGET_BYTES 4096 + OVERRUN_BOUND 947 = 5043 MESSAGE bytes; the wire figure adds Lambda's 148-byte JSON envelope and CloudWatch's 26-byte per-event overhead",
+        "handler_bytes_per_invocation": 4305.0,
+        "threshold_bytes": 78915000
+      }
+    },
+    "consumer": "infra/modules/cost-guard, alarm 3 of 3 (AWS/Logs IncomingBytes, Sum/300s)",
+    "false_positive_floor": {
+      "bytes": 2814635,
+      "clearance": {
+        "body_worst_served_beat": 5.095,
+        "floor_flood_path": 5.095,
+        "roof_worst_reachable_call_site": 28.037
+      },
+      "how": "535 invocations per 300 s (6420/h x 300/3600) x 5261 B per invocation (runtime term 956 + worst reachable handler term 4305) = 2814635 B",
+      "invocations_source": "infra/modules/cost-guard/variables.tf, log_incoming_bytes_threshold's own derivation: 'PESSIMISTIC 5-minute window 20 judges x 321/h = 6,420/h = 535/min'",
+      "invocations_source_unit_slip": "infra/modules/cost-guard/variables.tf derives the pessimistic 5-minute window as '20 judges x 321/h = 6,420/h = 535/min ... 2,675 invocations'. 6,420 per hour is 107 per minute, and over a 300-second window it is 6,420 x 300/3600 = 535 invocations. The '535/min' reads a per-300-second figure as a per-minute one, and the 2,675 is that slip multiplied by five. This file uses 535 per 300 s, the figure consistent with the stated session rate, and leaves variables.tf alone: it is W4's file, and adopting the larger number would make every margin below look 5x more comfortable than the session model supports.",
+      "method": "measured x an input read from cost-guard's own derivation",
+      "standing_default_clearance": 5.961,
+      "what_it_means": "a threshold at or below this fires on a LEGITIMATE pessimistic judging session in which every invocation is logging a full diagnostic \u2014 i.e. on a database outage during the demo. The responder reserves concurrency at 0 and only a human running scripts/deploy/kill_switch --restore ends that, so such a threshold does not bound a bill: it converts an incident into an outage and deletes the logs you would have used to diagnose it"
+    },
+    "quantity": "log_incoming_bytes_threshold",
+    "reachability_precondition": {
+      "invocations_max_300s": 300000,
+      "log_bytes_per_invocation_ceiling_measured": 5261,
+      "log_bytes_per_invocation_ceiling_measured_how": "the runtime's documented per-invocation term plus the handler's code ceiling carried to wire bytes. W4 should set the Terraform variable to this, because its own description says to: 'If W4's budget lands at a different figure, change this one to match'",
+      "log_bytes_per_invocation_ceiling_standing": 16384,
+      "precondition_satisfied_at_the_recommendation": true,
+      "rule": "cost-guard main.tf:773 requires log_incoming_bytes_threshold < invocations_max_300s x log_bytes_per_invocation_ceiling"
+    },
+    "recommended": "retain_the_standing_default",
+    "recommended_because": "THE MEASUREMENT CHANGED THE ANSWER, AND THIS IS THE HONEST CONSEQUENCE. The brief's formula produces the UPPER edge. What the formula could not know is what this program then measured: a working handler emits ZERO bytes of its own \u2014 on all five beats, over 480 invocations, and over 2.1 million flood invocations at the production rate defaults. Ordinary ingestion here is therefore ~100 % the runtime's fixed term, and the handler term appears only when something is already wrong. That makes the single product a BAND rather than a point, and the standing default already sits inside it, 1.17x above the lower edge and clearing the false-positive floor by 5.96x. Between two admissible values the repository's own ranking picks the tighter one \u2014 cost-finish-plan.md \u00a70.5: an outage is recoverable by one command and a bill is not \u2014 and the tighter one is the number already in the file. So the recommendation is RETAIN 16,777,216 B, and what this file contributes is not a new number but the band that makes the existing one defensible and the two edges that will invalidate it",
+    "recommended_bytes": 16777216,
+    "residual_this_does_not_bound": [
+      "records on a logger the budget's filter is not attached to \u2014 measured in `logger_outside_the_budget`. Nothing in the handler bounds those, and a library that starts logging per row is the one shape that can still decouple bytes from invocations",
+      "the number of RECORDS one invocation may write. The budget bounds message BYTES; CloudWatch bills an envelope and 26 bytes per RECORD, so an allowance spent as many tiny records costs more on the wire than the same allowance spent as one \u2014 measured at 4.5x. No call site in this package loops, so this is a shape a future call site could have and none has today",
+      "the runtime's own error and timeout frames, which no filter in this process can see"
+    ],
+    "what_would_change_this_recommendation": [
+      "a call site that loops or passes stack_info=True: the reachable per-invocation wire term rises from 4305 B to as much as 19786 B, both edges move up with it, and the standing default may fall below the lower edge",
+      "raising DEFAULT_BUDGET_BYTES: the same, proportionally. Note the direction \u2014 a LARGER log budget requires a LARGER ingestion threshold, so the two numbers are coupled and must move together or the alarm starts firing on the budget",
+      "lowering invocations_burst_threshold: both edges fall proportionally, and at a burst threshold below 638 per minute the standing default leaves the band through the top",
+      "a library that starts logging per row: nothing in the handler bounds it (measured: 75,800 wire B for 200 psycopg records, charged 0), and it is the one shape that can decouple bytes from invocations without limit. That case argues for the LOWER edge, not the upper"
+    ]
+  },
+  "failures": [],
+  "flood": {
+    "rate_limit_in_force": {
+      "global_burst": 100,
+      "global_rps": 10.0,
+      "ip_burst": 50,
+      "ip_rps": 5.0,
+      "refill_window_seconds": 10.0,
+      "source": "ratelimit.configure() with no keyword overrides: the four CODE defaults, which is what is in force because Terraform publishes none of the four MAINLINE_RATE_* variables"
+    },
+    "regimes": {
+      "64_rotating_source_addresses": {
+        "collapse_suppressed": 1069220,
+        "collapse_windows_elapsed": 3.0,
+        "elapsed_seconds": 30.0,
+        "handler_message_bytes_per_invocation": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 66.0,
+          "mean_ms": 0.0,
+          "min_ms": 0.0,
+          "n": 1069624,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "p99_is_max": false,
+          "p99_ms": 0.0,
+          "stdev_ms": 0.152
+        },
+        "handler_wire_bytes_mean_per_invocation": 0.001,
+        "handler_wire_bytes_per_invocation": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 214.0,
+          "mean_ms": 0.001,
+          "min_ms": 0.0,
+          "n": 1069624,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "p99_is_max": false,
+          "p99_ms": 0.0,
+          "stdev_ms": 0.502
+        },
+        "invocations": 1069624,
+        "invocations_per_second": 35654.1,
+        "lines_per_refusal": 6e-06,
+        "lines_permitted_by_the_collapse": 8,
+        "log_lines_emitted": 6,
+        "method_of_measurement": "measured",
+        "refusal_share": 0.9996,
+        "refused_429": 1069226,
+        "statuses_observed": {
+          "413": 398,
+          "429": 1069226
+        }
+      },
+      "one_source_address": {
+        "collapse_suppressed": 994922,
+        "collapse_windows_elapsed": 3.0,
+        "elapsed_seconds": 30.0,
+        "handler_message_bytes_per_invocation": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 64.0,
+          "mean_ms": 0.0,
+          "min_ms": 0.0,
+          "n": 995124,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "p99_is_max": false,
+          "p99_ms": 0.0,
+          "stdev_ms": 0.108
+        },
+        "handler_wire_bytes_mean_per_invocation": 0.001,
+        "handler_wire_bytes_per_invocation": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 212.0,
+          "mean_ms": 0.001,
+          "min_ms": 0.0,
+          "n": 995124,
+          "p50_ms": 0.0,
+          "p95_ms": 0.0,
+          "p99_is_max": false,
+          "p99_ms": 0.0,
+          "stdev_ms": 0.365
+        },
+        "invocations": 995124,
+        "invocations_per_second": 33170.7,
+        "lines_per_refusal": 3e-06,
+        "lines_permitted_by_the_collapse": 8,
+        "log_lines_emitted": 3,
+        "method_of_measurement": "measured",
+        "refusal_share": 0.9998,
+        "refused_429": 994925,
+        "statuses_observed": {
+          "413": 199,
+          "429": 994925
+        }
+      }
+    }
+  },
+  "generated_at": "2026-08-13T13:05:09.402589+00:00",
+  "generated_by": "scripts/deploy/measure_log_bytes.py",
+  "handler_source": {
+    "present": true,
+    "root": "verticals/mainline/apps/demo-api/src/mainline_demo_api",
+    "sha256_16": {
+      "__init__.py": "25d221ff016270df",
+      "app.py": "51dd35677d86f676",
+      "credentials.py": "2c91e1b3535b5cdc",
+      "db.py": "3566805eee193428",
+      "envelope.py": "9dd5bb902d97c34a",
+      "gate_run.py": "f2db0b7c2752a93e",
+      "health.py": "0b9f26e986217895",
+      "logbudget.py": "fae69b76c0b6f828",
+      "ratelimit.py": "66efa4b700ab8909",
+      "reads.py": "3a55459a01c7c790",
+      "refusal.py": "7cd79f98d1aa9a52",
+      "scenario.py": "927cf9d53b526062",
+      "static_site.py": "e52e9abe05c59368",
+      "transitions.py": "e437b83467501bdc"
+    }
+  },
+  "host": {
+    "logical_cpus": 16,
+    "machine": "AMD64",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.14 (main, Jun 11 2026, 04:04:46) [MSC v.1944 64 bit (AMD64)]"
+  },
+  "logger_outside_the_budget": {
+    "bounded_by_the_per_invocation_budget": false,
+    "finding": "the per-invocation budget charged nothing for any of it. This is DECLARED in logbudget's module docstring and is measured here so the ingestion threshold is derived from a number that includes it rather than from the handler's own bound alone. It is not a defect in logbudget: a filter sees the records its logger creates. It IS the reason the alarm exists",
+    "logbudget_charged": 0,
+    "logger": "psycopg",
+    "message_bytes_that_reached_a_handler": 46200,
+    "method_of_measurement": "measured",
+    "records_emitted": 200,
+    "records_that_reached_a_handler": 200,
+    "wire_bytes_that_reached_a_handler": 75800
+  },
+  "ok": true,
+  "read_this_first": "EVERY figure carries a `method` or `method_of_measurement` field with one of three values. `measured` was observed here. `measured-emulator` was observed from the real managed-runtime base image through the Runtime Interface Emulator, which differs from the deployment in ways recorded on the figure. `documented` is arithmetic over a shape AWS publishes and was NOT observed anywhere. A citation is not a measurement and none is presented as one.",
+  "runtime_lines_documented": {
+    "conservative_per_invocation_basis": "start + report only, which is the pair AWS's documentation summary names explicitly ('Lambda automatically sends start and report log messages')",
+    "conservative_per_invocation_bytes": 584,
+    "how": "AWS's own example records for platform.start, platform.report and platform.runtimeDone, serialised compactly and measured. The EXAMPLES are AWS's; the LENGTHS are this program's arithmetic over them. Nothing here was observed on a Lambda",
+    "method_of_measurement": "documented",
+    "per_event_overhead_bytes": 26,
+    "per_event_overhead_quote": "The maximum batch size is 1,048,576 bytes. This size is calculated as the sum of all event messages in UTF-8, plus 26 bytes for each log event.",
+    "per_event_overhead_source": "https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutLogEvents.html (retrieved 2026-08-13)",
+    "pessimistic_per_invocation_basis": "start + report + runtimeDone. runtimeDone is included because this worker could not retrieve AWS's system-log-level event-mapping table and therefore cannot say it is suppressed at WARN; including it overstates ingestion, which is the safe direction for a bound on a bill",
+    "pessimistic_per_invocation_bytes": 956,
+    "platform_report_bytes": 267,
+    "platform_runtime_done_bytes": 372,
+    "platform_start_bytes": 317,
+    "source": "https://docs.aws.amazon.com/lambda/latest/dg/telemetry-schema-reference.html (retrieved 2026-08-13)",
+    "tracing_caveat": "AWS's platform.start and platform.runtimeDone examples carry a `tracing` block of about 150 bytes. It is present only when active tracing is on; infra/modules/demo-api does not enable X-Ray, so the real records are SMALLER than these figures. Keeping AWS's example intact rather than trimming it to flatter the number is deliberate: the citation stays a citation"
+  },
+  "runtime_lines_measured": {
+    "bytes_per_invocation_text_format": 365.0,
+    "image": "public.ecr.aws/lambda/python:3.13",
+    "invocations": 25,
+    "memory_size_mb": 256,
+    "method_of_measurement": "measured-emulator",
+    "per_line_bytes": {
+      "END": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 77.0,
+        "mean_ms": 77.0,
+        "min_ms": 77.0,
+        "n": 26,
+        "p50_ms": 77.0,
+        "p95_ms": 77.0,
+        "p99_is_max": true,
+        "p99_ms": 77.0,
+        "stdev_ms": 0.0
+      },
+      "REPORT": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 192.0,
+        "mean_ms": 166.038,
+        "min_ms": 165.0,
+        "n": 26,
+        "p50_ms": 165.0,
+        "p95_ms": 165.0,
+        "p99_is_max": true,
+        "p99_ms": 192.0,
+        "stdev_ms": 5.295
+      },
+      "START": {
+        "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+        "max_ms": 96.0,
+        "mean_ms": 96.0,
+        "min_ms": 96.0,
+        "n": 26,
+        "p50_ms": 96.0,
+        "p95_ms": 96.0,
+        "p99_is_max": true,
+        "p99_ms": 96.0,
+        "stdev_ms": 0.0
+      }
+    },
+    "rie_only_lines_excluded": 58,
+    "supported": true,
+    "unclassified_lines": 0,
+    "units": "BYTES. `summarise` is measure_beats' nearest-rank estimator and names its fields `*_ms`; it is reused rather than forked, so read every `*_ms` here as bytes",
+    "what_this_does_NOT_measure": [
+      "the JSON platform.start / platform.report records the DEPLOYMENT gets, because logging_config.log_format = 'JSON' and the emulator ignores AWS_LAMBDA_LOG_FORMAT for these lines. The JSON figure is computed from AWS's documented schema and labelled `documented`",
+      "the Init Duration term, which appears in a production REPORT only on a cold start and which the emulator did not produce here",
+      "whether system_log_level = WARN suppresses any of them \u2014 see system_log_level_note"
+    ],
+    "what_this_measures": "the real managed-runtime base image's own per-invocation lines, in the TEXT format the Runtime Interface Emulator emits"
+  },
+  "schema": "mainline/deploy/log-bytes/1",
+  "status_divergences": {
+    "observed": [
+      "beat asset_js answered {'413': 200}, not the 200 measure_beats.BEATS declares",
+      "beat asset_map answered {'413': 200}, not the 200 measure_beats.BEATS declares"
+    ],
+    "the_tree_moved_during_this_measurement_and_that_is_recorded_not_hidden": "static_site.py is W1's file and was being edited while this ran. Two consecutive runs of this program on 2026-08-13 saw asset_js and asset_map answer 200 and then 413, because the gzip-sibling serving path and the 136 KiB wire ceiling were landing at the same time and the console `dist/` tree this program serves from carries no .gz siblings (the packer writes those into the Lambda zip, not into dist/), so an Accept-Encoding: gzip request falls back to identity and meets the ceiling. `handler_source.sha256_16` pins WHICH state of the tree produced the figures in this file. None of it moves a single byte figure here: both 200 and 413 emit zero handler log records, which is the only quantity this program measures",
+    "why_these_are_not_failures": "measure_beats.BEATS carries an `expect_status` written for a LATENCY baseline taken before W1 derived static_site.DEFAULT_MAX_RESPONSE_BYTES from the deployed tree. A 413 on the largest identity object is that ceiling binding, which is what W1 set out to make it do. This program records the divergence rather than editing anybody's expectation, and its exit code does not depend on another worker's in-flight change"
+  },
+  "system_log_level_note": {
+    "answer": "NOT ESTABLISHED \u2014 see `resolution`",
+    "how_to_close_it": "one `aws logs filter-log-events` against a deployed function whose system_log_level is WARN settles it in a single command. That requires an apply, which no worker in this wave is permitted to perform.",
+    "question": "does logging_config.system_log_level = WARN suppress the runtime's own platform.start / platform.report records?",
+    "resolution": "the PESSIMISTIC reading is taken: platform.start and platform.report are counted as PRESENT at WARN. A bound built on the assumption that they are suppressed would understate ingestion, and this figure exists to bound a bill.",
+    "verbatim_quotes_retrieved": [
+      {
+        "quote": "By default, Lambda sets the system log level to INFO, and with this setting, Lambda automatically sends start and report log messages to CloudWatch.",
+        "source": "AWS documentation summary retrieved via search of docs.aws.amazon.com/lambda/latest/dg/monitoring-cloudwatchlogs-advanced.html on 2026-08-13"
+      },
+      {
+        "quote": "Note that log level controls are only available if the log format of the function is set to JSON.",
+        "source": "https://aws.amazon.com/blogs/compute/introducing-advanced-logging-controls-for-aws-lambda-functions/"
+      }
+    ],
+    "what_IS_established": "system_log_level does not touch FUNCTION logs at all \u2014 those are application_log_level's surface \u2014 so nothing about WARN changes the handler figures measured below. It bounds only the runtime term.",
+    "what_could_not_be_retrieved": "the 'System log level event mapping' table, which is the only place AWS states which platform events survive WARN. The page is rendered client-side and every fetch of it returned an empty document."
+  },
+  "what_this_is": "the CloudWatch bytes one invocation of the demo API puts into its log group, measured per beat and under a sustained 429 flood by driving the real mainline_demo_api.app.handler in-process and tapping the logging stack; the managed runtime's own per-invocation lines accounted separately; and the cost-guard's log_incoming_bytes_threshold derived from those two terms.",
+  "what_was_not_applied": "nothing. No terraform command ran, no AWS API was called, no row was written: the gate run rolls its own transaction back and every other beat is a read."
+}

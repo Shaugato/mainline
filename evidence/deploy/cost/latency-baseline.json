@@ -1,0 +1,905 @@
+{
+  "cpu_share_probe": {
+    "claim": "measured on THIS machine only: wall time of a CPU-bound task against the share of one core it receives",
+    "not_a_claim": "nothing here measures an arm64 Graviton2 core, an AWS scheduler, or the demo-api handler under a real Lambda",
+    "operation": "json.dumps({'body': <largest non-map served object, decoded>})",
+    "operation_why": "M15: the handler's own hot CPU op when it answers with that object",
+    "points": [
+      {
+        "best_ms": 2.171,
+        "competitors_on_the_same_core": 0,
+        "core_share": 1.0,
+        "equivalent_lambda_memory_mb": 1769,
+        "mean_ms": 2.805,
+        "slowdown_if_perfectly_proportional": 1.0,
+        "slowdown_vs_full_core": 1.0
+      },
+      {
+        "best_ms": 2.188,
+        "competitors_on_the_same_core": 1,
+        "core_share": 0.5,
+        "equivalent_lambda_memory_mb": 884,
+        "mean_ms": 5.153,
+        "slowdown_if_perfectly_proportional": 2.0,
+        "slowdown_vs_full_core": 1.837
+      },
+      {
+        "best_ms": 2.148,
+        "competitors_on_the_same_core": 2,
+        "core_share": 0.3333,
+        "equivalent_lambda_memory_mb": 590,
+        "mean_ms": 8.675,
+        "slowdown_if_perfectly_proportional": 3.0,
+        "slowdown_vs_full_core": 3.093
+      },
+      {
+        "best_ms": 2.127,
+        "competitors_on_the_same_core": 6,
+        "core_share": 0.1429,
+        "equivalent_lambda_memory_mb": 253,
+        "mean_ms": 11.062,
+        "slowdown_if_perfectly_proportional": 7.0,
+        "slowdown_vs_full_core": 3.944
+      }
+    ],
+    "rounds_per_point": 250,
+    "statistic": "MEAN over the whole run, which is throughput under time-slicing. best_ms is carried beside it and is NOT used for the slope: a minimum finds the one round that fitted inside a single scheduler quantum unpreempted, so at 1/7 of a core it still reports full-core speed. Measured 2026-08-13: best-of-rounds gave a 1.08x slowdown at a 0.143 share where the mean gives the real figure.",
+    "supported": true
+  },
+  "failures": [],
+  "generated_at": "2026-08-13T07:14:54.405414+00:00",
+  "generated_by": "scripts/deploy/measure_beats.py",
+  "handler_source": {
+    "present": true,
+    "root": "verticals/mainline/apps/demo-api/src/mainline_demo_api",
+    "sha256_16": {
+      "__init__.py": "25d221ff016270df",
+      "app.py": "26e382ba9c885e52",
+      "credentials.py": "2c91e1b3535b5cdc",
+      "db.py": "3566805eee193428",
+      "envelope.py": "9dd5bb902d97c34a",
+      "gate_run.py": "f2db0b7c2752a93e",
+      "health.py": "0b9f26e986217895",
+      "reads.py": "80e7ffa102a454e2",
+      "refusal.py": "7cd79f98d1aa9a52",
+      "scenario.py": "927cf9d53b526062",
+      "static_site.py": "976e383af3c11bbc",
+      "transitions.py": "904628f31b595d55"
+    },
+    "why": "the baseline describes THIS code. W2, W3 and W4 are changing the package in the same wave; when any of these digests moves, the static-beat figures are stale"
+  },
+  "harness": {
+    "clock": "time.perf_counter around request-send to body-read-complete",
+    "emulator": "scripts/deploy/local_furl.py (started as a subprocess, one per beat)",
+    "transport": "HTTP/1.1 keep-alive over loopback; no TLS (AWS terminates TLS ahead of the function, so a local TLS hop would measure something the Lambda never pays)",
+    "warmup_discarded_per_beat": 5,
+    "why_one_process_per_beat": "a gate run strands the shared connection INTRANS; interleaving beats in one process would measure that defect instead of the beat"
+  },
+  "host": {
+    "logical_cpus": 16,
+    "machine": "AMD64",
+    "note": "an x86_64 workstation. The deployment target is arm64 (Graviton2) at a fraction of one vCPU. Nothing here measures that.",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 165 Stepping 2, GenuineIntel"
+  },
+  "measured_at": "2026-08-13T07:05:15.916743+00:00",
+  "ok": true,
+  "python": {
+    "executable_is_repo_venv": true,
+    "implementation": "CPython",
+    "version": "3.13.14 (main, Jun 11 2026, 04:04:46) [MSC v.1944 64 bit (AMD64)]"
+  },
+  "recommendation": {
+    "cold_start_model_ms": {
+      "cold_at_256mb_ms": 6511.4,
+      "cold_at_512mb_ms": 5248.3,
+      "cpu_slope_applied": 1.0,
+      "cpu_slope_measured": 0.838,
+      "cpu_slope_source": "the CPU-share probe's measured slowdown divided by perfect 1/share proportionality, averaged over its fractional-core points, then clamped at 1.0: the probe may make this bound larger and may not make it smaller",
+      "first_connect_in_region_ms": 256.2,
+      "first_connect_in_region_why": "the TLS handshake is round trips; in region they nearly vanish, so 10% of the measured figure with a 60 ms floor for the handshake's own CPU",
+      "first_connect_p99_measured_from_this_workstation_ms": 2562.4,
+      "import_psycopg_p99_measured_ms": {
+        "cloud": 922.277,
+        "local": 365.579
+      },
+      "import_psycopg_p99_used_ms": 365.6,
+      "import_psycopg_p99_used_why": "the smaller of the two independent samples of the same operation: the CPU correction is applied once, not twice",
+      "kind": "extrapolation",
+      "warm_gate_run_in_region_p99_ms": 3729.0
+    },
+    "cost_consequence": "under a sustained flood, egress and request charges scale as 1/duration while the compute term does not. The beat an attacker would choose is NOT the gate run: it is the largest static object, whose duration is two orders of magnitude smaller. A cost model that applies the gate run's duration to a flood understates the bill by that ratio, and one that applies the static beat's duration to the timeout truncates the demo.",
+    "current": {
+      "memory_size_mb": 512,
+      "source": "infra/modules/demo-api (the plan as it stands today)",
+      "timeout_seconds": 15
+    },
+    "founder_request_is_honest": false,
+    "founder_requested_timeout_seconds": 3,
+    "if_the_tail_is_2x_worse_in_lambda": {
+      "cold_256_ms": 13022.9,
+      "cold_512_ms": 10496.7,
+      "recommendation_still_holds": true,
+      "warm_in_region_p99_ms": 7458.0
+    },
+    "memory_extrapolation": {
+      "applies_to": "the CPU-bound share of a beat only, never to database wait",
+      "kind": "extrapolation",
+      "measured_locally": "the CPU-share probe reproduces a fractional core by pinning competitors to the same logical CPU; its measured slowdown is compared against 1/share",
+      "measured_slope_vs_proportional": 0.838,
+      "relationship": "AWS allocates CPU in linear proportion to memory_size; 1769 MB = 1 vCPU. 512 MB = 0.289 vCPU, 256 MB = 0.145 vCPU"
+    },
+    "memory_size_basis": "the gate run is DATABASE-BOUND, not CPU-bound: the three beat statements account for nearly all of its server-reported elapsed time, and that time is CockroachDB executing, not Lambda computing. Halving memory halves the compute term outright (it is the one term independent of duration), halves the flood rate because the CPU-bound beats take twice as long, and therefore halves egress and request charges too -- while barely moving the headline beat.",
+    "memory_size_costs": [
+      "cold start roughly doubles: 5248 ms -> 6511 ms modelled, and that lands on a judge's FIRST click",
+      "the static-asset beats roughly double, because they are nearly pure CPU",
+      "there is no measurement of a 256 MB Lambda anywhere in this evidence, and there cannot be one without an apply"
+    ],
+    "memory_size_mb": 256,
+    "timeout_as_multiple_of": {
+      "cloud_gate_run_p99_measured_from_this_workstation": 1.2,
+      "cloud_gate_run_p99_rtt_corrected_to_in_region": 3.75,
+      "in_region_cold_start_at_256mb": 2.15,
+      "in_region_cold_start_at_512mb": 2.67
+    },
+    "timeout_basis": "the smallest whole second that clears the worst MODELLED case: a cold start at 256 MB with a tail twice as bad as this workstation's",
+    "timeout_precision_caveat": "the two figures above differ by less than this model's own uncertainty, and the model's dominant unknown -- a Graviton2 core against this one -- is not measured at all. The operative instruction is the FLOOR, not the digit: do not go below the larger of them, and do not go anywhere near 3 s",
+    "timeout_seconds": 14,
+    "timeout_seconds_at_perfect_cpu_proportionality": 14,
+    "what_3s_would_truncate": [
+      "every cold-start gate run at 256 MB (modelled 6511 ms, 2.17x of 3 s)",
+      "every cold-start gate run at 512 MB if the tail is 2x worse (modelled 10497 ms)",
+      "any warm gate run that takes one 40001 retry, which replays the whole beat set",
+      "every gate run driven by a caller as far from the cluster as this workstation (measured p99 11688 ms) -- which is what a judge running the demo driver from outside ap-southeast-1 is"
+    ],
+    "what_the_recommendation_would_truncate": [
+      "a warm in-region gate run whose tail is more than 3.8x the corrected p99",
+      "a cold start at 256 MB whose CPU is more than 2.2x slower than modelled",
+      "nothing measured on either target today"
+    ]
+  },
+  "recomputed": {
+    "from": "C:\\Users\\shaug\\AppData\\Local\\Temp\\claude\\D--CoackroachDBxAWS\\b1150179-8ec5-4ec7-bdfb-3da356eb4402\\scratchpad\\w1cost\\clean.json",
+    "what_was_recomputed": "round_trip_model and recommendation only",
+    "what_was_reused": "every measurement: both targets, both cold probes, the CPU probe",
+    "why_this_is_allowed": "the measurements are inputs and the model is a function of them. Being able to re-derive the model from a recorded measurement without re-measuring is what makes the model checkable by somebody who was not here; a model that can only be reproduced by re-running a 32-minute measurement cannot be audited. No number under `targets` or `cpu_share_probe` was recomputed, and `measured_at` above is when they were taken."
+  },
+  "round_trip_model": {
+    "cloud_rtt_ms": {
+      "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+      "max_ms": 452.846,
+      "mean_ms": 229.796,
+      "min_ms": 221.452,
+      "n": 250,
+      "p50_ms": 223.077,
+      "p95_ms": 237.384,
+      "p99_is_max": false,
+      "p99_ms": 446.368,
+      "stdev_ms": 31.926
+    },
+    "counted_round_trips": 36,
+    "counted_round_trips_method": "crdb_internal.node_statement_statistics for application_name='mainline-demo-api', snapshotted either side of exactly one warm gate run on the local node: 79 statements executed, of which 24 were written by the client (the rest are database-qualified because CockroachDB expanded them inside a UDF, trigger or stored procedure and they never left the server), plus 14 transaction-control statements that the statistics do not record and psycopg still sends",
+    "cross_check": "the counted-trip correction leaves a residue over the local p50 -- 3297 ms in region against 1340 ms locally. That residue is NOT error: CockroachDB Cloud Basic is a shared serverless tier and executes the same gate run more slowly than a dedicated local container. The derived-trip figure absorbs that residue into the network term, which is exactly why it comes out larger than the counted figure and why the counted one is the conservative choice",
+    "derived_round_trips": 44.6,
+    "gate_run_in_region_p50_ms_from_derived_trips": 1392.4,
+    "gate_run_in_region_p99_ms": 3729.0,
+    "gate_run_in_region_p99_ms_basis": "max(derived-trip correction, counted-trip correction) -- the less favourable of the two, because a timeout chosen from an optimistic correction truncates the demo and one chosen from a pessimistic correction costs nothing but a longer hang",
+    "gate_run_in_region_p99_ms_from_counted_trips": 3729.0,
+    "gate_run_in_region_p99_ms_from_derived_trips": 1824.1,
+    "gate_run_in_region_p99_ms_pessimistic_rtt": 1957.9,
+    "in_region_rtt_ms_assumed": 2.0,
+    "in_region_rtt_ms_pessimistic": 5.0,
+    "kind": "extrapolation",
+    "local_measured_p50_ms": 1339.605,
+    "local_measured_p99_ms": 2974.728,
+    "local_rtt_ms": {
+      "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+      "max_ms": 2.192,
+      "mean_ms": 0.885,
+      "min_ms": 0.568,
+      "n": 250,
+      "p50_ms": 0.816,
+      "p95_ms": 1.286,
+      "p99_is_max": false,
+      "p99_ms": 1.88,
+      "stdev_ms": 0.23
+    },
+    "method": "two measurements of the same handler against clusters at different distances; the difference divided by the round-trip difference is the round-trip count",
+    "the_two_methods_agree_within": "24% of the counted figure",
+    "why_the_local_p99_is_NOT_in_that_max": "it is a measurement of a DIFFERENT cluster and it is not a floor on what a same-region Lambda would see against CockroachDB Cloud. Its role is the cross check below, on the p50, where it is not contaminated"
+  },
+  "schema": "mainline/deploy/latency-baseline/1",
+  "targets": {
+    "cloud": {
+      "beats": {
+        "asset_js": {
+          "beat": "asset_js",
+          "cold_first_request_ms": 30.288,
+          "cold_status": 200,
+          "expect_status": 200,
+          "method": "GET",
+          "path": "/assets/index-BjAGxrVJ.js",
+          "response_bytes": [
+            433396
+          ],
+          "response_bytes_stable": true,
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": false,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 35.985,
+            "mean_ms": 12.921,
+            "min_ms": 7.662,
+            "n": 200,
+            "p50_ms": 11.451,
+            "p95_ms": 25.056,
+            "p99_is_max": false,
+            "p99_ms": 34.313,
+            "stdev_ms": 5.269
+          },
+          "warmup_discarded": 5,
+          "why": "largest non-map object in the served tree (M5: 433,396 B)"
+        },
+        "asset_map": {
+          "beat": "asset_map",
+          "cold_first_request_ms": 28.033,
+          "cold_status": 200,
+          "expect_status": 200,
+          "method": "GET",
+          "path": "/assets/index-BjAGxrVJ.js.map",
+          "response_bytes": [
+            1554168
+          ],
+          "response_bytes_stable": true,
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": false,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 60.863,
+            "mean_ms": 35.108,
+            "min_ms": 22.928,
+            "n": 200,
+            "p50_ms": 30.752,
+            "p95_ms": 51.856,
+            "p99_is_max": false,
+            "p99_ms": 58.02,
+            "stdev_ms": 9.79
+          },
+          "warmup_discarded": 5,
+          "why": "largest emittable object in the served tree (M4: 1,554,168 B)"
+        },
+        "gate_run": {
+          "beat": "gate_run",
+          "cold_first_request_ms": 12588.086,
+          "cold_status": 200,
+          "expect_status": 200,
+          "gate_run": {
+            "beat_elapsed_ms": {
+              "admit": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 2069.99,
+                "mean_ms": 1922.045,
+                "min_ms": 1856.192,
+                "n": 100,
+                "p50_ms": 1913.447,
+                "p95_ms": 2023.083,
+                "p99_is_max": false,
+                "p99_ms": 2046.326,
+                "stdev_ms": 45.228
+              },
+              "merge": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 2215.988,
+                "mean_ms": 1954.191,
+                "min_ms": 1892.083,
+                "n": 100,
+                "p50_ms": 1944.091,
+                "p95_ms": 2017.388,
+                "p99_is_max": false,
+                "p99_ms": 2127.57,
+                "stdev_ms": 46.736
+              },
+              "projection_drift_attack": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 2670.235,
+                "mean_ms": 2400.416,
+                "min_ms": 2311.331,
+                "n": 100,
+                "p50_ms": 2388.31,
+                "p95_ms": 2480.962,
+                "p99_is_max": false,
+                "p99_ms": 2623.602,
+                "stdev_ms": 53.164
+              },
+              "read": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 0.021,
+                "mean_ms": 0.008,
+                "min_ms": 0.005,
+                "n": 100,
+                "p50_ms": 0.008,
+                "p95_ms": 0.012,
+                "p99_is_max": false,
+                "p99_ms": 0.016,
+                "stdev_ms": 0.002
+              }
+            },
+            "beat_sqlstate_counts": {
+              "admit": {
+                "00000": 100
+              },
+              "merge": {
+                "23514": 100
+              },
+              "projection_drift_attack": {
+                "P0001": 100
+              },
+              "read": {
+                "00000": 100
+              }
+            },
+            "failure_counts": {},
+            "one_regime": true,
+            "outcome_counts": {
+              "completed": 100
+            },
+            "persisted_counts": {
+              "False": 100
+            },
+            "samples_parsed": 100,
+            "samples_unparsed": 0,
+            "verdict_counts": {
+              "PROVEN": 100
+            }
+          },
+          "harness_overhead_p50_ms": 454.075,
+          "method": "POST",
+          "path": "/v1/demo/gate-run",
+          "response_bytes": [
+            9369,
+            9370,
+            9371,
+            9372
+          ],
+          "response_bytes_stable": false,
+          "server_reported_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 11995.448,
+            "mean_ms": 10838.743,
+            "min_ms": 10662.008,
+            "n": 100,
+            "p50_ms": 10801.997,
+            "p95_ms": 11016.309,
+            "p99_is_max": false,
+            "p99_ms": 11241.036,
+            "stdev_ms": 157.617
+          },
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": true,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 12453.223,
+            "mean_ms": 11288.097,
+            "min_ms": 11109.263,
+            "n": 100,
+            "p50_ms": 11256.072,
+            "p95_ms": 11465.978,
+            "p99_is_max": false,
+            "p99_ms": 11687.735,
+            "stdev_ms": 158.462
+          },
+          "warmup_discarded": 5,
+          "why": "the headline four-beat gate run; the beat that decides the timeout"
+        },
+        "health": {
+          "beat": "health",
+          "cold_first_request_ms": 2120.917,
+          "cold_status": 200,
+          "expect_status": 200,
+          "harness_overhead_p50_ms": 0.954,
+          "method": "GET",
+          "path": "/v1/health",
+          "response_bytes": [
+            408,
+            409,
+            410
+          ],
+          "response_bytes_stable": false,
+          "server_reported_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 687.4,
+            "mean_ms": 457.309,
+            "min_ms": 446.7,
+            "n": 100,
+            "p50_ms": 449.4,
+            "p95_ms": 468.3,
+            "p99_is_max": false,
+            "p99_ms": 686.3,
+            "stdev_ms": 33.769
+          },
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": true,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 689.01,
+            "mean_ms": 458.246,
+            "min_ms": 447.282,
+            "n": 100,
+            "p50_ms": 450.354,
+            "p95_ms": 469.031,
+            "p99_is_max": false,
+            "p99_ms": 687.902,
+            "stdev_ms": 33.863
+          },
+          "warmup_discarded": 5,
+          "why": "the cheapest database beat: one connection, one fingerprint read"
+        },
+        "index": {
+          "beat": "index",
+          "cold_first_request_ms": 25.245,
+          "cold_status": 200,
+          "expect_status": 200,
+          "method": "GET",
+          "path": "/",
+          "response_bytes": [
+            4655
+          ],
+          "response_bytes_stable": true,
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": false,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 7.367,
+            "mean_ms": 3.683,
+            "min_ms": 2.116,
+            "n": 200,
+            "p50_ms": 3.651,
+            "p95_ms": 5.591,
+            "p99_is_max": false,
+            "p99_ms": 7.316,
+            "stdev_ms": 1.024
+          },
+          "warmup_discarded": 5,
+          "why": "the document a judge's browser asks for first"
+        }
+      },
+      "cold": {
+        "first_connect_ms": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 2562.358,
+          "mean_ms": 1869.733,
+          "min_ms": 1676.241,
+          "n": 5,
+          "p50_ms": 1700.311,
+          "p95_ms": 2562.358,
+          "p99_is_max": true,
+          "p99_ms": 2562.358,
+          "stdev_ms": 387.518
+        },
+        "fresh_interpreter_per_sample": true,
+        "import_psycopg_ms": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 922.277,
+          "mean_ms": 761.376,
+          "min_ms": 598.137,
+          "n": 5,
+          "p50_ms": 736.419,
+          "p95_ms": 922.277,
+          "p99_is_max": true,
+          "p99_ms": 922.277,
+          "stdev_ms": 134.951
+        },
+        "note": "import_psycopg is pure CPU and therefore scales with memory_size; first_connect is dominated by network round trips (TLS handshake) and does not.",
+        "samples": 5,
+        "select_1_round_trip_ms": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 452.846,
+          "mean_ms": 229.796,
+          "min_ms": 221.452,
+          "n": 250,
+          "p50_ms": 223.077,
+          "p95_ms": 237.384,
+          "p99_is_max": false,
+          "p99_ms": 446.368,
+          "stdev_ms": 31.926
+        }
+      },
+      "conditions_disclosed_by_the_operator": "CockroachDB Cloud Basic, aws-ap-southeast-1, driven from a workstation 223 ms away. All 100 gate runs returned verdict PROVEN with beat 4 admitting on SQLSTATE 00000. BLOCKER 1's 23503 disposition_signer_credential_id_fkey reproduced through this same path at 05:55 UTC and another wave landed the fix (a new module, credentials.py, plus gate_run.py) at 06:07 UTC, before this run started. Beat 4 now performs the merge CALL and the merge-record read that the refusing path skipped, so these figures are for the SLOWER of the two regimes.",
+      "connection_state_probe": {
+        "finding": "transitions._prepare (transitions.py:293-294) and _demo_gate_run (:1032-1033) set conn.autocommit = False on the shared module-scope connection and never restore it; db.py:306 opened it autocommit=True and health.py:106 documents that assumption. On a warm container the next non-gate-run request is stranded INTRANS.",
+        "health_after_gate_run_detail": "",
+        "health_after_gate_run_is_200": true,
+        "owner": "NOT owned by the cost-bound wave; recorded here because it was measured here",
+        "sequence": [
+          "POST /v1/demo/gate-run",
+          "GET /v1/health",
+          "POST /v1/demo/gate-run"
+        ],
+        "statuses": [
+          200,
+          200,
+          200
+        ]
+      },
+      "database_target": {
+        "cluster": "CockroachDB Cloud, Basic, aws-ap-southeast-1",
+        "database": "mainline_demo",
+        "host": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud",
+        "host_sha256_12": "d390361c910f",
+        "port": 26257,
+        "scheme": "postgresql",
+        "seed": "verticals/mainline/db/seeds/demo/demo_world.sql (the cloud seed)"
+      },
+      "reached": true,
+      "scenario_env_published_to_the_emulator": [
+        "MAINLINE_DEMO_COUNTERSIGNER_SUB",
+        "MAINLINE_DEMO_PERMIT_ID",
+        "MAINLINE_DEMO_SIGNER_SUB",
+        "MAINLINE_DEMO_SITE_ID"
+      ],
+      "target": "cloud"
+    },
+    "local": {
+      "beats": {
+        "asset_js": {
+          "beat": "asset_js",
+          "cold_first_request_ms": 14.809,
+          "cold_status": 200,
+          "expect_status": 200,
+          "method": "GET",
+          "path": "/assets/index-BjAGxrVJ.js",
+          "response_bytes": [
+            433396
+          ],
+          "response_bytes_stable": true,
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": false,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 26.774,
+            "mean_ms": 6.178,
+            "min_ms": 4.497,
+            "n": 200,
+            "p50_ms": 5.66,
+            "p95_ms": 8.451,
+            "p99_is_max": false,
+            "p99_ms": 20.05,
+            "stdev_ms": 2.448
+          },
+          "warmup_discarded": 5,
+          "why": "largest non-map object in the served tree (M5: 433,396 B)"
+        },
+        "asset_map": {
+          "beat": "asset_map",
+          "cold_first_request_ms": 32.793,
+          "cold_status": 200,
+          "expect_status": 200,
+          "method": "GET",
+          "path": "/assets/index-BjAGxrVJ.js.map",
+          "response_bytes": [
+            1554168
+          ],
+          "response_bytes_stable": true,
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": false,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 35.683,
+            "mean_ms": 15.226,
+            "min_ms": 12.574,
+            "n": 200,
+            "p50_ms": 14.106,
+            "p95_ms": 23.405,
+            "p99_is_max": false,
+            "p99_ms": 32.585,
+            "stdev_ms": 3.834
+          },
+          "warmup_discarded": 5,
+          "why": "largest emittable object in the served tree (M4: 1,554,168 B)"
+        },
+        "gate_run": {
+          "beat": "gate_run",
+          "cold_first_request_ms": 1432.009,
+          "cold_status": 200,
+          "expect_status": 200,
+          "gate_run": {
+            "beat_elapsed_ms": {
+              "admit": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 1218.061,
+                "mean_ms": 450.016,
+                "min_ms": 306.132,
+                "n": 100,
+                "p50_ms": 395.256,
+                "p95_ms": 725.955,
+                "p99_is_max": false,
+                "p99_ms": 1118.825,
+                "stdev_ms": 160.804
+              },
+              "merge": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 1086.608,
+                "mean_ms": 503.365,
+                "min_ms": 338.112,
+                "n": 100,
+                "p50_ms": 431.795,
+                "p95_ms": 928.591,
+                "p99_is_max": false,
+                "p99_ms": 1049.148,
+                "stdev_ms": 178.616
+              },
+              "projection_drift_attack": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 1092.612,
+                "mean_ms": 485.987,
+                "min_ms": 336.444,
+                "n": 100,
+                "p50_ms": 417.837,
+                "p95_ms": 836.692,
+                "p99_is_max": false,
+                "p99_ms": 1032.202,
+                "stdev_ms": 161.326
+              },
+              "read": {
+                "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+                "max_ms": 0.097,
+                "mean_ms": 0.012,
+                "min_ms": 0.007,
+                "n": 100,
+                "p50_ms": 0.009,
+                "p95_ms": 0.018,
+                "p99_is_max": false,
+                "p99_ms": 0.02,
+                "stdev_ms": 0.009
+              }
+            },
+            "beat_sqlstate_counts": {
+              "admit": {
+                "00000": 100
+              },
+              "merge": {
+                "23514": 100
+              },
+              "projection_drift_attack": {
+                "P0001": 100
+              },
+              "read": {
+                "00000": 100
+              }
+            },
+            "failure_counts": {},
+            "one_regime": true,
+            "outcome_counts": {
+              "completed": 100
+            },
+            "persisted_counts": {
+              "False": 100
+            },
+            "samples_parsed": 100,
+            "samples_unparsed": 0,
+            "verdict_counts": {
+              "PROVEN": 100
+            }
+          },
+          "harness_overhead_p50_ms": 2.959,
+          "method": "POST",
+          "path": "/v1/demo/gate-run",
+          "response_bytes": [
+            9362,
+            9363,
+            9364,
+            9365,
+            9366,
+            9367,
+            9368
+          ],
+          "response_bytes_stable": false,
+          "server_reported_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 3124.952,
+            "mean_ms": 1510.121,
+            "min_ms": 1082.504,
+            "n": 100,
+            "p50_ms": 1336.646,
+            "p95_ms": 2698.886,
+            "p99_is_max": false,
+            "p99_ms": 2969.666,
+            "stdev_ms": 476.571
+          },
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": true,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 3130.836,
+            "mean_ms": 1513.809,
+            "min_ms": 1084.981,
+            "n": 100,
+            "p50_ms": 1339.605,
+            "p95_ms": 2705.152,
+            "p99_is_max": false,
+            "p99_ms": 2974.728,
+            "stdev_ms": 477.343
+          },
+          "warmup_discarded": 5,
+          "why": "the headline four-beat gate run; the beat that decides the timeout"
+        },
+        "health": {
+          "beat": "health",
+          "cold_first_request_ms": 18.968,
+          "cold_status": 200,
+          "expect_status": 200,
+          "harness_overhead_p50_ms": 0.811,
+          "method": "GET",
+          "path": "/v1/health",
+          "response_bytes": [
+            388,
+            389
+          ],
+          "response_bytes_stable": false,
+          "server_reported_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 12.2,
+            "mean_ms": 7.565,
+            "min_ms": 5.1,
+            "n": 100,
+            "p50_ms": 7.4,
+            "p95_ms": 9.5,
+            "p99_is_max": false,
+            "p99_ms": 10.2,
+            "stdev_ms": 1.212
+          },
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": true,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 13.07,
+            "mean_ms": 8.39,
+            "min_ms": 5.703,
+            "n": 100,
+            "p50_ms": 8.211,
+            "p95_ms": 10.381,
+            "p99_is_max": false,
+            "p99_ms": 11.092,
+            "stdev_ms": 1.257
+          },
+          "warmup_discarded": 5,
+          "why": "the cheapest database beat: one connection, one fingerprint read"
+        },
+        "index": {
+          "beat": "index",
+          "cold_first_request_ms": 9.081,
+          "cold_status": 200,
+          "expect_status": 200,
+          "method": "GET",
+          "path": "/",
+          "response_bytes": [
+            4655
+          ],
+          "response_bytes_stable": true,
+          "status_ok": true,
+          "statuses_observed": [
+            200
+          ],
+          "touches_database": false,
+          "wall_ms": {
+            "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+            "max_ms": 1.833,
+            "mean_ms": 1.264,
+            "min_ms": 1.048,
+            "n": 200,
+            "p50_ms": 1.231,
+            "p95_ms": 1.505,
+            "p99_is_max": false,
+            "p99_ms": 1.706,
+            "stdev_ms": 0.144
+          },
+          "warmup_discarded": 5,
+          "why": "the document a judge's browser asks for first"
+        }
+      },
+      "cold": {
+        "first_connect_ms": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 8.144,
+          "mean_ms": 7.639,
+          "min_ms": 7.162,
+          "n": 5,
+          "p50_ms": 7.804,
+          "p95_ms": 8.144,
+          "p99_is_max": true,
+          "p99_ms": 8.144,
+          "stdev_ms": 0.421
+        },
+        "fresh_interpreter_per_sample": true,
+        "import_psycopg_ms": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 365.579,
+          "mean_ms": 346.304,
+          "min_ms": 315.84,
+          "n": 5,
+          "p50_ms": 353.928,
+          "p95_ms": 365.579,
+          "p99_is_max": true,
+          "p99_ms": 365.579,
+          "stdev_ms": 19.927
+        },
+        "note": "import_psycopg is pure CPU and therefore scales with memory_size; first_connect is dominated by network round trips (TLS handshake) and does not.",
+        "samples": 5,
+        "select_1_round_trip_ms": {
+          "estimator": "nearest-rank (ceil(q*N)-th smallest observation; never interpolated)",
+          "max_ms": 2.192,
+          "mean_ms": 0.885,
+          "min_ms": 0.568,
+          "n": 250,
+          "p50_ms": 0.816,
+          "p95_ms": 1.286,
+          "p99_is_max": false,
+          "p99_ms": 1.88,
+          "stdev_ms": 0.23
+        }
+      },
+      "conditions_disclosed_by_the_operator": "Taken on a workstation shared with seven other workers of the same wave. The local container sat at 162-280 percent CPU for the duration, most of it this harness's own 100 back-to-back gate runs. No other worker held a session on the node during the gate_run sample: checked at 06:40 UTC, the only open transaction was this harness's. An EARLIER run of the same harness overlapped another worker's trappoint-migrate sweep over database w_w6 and its local gate_run p99 came out at 6755 ms against 2975 ms here; that run is not the one reported.",
+      "connection_state_probe": {
+        "finding": "transitions._prepare (transitions.py:293-294) and _demo_gate_run (:1032-1033) set conn.autocommit = False on the shared module-scope connection and never restore it; db.py:306 opened it autocommit=True and health.py:106 documents that assumption. On a warm container the next non-gate-run request is stranded INTRANS.",
+        "health_after_gate_run_detail": "[25P02] current transaction is aborted, commands ignored until end of transaction block",
+        "health_after_gate_run_is_200": false,
+        "owner": "NOT owned by the cost-bound wave; recorded here because it was measured here",
+        "sequence": [
+          "POST /v1/demo/gate-run",
+          "GET /v1/health",
+          "POST /v1/demo/gate-run"
+        ],
+        "statuses": [
+          200,
+          503,
+          200
+        ]
+      },
+      "database_target": {
+        "cluster": "local docker container trappoint-crdb, CockroachDB v26.2.5",
+        "database": "w_w1_cost",
+        "host": "127.0.0.1",
+        "host_sha256_12": "12ca17b49af2",
+        "port": 26257,
+        "scheme": "postgresql",
+        "seed": "the proof seeder (scripts/proof/gate_refusal.py::seed_history)"
+      },
+      "reached": true,
+      "scenario_env_published_to_the_emulator": [
+        "MAINLINE_DEMO_COUNTERSIGNER_SUB",
+        "MAINLINE_DEMO_PERMIT_ID",
+        "MAINLINE_DEMO_SIGNER_SUB",
+        "MAINLINE_DEMO_SITE_ID"
+      ],
+      "target": "local"
+    }
+  },
+  "what_this_is": "wall-clock latency of every demo beat, driven over a real socket through the real mainline_demo_api handler by scripts/deploy/local_furl.py, against two database targets. Nothing was applied, nothing was seeded, nothing was mutated: the gate run rolls its own transaction back."
+}
