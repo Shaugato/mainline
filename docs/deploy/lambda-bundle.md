@@ -11,8 +11,12 @@ each with a `.zip.json` sidecar Terraform reads.
 **Built by:** `scripts/deploy/build_lambda.sh` (POSIX) and `scripts/deploy/build_lambda.ps1`
 (Windows) — twins that produce a **byte-identical** zip.
 **Checked by:** `scripts/deploy/bundle_manifest.py`, which reads the finished zip and nothing else.
-**Evidence:** `evidence/deploy/lambda-bundle.json`. Every number on this page came from a
-command in that file.
+**Evidence:** `evidence/deploy/lambda-bundle.json` for the build-time record, and — for
+every size, count and hash on this page — `bundle_manifest.py --strict --forbid-source-maps`
+re-read out of the **committed packages on 2026-08-14**, plus
+`tests/deploy/test_furl_compression.py` for §4.2, which asserts the serving path over a real
+socket rather than quoting it. Where a figure has not been re-measured against this tree, the
+page says so instead of carrying the old one forward (§3, §4.4).
 
 ---
 
@@ -24,19 +28,24 @@ Function URL**, because this AWS account cannot create a CloudFront distribution
 the evidence bundle and the API, and this zip is that whole origin.
 
 ```
-mainline-demo-api-arm64.zip
-├── mainline_demo_api/           11 files    283 402 B   the handler package
+mainline-demo-api-arm64.zip                             246 entries
+├── mainline_demo_api/           12 files    333 886 B   the handler package
 ├── psycopg/                     85 files    713 024 B   the pure-Python driver
 ├── psycopg_binary/              10 files  8 093 535 B   compiled libpq bindings
 ├── psycopg_binary.libs/         16 files 15 673 536 B   the .so files those need
 ├── psycopg-3.3.4.dist-info/      4 files     12 064 B
 ├── psycopg_binary-3.3.4.dist-info/ 5 files   16 806 B
-└── web/                         75 files  3 571 990 B
-    ├── index.html                                       GET /            (SPA shell)
-    ├── assets/…                                         GET /assets/*    (immutable)
-    ├── .vite/manifest.json                              Vite's build map, unrequested
-    └── bundle/                  26 files    184 312 B   GET /bundle/*    (REPLAY source)
+└── web/                        114 files  1 274 342 B   57 objects, each twice
+    ├── index.html  + index.html.gz                      GET /            (SPA shell)
+    ├── assets/…    + assets/….gz                        GET /assets/*    (immutable)
+    ├── .vite/manifest.json (+ .gz)                      Vite's build map, unrequested
+    └── bundle/                  52 files    240 774 B   GET /bundle/*    (REPLAY source)
 ```
+
+**`web/` is 114 entries and 57 objects.** Every compressible entry ships twice — once as
+itself and once as a `<name>.gz` sibling — and the sibling is what a browser actually
+receives. `.gz` is a *representation*, not a second object: it has no URL, no media type
+and no cache entry of its own. §4 is the whole of that argument, measured.
 
 `web/` is the **contents** of `verticals/mainline/apps/console/dist/`; `web/bundle/` is
 `verticals/mainline/apps/console/fixtures/bundles/demo-cloud/`, the EvidenceBundle captured
@@ -59,10 +68,17 @@ carry this month. No web framework. No `tzdata`. No `__pycache__`, no `RECORD`.
 
 | | zipped | ceiling | unzipped | ceiling | entries |
 |---|---|---|---|---|---|
-| **arm64** | 7 989 296 B (7.62 MB) | 52 428 800 (50 MB) | 28 364 357 B (27.05 MB) | 262 144 000 (250 MB) | 206 |
-| **x86_64** | 6 403 826 B (6.11 MB) | 52 428 800 (50 MB) | 23 598 529 B (22.51 MB) | 262 144 000 (250 MB) | 205 |
+| **arm64** | 7 646 264 B (7.29 MB) | 52 428 800 (50 MB) | 26 117 193 B (24.91 MB) | 262 144 000 (250 MB) | 246 |
+| **x86_64** | 6 060 794 B (5.78 MB) | 52 428 800 (50 MB) | 21 351 365 B (20.36 MB) | 262 144 000 (250 MB) | 245 |
 
-Headroom is 44.4 MB zipped and 233.8 MB unzipped on arm64. Both limits are **asserted on
+`sha256 09af589cf3b73e1708b2e3209a41ac3e2078db3df916e39827b2cfe930f45914` (arm64),
+`116c14eb23c7b4871c819996775b271bba2e544a49de623892cef5ca09011a4c` (x86_64) — both read out
+of the committed packages by `bundle_manifest.py --strict --forbid-source-maps` on
+**2026-08-14**, which is also where every other number on this page comes from. The entry
+count rose from 206 because the `.gz` siblings are now written (§4) and the zipped size fell
+anyway because the source maps are now stripped by default (§4.3).
+
+Headroom is 44.8 MB zipped and 236.0 MB unzipped on arm64. Both limits are **asserted on
 every build**, not assumed: the builder refuses, and deletes the zip it just wrote, rather
 than leave an artefact that cannot be uploaded.
 
@@ -122,12 +138,29 @@ Two more fix the *inputs* rather than the writer: `pip --no-compile`, so no `.py
 source mtime; and `pip install --no-index --find-links <wheelhouse>`, so the wheels are
 copied from bytes already on disk rather than re-resolved against PyPI on each build.
 
-**Measured, three builds per architecture, across both shells and three output directories:**
+**Measured, three builds per architecture, across both shells and three output directories,
+on 2026-08-10:**
 
 ```
 arm64   c85d7f00a5576e412dfb0124ad93c40104757011179d0029361d9a8db5b8a4b0   (x3)
 x86_64  bd7f188df9118085e6520ed7d8893e353cd7d82531ced370fabaa1b241d709ba   (x3)
 ```
+
+**Those are not the hashes of the packages committed today**, and the difference is
+content, not clock: the siblings of §4 were added and the source maps were removed, both of
+which change what is packed. The current artefacts are
+
+```
+arm64   09af589cf3b73e1708b2e3209a41ac3e2078db3df916e39827b2cfe930f45914
+x86_64  116c14eb23c7b4871c819996775b271bba2e544a49de623892cef5ca09011a4c
+```
+
+read from the committed zips and from their own `.zip.json` sidecars, which agree. **The
+three-builds-per-architecture repetition has not been re-run against this tree**, so what is
+measured today is the six determinism properties above — re-read out of these artefacts by
+`bundle_manifest.py --strict`, `VERDICT PASS` on both — and not a fresh reproducibility
+run. Re-running it is two commands per shell; until somebody does, this page claims the
+properties and not the repetition.
 
 ### The two builders are the same program
 
@@ -137,7 +170,7 @@ on Windows, and a heredoc keeps the trailing newline while a here-string drops i
 PowerShell side appends one — and both **print its sha256**:
 
 ```
-build_lambda: packer    sha256 eab069d1eb460c71b01d506acdab6eabfd53713cef4beafa34953c9c47e30711
+build_lambda: packer    sha256 9e0847f8001144e151e032ad63404a2bda5b641fed088be29d918ded29c31aa6
 ```
 
 Two builders that print the same *zip* hash could still be two different programs that agree
@@ -147,27 +180,99 @@ could load and the other could not is a reproducibility bug waiting to happen.
 
 ---
 
-## 4. Source maps are kept, on purpose
+## 4. The 57 `.gz` siblings — what they are, and that they are served
 
-`web/assets/*.js.map` is **18 files, 2 586 960 B** — about 660 KB of the compressed package.
-They stay.
+### 4.1 What ships
 
-A judge who opens DevTools on the demo should see component names and real stack frames
-rather than `surface-Bv8EMlU6.js:1:20481`. This project's entire argument is that its claims
-are checkable by the person reading them; shipping a deliberately unreadable bundle to save
-bytes we are not short of would contradict it in the one place a judge is most likely to
-look. `static_site.py` already names `.map` explicitly in its media-type table so DevTools
-accepts them.
+| | entries | bytes |
+|---|---|---|
+| identity objects under `web/` | 57 | 985 030 |
+| `<name>.gz` siblings | 57 | 289 312 |
+| of which source maps | 0 | 0 |
+| largest identity | | 433 396 — `web/assets/index-BjAGxrVJ.js` |
+| largest sibling | | 124 127 — the same object, compressed |
 
-The escape hatch is measured, not hypothetical:
+**Every identity object has a sibling and every sibling has an identity object**: 57 and 57,
+no orphan either way. The siblings are 29.4 % of the identity bytes — 695 718 B less on the
+wire per full page load — and **not one of them is larger than the object it stands for**,
+so there is no case in which negotiating costs bytes.
 
-| | entries | zipped | unzipped |
-|---|---|---|---|
-| arm64, maps kept | 206 | 7 989 296 | 28 364 357 |
-| arm64, `--strip-source-maps` | 188 | 7 328 963 | 25 777 397 |
+`scripts/deploy/build_lambda.{sh,ps1}` writes them, one pass over the staged tree, at gzip
+level 9 with `mtime 0` and no filename in the gzip header, so the sibling is a pure function
+of its input and the zip stays byte-reproducible. Only the ten suffixes
+`static_site.MEDIA_TYPES` marks as text, JavaScript, JSON, SVG or wasm get one; `.png`,
+`.jpg`, `.webp`, `.ico`, `.woff` and `.woff2` are already-compressed containers, where a
+sibling would cost package bytes and save nothing.
 
-`sha256 6b35e89f25a1d273bf3d119b634323a0653c6f4e440f23072de8b33ecccb1f49` for the stripped
-build — a different artefact, deterministic in its own right.
+### 4.2 THE SIBLINGS ARE SERVED, and this is the code path
+
+They are not dead weight and they are not a package the origin ignores. The path, end to
+end, in `verticals/mainline/apps/demo-api/src/mainline_demo_api/`:
+
+| step | code | what it decides |
+|---|---|---|
+| 1 | `app._accept_encoding(event)` | pulls `accept-encoding` out of the Function URL event, case-insensitively; absent, empty or non-string → `None` |
+| 2 | `app.handler` → `static_site.serve(method, path, accept_encoding=…)` (`app.py:501`) | the header reaches the static surface on **every** non-`/v1` request |
+| 3 | `static_site.accepts_gzip(header)` | RFC 9110 §12.5.3: `gzip;q=0` is a **refusal**, `x-gzip` is a spelling of `gzip`, `*` permits it, an explicit `gzip;q=0` beside a `*` still refuses |
+| 4 | `static_site._sibling(path, header)` | returns `<name>.gz` when the caller permits gzip **and** the file exists; `None` otherwise, so a build that stopped pre-compressing degrades to a bigger bill, never to a 404 |
+| 5 | `static_site._file(...)` | the sibling's **bytes**, `content-length` and `content-encoding: gzip`; the **identity** object's media type, cache policy and name |
+| 6 | `static_site._vary(...)` | `vary: accept-encoding` on every response whose bytes depend on the header — including the 413 |
+| 7 | `static_site._answer(...)` | a direct request for any path ending `.gz` is a **404**, decided from the request before the web root is even consulted |
+
+Two of those steps are the ones that are easy to get wrong and expensive to get wrong:
+
+* **Step 5 keeps the media type.** A `.js.gz` is JavaScript that arrived compressed, not a
+  new format. Served as `application/gzip` it is a module the browser refuses to run.
+* **Steps 6 and 7 are the same bug seen from two sides.** Without `vary`, a shared cache
+  replays the compressed answer to the next client that asked for identity. With a URL of
+  its own, the `.gz` becomes a second name for one set of bytes — a second cache entry, and
+  a browser holding gzip nobody told it to inflate. So the sibling has **no** URL: the only
+  way to reach those bytes is `accept-encoding: gzip` on the identity path.
+
+**The proof, not the claim.** `tests/deploy/test_furl_compression.py` runs the real handler
+behind the real Function URL emulator (`scripts/deploy/local_furl.py`) over a **real TCP
+socket** and asserts it for **all 57**, three exchanges each: the gzip request answers 200
+with `content-encoding: gzip`, the sibling's exact byte count, `vary`, and a body that
+inflates to the identity object byte for byte; the identity request answers with the *same*
+media type and the identity bytes; and `<path>.gz` answers 404. The two named objects also
+get the token-matching table — twelve `Accept-Encoding` values including `x-gzip-nope`,
+`notgzip` and `gzipper` — and the five spellings of `gzip;q=0`. 30 controls, and the file
+refuses to run at all against `console/dist`, which carries **zero** siblings.
+
+### 4.3 What would have to change for them to become dead weight
+
+Each of these is currently false, and each has a control that fails if it becomes true:
+
+| if this changed | the siblings become | caught by |
+|---|---|---|
+| `app.py` stopped passing `accept_encoding=` to `serve()` | dead — `serve()` defaults to `None`, which means identity, so the origin would ship 289 KB it never sends | the sweep: all 57 answer without `content-encoding` |
+| `accepts_gzip()` started refusing valid headers | dead for the clients it refuses | the twelve-value token table |
+| a sibling grew past `MAINLINE_MAX_RESPONSE_BYTES` (139 264 B today) | worse than dead — that object stops being servable **at all**, in either representation | the sweep asserts exactly one object is over the ceiling in identity and **none** in gzip |
+| the console build started emitting `.gz` files itself | a build refusal, not dead bytes — `REFUSED [GZ COLLISION]` | the builder, before `pip` runs |
+| an identity object were dropped but its sibling kept | genuinely dead — an orphan `.gz` has no URL under interface I1 and nothing can ever reach it | the inventory control: `orphans == []` |
+
+The last row is the only case where *stop shipping them* would be the right answer, and it
+is the one case that cannot happen without the inventory control failing first.
+
+### 4.4 Source maps are stripped by default
+
+`--strip-source-maps` **is the default** in both builders; `--keep-source-maps` is the
+opt-out, and the flag is still accepted so an old command line keeps working. The committed
+packages carry **0** source maps, gated rather than observed:
+`bundle_manifest.py --forbid-source-maps` is run on every build and refuses the artefact if
+one appears.
+
+This reversed an earlier decision, and the reason is the one this page has to state plainly:
+a judge opening DevTools benefits from maps, but `web/assets/*.js.map` is **18 files,
+2 586 960 B** in the input tree — **72.4 %** of the served tree — and this origin's cost is
+dominated by what it puts on the wire under an unauthenticated URL. The maps are still one
+flag away for a debug build; the bill is not.
+
+**No maps-kept build has been measured against the current tree**, so this page publishes no
+zipped-delta figure for one. The 660 333 B contrast that used to sit here was measured
+against a tree with no `.gz` siblings and a smaller handler package, and re-quoting it now
+would be quoting a number about a different artefact. Build one with `--keep-source-maps` if
+you need the comparison; it is deterministic in its own right.
 
 ---
 
@@ -283,14 +388,20 @@ package on `sys.path`, W1's `static_site.serve()` answers:
 
 | request | status |
 |---|---|
-| `GET /` | 200, 4 641 B, `index.html` |
-| `GET /assets/index-BjAGxrVJ.js` | 200, 433 097 B |
-| `GET /bundle/manifest.json` | 200, 8 424 B |
+| `GET /` | 200, 4 655 B, `index.html` |
+| `GET /` with `accept-encoding: gzip` | 200, 2 122 B, `content-encoding: gzip` — §4.2 |
+| `GET /assets/index-BjAGxrVJ.js` with `accept-encoding: gzip` | 200, 124 127 B compressed |
+| `GET /assets/index-BjAGxrVJ.js` identity | **413** — 433 396 B against a 139 264 B wire ceiling |
+| `GET /assets/index-BjAGxrVJ.js.gz` | 404 — the sibling has no URL of its own |
+| `GET /bundle/manifest.json` | 200, 8 435 B |
 | `GET /#/gate` | 200, the SPA fallback |
 | `GET /assets/missing-Xxxx.js` | 404 — an asset miss is never the fallback |
 | `GET /../etc/passwd` | 403 |
 | `GET /%2e%2e%2fetc/passwd` | 403 — decoded exactly once, so this *is* a traversal |
 | `POST /` | 405 |
+
+The first six rows are asserted over a real socket for all 57 objects by
+`tests/deploy/test_furl_compression.py`, not read off one manual run.
 
 ---
 
@@ -298,11 +409,15 @@ package on `sys.path`, W1's `static_site.serve()` answers:
 
 In order. Stop at the first one that fits.
 
-1. **`--strip-source-maps`.** Measured: −660 333 B zipped, −2 586 960 B unzipped, and the
-   console stops being debuggable in DevTools. Cheapest, and reversible.
+1. **`--strip-source-maps` is already spent.** It is the default (§4.4), so it is not a
+   lever you still have; the artefact carries 0 maps. If a package is over the ceiling
+   today, the maps are not why.
 2. **Check what grew.** `bundle_manifest.py <zip> --list` sorted by size answers it in one
-   command. On this package `psycopg_binary.libs/` is 15.7 MB of the 28.4 MB and `web/` is
-   3.6 MB; a surprise elsewhere is a mistake, not a diet problem.
+   command. On this package `psycopg_binary.libs/` is 15.7 MB of the 26.1 MB unzipped and
+   `web/` is 1.27 MB; a surprise elsewhere is a mistake, not a diet problem.
+   **Do not reach for the `.gz` siblings.** They are 289 KB of the package and they are the
+   bytes every browser actually receives (§4.2); deleting them to fit would multiply this
+   origin's egress by 3.4 to save a quarter of a megabyte of upload.
 3. **Do not delete the EvidenceBundle to fit.** It is the demo's answer when the database is
    unreachable (`docs/deploy/replay-fallback.md`). A package that fits by removing the
    fallback has traded the failure mode you can survive for the one you cannot.
@@ -312,7 +427,7 @@ In order. Stop at the first one that fits.
    bucket that D1 deliberately removed from the deploy path.
 5. The 250 MB unzipped ceiling has no flag at all — past it, the function must become a
    container image, which is a different deployment story end to end. Current headroom is
-   233.8 MB, so this is a note for a successor, not a plan.
+   236.0 MB, so this is a note for a successor, not a plan.
 
 ---
 

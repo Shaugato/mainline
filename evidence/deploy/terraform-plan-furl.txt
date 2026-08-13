@@ -1,12 +1,24 @@
-module.api[0].data.aws_region.current: Reading...
-module.api[0].data.aws_caller_identity.current: Reading...
-module.api[0].data.aws_partition.current: Reading...
+module.guard[0].data.archive_file.responder: Reading...
+module.guard[0].data.archive_file.responder: Read complete after 0s [id=57394f8512c9316c85f7e7eb743ba17a92cd8e62]
+module.guard[0].data.aws_iam_policy_document.responder_assume: Reading...
 module.api[0].data.aws_iam_policy_document.assume_role: Reading...
+module.guard[0].data.aws_caller_identity.current: Reading...
 data.aws_caller_identity.current: Reading...
-module.api[0].data.aws_partition.current: Read complete after 0s [id=aws]
-module.api[0].data.aws_region.current: Read complete after 0s [id=ap-southeast-1]
+module.api[0].data.aws_caller_identity.current: Reading...
+module.guard[0].data.aws_partition.current: Reading...
+module.api[0].data.aws_region.current: Reading...
+module.guard[0].data.aws_region.current: Reading...
+module.guard[0].data.aws_partition.current: Read complete after 0s [id=aws]
+module.guard[0].data.aws_iam_policy_document.responder_assume: Read complete after 0s [id=3214165256]
 module.api[0].data.aws_iam_policy_document.assume_role: Read complete after 0s [id=3214165256]
-data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
+module.api[0].data.aws_region.current: Read complete after 0s [id=ap-southeast-1]
+module.guard[0].data.aws_region.current: Read complete after 0s [id=ap-southeast-1]
+module.api[0].data.aws_partition.current: Reading...
+module.api[0].data.aws_partition.current: Read complete after 0s [id=aws]
+data.aws_caller_identity.current: Read complete after 0s [id=0229REDACTED8246]
+module.guard[0].data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
+module.guard[0].data.aws_iam_policy_document.responder_stop: Reading...
+module.guard[0].data.aws_iam_policy_document.responder_stop: Read complete after 0s [id=2732154767]
 module.api[0].data.aws_caller_identity.current: Read complete after 1s [id=0229REDACTED8246]
 module.api[0].data.aws_iam_policy_document.dsn_access: Reading...
 module.api[0].data.aws_iam_policy_document.dsn_access: Read complete after 0s [id=3329886133]
@@ -14,6 +26,7 @@ module.api[0].data.aws_iam_policy_document.dsn_access: Read complete after 0s [i
 Terraform used the selected providers to generate the following execution
 plan. Resource actions are indicated with the following symbols:
   + create
+ <= read (data resources)
 
 Terraform will perform the following actions:
 
@@ -52,6 +65,7 @@ Terraform will perform the following actions:
   # module.api[0].aws_cloudwatch_metric_alarm.concurrency will be created
   + resource "aws_cloudwatch_metric_alarm" "concurrency" {
       + actions_enabled                       = true
+      + alarm_actions                         = (known after apply)
       + alarm_description                     = "Abuse tripwire: more than 8 concurrent Lambda executions in ap-southeast-1, against a measured account ceiling of 10. A judging session is a handful of browsers making four requests each; this threshold is not reachable by legitimate use of the demo. ACCOUNT-LEVEL, NOT PER-FUNCTION: no FunctionName dimension, because at reserved_concurrent_executions = -1 Lambda does not dependably publish the per-function metric. `aws lambda get-account-settings --region ap-southeast-1` reports AccountUsage.FunctionCount = 0, so this function is the only one in the region and the account aggregate IS its concurrency. If a second function ever lands in ap-southeast-1, this becomes a genuine account aggregate and must be revisited."
       + alarm_name                            = "mainline-demo-api-concurrency"
       + arn                                   = (known after apply)
@@ -81,7 +95,8 @@ Terraform will perform the following actions:
   # module.api[0].aws_cloudwatch_metric_alarm.duration_p99 will be created
   + resource "aws_cloudwatch_metric_alarm" "duration_p99" {
       + actions_enabled                       = true
-      + alarm_description                     = "p99 duration is approaching the 15s function timeout. On this stack that almost always means the pgwire round trip to CockroachDB Cloud got slow, not that the handler did - `/v1/health` reports the connect time separately, which is the first thing to look at."
+      + alarm_actions                         = (known after apply)
+      + alarm_description                     = "p99 duration is approaching the 14s function timeout. On this stack that almost always means the pgwire round trip to CockroachDB Cloud got slow, not that the handler did - `/v1/health` reports the connect time separately, which is the first thing to look at."
       + alarm_name                            = "mainline-demo-api-duration-p99"
       + arn                                   = (known after apply)
       + comparison_operator                   = "GreaterThanThreshold"
@@ -106,13 +121,14 @@ Terraform will perform the following actions:
           + "managed_by" = "terraform"
           + "project"    = "mainline"
         }
-      + threshold                             = 12000
+      + threshold                             = 13500
       + treat_missing_data                    = "missing"
     }
 
   # module.api[0].aws_cloudwatch_metric_alarm.errors will be created
   + resource "aws_cloudwatch_metric_alarm" "errors" {
       + actions_enabled                       = true
+      + alarm_actions                         = (known after apply)
       + alarm_description                     = "Any handler error at all in a 5-minute window. The demo API is supposed to answer refusals with a 200 and a REFUSED verdict, and failures with a JSON problem document - so a Lambda `Errors` datapoint means the handler RAISED, which it is written never to do."
       + alarm_name                            = "mainline-demo-api-errors"
       + arn                                   = (known after apply)
@@ -145,6 +161,7 @@ Terraform will perform the following actions:
   # module.api[0].aws_cloudwatch_metric_alarm.throttles will be created
   + resource "aws_cloudwatch_metric_alarm" "throttles" {
       + actions_enabled                       = true
+      + alarm_actions                         = (known after apply)
       + alarm_description                     = "Lambda is refusing invocations: the concurrency ceiling is biting. At reserved_concurrent_executions = -1 there is no per-function reservation, so this means the ACCOUNT ceiling of 10 in ap-southeast-1 was reached - do not go looking for a per-function cap to raise. Either the demo is under more load than a judging session produces, or something is holding invocations open; the -concurrency alarm at 8 should have fired first. A throttled Function URL invocation reaches the caller as HTTP 429 with no body from the handler, so this is user-visible and undiagnosable from the browser."
       + alarm_name                            = "mainline-demo-api-throttles"
       + arn                                   = (known after apply)
@@ -270,7 +287,7 @@ Terraform will perform the following actions:
       + id                             = (known after apply)
       + invoke_arn                     = (known after apply)
       + last_modified                  = (known after apply)
-      + memory_size                    = 512
+      + memory_size                    = 256
       + package_type                   = "Zip"
       + publish                        = false
       + qualified_arn                  = (known after apply)
@@ -283,7 +300,7 @@ Terraform will perform the following actions:
       + signing_job_arn                = (known after apply)
       + signing_profile_version_arn    = (known after apply)
       + skip_destroy                   = false
-      + source_code_hash               = "yF1/AKVXbkEt+wEkrZPEAQR1cBEXnQApNh2ajbW4pLA="
+      + source_code_hash               = "Ca9YnPO3PhcIsuMgmkGsPiB42z35FuOYJ7LP6TD0WRQ="
       + source_code_size               = (known after apply)
       + tags                           = {
           + "component"  = "demo-api"
@@ -295,24 +312,32 @@ Terraform will perform the following actions:
           + "managed_by" = "terraform"
           + "project"    = "mainline"
         }
-      + timeout                        = 15
+      + timeout                        = 14
       + version                        = (known after apply)
 
       + environment {
           + variables = {
-              + "LOG_LEVEL"                   = "INFO"
-              + "MAINLINE_DEMO_DATABASE"      = "mainline_demo"
-              + "MAINLINE_DEMO_PERMIT_ID"     = "dec0de00-0006-4000-8000-000000000001"
-              + "MAINLINE_DSN_PARAM"          = "/mainline/demo/cockroach_dsn"
-              + "MAINLINE_SCENARIO_PERMIT_ID" = "dec0de00-0006-4000-8000-000000000001"
-              + "MAINLINE_WEB_ROOT"           = "/var/task/web"
+              + "LOG_LEVEL"                       = "WARN"
+              + "MAINLINE_DEMO_COUNTERSIGNER_SUB" = "demo.countersigner"
+              + "MAINLINE_DEMO_DATABASE"          = "mainline_demo"
+              + "MAINLINE_DEMO_PERMIT_ID"         = "dec0de00-0006-4000-8000-000000000001"
+              + "MAINLINE_DEMO_SIGNER_SUB"        = "demo.signer"
+              + "MAINLINE_DSN_PARAM"              = "/mainline/demo/cockroach_dsn"
+              + "MAINLINE_LOG_BUDGET_BYTES"       = "4096"
+              + "MAINLINE_MAX_RESPONSE_BYTES"     = "139264"
+              + "MAINLINE_RATE_GLOBAL_BURST"      = "100"
+              + "MAINLINE_RATE_GLOBAL_RPS"        = "10"
+              + "MAINLINE_RATE_IP_BURST"          = "50"
+              + "MAINLINE_RATE_IP_RPS"            = "5"
+              + "MAINLINE_SCENARIO_PERMIT_ID"     = "dec0de00-0006-4000-8000-000000000001"
+              + "MAINLINE_WEB_ROOT"               = "/var/task/web"
             }
         }
 
       + ephemeral_storage (known after apply)
 
       + logging_config {
-          + application_log_level = "INFO"
+          + application_log_level = "WARN"
           + log_format            = "JSON"
           + log_group             = "/aws/lambda/mainline-demo-api"
           + system_log_level      = "WARN"
@@ -333,41 +358,577 @@ Terraform will perform the following actions:
       + url_id             = (known after apply)
     }
 
-Plan: 11 to add, 0 to change, 0 to destroy.
+  # module.guard[0].data.aws_iam_policy_document.topic will be read during apply
+  # (config refers to values not yet known)
+ <= data "aws_iam_policy_document" "topic" {
+      + id            = (known after apply)
+      + json          = (known after apply)
+      + minified_json = (known after apply)
+
+      + statement {
+          + actions   = [
+              + "SNS:AddPermission",
+              + "SNS:DeleteTopic",
+              + "SNS:GetTopicAttributes",
+              + "SNS:ListSubscriptionsByTopic",
+              + "SNS:Publish",
+              + "SNS:RemovePermission",
+              + "SNS:SetTopicAttributes",
+              + "SNS:Subscribe",
+            ]
+          + effect    = "Allow"
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "AccountOwnerManagesThisTopic"
+
+          + condition {
+              + test     = "StringEquals"
+              + values   = [
+                  + "0229REDACTED8246",
+                ]
+              + variable = "AWS:SourceOwner"
+            }
+
+          + principals {
+              + identifiers = [
+                  + "*",
+                ]
+              + type        = "AWS"
+            }
+        }
+      + statement {
+          + actions   = [
+              + "SNS:Publish",
+            ]
+          + effect    = "Allow"
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "AwsBudgetsMayPublishAStop"
+
+          + condition {
+              + test     = "ArnLike"
+              + values   = [
+                  + "arn:aws:budgets::0229REDACTED8246:*",
+                ]
+              + variable = "aws:SourceArn"
+            }
+          + condition {
+              + test     = "StringEquals"
+              + values   = [
+                  + "0229REDACTED8246",
+                ]
+              + variable = "aws:SourceAccount"
+            }
+
+          + principals {
+              + identifiers = [
+                  + "budgets.amazonaws.com",
+                ]
+              + type        = "Service"
+            }
+        }
+      + statement {
+          + actions   = [
+              + "SNS:Publish",
+            ]
+          + effect    = "Allow"
+          + resources = [
+              + (known after apply),
+            ]
+          + sid       = "TheseThreeAlarmsMayPublishAStop"
+
+          + condition {
+              + test     = "ArnLike"
+              + values   = [
+                  + (known after apply),
+                  + (known after apply),
+                  + (known after apply),
+                ]
+              + variable = "aws:SourceArn"
+            }
+
+          + principals {
+              + identifiers = [
+                  + "cloudwatch.amazonaws.com",
+                ]
+              + type        = "Service"
+            }
+        }
+    }
+
+  # module.guard[0].aws_budgets_budget.guard will be created
+  + resource "aws_budgets_budget" "guard" {
+      + account_id        = (known after apply)
+      + arn               = (known after apply)
+      + budget_type       = "COST"
+      + id                = (known after apply)
+      + limit_amount      = "25.00"
+      + limit_unit        = "USD"
+      + name              = "mainline-demo-api-guard"
+      + name_prefix       = (known after apply)
+      + tags              = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all          = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + time_period_end   = "2087-06-15_00:00"
+      + time_period_start = "2026-08-01_00:00"
+      + time_unit         = "MONTHLY"
+
+      + cost_filter {
+          + name   = "Service"
+          + values = [
+              + "AWS Lambda",
+              + "AWS Data Transfer",
+              + "AmazonCloudWatch",
+            ]
+        }
+
+      + cost_types {
+          + include_credit             = false
+          + include_discount           = true
+          + include_other_subscription = true
+          + include_recurring          = true
+          + include_refund             = false
+          + include_subscription       = true
+          + include_support            = true
+          + include_tax                = true
+          + include_upfront            = true
+          + use_amortized              = false
+          + use_blended                = false
+        }
+
+      + notification {
+          + comparison_operator        = "GREATER_THAN"
+          + notification_type          = "ACTUAL"
+          + subscriber_email_addresses = []
+          + subscriber_sns_topic_arns  = (known after apply)
+          + threshold                  = 100
+          + threshold_type             = "PERCENTAGE"
+        }
+    }
+
+  # module.guard[0].aws_cloudwatch_log_group.responder will be created
+  + resource "aws_cloudwatch_log_group" "responder" {
+      + arn                         = (known after apply)
+      + deletion_protection_enabled = (known after apply)
+      + id                          = (known after apply)
+      + log_group_class             = (known after apply)
+      + name                        = "/aws/lambda/mainline-demo-api-guard-responder"
+      + name_prefix                 = (known after apply)
+      + region                      = "ap-southeast-1"
+      + retention_in_days           = 30
+      + skip_destroy                = false
+      + tags                        = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                    = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+    }
+
+  # module.guard[0].aws_cloudwatch_metric_alarm.invocations_burst will be created
+  + resource "aws_cloudwatch_metric_alarm" "invocations_burst" {
+      + actions_enabled                       = true
+      + alarm_actions                         = (known after apply)
+      + alarm_description                     = (known after apply)
+      + alarm_name                            = "mainline-demo-api-invocations-burst"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + datapoints_to_alarm                   = 1
+      + dimensions                            = {
+          + "FunctionName" = "mainline-demo-api"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 1
+      + id                                    = (known after apply)
+      + metric_name                           = "Invocations"
+      + namespace                             = "AWS/Lambda"
+      + period                                = 60
+      + region                                = "ap-southeast-1"
+      + statistic                             = "Sum"
+      + tags                                  = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                              = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + threshold                             = 3000
+      + treat_missing_data                    = "missing"
+    }
+
+  # module.guard[0].aws_cloudwatch_metric_alarm.invocations_hourly will be created
+  + resource "aws_cloudwatch_metric_alarm" "invocations_hourly" {
+      + actions_enabled                       = true
+      + alarm_actions                         = (known after apply)
+      + alarm_description                     = "STOPS THE DEMO. More than 15000 invocations of mainline-demo-api in one hour - the slow burn that paces just under the 60-second line. 15000/h averages 250/min, which is a small fraction of the burst threshold of 3000/min, and that gap is the alarm's entire job. Modelled judging hour: 2,568 invocations for a realistic 8-judge panel, 6,420 for a pessimistic 20-judge one - margins of 5.84x and 2.34x. THIS ALARM CANNOT SEE a flood whose invocations bill slower than 2400 ms. MEASURED, not hypothesised: a gate-run flood at the corrected in-region p50 of 1,392 ms reaches 25,855/h and IS caught; the same flood at the in-region p99 of 3,729 ms reaches only 9,654/h and is not, and a flood at the 14 s function timeout reaches 2,571/h and is not. That band is invisible to both invocation alarms and costs at most USD 4.61/day; the AWS Budgets leg is what bounds it, on an 8-24 h Cost Explorer lag."
+      + alarm_name                            = "mainline-demo-api-invocations-hourly"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + datapoints_to_alarm                   = 1
+      + dimensions                            = {
+          + "FunctionName" = "mainline-demo-api"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 1
+      + id                                    = (known after apply)
+      + metric_name                           = "Invocations"
+      + namespace                             = "AWS/Lambda"
+      + period                                = 3600
+      + region                                = "ap-southeast-1"
+      + statistic                             = "Sum"
+      + tags                                  = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                              = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + threshold                             = 15000
+      + treat_missing_data                    = "missing"
+    }
+
+  # module.guard[0].aws_cloudwatch_metric_alarm.log_ingestion will be created
+  + resource "aws_cloudwatch_metric_alarm" "log_ingestion" {
+      + actions_enabled                       = true
+      + alarm_actions                         = (known after apply)
+      + alarm_description                     = "STOPS THE DEMO. More than 16777216 bytes ingested into /aws/lambda/mainline-demo-api in a 5-minute window. THE ONLY BOUND ON LOG INGESTION IN THIS STACK: log_retention_days = 7 bounds STORAGE, and ingestion is billed on arrival. It uniquely catches bytes DECOUPLED from invocation count - a traceback storm, a debug level left on, a library logging per row - where neither invocation alarm moves. Modelled 5-minute window (corrected 2026-08-13 for a unit slip and a measured byte term): 214 x 956 B = 204,584 B realistic, margin 82.0x; 535 x 956 B = 511,460 B pessimistic, margin 32.8x. A WORKING handler emits ZERO bytes of its own, measured. False-positive floor - a pessimistic panel during a database outage, every invocation logging a full diagnostic - is 535 x 5,261 B = 2,814,635 B, cleared by 5.96x. NAMESPACE AWS/Logs, DIMENSION LogGroupName: a Logs metric, not a Lambda one, so it will not appear beside them in the console."
+      + alarm_name                            = "mainline-demo-api-log-ingestion"
+      + arn                                   = (known after apply)
+      + comparison_operator                   = "GreaterThanThreshold"
+      + datapoints_to_alarm                   = 1
+      + dimensions                            = {
+          + "LogGroupName" = "/aws/lambda/mainline-demo-api"
+        }
+      + evaluate_low_sample_count_percentiles = (known after apply)
+      + evaluation_periods                    = 1
+      + id                                    = (known after apply)
+      + metric_name                           = "IncomingBytes"
+      + namespace                             = "AWS/Logs"
+      + period                                = 300
+      + region                                = "ap-southeast-1"
+      + statistic                             = "Sum"
+      + tags                                  = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                              = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + threshold                             = 16777216
+      + treat_missing_data                    = "missing"
+    }
+
+  # module.guard[0].aws_iam_role.responder will be created
+  + resource "aws_iam_role" "responder" {
+      + arn                   = (known after apply)
+      + assume_role_policy    = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action    = "sts:AssumeRole"
+                      + Effect    = "Allow"
+                      + Principal = {
+                          + Service = "lambda.amazonaws.com"
+                        }
+                      + Sid       = "LambdaAssume"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + create_date           = (known after apply)
+      + description           = "Execution role for the MAINLINE cost-guard responder. Sets reserved concurrency to 0 on exactly one function and writes to one log group. It cannot undo itself."
+      + force_detach_policies = false
+      + id                    = (known after apply)
+      + managed_policy_arns   = (known after apply)
+      + max_session_duration  = 3600
+      + name                  = "mainline-demo-api-guard-responder-exec"
+      + name_prefix           = (known after apply)
+      + path                  = "/"
+      + tags                  = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all              = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + unique_id             = (known after apply)
+
+      + inline_policy (known after apply)
+    }
+
+  # module.guard[0].aws_iam_role_policy.responder_stop will be created
+  + resource "aws_iam_role_policy" "responder_stop" {
+      + id          = (known after apply)
+      + name        = "mainline-demo-api-guard-stop-one-function"
+      + name_prefix = (known after apply)
+      + policy      = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = "lambda:PutFunctionConcurrency"
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:lambda:ap-southeast-1:0229REDACTED8246:function:mainline-demo-api"
+                      + Sid      = "StopExactlyOneFunction"
+                    },
+                  + {
+                      + Action   = "lambda:DeleteFunctionConcurrency"
+                      + Effect   = "Deny"
+                      + Resource = "*"
+                      + Sid      = "AndItMayNeverUndoItself"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
+      + role        = (known after apply)
+    }
+
+  # module.guard[0].aws_iam_role_policy_attachment.responder_basic will be created
+  + resource "aws_iam_role_policy_attachment" "responder_basic" {
+      + id         = (known after apply)
+      + policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      + role       = "mainline-demo-api-guard-responder-exec"
+    }
+
+  # module.guard[0].aws_lambda_function.responder will be created
+  + resource "aws_lambda_function" "responder" {
+      + architectures                  = [
+          + "arm64",
+        ]
+      + arn                            = (known after apply)
+      + code_sha256                    = (known after apply)
+      + description                    = "MAINLINE cost guard: on any message from the guard topic, reserve 0 concurrent executions on mainline-demo-api. Restore is a human running scripts/deploy/kill_switch.sh --restore."
+      + filename                       = "./.terraform/cost-guard-responder.zip"
+      + function_name                  = "mainline-demo-api-guard-responder"
+      + handler                        = "cost_guard_responder.handler"
+      + id                             = (known after apply)
+      + invoke_arn                     = (known after apply)
+      + last_modified                  = (known after apply)
+      + memory_size                    = 128
+      + package_type                   = "Zip"
+      + publish                        = false
+      + qualified_arn                  = (known after apply)
+      + qualified_invoke_arn           = (known after apply)
+      + region                         = "ap-southeast-1"
+      + reserved_concurrent_executions = -1
+      + response_streaming_invoke_arn  = (known after apply)
+      + role                           = (known after apply)
+      + runtime                        = "python3.13"
+      + signing_job_arn                = (known after apply)
+      + signing_profile_version_arn    = (known after apply)
+      + skip_destroy                   = false
+      + source_code_hash               = "rRnOsJbEvD45bERBVx60Ydrd+iCm+854IFySzeZaoZ8="
+      + source_code_size               = (known after apply)
+      + tags                           = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                       = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + timeout                        = 15
+      + version                        = (known after apply)
+
+      + environment {
+          + variables = (known after apply)
+        }
+
+      + ephemeral_storage (known after apply)
+
+      + logging_config {
+          + application_log_level = "INFO"
+          + log_format            = "JSON"
+          + log_group             = "/aws/lambda/mainline-demo-api-guard-responder"
+          + system_log_level      = "WARN"
+        }
+
+      + tracing_config (known after apply)
+    }
+
+  # module.guard[0].aws_lambda_permission.sns_invoke will be created
+  + resource "aws_lambda_permission" "sns_invoke" {
+      + action              = "lambda:InvokeFunction"
+      + function_name       = "mainline-demo-api-guard-responder"
+      + id                  = (known after apply)
+      + principal           = "sns.amazonaws.com"
+      + region              = "ap-southeast-1"
+      + source_arn          = (known after apply)
+      + statement_id        = "AllowGuardTopicInvoke"
+      + statement_id_prefix = (known after apply)
+    }
+
+  # module.guard[0].aws_sns_topic.guard will be created
+  + resource "aws_sns_topic" "guard" {
+      + arn                         = (known after apply)
+      + beginning_archive_time      = (known after apply)
+      + content_based_deduplication = false
+      + display_name                = "MAINLINE demo cost guard"
+      + fifo_throughput_scope       = (known after apply)
+      + fifo_topic                  = false
+      + id                          = (known after apply)
+      + name                        = "mainline-demo-api-guard"
+      + name_prefix                 = (known after apply)
+      + owner                       = (known after apply)
+      + policy                      = (known after apply)
+      + region                      = "ap-southeast-1"
+      + signature_version           = (known after apply)
+      + tags                        = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tags_all                    = {
+          + "component"  = "cost-guard"
+          + "managed_by" = "terraform"
+          + "project"    = "mainline"
+        }
+      + tracing_config              = (known after apply)
+    }
+
+  # module.guard[0].aws_sns_topic_policy.guard will be created
+  + resource "aws_sns_topic_policy" "guard" {
+      + arn    = (known after apply)
+      + id     = (known after apply)
+      + owner  = (known after apply)
+      + policy = (known after apply)
+      + region = "ap-southeast-1"
+    }
+
+  # module.guard[0].aws_sns_topic_subscription.responder will be created
+  + resource "aws_sns_topic_subscription" "responder" {
+      + arn                             = (known after apply)
+      + confirmation_timeout_in_minutes = 1
+      + confirmation_was_authenticated  = (known after apply)
+      + endpoint                        = (known after apply)
+      + endpoint_auto_confirms          = false
+      + filter_policy_scope             = (known after apply)
+      + id                              = (known after apply)
+      + owner_id                        = (known after apply)
+      + pending_confirmation            = (known after apply)
+      + protocol                        = "lambda"
+      + raw_message_delivery            = false
+      + region                          = "ap-southeast-1"
+      + topic_arn                       = (known after apply)
+    }
+
+Plan: 24 to add, 0 to change, 0 to destroy.
 
 Changes to Outputs:
+  + api_alarm_actions_armed         = (known after apply)
+  + api_alarm_arns                  = (known after apply)
+  + api_alarm_names                 = [
+      + "mainline-demo-api-errors",
+      + "mainline-demo-api-throttles",
+      + "mainline-demo-api-duration-p99",
+      + "mainline-demo-api-concurrency",
+    ]
   + api_authorization_type          = "NONE"
   + api_enabled                     = true
   + api_function_name               = "mainline-demo-api"
   + api_function_url                = (known after apply)
   + api_function_url_domain         = (known after apply)
+  + api_ok_actions_armed            = false
+  + api_published_bounds            = {
+      + account_concurrency_ceiling           = 10
+      + application_log_level                 = "WARN"
+      + concurrency_alarm_threshold           = 8
+      + duration_p99_threshold_ms             = 13500
+      + log_budget_bytes                      = 4096
+      + max_response_bytes                    = 139264
+      + memory_size_mb                        = 256
+      + modelled_worst_legitimate_duration_ms = 13022
+      + rate_global_burst                     = 100
+      + rate_global_rps                       = 10
+      + rate_ip_burst                         = 50
+      + rate_ip_rps                           = 5
+      + reserved_concurrent_executions        = -1
+      + system_log_level                      = "WARN"
+      + timeout_seconds                       = 14
+    }
   + aws_account_id                  = "0229REDACTED8246"
   + aws_region                      = "ap-southeast-1"
   + cloudfront_invoke_grant_created = false
   + demo_url                        = (known after apply)
   + demo_url_source                 = "module.api[0].function_url (Lambda Function URL)"
   + deploy_summary                  = {
-      + api_authorization_type  = "NONE"
-      + api_enabled             = true
-      + api_function_name       = "mainline-demo-api"
-      + api_function_url        = (known after apply)
-      + api_function_url_domain = (known after apply)
-      + aws_account_id          = "0229REDACTED8246"
-      + aws_region              = "ap-southeast-1"
-      + demo_url                = (known after apply)
-      + demo_url_source         = "module.api[0].function_url (Lambda Function URL)"
-      + distribution_id         = null
-      + dsn_parameter_name      = "/mainline/demo/cockroach_dsn"
-      + enable_cloudfront       = false
-      + phase                   = "2-furl"
-      + site_bucket             = null
+      + api_alarm_actions_armed       = false
+      + api_authorization_type        = "NONE"
+      + api_enabled                   = true
+      + api_function_name             = "mainline-demo-api"
+      + api_function_url              = (known after apply)
+      + api_function_url_domain       = (known after apply)
+      + aws_account_id                = "0229REDACTED8246"
+      + aws_region                    = "ap-southeast-1"
+      + demo_url                      = (known after apply)
+      + demo_url_source               = "module.api[0].function_url (Lambda Function URL)"
+      + distribution_id               = null
+      + dsn_parameter_name            = "/mainline/demo/cockroach_dsn"
+      + enable_cloudfront             = false
+      + guard_budget_name             = "mainline-demo-api-guard"
+      + guard_enabled                 = true
+      + guard_responder_function_name = "mainline-demo-api-guard-responder"
+      + guard_sns_topic_arn           = (known after apply)
+      + phase                         = "2-furl"
+      + site_bucket                   = null
     }
   + dsn_parameter_name              = "/mainline/demo/cockroach_dsn"
   + enable_cloudfront               = false
+  + guard_alarm_arns                = (known after apply)
+  + guard_alarm_names               = [
+      + "mainline-demo-api-invocations-burst",
+      + "mainline-demo-api-invocations-hourly",
+      + "mainline-demo-api-log-ingestion",
+    ]
+  + guard_budget_name               = "mainline-demo-api-guard"
+  + guard_enabled                   = true
+  + guard_guarded_function_arn      = "arn:aws:lambda:ap-southeast-1:0229REDACTED8246:function:mainline-demo-api"
+  + guard_responder_function_name   = "mainline-demo-api-guard-responder"
+  + guard_sns_topic_arn             = (known after apply)
+  + guard_thresholds                = {
+      + account_concurrency_ceiling  = 10
+      + budget_limit_usd             = 25
+      + burst_visible_ms             = 200
+      + hourly_visible_ms            = 2400
+      + invocations_burst_per_60s    = 3000
+      + invocations_hourly_per_3600s = 15000
+      + invocations_max_3600s        = 3600000
+      + invocations_max_60s          = 60000
+      + log_bytes_max_300s           = 1578300000
+      + log_incoming_bytes_per_300s  = 16777216
+      + restore_action               = "scripts/deploy/kill_switch.sh --restore  (DeleteFunctionConcurrency, NOT a put of -1)"
+      + stop_action                  = "lambda:PutFunctionConcurrency(ReservedConcurrentExecutions=0)"
+    }
 
 ─────────────────────────────────────────────────────────────────────────────
 
-Saved the plan to: tfplan-furl.binary
-
-To perform exactly these actions, run the following command to apply:
-    terraform apply "tfplan-furl.binary"
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.
