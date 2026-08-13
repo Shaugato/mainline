@@ -429,6 +429,16 @@ does **not** attribute to `R1_DEONTIC`.
 is a *measurement-did-not-happen* condition — the same category as §4.4's four — not a
 threshold on the figure. `mainline-mutation run` still exits 0 whatever the kill rate is.
 
+Run [31661375611](https://github.com/Shaugato/mainline/actions/runs/31661375611) —
+**success** at `b4fc60e`, the tightened assertion carrying the answer in the log:
+
+```
+newly surviving once R1_DEONTIC is off: ['deontic_downgrade']
+surviving in BOTH arms, so NOT attributed to R1_DEONTIC: ['comparator_loosening']
+PL-2 OK: the crippled arm is strictly worse, deontic_downgrade survives ONLY with
+R1_DEONTIC off, and every class surviving in both arms is named above.
+```
+
 ---
 
 ## 4. What I could NOT falsify

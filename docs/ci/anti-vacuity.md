@@ -677,6 +677,26 @@ the container started — so it was replaced by asking whether there is anything
 rather than swallowing the answer. A `docker rm` that fails on a container which **does**
 exist is a leaked container on a shared runner and is now visible.
 
+**Run [31661375611](https://github.com/Shaugato/mainline/actions/runs/31661375611) —
+`success`**, at `b4fc60e`, with the tightened assertion and the replaced teardown both
+green:
+
+```
+intact   KILL wilson_lower = 0.909774   surviving: ['comparator_loosening']
+crippled KILL wilson_lower = 0.802164   surviving: ['comparator_loosening', 'deontic_downgrade']
+newly surviving once R1_DEONTIC is off: ['deontic_downgrade']
+surviving in BOTH arms, so NOT attributed to R1_DEONTIC: ['comparator_loosening']
+PL-2 OK: the crippled arm is strictly worse, deontic_downgrade survives ONLY with
+R1_DEONTIC off, and every class surviving in both arms is named above.
+…
+removed mutation-crdb
+```
+
+The fourth line is the one the lane could not previously print, and it is the answer to
+*"can this ratchet be satisfied by a mutant that survives for an unrelated reason?"* — it
+now says, in the log, exactly which classes are surviving for a reason it does not
+attribute to `R1_DEONTIC`.
+
 ### 7.4 What is still unproven here
 
 * **The `envelope` step's cross-check had never run on `master` before run
