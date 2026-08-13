@@ -699,14 +699,48 @@ trusting the note — is the only mechanism this page has.
 PL-2 is push-gated (§1.1, §2.6), so this row comes from the **push** run created by the
 commit that published this document.
 
-* **run:** [PUSH_RUN_ID](https://github.com/Shaugato/mainline/actions/runs/PUSH_RUN_ID) —
-  `ci`, event `push`, `master`
-* **verdict:** PUSH_VERDICT
-* **cause, quoted from the log:**
+* **run:** [31664015447](https://github.com/Shaugato/mainline/actions/runs/31664015447) —
+  `ci`, event `push`, ref `refs/heads/master`, head `52fb799` (the commit that published
+  the revision of this document you are reading)
+* **job:** `PL-2 — the red run is recorded` — **failure**
+* **cause, quoted from the job log, read warm:**
 
 ```
-PUSH_CAUSE
+##[error]RED BY DESIGN, NOT A CI DEFECT. This job asks for the URL of a db run in which the
+CONFORMANCE step itself went red. No such run exists, because CONFORMANCE has never
+executed: db.yml stops one step earlier, at 0058_blocking_check on the missing
+trappoint_ref.event. Recording any other red db run would put a URL in a field that asks
+for a different observation, which is the precise laundering the field was created to
+prevent, so it stays UNRECORDED and this job stays red. WHAT TURNS IT GREEN: the producer
+for trappoint_ref.event lands, the next db push-run on master reaches CONFORMANCE, that
+step is red, and THAT run's URL replaces the word UNRECORDED in
+docs/adr/0005-red-before-green.md. WHAT DOES NOT: any other red db run, deleting the line,
+or relaxing this check.
+PL-2: the db lane's red conform run URL is still UNRECORDED.
+MISSING ARTEFACT: a producer for 'trappoint_ref.event' in
+OWNER: the KERNEL domain — docs/leads/kernel.md 1.1. Recorded in
+CONSEQUENCE: db.yml's 'Apply the reference vertical' step fails, so its
+WHAT FILLS THIS FIELD: the producer lands, the next db run on master reaches
+WHAT DOES NOT: any other red db run. The field names one observation, not a colour.
+##[error]Process completed with exit code 1.
 ```
+
+**How this row was obtained, because `gh run view --log-failed` does not return it.** While
+the rest of the run was still `in_progress`, the run-level log bundle was not yet
+assembled; the job log was fetched directly:
+
+```bash
+gh api "repos/Shaugato/mainline/actions/runs/31664015447/jobs?per_page=100"   --jq '.jobs[] | select(.name|startswith("PL-2")) | .id'      # → 94334650682
+gh api "repos/Shaugato/mainline/actions/jobs/94334650682/logs"
+```
+
+**Every other job in that push run agrees with the dispatched board, checked to
+completion**: `actionlint`, `ruff format`, `mypy`, `import-linter`, `REUSE`, the lockfile,
+the sequence ban, `every checker this lane invokes exists` and
+`RED BY DESIGN, and it must stay red` all green; `pytest --crdb=none` and `CI summary` red,
+the same two as run 31662323414 in §3.1. **PL-2 is the one job the dispatch could not
+reach**, and on a push it is red, by design, with the reason in the annotation — so `ci` is
+red on a push for **three** jobs rather than two, and the third is deliberate.
 
 **Consequence for the board.** `ci` is red on a push for one more reason than on a dispatch,
 and that reason is by design. It does not change §1: `ci` is red either way.
