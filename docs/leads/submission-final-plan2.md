@@ -46,8 +46,7 @@ were not.
 
 ```python
 row = conn.execute(_RESOLVE_SQL, (sc.permit_id,)).fetchone()
-(external_ref, state, head_seq, gate_epoch, open_blocking,
- open_derived, check_id, site_code) = row
+(external_ref, state, head_seq, gate_epoch, open_blocking, open_derived, check_id, site_code) = row
 ```
 
 Unpacking a `dict` yields its **keys**. `check_id` becomes the literal string
