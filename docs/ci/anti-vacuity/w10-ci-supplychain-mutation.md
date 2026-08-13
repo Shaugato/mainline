@@ -380,6 +380,55 @@ on the same tree without that line.
 **`mutation-ratchet` is falsified caveat-free** — the only one of my three lanes for
 which that is true, because it needed no borrowed repair to run at all.
 
+### 3.1 The half W10 did not plant against, measured 2026-08-13 (W8)
+
+The plant above falsified the **arithmetic** half: crippled must be strictly worse. The
+assertion has a second half — *"and names `deontic_downgrade` among its survivors"* — and
+W10's no-op plant killed the run at the first half, so the second was never exercised.
+It was written as
+
+```python
+if "deontic_downgrade" not in hurt_text:
+```
+
+a substring search over the crippled arm's **entire stdout**, under a failure message
+claiming the far stronger *"no `deontic_downgrade` mutant SURVIVED"*. The warm log of run
+[31657329516](https://github.com/Shaugato/mainline/actions/runs/31657329516), conclusion
+`success`, is what makes the gap concrete rather than theoretical:
+
+```
+INTACT    KILL wilson_lower=0.909774  120/125  surviving KILL classes: ['comparator_loosening']
+CRIPPLED  KILL wilson_lower=0.802164  109/125  surviving KILL classes: ['comparator_loosening', 'deontic_downgrade']
+```
+
+**`comparator_loosening` survives in both arms.** A class can appear among the crippled
+arm's survivors for a reason that has nothing to do with `R1_DEONTIC`, and the old check
+could not tell the two apart. Nor could it tell a class that *survived* from a class merely
+*mentioned*: `_print_headline` prints the survivors on one line, and the check read the
+whole file.
+
+Replayed over six fixtures built from that recorded output — old logic against the
+assertion as it now stands:
+
+| fixture | old | new |
+|---|---|---|
+| the real recorded run | 0 | **0** |
+| `deontic_downgrade` survives in BOTH arms | **0** | **1** |
+| crippled arm names no `deontic_downgrade` survivor | 1 | 1 |
+| crippled arm is not worse | 1 | 1 |
+| the harness stops printing `surviving KILL classes:` | **0** | **1** |
+| `deontic_downgrade` appears only OUTSIDE the survivors line | **0** | **1** |
+
+Three ways to satisfy the ratchet without its claim being true, none of them reachable by
+W10's plant. The survivor sets are now parsed off the `surviving KILL classes:` line of
+each arm; `deontic_downgrade` must be in the crippled set **and absent from the intact
+set**; and the classes surviving in both arms are printed and named as survivors this lane
+does **not** attribute to `R1_DEONTIC`.
+
+**This does not make the lane a gate and must not be read as one.** Every added condition
+is a *measurement-did-not-happen* condition — the same category as §4.4's four — not a
+threshold on the figure. `mainline-mutation run` still exits 0 whatever the kill rate is.
+
 ---
 
 ## 4. What I could NOT falsify
@@ -422,6 +471,13 @@ point that stopped injecting. My plant exercised the last of these *through* PL-
 what "the injection point does nothing" means — but I planted nothing against the first
 three, and the measurement suite (`tests/e2e/mutation`, `tests/unit/domain/novelty`) ran
 green untested. **Unproven.**
+
+**Still unproven after §3.1 (W8, 2026-08-13).** The tightened survivor assertion was
+exercised against **fixtures** built from run `31657329516`'s recorded output, not against
+a live crippled arm engineered to produce each shape. A fixture proves the parse and the
+comparison; it does not prove that the harness can be made to emit those shapes. The three
+conditions §3.1 closes are therefore **falsifiable but not yet falsified in CI**, and that
+distinction is the whole subject of this page.
 
 ### 4.5 The `ci` results all carry W2's caveat
 

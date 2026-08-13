@@ -9,6 +9,7 @@
     python verticals/mainline/demo/judge/cli.py render --check    # fail if PACK.md drifted
     python verticals/mainline/demo/judge/cli.py list
     python verticals/mainline/demo/judge/cli.py envelope
+    python verticals/mainline/demo/judge/cli.py envelope --require-cross-check
     python verticals/mainline/demo/judge/cli.py run --via sql     # needs a DSN
     python verticals/mainline/demo/judge/cli.py run --via mcp     # needs a published key
 
@@ -169,12 +170,67 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 
 def cmd_envelope(args: argparse.Namespace) -> int:
+    """Print the envelope, the bound lengths and the cross-check — and gate on all three.
+
+    **Every row printed here is an assertion, and until 2026-08-13 only one of them was.**
+    The exit rule was ``EXIT_WRONG if cross.disagreements else EXIT_OK``, so a
+    ``DISAGREES`` row and a ``DOES NOT FIT`` row were printed into a log that then went
+    green; and because ``packages/mainline-mcp`` is not importable in the lane that runs
+    this command, ``cross.disagreements`` was always empty and the command could not fail
+    at all. Measured at ``2adad9e`` on a bare interpreter carrying PyYAML and httpx, one
+    mutation per printed row, exit codes in that order:
+
+    ======================================================  =========  ============
+    mutation                                                without    with
+                                                            mainline-  mainline-mcp
+                                                            mcp        importable
+    ======================================================  =========  ============
+    unmutated                                                       0             0
+    ``REQUEST_TIMEOUT_SECONDS`` 20 → 25 in ``envelope.py``           0             0
+    ``MAX_RESPONSE_BYTES`` 10240 → 10241 in ``envelope.py``          0             1
+    ``Q10``'s EXPLAIN padded to 16 546 chars (cap 16 384)            0             0
+    ``select_page_rows`` 25 → 50 in ``QUESTIONS.yaml``               0             0
+    both judge-side files moved to 10241 together                    0             1
+    ======================================================  =========  ============
+
+    The last row is the one that mattered: with the second implementation absent — which
+    is the CI condition — the judge tree could redefine a documented Managed-MCP limit and
+    nothing in the lane noticed, ``validate --strict`` included. So the gate below covers
+    every row this command prints, and ``--require-cross-check`` refuses to call a run in
+    which the second implementation was never consulted a pass.
+    """
     pack = _load(args.pack)
+    # Collected rather than returned at the first sight of trouble: a judge who has drifted
+    # two limits and widened a statement should be told all three times, once.
+    breaches: list[str] = []
+
     print("the Managed-MCP envelope this pack is validated against\n")
     for key, value in env.DECLARED_ENVELOPE.items():
-        declared = pack.declared_envelope.get(key, "<absent from the pack>")
-        agreement = "ok" if declared == value else f"DISAGREES (pack says {declared!r})"
-        print(f"  {key:28} {value!r:70} {agreement}")
+        if key not in pack.declared_envelope:
+            print(f"  {key:28} {value!r:70} ABSENT from {pack.source.name}")
+            breaches.append(
+                f"{key}: envelope.py declares {value!r} and {pack.source.name} does not "
+                "declare it at all, so the pack is not validated against this limit"
+            )
+            continue
+        declared = pack.declared_envelope[key]
+        if declared == value:
+            print(f"  {key:28} {value!r:70} ok")
+            continue
+        print(f"  {key:28} {value!r:70} DISAGREES (pack says {declared!r})")
+        breaches.append(
+            f"{key}: envelope.py declares {value!r}, {pack.source.name} declares "
+            f"{declared!r}. The code is the authority; a limit loosened in data to make a "
+            "prompt fit ships a prompt the server truncates."
+        )
+    for key in sorted(set(pack.declared_envelope) - set(env.DECLARED_ENVELOPE)):
+        value = pack.declared_envelope[key]
+        print(f"  {key:28} {value!r:70} UNMODELLED by envelope.py")
+        breaches.append(
+            f"{key}: {pack.source.name} declares a limit envelope.py does not model, so the "
+            "pack asserts a number no scanner enforces"
+        )
+
     print("\nbound EXPLAIN statements, measured against the character cap\n")
     for bound in drift_mod.bound_statements(pack, repo_root=args.root):
         verdict = "fits" if bound.fits else "DOES NOT FIT"
@@ -182,11 +238,45 @@ def cmd_envelope(args: argparse.Namespace) -> int:
             f"  {bound.qid:5} {bound.vector_column:12} dim={bound.dimension:5} "
             f"chars={bound.statement_chars:6} headroom={bound.headroom_chars:6} {verdict}"
         )
+        if not bound.fits:
+            breaches.append(
+                f"{bound.qid}: bound to a {bound.dimension}-dimension literal the statement "
+                f"is {bound.statement_chars} characters against the {env.MAX_STATEMENT_CHARS} "
+                "cap. The server truncates rather than raising, so this would answer a "
+                "different question in front of the judge."
+            )
+
     cross = env.crosscheck_with_mainline_mcp()
     print(f"\ncross-check: {'ran' if cross.ran else 'NOT RUN'} — {cross.reason}")
     for line in cross.disagreements:
         print(f"  DISAGREEMENT  {line}")
-    return EXIT_WRONG if cross.disagreements else EXIT_OK
+        breaches.append(f"cross-check: {line}")
+
+    if breaches:
+        print(f"\n{len(breaches)} envelope breach(es)")
+        for breach in breaches:
+            print(f"  FAIL  {breach}")
+        return EXIT_WRONG
+    if not cross.ran:
+        if args.require_cross_check:
+            print(
+                "\n--require-cross-check was given and the second implementation was never "
+                "consulted, so every limit above was checked only against itself. Reporting "
+                "that as a pass is the failure this pack exists to refuse."
+            )
+            return EXIT_WRONG
+        print(
+            "\nevery declared limit agrees and every bound statement fits — but the second "
+            "implementation was NOT consulted, so a limit both judge-side files agree on "
+            "could still disagree with packages/mainline-mcp. Pass --require-cross-check "
+            "with packages/mainline-mcp importable to close that gap."
+        )
+        return EXIT_OK
+    print(
+        "\nevery declared limit agrees, every bound statement fits, and the second "
+        "implementation of the envelope agrees with this one"
+    )
+    return EXIT_OK
 
 
 def cmd_run(args: argparse.Namespace) -> int:
@@ -262,6 +352,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     envelope = sub.add_parser(
         "envelope", parents=[common], help="the limits, the bound lengths, the cross-check"
+    )
+    envelope.add_argument(
+        "--require-cross-check",
+        action="store_true",
+        help="fail when packages/mainline-mcp is not importable to confirm the limits",
     )
     envelope.set_defaults(func=cmd_envelope)
 

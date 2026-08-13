@@ -169,42 +169,106 @@ jobs:
             --disable R1_DEONTIC \
             --out evidence/mutation | tee crippled.txt
 
-      - name: PL-2 — assert the crippled arm is WORSE and names its survivor
+      - name: PL-2 — assert the crippled arm is WORSE and that R1_DEONTIC is why
         # The ONLY numeric assertion in this lane, and it is not about quality.
         # It asserts that switching off a rule changes the answer — i.e. that the
         # harness is measuring the lattice rather than measuring itself. A harness
         # that has only ever reported 100 % has not been observed to assert
         # anything, and a harness whose crippled arm reports the same number as
         # its intact arm is not measuring the thing it names.
+        #
+        # ── WHAT CHANGED ON 2026-08-13, AND THE MEASUREMENT THAT FORCED IT ──────────
+        #
+        # The survivor half of this check used to be `"deontic_downgrade" not in
+        # hurt_text` — a substring search over the crippled arm's whole stdout — while
+        # its own failure message claimed the far stronger "no deontic_downgrade mutant
+        # SURVIVED". Two gaps, and the warm log of run 31657329516 shows both:
+        #
+        #   INTACT    KILL wilson_lower=0.909774  120/125  surviving: ['comparator_loosening']
+        #   CRIPPLED  KILL wilson_lower=0.802164  109/125  surviving: ['comparator_loosening',
+        #                                                              'deontic_downgrade']
+        #
+        #   1. NOT ATTRIBUTED. `comparator_loosening` survives in BOTH arms. Had the
+        #      catalogue's deontic class behaved like that one, the old check would have
+        #      passed while the crippling did nothing to it — the ratchet satisfied by a
+        #      class that survives for a reason that is not R1_DEONTIC. Nothing asserted
+        #      otherwise, so nothing would have noticed the day it became true.
+        #   2. NOT ANCHORED. The class id had only to appear SOMEWHERE in the output. A
+        #      future line that names classes for any other reason — a skip listing, a
+        #      warning — would satisfy a check whose message says the class survived.
+        #
+        # So the survivor sets are now parsed off the `surviving KILL classes:` line of
+        # each arm, `deontic_downgrade` must be in the crippled set AND absent from the
+        # intact set, and the classes that survive in both are printed and named as
+        # survivors this lane does NOT attribute to R1_DEONTIC.
+        #
+        # STILL NEVER A GATE. Not one of these is a threshold on the figure. Each is a
+        # condition under which the measurement did not measure what it names, which is
+        # the category this lane's header already fails on.
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import pathlib, re, sys
 
-          def bound(path):
-              text = pathlib.Path(path).read_text(encoding="utf-8")
-              m = re.search(r"^KILL\s+wilson_lower=([0-9.]+)", text, re.MULTILINE)
-              if not m:
-                  sys.exit(f"{path}: no KILL line; the harness did not report")
-              return float(m.group(1)), text
+          CLASS = "deontic_downgrade"
+          RULE = "R1_DEONTIC"
 
-          whole, whole_text = bound("intact.txt")
-          hurt, hurt_text = bound("crippled.txt")
-          print(f"intact  KILL wilson_lower = {whole}")
-          print(f"crippled KILL wilson_lower = {hurt}")
+          def arm(path):
+              text = pathlib.Path(path).read_text(encoding="utf-8")
+              bound = re.search(r"^KILL\s+wilson_lower=([0-9.]+)", text, re.MULTILINE)
+              if not bound:
+                  sys.exit(f"{path}: no KILL line; the harness did not report")
+              # Line-anchored, not a substring of the whole file: this line is the only
+              # place the harness states that a class REACHED THE GATE UNDETECTED.
+              named = re.search(r"^surviving KILL classes:\s*(.+)$", text, re.MULTILINE)
+              if not named:
+                  sys.exit(
+                      f"{path}: the harness printed no `surviving KILL classes:` line, so "
+                      "this step cannot tell a class that survived from a class merely "
+                      "mentioned. Fix the parse here rather than falling back to a grep."
+                  )
+              listed = named.group(1).strip()
+              classes = frozenset(re.findall(r"'([^']+)'", listed))
+              return float(bound.group(1)), classes, listed
+
+          whole, whole_classes, whole_listed = arm("intact.txt")
+          hurt, hurt_classes, hurt_listed = arm("crippled.txt")
+          print(f"intact   KILL wilson_lower = {whole}   surviving: {whole_listed}")
+          print(f"crippled KILL wilson_lower = {hurt}   surviving: {hurt_listed}")
+
+          both = sorted(whole_classes & hurt_classes)
+          print(
+              f"newly surviving once {RULE} is off: {sorted(hurt_classes - whole_classes)}"
+          )
+          print(
+              f"surviving in BOTH arms, so NOT attributed to {RULE}: {both or '(none)'}"
+          )
 
           if not hurt < whole:
               sys.exit(
-                  "PL-2 FAILED: disabling R1_DEONTIC did not lower the kill rate. Either the "
+                  f"PL-2 FAILED: disabling {RULE} did not lower the kill rate. Either the "
                   "injection point does nothing, or the catalogue contains no mutation that "
-                  "R1_DEONTIC is the only detector of. Both mean this harness asserts nothing."
+                  f"{RULE} is the only detector of. Both mean this harness asserts nothing."
               )
-          if "deontic_downgrade" not in hurt_text:
+          if CLASS not in hurt_classes:
               sys.exit(
-                  "PL-2 FAILED: R1_DEONTIC was disabled and no deontic_downgrade mutant "
-                  "survived. A kill rate below 1.0 with no named surviving class is unactionable."
+                  f"PL-2 FAILED: {RULE} was disabled and no {CLASS} mutant survived. A kill "
+                  "rate below 1.0 with no named surviving class is unactionable, and the "
+                  "drop above is then attributable to something this step cannot name."
               )
-          print("PL-2 OK: the crippled arm is strictly worse and names deontic_downgrade.")
+          if CLASS in whole_classes:
+              sys.exit(
+                  f"PL-2 FAILED: {CLASS} survives in the INTACT arm too, so its appearance "
+                  f"in the crippled arm is not evidence that {RULE} detects it. This lane's "
+                  "one assertion would be satisfied by a class surviving for an unrelated "
+                  f"reason. Either {RULE} is no longer that class's detector, or the class "
+                  "has acquired a second failure mode that must be named before this "
+                  "comparison means anything again."
+              )
+          print(
+              f"PL-2 OK: the crippled arm is strictly worse, {CLASS} survives ONLY with "
+              f"{RULE} off, and every class surviving in both arms is named above."
+          )
           PY
 
       # ── The record. A cluster is started ONLY to prove the DDL applies and
@@ -359,4 +423,17 @@ jobs:
 
       - name: Tear down
         if: always()
-        run: docker rm -f mutation-crdb || true
+        # `|| true` stood here and it is banned in this repository. What it was for is real:
+        # this step runs `if: always()`, so on a job that died before the container started
+        # `docker rm` has nothing to remove and exits non-zero. The fix is to ASK whether
+        # there is anything to remove rather than to swallow the answer — because the other
+        # thing `|| true` was hiding is a `docker rm` that fails on a container which DOES
+        # exist, and that is a leaked container on a shared runner, which must be visible.
+        run: |
+          set -euo pipefail
+          if [ -n "$(docker ps -aq --filter 'name=^mutation-crdb$')" ]; then
+            docker rm -f mutation-crdb
+            echo "removed mutation-crdb"
+          else
+            echo "no mutation-crdb container to remove"
+          fi

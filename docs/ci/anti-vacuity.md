@@ -35,7 +35,7 @@ as long as the lane exists, and the job is the artefact a judge can read.
 | workflow | job that proves it can fail | families it plants | tracked tree mutated? |
 |---|---|---|---|
 | `claims` | `claim hygiene (red half, then green half)` · **and** `the red half is red for the reason it claims` | scanner `--self-test` plants **4** of 21 rules; the committed fixture `claim-hygiene-red.md` fires all **21**; the meta-job asserts the union covers every declared rule, that each fixture sentence is refused **alone**, and that a copy with the plants removed exits **0** | no — `$RUNNER_TEMP` only, asserted |
-| `judge-pack` | `the validator fires on every planted violation` · `a run with no cluster exits 3, never 0` · **and** `the red half is red for the reason it claims` | 9 pack mutations (renamed column, negative gone green, unbounded claim, envelope loosened, index hint dropped, prefix widened, decorative completeness column, dangling `defined_in`, prompt dropped) + claim-hygiene + bound-length; the meta-job asserts each mutation **changes the document**, each is **caught**, and **none** of the nine checks fails on the unmutated pack | no — in-memory copies, asserted |
+| `judge-pack` | `the validator fires on every planted violation` · `a run with no cluster exits 3, never 0` · `the red half is red for the reason it claims` · **and, from 2026-08-13, `the envelope step goes red for each row it prints`** (§7.1) | 9 pack mutations (renamed column, negative gone green, unbounded claim, envelope loosened, index hint dropped, prefix widened, decorative completeness column, dangling `defined_in`, prompt dropped) + claim-hygiene + bound-length; the meta-job asserts each mutation **changes the document**, each is **caught**, and **none** of the nine checks fails on the unmutated pack. The envelope job adds 5 plants — a module constant, a pack constant, a widened EXPLAIN, both judge-side files drifting together, and the second implementation absent — each required to exit 1 **and to name its own row** | no — in-memory copies and temporary copies, both asserted |
 | `console` | `RED — pnpm run ci fails on every planted violation family` | `eslint-register-boundary`, `typescript-type-error`, `vitest-failing-case`, `bundle-over-budget`, `lazy-boundary-broken`, `denied-dependency-by-name`, `non-permissive-licence-in-the-runtime-closure` — **each driven through the whole `pnpm run ci` chain**, not through its own sub-command | no — an untracked sibling copy at the same depth (§5.2), removed and asserted gone |
 | `release-proof` | `RED — the proof reports NOT PROVEN when the gate is removed` · **and** the `RED — the gate refuses a run where nothing was proved` step inside `the database refuses the merge` | `gate-disabled` (the CHECK weakened to a tautology in a scratch copy of `0050_permit.sql`), `expected-sqlstate` (`fn_permit_merge_gate` raising `22000`, in a copy of `0115`), `nothing-was-proved` (the release suite with no reachable cluster) | no — `$RUNNER_TEMP` migration copies + step-scoped `env:`, asserted |
 | `skills` | `spec conformance (red half, then green half)` · **and** the pre-existing `RED BEFORE GREEN` step in `every shipped script proves it can fail` | spec: `missing-required-field`, `malformed-name`, `dangling-link`, `out-of-spec-field`, `empty-body`; marketplace: `dangling-skill-path`, `upstream-staging-shipped`, `plugin-without-source`, `missing-top-level-key`; plus the unwelded-schema gate assertion that must exit 1 | no — `$RUNNER_TEMP` copies, asserted |
@@ -48,7 +48,7 @@ as long as the lane exists, and the job is the artefact a judge can read.
 | `boundary` | partial — `test_no_model_in_closure.py` carries planted-reach tests, and the A6 rule gained a positive control (`1e699ba`), but no lane-level planted-violation job | — | — |
 | `custody-chain` | **none** | — | — |
 | `schema` | **none** | — | — |
-| `mutation-ratchet` | **by construction** — the lane IS a mutation harness; its number is the proportion of planted mutants the suite kills | every mutant the ratchet generates | — |
+| `mutation-ratchet` | **by construction** — the lane IS a mutation harness; its number is the proportion of planted mutants the suite kills. Its one *assertion* was falsified by W10 on the arithmetic half and found **satisfiable three ways without its claim being true** on the survivor half (§7.3) | every mutant the ratchet generates | — |
 | `nightly-differential` | **none** | — | — |
 | `demo-health` | **none** — and it is red for a true reason (no demo deployed), so a negative control would be measuring a lane that is already reporting its own incompleteness | — | — |
 
@@ -419,3 +419,214 @@ the console's six promises.
 * Eight of the eighteen workflows have no negative control at all. §1 names them.
 * `submission`'s `the submission gate can say no` pre-dates this wave and was not
   re-examined; the row says so.
+
+---
+
+## 7. `judge-pack`'s envelope step, and the two mutation families — measured 2026-08-13
+
+**Measured at `9221d0c` on `master`.** Every exit code below came from running the command;
+every CI line is quoted from a `gh run view --log` taken while the log was warm. Where a
+check could not be made falsifiable it is named as unproven rather than argued around.
+
+### 7.1 `cli.py envelope` — three of its four printed rows were decoration
+
+The step at `judge-pack.yml`'s `green` job runs the command and asserts nothing about it.
+`cmd_envelope`'s exit rule was one line:
+
+```python
+return EXIT_WRONG if cross.disagreements else EXIT_OK
+```
+
+Five mutations, each applied to a **copy** of `verticals/mainline/demo/judge/` in a
+temporary directory, run on a bare CPython 3.13 carrying only PyYAML and httpx. The two
+columns are the two environments that matter: **without `mainline_mcp` importable is what
+CI actually has**, because the `green` job installs PyYAML and nothing else.
+
+| mutation | `envelope`, no mcp | `envelope`, mcp on path | `validate --strict`, no mcp | `validate --strict`, mcp |
+|---|---|---|---|---|
+| unmutated | 0 | 0 | 0 | 0 |
+| `REQUEST_TIMEOUT_SECONDS` 20 → 25 in `envelope.py` | **0** | **0** | 1 | 1 |
+| `MAX_RESPONSE_BYTES` 10240 → 10241 in `envelope.py` | **0** | 1 | 1 | 1 |
+| `Q10`'s EXPLAIN padded to 16 546 chars (cap 16 384) | **0** | **0** | 1 | 1 |
+| `select_page_rows` 25 → 50 in `QUESTIONS.yaml` | **0** | **0** | 1 | 1 |
+| **both judge-side files moved to 10241 together** | **0** | 1 | **0** | 1 |
+
+Read the bold column. The command printed `DISAGREES (pack says 20)` and exited 0. It
+printed `Q10 … chars= 16546 headroom= -162 DOES NOT FIT` and exited 0. **In the CI
+environment it could not fail at all**, because the only condition it gated on was one it
+never evaluated. From the warm log of run
+[31657327334](https://github.com/Shaugato/mainline/actions/runs/31657327334), step
+*The limits, the bound EXPLAIN lengths, and the cross-check*, conclusion `success`:
+
+```
+cross-check: NOT RUN — packages/mainline-mcp is not importable in this environment
+(No module named 'mainline_mcp'); the second implementation of the envelope was NOT
+consulted. This is not a pass.
+```
+
+The message says *"This is not a pass"* and the step recorded it as one — in the lane whose
+own header calls a workflow that tolerates NOT RUN as success *the failure this whole pack
+exists to refuse*.
+
+**The last row is the finding, and it is not covered by "`validate --strict` catches it
+anyway".** Move a limit in `envelope.py` and in `QUESTIONS.yaml` together and the two
+judge-side files agree with each other; with the second implementation absent there is no
+third party left to contradict them, and **both** commands exit 0. A documented
+Managed-MCP limit could be redefined in this repository and no lane would notice.
+
+**What changed.** `cmd_envelope` now collects a breach for every row it prints — a
+declared limit that disagrees, a limit the pack omits, a limit the pack declares that
+`envelope.py` does not model, a bound statement that does not fit, and any cross-check
+disagreement — and exits 1 if there is one. `envelope` also grew `--require-cross-check`,
+matching `validate`'s flag and exit code, which refuses to call a run where the second
+implementation was never consulted a pass.
+
+**Why one job now installs httpx.** `mainline_mcp.limits` is that second implementation,
+and `mainline_mcp/__init__.py` reaches `client`, which imports `httpx`. Measured on a bare
+venv carrying PyYAML alone: `cross-check: NOT RUN … No module named 'mainline_mcp'`. With
+`httpx` installed and `PYTHONPATH=packages/mainline-mcp/src`: `cross-check: ran —
+packages/mainline-mcp imported; constants compared`, exit 0. That is a path into a tree the
+judge has already cloned, not an install of the workspace package, and it is confined to
+the new `envelope-teeth` job — the `green` job still runs `envelope` with `python` and
+PyYAML, which is the judge's own environment, and it now gates on every row it can check
+from there.
+
+**The negative control**, `envelope-teeth`, follows the shape the lane already uses. It
+copies the judge package to a temporary directory, plants one defect, and requires exit 1
+**and** the row the plant targets to be named — a plant that goes red for some other reason
+is not evidence that its row is gated. It verifies an unmutated copy in the same directory
+is green first, refuses a plant whose anchor has been renamed away (a `str.replace` that
+matches nothing mutates nothing), and asserts the checkout is clean at the end. Dry-run
+against the patched CLI, all six:
+
+```
+unmutated copy: exit 0
+  plant: envelope.py REQUEST_TIMEOUT_SECONDS 20 -> 25 -> exit 1, names request_timeout_seconds/DISAGREES: True
+  plant: envelope.py MAX_RESPONSE_BYTES 10240 -> 10241 -> exit 1, names MAX_RESPONSE_BYTES/DISAGREEMENT: True
+  plant: QUESTIONS.yaml Q10 EXPLAIN padded past the 16384 cap -> exit 1, names Q10/DOES NOT FIT: True
+  plant: QUESTIONS.yaml select_page_rows 25 -> 50 -> exit 1, names select_page_rows/DISAGREES: True
+  plant: both judge-side files move to 10241 together -> exit 1, names MAX_RESPONSE_BYTES/DISAGREEMENT: True
+```
+
+and, separately, `envelope --require-cross-check` with `mainline_mcp` off the path exits
+**1**, where plain `envelope` exits **0** with the gap stated in its last line.
+
+### 7.2 `aws-evidence`'s mutation family — the harness was already right; the blast radius was not
+
+The brief asked whether each plant fires **its own** invariant or merely some invariant.
+**It already asserts its own**, and this is recorded as proven rather than rewritten.
+`scripts/aws/verify_evidence.py::self_test` runs `if expected not in fired:` and reports
+`What fired instead:`; it verifies the unmutated control first, so no plant's red can be
+the sandbox's; and it fails on any declared invariant that has neither a plant nor a
+written exemption.
+
+The family was blocked by the `SEC-ACCOUNT-ID` false positive (the lead's §2). Measured on
+a clean export of `9221d0c`, the only failure is still that one:
+
+```
+[SEC-ACCOUNT-ID] evidence/deploy/verify/aws-quota-and-cost.json:30: a bare 12-digit run
+'322122547200' survives UUID/digest/decimal masking and has the shape of an AWS account id
+1 failure(s) across 1 invariant(s): SEC-ACCOUNT-ID
+```
+
+Against the same evidence with the corrected scanner the baseline is clean —
+`880 assertions across 40 of 40 declared invariants. PASS` — and the family runs and
+passes: **`control (unmutated copy): 0 failure(s)`, 26 plants, every one `fires`, exit 0.**
+
+What was **not** asserted is how much else each plant breaks. The workflow header carried
+that as a comment, and the comment was wrong: it read *"24 of 24 plants … 13 fire it and
+NOTHING else … the other 11"*, which is 24 outcomes over a table that holds **26 plants and
+24 distinct invariant ids** — `SEC-ACCOUNT-ID` carries three. Re-measured by importing the
+verifier and printing the full fired set per plant:
+
+```
+26 plants · 24 distinct expected ids · 15 fire their own invariant and nothing else
+                                     · 11 additionally fire siblings
+```
+
+The 11 are not equal. `DOC-README-COVERS`'s plant writes a file into `evidence/aws/probe/`,
+which then fails all seven envelope checks as well — **eight invariants from one plant**,
+which makes "its own invariant fired" the weakest evidence in the table. `SEC-ARN-ACCOUNT`
+also trips `SEC-ACCOUNT-ID`, because an ARN that keeps its account field contains an
+account id.
+
+**What changed.** A second step in `anti-vacuity` pins every plant's **exact** fired set to
+a written declaration — an empty list included, because that is the claim most worth
+making. It goes red three ways, each exercised locally against the clean baseline:
+
+| perturbation | result |
+|---|---|
+| a declared sibling deleted from the table | exit 1 · `WIDER THAN DECLARED 'a DSN keeps its password' (SEC-DSN-PASSWORD): also fired ['DOC-README-COVERS']` |
+| a sibling declared that does not fire | exit 1 · `NARROWER THAN DECLARED 'the census tally is bent' (CEN-TALLY): ['CEN-ANCHORS'] did NOT fire` |
+| a plant with no entry at all | exit 1 · `UNDECLARED PLANT 'a census anchor stops resolving' (CEN-ANCHORS)` |
+| unperturbed | exit 0 · `every plant fired exactly the invariants it declares` |
+
+### 7.3 `mutation-ratchet` — the survivor half **could** be satisfied by a class surviving for an unrelated reason
+
+W10 falsified the arithmetic half of this lane's one assertion (run
+[31615605021](https://github.com/Shaugato/mainline/actions/runs/31615605021)). The
+**survivor** half was `if "deontic_downgrade" not in hurt_text` — a substring search over
+the crippled arm's whole stdout, under a failure message claiming the far stronger *"no
+`deontic_downgrade` mutant SURVIVED"*. The warm log of run
+[31657329516](https://github.com/Shaugato/mainline/actions/runs/31657329516), conclusion
+`success`, shows why the gap matters:
+
+```
+INTACT    KILL wilson_lower=0.909774  120/125  surviving KILL classes: ['comparator_loosening']
+CRIPPLED  KILL wilson_lower=0.802164  109/125  surviving KILL classes: ['comparator_loosening', 'deontic_downgrade']
+```
+
+`comparator_loosening` survives in **both** arms. Had the catalogue's deontic class
+behaved like that one, the old check would have passed while the crippling did nothing to
+it — the ratchet satisfied by a class surviving for a reason that is not `R1_DEONTIC`. It
+happens not to be the case today, and nothing asserted it, so nothing would have noticed
+the day it changed.
+
+Replayed over six fixtures built from that recorded output, old logic against new:
+
+| fixture | old | new |
+|---|---|---|
+| the real recorded run | 0 | **0** |
+| `deontic_downgrade` survives in BOTH arms | **0** | **1** |
+| crippled arm names no `deontic_downgrade` survivor | 1 | 1 |
+| crippled arm is not worse | 1 | 1 |
+| the harness stops printing `surviving KILL classes:` | **0** | **1** |
+| `deontic_downgrade` appears only OUTSIDE the survivors line | **0** | **1** |
+
+Three ways to satisfy the old ratchet without its claim being true. The survivor sets are
+now parsed off the `surviving KILL classes:` line of **each** arm; `deontic_downgrade` must
+be in the crippled set **and absent from the intact set**; and the classes that survive in
+both arms are printed and named as survivors this lane does **not** attribute to
+`R1_DEONTIC`. **None of these is a threshold on the figure** — each is a condition under
+which the measurement did not measure what it names, which is the category this lane's
+header already fails on. It is still never a gate.
+
+The same job's `Tear down` step carried `docker rm -f mutation-crdb || true`, a banned
+construct. What it was for is real — `if: always()` means it runs on a job that died before
+the container started — so it was replaced by asking whether there is anything to remove,
+rather than swallowing the answer. A `docker rm` that fails on a container which **does**
+exist is a leaked container on a shared runner and is now visible.
+
+### 7.4 What is still unproven here
+
+* **The `envelope` step's cross-check has never run on `master`.** It runs in
+  `envelope-teeth` from this commit onward; before that, every recorded `judge-pack` green
+  carries `cross-check: NOT RUN` in its log, including run `31657327334`. Any claim that
+  the judge pack's limits have been confirmed against a second implementation **in CI** is
+  false for every run before this one.
+* **`validate --strict` still tolerates the absent cross-check.** `cmd_validate` prints
+  `NOT RUN` and adds no `warn`, so `--strict` does not promote it; only
+  `--require-cross-check` fails on it, and the `green` job does not pass that flag.
+  `verticals/mainline/demo/judge/pack.py` and `envelope.py` are not this worker's files;
+  reported, not edited.
+* **`aws-evidence`'s family is proven against a corrected scanner, not against `master`.**
+  At `9221d0c` an unmutated `evidence/` still fails `SEC-ACCOUNT-ID`, so the family's job
+  is red for the control, not for a plant. The measurement above used a clean export of
+  `9221d0c` carrying the working-tree scanner fix; it is not a claim about a CI run until
+  that fix is committed.
+* **Sixteen `aws-evidence` invariants have no plant** and are carried on a written
+  exemption list in `self_test`. That list is named rather than hidden, which is the right
+  shape, but a named exemption is still an unexercised check.
+* **The blast-radius declaration is a measurement, not a derivation.** It records what each
+  plant fires today. It cannot say whether a sibling *should* fire — only that the set
+  stopped matching what a reviewer wrote down.

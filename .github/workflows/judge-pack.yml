@@ -25,10 +25,12 @@
 # that has only ever been green asserts nothing about the pack it validates.
 #
 # NO CREDENTIAL. No cloud account, no cluster, no MCP key, no network beyond the
-# checkout. Every assertion here runs on a stranger's laptop with `python` and PyYAML.
-# The one check that WOULD need a key — running the pack over the live endpoint — is
-# deliberately absent, because with no key it would exit 3 (NOT RUN) and a workflow that
-# tolerates NOT RUN as success is the failure this whole pack exists to refuse.
+# checkout and PyPI. Four of the five jobs run on a stranger's laptop with `python` and
+# PyYAML; `envelope-teeth` adds `httpx` and puts `packages/mainline-mcp/src` on
+# PYTHONPATH, for one reason given in full at that job. The one check that WOULD need a
+# key — running the pack over the live endpoint — is deliberately absent, because with no
+# key it would exit 3 (NOT RUN) and a workflow that tolerates NOT RUN as success is the
+# failure this whole pack exists to refuse.
 
 name: judge-pack
 
@@ -45,6 +47,10 @@ on:
       - "verticals/mainline/db/migrations/**"
       - "scripts/demo/claim_hygiene.py"
       - "tests/unit/demo/judge/**"
+      # The SECOND implementation of the envelope. `envelope-teeth` compares the judge
+      # tree's constants against these, so a limit edited here has to re-run this lane or
+      # the cross-check is stale in exactly the direction it exists to catch.
+      - "packages/mainline-mcp/src/mainline_mcp/limits.py"
       - ".github/workflows/judge-pack.yml"
   pull_request:
   workflow_dispatch:
@@ -196,15 +202,217 @@ jobs:
           fi
           echo "working tree clean — every mutation lived in an in-memory copy"
 
+  # ── 1c · the envelope step's own red half ──────────────────────────────────────────
+  #
+  # WHY THIS JOB EXISTS. `cli.py envelope` prints eleven limit rows, two bound-EXPLAIN
+  # rows and a cross-check line, and until 2026-08-13 its exit code depended on exactly
+  # one of them — and that one had never once run here. Measured at `2adad9e` on a bare
+  # interpreter, six inputs, exit codes as recorded in `docs/ci/anti-vacuity.md`:
+  #
+  #   unmutated                                          0    (correct)
+  #   REQUEST_TIMEOUT_SECONDS 20 → 25 in envelope.py     0    printed DISAGREES, exited 0
+  #   MAX_RESPONSE_BYTES 10240 → 10241 in envelope.py    0    without mainline_mcp, silent
+  #   Q10's EXPLAIN padded to 16 546 chars (cap 16 384)  0    printed DOES NOT FIT, exited 0
+  #   select_page_rows 25 → 50 in QUESTIONS.yaml         0    printed DISAGREES, exited 0
+  #   both judge-side files moved to 10241 together      0    NOTHING in the lane noticed
+  #
+  # The last line is why this job installs one extra wheel. `mainline_mcp.limits` is the
+  # SECOND implementation of the envelope, and `mainline_mcp/__init__.py` reaches `client`,
+  # which imports `httpx`. With only PyYAML the import fails, the cross-check reports NOT
+  # RUN, and the judge tree can redefine a documented Managed-MCP limit in both of its own
+  # files with no third party left to contradict it — `validate --strict` included, which
+  # was measured at 0 for that mutation too. So: httpx, PYTHONPATH at the checkout (not an
+  # install of the workspace package — a path into the tree the judge already cloned), and
+  # `--require-cross-check`, which refuses to call a run where the second implementation
+  # was never consulted a pass.
+  #
+  # The plants live in a temporary copy. The last step asserts the checkout is untouched.
+  envelope-teeth:
+    name: the envelope step goes red for each row it prints
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install PyYAML, and httpx so the second implementation can be imported
+        run: python -m pip install --disable-pip-version-check "PyYAML>=6" "httpx>=0.27"
+
+      - name: The cross-check RAN, and the constants agree
+        # Not `envelope` alone. Alone it would print `NOT RUN … This is not a pass` and
+        # exit 0, which is the sentence this lane's header calls the failure it exists to
+        # refuse, recorded as a success.
+        env:
+          PYTHONPATH: packages/mainline-mcp/src
+        run: python verticals/mainline/demo/judge/cli.py envelope --require-cross-check
+
+      - name: With mainline-mcp off the path, --require-cross-check must REFUSE
+        # The negative control for the control. If this exited 0 the step above would be
+        # asserting nothing about whether the import succeeded.
+        run: |
+          set +e
+          python verticals/mainline/demo/judge/cli.py envelope --require-cross-check
+          status=$?
+          if [ "$status" -ne 1 ]; then
+            echo "::error::envelope --require-cross-check exited ${status} with the second"
+            echo "implementation absent. Only 1 is correct: nothing contradicted the limits."
+            exit 1
+          fi
+          echo "envelope --require-cross-check exited 1 with mainline-mcp absent, as required"
+
+      - name: Five plants, five reds, each naming its own row
+        env:
+          PYTHONPATH: packages/mainline-mcp/src
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import shutil
+          import subprocess
+          import sys
+          import tempfile
+          from pathlib import Path
+
+          ROOT = Path.cwd().resolve()
+          JUDGE = ROOT / "verticals" / "mainline" / "demo" / "judge"
+
+
+          def sub(path, old, new):
+              text = path.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(
+                      f"NO-OP PLANT: the anchor {old!r} is no longer in {path.name}. A plant "
+                      "whose anchor has been renamed away mutates nothing, and the control "
+                      "then passes over an unmutated copy."
+                  )
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+
+          def timeout(d):
+              sub(d / "envelope.py",
+                  "REQUEST_TIMEOUT_SECONDS: Final = 20",
+                  "REQUEST_TIMEOUT_SECONDS: Final = 25")
+
+
+          def respbytes(d):
+              sub(d / "envelope.py",
+                  "MAX_RESPONSE_BYTES: Final = 10_240",
+                  "MAX_RESPONSE_BYTES: Final = 10_241")
+
+
+          def widen_q10(d):
+              anchor = "       WHERE c.site_id = $1 AND c.scope_id = $2 AND c.facet = $3\n"
+              sub(d / "QUESTIONS.yaml",
+                  anchor,
+                  anchor + "        AND c.facet <> '" + "x" * 6000 + "'\n")
+
+
+          def page_rows(d):
+              sub(d / "QUESTIONS.yaml", "select_page_rows: 25", "select_page_rows: 50")
+
+
+          def both_sides(d):
+              respbytes(d)
+              sub(d / "QUESTIONS.yaml", "max_response_bytes: 10240", "max_response_bytes: 10241")
+
+
+          # (name, mutate, the row that MUST be named in the output). The third element is
+          # what makes this a control rather than a count: a plant that goes red for some
+          # other reason is not evidence that the row it targets is gated.
+          PLANTS = [
+              ("envelope.py REQUEST_TIMEOUT_SECONDS 20 -> 25", timeout,
+               "request_timeout_seconds", "DISAGREES"),
+              ("envelope.py MAX_RESPONSE_BYTES 10240 -> 10241", respbytes,
+               "MAX_RESPONSE_BYTES", "DISAGREEMENT"),
+              ("QUESTIONS.yaml Q10 EXPLAIN padded past the 16384 cap", widen_q10,
+               "Q10", "DOES NOT FIT"),
+              ("QUESTIONS.yaml select_page_rows 25 -> 50", page_rows,
+               "select_page_rows", "DISAGREES"),
+              ("both judge-side files move to 10241 together", both_sides,
+               "MAX_RESPONSE_BYTES", "DISAGREEMENT"),
+          ]
+
+          ARGV = ["envelope", "--require-cross-check", "--root", str(ROOT)]
+
+
+          def run(mutate):
+              tmp = Path(tempfile.mkdtemp(prefix="envelope-plant-"))
+              dest = tmp / "judge"
+              shutil.copytree(JUDGE, dest, ignore=shutil.ignore_patterns("__pycache__"))
+              if mutate is not None:
+                  mutate(dest)
+              proc = subprocess.run(
+                  [sys.executable, str(dest / "cli.py"), *ARGV],
+                  capture_output=True, text=True, encoding="utf-8", errors="replace",
+                  env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+              )
+              shutil.rmtree(tmp, ignore_errors=True)
+              return proc.returncode, proc.stdout + proc.stderr
+
+          failures = []
+
+          # ── 0 · an UNMUTATED copy, in the same temporary directory, must be GREEN ────
+          # Without this every red below could be the copy itself rather than the plant.
+          code, out = run(None)
+          print(f"unmutated copy: exit {code}")
+          if code != 0:
+              failures.append(
+                  "BASELINE COPY IS RED: an unmutated copy of the judge package exits "
+                  f"{code}, so every plant below would be red for a reason that is not its "
+                  "plant.\n" + out
+              )
+
+          for name, mutate, needle, verdict in PLANTS:
+              code, out = run(mutate)
+              named = needle in out and verdict in out
+              print(f"  plant: {name} -> exit {code}, names {needle}/{verdict}: {named}")
+              if code != 1:
+                  failures.append(
+                      f"UNGATED ROW [{name}]: `envelope` exited {code}. 1 is the only correct "
+                      f"answer — the command printed a {verdict} row and called it a pass.\n"
+                      + out
+                  )
+              elif not named:
+                  failures.append(
+                      f"RED FOR THE WRONG REASON [{name}]: exit 1, but the output never named "
+                      f"{needle!r} with a {verdict!r} verdict. The plant is not what turned "
+                      "this red.\n" + out
+                  )
+
+          for failure in failures:
+              print(f"::error title=judge-pack envelope step is vacuous::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("")
+          print(
+              f"{len(PLANTS)} plants: an unmutated copy is green, every plant is red, and "
+              "every red names the row its plant targets."
+          )
+          PY
+
+      - name: The tracked tree was never mutated
+        run: |
+          set -euo pipefail
+          dirty="$(git status --porcelain --untracked-files=no)"
+          if [ -n "${dirty}" ]; then
+            echo "::error::this job mutated the checkout. Every plant belongs in a scratch copy."
+            echo "${dirty}"
+            exit 1
+          fi
+          echo "working tree clean — every plant lived in a temporary copy"
+
   # ── 2 · the pack is legal, and it still agrees with the repository ─────────────────
   green:
     name: envelope, negatives, and agreement with the migrations
     runs-on: ubuntu-24.04
     timeout-minutes: 6
-    # Both red halves first. `red` proves the validator fires; `anti-vacuity` proves it
-    # fires *because* of the plant. A green that runs before either is a green nobody
-    # has established the meaning of.
-    needs: [red, anti-vacuity]
+    # Every red half first. `red` proves the validator fires; `anti-vacuity` proves it
+    # fires *because* of the plant; `envelope-teeth` proves the envelope step below can
+    # fail at all, which until 2026-08-13 it could not. A green that runs before any of
+    # them is a green nobody has established the meaning of.
+    needs: [red, anti-vacuity, envelope-teeth]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -220,6 +428,12 @@ jobs:
         run: python verticals/mainline/demo/judge/cli.py list
 
       - name: The limits, the bound EXPLAIN lengths, and the cross-check
+        # Deliberately WITHOUT httpx and without PYTHONPATH: this is the judge's own
+        # environment, `python` and PyYAML, and the command must be usable in it. It gates
+        # on every row it can check from here — declared-limit agreement and bound length —
+        # and says in its last line that the cross-check did not run rather than implying
+        # it passed. `envelope-teeth` is where the cross-check is required and where all
+        # five plants are shown to fire.
         run: python verticals/mainline/demo/judge/cli.py envelope
 
       - name: GREEN — every prompt is legal, every negative is refused, nothing has drifted

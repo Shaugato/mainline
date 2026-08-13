@@ -105,13 +105,30 @@ jobs:
   # — the dry-run was re-run with a non-numeric expectation and the transcript replaced with
   # what actually came back (`evidence/deploy/deploy-dry-run.json`, run E).
   #
-  # MEASURED 2026-08-12 after that fix, by importing the verifier and printing the FULL set
-  # of invariants each plant makes fire, not just whether the expected one did:
-  # control 0 failures; 24 of 24 plants fire their own invariant; 13 fire it and NOTHING
-  # else; the other 11 additionally fire siblings their own edit necessarily breaks (the
-  # four secret plants write a new `evidence/aws/probe/leak.txt`, which `DOC-README-COVERS`
-  # then correctly reports as a file the README does not name). That figure is an
-  # observation, not a gate — the gate below is the one that runs every push.
+  # RE-MEASURED 2026-08-13, and the 2026-08-12 figure that stood here was wrong in a way
+  # worth leaving on the record. It read "24 of 24 plants … 13 fire it and NOTHING else …
+  # the other 11" — 13 + 11 = 24 outcomes over a table that holds **26 plants and 24
+  # distinct invariant ids**, because `SEC-ACCOUNT-ID` carries three plants. Re-measured by
+  # importing the verifier and printing the FULL fired set per plant, against a baseline
+  # carrying the `SEC-ACCOUNT-ID` scanner fix:
+  #
+  #   control (unmutated copy)  0 failures, fired = []
+  #   26 plants · 24 distinct expected ids · 26 of 26 fire their own invariant
+  #   15 fire it and NOTHING else · 11 additionally fire siblings
+  #
+  # The 11 are not noise and they are not equal. The `DOC-README-COVERS` plant writes a new
+  # file into `evidence/aws/probe/`, which then fails all seven envelope checks too — eight
+  # invariants from one plant, which makes "its own invariant fired" the weakest evidence in
+  # this table. The `SEC-ARN-ACCOUNT` plant necessarily also trips `SEC-ACCOUNT-ID`, because
+  # an ARN that keeps its account field contains an account id.
+  #
+  # `--self-test` gates the half that matters most — every plant fires its own id, and the
+  # unmutated control is verified clean first, so no plant's red can be the sandbox's. What
+  # it does not gate is the blast radius, and the paragraph above was the only record of it.
+  # The second step below turns that record into an assertion: every plant declares its
+  # siblings EXACTLY, and a plant that acquires one it does not declare — or loses one it
+  # does — fails this job. An unwritten blast radius is a plant whose meaning nobody has
+  # re-checked since the day it was added.
   anti-vacuity:
     name: the red half is red for the reason it claims
     runs-on: ubuntu-24.04
@@ -124,6 +141,143 @@ jobs:
 
       - name: One planted defect per family, each required to fire its own invariant
         run: python scripts/aws/verify_evidence.py --self-test
+
+      - name: And each plant fires EXACTLY the invariants it declares, no more, no fewer
+        # `--self-test` asks `expected in fired`. That is the right question and it is not
+        # the whole question: a plant blunt enough to break eight invariants at once fires
+        # its own for reasons that have little to do with the defect it names. This step
+        # pins the full fired set of every plant to a written declaration, so the blast
+        # radius is reviewed rather than assumed. It goes red in three ways, all of them
+        # information: a new sibling (the plant got blunter), a lost sibling (the sibling
+        # check stopped working), or a plant with no declaration at all.
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util
+          import shutil
+          import sys
+          import tempfile
+          from pathlib import Path
+
+          ROOT = Path.cwd().resolve()
+          spec = importlib.util.spec_from_file_location(
+              "verify_evidence", ROOT / "scripts" / "aws" / "verify_evidence.py"
+          )
+          module = importlib.util.module_from_spec(spec)
+          sys.modules["verify_evidence"] = module
+          spec.loader.exec_module(module)
+
+          # label -> the invariants this plant fires BESIDES its own, measured 2026-08-13.
+          # Every plant needs an entry, empty list included: a plant added without one is a
+          # plant whose reach nobody looked at.
+          SIBLINGS = {
+              # The envelope family. Dropping `region` also empties a required field.
+              "envelope loses its region": ["ENV-FIELDS"],
+              "artefact stops naming itself": [],
+              "producer no longer exists": [],
+              # The cross-reference family: each edits one number or one name, in place.
+              "ANN proof claims a different model": [],
+              "loader claims a different generation": [],
+              "reconciliation arithmetic stops closing": [],
+              "the exhibit query disappears": [],
+              "the hinted plan stops naming the index": [],
+              "the stub parent stops being disclosed": [],
+              "the metric reader admits it provisioned": [],
+              "a source that was there is called absent": [],
+              "a repo-side number is retyped": [],
+              # The secret family. Three of these five write a NEW file under evidence/aws/,
+              # which DOC-README-COVERS then correctly reports as a file the README does not
+              # name; and an ARN that keeps its account field contains an account id, so
+              # SEC-ACCOUNT-ID fires on the same bytes.
+              "an account id is written into evidence/": ["DOC-README-COVERS"],
+              "an account id is quoted in a JSON artefact": [],
+              "a bare number sits under an account key": [],
+              "an ARN keeps its account field": ["DOC-README-COVERS", "SEC-ACCOUNT-ID"],
+              "a DSN keeps its password": ["DOC-README-COVERS"],
+              "an access-key id appears": ["DOC-README-COVERS"],
+              # The census family. The verdict and the EXERCISED citation are two readings
+              # of one row, so either edit is visible to both.
+              "the census tally is bent": [],
+              "an EXERCISED row cites a missing artefact": ["CEN-VERDICT-SOURCE"],
+              "a census anchor stops resolving": [],
+              "a verdict basis is hand-edited": ["CEN-EXERCISED-PATHS"],
+              "an artefact moves under a quoted figure": ["DOC-TOOL-USAGE-REFS"],
+              # The documentation family. The README plant is the bluntest in the table:
+              # the file it adds fails every envelope check as well as the README's.
+              "the README stops naming the one query": ["DOC-README-COVERS"],
+              "a file appears that the README does not name": [
+                  "ENV-CAVEATS", "ENV-FIELDS", "ENV-PRODUCER", "ENV-REGION",
+                  "ENV-SELF", "ENV-SYNTHETIC", "ENV-TIME",
+              ],
+              "a value cited by TOOL-USAGE.md moves": ["CEN-BASIS-FIGURES"],
+          }
+
+          plants = module._plants()
+          failures: list[str] = []
+          only_own = 0
+
+          with tempfile.TemporaryDirectory(prefix="aws-blast-radius-") as tmp:
+              sandbox = Path(tmp) / "sandbox"
+              shutil.copytree(ROOT / "evidence", sandbox / "evidence")
+              control = module.Verifier(ROOT, sandbox / "evidence").run()
+              print(f"control (unmutated copy): {len(control.failures)} failure(s)")
+              if not control.ok:
+                  for failure in control.failures[:10]:
+                      print(f"  {failure}")
+                  failures.append(
+                      "BASELINE IS RED: an unmutated copy of evidence/ already fails, so no "
+                      "fired set below is attributable to its plant."
+                  )
+
+              for label, expected, mutate in plants:
+                  work = Path(tmp) / "work"
+                  if work.exists():
+                      shutil.rmtree(work)
+                  shutil.copytree(sandbox, work)
+                  mutate(work / "evidence")
+                  fired = set(module.Verifier(ROOT, work / "evidence").run().fired())
+                  if label not in SIBLINGS:
+                      failures.append(
+                          f"UNDECLARED PLANT '{label}' ({expected}): this plant has no entry "
+                          f"in SIBLINGS. It fired {sorted(fired)}. Add the entry — an empty "
+                          "list is a claim too, and it is the claim most worth making."
+                      )
+                      continue
+                  want = {expected} | set(SIBLINGS[label])
+                  extra = sorted(fired - want)
+                  missing = sorted(want - fired)
+                  siblings = sorted(fired - {expected})
+                  if not siblings:
+                      only_own += 1
+                  print(f"  {expected:<24} {label:<48} siblings: {siblings or '(none)'}")
+                  if extra:
+                      failures.append(
+                          f"WIDER THAN DECLARED '{label}' ({expected}): also fired {extra}, "
+                          "which this plant does not declare. Either the plant got blunter — "
+                          "and 'its own invariant fired' is weaker evidence than it was — or "
+                          "an invariant grew a reach nobody intended. Declare it or narrow "
+                          "the plant."
+                      )
+                  if missing:
+                      failures.append(
+                          f"NARROWER THAN DECLARED '{label}' ({expected}): {missing} did NOT "
+                          "fire. If the missing id is the expected one the plant is silent; "
+                          "if it is a declared sibling, the sibling check has stopped working "
+                          "on bytes that used to break it."
+                      )
+
+          print()
+          print(
+              f"{len(plants)} plants · {len({e for _, e, _ in plants})} distinct expected "
+              f"ids · {only_own} fire their own invariant and nothing else · "
+              f"{len(plants) - only_own} additionally fire declared siblings"
+          )
+          for failure in failures:
+              print(f"::error title=aws-evidence plant blast radius has drifted::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print("every plant fired exactly the invariants it declares")
+          PY
 
       - name: The tracked tree was never mutated
         # Every plant belongs in a temporary directory. A self-test that edits the
