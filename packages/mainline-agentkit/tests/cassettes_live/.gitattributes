@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# INDEX.json records `cassette_sha256` over the LITERAL BYTES of each recorded body, so a
+# digest here is a claim about the committed artefact and not about its parsed content.
+# Git's default `text=auto` detection classifies these files as text and normalises their
+# newlines on the way in, which is how the store came to be recorded on a Windows
+# workstation as CRLF, committed as LF, and read back in CI as bytes that could not hash to
+# the digest beside them. `-text` withdraws that permission in both directions: the bytes
+# committed are the bytes checked out, on every platform.
+#
+# `diff` is deliberately left ON. These are evidence files and an edit to one must remain
+# legible in review; suppressing the diff would hide exactly the change this store exists
+# to make visible.
+#
+# The producer holds the same rule from the other side:
+# make_live_cassettes.canonicalise_store_bytes writes UTF-8 with LF regardless of host, and
+# test_live_cassettes.test_the_store_is_committed_in_one_byte_encoding fails if a carriage
+# return ever reappears.
+* -text

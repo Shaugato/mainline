@@ -1,4 +1,14 @@
 {
+  "byte_encoding": {
+    "cassette_sha256_is_over": "the literal bytes of the file, so the file has exactly one committed encoding: UTF-8, LF, no BOM",
+    "enforced_by": [
+      "make_live_cassettes.canonicalise_store_bytes, on every write",
+      "cassettes_live/.gitattributes '* -text', so git may not translate it",
+      "test_live_cassettes.test_the_store_is_committed_in_one_byte_encoding"
+    ],
+    "newline": "\\n",
+    "response_sha256_is_over": "stable_json_bytes(document['response']) \u2014 the parsed answer, so no encoding of the file can move it"
+  },
   "count": 6,
   "entries": [
     {
@@ -13,7 +23,7 @@
         "untrusted_sha256": "78ec451bb08aad926f42464061717f93aa4699acfdf5c2fe0f6db7f6f26b8ec8",
         "validator_error": ""
       },
-      "cassette_sha256": "136eec3462c230115bbc5db2bf27771de50443f2acfa845c0a7993e7c8f9ffea",
+      "cassette_sha256": "11d32dd3a13fe18be23a533b38ce22f7267abdd90835b04bf6f7d6d2573735fe",
       "digest": "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147",
       "file": "484aca322c56f1f55c3b19fd509ef0941215d30848d87e52cb18f6074e06c147.json",
       "http_status": 200,
@@ -58,7 +68,7 @@
         "untrusted_sha256": "ddcf3ed53ac094647cc4f5fde3f61df0492b14f294913106ee0978027c0d1df8",
         "validator_error": ""
       },
-      "cassette_sha256": "f013ef71ca9ebb0724a018b4c6fa7a6f31820998d2066f0cbdf7081c934e8db6",
+      "cassette_sha256": "8fa621bea6155db82defbeb660fba765b433bcc227b582ae1c3b7d178323fcd6",
       "digest": "5b6411e24d7b8e3c1218646b5dc15bb402479eb57f4df6390c8a0f6c6c2f3e70",
       "file": "5b6411e24d7b8e3c1218646b5dc15bb402479eb57f4df6390c8a0f6c6c2f3e70.json",
       "http_status": 200,
@@ -103,7 +113,7 @@
         "untrusted_sha256": "aeef960b99fd8cea4806fd18de9b8007db8417b8d9d265e196169a32bc102489",
         "validator_error": ""
       },
-      "cassette_sha256": "8bf9f84867792055a0b50d96c0173f40e9a14a34e24c20c870a2e4b9d79a8174",
+      "cassette_sha256": "3eb85cd15f89ea6375a5e29e78878cd396286d3c4357660cd2712ec3f72b1a5b",
       "digest": "8e5352d827790463622106606c55a40f524e2e2de97107eb6976a334f91ef582",
       "file": "8e5352d827790463622106606c55a40f524e2e2de97107eb6976a334f91ef582.json",
       "http_status": 200,
@@ -148,7 +158,7 @@
         "untrusted_sha256": "78ec451bb08aad926f42464061717f93aa4699acfdf5c2fe0f6db7f6f26b8ec8",
         "validator_error": ""
       },
-      "cassette_sha256": "1c6513a5bf108d2bf631b0da08628bba7b86f5019f8af9480a250a884a8dee3e",
+      "cassette_sha256": "424fcb406ec59d17baa92d1eaf05e712b016ab6bcce215e272dc4929d28febe2",
       "digest": "b54cc8503a944fb2aafd682cc2bedfb3fd039dbccdb444cd85e02c802d94d4a8",
       "file": "b54cc8503a944fb2aafd682cc2bedfb3fd039dbccdb444cd85e02c802d94d4a8.json",
       "http_status": 200,
@@ -193,7 +203,7 @@
         "untrusted_sha256": "8eedc9b15c0e8f89d4d283e518c2f1594fa04c02642446a50337b12c0e3decde",
         "validator_error": ""
       },
-      "cassette_sha256": "c95359d8e0fc7ee3c9164c3328be43ec8dd41d384996574f50abcc993494aa6a",
+      "cassette_sha256": "af6b569aabb0d270d74094835a6e215339081d4bfddd55538b1db784a23129ea",
       "digest": "776721cc151df53a2230ca336cbd924b1d5f6b1688e8393dea454aa62bd0e67a",
       "file": "776721cc151df53a2230ca336cbd924b1d5f6b1688e8393dea454aa62bd0e67a.json",
       "http_status": 200,
@@ -238,7 +248,7 @@
         "untrusted_sha256": "aeef960b99fd8cea4806fd18de9b8007db8417b8d9d265e196169a32bc102489",
         "validator_error": ""
       },
-      "cassette_sha256": "ff180596b127ad3322f3f0dabd9e2b8c2e8f6894c5ed60c48860f0d26e8e85a8",
+      "cassette_sha256": "2f2ccd2a9b93486c1459977a69f49f33f7b8dcccf680a7f6f01d506d212979b3",
       "digest": "c562f7c609dde7c81d7350003599df1d4733d602d3f9df1afc9af915a393d344",
       "file": "c562f7c609dde7c81d7350003599df1d4733d602d3f9df1afc9af915a393d344.json",
       "http_status": 200,
@@ -278,6 +288,8 @@
   "model_id": "au.anthropic.claude-haiku-4-5-20251001-v1:0",
   "provenance": "live",
   "region": "ap-southeast-2",
+  "reindexed_at": "2026-08-13T07:37:38.911565+00:00",
+  "reindexed_why": "cassette_sha256 re-derived from the bodies on disk after the store was normalised to one byte encoding. No response, key or filename changed; every response_sha256 was verified unmoved before any digest was rewritten.",
   "schema": "mainline.agentkit.live-cassette-index/1",
   "sentinel": "MAINLINE-UNTRUSTED-0000000000000000",
   "sibling_store": {

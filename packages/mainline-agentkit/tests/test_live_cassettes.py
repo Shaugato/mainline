@@ -17,6 +17,10 @@ Four claims, in the order a sceptic would test them:
 2. **The digests recompute.** The filename is re-derived from the recorded call identity by
    the *shipping* :func:`cassette_key`, and the recorded response and cassette hashes are
    recomputed from the bytes. A cassette whose name was chosen by hand fails here.
+   ``cassette_sha256`` is a digest over the **literal file**, which is only a meaningful
+   claim if the file has one committed encoding — so the store's byte encoding is asserted
+   here too, on both sides of the thing that broke it: the bytes themselves must carry no
+   carriage return, and ``.gitattributes`` must forbid git from putting one back.
 3. **Replay is deterministic.** ``quarantined_call`` runs twice over the store and the two
    replayability records are identical, field for field.
 4. **A tampered cassette fails to load.** Prefix drift, a renamed key and a replay-mode
@@ -149,13 +153,83 @@ def test_every_filename_is_what_the_shipping_key_rule_produces(index):
         assert sha256_hex(canonical_json_bytes(row["call_input"])) == row["input_sha256"]
 
 
+def test_the_store_is_committed_in_one_byte_encoding():
+    """``cassette_sha256`` is over raw bytes, so the raw bytes may not be a host's opinion.
+
+    This is the assertion that would have named the defect the first time. The store was
+    recorded on Windows, where ``Path.write_text`` turns every ``\\n`` into ``\\r\\n``; git
+    stored the LF form; CI hashed LF against an index that carried the digest of CRLF. The
+    parsed content never moved — every ``response_sha256`` matched throughout — but the
+    *file* did, and a digest over a file cannot survive that. Asserted on the bytes rather
+    than on the digest so the failure says which file and where, instead of printing two
+    hex strings that differ in every character.
+    """
+    carriage_return = b"\r"
+    for path in [*_cassette_paths(), live.INDEX_PATH]:
+        raw = path.read_bytes()
+        count = raw.count(carriage_return)
+        first = raw.find(carriage_return)
+        assert count == 0, (
+            f"{path.name} carries {count} carriage return(s), the first at byte {first}. "
+            "The store is committed UTF-8/LF and its cassette_sha256 is a digest over the "
+            "literal bytes, so a newline convention is a digest change. Re-derive it with: "
+            "python packages/mainline-agentkit/tests/make_live_cassettes.py --reindex"
+        )
+        assert not raw.startswith(b"\xef\xbb\xbf"), f"{path.name} carries a UTF-8 BOM"
+
+
+def test_git_is_forbidden_to_rewrite_the_stores_bytes():
+    """The other half of the byte encoding, and the half that lives outside Python.
+
+    Writing LF is not enough on its own: git's default ``text=auto`` detection reserves the
+    right to translate these files on the way in and on the way out, and that right is
+    precisely what broke the digests. ``-text`` withdraws it. Without this assertion the
+    guard could be deleted and every test above would keep passing until the next checkout
+    on a different platform.
+    """
+    attributes = LIVE_DIR / ".gitattributes"
+    assert attributes.is_file(), (
+        f"{attributes} is missing; without it git may translate the newlines of a store "
+        "whose cassette_sha256 is a digest over the literal bytes"
+    )
+    directives = [
+        line.split()
+        for line in attributes.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    assert ["*", "-text"] in directives, (
+        f"{attributes} must contain the line '* -text'; it currently declares {directives}"
+    )
+    # `diff` stays on: these are evidence files and an edit to one must remain reviewable.
+    assert not any("-diff" in directive for directive in directives), (
+        "the store must keep git diff enabled; suppressing it would hide exactly the change "
+        "this store exists to make visible"
+    )
+
+
 def test_every_recorded_body_hashes_to_its_index_row(index):
     for row in index["entries"]:
         path = LIVE_DIR / row["file"]
         document = _document(path)
         assert document["key"] == row["digest"] == path.stem
-        assert sha256_hex(stable_json_bytes(document["response"])) == row["response_sha256"]
-        assert sha256_hex(path.read_bytes()) == row["cassette_sha256"]
+        recomputed = sha256_hex(stable_json_bytes(document["response"]))
+        assert recomputed == row["response_sha256"], (
+            f"{path.name} ({row['scenario']} attempt {row['attempt']}): the recorded response "
+            f"hashes to {recomputed} but its index row claims {row['response_sha256']}. The "
+            "answer on disk is not the answer that was recorded. Nothing may be hand-edited "
+            "to close this: re-record the scenario with make_live_cassettes.py, or restore "
+            "the body from git."
+        )
+        on_disk = sha256_hex(path.read_bytes())
+        assert on_disk == row["cassette_sha256"], (
+            f"{path.name} ({row['scenario']} attempt {row['attempt']}): the file hashes to "
+            f"{on_disk} but its index row claims {row['cassette_sha256']}. The response above "
+            "already matched, so if the only difference is the newline convention the index "
+            "is stale and the fix is to run the producer: python "
+            "packages/mainline-agentkit/tests/make_live_cassettes.py --reindex — which "
+            "refuses unless every key and response digest already agrees. If the response "
+            "digest failed too, the body itself moved and must be re-recorded, not reindexed."
+        )
 
 
 def test_an_edited_response_no_longer_hashes_to_its_row(index):

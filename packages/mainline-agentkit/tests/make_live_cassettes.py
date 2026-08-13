@@ -49,6 +49,31 @@ field it touches, the list it applied is written into ``INDEX.json`` per cassett
 ``evidence/aws/agent/live-run.json`` carries the refusals verbatim.  A projection nobody can
 see is a body edit; a projection recorded field by field is a finding.
 
+One byte encoding, because one of the digests is over bytes
+-----------------------------------------------------------
+``INDEX.json`` records two digests per cassette and they are not the same kind of claim.
+``response_sha256`` is taken over :func:`stable_json_bytes` of the *parsed* response, so it
+is an assertion about the model's answer and no encoding can move it.  ``cassette_sha256``
+is taken over ``path.read_bytes()`` — the literal file — so it is an assertion about the
+committed artefact, and a raw-byte digest is only meaningful if the raw bytes are the same
+on every machine that reads them.
+
+They were not.  ``CassetteStore.put`` writes through ``Path.write_text``, which on Windows
+translates every ``\\n`` to ``\\r\\n``; git then stored the LF form and CI read LF while the
+index carried the digest of the CRLF form.  Measured on 2026-08-13: all six bodies parsed
+equal and every ``response_sha256`` matched, so nothing about the recorded answers had
+moved — only the newline convention had.  Two things close that for good:
+
+* this program writes and re-reads the store in :data:`STORE_NEWLINE` regardless of host,
+  so a Windows recording session produces the same bytes a Linux one does; and
+* ``cassettes_live/.gitattributes`` marks the store ``-text``, so git is forbidden to
+  translate those bytes in either direction, on checkout or on commit.
+
+:func:`reindex` is the repair path for a store already on disk.  It re-derives
+``cassette_sha256`` alone, and only after proving the semantic content did not move — the
+filename, the key and ``response_sha256`` must already agree.  A body whose *content*
+drifted is a real integrity failure and this program refuses to launder it.
+
 What is being claimed, and what is not
 --------------------------------------
 The documents are the same fabricated MAINLINE-shaped strings ``make_cassettes.py`` uses —
@@ -60,6 +85,7 @@ fatality.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import time
@@ -102,6 +128,13 @@ from make_cassettes import (  # noqa: E402 - the sentinel/document discipline, n
 #: Where the live store lives.  A **sibling** of ``cassettes/``, never inside it.
 LIVE_DIR = _TESTS / "cassettes_live"
 INDEX_PATH = LIVE_DIR / "INDEX.json"
+ATTRIBUTES_PATH = LIVE_DIR / ".gitattributes"
+
+#: The store's one byte encoding.  ``cassette_sha256`` is a digest over the literal file,
+#: so the file must not be a host's opinion about newlines.  Everything this program writes
+#: goes out as bytes with this terminator, and ``.gitattributes`` marks the directory
+#: ``-text`` so git may not translate it back.
+STORE_NEWLINE = b"\n"
 
 #: The model that actually served these cassettes.  A bare ``au.*`` inference-profile id,
 #: which ``assert_australian_profile`` accepts and ``scripts/aws/_common.assert_in_region``
@@ -143,6 +176,50 @@ MEASURED_REFUSALS: tuple[dict[str, str], ...] = (
 
 class LiveRecordingRefused(RuntimeError):
     """Recording was attempted without both live opt-ins."""
+
+
+class StoreDrift(RuntimeError):
+    """A recorded body no longer matches the identity or the answer its index row claims.
+
+    Raised only for drift that is **not** an encoding difference.  A newline convention is
+    repairable and :func:`canonicalise_store_bytes` repairs it; a changed key, a changed
+    filename or a changed response is a real integrity failure, and the only honest thing a
+    producer can do with one is stop and name the file.
+    """
+
+
+def canonicalise_store_bytes(path: Path) -> tuple[bytes, bool]:
+    """Rewrite one file of the store in :data:`STORE_NEWLINE`, and return ``(bytes, moved)``.
+
+    The one transformation permitted here is the newline convention, and it is permitted
+    because it provably carries no information: the document is parsed before and after and
+    the two objects must be equal, or this raises.  Nothing else about the file is touched,
+    so this cannot be used to make a body agree with an index row.
+    """
+    raw = path.read_bytes()
+    canonical = raw.replace(b"\r\n", STORE_NEWLINE)
+    if b"\r" in canonical:
+        offset = canonical.index(b"\r")
+        raise StoreDrift(
+            f"{path.name} carries a bare carriage return at byte {offset}, which is neither "
+            "a newline convention this function may normalise nor something json.dumps "
+            "emits; the file was written by something other than this producer"
+        )
+    if canonical == raw:
+        return raw, False
+    if json.loads(raw.decode("utf-8")) != json.loads(canonical.decode("utf-8")):
+        raise StoreDrift(
+            f"{path.name} does not parse equal before and after newline normalisation; "
+            "refusing to rewrite a body whose content would move"
+        )
+    path.write_bytes(canonical)
+    return canonical, True
+
+
+def write_index(document: dict[str, Any]) -> None:
+    """Write ``INDEX.json`` as bytes, so the host's newline convention never reaches it."""
+    text = json.dumps(document, indent=2, sort_keys=True) + "\n"
+    INDEX_PATH.write_bytes(text.encode("utf-8").replace(b"\r\n", STORE_NEWLINE))
 
 
 def assert_live_recording_permitted(settings: AgentkitSettings | None = None) -> None:
@@ -383,6 +460,10 @@ def record_scenario(
                 recorded_at=recorded_at,
             )
         )
+        # `CassetteStore.put` writes through `Path.write_text`, which translates newlines on
+        # Windows. `cassette_sha256` below is a digest over the literal file, so it is taken
+        # over the canonical bytes rather than over whatever the host wrote.
+        recorded_bytes, _ = canonicalise_store_bytes(path)
         ok, detail = _validates(profile, response)
         usage = dict(response.get("usage") or {})
         entries.append(
@@ -423,7 +504,7 @@ def record_scenario(
                 # payload this system did not author and may legally carry a float, which
                 # the RFC 8785 canonicaliser refuses by design.
                 "response_sha256": sha256_hex(stable_json_bytes(response)),
-                "cassette_sha256": sha256_hex(path.read_bytes()),
+                "cassette_sha256": sha256_hex(recorded_bytes),
             }
         )
         if ok:
@@ -475,12 +556,108 @@ def build_index(entries: list[dict[str, Any]], *, model_id: str) -> dict[str, An
             ],
             "sampling_parameters_sent": [],
         },
+        "byte_encoding": {
+            "newline": "\\n",
+            "response_sha256_is_over": (
+                "stable_json_bytes(document['response']) — the parsed answer, so no "
+                "encoding of the file can move it"
+            ),
+            "cassette_sha256_is_over": (
+                "the literal bytes of the file, so the file has exactly one committed "
+                "encoding: UTF-8, LF, no BOM"
+            ),
+            "enforced_by": [
+                "make_live_cassettes.canonicalise_store_bytes, on every write",
+                "cassettes_live/.gitattributes '* -text', so git may not translate it",
+                "test_live_cassettes.test_the_store_is_committed_in_one_byte_encoding",
+            ],
+        },
         "count": len(entries),
         "entries": entries,
     }
 
 
-def main() -> int:
+def reindex() -> int:
+    """Re-derive ``cassette_sha256`` from the bodies on disk.  No network, no credential.
+
+    The repair path for a store whose *bytes* were rewritten between the machine that
+    recorded it and the machine that checks it — the CRLF/LF case in the module docstring.
+    It exists so the honest side can be restored by **running a producer**, because
+    hand-writing a digest into recorded evidence to make a checker pass is the one thing
+    nobody may do here.
+
+    It is deliberately not a "make the index agree with disk" button.  Before it changes a
+    single field it proves the semantic content did not move: the filename, the document's
+    own ``key``, the row's ``digest`` and ``response_sha256`` must **already** agree, and the
+    set of files on disk must be exactly the set of rows.  If any of those has drifted the
+    body itself is suspect, no encoding rule explains it, and this raises :class:`StoreDrift`
+    naming the file rather than blessing it.
+    """
+    index = json.loads(INDEX_PATH.read_text(encoding="utf-8"))
+    on_disk = {path.name for path in LIVE_DIR.glob("*.json") if path.name != INDEX_PATH.name}
+    indexed = {row["file"] for row in index["entries"]}
+    if on_disk != indexed:
+        raise StoreDrift(
+            "the store and its index disagree about which files exist; "
+            f"on disk but unindexed: {sorted(on_disk - indexed)}; "
+            f"indexed but missing: {sorted(indexed - on_disk)}. A renamed or added body is "
+            "not an encoding difference — re-record the store with make_live_cassettes.py"
+        )
+
+    moved: list[str] = []
+    for row in index["entries"]:
+        path = LIVE_DIR / row["file"]
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if not (document["key"] == row["digest"] == path.stem):
+            raise StoreDrift(
+                f"{path.name}: key {document['key']!r}, index digest {row['digest']!r} and "
+                f"filename {path.stem!r} are not the same value; the body's identity moved"
+            )
+        recomputed = sha256_hex(stable_json_bytes(document["response"]))
+        if recomputed != row["response_sha256"]:
+            raise StoreDrift(
+                f"{path.name}: the recorded response hashes to {recomputed} but the index "
+                f"row says {row['response_sha256']}. That is a content change, not an "
+                "encoding change, and this program will not overwrite the index to hide it. "
+                "Re-record the scenario with make_live_cassettes.py or restore the body."
+            )
+        canonical, changed = canonicalise_store_bytes(path)
+        digest = sha256_hex(canonical)
+        if digest != row["cassette_sha256"]:
+            moved.append(
+                f"  {row['scenario']} attempt {row['attempt']} {path.name}\n"
+                f"    was {row['cassette_sha256']}\n"
+                f"    now {digest}" + ("  (bytes re-encoded to LF)" if changed else "")
+            )
+            row["cassette_sha256"] = digest
+
+    rebuilt = build_index(index["entries"], model_id=index["model_id"])
+    rebuilt["generated_at"] = index["generated_at"]
+    # Stamped only when a digest actually moved, so ``reindexed_at`` reads as *when the
+    # store was last repaired* rather than *when this program was last run*. A no-op run
+    # must leave the artefact byte-identical, or the index churns every time it is checked.
+    if moved:
+        rebuilt["reindexed_at"] = datetime.now(tz=UTC).isoformat()
+        rebuilt["reindexed_why"] = (
+            "cassette_sha256 re-derived from the bodies on disk after the store was "
+            "normalised to one byte encoding. No response, key or filename changed; every "
+            "response_sha256 was verified unmoved before any digest was rewritten."
+        )
+    else:
+        for field in ("reindexed_at", "reindexed_why"):
+            if field in index:
+                rebuilt[field] = index[field]
+    write_index(rebuilt)
+    if moved:
+        print(f"re-derived {len(moved)} byte digest(s) from the store on disk:")
+        print("\n".join(moved))
+    else:
+        print("every cassette_sha256 already matches the bytes on disk; nothing re-derived")
+    print(f"index: {INDEX_PATH}")
+    return 0
+
+
+def record() -> int:
     """Record the live store and write its index.  Returns a process exit code."""
     assert_live_recording_permitted()
     store = CassetteStore(LIVE_DIR, mode="record")
@@ -490,16 +667,37 @@ def main() -> int:
         entries.extend(record_scenario(client, store, scenario, model_id=LIVE_MODEL_ID))
         print(f"  recorded {scenario['name']}")
     entries.sort(key=lambda item: (item["scenario"], item["attempt"]))
-    INDEX_PATH.write_text(
-        json.dumps(build_index(entries, model_id=LIVE_MODEL_ID), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    write_index(build_index(entries, model_id=LIVE_MODEL_ID))
     unvalidated = [item["scenario"] for item in entries if not item["validates"]]
     print(f"wrote {len(entries)} live cassettes to {LIVE_DIR}")
     print(f"index: {INDEX_PATH}")
     if unvalidated:
         print(f"attempts that did not validate (recorded anyway): {sorted(set(unvalidated))}")
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Record the store, or re-derive its byte digests.  Returns a process exit code."""
+    # Not ``description=__doc__``: the docstring carries U+2016 and em dashes, and argparse
+    # writes help to a stdout that is cp1252 on a Windows console, which raises before the
+    # program can say anything useful.
+    parser = argparse.ArgumentParser(
+        prog="make_live_cassettes.py",
+        description=(
+            "Record the live Bedrock cassette store, or re-derive its byte digests. "
+            "Recording requires MAINLINE_AGENT_ALLOW_LIVE=1 and MAINLINE_CASSETTE_MODE=record."
+        ),
+    )
+    parser.add_argument(
+        "--reindex",
+        action="store_true",
+        help=(
+            "re-derive cassette_sha256 from the bodies already on disk instead of calling "
+            "Bedrock. Refuses if any filename, key or response_sha256 has moved."
+        ),
+    )
+    args = parser.parse_args(argv)
+    return reindex() if args.reindex else record()
 
 
 if __name__ == "__main__":

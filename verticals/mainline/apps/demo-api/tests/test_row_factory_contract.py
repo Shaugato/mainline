@@ -125,10 +125,24 @@ _PACKAGE_SRC = _APP_SRC / "mainline_demo_api"
 _EXPECTED_CONVENTIONS: dict[str, str] = {
     "__init__.py": "silent",
     "app.py": "silent",
+    # ADDED 2026-08-13, deliberately, which is what this table exists to force. It reads
+    # `mainline.signing_credential` through `scenario.positional()` at exactly one site —
+    # the resolver that replaced the derived `_sha("cred", …)` constant. `position` is the
+    # correct verdict and not merely the current one: the statement selects a single
+    # `credential_id` column and the value is consumed by index, so a `dict_row` connection
+    # would have made it the third `KeyError: 0` in this package rather than the first.
+    "credentials.py": "position",
     "db.py": "name",
     "envelope.py": "silent",
     "gate_run.py": "position",
     "health.py": "name",
+    # ADDED 2026-08-13 with the cost bound. Both are `silent` by measurement, not by
+    # assumption: neither module issues a row-reading statement — they meter bytes and
+    # requests in process. Recorded rather than omitted for the reason the header gives —
+    # the day either grows a query, its convention becomes a decision, and this line is
+    # what forces somebody to make it instead of inheriting whatever the connection offered.
+    "logbudget.py": "silent",
+    "ratelimit.py": "silent",
     "reads.py": "name",
     "refusal.py": "position",
     "scenario.py": "position",
