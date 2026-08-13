@@ -505,7 +505,10 @@ green warm.
 
 ## 6.2 · `ci` — four jobs, and what each one is
 
-`8628 passed, 1003 skipped, 9 failed` in the `--crdb=none` suite.
+`8629 passed, 1003 skipped, **8 failed**` in the `--crdb=none` suite, measured warm at
+`1738e65` **after** this agent's CRLF fix. It was `8628 passed, 9 failed` before it, and
+the one that moved is `test_ruff_ratchet.py::test_the_ratchet_passes_on_the_real_tree` —
+so the fix is confirmed at the test level as well as at the `ruff format` step.
 
 | job | classification |
 |---|---|
@@ -514,13 +517,11 @@ green warm.
 | `pytest --crdb=none` | **mixed** — 5 intentional, 2 fixed, 2 real defects — below |
 | `RED BY DESIGN, and it must stay red` | success — the inverted lane holds |
 
-The nine pytest failures:
+The eight pytest failures that remain (the ninth was the CRLF ratchet, now green):
 
 * **5 × `tests/integration/custody/test_k2_exit.py`** — K2.1/K2.2/K2.4/K2.5/K2.6 not met,
   each naming its missing artefact or matrix row. The `custody-chain` reds' twins.
   **Intentional and precise.**
-* **`tests/release/test_ruff_ratchet.py::test_the_ratchet_passes_on_the_real_tree`** —
-  the CRLF regression. **Fixed** (§6.3).
 * **`packages/mainline-agentkit/tests/test_live_cassettes.py::test_every_recorded_body_hashes_to_its_index_row`**
   — a recorded body no longer hashes to its index row
   (`11d32dd3a13f… != 136eec3462c2…`). **A real defect and the correct one to have.** A
