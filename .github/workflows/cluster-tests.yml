@@ -1,0 +1,331 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE FIRST LANE IN THIS REPOSITORY THAT POINTS A REAL DATABASE AT THE DEMO API.
+#
+# WHAT WAS TRUE BEFORE THIS FILE EXISTED, measured 2026-08-13 at HEAD 073dfea:
+#
+#     $ grep -rn "demo-api" .github/workflows/
+#     (no matches, in any file)
+#
+#     $ pytest verticals/mainline/apps/demo-api/tests --crdb=none  -q
+#     258 passed, 186 skipped
+#     $ pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q
+#     3 failed, 377 passed, 1 skipped, 63 errors
+#
+# 444 tests both ways. Nine of eighteen workflows stand up a CockroachDB container and
+# not one of them names that directory; `ci.yml` is the only lane that runs the whole
+# `testpaths` collection and it runs it `--crdb=none`, so those 186 tests — 41.9% of the
+# suite covering the product's headline path — had never executed in CI even once. They
+# were not failing. They were not passing. They were SKIPPING, which on a dashboard is
+# the same green tick as a pass, and that is the defect this lane exists to end.
+#
+# THIS LANE IS RED ON THE DAY IT LANDS, AND THAT IS THE POINT.
+#
+# The 3 failures and 63 errors above are real defects owned by other leads. A lane that
+# went green by deselecting `test_reads.py`, by marking the 63 `xfail`, or by adding a
+# `-k` expression would convert a visible defect back into an invisible one — the exact
+# motion this whole wave exists to reverse. So the failures are CLASSIFIED and not
+# suppressed: `qa/cluster-known-red.json` names every one of them with the cause and the
+# lead who owns it, `scripts/ci/cluster_lane_report.py` prints each as `known`,
+# `unstable` or **NEW**, and the job's exit status is pytest's exit status, unmodified.
+#
+# The inventory cannot become a suppression list, and the refusal is structural rather
+# than a matter of reviewer attention: the report is handed pytest's real exit code and
+# EXITS WITH IT when it is non-zero, whatever the inventory says about the node ids
+# involved. It also refuses a run whose JUnit XML records failures while its caller
+# claims pytest exited 0 — which is the one rewiring that would let a fully-inventoried
+# red run present as green. Both properties are exercised by controls; see that file.
+#
+# NO `harden-runner` ON THIS JOB, and the omission is deliberate and stated rather than
+# silent, exactly as `db.yml:362-368` states it. This job's first act is `docker pull`,
+# which reaches registry-1.docker.io, auth.docker.io and a Cloudflare CDN host whose name
+# is not stable. An `allowed-endpoints` list written from memory would either be wrong —
+# breaking the lane for a reason that has nothing to do with the database — or so broad
+# that it permits everything and asserts nothing. `ci.yml` is where the egress claim is
+# enforced, on every job, with policy `block`. This lane's claim is about the database.
+
+name: cluster-tests
+
+on:
+  push:
+    # `master`, not `main`. The branch `main` does not exist in this repository; a `main`
+    # trigger has never fired once here. See `ci.yml:93-99` for the measurement.
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cluster-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  demo-api:
+    name: the demo-api suite against a real CockroachDB
+    runs-on: ubuntu-24.04
+    # The fixture applies 271 migrations and both deployed seed files before the first
+    # test runs — 46.7 s locally, and it is built once per session. 25 minutes is room
+    # for that plus the suite; a lane that hangs must fail rather than hold a runner.
+    timeout-minutes: 25
+
+    env:
+      # Unique per run. `db-schema.yml` uses a fixed container name and its own step 4
+      # comment names the hazard that creates: "a container of this fixed name left
+      # behind by an earlier run" is one of the ways a pinned tag comes to be measured
+      # against bytes nobody chose.
+      CRDB_CONTAINER: mainline-cluster-tests-${{ github.run_id }}-${{ github.run_attempt }}
+      SUITE: verticals/mainline/apps/demo-api/tests
+      # A FLOOR, not an equality, and the distinction is argued rather than assumed.
+      #
+      # What this assertion is FOR is the claim that the suite IMPORTS on this runner:
+      # `mainline-demo-api` is deliberately not a workspace member, its dependencies
+      # resolve through other members, and its `tests/conftest.py` puts `../src` on
+      # `sys.path` itself. A partial import collects FEWER tests; deleting assertions
+      # collects fewer tests. A floor catches both, which are the two defects.
+      #
+      # Collecting MORE is the suite growing, which is not a defect, and an equality here
+      # would go red for it. That is not hypothetical: measured 444 at 20:43 on
+      # 2026-08-13 and 445 at 21:02 the same evening, because another worker rewrote
+      # `test_refusal_row_factory.py` from 13 tests to 14 in between. An assertion that
+      # goes red when somebody adds a test trains its readers to edit the number without
+      # reading it, and `release-proof.yml`'s own anti-vacuity gate uses a floor
+      # (`if tests < 15`) for exactly this reason.
+      #
+      # The floor is 445, measured — it may RISE with the suite and may not fall.
+      COLLECTED_FLOOR: "445"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── CONTRACT B, copied from `db-schema.yml:310-450`. Five steps, and the fourth
+      #    is the one that matters. ────────────────────────────────────────────────────
+      - name: Read the ONE version constant out of compose.yaml
+        id: image
+        # The version constant lives in compose.yaml and nowhere else, and it is NOT
+        # restated here: `db.yml`'s repository census counts image literals across
+        # `.github/workflows/` and every `.py` file against a ceiling being driven down,
+        # and a second copy of the version is the defect that census exists to refuse.
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1))
+                          raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "CockroachDB image: ${image}"
+
+      - name: Pull the image and record its digest
+        id: digest
+        # Digest pinning without a fabricated hash, as `db.yml` and `db-schema.yml` do
+        # it. The digest is resolved and printed every run; when the repository variable
+        # CRDB_IMAGE_DIGEST is set it is ASSERTED. An invented digest committed today
+        # would be a lie in the repository; an assertion that activates the moment
+        # somebody records the real one is the honest version of the same control.
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+          EXPECTED: ${{ vars.CRDB_IMAGE_DIGEST }}
+        run: |
+          set -euo pipefail
+          docker pull "${PINNED_IMAGE}"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${PINNED_IMAGE}")"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "resolved: ${digest}"
+          if [ -n "${EXPECTED}" ] && [ "${EXPECTED}" != "${digest}" ]; then
+            echo "::error::image digest ${digest} does not match the pinned ${EXPECTED}"
+            exit 1
+          fi
+          if [ -z "${EXPECTED}" ]; then
+            echo "::notice::CRDB_IMAGE_DIGEST is unset; the digest is recorded but not asserted"
+          fi
+
+      - name: Start a single-node CockroachDB
+        # `--listen-addr` is DELIBERATELY ABSENT and must stay absent. Measured
+        # 2026-08-10 and recorded in `db-schema.yml`: `--listen-addr=0.0.0.0:26257` makes
+        # the node REFUSE TO START ("hostname of listen_addr must be 127.0.0.1 or
+        # localhost"), and `--listen-addr=localhost:26257` starts but binds inside the
+        # container's loopback where a published port cannot reach it. The default binds
+        # where `-p` can forward, which is what the pgwire probe below actually proves.
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          docker run -d --name "${CRDB_CONTAINER}" \
+            -p 127.0.0.1:26257:26257 -p 127.0.0.1:8080:8080 \
+            "${PINNED_IMAGE}" \
+            start-single-node --insecure \
+              --http-addr=0.0.0.0:8080 \
+              --store=type=mem,size=2GiB
+          for attempt in $(seq 1 60); do
+            if docker exec "${CRDB_CONTAINER}" ./cockroach sql --insecure \
+                 --execute "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::the cluster never answered SQL"
+          docker logs "${CRDB_CONTAINER}" | tail -50
+          exit 1
+
+      - name: The server that answered IS the pinned version
+        # ANTI-VACUITY. Every step above reads the pin, hands it to `docker run`,
+        # resolves a digest and polls `SELECT 1`. Not one of them asks the RUNNING SERVER
+        # which version it is, so the sequence catches a pin that failed to ARRIVE and
+        # nothing else. A tag resolving to different bytes than compose.yaml names goes
+        # green identically: a moving tag, a cached layer, a registry substitution.
+        #
+        # This lane's whole claim is "443 demo-api tests ran against the pinned engine".
+        # Without this step it is "443 demo-api tests ran against an unknown engine,
+        # under this lane's name", which is a different and much weaker sentence.
+        #
+        # The expectation is DERIVED from what step 1 resolved and is never written out.
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+
+          image = os.environ["PINNED_IMAGE"]
+          container = os.environ["CRDB_CONTAINER"]
+          tag = image.rsplit(":", 1)[-1]
+          wanted = tag[len("latest-") :] if tag.startswith("latest-") else tag
+
+          probe = subprocess.run(
+              ["docker", "exec", container, "./cockroach", "sql", "--insecure",
+               "--format=csv", "--execute", "SELECT version()"],
+              capture_output=True, text=True, check=False,
+          )
+          if probe.returncode != 0:
+              detail = (probe.stderr or probe.stdout).strip().replace("\n", " - ")
+              print("::error title=the node would not report its version::"
+                    "`SELECT version()` failed against a node that had just answered "
+                    f"`SELECT 1` - container {container}: {detail}")
+              sys.exit(1)
+          served = [row for row in probe.stdout.splitlines() if row.strip()][-1]
+          served = served.strip().strip('"')
+
+          if re.search(rf"(?<![0-9A-Za-z.]){re.escape(wanted)}(\.\d+)*(?![0-9A-Za-z.])", served):
+              print(f"compose.yaml asked for {wanted}; the server said: {served}")
+              sys.exit(0)
+          print("::error title=the running server is not the pinned version::compose.yaml "
+                f"asked for {wanted} (pin {image}); the node that answered reports "
+                f"{served!r}. The demo-api suite below would be measured against that "
+                "other engine, under this lane's name.")
+          sys.exit(1)
+          PY
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: "3.13"
+
+      - name: Publish the DSN under all four spellings the tree checks
+        # `packages/trappoint-testkit/cluster.py:103-106` reads these four names, and the
+        # demo-api conftest reads the same four before falling back to 127.0.0.1:26257.
+        # Publishing all four is how this lane hands the node it just started to the
+        # suite; publishing three of them is how a lane silently falls back.
+        run: |
+          set -euo pipefail
+          dsn="postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+          for name in MAINLINE_TEST_DSN COCKROACH_URL CRDB_URL TRAPPOINT_DSN; do
+            echo "${name}=${dsn}" >> "$GITHUB_ENV"
+            echo "published ${name}"
+          done
+
+      - name: Collection must cost a second, not a container
+        # trappoint:pytest-lane=hermetic
+        #
+        # `--crdb=none`, and the marker is `hermetic`, because that is what this
+        # invocation IS: the testkit plugin returns before obtaining any cluster when
+        # `collectonly` is set, so this step reaches no database even though the job it
+        # sits in has one running. Marking it `cluster` would be a declaration that
+        # cannot be checked against its own behaviour.
+        #
+        # WHY IT IS HERE AT ALL. `mainline-demo-api` is deliberately NOT a workspace
+        # member: `verticals/*/apps/*` is absent from `[tool.uv.workspace] members`
+        # because the console beside it is a pnpm workspace. Its dependencies resolve
+        # through other members and its `tests/conftest.py` puts `../src` on `sys.path`
+        # itself. That is a claim about this runner, and a collection error inside a test
+        # run is a wall of noise; here it is one legible failure with a number.
+        run: |
+          set -euo pipefail
+          uv run --frozen --all-packages pytest "${SUITE}" \
+            --crdb=none --collect-only -q > collected.txt
+          # `grep -c` exits 1 on no matches, and shell-level error suppression is banned
+          # in this directory. `ci.yml` solves the same problem the same way — with the
+          # guard rather than the suppression — so a broken collection, which also
+          # produces no matches, cannot quietly read as "zero tests collected".
+          count=0
+          if grep -q '::' collected.txt; then
+            count="$(grep -c '::' collected.txt)"
+          fi
+          echo "collected ${count} test(s) from ${SUITE} (floor ${COLLECTED_FLOOR})"
+          if [ "${count}" -lt "${COLLECTED_FLOOR}" ]; then
+            tail -n 20 collected.txt
+            echo "::error title=the demo-api suite did not collect::${count} test(s) collected, floor ${COLLECTED_FLOOR}. Either the suite failed to import on this runner — it is not a uv workspace member and puts its own src on sys.path — or assertions were deleted. Both are defects; neither may be answered by lowering the floor."
+            exit 1
+          fi
+          if [ "${count}" -gt "${COLLECTED_FLOOR}" ]; then
+            echo "::notice::the suite grew to ${count}; raise COLLECTED_FLOOR to match in the same commit"
+          fi
+
+      - name: The suite against the cluster, and the verdict
+        # trappoint:pytest-lane=cluster
+        #
+        # `--crdb=reuse`, NEVER `auto`. `auto` means "reuse a cluster that answers, start
+        # one if none does", so a lane whose `docker run` had failed would quietly start
+        # a container of its own and report success — a lane that cannot report that its
+        # cluster is missing. `reuse` skips instead, and the floor below refuses the skip.
+        #
+        # THE PYTEST INVOCATION AND THE VERDICT ARE ONE STEP, ON PURPOSE. Splitting them
+        # would leave a step whose deletion turns this lane green while the suite still
+        # fails, because pytest's status would have been captured and then dropped. Here
+        # the last command of the step exits with pytest's own status when pytest failed
+        # (`--pytest-rc`), so there is nothing to delete that does not delete the run.
+        #
+        # No step-level error tolerance, no shell-level error suppression, and the
+        # verdict is not deferred into a step that runs unconditionally. `set +e`
+        # brackets ONLY the pytest call, and only so its status can be handed to the
+        # report rather than thrown away by the shell; `set -e` is restored before
+        # anything is decided.
+        run: |
+          set -euo pipefail
+          report="junit-cluster.xml"
+          set +e
+          uv run --frozen --all-packages pytest "${SUITE}" \
+            --crdb=reuse -q -p no:cacheprovider --junit-xml="${report}"
+          rc=$?
+          set -e
+          echo "pytest exited ${rc}"
+          uv run --frozen --all-packages python scripts/ci/cluster_lane_report.py \
+            --junit "${report}" \
+            --known qa/cluster-known-red.json \
+            --suite-root "${SUITE}" \
+            --pytest-rc "${rc}" \
+            --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: The container's own account of the run
+        # Diagnosis only, and it is the one step in this job allowed to run after a
+        # failure — it decides nothing, and it runs only when the job has ALREADY failed,
+        # so it can neither mask a verdict nor create one. When the suite fails for a
+        # reason that is about the database rather than about the code, this is where
+        # that shows up. It suppresses nothing: this directory permits exactly one
+        # suppressed command, `db.yml`'s container cleanup, and a second would make that
+        # ban unenforceable.
+        if: failure()
+        run: docker logs "${CRDB_CONTAINER}" 2>&1 | tail -60

@@ -117,19 +117,47 @@ env:
   # there is no third place a test can hide. Writing the two expressions by hand in two
   # jobs is how a gap gets in, so they are derived from this one string instead.
   #
-  # MEASURED 2026-08-10 on the pinned interpreter
+  # MEASURED 2026-08-13 at HEAD 073dfea on the pinned interpreter
   # (`.venv/Scripts/python.exe -m pytest --crdb=none --collect-only -q`), with BOTH
   # markers registered and applied:
   #
-  #   -m "g4alpha or pl2_red"        ->    13 collected, 9240 deselected
-  #   -m "not (g4alpha or pl2_red)"  ->  9240 collected,   13 deselected
-  #                                      ----   9253, the whole collection
+  #   -m "g4alpha or pl2_red"        ->    15 collected, 9824 deselected
+  #   -m "not (g4alpha or pl2_red)"  ->  9824 collected,   15 deselected
+  #                                      ----   9839, the whole collection
   #
-  # and the selected 13 run `13 failed, 0 passed, 0 skipped` — which is why `RED_FLOOR`
-  # below is 13. The previous numbers recorded here (1093 / 5 / 1098) were taken while
-  # `pl2_red` was registered nowhere and applied to nothing; they described a selector
-  # that reached only the g4alpha five. Superseded, not corrected in place, because the
-  # difference between them IS the defect this pair of jobs was built to end.
+  # and the selected 15 run `15 failed, 0 passed, 0 skipped` in 14.69 s — which is why
+  # `RED_FLOOR` below is 15.
+  #
+  # RE-MEASURED at the END of the same sitting, three hours later, because five other
+  # workers were writing to this tree throughout it:
+  #
+  #   -m "g4alpha or pl2_red"        ->    15 collected, 9884 deselected
+  #   -m "not (g4alpha or pl2_red)"  ->  9884 collected,   15 deselected
+  #                                      ----   9899, the whole collection
+  #
+  # BOTH READINGS ARE PRINTED, and the difference between them is the point. The
+  # collection moved 9839 -> 9899 in three hours; the RED SET DID NOT MOVE, and all
+  # fifteen still failed. That is what makes 15 a floor rather than a snapshot: it is a
+  # count of DECLARED reds, and declared reds change only when somebody applies or
+  # removes a marker, which is a reviewable act. A tally of the whole collection is not,
+  # which is why the one recorded here carries the time it was taken and why anyone
+  # quoting it should re-run the command above rather than trust the number.
+  #
+  # THE TWO SUPERSEDED READINGS ARE KEPT, because the difference between them is the
+  # defect each pair of jobs was built to end, and a number replaced in place teaches
+  # nobody anything:
+  #
+  #   1093 /    5 / 1098   taken while `pl2_red` was registered nowhere and applied to
+  #                        nothing; the selector reached only the g4alpha five.
+  #     13 / 9240 / 9253   taken 2026-08-10 in the commit that registered and applied
+  #                        `pl2_red`. Correct on that tree.
+  #
+  # The 9253 -> 9839 move is 586 tests, and it is NOT drift: `pyproject.toml`'s
+  # `testpaths` gained `verticals/*/packages/*/tests` and then
+  # `verticals/*/apps/demo-api/tests` (2026-08-13), which is where 444 of them came from.
+  # The 13 -> 15 move is `tests/integration/custody/test_k2_exit.py`'s K2.4 and K2.6,
+  # marked `pl2_red` on 2026-08-13 with the argument written into that file's own module
+  # docstring. Both were measured here before this line was edited, not inferred from it.
   #
   # `g4alpha` is registered in `pyproject.toml` ("observed RED by design until K4").
   # `pl2_red` is the marker for the `PL-2 RED, as intended.` cases — registered in
@@ -184,6 +212,8 @@ jobs:
           scripts/qa/mypy_targets.py|every distribution has a mypy.ini section
           scripts/qa/check_import_registry.py|no distribution is linted by zero contracts
           scripts/qa/check_reuse.py|every file carries an SPDX identifier or a sidecar
+          scripts/qa/skip_ratchet.py|every cluster-shaped skip is executed by a named lane or enumerated
+          scripts/qa/check_pytest_lanes.py|every pytest step in this directory declares which side of the cluster line it is on
           REGISTRY
           if [ "${missing}" -ne 0 ]; then
             echo ""
@@ -192,7 +222,32 @@ jobs:
             exit 1
           fi
           echo ""
-          echo "all five checkers present"
+          echo "all seven checkers present"
+
+      - name: A skipped test may not read as green
+        # WHY THIS RUNS IN GATE ZERO AND NOT IN A TEST JOB. It reads three committed files
+        # — qa/ci-skip-census.json, qa/skip-ratchet.json and .github/workflows/*.yml as
+        # RAW TEXT — and runs no pytest, opens no socket and starts no container. Putting
+        # it behind `setup-workspace` would buy nothing and cost a minute.
+        #
+        # WHAT IT REFUSES. Measured 2026-08-13: 974 of this repository's 988 hermetic
+        # skips name a cluster, a node, a database or a DSN; 244 of those 974 are executed
+        # by a lane that stands a node up and 730 are not. This checker fails the build
+        # when a cluster-shaped skip is attributed to NEITHER — so a cluster-backed test
+        # added with no lane is a red X naming the node id, instead of a green tick over
+        # an assertion nobody has ever run. `pytest` exits 0 when every test skips, and on
+        # the Actions tab that is indistinguishable from a pass.
+        run: python3 scripts/qa/skip_ratchet.py
+
+      - name: Every pytest step says which side of the cluster line it is on
+        # Contract A. The marker is a COMMENT, so this checker reads workflow files as raw
+        # text; PyYAML discards comments and these files are 60% comment by volume.
+        # Measured 2026-08-13 before this step existed: 30 of the 32 pytest invocations in
+        # this directory declared no `--crdb` mode at all and therefore ran at the default
+        # `auto` — "reuse a cluster that answers, start one if none does" — so the file
+        # could not say whether a step reused the shared node or started its own. A lane
+        # whose cluster posture is implicit cannot be audited and cannot be ratcheted.
+        run: python3 scripts/qa/check_pytest_lanes.py
 
   # ---------------------------------------------------------------------------------
   lockfile:
@@ -463,6 +518,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      # trappoint:pytest-lane=hermetic — passes --crdb=none. No cluster is obtained and
+      #                                   none may be started; cluster tests skip with the
+      #                                   reason their own fixture writes.
       - name: Collection must cost a second, not a container
         # `--collect-only` starts no cluster by construction (the testkit plugin returns
         # early when `collectonly` is set). Running it first turns a collection ERROR —
@@ -470,6 +528,7 @@ jobs:
         # into its own legible failure instead of a wall of noise inside a test run.
         run: uv run --frozen --all-packages pytest --crdb=none --collect-only -q
 
+      # trappoint:pytest-lane=hermetic — passes --crdb=none, and `--collect-only` besides.
       - name: Name every test this job hands to `red-by-design`
         # A DESELECTION MUST NOT BE A DISAPPEARANCE. This file has always argued —
         # correctly, in the step below — that a marker filter is dangerous because the
@@ -505,6 +564,11 @@ jobs:
             grep '::' handed-off.txt | sed 's/^/  /'
           fi
 
+      # trappoint:pytest-lane=hermetic — passes --crdb=none. THIS is the invocation the
+      #                                   skip census in qa/ci-skip-census.json measures,
+      #                                   and the 973-of-987 cluster skips it records are
+      #                                   this lane's honest half. It is deliberately NOT
+      #                                   a cluster lane: `cluster-tests.yml` is.
       - name: The suite, with every cluster test SKIPPED FOR A NAMED REASON
         # NOT `-m "not requires_cluster"`. A marker filter DESELECTS, which means the
         # test disappears from the report and nobody can tell a test that was skipped
@@ -583,22 +647,35 @@ jobs:
       # A floor on FAILURES, never on collected tests — a set that collects fifteen and
       # fails none is exactly what this job exists to catch.
       #
-      # 5 -> 13 on 2026-08-10, in the commit that registered and applied `pl2_red`.
-      # MEASURED on the pinned interpreter immediately before this line was written:
+      # 5 -> 13 on 2026-08-10, in the commit that registered and applied `pl2_red`:
       #
       #   .venv/Scripts/python.exe -m pytest --crdb=none -m "g4alpha or pl2_red" -q
       #   ->  13 failed, 9240 deselected in 14.83s   (0 passed, 0 skipped)
       #
-      #   5 · tests/eval/recall/test_g4alpha_gates.py   — the G4-alpha gates
+      # 13 -> 15 on 2026-08-13 at HEAD 073dfea. RE-MEASURED on the pinned interpreter
+      # immediately before this line was edited, and the composition printed with `-rA`
+      # so every one of the fifteen is named rather than counted:
+      #
+      #   .venv/Scripts/python.exe -m pytest --crdb=none -m "g4alpha or pl2_red" -q
+      #   ->  15 failed, 9824 deselected in 14.69s   (0 passed, 0 skipped)
+      #
+      #   5 · tests/eval/recall/test_g4alpha_gates.py       — the G4-alpha gates
+      #   2 · tests/integration/custody/test_k2_exit.py     — NEW: K2.4 and K2.6
       #   2 · tests/integration/schema/test_mi_blame.py
       #   4 · tests/integration/schema/test_mi_boundary_override.py
       #   1 · tests/integration/schema/test_mi_event_severity.py
       #   1 · tests/integration/schema/test_mi_ratchet.py
       #
-      # The floor rises WITH the marker, in the same commit, because a floor left at 5
-      # would let eight of the thirteen be silently un-marked again and still pass here.
-      # It may be lowered only by a commit that promotes a red to green and says which.
-      RED_FLOOR: "13"
+      # ALL FIFTEEN WERE OBSERVED FAILING before the floor was raised. That order matters:
+      # a floor above the observed count makes this job red for the wrong reason, which is
+      # a worse outcome than a floor that is one too low, because it is red about itself
+      # rather than about the suite. Raising a floor is strengthening and is allowed;
+      # lowering one may be done only by a commit that promotes a red to green and says
+      # which. The two new members were marked by the custody suite on 2026-08-13 and
+      # their argument is in that file's own module docstring; the REGISTRY below gains
+      # the file in this same edit, because a marked file absent from the registry fails
+      # this job as "UNDECLARED by-design red" — correctly, and it did.
+      RED_FLOOR: "15"
     steps:
       - name: Deny egress except to the package indexes
         uses: step-security/harden-runner@v2
@@ -620,6 +697,10 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      # trappoint:pytest-lane=hermetic — passes --crdb=none. A declared red that needs a
+      #                                   cluster CANNOT be measured here and is reported
+      #                                   as "not measured" below, never counted toward
+      #                                   the floor.
       - name: Run the declared set — the exit code is NOT the verdict
         # Deliberately not the verdict. pytest exits 1 for "some test failed", which is
         # the state this job WANTS, and 0 for "everything passed", which is the state it
@@ -722,6 +803,18 @@ jobs:
               "tests/integration/schema/test_mi_event_severity.py":
                   "severity-revision provenance is not yet projected; owner "
                   "dm-functions-triggers, band 0130-0199",
+              # ADDED 2026-08-13. Both reasons are the assertion text the two cases
+              # actually printed on the pinned interpreter that day, quoted rather than
+              # summarised, because a registry entry that paraphrases its case stops
+              # being checkable against it.
+              "tests/integration/custody/test_k2_exit.py":
+                  "K2.4 — nothing in the repository writes evidence/k2-checkpoint-"
+                  "cadence.json, so the ~60 s window of undetectable mutation has never "
+                  "been observed; and K2.6 — the writer exists "
+                  "(mainline_custody_patrol.collect.write_k2_migration_attestation) and "
+                  "no lane runs it against a migrated cluster, so evidence/k2-migration-"
+                  "attestation.json has never been produced. Owner: CUSTODY domain — "
+                  "docs/leads/custody.md, workers `sequencer` and `witness-and-custodian`",
           }
 
           floor = int(os.environ["RED_FLOOR"])
@@ -1119,7 +1212,7 @@ jobs:
             echo ""
             echo "| lane | what it proves | result |"
             echo "|---|---|---|"
-            echo "| checker registry | the five checkers below are on disk | ${R_CHECKERS} |"
+            echo "| checker registry | the seven checkers below are on disk, and two of them run here | ${R_CHECKERS} |"
             echo "| lockfile · members | uv.lock describes every distribution on disk | ${R_LOCKFILE} |"
             echo "| ruff format · ratchet | formatting is clean; no lint count rose | ${R_FORMAT} |"
             echo "| mypy · coverage | types check, and no package is unchecked | ${R_TYPES} |"
@@ -1130,6 +1223,19 @@ jobs:
             echo "| sequence ban | no sequence anywhere in any migration tree | ${R_SQL} |"
             echo "| actionlint | every workflow parses, shellcheck reads every \`run:\`, and the composite action is checked too | ${R_WORKFLOWS} |"
             echo "| PL-2 | the first red run has a recorded URL | ${R_ADR} |"
+            echo "| \`cluster-tests.yml\` · demo-api | the demo-api suite against a real pinned CockroachDB — **not a job in this workflow** | not measured here; open that workflow for its colour |"
+            echo ""
+            echo "**Why the last row has no colour.** \`cluster-tests.yml\` is a separate"
+            echo "workflow, so this job cannot read its result and will not guess one. It is"
+            echo "named here because until 2026-08-13 no lane in this repository pointed a"
+            echo "cluster at \`verticals/mainline/apps/demo-api/tests\` at all: every one of"
+            echo "that suite's cluster-backed tests skipped in the row above and was executed"
+            echo "nowhere. The live counts are in \`qa/ci-skip-census.json\` under"
+            echo "\`roots\` and in that lane's own \`COLLECTED_FLOOR\`, and are deliberately not"
+            echo "restated here — a count restated in two files is a count that goes stale in"
+            echo "one of them. \`scripts/qa/skip_ratchet.py\`, in the \`checker registry\` row,"
+            echo "is what keeps the claim true rather than merely written down: it fails the"
+            echo "build when a cluster-backed test is executed by no lane at all."
             echo ""
             echo "**Two pytest rows, on purpose.** The hermetic suite is split in two so the"
             echo "colours mean different things. \`pytest --crdb=none\` runs everything EXCEPT"
@@ -1141,7 +1247,13 @@ jobs:
             echo ""
             echo "**What this lane does NOT prove.** Nothing here touches a database, so no"
             echo "claim about refusal, fingerprint stability or time travel is tested by it."
-            echo "\`db.yml\` is the cluster lane, \`release-proof.yml\` is the merge-gate"
+            echo "Measured 2026-08-13: 974 of the 988 tests this lane SKIPS name a cluster, a"
+            echo "node, a database or a DSN. \`qa/skip-ratchet.json\` records which lane runs"
+            echo "each of them and enumerates the 730 that no lane runs at all, with a reason"
+            echo "and an owner for every one."
+            echo ""
+            echo "\`cluster-tests.yml\` is the demo-api cluster lane,"
+            echo "\`db.yml\` is the schema cluster lane, \`release-proof.yml\` is the merge-gate"
             echo "refusal, \`cloud-verify.yml\` is the only lane that has ever spoken to"
             echo "CockroachDB Cloud, and \`console.yml\` is the only lane that compiles a line"
             echo "of TypeScript. See \`docs/release/ci-map.md\`."

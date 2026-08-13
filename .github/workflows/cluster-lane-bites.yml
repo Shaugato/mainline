@@ -1,0 +1,619 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE PROOF THAT `cluster-tests.yml` CAN FAIL.
+#
+# A cluster lane that would pass without a cluster is worse than no cluster lane, because
+# it converts "we do not know" into "we checked". `cluster-tests.yml` is the first lane in
+# this repository's history that points a real CockroachDB at the demo API's suite; this
+# lane is the control that says that sentence means something.
+#
+# THE 2x2 THIS JOB ASSERTS ON EVERY RUN
+#
+#   |                | plant ABSENT | plant PRESENT                                     |
+#   |----------------|--------------|---------------------------------------------------|
+#   | `--crdb=none`  | GREEN        | **GREEN**  <- the defect is invisible to the lanes |
+#   |                |              |             this repository had. THIS CELL IS THE  |
+#   |                |              |             WHOLE ARGUMENT.                       |
+#   | `--crdb=reuse` | GREEN        | **RED**    <- the new lane sees it                |
+#
+# The job is green only when all four hold. If the top-right cell ever comes back RED, the
+# plant is one a hermetic lane can already see, the cluster lane is redundant for that
+# defect, and the answer is a different plant - never a relaxed assertion.
+#
+# WHY THE SUBSET, AND WHY IT IS NOT A NARROWING.
+#
+# The full demo-api suite is ALREADY RED today: `3 failed, 63 errors` under `--crdb=reuse`
+# at HEAD 073dfea, all of them real defects owned by other leads and inventoried in
+# `qa/cluster-known-red.json`. Against a suite that is already red, "plant a defect and
+# watch it go red" proves nothing - the plant-absent and plant-present cells would look
+# identical. So the 2x2 runs against three modules that are GREEN today, measured:
+#
+#     $ pytest .../test_credentials.py .../test_gate_run.py .../test_transitions.py \
+#         --crdb=reuse -q
+#     77 passed, 1 skipped in 23.08s        (2026-08-13, against the node compose.yaml pins)
+#     $ ... --crdb=none -q
+#     7 passed, 71 skipped in 0.60s
+#
+# `cluster-tests.yml` runs the WHOLE suite and is the lane that must not narrow. This lane
+# runs a subset because a control needs a clean specimen; it asserts nothing about coverage
+# and removes nothing from the lane it validates.
+#
+# THE ANTI-VACUITY PROBLEM THIS JOB HAS OF ITS OWN.
+#
+# "GREEN under `--crdb=none`" is satisfied by a run in which every test skipped, and 71 of
+# the 78 do exactly that. A cell asserted as "pytest exited 0" would therefore be true of a
+# run that asserted nothing at all. So both hermetic cells assert an EXECUTED FLOOR, and -
+# more sharply - the plant-present hermetic cell asserts that *the same number of tests
+# passed as in the plant-absent one*. That is the real claim: the hermetic lane could not
+# tell the two trees apart.
+#
+# NO `harden-runner`, and the omission is stated rather than silent, exactly as
+# `db.yml:362-368` and `cluster-tests.yml` state it: this job's first act is `docker pull`,
+# whose endpoints include a CDN host whose name is not stable, and an `allowed-endpoints`
+# list written from memory would either break the lane for a reason that has nothing to do
+# with the database or be so broad it permits everything. `ci.yml` is where the egress
+# claim is enforced on every job with policy `block`.
+
+name: cluster-lane-bites
+
+on:
+  push:
+    # `master`, not `main`. The branch `main` does not exist in this repository and a
+    # `main` trigger has never fired here once; see `ci.yml:93-99` for the measurement.
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cluster-lane-bites-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  falsifiability:
+    name: the cluster lane bites, and the hermetic lane cannot
+    runs-on: ubuntu-24.04
+    # Four pytest runs, two of which apply 271 migrations and both deployed seed files to a
+    # database named for the seed's fingerprint - and the planted seed has a DIFFERENT
+    # fingerprint, so the plant-present cells pay that cost again rather than reusing the
+    # unplanted world. That is the fixture working: a cached database that survived a seed
+    # edit would make this whole lane measure nothing.
+    timeout-minutes: 30
+
+    env:
+      CRDB_CONTAINER: mainline-bites-crdb-${{ github.run_id }}-${{ github.run_attempt }}
+      # EVERY ARTEFACT THIS JOB WRITES GOES OUTSIDE THE WORKING TREE, and that is load
+      # bearing rather than tidy. The last thing this job does is assert that
+      # `git status --porcelain` is EMPTY - the strongest available statement that the
+      # plant did not survive, because it catches an untracked leftover as well as a
+      # modified file. Four JUnit reports and a doctored inventory written into the
+      # checkout would each be such a leftover, and the honest response to that assertion
+      # failing must never be to weaken it to `git diff`.
+      ART: ${{ runner.temp }}
+      # The three modules measured green under a cluster on 2026-08-13. Kept as one
+      # variable so that every cell of the 2x2 runs the SAME argv modulo `--crdb`; a 2x2
+      # whose cells disagree about what they ran is four measurements, not a comparison.
+      SUBSET: >-
+        verticals/mainline/apps/demo-api/tests/test_credentials.py
+        verticals/mainline/apps/demo-api/tests/test_gate_run.py
+        verticals/mainline/apps/demo-api/tests/test_transitions.py
+      # Measured, not guessed: `--crdb=none` executes 7 of the 78 in the subset and skips
+      # 71 with a named reason. A floor rather than an equality, for the reason
+      # `cluster-tests.yml` argues about its own: the suite may grow and an assertion that
+      # goes red when somebody adds a test trains its readers to edit the number.
+      HERMETIC_FLOOR: "7"
+      # `--crdb=reuse` executes 77 and skips 1 - `test_gate_run.py:945`, "jsonschema is not
+      # a workspace dependency", which has nothing to do with the database.
+      CLUSTER_FLOOR: "77"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── CONTRACT B, copied from `db-schema.yml:310-450` as the plan requires. Five
+      #    steps, and the fourth is the one that matters. ───────────────────────────────
+      - name: Read the ONE version constant out of compose.yaml
+        id: image
+        # The version lives in compose.yaml and nowhere else and is NOT restated here:
+        # `db.yml`'s census counts restated image literals across `.github/workflows/`
+        # against a ceiling being driven down, and a second copy of the version is the
+        # defect that census exists to refuse.
+        run: |
+          set -euo pipefail
+          image="$(python3 - <<'PY'
+          import pathlib, re
+          lines = pathlib.Path("compose.yaml").read_text(encoding="utf-8").splitlines()
+          for i, line in enumerate(lines):
+              if "trappoint:crdb-image-pin" in line:
+                  for candidate in lines[i + 1 : i + 4]:
+                      m = re.match(r"^\s*image:\s*(\S+)\s*$", candidate)
+                      if m:
+                          print(m.group(1))
+                          raise SystemExit(0)
+          raise SystemExit("compose.yaml carries no marked image pin")
+          PY
+          )"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
+          echo "CockroachDB image: ${image}"
+
+      - name: Pull the image and record its digest
+        id: digest
+        # Digest pinning without a fabricated hash. Resolved and printed every run;
+        # ASSERTED the moment somebody records `vars.CRDB_IMAGE_DIGEST`. An invented digest
+        # committed today would be a lie in the repository; an assertion that activates
+        # when the real one is recorded is the honest version of the same control.
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+          EXPECTED: ${{ vars.CRDB_IMAGE_DIGEST }}
+        run: |
+          set -euo pipefail
+          docker pull "${PINNED_IMAGE}"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${PINNED_IMAGE}")"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+          echo "resolved: ${digest}"
+          if [ -n "${EXPECTED}" ] && [ "${EXPECTED}" != "${digest}" ]; then
+            echo "::error::image digest ${digest} does not match the pinned ${EXPECTED}"
+            exit 1
+          fi
+          if [ -z "${EXPECTED}" ]; then
+            echo "::notice::CRDB_IMAGE_DIGEST is unset; the digest is recorded but not asserted"
+          fi
+
+      - name: Start a single-node CockroachDB
+        # `--listen-addr` is DELIBERATELY ABSENT and must stay absent. Measured 2026-08-10
+        # and recorded in `db-schema.yml`: `--listen-addr=0.0.0.0:26257` makes the node
+        # REFUSE TO START ("hostname of listen_addr must be 127.0.0.1 or localhost"), and
+        # `--listen-addr=localhost:26257` starts but binds inside the container's loopback
+        # where a published port cannot reach it. The default binds where `-p` forwards.
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          docker run -d --name "${CRDB_CONTAINER}" \
+            -p 127.0.0.1:26257:26257 -p 127.0.0.1:8080:8080 \
+            "${PINNED_IMAGE}" \
+            start-single-node --insecure \
+              --http-addr=0.0.0.0:8080 \
+              --store=type=mem,size=2GiB
+          for attempt in $(seq 1 60); do
+            if docker exec "${CRDB_CONTAINER}" ./cockroach sql --insecure \
+                 --execute "SELECT 1" >/dev/null 2>&1; then
+              echo "cluster answering SQL after ${attempt} attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::the cluster never answered SQL"
+          docker logs "${CRDB_CONTAINER}" | tail -50
+          exit 1
+
+      - name: The server that answered IS the pinned version
+        # ANTI-VACUITY. Every step above reads the pin, hands it to `docker run`, resolves
+        # a digest and polls `SELECT 1`. Not one of them asks the RUNNING SERVER which
+        # version it is, so the sequence catches a pin that failed to ARRIVE and nothing
+        # else. This lane's claim is "a defect only a database can see makes the cluster
+        # lane red"; without this step it is a claim about an unknown engine.
+        #
+        # The expectation is DERIVED from what step 1 resolved and is never written out.
+        env:
+          PINNED_IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+
+          image = os.environ["PINNED_IMAGE"]
+          container = os.environ["CRDB_CONTAINER"]
+          tag = image.rsplit(":", 1)[-1]
+          wanted = tag[len("latest-") :] if tag.startswith("latest-") else tag
+
+          probe = subprocess.run(
+              ["docker", "exec", container, "./cockroach", "sql", "--insecure",
+               "--format=csv", "--execute", "SELECT version()"],
+              capture_output=True, text=True, check=False,
+          )
+          if probe.returncode != 0:
+              detail = (probe.stderr or probe.stdout).strip().replace("\n", " - ")
+              print("::error title=the node would not report its version::"
+                    "`SELECT version()` failed against a node that had just answered "
+                    f"`SELECT 1` - container {container}: {detail}")
+              sys.exit(1)
+          served = [row for row in probe.stdout.splitlines() if row.strip()][-1]
+          served = served.strip().strip('"')
+
+          if re.search(rf"(?<![0-9A-Za-z.]){re.escape(wanted)}(\.\d+)*(?![0-9A-Za-z.])", served):
+              print(f"compose.yaml asked for {wanted}; the server said: {served}")
+              sys.exit(0)
+          print("::error title=the running server is not the pinned version::compose.yaml "
+                f"asked for {wanted} (pin {image}); the node that answered reports "
+                f"{served!r}. The 2x2 below would be measured against that other engine, "
+                "under this lane's name.")
+          sys.exit(1)
+          PY
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: "3.13"
+
+      - name: Publish the DSN under all four spellings the tree checks
+        # `packages/trappoint-testkit/cluster.py` reads these four names and the demo-api
+        # conftest reads the same four before falling back to 127.0.0.1:26257. Publishing
+        # all four is how this lane hands the node it just started to the suite;
+        # publishing three of them is how a lane silently falls back to something else.
+        run: |
+          set -euo pipefail
+          dsn="postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable"
+          for name in MAINLINE_TEST_DSN COCKROACH_URL CRDB_URL TRAPPOINT_DSN; do
+            echo "${name}=${dsn}" >> "$GITHUB_ENV"
+            echo "published ${name}"
+          done
+
+      # ── HYGIENE, first and last. This job WRITES INTO A DEPLOYED SEED FILE. ──────────
+      - name: The tree is clean before anything is planted
+        # A 2x2 that started from a dirty tree is measuring somebody else's edit alongside
+        # its own, and the "plant absent" cells would not be plant-absent. This also fixes
+        # the meaning of the identical assertion at the end: "clean" is only evidence that
+        # the plant was removed if it was true before the plant was made.
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            echo "::error title=the tree was not clean before planting::this job edits verticals/mainline/db/seeds/demo/demo_world.sql and proves afterwards that it put the bytes back. That proof is worthless if the tree was already dirty."
+            exit 1
+          fi
+          uv run --frozen --all-packages python scripts/ci/plant_cluster_defect.py --status
+          echo "the tree is clean and no plant is present"
+
+      # ── CELL 1 of 4: plant ABSENT, --crdb=reuse -> GREEN. ASSERTED FIRST, ON PURPOSE.
+      - name: 'Cell 1/4 - plant ABSENT, cluster: the subset is GREEN today'
+        # This runs BEFORE the plant because everything downstream is conditional on it. If
+        # the subset is no longer green under a cluster - another lead's change landed, a
+        # module went unstable - then a red cell 4 would be indistinguishable from a plant
+        # that bit, and this job would report a falsifiability proof it had not made. So it
+        # stops here and says the specimen is dirty rather than reporting on it.
+        #
+        # `--crdb=reuse`, NEVER `auto`: a lane that would silently start its own container
+        # when its `docker run` failed is a lane that cannot report a missing cluster.
+        run: |
+          # trappoint:pytest-lane=cluster
+          set -euo pipefail
+          # `SUBSET` is one string and the three paths in it must reach pytest as three
+          # arguments. `read -ra` splits it into a quoted array rather than relying on
+          # unquoted word-splitting, which shellcheck reads as a defect and which would
+          # silently do the wrong thing the day one of those paths acquired a space.
+          read -r -a subset <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset[@]}" \
+            --crdb=reuse -q -p no:cacheprovider --junit-xml="${ART}/junit-absent-cluster.xml"
+          python3 - <<'PY'
+          import os, sys, xml.etree.ElementTree as ET
+          s = ET.parse(os.environ["ART"] + "/junit-absent-cluster.xml").getroot()
+          s = s if s.tag == "testsuite" else s.find("testsuite")
+          executed = int(s.get("tests", "0")) - int(s.get("skipped", "0"))
+          floor = int(os.environ["CLUSTER_FLOOR"])
+          print(f"cell 1/4: {executed} executed under a cluster (floor {floor})")
+          if executed < floor:
+              print("::error title=the clean cluster cell proved nothing::only "
+                    f"{executed} test(s) EXECUTED against the cluster, floor {floor}. "
+                    "pytest exits 0 when every test skips, so a green here without this "
+                    "line would mean the suite never reached the database that the whole "
+                    "2x2 below is about.")
+              sys.exit(1)
+          PY
+
+      # ── CELL 2 of 4: plant ABSENT, --crdb=none -> GREEN, and how much of it ran.
+      - name: 'Cell 2/4 - plant ABSENT, hermetic: GREEN, and 7 tests actually ran'
+        # `--crdb=none`. The testkit clears the four DSN names and refuses to spawn, so the
+        # 71 `requires_cluster` items skip with a named reason and 7 execute. The count is
+        # recorded because cell 3 must reproduce it EXACTLY: "green with the plant present"
+        # is a claim about tests that RAN, and 71 skips are green in the same way a deleted
+        # test is green.
+        run: |
+          # trappoint:pytest-lane=hermetic
+          set -euo pipefail
+          # `SUBSET` is one string and the three paths in it must reach pytest as three
+          # arguments. `read -ra` splits it into a quoted array rather than relying on
+          # unquoted word-splitting, which shellcheck reads as a defect and which would
+          # silently do the wrong thing the day one of those paths acquired a space.
+          read -r -a subset <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset[@]}" \
+            --crdb=none -q -p no:cacheprovider --junit-xml="${ART}/junit-absent-hermetic.xml"
+          python3 - <<'PY'
+          import os, pathlib, sys, xml.etree.ElementTree as ET
+          s = ET.parse(os.environ["ART"] + "/junit-absent-hermetic.xml").getroot()
+          s = s if s.tag == "testsuite" else s.find("testsuite")
+          executed = int(s.get("tests", "0")) - int(s.get("skipped", "0"))
+          floor = int(os.environ["HERMETIC_FLOOR"])
+          print(f"cell 2/4: {executed} executed with no cluster (floor {floor})")
+          if executed < floor:
+              print(f"::error title=the hermetic baseline ran nothing::{executed} test(s) "
+                    f"executed, floor {floor}. Cell 3 compares against this number, and a "
+                    "comparison against zero is satisfied by a lane that asserts nothing.")
+              sys.exit(1)
+          pathlib.Path(os.environ["ART"], "hermetic-executed.txt").write_text(str(executed), encoding="utf-8")
+          PY
+
+      # ── THE PLANT. Between here and the revert, the tree carries a deliberate defect.
+      - name: Plant the defect only a database can see
+        # The specimen is the reverted `demo_world.sql` credential swap: line 124 enrols
+        # `digest('mainline-demo/credential/demo.signer','sha256')`, and a worker once
+        # replaced that with the constant `sha256(b"credsigner")` that `gate_run` derived,
+        # so that a red test would go green - making the SEED match the CODE.
+        #
+        # NOT the `transitions.py` reversion: the ratchet `test_no_module_derives_a_
+        # credential_id` catches that STATICALLY under `--crdb=none`, so cell 3 would be
+        # red and the proof would collapse into "we planted something both lanes see".
+        run: |
+          set -euo pipefail
+          uv run --frozen --all-packages python scripts/ci/plant_cluster_defect.py \
+            --plant seed-credential-swap
+          echo "--- the tree now differs from HEAD by exactly this: ---"
+          git --no-pager diff --stat
+          git --no-pager diff -- verticals/mainline/db/seeds/demo/demo_world.sql
+
+      # ── CELL 3 of 4: plant PRESENT, --crdb=none -> GREEN. THE WHOLE ARGUMENT.
+      - name: 'Cell 3/4 - plant PRESENT, hermetic: STILL GREEN, and the same 7 ran'
+        # THIS CELL IS WHY THE CLUSTER LANE EXISTS. The tree now carries the exact edit
+        # that put `23503 disposition_signer_credential_id_fkey` in front of a judge, and
+        # every lane this repository had before `cluster-tests.yml` reports success.
+        #
+        # The equality against cell 2 is the assertion, not the exit status: "pytest exited
+        # 0" is also true of a run where everything skipped. Equal pass counts say the
+        # hermetic lane could not tell the planted tree from the clean one - which is the
+        # sentence this whole wave turns on.
+        #
+        # If this cell is ever RED, DO NOT relax it. It means the plant is visible without
+        # a database, the cluster lane is not what proves this defect, and the plant must
+        # change.
+        run: |
+          # trappoint:pytest-lane=hermetic
+          set -euo pipefail
+          # `SUBSET` is one string and the three paths in it must reach pytest as three
+          # arguments. `read -ra` splits it into a quoted array rather than relying on
+          # unquoted word-splitting, which shellcheck reads as a defect and which would
+          # silently do the wrong thing the day one of those paths acquired a space.
+          read -r -a subset <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset[@]}" \
+            --crdb=none -q -p no:cacheprovider --junit-xml="${ART}/junit-planted-hermetic.xml"
+          python3 - <<'PY'
+          import os, pathlib, sys, xml.etree.ElementTree as ET
+          s = ET.parse(os.environ["ART"] + "/junit-planted-hermetic.xml").getroot()
+          s = s if s.tag == "testsuite" else s.find("testsuite")
+          executed = int(s.get("tests", "0")) - int(s.get("skipped", "0"))
+          before = int(pathlib.Path(os.environ["ART"], "hermetic-executed.txt").read_text(encoding="utf-8"))
+          print(f"cell 3/4: {executed} executed with the plant present; cell 2 ran {before}")
+          if executed != before:
+              print(f"::error title=the two hermetic cells did not run the same tests::"
+                    f"{executed} executed with the plant, {before} without it. The cells "
+                    "are no longer comparable, so no claim about invisibility can be made "
+                    "from them.")
+              sys.exit(1)
+          print("the hermetic lane cannot tell the planted tree from the clean one")
+          PY
+
+      # ── CELL 4 of 4: plant PRESENT, --crdb=reuse -> RED, and red for the RIGHT test.
+      - name: 'Cell 4/4 - plant PRESENT, cluster: RED, and the named control is what failed'
+        # An inverted assertion, so `set +e` brackets pytest and nothing else - its status
+        # is the measurement here, and `set -e` is restored before anything is decided.
+        #
+        # "Non-zero" alone would be satisfied by a collection error, a missing DSN or a
+        # crashed node, all of which would let this lane report a falsifiability proof
+        # while the plant did nothing. So the JUnit is read and the test the PLANT ITSELF
+        # NAMES - `caught_by` in the manifest `--plant` wrote - must be among the failures.
+        # The expectation comes from the plant's own declaration rather than being restated
+        # here, so a plant that changed what it edits cannot keep passing this assertion.
+        run: |
+          # trappoint:pytest-lane=cluster
+          set -euo pipefail
+          set +e
+          # `SUBSET` is one string and the three paths in it must reach pytest as three
+          # arguments. `read -ra` splits it into a quoted array rather than relying on
+          # unquoted word-splitting, which shellcheck reads as a defect and which would
+          # silently do the wrong thing the day one of those paths acquired a space.
+          read -r -a subset <<< "${SUBSET}"
+          uv run --frozen --all-packages pytest "${subset[@]}" \
+            --crdb=reuse -q -p no:cacheprovider --junit-xml="${ART}/junit-planted-cluster.xml"
+          rc=$?
+          set -e
+          echo "pytest exited ${rc} with the plant present"
+          echo "PLANTED_PYTEST_RC=${rc}" >> "$GITHUB_ENV"
+          if [ "${rc}" -eq 0 ]; then
+            echo "::error title=THE PLANT DID NOT BITE::pytest exited 0 against a cluster with a deliberately broken seed in the tree. Either the plant no longer applies, or the control that catches it has been weakened, or the suite never reached the database. In every one of those cases cluster-tests.yml is currently proving less than it claims, and the answer is never to relax this assertion."
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json, os, pathlib, sys, xml.etree.ElementTree as ET
+
+          root = ET.parse(os.environ["ART"] + "/junit-planted-cluster.xml").getroot()
+          s = root if root.tag == "testsuite" else root.find("testsuite")
+          bad = int(s.get("failures", "0")) + int(s.get("errors", "0"))
+          expected = json.loads(
+              pathlib.Path(".plant-cluster-defect/manifest.json").read_text(encoding="utf-8")
+          )["caught_by"]
+          wanted = expected.rsplit("::", 1)[-1]
+
+          names = []
+          for case in s.iter("testcase"):
+              if case.find("failure") is not None or case.find("error") is not None:
+                  names.append(case.get("name", ""))
+          print(f"cell 4/4: {bad} failure(s)/error(s) under a cluster: {sorted(names)}")
+
+          if bad == 0:
+              print("::error title=the run was red but the JUnit records no failure::pytest "
+                    "exited non-zero while its own report carries zero failures and zero "
+                    "errors. The run died of something that is not a test - a collection "
+                    "error, a missing DSN, a crashed node - and a lane that called that a "
+                    "falsifiability proof would be reporting one it never made.")
+              sys.exit(1)
+          if not any(name.split("[")[0] == wanted for name in names):
+              print(f"::error title=the cluster lane went red for the wrong reason::the "
+                    f"plant declares it is caught by {expected}, and that test is not "
+                    f"among the failures {sorted(names)}. A red cell that is red for an "
+                    "unrelated reason is not a falsifiability proof.")
+              sys.exit(1)
+          print(f"the cluster lane is RED, and {wanted} is what caught it")
+          PY
+
+      # ── THE FIFTH ASSERTION: the known-red inventory cannot be turned into a silencer.
+      - name: The inventory cannot suppress a failure, even when it names every one
+        # `cluster-tests.yml` classifies failures against `qa/cluster-known-red.json`. An
+        # inventory of known failures is one edit away from being a suppression list, and
+        # the plan's own trap says so: "do not let the known-red inventory become a
+        # suppression". This step is the control for that.
+        #
+        # The doctored copy is made AS PERMISSIVE AS THE SCHEMA ALLOWS - floors at zero and
+        # every single failing node id of cell 4 inventoried with a cause - and the report
+        # must STILL exit non-zero. Then the same doctored copy is run again with
+        # `--pytest-rc 0`, which is the one rewiring that would let a fully-inventoried red
+        # run present as green: a caller that captured pytest's status and dropped it. Both
+        # must fail. If either exits 0, that is a defect in `cluster_lane_report.py`'s
+        # design and it is reported as one rather than worked around here.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib, xml.etree.ElementTree as ET
+
+          known = json.loads(pathlib.Path("qa/cluster-known-red.json").read_text(encoding="utf-8"))
+          root = ET.parse(os.environ["ART"] + "/junit-planted-cluster.xml").getroot()
+          s = root if root.tag == "testsuite" else root.find("testsuite")
+          suite_root = pathlib.Path("verticals/mainline/apps/demo-api/tests")
+
+          nodeids = []
+          for case in s.iter("testcase"):
+              if case.find("failure") is None and case.find("error") is None:
+                  continue
+              parts = case.get("classname", "").split(".")
+              for i, part in enumerate(parts):
+                  if (suite_root / f"{part}.py").is_file():
+                      trailing = [*parts[i + 1:], case.get("name", "")]
+                      nodeids.append(f"{suite_root.as_posix()}/{part}.py::" + "::".join(trailing))
+                      break
+
+          # As permissive as the schema permits: no floor left to trip over, and every
+          # failure of cell 4 declared known. Nothing about this copy is committed.
+          known["floor"] = {"min_executed": 0, "max_skipped": 10_000}
+          known["groups"] = [{
+              "slug": "doctored-by-the-bites-lane",
+              "cause": "a control: every failure of the planted run, declared known on purpose",
+              "nodeids": nodeids,
+          }]
+          known["unstable"] = []
+          pathlib.Path(os.environ["ART"], "doctored-known-red.json").write_text(json.dumps(known, indent=2), encoding="utf-8")
+          print(f"doctored inventory declares {len(nodeids)} node id(s) known:")
+          for nodeid in nodeids:
+              print(f"  {nodeid}")
+          PY
+
+          for rc_claim in "${PLANTED_PYTEST_RC}" "0"; do
+            set +e
+            uv run --frozen --all-packages python scripts/ci/cluster_lane_report.py \
+              --junit "${ART}/junit-planted-cluster.xml" \
+              --known "${ART}/doctored-known-red.json" \
+              --suite-root verticals/mainline/apps/demo-api/tests \
+              --pytest-rc "${rc_claim}"
+            verdict=$?
+            set -e
+            echo "report exited ${verdict} when told pytest exited ${rc_claim}"
+            if [ "${verdict}" -eq 0 ]; then
+              echo "::error title=the known-red inventory CAN suppress a failure::scripts/ci/cluster_lane_report.py exited 0 for a run in which ${PLANTED_PYTEST_RC} was pytest's real status and every failure was listed in the inventory (told pytest exited ${rc_claim}). The inventory is a suppression list, and cluster-tests.yml can be made green by editing a JSON file. Per docs/leads/ci-runs-cluster-plan.md §4, if that control cannot hold, DELETE the inventory."
+              exit 1
+            fi
+          done
+          rm -f "${ART}/doctored-known-red.json"
+          echo "the inventory could not suppress: neither with pytest's real status nor with a dropped one"
+
+      # ── THE SIXTH ASSERTION: the cheap guard is falsifiable too.
+      - name: 'The frozen-seed guard is RED against this edit'
+        # `tests/ci/test_demo_seed_is_frozen.py` records the SHA-256 of both deployed seed
+        # files. A freeze nobody has ever seen fail is a freeze nobody knows is wired up -
+        # and this job happens to be holding exactly the edit it exists to notice, so the
+        # demonstration is free. Inverted, like cell 4: green here means the guard did NOT
+        # fire, which means it is not guarding.
+        run: |
+          # trappoint:pytest-lane=hermetic
+          set -euo pipefail
+          set +e
+          uv run --frozen --all-packages pytest tests/ci/test_demo_seed_is_frozen.py \
+            --crdb=none -q -p no:cacheprovider
+          rc=$?
+          set -e
+          if [ "${rc}" -eq 0 ]; then
+            echo "::error title=the frozen-seed guard did not fire::tests/ci/test_demo_seed_is_frozen.py passed while a deliberate edit to verticals/mainline/db/seeds/demo/demo_world.sql was present in the tree. The hash it records no longer describes the file it reads, so it is guarding nothing."
+            exit 1
+          fi
+          echo "the frozen-seed guard is red against the planted edit, as it must be"
+
+      # ── AND THE TREE GOES BACK. `if: always()`, because a failed cell above must not
+      #    leave a planted defect behind, and this step decides nothing.
+      - name: Revert the plant, and prove the tree is where it started
+        if: always()
+        # The revert restores the exact bytes `--plant` snapshotted and re-hashes the
+        # result against the hash taken before the edit; `git checkout --` is deliberately
+        # not used, because it restores from the INDEX and would silently discard any
+        # uncommitted work in that file on a developer's machine.
+        #
+        # This step can only ADD a failure. It runs unconditionally so that a red cell
+        # cannot skip the cleanup, and its own assertions - byte-for-byte restoration, a
+        # clean `git diff`, an empty `git status`, and the harness agreeing that no plant
+        # is present - are four independent ways of saying the same thing, because the
+        # worst outcome available to this lane is a planted defect in a tree somebody
+        # merges.
+        run: |
+          set -euo pipefail
+          if [ -e .plant-cluster-defect ]; then
+            uv run --frozen --all-packages python scripts/ci/plant_cluster_defect.py --revert
+          else
+            echo "no plant was applied (the job failed before planting); nothing to revert"
+          fi
+          git diff --exit-code
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --porcelain
+            echo "::error title=the bites lane left the tree dirty::a planted defect, or a leftover snapshot naming one, survived the job that planted it."
+            exit 1
+          fi
+          uv run --frozen --all-packages python scripts/ci/plant_cluster_defect.py --status
+          echo "the tree is byte-for-byte where it started"
+
+      - name: 'The frozen-seed guard is GREEN again'
+        # The other half of the sixth assertion, and the reason it is a separate step: a
+        # guard that is red against the plant proves nothing on its own if it is red all
+        # the time. Red with the edit, green without it, in one job.
+        if: always()
+        run: |
+          # trappoint:pytest-lane=hermetic
+          set -euo pipefail
+          uv run --frozen --all-packages pytest tests/ci/test_demo_seed_is_frozen.py \
+            --crdb=none -q -p no:cacheprovider
+
+      - name: The 2x2, as one table
+        # Reached only when every step above passed, so it reports rather than decides. It
+        # exists because the argument this lane makes is a shape, and a reader scrolling
+        # sixteen steps of log should not have to reassemble it.
+        run: |
+          set -euo pipefail
+          {
+            echo "## the cluster lane is falsifiable"
+            echo
+            echo "| | plant ABSENT | plant PRESENT |"
+            echo "|---|---|---|"
+            echo "| \`--crdb=none\` | GREEN, ${HERMETIC_FLOOR}+ executed | **GREEN**, the same tests, the same result |"
+            echo "| \`--crdb=reuse\` | GREEN, ${CLUSTER_FLOOR}+ executed | **RED**, caught by the control the plant names |"
+            echo
+            echo "Plus: the known-red inventory could not suppress the planted failure, with"
+            echo "pytest's real status or with a dropped one; the frozen-seed guard was red"
+            echo "against the edit and green without it; and the tree is byte-for-byte clean."
+            echo
+            echo "Subset: \`test_credentials.py test_gate_run.py test_transitions.py\`."
+            echo "See \`docs/ci/cluster-lane-falsifiability.md\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: The container's own account of the run
+        # Diagnosis only. It decides nothing and runs only when the job has ALREADY failed,
+        # so it can neither mask a verdict nor create one.
+        if: failure()
+        run: docker logs "${CRDB_CONTAINER}" 2>&1 | tail -60
