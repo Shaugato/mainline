@@ -151,9 +151,9 @@ that chunk exactly; it read REPLAY because the deploy ran the Phase-1 command, n
 the build varies.
 
 > **CORRECTED 2026-08-15 — the package at `out/lambda/mainline-demo-api-arm64.zip` is no
-> longer that one.** It is `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`,
-> packed `--console-transport live` with `MAINLINE_BUILD_ID=3933b97`, and its entry chunk is
-> `assets/index-DJX27H0M.js`, **457,123 B**, `sha256 e30bd39b395bad68…`. That chunk is not
+> longer that one.** It is `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`,
+> packed `--console-transport live` with `MAINLINE_BUILD_ID=b822fdc`, and its entry chunk is
+> `assets/index-BH5dfAvF.js`, **457,123 B**, `sha256 e30bd39b395bad68…`. That chunk is not
 > emitted by either run in the table above, because it was **not built from HEAD** — see the
 > reproducibility caveat two subsections below. The sentence above is about the committed
 > source and the object the walk recorded; it is not a claim about what the zip on disk holds
@@ -227,10 +227,10 @@ no such import. **That import is the +23,559 B** between 433,564 and 457,123.
   at two different sources. That is what ruling **R1**'s gate asked for, and it is satisfied,
   which is why `docs/decisions/response-ceiling-authoritative-tree.md` may treat the byte
   constants as measurements of a build.
-* **What is NOT proven:** that `assets/index-DJX27H0M.js` is reproducible, **because the
+* **What is NOT proven:** that `assets/index-BH5dfAvF.js` is reproducible, **because the
   source it was built from is not committed**. It becomes provable the moment the console
   work is committed, and until then any document that needs to identify that artefact must
-  name it by **package digest** (`sha256 7e49fd5e…`) rather than by content hash.
+  name it by **package digest** (`sha256 6802872f…`) rather than by content hash.
 * `evidence/deploy/console-repro.json` records `"worktree_matches_committed": true`,
   `measured_at` 2026-08-15T02:44:52+1000. That was measured **before** the console work
   reached the worktree and is **stale in that respect**; the `git diff --stat` above is the
@@ -290,13 +290,13 @@ seventeenth declared resource and the `gate-run.schema.json` contract:
 ```
 worktree Phase 2, 2026-08-14      assets/index-CSYj1JjN.js   457,037 B identity   129,371 B gzip(9)
 package 12fcba7a…, 2026-08-14     assets/index-DzVoV1YM.js   433,564 B identity   124,177 B gzip(9)
-package 7e49fd5e…, 2026-08-15     assets/index-DJX27H0M.js   457,123 B identity   129,400 B gzip(9)
+package 6802872f…, 2026-08-15     assets/index-BH5dfAvF.js   457,123 B identity   129,400 B gzip(9)
 ```
 
 The gzip figure is produced by the packer's own method — `zlib.compressobj(9, DEFLATED,
 -MAX_WBITS)` plus an 18-byte container. Against package `12fcba7a…` it reproduced
 `web/assets/index-DzVoV1YM.js.gz` at exactly 124,177 B; the third row is read straight out of
-the central directory of the package of record, where `web/assets/index-DJX27H0M.js.gz` is
+the central directory of the package of record, where `web/assets/index-BH5dfAvF.js.gz` is
 **129,400 B**.
 
 > **Two provenance notes, 2026-08-15, so nobody re-derives these from thin air.** The
@@ -383,7 +383,7 @@ dist bytes: 3 380 488  (3.2 MB)      49 files
 > **Dated 2026-08-15.** That `114 / 1,274,342 / 0 maps` reading is what
 > `package-shape.json` holds, and that artefact describes the 2026-08-13 package (its
 > `after.web` largest identity object is `web/assets/index-BjAGxrVJ.js` at 433,396 B). The
-> package of record, `sha256 7e49fd5e…`, reads **114 entries / 1,308,543 B / 0 source maps**
+> package of record, `sha256 6802872f…`, reads **114 entries / 1,308,543 B / 0 source maps**
 > out of its own central directory. The *shape* — 114 entries, 57 identity objects, 57 `.gz`
 > siblings, no maps — is unchanged across all three packages; only the bytes moved.
 > Regenerating `package-shape.json` is a build and is not done here.
@@ -760,7 +760,7 @@ the URL sees `TRANSPORT REPLAY (staged)`, `BUILD dev`, and no gate-run control.
 
 > **Updated 2026-08-15 — the rebuild half has happened; the deploy half is not established
 > here.** The package at `out/lambda/mainline-demo-api-arm64.zip` is now
-> `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`, packed
+> `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`, packed
 > `--console-transport live`, and the literals read back out of its packaged entry chunk are
 > `VITE_MAINLINE_API_BASE:"/"`, `VITE_MAINLINE_BUNDLE_URL:"./bundle/"`, `MODE:"demo"` and
 > `buildId:"3933b97"` — both sources present, and a build id that is not `dev`, which is what

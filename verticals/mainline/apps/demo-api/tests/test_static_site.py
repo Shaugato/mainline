@@ -683,7 +683,7 @@ def test_the_ceiling_weighs_the_wire_and_not_the_base64_string(
     leaves, so egress is charged on 3,300 and the extra 1,100 exists only between this
     handler and the service. Refusing on the encoded length over-refuses every binary
     object by exactly a third — and the object it would hurt most is the 129,400 B
-    compressed entry bundle of the package that ships (``sha256 7e49fd5e…``), weighed as
+    compressed entry bundle of the package that ships (``sha256 6802872f…``), weighed as
     172,536 B, which is the single path the cost model depends on callers taking. It was
     124,177 B / 165,572 B against ``sha256 12fcba7a…``; the hazard is the ratio, not either
     figure, and both sides of it are over 139,264 either way.
@@ -860,8 +860,8 @@ _CEILING_PROVENANCE_G: Final = 124_177
 
 # Everything from here to `_IDENTITY_ENTRIES` was **RE-MEASURED 2026-08-15**, from the
 # central directory of the package that ships: `out/lambda/mainline-demo-api-arm64.zip`,
-# `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`, built
-# `--console-transport live` with `MAINLINE_BUILD_ID=3933b97`. That rebuild is why they
+# `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`, built
+# `--console-transport live` with `MAINLINE_BUILD_ID=b822fdc`. That rebuild is why they
 # moved: the deployed console was serving a RECORDED bundle, so it was rebuilt live, and
 # `demo_gate_run` and its contract came into the entry chunk with it. The previously
 # declared figures were read from `sha256 12fcba7a…`, which no longer deploys. Declared
@@ -877,29 +877,52 @@ _CEILING_PROVENANCE_G: Final = 124_177
 # would protect nothing; it would only make this file describe a tree that stopped existing,
 # which is how the 512 KiB ceiling survived as long as it did.
 
-#: **was 124,177 → is 129,400** (`sha256 7e49fd5e…`, `--console-transport live`). Interface
-#: I3's live input: the largest number of bytes this origin can put on the wire for one
-#: response. A measurement of a build, not a floor — it bounds nothing, it is what the bound
-#: is checked against. `_derive_ceiling(129_400)` is 147,456 rather than 139,264; see
+#: **was 124,177 → is 129,400** (`sha256 6802872f…`, `--console-transport live`,
+#: `MAINLINE_BUILD_ID=b822fdc`). Interface I3's live input: the largest number of bytes this
+#: origin can put on the wire for one response. A measurement of a build, not a floor — it
+#: bounds nothing, it is what the bound is checked against. `_derive_ceiling(129_400)` is
+#: 147,456 rather than 139,264; see
 #: `test_the_ceiling_still_equals_the_number_its_derivation_chose` for why that is a
 #: provenance record going out of date and not a ceiling going wrong.
-_LARGEST_SERVED_WIRE_BYTES: Final = 129_400  # web/assets/index-DJX27H0M.js.gz
+#:
+#: WHY THE FILENAME IN THE COMMENT MOVES AND THE NUMBER DOES NOT, recorded 2026-08-15 so
+#: the next reader does not mistake it for a reproducibility failure. `vite.config.ts:115`
+#: inlines `__MAINLINE_BUILD_ID__`, so the git short SHA reaches the emitted bytes. Two
+#: builds of IDENTICAL source at different commits therefore emit the SAME LENGTH and a
+#: DIFFERENT content hash: `index-DJX27H0M.js` at `3933b97` and `index-BH5dfAvF.js` at
+#: `b822fdc` are both 457,123 B. That is the build being deterministic in its inputs, not
+#: nondeterministic in its output — and it is the same equal-length/different-hash puzzle
+#: `scripts/deploy/console_repro.py` was written to settle.
+#:
+#: The consequence is a rule, not a nuisance: across a build-id-only re-release every
+#: IDENTITY size is stable, every FILENAME moves, and — measured, not assumed — every
+#: GZIPPED total moves by a handful of bytes. `3933b97` -> `b822fdc` left the entry chunk at
+#: 457,123 B identical and moved the sibling total 295,731 -> 295,724 B and the web tree
+#: 1,308,543 -> 1,308,536 B, because DEFLATE's output is a function of the content and the
+#: content differs by seven characters of build id. So: if an IDENTITY size moves the
+#: console really changed and the straddle needs re-checking; if only names and gzip totals
+#: move, it was a re-release and the numbers that bound anything are untouched.
+#:
+#: Do not "fix" this churn by dropping `MAINLINE_BUILD_ID`. A chrome that cannot name the
+#: artefact a screenshot came from is the defect that shipped to the founder as `BUILD dev`,
+#: and it is a worse defect than re-recording four measurements per release.
+_LARGEST_SERVED_WIRE_BYTES: Final = 129_400  # web/assets/index-BH5dfAvF.js.gz
 
-#: **was 433,564 → is 457,123**, +23,559 B, same package `sha256 7e49fd5e…`. The one
+#: **was 433,564 → is 457,123**, +23,559 B, same package `sha256 6802872f…`. The one
 #: identity object the ceiling refuses. A measurement of the entry chunk, not a limit on it:
 #: what is authoritative is that EXACTLY ONE object is refused, and this records which.
-_LARGEST_IDENTITY_BYTES: Final = 457_123  # web/assets/index-DJX27H0M.js
+_LARGEST_IDENTITY_BYTES: Final = 457_123  # web/assets/index-BH5dfAvF.js
 
-#: **was 51,266 → is 51,266.** The VALUE did not move; the OBJECT did. In `sha256 7e49fd5e…`
-#: the second-largest identity object is `assets/surface-COD-Iou0.js`, where in
+#: **was 51,266 → is 51,266.** The VALUE did not move; the OBJECT did. In `sha256 6802872f…`
+#: the second-largest identity object is `assets/surface-0lG8KzXw.js`, where in
 #: `sha256 12fcba7a…` it was `assets/surface-BcxWkbKu.js` at the same size. Re-recorded
 #: because a stale filename beside a correct number is exactly the folklore this section
 #: exists to prevent. Still a measurement: it is here so a silent reshuffle of the chunk
 #: graph cannot pass unnoticed, not because 51,266 is permitted and 51,267 is not.
-_SECOND_LARGEST_IDENTITY_BYTES: Final = 51_266  # web/assets/surface-COD-Iou0.js
+_SECOND_LARGEST_IDENTITY_BYTES: Final = 51_266  # web/assets/surface-0lG8KzXw.js
 
 #: **was 114 / 57 → is 114 / 57: UNCHANGED BY MEASUREMENT.** Re-read from
-#: `sha256 7e49fd5e…` and found identical to `sha256 12fcba7a…` — 114 `web/` entries, 57
+#: `sha256 6802872f…` and found identical to `sha256 12fcba7a…` — 114 `web/` entries, 57
 #: identity objects, 57 `.gz` siblings. The console grew; it did not gain or lose a file.
 #: Verified, deliberately not touched.
 _WEB_ENTRIES: Final = 114
@@ -955,7 +978,7 @@ def test_the_ceiling_still_equals_the_number_its_derivation_chose() -> None:
 
     **What it deliberately no longer claims** — ruling **R10**,
     ``docs/leads/reconcile-constants-plan.md`` §1. It does not require 139,264 to be
-    re-derivable from the tree that ships today, and as of ``sha256 7e49fd5e…`` it is not:
+    re-derivable from the tree that ships today, and as of ``sha256 6802872f…`` it is not:
     ``_derive_ceiling(129_400)`` is 147,456. That is the derivation record going out of
     date, not the bound going wrong, and the difference matters because **a derivation with
     a rounding step is many-to-one.** ``ceil(floor(1.10 x g) / 8192) x 8192`` returns
@@ -979,7 +1002,7 @@ def test_the_live_law_holds_over_the_tree_that_ships_today() -> None:
     """**THE LIVE LAW.** I3 and the straddle, over the package that ships, not over history.
 
     Ruling **R10** §1.2. What the ceiling must actually guarantee is three things, and all
-    three are measured true against ``sha256 7e49fd5e…``: the origin can still serve its own
+    three are measured true against ``sha256 6802872f…``: the origin can still serve its own
     site, the ceiling is still tight enough to refuse something, and it sits between the
     largest object this origin puts on the wire and the largest one it turns away. This is
     the assertion that goes red if the console outgrows the origin, and the first one to
@@ -1029,7 +1052,7 @@ def test_the_declared_largest_served_object_binds_the_ceiling() -> None:
         # integer at or above 1.20 x 129,400 = 155,280.0, which is 155,280 exactly. It was
         # 149,013 against the 124,177 B measurement (1.20 x gave 149,012.4), and 149,000
         # against 124,127 B before that. Leaving it at 149,013 after the live rebuild
-        # (`sha256 7e49fd5e…`) moved `g` to 129,400 would not have weakened the ratchet
+        # (`sha256 6802872f…`) moved `g` to 129,400 would not have weakened the ratchet
         # quietly: 149,013 is now BELOW 1.20 x 129,400, so `_assert_i3` would ACCEPT it and
         # THIS case would stop raising — the loud failure the pin exists to produce. Raising
         # the pin is not raising a ceiling. `DEFAULT_MAX_RESPONSE_BYTES` is untouched at
@@ -1083,7 +1106,7 @@ def test_the_deployed_package_is_the_tree_the_ceiling_was_derived_from() -> None
 
     **Read this test's name in the past tense** (ruling **R10**). The ceiling was derived
     over the 2026-08-14 tree, whose gzipped figure is frozen in ``_CEILING_PROVENANCE_G``.
-    The tree read here is the one that ships today, ``sha256 7e49fd5e…``, and what must hold
+    The tree read here is the one that ships today, ``sha256 6802872f…``, and what must hold
     over it is I3 and the straddle, asserted by
     ``test_the_live_law_holds_over_the_tree_that_ships_today``. This test's own job is
     narrower and unchanged: keep the declarations above equal to the artefact, so that when
@@ -1122,8 +1145,8 @@ def test_serving_the_deployed_package_derives_the_ceiling_end_to_end(
 
     What it asserts about the refusal is stated rather than tolerated: **exactly one object
     of the 57 answers 413, on the identity path only.** Today that object is
-    ``assets/index-DJX27H0M.js`` at 457,123 B, in the package that ships
-    (``sha256 7e49fd5e…``, ``--console-transport live``); it was ``index-DzVoV1YM.js`` at
+    ``assets/index-BH5dfAvF.js`` at 457,123 B, in the package that ships
+    (``sha256 6802872f…``, ``--console-transport live``); it was ``index-DzVoV1YM.js`` at
     433,564 B in ``sha256 12fcba7a…``. It is a 200 to every browser that will ever load this
     console and a 413 to a client that asked for 457 KB uncompressed — which is the caller a
     wire ceiling is for. ``curl`` without ``--compressed`` is such a client; that cost is
@@ -1154,10 +1177,10 @@ def test_serving_the_deployed_package_derives_the_ceiling_end_to_end(
             if wire > widest[1]:
                 widest = (name, wire)
 
-    # The refusal set, re-measured from `sha256 7e49fd5e…`: was `index-DzVoV1YM.js`, is
-    # `index-DJX27H0M.js`. The NAME is the measurement; the property — exactly one, identity
+    # The refusal set, re-measured from `sha256 6802872f…`: was `index-DzVoV1YM.js`, is
+    # `index-BH5dfAvF.js`. The NAME is the measurement; the property — exactly one, identity
     # path only — is what is authoritative and it did not move.
-    assert refused == {"assets/index-DJX27H0M.js [identity]": 413}, (
+    assert refused == {"assets/index-BH5dfAvF.js [identity]": 413}, (
         f"the deployed package refuses {sorted(refused)}. Exactly one object, on the "
         "identity path, is the declared consequence of the derived ceiling; anything else "
         "is an asset nobody decided to stop serving, or a ceiling that stopped biting."
@@ -1165,9 +1188,9 @@ def test_serving_the_deployed_package_derives_the_ceiling_end_to_end(
 
     # The live law, from the responses rather than from the declaration (ruling R10): the
     # widest thing that actually left this origin is what I3 is checked against. The name
-    # was `index-DzVoV1YM.js` and is `index-DJX27H0M.js`; the number was 124,177 and is
-    # 129,400. Both are measurements of `sha256 7e49fd5e…` — what they feed is the bound.
-    assert widest == ("assets/index-DJX27H0M.js", _LARGEST_SERVED_WIRE_BYTES)
+    # was `index-DzVoV1YM.js` and is `index-BH5dfAvF.js`; the number was 124,177 and is
+    # 129,400. Both are measurements of `sha256 6802872f…` — what they feed is the bound.
+    assert widest == ("assets/index-BH5dfAvF.js", _LARGEST_SERVED_WIRE_BYTES)
     _assert_i3(ceiling, widest[1])
 
     # And the browser — the client every judge will actually be — gets all 57.

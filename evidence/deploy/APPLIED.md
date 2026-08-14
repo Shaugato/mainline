@@ -170,7 +170,7 @@ is still `136 * 1024` in `static_site.py:279` and was not touched.**
   as the empty string — it is the artefact that is serving, not a successor to it.
 * **No package was rebuilt into the deploy path**, and the one measurement that would gate a
   rebuild is a **STOP, not a green.** A LIVE package *was* built — to a **scratch path**,
-  `--console-transport both`, `MAINLINE_BUILD_ID=3933b97`, zip `sha256 56d6730b8b55…` — purely
+  `--console-transport both`, `MAINLINE_BUILD_ID=b822fdc`, zip `sha256 56d6730b8b55…` — purely
   to measure it. With the seventeenth resource and the 23,138 B contract in place its entry
   chunk is **457,123 B** identity / **129,404 B** on the wire, against 433,564 / 124,177
   today. 129,404 B is **2,800 B outside** the window `119,158 ≤ g ≤ 126,604` inside which

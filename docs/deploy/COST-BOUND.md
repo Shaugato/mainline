@@ -30,8 +30,8 @@ was run to produce it, and no mutating AWS call was made.
 > **§0.5 turns that prediction into a measurement, 2026-08-15, and CORRECTS it by four bytes.**
 > A LIVE console has since been packaged into the deploy path:
 > `out/lambda/mainline-demo-api-arm64.zip`,
-> `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`,
-> `--console-transport live`, `MAINLINE_BUILD_ID=3933b97`. Its entry chunk measures
+> `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`,
+> `--console-transport live`, `MAINLINE_BUILD_ID=b822fdc`. Its entry chunk measures
 > **129,400 B** on the wire — §0.4 predicted `129,404 B` from a `--console-transport both`
 > build that was superseded, and the two are four bytes apart. **That package has not been
 > deployed**, so §0.1's ladder is unchanged and is still priced from the bytes the Function URL
@@ -422,13 +422,13 @@ size. W1 built three clean historical exports to check: `5ddaa3a` → 432,707 B
 
 ### Old → new, every figure this document quotes
 
-| figure | `package-shape.json` @ `2dc5c86` — **what this document says** | the reproducible build @ HEAD — **what is true** | Δ | **the package of record** (`7e49fd5e…`) — a THIRD console, measured 2026-08-15 |
+| figure | `package-shape.json` @ `2dc5c86` — **what this document says** | the reproducible build @ HEAD — **what is true** | Δ | **the package of record** (`6802872f…`) — a THIRD console, measured 2026-08-15 |
 |---|---:|---:|---:|---:|
-| **deployed** `web/` bytes | 1,274,342 | **1,274,743** | +401 | **1,308,543** |
+| **deployed** `web/` bytes | 1,274,342 | **1,274,743** | +401 | **1,308,536** |
 | **deployed** identity | 57 / 985,030 B | 57 / **985,306 B** | +276 | **57 / 1,012,812 B** |
-| **deployed** `.gz` siblings | 57 / 289,312 B | 57 / **289,437 B** | +125 | **57 / 295,731 B** |
-| **deployed** largest identity | 433,396 B `index-BjAGxrVJ.js` | **433,564 B** `index-DzVoV1YM.js` | +168 | **457,123 B** `index-DJX27H0M.js` |
-| **deployed** largest on the wire | 124,127 B `…js.gz` | **124,177 B** `index-DzVoV1YM.js.gz` | +50 | **129,400 B** `index-DJX27H0M.js.gz` |
+| **deployed** `.gz` siblings | 57 / 289,312 B | 57 / **289,437 B** | +125 | **57 / 295,724 B** |
+| **deployed** largest identity | 433,396 B `index-BjAGxrVJ.js` | **433,564 B** `index-DzVoV1YM.js` | +168 | **457,123 B** `index-BH5dfAvF.js` |
+| **deployed** largest on the wire | 124,127 B `…js.gz` | **124,177 B** `index-DzVoV1YM.js.gz` | +50 | **129,400 B** `index-BH5dfAvF.js.gz` |
 | **deployed** source maps | 0 / 0 B | **0 / 0 B** | — | **0 / 0 B** |
 | **input** `web/` bytes over 75 files | 3,571,990 | **3,566,324** | −5,666 | **3,643,912** over 75 |
 | **input** source maps over 18 files | 2,586,960 B (72.4235 %) | **2,581,018 B** (**72.37 %**) | −5,942 | **2,631,100 B** over 18 |
@@ -438,8 +438,8 @@ size. W1 built three clean historical exports to check: `5ddaa3a` → 432,707 B
 > 2026-08-15.** Columns 2 and 3 are two readings of a **2026-08-14-generation** console, and
 > the finding that separates them (one describes a build no commit produces) is unchanged.
 > Column 4 is the console rebuilt with the LIVE transport and packaged the next day —
-> `out/lambda/mainline-demo-api-arm64.zip`, `sha256 7e49fd5e…`, `--console-transport live`,
-> `MAINLINE_BUILD_ID=3933b97` — read by this worker out of the zip's central directory, with
+> `out/lambda/mainline-demo-api-arm64.zip`, `sha256 6802872f…`, `--console-transport live`,
+> `MAINLINE_BUILD_ID=b822fdc` — read by this worker out of the zip's central directory, with
 > the `input` rows taken from that build's own sidecar
 > (`out/lambda/mainline-demo-api-arm64.zip.json` → `package_shape.web_before`,
 > `source_maps_removed`). **It changes no cell to its left and closes no open action**: §0.3's
@@ -525,8 +525,8 @@ this document that had been neither confirmed nor replaced, and it is the one th
 > > 7,703,067 B, which is still the artefact the origin is answering with, so *"the bytes a
 > > judge's browser would receive"* is unchanged. What is no longer true is *"the package the
 > > plan would upload"*: the file at `out/lambda/mainline-demo-api-arm64.zip` was rebuilt on
-> > 2026-08-15 and is now `sha256 7e49fd5e…`, so an apply today would upload a **different**
-> > tree — 1,308,543 B of `web/`, entry chunk 457,123 B identity / 129,400 B on the wire, and
+> > 2026-08-15 and is now `sha256 6802872f…`, so an apply today would upload a **different**
+> > tree — 1,308,536 B of `web/`, entry chunk 457,123 B identity / 129,400 B on the wire, and
 > > a `source_code_hash` the committed plan artefact does not carry. **§0.5 measures it**;
 > > re-running `terraform plan` is not this page's action and was not taken.
 >
@@ -576,7 +576,7 @@ been a smaller artefact and never a larger ceiling. The invariant
 
 > **THE CONSTANT STILL DOES NOT MOVE; THE ARITHMETIC ABOVE IS NOW DATED — 2026-08-15, R10.**
 > Both readings in that paragraph are of the **2026-08-14** tree, and they were correct of it.
-> Over the package of record (`sha256 7e49fd5e…`, §0.5) the invariant reads
+> Over the package of record (`sha256 6802872f…`, §0.5) the invariant reads
 > `0 < 129,400 < 139,264 < 457,123` — still one identity object refused of 57 — while
 > `1.10 × 129,400` no longer rounds back onto 139,264. **The ceiling is unchanged and was not
 > re-derived**; under ruling R10 the derivation is the record of how it was CHOSEN, and
@@ -617,7 +617,7 @@ and it is unchanged — `sha256 12fcba7ad69b2ffe…`.~~ **CORRECTED 2026-08-15: 
 true when written and is false about the path now.** The package it describes,
 `sha256 12fcba7ad69b2ffe…`, is still the artefact the Function URL is answering with — **that
 half stands and nothing was redeployed** — but the file at that path was later rebuilt and now
-holds `sha256 7e49fd5e…` (§0.5). **Name the package by digest, not by path**: one path has
+holds `sha256 6802872f…` (§0.5). **Name the package by digest, not by path**: one path has
 carried two artefacts inside one day, which is the whole reason §0.5 exists. Read with
 `zipfile` over its `web/` entries on 2026-08-15, the `12fcba7a…` package carries every row
 §0.3's deployed column already carries:
@@ -640,13 +640,13 @@ A LIVE console that can drive the headline beat needs a seventeenth declared res
 23,138 B `gate-run.schema.json` imported as raw text on the critical path. That has landed in
 the **source**, and the cost was measured on the **packaged** bytes rather than on a `dist/`
 tree — the packer's `web/` entries out of a zip, which is the only tree an origin can emit
-from. Built 2026-08-15, `--console-transport both`, `MAINLINE_BUILD_ID=3933b97`, zip
+from. Built 2026-08-15, `--console-transport both`, `MAINLINE_BUILD_ID=b822fdc`, zip
 `sha256 56d6730b8b55…`, to a **scratch path**; `out/lambda/mainline-demo-api-arm64.zip` was
 left untouched, so nothing in the suite describes a tree that does not exist.
 
 **SUPERSEDED LATER THE SAME DAY, AND THE TABLE STAYS — §0.5.** What is measured below is a
 `--console-transport both` build at a scratch path. What now occupies the deploy path is a
-`--console-transport live` build, `sha256 7e49fd5e…`, whose entry chunk measures
+`--console-transport live` build, `sha256 6802872f…`, whose entry chunk measures
 **129,400 B** on the wire against the `129,404 B` below — four bytes, one build input, two
 different content hashes. **No digit in this table is retyped**; §0.5 carries the packaged
 figures and the ruling that goes with them.
@@ -741,28 +741,28 @@ the next console growth falsifies a number rather than a sentence.
 **Read from the zip's own central directory by this worker before anything here was written**,
 with `zipfile` over the `web/` entries of
 `out/lambda/mainline-demo-api-arm64.zip`, whose SHA-256 was recomputed over the file:
-`7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`.
+`6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`.
 
 ### There are now THREE trees on this page and every figure names which one it is
 
 | tree | what it is | entry chunk | identity | on the wire |
 |---|---|---|---:|---:|
 | **the origin's package** — `sha256 12fcba7a…` | the bytes the Function URL is answering with; read off the wire 2026-08-14 (`evidence/deploy/judge-walk.json`) and re-taken 2026-08-15 (`evidence/deploy/APPLIED.md`). Its console compiles the `REPLAY` transport | `assets/index-DzVoV1YM.js` | 433,564 B | **124,177 B** |
-| **the package of record** — `sha256 7e49fd5e…` | `out/lambda/mainline-demo-api-arm64.zip` as it sits in the deploy path on 2026-08-15, built `--console-transport live` with `MAINLINE_BUILD_ID=3933b97`. **Nothing has been applied and nothing redeployed**, so this tree is on no origin — the row above, `assets/index-DzVoV1YM.js` in `REPLAY`, is still what answers | `assets/index-DJX27H0M.js` | 457,123 B | **129,400 B** |
+| **the package of record** — `sha256 6802872f…` | `out/lambda/mainline-demo-api-arm64.zip` as it sits in the deploy path on 2026-08-15, built `--console-transport live` with `MAINLINE_BUILD_ID=b822fdc`. **Nothing has been applied and nothing redeployed**, so this tree is on no origin — the row above, `assets/index-DzVoV1YM.js` in `REPLAY`, is still what answers | `assets/index-BH5dfAvF.js` | 457,123 B | **129,400 B** |
 | the packer's **input** tree | `architectures[].before` of `package-shape.json` — the pre-strip baseline §2.2's reproduction runs from, and nothing else | — | — | — |
 
 ### The package of record, measured — a dated column beside §0.4's, not a rewrite of it
 
-| | the origin's package (`12fcba7a…`) | **the package of record (`7e49fd5e…`), measured 2026-08-15** | Δ |
+| | the origin's package (`12fcba7a…`) | **the package of record (`6802872f…`), measured 2026-08-15** | Δ |
 |---|---:|---:|---:|
 | `web/` entries | 114 | **114** | 0 |
-| `web/` bytes | 1,274,743 | **1,308,543** | +33,800 |
+| `web/` bytes | 1,274,743 | **1,308,536** | +33,800 |
 | identity objects | 57 / 985,306 B | **57 / 1,012,812 B** | +27,506 |
-| `.gz` siblings | 57 / 289,437 B | **57 / 295,731 B** | +6,294 |
+| `.gz` siblings | 57 / 289,437 B | **57 / 295,724 B** | +6,294 |
 | source maps in the package | 0 / 0 B | **0 / 0 B** | 0 |
-| entry chunk, identity | 433,564 B `index-DzVoV1YM.js` | **457,123 B `index-DJX27H0M.js`** | +23,559 |
+| entry chunk, identity | 433,564 B `index-DzVoV1YM.js` | **457,123 B `index-BH5dfAvF.js`** | +23,559 |
 | **entry chunk, on the wire — `g`** | **124,177 B** | **129,400 B** | **+5,223 B, +4.20 %** |
-| 2nd largest identity | `surface-BcxWkbKu.js`, 51,266 B | **`surface-COD-Iou0.js`, 51,266 B** | 0 B, different file |
+| 2nd largest identity | `surface-BcxWkbKu.js`, 51,266 B | **`surface-0lG8KzXw.js`, 51,266 B** | 0 B, different file |
 | `index.html` / `index.html.gz` | 4,655 B / 2,123 B | **4,655 B / 2,122 B** | 0 / −1 |
 | identity objects over the 139,264 B ceiling | 1 | **1** | 0 |
 
@@ -787,10 +787,10 @@ here: *"`DEFAULT_MAX_RESPONSE_BYTES` remains `136 * 1024 == 139_264`, unchanged,
 not lowered. The live law is interface I3 and the straddle. The derivation is preserved as a
 dated record of how 139,264 was CHOSEN … and is no longer asserted against the current tree."*
 
-Properties first, measurements second, each against `7e49fd5e…` on 2026-08-15:
+Properties first, measurements second, each against `6802872f…` on 2026-08-15:
 
 * **The ceiling refuses exactly one identity object of the tree it governs.** Measured: **1 of
-  57**. Today that object is `assets/index-DJX27H0M.js` at **457,123 B**.
+  57**. Today that object is `assets/index-BH5dfAvF.js` at **457,123 B**.
 * **The straddle holds**, `0 < g < C < I`. Measured: `0 < 129,400 < 139,264 < 457,123`.
 * **Interface I3 holds in both halves** — the origin can serve its own site, and the ceiling
   may not float free of what it governs. Measured:
@@ -928,8 +928,8 @@ the rest of the page.
 > with a largest object of **1,551,887 B**, and the deployed zip measures **114 entries /
 > 1,274,743 B / 0 maps**, largest identity **433,564 B**, largest on the wire **124,177 B**.
 > *(Those are the 2026-08-14 package, `sha256 12fcba7a…`, which is the one answering. The
-> package of record on disk since 2026-08-15, `sha256 7e49fd5e…`, measures 114 entries /
-> 1,308,543 B / 0 maps, largest identity 457,123 B, largest on the wire 129,400 B — §0.5.)*
+> package of record on disk since 2026-08-15, `sha256 6802872f…`, measures 114 entries /
+> 1,308,536 B / 0 maps, largest identity 457,123 B, largest on the wire 129,400 B — §0.5.)*
 > The cells above still read `package-shape.json`'s values because that artefact is the
 > authority `tests/deploy/test_docs_are_true.py` reads them out of, and it is not this
 > worker's to regenerate. **The rows are labelled and sourced correctly, which is the defect

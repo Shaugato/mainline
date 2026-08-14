@@ -37,7 +37,7 @@ derived one.
 > derivation*, which is now dated provenance rather than a live assertion. **§9 is not
 > withdrawn and not rewritten**; §10 is the resolution, §10.7 corrects §9's figures to the
 > package that actually shipped, and §2.2 gains the fourth column §9.4 asked the resolving
-> worker to add — read from `out/lambda/mainline-demo-api-arm64.zip`, `sha256 7e49fd5e…`,
+> worker to add — read from `out/lambda/mainline-demo-api-arm64.zip`, `sha256 6802872f…`,
 > built `--console-transport live`.
 
 ---
@@ -164,7 +164,7 @@ input to them. It does not move.**
 > **SUPERSEDED AS A LIVE DERIVATION, 2026-08-15, by ruling R10 (§10). The number is not
 > superseded; its tense is.** The arithmetic above is preserved as the dated record of how
 > 139,264 was **chosen**, over `g = 124,177` in package `12fcba7a…`. Over the package that
-> ships today (`sha256 7e49fd5e…`, `g = 129,400`) the same formula emits **147,456**, and
+> ships today (`sha256 6802872f…`, `g = 129,400`) the same formula emits **147,456**, and
 > R10 declines to follow it: the ceiling is **kept** by the invariant it was always for —
 > `0 < 129,400 < 139,264 < 457,123`, exactly one identity object refused — rather than
 > re-emitted by the formula. **The ceiling itself did not move by one byte.** §10 is the
@@ -176,23 +176,23 @@ The struck column is the input-tree error this ruling corrected; the second is t
 2026-08-14 deployed reading it corrected to; the third is the 2026-08-15 re-read of package
 `12fcba7a…`. The right-hand column — **the fourth column §9.4 asked whoever resolved R4 to
 add** — is the **package of record that ships today**: `out/lambda/mainline-demo-api-arm64.zip`,
-`sha256 7e49fd5e…`, built `--console-transport live` with `MAINLINE_BUILD_ID=3933b97`. Every
+`sha256 6802872f…`, built `--console-transport live` with `MAINLINE_BUILD_ID=b822fdc`. Every
 figure in it was read out of that zip's central directory by `w5-decision-record` on
 2026-08-15, not copied from a plan, and it is what the code declares under ruling **R10**
 (§10).
 
-| declaration | ~~was (input tree)~~ | was (deployed, 2026-08-14) | was (package `12fcba7a…`, 2026-08-15) | **is (package of record `7e49fd5e…`)** | derivation |
+| declaration | ~~was (input tree)~~ | was (deployed, 2026-08-14) | was (package `12fcba7a…`, 2026-08-15) | **is (package of record `6802872f…`)** | derivation |
 |---|---|---|---|---|---|
-| `_LARGEST_WEB_OBJECT` | ~~`assets/index-BjAGxrVJ.js.map`~~ | `assets/index-BjAGxrVJ.js` | `assets/index-DzVoV1YM.js` | **`assets/index-DJX27H0M.js`** | `max(identity)` over the zip |
+| `_LARGEST_WEB_OBJECT` | ~~`assets/index-BjAGxrVJ.js.map`~~ | `assets/index-BjAGxrVJ.js` | `assets/index-DzVoV1YM.js` | **`assets/index-BH5dfAvF.js`** | `max(identity)` over the zip |
 | `_LARGEST_WEB_OBJECT_BYTES` | ~~1,554,168~~ | 433,396 | 433,564 | **457,123** | same |
 | `_LARGEST_SERVED_OBJECT_BYTES` | ~~433,396~~ | 124,127 | 124,177 | **129,400** | `max(sibling)`; every object has one |
-| `_WIDEST_SERVED_IDENTITY` | ~~—~~ | `assets/surface-Csi7pmRe.js` | `assets/surface-BcxWkbKu.js` | **`assets/surface-COD-Iou0.js`** | second-largest identity |
+| `_WIDEST_SERVED_IDENTITY` | ~~—~~ | `assets/surface-Csi7pmRe.js` | `assets/surface-BcxWkbKu.js` | **`assets/surface-0lG8KzXw.js`** | second-largest identity |
 | `_WIDEST_SERVED_IDENTITY_BYTES` | ~~—~~ | 51,266 | 51,266 | **51,266** | unchanged across all three builds |
-| `_REFUSED_BY_THE_CEILING` | ~~`('…js.map',)`~~ | `('assets/index-BjAGxrVJ.js',)` | `('assets/index-DzVoV1YM.js',)` | **`('assets/index-DJX27H0M.js',)`** | identity objects `> 139,264` |
+| `_REFUSED_BY_THE_CEILING` | ~~`('…js.map',)`~~ | `('assets/index-BjAGxrVJ.js',)` | `('assets/index-DzVoV1YM.js',)` | **`('assets/index-BH5dfAvF.js',)`** | identity objects `> 139,264` |
 | headroom | ~~90,892~~ | 15,137 | 15,087 | **9,864** | `ceiling − largest served` |
 | cut | ~~3.586~~ | 3.4916 | 3.4915 | **3.5326** | `largest identity / largest served` |
-| tree totals | ~~`(75, 3,571,990)`~~ | `(114, 1,274,342)` | `(114, 1,274,743)` | **`(114, 1,308,543)`** | central directory |
-| `.gz` sibling total | ~~0~~ | 289,312 | 289,437 | **295,731** | central directory |
+| tree totals | ~~`(75, 3,571,990)`~~ | `(114, 1,274,342)` | `(114, 1,274,743)` | **`(114, 1,308,536)`** | central directory |
+| `.gz` sibling total | ~~0~~ | 289,312 | 289,437 | **295,724** | central directory |
 | I3 ratio | ~~—~~ | 1.122 | 1.121 | **1.076** | `ceiling / largest served` |
 
 **`DEFAULT_MAX_RESPONSE_BYTES` does not appear in this table**, and that is the point of the
@@ -217,7 +217,7 @@ keeping it would have been comparing a pre-strip artefact to a post-strip one. ~
 2026-08-14 figure was `433,396 / 124,127 = 3.491553…`, which is **3.4916** to four places.~~
 ~~Over the package on disk today it is `433,564 / 124,177 = 3.491500…`, which is **3.4915** to
 four places, and that is what `test_response_contract.py` asserts.~~ **Re-measured
-2026-08-15 over the package of record `7e49fd5e…`: `457,123 / 129,400 = 3.532635…`, which is
+2026-08-15 over the package of record `6802872f…`: `457,123 / 129,400 = 3.532635…`, which is
 3.5326 to four places** — the figure in the fourth column above and the one the code
 declares under R10. `cut` is a **measurement**, not a bound: it is what the compression the
 packer already performs buys on the largest object, and it moves whenever the console does. **The lead's §3.4 prose
@@ -385,8 +385,8 @@ would be a test that cannot disagree with its code.
   later. ~~The same sentence was written about `assets/index-BjAGxrVJ.js` and the artefact of
   2026-08-13 15:54; that build has since been superseded, exactly as predicted here.~~ It
   has now happened twice, and §9 is the third time coming. **The third time arrived on
-  2026-08-15**: the package of record is `sha256 7e49fd5e…`, its entry chunk is
-  `assets/index-DJX27H0M.js` at 457,123 B, and §10 is the ruling under which the
+  2026-08-15**: the package of record is `sha256 6802872f…`, its entry chunk is
+  `assets/index-BH5dfAvF.js` at 457,123 B, and §10 is the ruling under which the
   declarations are re-recorded to it — the ratchet working for the third time, still not a
   defect.
 
@@ -438,7 +438,7 @@ The wave rebuilds the console **LIVE** — `VITE_MAINLINE_API_BASE=/`, so `sourc
 starts the console on its own kernel instead of a recording — over a source that has also
 gained a seventeenth declared resource and a 23,138 B `gate-run.schema.json` imported as
 raw text. Built and read on 2026-08-15 on TRAPPOINT, `--console-transport both`,
-`MAINLINE_BUILD_ID=3933b97`, zip `sha256
+`MAINLINE_BUILD_ID=b822fdc`, zip `sha256
 56d6730b8b555f62c8398041f04f0307b3f64fe58626c4e2d1d5d863f30a20c2`; compiled literals read
 back out of the packaged bytes as `VITE_MAINLINE_API_BASE=/`,
 `VITE_MAINLINE_BUNDLE_URL=./bundle/`, `MODE=demo`, `buildId=3933b97` — i.e. the artefact
@@ -530,7 +530,7 @@ Read those failures. Do not delete, skip, exempt or `continue-on-error` any of t
 **Written 2026-08-15 by `w5-decision-record`** on TRAPPOINT, HEAD `3933b97` (working tree
 dirty). **Authority:** `docs/leads/reconcile-constants-plan.md` §1, ruling **R10**.
 **Artefact of record:** `out/lambda/mainline-demo-api-arm64.zip`,
-`sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`, packed
+`sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`, packed
 `--console-transport live`. Every number in this section was read out of that zip by this
 worker rather than copied from the plan, with the `zipfile` one-liner §2 publishes.
 
@@ -565,8 +565,8 @@ STOP is discharged, not bypassed, and not "resolved" by the same worker who rais
 Measured here, from the package of record, before anything was concluded from it:
 
 ```
-g (largest served, gzipped)  =   129,400   web/assets/index-DJX27H0M.js.gz
-I (largest identity)         =   457,123   web/assets/index-DJX27H0M.js
+g (largest served, gzipped)  =   129,400   web/assets/index-BH5dfAvF.js.gz
+I (largest identity)         =   457,123   web/assets/index-BH5dfAvF.js
                                            sha256 e30bd39b395bad68…
 C (ceiling, UNCHANGED)       =   139,264   = 136 * 1024
 
@@ -688,7 +688,7 @@ first, because a build's identity is what its bytes carry and not what its comma
 ```
 VITE_MAINLINE_API_BASE:"/"        VITE_MAINLINE_BUNDLE_URL:"./bundle/"
 VITE_MAINLINE_LOG_VKEY:""         MODE:"demo"        buildId:"3933b97"
-web/index.html references assets/index-DJX27H0M.js and assets/index-DAuZRgAW.css
+web/index.html references assets/index-BH5dfAvF.js and assets/index-DAuZRgAW.css
 `gate-run` appears 11 times in the entry chunk; `demo_gate_run` twice
 ```
 
@@ -696,16 +696,16 @@ web/index.html references assets/index-DJX27H0M.js and assets/index-DAuZRgAW.css
 every build ever made — `docs/deploy/console-build.md` §7.1 explains why the guard keys on
 the presence of `"dev"` and not on there being one literal.)
 
-| | deployed (`12fcba7a…`) | ~~§9.1's `both` build (`56d6730b…`)~~ | **SHIPPED — `live` (`7e49fd5e…`)** | Δ vs deployed |
+| | deployed (`12fcba7a…`) | ~~§9.1's `both` build (`56d6730b…`)~~ | **SHIPPED — `live` (`6802872f…`)** | Δ vs deployed |
 |---|---:|---:|---:|---:|
 | `web/` entries | 114 | 114 | **114** | 0 |
-| `web/` bytes | 1,274,743 | 1,308,123 | **1,308,543** | +33,800 |
+| `web/` bytes | 1,274,743 | 1,308,123 | **1,308,536** | +33,800 |
 | identity objects | 57 / 985,306 | 57 / 1,012,489 | **57 / 1,012,812** | +27,506 |
-| `.gz` siblings | 57 / 289,437 | 57 / 295,634 | **57 / 295,731** | +6,294 |
+| `.gz` siblings | 57 / 289,437 | 57 / 295,634 | **57 / 295,724** | +6,294 |
 | source maps | 0 / 0 | not recorded | **0 / 0** | 0 |
-| largest identity | `index-DzVoV1YM.js` 433,564 | `index-CwHiUgyV.js` 457,123 | **`index-DJX27H0M.js` 457,123** | +23,559 |
+| largest identity | `index-DzVoV1YM.js` 433,564 | `index-CwHiUgyV.js` 457,123 | **`index-BH5dfAvF.js` 457,123** | +23,559 |
 | **largest sibling — `g`** | **124,177** | **129,404** | **129,400** | **+5,223** |
-| 2nd largest identity | `surface-BcxWkbKu.js` 51,266 | not recorded | **`surface-COD-Iou0.js` 51,266** | 0 |
+| 2nd largest identity | `surface-BcxWkbKu.js` 51,266 | not recorded | **`surface-0lG8KzXw.js` 51,266** | 0 |
 | `index.html` | 4,655 | 4,655 | **4,655** | 0 |
 | `index.html.gz` | 2,123 | not recorded | **2,122** | −1 |
 | identity objects over 139,264 | 1 | 1 | **1** | 0 |
@@ -727,8 +727,8 @@ the answer is that the ceiling does not have to be re-derived at all.
 **What §9.2's last paragraph no longer describes.** It records that *"the LIVE package was
 built to a scratch path and the package at `out/lambda/mainline-demo-api-arm64.zip` was left
 untouched"*. That was true of §9's build. It is **not** true today: the package at that path
-is the LIVE one, `sha256 7e49fd5e…`, and `verticals/mainline/apps/console/dist` holds the
-matching tree — `dist/assets/index-DJX27H0M.js` is 457,123 B with the same
+is the LIVE one, `sha256 6802872f…`, and `verticals/mainline/apps/console/dist` holds the
+matching tree — `dist/assets/index-BH5dfAvF.js` is 457,123 B with the same
 `sha256 e30bd39b…` as the zip entry.
 
 **What §9.2 predicted, and the one place the prediction was wrong.** §9.2 said the next

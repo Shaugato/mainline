@@ -345,7 +345,7 @@ is what made it visible.
 > `assets/index-DzVoV1YM.js`, which is the file the Function URL serves and the file
 > `out/lambda/mainline-demo-api-arm64.zip` carried when this was written on 2026-08-15.
 > *(**Later the same day** the zip under that path was rebuilt from the worktree console with
-> `--console-transport live` and now carries `assets/index-DJX27H0M.js` — §4's second
+> `--console-transport live` and now carries `assets/index-BH5dfAvF.js` — §4's second
 > annotation. The origin is unchanged and still answers with `assets/index-DzVoV1YM.js`; what
 > moved is the package on disk, which is why the sentence above names both separately.)*
 > **Restore
@@ -523,21 +523,21 @@ INPUT tree *before* the strip, not the served tree; the served tree is **1,274,7
 >
 > **The artefact, named by digest rather than by path**, because one path has now held three
 > different packages in two days: `out/lambda/mainline-demo-api-arm64.zip`,
-> `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`, built
-> `--console-transport live` with `MAINLINE_BUILD_ID=3933b97`, read out of its own central
+> `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`, built
+> `--console-transport live` with `MAINLINE_BUILD_ID=b822fdc`, read out of its own central
 > directory on 2026-08-15. **It has not been applied and nothing was redeployed to measure it**
 > — the Function URL is still answering with `sha256 12fcba7a…` and its
 > `assets/index-DzVoV1YM.js`.
 >
-> | quantity | **the committed source** (`12fcba7a…`), the column above | **the package of record** (`7e49fd5e…`), read 2026-08-15 | Δ |
+> | quantity | **the committed source** (`12fcba7a…`), the column above | **the package of record** (`6802872f…`), read 2026-08-15 | Δ |
 > |---|---|---|---|
-> | `web/` as packed | 114 entries, 1,274,743 B | **114 entries, 1,308,543 B** | +33,800 |
+> | `web/` as packed | 114 entries, 1,274,743 B | **114 entries, 1,308,536 B** | +33,800 |
 > | `web/` identity after the strip | 57 entries, 985,306 B | **57 entries, 1,012,812 B** | +27,506 |
-> | `.gz` siblings written | 57 files, 289,437 B | **57 files, 295,731 B** | +6,294 |
+> | `.gz` siblings written | 57 files, 289,437 B | **57 files, 295,724 B** | +6,294 |
 > | source maps in the package | 0 | **0** | — |
-> | largest identity object | `assets/index-DzVoV1YM.js`, 433,564 B | **`assets/index-DJX27H0M.js`, 457,123 B** | +23,559 |
-> | largest gzipped sibling | `…DzVoV1YM.js.gz`, 124,177 B | **`…DJX27H0M.js.gz`, 129,400 B** | +5,223 |
-> | 2nd largest identity | `assets/surface-BcxWkbKu.js`, 51,266 B | **`assets/surface-COD-Iou0.js`, 51,266 B** | 0 B, different file |
+> | largest identity object | `assets/index-DzVoV1YM.js`, 433,564 B | **`assets/index-BH5dfAvF.js`, 457,123 B** | +23,559 |
+> | largest gzipped sibling | `…DzVoV1YM.js.gz`, 124,177 B | **`…BH5dfAvF.js.gz`, 129,400 B** | +5,223 |
+> | 2nd largest identity | `assets/surface-BcxWkbKu.js`, 51,266 B | **`assets/surface-0lG8KzXw.js`, 51,266 B** | 0 B, different file |
 > | `web/index.html` | 4,655 B | **4,655 B** | 0 |
 > | identity objects over the 139,264 B ceiling | 1 | **1** | 0 |
 >
@@ -556,7 +556,7 @@ INPUT tree *before* the strip, not the served tree; the served tree is **1,274,7
 > straddle   0 < 129,400 < 139,264 < 457,123                          HOLDS
 > I3         129,400 ≤ 139,264 < 1.20 × 129,400 = 155,280             HOLDS
 > refusals   identity objects over 139,264 : 1 of 57                  HOLDS
->            today that object is assets/index-DJX27H0M.js, 457,123 B
+>            today that object is assets/index-BH5dfAvF.js, 457,123 B
 > headroom   139,264 − 129,400 = 9,864 gzipped bytes   (it was 15,087)
 > ratio      139,264 / 129,400 = 1.076                 (it was 1.121)
 > ```
@@ -589,7 +589,7 @@ wire grew by 46 bytes — 0.037 %.
 > **THE HEADING IS STILL TRUE AND THE MIDDLE LINE OF THAT BLOCK IS NOW HISTORY — annotated
 > 2026-08-15.** The ceiling has not moved: it is `136 * 1024 = 139,264` and this wave did not
 > open the file it lives in. What has moved is the *status* of the arithmetic printed above.
-> Over the package of record (`sha256 7e49fd5e…`, §4's second annotation) the same derivation
+> Over the package of record (`sha256 6802872f…`, §4's second annotation) the same derivation
 > emits `18 × 8,192 = 147,456`, the I3 ratio is **1.076** rather than 1.122, and the I3 bound
 > reads `129,400 ≤ 139,264 < 155,280`. **Ruling R10** settles which of those is the law: the
 > derivation is a **dated record of how 139,264 was CHOSEN**, over the tree it was chosen from,
@@ -867,7 +867,7 @@ a **decision**. Had it landed outside, this section would be saying the opposite
 correct answer would have been a smaller artefact.
 
 > **AND IT LATER LANDED OUTSIDE — 2026-08-15, and the answer was neither of those two.** The
-> console was rebuilt with the LIVE transport and packaged (`sha256 7e49fd5e…`, §4's second
+> console was rebuilt with the LIVE transport and packaged (`sha256 6802872f…`, §4's second
 > annotation): `g` is **129,400 B**, which is outside the band above, and the derivation would
 > emit **147,456**. **The ceiling was not raised** — that is the half of the sentence above
 > that was right and remains binding. **Nor was the artefact cut down**, because it grew for a

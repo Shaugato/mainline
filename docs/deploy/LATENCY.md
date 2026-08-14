@@ -47,7 +47,7 @@ SPDX-License-Identifier: CC-BY-4.0
 > **THIRD PASS, 2026-08-15, W4 (cost-and-latency pages): §0, §0.2.1, §0.2.3, §0.2.4, §1.1/§1.2
 > and §6.2.** The console was rebuilt with the LIVE transport and packaged, so a **second**
 > artefact now exists under `out/lambda/mainline-demo-api-arm64.zip`'s name — `sha256
-> 7e49fd5e…`, entry chunk `assets/index-DJX27H0M.js`, **457,123 B** identity / **129,400 B** on
+> 6802872f…`, entry chunk `assets/index-BH5dfAvF.js`, **457,123 B** identity / **129,400 B** on
 > the wire — beside the `sha256 12fcba7a…` package the Function URL is still answering with.
 > **Nothing was applied, rebuilt or redeployed to write this, no p50 was re-measured, and no
 > measurement in this document changed.** What changed is that every packaged byte figure now
@@ -119,7 +119,7 @@ Five beats, against two database targets:
 |---|---|---|
 | `index` | `GET /` | the document a judge's browser asks for first |
 | `asset_js` | `GET /assets/index-BjAGxrVJ.js` | largest **non-map** object in the served tree — M5, 433,396 B. **† ANNOTATED: this beat's path is now DERIVED from the served tree, and the committed filename has itself gone stale — the deployed origin answers 404 to it since the 2026-08-14 rebuild** — §0.1, §0.2 |
-| `asset_map` † | `GET /assets/index-BjAGxrVJ.js.map` | largest **emittable** object — M4, 1,554,168 B. **† ANNOTATED: emittable by the tree this harness served, which is the packer's INPUT tree. The DEPLOYED origin answers 404 to this path** — §0.1. **CORRECTED 2026-08-14: the harness no longer requests this path; it derives the largest object the deployed origin actually serves, measured at 124,177 B on the package `sha256 12fcba7a…`** — §0.2. **The derivation is what makes that survive a rebuild: over the package of record `sha256 7e49fd5e…` it lands on 129,400 B (§0.2.3), and this cell did not have to be retyped to say so** |
+| `asset_map` † | `GET /assets/index-BjAGxrVJ.js.map` | largest **emittable** object — M4, 1,554,168 B. **† ANNOTATED: emittable by the tree this harness served, which is the packer's INPUT tree. The DEPLOYED origin answers 404 to this path** — §0.1. **CORRECTED 2026-08-14: the harness no longer requests this path; it derives the largest object the deployed origin actually serves, measured at 124,177 B on the package `sha256 12fcba7a…`** — §0.2. **The derivation is what makes that survive a rebuild: over the package of record `sha256 6802872f…` it lands on 129,400 B (§0.2.3), and this cell did not have to be retyped to say so** |
 | `health` | `GET /v1/health` | the cheapest database beat |
 | `gate_run` | `POST /v1/demo/gate-run` | the headline four-beat gate run — the beat that decides the timeout |
 
@@ -285,8 +285,8 @@ that carries filenames will always end up here; the only question is how long it
 
 > **AND IT HAPPENED AGAIN INSIDE ONE DAY — added 2026-08-15, which is the point of the
 > paragraph above.** The console was rebuilt with the LIVE transport and the entry chunk's
-> content hash moved a second time: in the package of record (`sha256 7e49fd5e…`, §0.2.3) the
-> same three answers belong to `assets/index-DJX27H0M.js` — **200 / 129,400 B** gzipped,
+> content hash moved a second time: in the package of record (`sha256 6802872f…`, §0.2.3) the
+> same three answers belong to `assets/index-BH5dfAvF.js` — **200 / 129,400 B** gzipped,
 > **413** on the identity path at 457,123 B, **404** for its `.map` — and the second-largest
 > identity object is `assets/surface-COD-Iou0.js`, still **51,266 B**, a different file at the
 > same length. **This table is not retyped to it.** It is a measurement of the artefact named
@@ -326,7 +326,7 @@ path and a row that says only *"the deployed package"* cannot survive a third:
 | | `web/` entries | bytes | source maps | largest identity | largest `.gz` |
 |---|---:|---:|---:|---:|---:|
 | the package the Function URL is answering with — `sha256 12fcba7a…`, built 2026-08-14, **read 2026-08-14** | 114 | **1,274,743** | **0 / 0 B** | **433,564 B** `assets/index-DzVoV1YM.js` | **124,177 B** `assets/index-DzVoV1YM.js.gz` |
-| the **package of record on disk** — `sha256 7e49fd5e…`, built 2026-08-15 `--console-transport live`, `MAINLINE_BUILD_ID=3933b97`, **read 2026-08-15**; not applied, not redeployed | 114 | **1,308,543** | **0 / 0 B** | **457,123 B** `assets/index-DJX27H0M.js` | **129,400 B** `assets/index-DJX27H0M.js.gz` |
+| the **package of record on disk** — `sha256 6802872f…`, built 2026-08-15 `--console-transport live`, `MAINLINE_BUILD_ID=b822fdc`, **read 2026-08-15**; not applied, not redeployed | 114 | **1,308,543** | **0 / 0 B** | **457,123 B** `assets/index-BH5dfAvF.js` | **129,400 B** `assets/index-BH5dfAvF.js.gz` |
 
 > **THE SECOND ROW IS A DIFFERENT TREE, NOT A CORRECTION OF THE FIRST — added 2026-08-15.**
 > Both are true, of different artefacts, on the days they were read. The 2026-08-15 package is
@@ -338,10 +338,10 @@ path and a row that says only *"the deployed package"* cannot survive a third:
 >
 > **The response ceiling is unchanged at `136 * 1024 = 139,264` and was not re-derived.** Under
 > ruling **R10** (`docs/leads/reconcile-constants-plan.md` §1) that number was CHOSEN by its
-> derivation over the 2026-08-14 tree and is KEPT by interface I3: measured on `7e49fd5e…`,
+> derivation over the 2026-08-14 tree and is KEPT by interface I3: measured on `6802872f…`,
 > `129,400 ≤ 139,264 < 1.20 × 129,400 = 155,280`, the straddle
 > `0 < 129,400 < 139,264 < 457,123` holds, and **exactly one** identity object is refused —
-> today that object is `assets/index-DJX27H0M.js` at 457,123 B. **9,864 gzipped bytes of
+> today that object is `assets/index-BH5dfAvF.js` at 457,123 B. **9,864 gzipped bytes of
 > headroom remain** before the origin would 413 its own entry chunk; that is the number to
 > watch, and `docs/deploy/COST-BOUND.md` §0.5 carries the full record.
 
@@ -386,10 +386,10 @@ path and a row that says only *"the deployed package"* cannot survive a third:
 
 > **WHAT THE SAME RULES RESOLVE TO OVER THE PACKAGE OF RECORD — recorded 2026-08-15, and
 > deliberately without a duration.** `resolve_served_assets()` picks the largest **servable**
-> identity object and the largest object **on the wire**. Applied to `sha256 7e49fd5e…`
+> identity object and the largest object **on the wire**. Applied to `sha256 6802872f…`
 > (§0.2.3), whose central directory was read for this note, those are `GET /` at **4,655 B**,
 > `assets/surface-COD-Iou0.js` at **51,266 B** identity — the entry chunk is refused at
-> 457,123 B, exactly as before — and `assets/index-DJX27H0M.js` at **129,400 B** gzipped.
+> 457,123 B, exactly as before — and `assets/index-BH5dfAvF.js` at **129,400 B** gzipped.
 > **The bytes are measured; the durations are not.** `measure_beats.py` has not been run
 > against that package, so no p50 is written for it here, and publishing one by scaling the
 > row above would be exactly the substitution the second bullet below refuses.
@@ -859,7 +859,7 @@ unknown in §4**, and the two fits agree on it to within 2 percentage points:
 > (`docs/leads/reconcile-constants-plan.md` §1) that number was **CHOSEN** by its derivation
 > over the 2026-08-14 tree and is **KEPT** by interface I3 — it is no longer re-derivable from
 > the tree that would ship, and this page does not claim it is. Rows 1, 2 and 4 are byte counts
-> of trees, and a third tree now exists: the package of record (`sha256 7e49fd5e…`, §0.2.3)
+> of trees, and a third tree now exists: the package of record (`sha256 6802872f…`, §0.2.3)
 > whose largest gzipped object is **129,400 B** and whose largest identity object is
 > **457,123 B**, still one object refused. **Nothing in this table is re-fitted to it.** The
 > least squares above is over three identity beats measured on 2026-08-13; a new byte count is

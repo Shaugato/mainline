@@ -36,7 +36,7 @@ has moved under it, and the SSM secret is the founder's step. §1.
 | of those 59 modified | **20 differ from `HEAD` in line endings only** (`git diff HEAD` sees 39 files, `git status` sees 59). See §2.4 |
 | local CockroachDB | CCL **v26.2.5** on `127.0.0.1:26257` |
 | interpreter | `D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe` — pytest 9.1.1, ruff 0.16.1, node v24.14.0 (`uv` is not on PATH) |
-| **package in the deploy path** | `out/lambda/mainline-demo-api-arm64.zip`, `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`, 7,721,537 B, built **`--console-transport live`**, `MAINLINE_BUILD_ID=3933b97`. **Untouched by this verification — read, never rebuilt.** |
+| **package in the deploy path** | `out/lambda/mainline-demo-api-arm64.zip`, `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`, 7,721,537 B, built **`--console-transport live`**, `MAINLINE_BUILD_ID=b822fdc`. **Untouched by this verification — read, never rebuilt.** |
 | **package on the origin** | `sha256 12fcba7a…` — the **REPLAY** build the founder opened. Still what the Function URL answers with. |
 
 **Those last two rows are the whole shape of this page.** They are two different artefacts and
@@ -162,7 +162,7 @@ every other node id       : IDENTICAL
 ```
 
 **One test was split into two. Nothing else left the suite.** The other three renames are
-counts inside test names moving with their subject (`289_312 → 295_731`, `sixteen → seventeen`
+counts inside test names moving with their subject (`289_312 → 295_724`, `sixteen → seventeen`
 resources, and the route-table pair test), and each replacement asserts *more* than the one it
 replaced — `declared == routed` with **no permitted exception** where the old case allowed
 `routed - declared == {DEMO_ROUTE}`.
@@ -280,19 +280,19 @@ two.
 
 ### 4.1 · The constants against the zip's own central directory
 
-`zipfile` over `out/lambda/mainline-demo-api-arm64.zip`, `sha256 7e49fd5e…`. Left column is
+`zipfile` over `out/lambda/mainline-demo-api-arm64.zip`, `sha256 6802872f…`. Left column is
 what the tests now declare; right column is what the archive holds.
 
 | | declared | measured in the zip | |
 |---|---:|---:|:--|
 | `web/` entries | 114 | **114** | ✓ |
-| `web/` bytes | 1,308,543 | **1,308,543** | ✓ |
+| `web/` bytes | 1,308,536 | **1,308,536** | ✓ |
 | identity objects | 57 / 1,012,812 B | **57 / 1,012,812 B** | ✓ |
-| `.gz` siblings | 57 / 295,731 B | **57 / 295,731 B** | ✓ |
-| largest identity | `assets/index-DJX27H0M.js` 457,123 B | **`assets/index-DJX27H0M.js` 457,123 B** | ✓ |
-| largest sibling — `g` | `…DJX27H0M.js.gz` 129,400 B | **`…DJX27H0M.js.gz` 129,400 B** | ✓ |
-| second identity | `assets/surface-COD-Iou0.js` 51,266 B | **`assets/surface-COD-Iou0.js` 51,266 B** | ✓ |
-| refused by the ceiling | `("assets/index-DJX27H0M.js",)` | **exactly that one, 1 of 57** | ✓ |
+| `.gz` siblings | 57 / 295,724 B | **57 / 295,724 B** | ✓ |
+| largest identity | `assets/index-BH5dfAvF.js` 457,123 B | **`assets/index-BH5dfAvF.js` 457,123 B** | ✓ |
+| largest sibling — `g` | `…BH5dfAvF.js.gz` 129,400 B | **`…BH5dfAvF.js.gz` 129,400 B** | ✓ |
+| second identity | `assets/surface-0lG8KzXw.js` 51,266 B | **`assets/surface-0lG8KzXw.js` 51,266 B** | ✓ |
+| refused by the ceiling | `("assets/index-BH5dfAvF.js",)` | **exactly that one, 1 of 57** | ✓ |
 | `.gz` siblings over the ceiling | — | **0** | ✓ (interface I1) |
 | entry chunk digest | `sha256 e30bd39b…` | **`e30bd39b395bad681f19bd11119e68dcd24e8ea971b22664350dc7cd9d159aae`** | ✓ |
 
@@ -326,7 +326,7 @@ takes no rebuild:
 
 ```
 package   mainline-demo-api-arm64.zip
-sha256    7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738
+sha256    6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b
 console   declared  --console-transport live
 console   effective live, replay  (selectSource would start it LIVE, switchable true)
 console   literals  VITE_MAINLINE_API_BASE=/; VITE_MAINLINE_BUNDLE_URL=./bundle/; VITE_MAINLINE_LOG_VKEY=(empty)
@@ -338,9 +338,9 @@ The sidecar agrees independently: `out/lambda/mainline-demo-api-arm64.zip.json` 
 `console.packaged.literals.VITE_MAINLINE_API_BASE = "/"` and `console.transport_declared = "live"`.
 
 **And the headline beat is in the shipping bytes.** `demo_gate_run`, `/v1/demo/gate-run` and
-`gate-run.schema.json` all appear in `web/assets/index-DJX27H0M.js` and
+`gate-run.schema.json` all appear in `web/assets/index-BH5dfAvF.js` and
 `web/assets/DemoDriver-CEGGCtyu.js`. The false `404s` sentence appears in **no** shipped
-asset. `web/index.html` is 4,655 B and references `./assets/index-DJX27H0M.js`.
+asset. `web/index.html` is 4,655 B and references `./assets/index-BH5dfAvF.js`.
 
 `scripts/deploy/deploy.sh` and `deploy.ps1` now pass `--console-transport live` as a
 hard-wired argument rather than a flag, so the REPLAY package cannot be re-shipped by omission.
@@ -386,7 +386,7 @@ the moved figures — `COST-BOUND.md`, `LATENCY.md`, `RUNBOOK.md`, `console-buil
 `docs/ci/cluster-lane-package.md`, `docs/decisions/response-ceiling-authoritative-tree.md`,
 `docs/CI-STATE.md` — all now carry the **two-package framing**: the package on the origin
 (`12fcba7a…`, `index-DzVoV1YM.js`, REPLAY, 433,564 / 124,177) and the package of record
-(`7e49fd5e…`, `index-DJX27H0M.js`, LIVE, 457,123 / 129,400), never mixed. R4's derivation
+(`6802872f…`, `index-BH5dfAvF.js`, LIVE, 457,123 / 129,400), never mixed. R4's derivation
 window `119,158 ≤ g ≤ 126,604` is explicitly retired in every page that held it and replaced
 by the live warning: **9,864 gzipped bytes of headroom remain**.
 
@@ -415,8 +415,8 @@ redeploy.
 
 ```
 CEILING  DEFAULT_MAX_RESPONSE_BYTES = 139,264 = 136 * 1024        <- UNMOVED, file untouched
-g        largest served, gzipped    = 129,400   assets/index-DJX27H0M.js.gz
-I        largest identity           = 457,123   assets/index-DJX27H0M.js
+g        largest served, gzipped    = 129,400   assets/index-BH5dfAvF.js.gz
+I        largest identity           = 457,123   assets/index-BH5dfAvF.js
 
 STRADDLE   0 < 129,400 < 139,264 < 457,123                              HOLDS
 I3 lower   129,400 <= 139,264        (the origin can serve its own site) HOLDS
@@ -448,7 +448,7 @@ by I3's lower half, red, at build time.
 **One honest caveat, recorded by the lead and endorsed here.** R1's gate — *a content-hashed
 filename is a legitimate constant only if the build is reproducible* — is satisfied for the
 **class**: the console build is deterministic, 3/3 byte-identical at two different sources. It
-is **not** proven for the shipping filename `index-DJX27H0M.js`, because the console source it
+is **not** proven for the shipping filename `index-BH5dfAvF.js`, because the console source it
 was built from is not committed. That is why every re-recorded constant names the artefact by
 **digest** rather than resting on a content hash. It becomes provable the moment the
 orchestrator commits the console work, and it should be re-measured then.
@@ -486,7 +486,7 @@ panel — a sentence telling them `app.py` has no demo route, which is false.
 Stated from the bytes in the package of record, so this is a prediction with an artefact behind
 it rather than a hope:
 
-* **`GET /`** → `200`, the 4,655 B shell, referencing `./assets/index-DJX27H0M.js`.
+* **`GET /`** → `200`, the 4,655 B shell, referencing `./assets/index-BH5dfAvF.js`.
 * **The console starts LIVE.** `VITE_MAINLINE_API_BASE` compiles to `"/"`, so `selectSource`
   starts it on the origin's own API with `switchable` true — the honesty chrome reads
   **`TRANSPORT LIVE`**, and **`BUILD 3933b97`** instead of `dev`. A judge can name the build a
@@ -495,7 +495,7 @@ it rather than a hope:
   `gate-run.schema.json` are all in the shipped chunks; `DemoDriver` mounts a real `<button>`,
   and `DeclarationGapPanel` is unreachable because `RESOURCES.has('demo_gate_run')` is true.
 * **The false `404` sentence is gone from the screen** — it appears in no shipped asset.
-* **`GET /assets/index-DJX27H0M.js`** → `200` at **129,400 B** to any browser (all send
+* **`GET /assets/index-BH5dfAvF.js`** → `200` at **129,400 B** to any browser (all send
   `Accept-Encoding: gzip`), and **`413 response_too_large`** to a client that refuses
   compression, e.g. `curl` without `--compressed`. That refusal is the cost bound working, it is
   named in the docs, and it is not a defect.

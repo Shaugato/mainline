@@ -46,11 +46,11 @@ WHICH BUILD THESE NUMBERS DESCRIBE, AND WHY THEY MOVED
 Every size below was read out of that zip's **central directory** on **2026-08-15** — no
 unpacking, so they are the packaged sizes rather than whatever a checkout happens to hold.
 The package read is ``out/lambda/mainline-demo-api-arm64.zip``, ``sha256
-7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738``, packed
-``--console-transport live`` with ``MAINLINE_BUILD_ID=3933b97``. Its ``web/`` tree is 114
-entries / 1,308,543 B, its entry chunk is ``assets/index-DJX27H0M.js`` (``sha256
+6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b``, packed
+``--console-transport live`` with ``MAINLINE_BUILD_ID=b822fdc``. Its ``web/`` tree is 114
+entries / 1,308,536 B, its entry chunk is ``assets/index-BH5dfAvF.js`` (``sha256
 e30bd39b395bad68…``), and it carries 57 identity objects / 1,012,812 B, 57 ``.gz`` siblings
-/ 295,731 B and zero source maps.
+/ 295,724 B and zero source maps.
 
 **THAT ZIP IS THE SUBJECT OF EVERY NUMBER BELOW, AND IT IS NOT YET WHAT THE FUNCTION URL
 SERVES.** The last reading of the wire — ``evidence/deploy/judge-walk.json``, produced by
@@ -133,11 +133,11 @@ ARTEFACT: Final = REPO_ROOT / "out" / "lambda" / "mainline-demo-api-arm64.zip"
 #: cost argument turns on.
 #:
 #: **WAS** ``/assets/index-DzVoV1YM.js``, 433,564 B identity / 124,177 B gzipped.
-#: **IS** ``/assets/index-DJX27H0M.js``, **457,123** B identity / **129,400** B gzipped —
+#: **IS** ``/assets/index-BH5dfAvF.js``, **457,123** B identity / **129,400** B gzipped —
 #: +23,559 B and +5,223 B respectively.
 #: **WHICH BUILD:** ``out/lambda/mainline-demo-api-arm64.zip``,
-#: ``sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738``, packed
-#: ``--console-transport live`` with ``MAINLINE_BUILD_ID=3933b97``; both figures read from
+#: ``sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b``, packed
+#: ``--console-transport live`` with ``MAINLINE_BUILD_ID=b822fdc``; both figures read from
 #: that zip's central directory on 2026-08-15, entry chunk ``sha256 e30bd39b395bad68…``.
 #: **WHY THESE ARE MEASUREMENTS AND NOT FLOORS:** nobody in this repository chose 457,123 or
 #: 129,400 — a compiler emitted them, and because a Vite chunk name is a content hash the
@@ -160,7 +160,7 @@ ARTEFACT: Final = REPO_ROOT / "out" / "lambda" / "mainline-demo-api-arm64.zip"
 #: modules, one tree, one set of numbers — the property that broke on 2026-08-14, when this
 #: file alone still described the previous console, and again today, when this file was the
 #: last of the three to be re-recorded.
-ENTRY_PATH: Final = "/assets/index-DJX27H0M.js"
+ENTRY_PATH: Final = "/assets/index-BH5dfAvF.js"
 ENTRY_IDENTITY_BYTES: Final = 457_123
 ENTRY_GZIP_BYTES: Final = 129_400
 
@@ -172,7 +172,7 @@ ENTRY_GZIP_BYTES: Final = 129_400
 #: **WAS 165,572**, for the previous bundle's 124,177 = 3 x 41,392 + **1** — the same
 #: remainder, hence the same two pad characters and the same rounded ratio.
 #: **IS 172,536**, measured over ``out/lambda/mainline-demo-api-arm64.zip``
-#: ``sha256 7e49fd5e…aaed2738`` (``--console-transport live``, ``MAINLINE_BUILD_ID=3933b97``).
+#: ``sha256 6802872f…aaed2738`` (``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``).
 #: **WHY A MEASUREMENT:** it is a pure function of ``ENTRY_GZIP_BYTES`` — ``4·ceil(n/3)``,
 #: asserted as that identity below — so it moves when and only when the sibling this build
 #: emitted moves. A derived reading of a build, never a limit anybody set. **This is the
@@ -183,8 +183,8 @@ ENTRY_ENVELOPE_CHARS: Final = 172_536
 #: The padding the envelope adds and AWS strips: 172,536 less 129,400.
 #:
 #: **WAS 41,395** (165,572 - 124,177); **IS 43,136**, over arm64.zip
-#: ``sha256 7e49fd5e…aaed2738``, ``--console-transport live``,
-#: ``MAINLINE_BUILD_ID=3933b97``. **WHY A MEASUREMENT:** it is the difference of the two
+#: ``sha256 6802872f…aaed2738``, ``--console-transport live``,
+#: ``MAINLINE_BUILD_ID=b822fdc``. **WHY A MEASUREMENT:** it is the difference of the two
 #: numbers above and of nothing else, so it is a reading of this build's envelope rather
 #: than a threshold. Declared beside the two numbers it is the difference of, because the
 #: test that asserts it is asserting that nobody is billed for it.
@@ -199,14 +199,14 @@ ENTRY_ENVELOPE_PADDING: Final = 43_136
 #: point in this file and is what lets the negotiation cases be read as being about
 #: negotiation rather than about a moving object. It is unchanged for a reason worth
 #: writing down: ``index.html`` names the chunks it preloads, this rebuild renamed both of
-#: them (``index-DzVoV1YM.js`` → ``index-DJX27H0M.js``, ``index-C498vmEA.css`` →
+#: them (``index-DzVoV1YM.js`` → ``index-BH5dfAvF.js``, ``index-C498vmEA.css`` →
 #: ``index-DAuZRgAW.css``), and a Vite content hash is a fixed-width field — so the file's
 #: **bytes** changed while its **length** did not.
 #:
 #: Its sibling therefore moved, and moved *downwards*: **WAS 2,123, IS 2,122** — one byte
 #: SMALLER — measured 2026-08-15 from the central directory of
-#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7e49fd5e…aaed2738``
-#: (``--console-transport live``, ``MAINLINE_BUILD_ID=3933b97``). **WHY A MEASUREMENT AND
+#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``
+#: (``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``). **WHY A MEASUREMENT AND
 #: NOT A FLOOR:** it is whatever DEFLATE emitted for 4,655 changed bytes; compressing
 #: different bytes of the same length can produce a shorter stream, and a number that can
 #: fall by one on a rename was never anybody's bound. It is also the smallest real
@@ -237,9 +237,9 @@ _ABSENT: Final = object()
 #: before and after — 57 identity objects, 57 siblings, no orphans — so the count held while
 #: the total moved.
 #:
-#: **WAS 289,437 B; IS 295,731 B**, +6,294. **WHICH BUILD:**
-#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7e49fd5e…aaed2738``,
-#: ``--console-transport live``, ``MAINLINE_BUILD_ID=3933b97``, summed 2026-08-15 from that
+#: **WAS 289,437 B; IS 295,724 B**, +6,294. **WHICH BUILD:**
+#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``,
+#: ``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``, summed 2026-08-15 from that
 #: zip's central directory and equal to `test_response_contract._SIBLING_BYTES` for the same
 #: tree. **WHY A MEASUREMENT:** it is the sum of 57 compressor outputs. 5,223 B of the +6,294
 #: is the entry chunk's own sibling (124,177 → 129,400), measured directly; the remaining
@@ -265,7 +265,7 @@ _ABSENT: Final = object()
 #: 209 — the console *two* rebuilds back. That page is not this worker's file, so it is
 #: reported to the lead rather than edited here.
 SIBLING_COUNT: Final = 57
-SIBLING_TOTAL_BYTES: Final = 295_731
+SIBLING_TOTAL_BYTES: Final = 295_724
 
 
 # ── Loading the two things under test ───────────────────────────────────────────────
@@ -463,8 +463,8 @@ def test_a_gzip_accepting_get_puts_the_sibling_bytes_and_only_those_on_the_wire(
 
     **Both figures were re-measured 2026-08-15** — 124,177 → 129,400 on the wire and
     433,564 → 457,123 inflated — from ``out/lambda/mainline-demo-api-arm64.zip``
-    ``sha256 7e49fd5e…aaed2738`` (``--console-transport live``,
-    ``MAINLINE_BUILD_ID=3933b97``). They are what the compiler emitted and the compressor
+    ``sha256 6802872f…aaed2738`` (``--console-transport live``,
+    ``MAINLINE_BUILD_ID=b822fdc``). They are what the compiler emitted and the compressor
     produced for this build, not thresholds: the claim being proved is the *equality of the
     socket and the sibling*, which is a property of the serving path and is indifferent to
     how large either number is.
@@ -519,7 +519,7 @@ def test_the_envelope_is_a_third_larger_than_the_wire_and_the_wire_is_what_arriv
     is kept beside it because it is the number a human reads, and it is written here with the
     division that produces it. A figure that happens to land on its old value is still a new
     measurement of a new build: 1.3334 here is ``172,536/129,400`` over
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7e49fd5e…aaed2738``, not the
+    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``, not the
     surviving decimal of a bundle that no longer ships.
 
     **ONE ASSERTION CHANGED SHAPE ON 2026-08-15 AND IT IS NOT A NUMBER (reported to the
@@ -619,8 +619,8 @@ def test_an_identity_get_of_the_entry_bundle_is_refused_because_the_ceiling_bind
 
     **THE MULTIPLE MOVED BECAUSE THE NUMERATOR DID (2026-08-15).** It was 3.1133
     (``433,564 / 139,264``) and is 3.2824 (``457,123 / 139,264``), measured over
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7e49fd5e…aaed2738``
-    (``--console-transport live``, ``MAINLINE_BUILD_ID=3933b97``). **The denominator is
+    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``
+    (``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``). **The denominator is
     unchanged and is not a measurement**: ruling **R10**
     (`docs/leads/reconcile-constants-plan.md` §1) keeps
     ``static_site.DEFAULT_MAX_RESPONSE_BYTES`` at 139,264 and demotes the derivation that
@@ -685,7 +685,7 @@ def test_an_identity_get_of_the_index_is_served_whole_so_the_ceiling_is_not_a_wa
 
 
 def test_the_sibling_has_no_url_of_its_own(emulator: _Emulator, web_root: Path) -> None:
-    """``/assets/index-DJX27H0M.js.gz`` is a 404 **even though the file is right there**.
+    """``/assets/index-BH5dfAvF.js.gz`` is a 404 **even though the file is right there**.
 
     That is the whole content of interface **I1**'s naming rule, and it is why this asserts
     the file exists first: a 404 from a path that happens to be missing would prove nothing.
@@ -694,9 +694,9 @@ def test_the_sibling_has_no_url_of_its_own(emulator: _Emulator, web_root: Path) 
 
     The property is *"a ``.gz`` sibling has no URL of its own"*; the object it is proved
     against is whichever chunk this build emitted, and today that is
-    ``assets/index-DJX27H0M.js`` (**was** ``assets/index-DzVoV1YM.js``, renamed by the
+    ``assets/index-BH5dfAvF.js`` (**was** ``assets/index-DzVoV1YM.js``, renamed by the
     2026-08-15 LIVE rebuild packed in
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7e49fd5e…aaed2738``). The name is
+    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``). The name is
     read from ``ENTRY_PATH`` rather than typed here, so this sentence is the only place in
     this test the measurement appears, and the assertion below cannot go stale independently
     of the constant.
@@ -826,8 +826,8 @@ def test_head_carries_no_body_and_the_same_headers_as_the_get(emulator: _Emulato
     browser's cache six months later.
 
     **Both figures were re-measured 2026-08-15** (124,177 → 129,400, 433,564 → 457,123) from
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7e49fd5e…aaed2738``,
-    ``--console-transport live``, ``MAINLINE_BUILD_ID=3933b97``. They are measurements of
+    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``,
+    ``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``. They are measurements of
     what this build emits, not limits: the claim under test is that ``HEAD`` and ``GET``
     agree, and it would be the same claim at any pair of sizes. They are quoted at all
     because a ``HEAD`` that announced the *identity* length on a negotiated response would
@@ -889,7 +889,7 @@ def _inventory(web_root: Path) -> list[tuple[str, int, int]]:
     ]
 
 
-def test_the_shipped_set_is_57_siblings_of_295_731_bytes_with_no_orphan_and_no_gap(
+def test_the_shipped_set_is_57_siblings_of_295_724_bytes_with_no_orphan_and_no_gap(
     web_root: Path,
 ) -> None:
     """The published inventory, measured against the artefact that deploys.
@@ -910,10 +910,10 @@ def test_the_shipped_set_is_57_siblings_of_295_731_bytes_with_no_orphan_and_no_g
     of ``docs/deploy/COST-BOUND.md``. Until this control existed those were three copies of
     one unverified sentence.
 
-    **WAS 289,437 B; IS 295,731 B**, +6,294, measured 2026-08-15 by summing the ``.gz``
+    **WAS 289,437 B; IS 295,724 B**, +6,294, measured 2026-08-15 by summing the ``.gz``
     entries in the central directory of ``out/lambda/mainline-demo-api-arm64.zip``
-    ``sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738``, packed
-    ``--console-transport live`` with ``MAINLINE_BUILD_ID=3933b97``. **It is a measurement
+    ``sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b``, packed
+    ``--console-transport live`` with ``MAINLINE_BUILD_ID=b822fdc``. **It is a measurement
     and not a floor**: it is the sum of what the compressor produced for the 57 objects this
     build emitted, and no request is permitted or refused by it — the one refusal in this
     package is made by the ceiling, which did NOT move (ruling R10). As of this measurement
@@ -931,7 +931,7 @@ def test_the_shipped_set_is_57_siblings_of_295_731_bytes_with_no_orphan_and_no_g
        over-claimed by its identity size;
     3. **no orphan ``.gz``** — a sibling whose identity object was dropped is 100 % dead
        weight, since interface I1 gives it no URL of its own and nothing can ever reach it;
-    4. **295,731 B of siblings in total**, the number this package actually carries.
+    4. **295,724 B of siblings in total**, the number this package actually carries.
 
     A rebuild that legitimately changes the console moves these numbers. That is a cost
     change and has to be read as one: re-measure, then move the constants here **and** the
