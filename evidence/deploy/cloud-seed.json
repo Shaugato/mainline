@@ -1,6 +1,6 @@
 {
   "artefact": "MAINLINE demo seed",
-  "generated_at_utc": "2026-08-11T01:19:45Z",
+  "generated_at_utc": "2026-08-14T04:27:30Z",
   "generated_by": "scripts/deploy/seed_demo.py",
   "honesty": "No real incident, no real site, no real fatality. Every row named below is synthetic and corresponds to nobody. See verticals/mainline/demo/DEMO-HONESTY.md.",
   "target": {
@@ -28,43 +28,15 @@
   "seed_files": [
     {
       "file": "demo_world.sql",
-      "seconds": 1.314,
-      "attempts": 3,
+      "seconds": 1.361,
+      "attempts": 1,
       "sqlstate": "00000",
       "error": null,
-      "injected_40001": 2,
-      "backoff_seconds": 0.526,
-      "waits_seconds": [
-        0.234,
-        0.292
-      ],
-      "trail": [
-        {
-          "attempt": 1,
-          "sqlstate": "40001",
-          "raised": "InjectedSerializationFailure",
-          "retryable": true,
-          "action": "retry",
-          "waited_seconds": 0.234
-        },
-        {
-          "attempt": 2,
-          "sqlstate": "40001",
-          "raised": "InjectedSerializationFailure",
-          "retryable": true,
-          "action": "retry",
-          "waited_seconds": 0.292
-        },
-        {
-          "attempt": 3,
-          "sqlstate": "00000",
-          "action": "applied"
-        }
-      ]
+      "injected_40001": 0
     },
     {
       "file": "demo_permit.sql",
-      "seconds": 0.373,
+      "seconds": 0.418,
       "attempts": 1,
       "sqlstate": "00000",
       "error": null,
@@ -84,8 +56,8 @@
     "mainline.blame_edge": 1,
     "mainline.clause_blame_closure": 1,
     "mainline.cbm_account": 1,
-    "mainline.ledger_checkpoint": 1,
-    "mainline.cosignature": 1,
+    "mainline.ledger_checkpoint": 3,
+    "mainline.cosignature": 3,
     "mainline_meas.recall_policy": 1,
     "mainline_meas.recall_run": 1,
     "mainline_meas.silence_receipt": 1,
@@ -93,12 +65,12 @@
     "mainline.permit_clause": 1,
     "mainline.permit_event": 2,
     "mainline.boundary_certificate": 1,
-    "mainline.blocking_check": 1,
+    "mainline.blocking_check": 2,
     "mainline.exposure_receipt": 1,
     "mainline.exposure_line": 1,
     "mainline.disposition": 0,
     "mainline.merge_record": 0,
-    "mainline_ops.outbox": 1
+    "mainline_ops.outbox": 2
   },
   "observed": {
     "permit": {
@@ -133,9 +105,11 @@
     "retryable_sqlstate": "40001",
     "max_attempts": 6,
     "files_that_needed_a_retry": 0,
-    "files_with_injected_retries": 1,
-    "injected_by_this_run": 2,
-    "note": "files_that_needed_a_retry counts SPONTANEOUS retries only \u2014 a 40001 the cluster produced. Retries this program injected with --inject-40001 are counted separately and are never allowed to inflate the first number."
+    "files_with_injected_retries": 0,
+    "injected_by_this_run": 0,
+    "note": "files_that_needed_a_retry counts SPONTANEOUS retries only \u2014 a 40001 the cluster produced. Retries this program injected with --inject-40001 are counted separately and are never allowed to inflate the first number.",
+    "merge_probe_executor": "trappoint_testkit.txn.run_txn over trappoint_core.retry.run_gate \u2014 the WHOLE transaction, retried from BEGIN on a fresh connection. It is a DIFFERENT loop from the Applier's above, and deliberately so: the Applier retries one statement batch it re-sends in full, while the probe's unit is a transaction whose refusal must be attempted exactly once. Both retry 40001 and only 40001.",
+    "merge_probe_refusal_is_never_retried": "spec/errors.md \u00a74. run_gate raises GateRefused on the first 23514/23503/23505/P0001 and never asks again: a retried refusal writes N identical rows into mainline.refusal_ledger for one attempted history."
   },
   "verification": {
     "outcome": "REFUSED",
@@ -143,7 +117,7 @@
     "constraint": "gate_closed_when_issued",
     "constraint_source": "reported",
     "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
-    "seconds": 0.442,
+    "seconds": 2.686,
     "expected_sqlstate": "23514",
     "expected_constraint": "gate_closed_when_issued",
     "as_expected": true,
@@ -155,7 +129,7 @@
       "nothing_persisted": true
     }
   },
-  "total_seconds": 13.1,
+  "total_seconds": 14.6,
   "failures": [],
   "verdict": "SEEDED AND REFUSABLE"
 }
