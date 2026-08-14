@@ -17,3 +17,23 @@ dist/
 .mypy_cache/
 .import_linter_cache/
 .uv-cache/
+
+# `pytest --collect-only -q > collected.txt` is written into the repository root by two
+# lanes on every run — `.github/workflows/cluster-tests.yml:333` and
+# `.github/workflows/cloud-verify.yml:1267`. The dump is a BUILD OUTPUT of the test
+# session, not a source file, and one was committed by accident in `eefae1c`: 530 lines
+# of node ids that then reddened both `ci / REUSE — every file names its licence` and
+# `submission / a stranger can clone it`, because a scratch dump names no licence and
+# must not be given one. Giving it a header or a `.license` sidecar would launder it into
+# a source file; deleting it returned both hard gates to 0 and this line is what stops
+# the next one landing.
+#
+# The three below it are the same lane's other root-level outputs, named here because
+# `docs/ci/cluster-lane-package.md:527` reported them to whoever owns this file: *"Left
+# as it is, the next person who runs the lane locally and commits with -A repeats the
+# same mistake with two more files."* None of the four is tracked now, so none of them
+# moves a REUSE count today; the point is that none of them can.
+collected.txt
+junit-cluster.xml
+pytest-cluster.txt
+crdb-engine.log

@@ -142,9 +142,7 @@ class DefeaterVocabularyUnresolvable(ScenarioNotSeeded):
         generations: how many DISTINCT ``vocab_sha256`` values those rows carry.
     """
 
-    def __init__(
-        self, detail: str, *, check_id: uuid.UUID, options: int, generations: int
-    ) -> None:
+    def __init__(self, detail: str, *, check_id: uuid.UUID, options: int, generations: int) -> None:
         super().__init__(detail)
         self.check_id = check_id
         self.table = DEFEATER_VOCABULARY_SOURCE

@@ -56,7 +56,7 @@
     "unreadable_files": 0,
     "identifiers_without_licence_text": 0,
     "unreferenced_licence_texts": 0,
-    "reuse_toml_patterns_matching_nothing": 5,
+    "reuse_toml_patterns_matching_nothing": 1,
     "distinct_identifiers": 4,
     "non_spdx_spelling": {
       "FSL-1.1-ALv2": 1213
@@ -75,18 +75,9 @@
     "reuse_toml_tables": 12,
     "reuse_toml_path_patterns": 66,
     "reuse_toml_patterns_matching_nothing": [
-      "#0:LICENSE",
-      "#4:packages/**/*.jsonl",
-      "#6:docs/submission/**",
-      "#6:evidence/provenance/**",
-      "#6:evidence/tool-usage/**"
+      "#4:packages/**/*.jsonl"
     ],
-    "reuse_toml_patterns_matching_only_untracked": {
-      "#0:LICENSE": 1,
-      "#6:docs/submission/**": 6,
-      "#6:evidence/provenance/**": 2,
-      "#6:evidence/tool-usage/**": 5
-    },
+    "reuse_toml_patterns_matching_only_untracked": {},
     "licence_texts_on_disk": [
       "Apache-2.0.txt",
       "CC-BY-4.0.txt",

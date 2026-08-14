@@ -188,7 +188,7 @@ def egress_cost_usd(
     reviewer re-derives by hand, and a total with no split cannot be checked.
     """
     gb = convention.billable_gb(total_bytes, apply_free_tier=apply_free_tier)
-    edges = (0.0,) + convention.tier_edges_gb + (math.inf,)
+    edges = (0.0, *convention.tier_edges_gb, math.inf)
     usd = 0.0
     rows: list[dict[str, Any]] = []
     for index, rate in enumerate(tariff.egress_usd_per_gb):
@@ -268,9 +268,7 @@ class Cost:
             "requests_per_second": round(self.rps, 3),
             "egress_bytes": round(self.egress_bytes, 1),
             "billable_gb": round(self.billable_gb, 4),
-            "sustained_egress_bytes_per_second": round(
-                self.sustained_egress_bytes_per_second, 1
-            ),
+            "sustained_egress_bytes_per_second": round(self.sustained_egress_bytes_per_second, 1),
             "egress_usd": round(self.egress_usd, 2),
             "requests_usd": round(self.requests_usd, 2),
             "compute_usd": round(self.compute_usd, 2),
@@ -501,7 +499,9 @@ def terraform_alarm_attribute(text: str, name: str, attribute: str) -> int | Non
     alarm that is ever retuned must move this model rather than leave it publishing a
     detection floor the stack no longer has.
     """
-    body = _hcl_block(text, rf'resource\s+"aws_cloudwatch_metric_alarm"\s+"{re.escape(name)}"\s*\{{')
+    body = _hcl_block(
+        text, rf'resource\s+"aws_cloudwatch_metric_alarm"\s+"{re.escape(name)}"\s*\{{'
+    )
     if body is None:
         return None
     match = re.search(rf"^\s*{re.escape(attribute)}\s*=\s*(\d+)\s*$", body, re.MULTILINE)
@@ -676,6 +676,104 @@ BUDGETS_LAG_HOURS = (8.0, 24.0)
 IN_WINDOW_LAG_SENSITIVITY_S = (60.0, 120.0, 180.0, 300.0, 600.0, 900.0)
 
 
+def first_alarm_to_fire(
+    alarms: dict[str, Any],
+    flood_rps: float,
+) -> tuple[list[dict[str, Any]], dict[str, Any], float, str]:
+    """Return `(candidates, first, floor_s, log_note)` for the alarms in force.
+
+    Lifted verbatim out of `in_window_residual`, whose statement count had crossed
+    PLR0915's ceiling of 50. Not one number, comparison or refusal below changed in
+    the move: `floor_s` is still `period x evaluation_periods` of the FIRST invocation
+    alarm that breaches at `flood_rps`, it is still a worst-case DETECTION floor rather
+    than the whole lag, and the caller still budgets the remaining terms around it.
+    """
+    # ── Which alarm sees a flood FIRST, derived rather than assumed ──────────────────────
+    candidates: list[dict[str, Any]] = []
+    for name, metric, threshold, period, evaluations in (
+        (
+            "invocations_burst",
+            "Invocations",
+            alarms["invocations_burst_threshold"],
+            alarms["invocations_burst_period_s"],
+            alarms["invocations_burst_evaluation_periods"],
+        ),
+        (
+            "invocations_hourly",
+            "Invocations",
+            alarms["invocations_hourly_threshold"],
+            alarms["invocations_hourly_period_s"],
+            alarms["invocations_hourly_evaluation_periods"],
+        ),
+    ):
+        in_one_period = flood_rps * period
+        candidates.append(
+            {
+                "alarm": name,
+                "metric": metric,
+                "threshold": threshold,
+                "period_s": period,
+                "evaluation_periods": evaluations,
+                "datapoints_to_alarm": alarms.get(f"{name}_datapoints_to_alarm"),
+                "invocations_in_one_period_at_the_flood_rate": round(in_one_period, 1),
+                "breaches_at_the_flood_rate": in_one_period > threshold,
+                "seconds_to_cross_the_threshold": round(threshold / flood_rps, 3),
+                "worst_case_detection_s": float(period * evaluations),
+            }
+        )
+
+    log_detection_s = float(
+        alarms["log_ingestion_period_s"] * alarms["log_ingestion_evaluation_periods"]
+    )
+    candidates.append(
+        {
+            "alarm": "log_ingestion",
+            "metric": "IncomingBytes",
+            "threshold": None,
+            "period_s": alarms["log_ingestion_period_s"],
+            "evaluation_periods": alarms["log_ingestion_evaluation_periods"],
+            "datapoints_to_alarm": None,
+            "invocations_in_one_period_at_the_flood_rate": None,
+            "breaches_at_the_flood_rate": None,
+            "seconds_to_cross_the_threshold": None,
+            "worst_case_detection_s": log_detection_s,
+            "not_priced_because": (
+                "this alarm watches log-group IncomingBytes, not invocations or egress. "
+                "This model has no measured bytes-of-log-per-invocation input, so whether a "
+                "flood breaches it is NOT computed here. It is listed because its detection "
+                "window still has to be compared against the invocation alarms', which is "
+                "checkable without pricing it."
+            ),
+        }
+    )
+
+    detecting = [c for c in candidates if c["breaches_at_the_flood_rate"]]
+    if not detecting:
+        raise ValueError(
+            f"no invocation alarm breaches at the modelled flood rate of {flood_rps:,.1f} "
+            "rps, so this model cannot say when the stop fires. That is a finding about the "
+            "thresholds, not something to paper over with an assumed detection window."
+        )
+    first = min(detecting, key=lambda c: c["worst_case_detection_s"])
+    floor_s = float(first["worst_case_detection_s"])
+
+    log_note = (
+        "the log-ingestion alarm's detection window ("
+        f"{log_detection_s:g} s) is not shorter than the first invocation alarm's "
+        f"({floor_s:g} s), so it cannot be the first to fire and leaving it unpriced "
+        "cannot make this floor too high."
+        if log_detection_s >= floor_s
+        else (
+            "WARNING: the log-ingestion alarm's detection window "
+            f"({log_detection_s:g} s) is SHORTER than the first invocation alarm's "
+            f"({floor_s:g} s). Whether it breaches at the flood rate is not computed here, "
+            "so this floor may be too high. That is an unknown, and it is named."
+        )
+    )
+
+    return candidates, first, floor_s, log_note
+
+
 def in_window_residual(
     *,
     inputs: dict[str, Any],
@@ -761,7 +859,9 @@ def in_window_residual(
     if missing or responder.get("timeout_s") is None:
         raise ValueError(
             "could not read "
-            + ", ".join(missing + ([] if responder.get("timeout_s") is not None else ["responder_timeout"]))
+            + ", ".join(
+                missing + ([] if responder.get("timeout_s") is not None else ["responder_timeout"])
+            )
             + " out of infra/modules/cost-guard. The in-window residual is period x "
             "evaluation_periods times a rate; it will not be published against invented "
             "alarm timings."
@@ -784,88 +884,7 @@ def in_window_residual(
 
     flood_rps = priced(1.0, reachable_bytes, "probe").rps
 
-    # ── Which alarm sees a flood FIRST, derived rather than assumed ──────────────────────
-    candidates: list[dict[str, Any]] = []
-    for name, metric, threshold, period, evaluations in (
-        (
-            "invocations_burst",
-            "Invocations",
-            alarms["invocations_burst_threshold"],
-            alarms["invocations_burst_period_s"],
-            alarms["invocations_burst_evaluation_periods"],
-        ),
-        (
-            "invocations_hourly",
-            "Invocations",
-            alarms["invocations_hourly_threshold"],
-            alarms["invocations_hourly_period_s"],
-            alarms["invocations_hourly_evaluation_periods"],
-        ),
-    ):
-        in_one_period = flood_rps * period
-        candidates.append(
-            {
-                "alarm": name,
-                "metric": metric,
-                "threshold": threshold,
-                "period_s": period,
-                "evaluation_periods": evaluations,
-                "datapoints_to_alarm": alarms.get(f"{name}_datapoints_to_alarm"),
-                "invocations_in_one_period_at_the_flood_rate": round(in_one_period, 1),
-                "breaches_at_the_flood_rate": in_one_period > threshold,
-                "seconds_to_cross_the_threshold": round(threshold / flood_rps, 3),
-                "worst_case_detection_s": float(period * evaluations),
-            }
-        )
-
-    log_detection_s = float(
-        alarms["log_ingestion_period_s"] * alarms["log_ingestion_evaluation_periods"]
-    )
-    candidates.append(
-        {
-            "alarm": "log_ingestion",
-            "metric": "IncomingBytes",
-            "threshold": None,
-            "period_s": alarms["log_ingestion_period_s"],
-            "evaluation_periods": alarms["log_ingestion_evaluation_periods"],
-            "datapoints_to_alarm": None,
-            "invocations_in_one_period_at_the_flood_rate": None,
-            "breaches_at_the_flood_rate": None,
-            "seconds_to_cross_the_threshold": None,
-            "worst_case_detection_s": log_detection_s,
-            "not_priced_because": (
-                "this alarm watches log-group IncomingBytes, not invocations or egress. "
-                "This model has no measured bytes-of-log-per-invocation input, so whether a "
-                "flood breaches it is NOT computed here. It is listed because its detection "
-                "window still has to be compared against the invocation alarms', which is "
-                "checkable without pricing it."
-            ),
-        }
-    )
-
-    detecting = [c for c in candidates if c["breaches_at_the_flood_rate"]]
-    if not detecting:
-        raise ValueError(
-            f"no invocation alarm breaches at the modelled flood rate of {flood_rps:,.1f} "
-            "rps, so this model cannot say when the stop fires. That is a finding about the "
-            "thresholds, not something to paper over with an assumed detection window."
-        )
-    first = min(detecting, key=lambda c: c["worst_case_detection_s"])
-    floor_s = float(first["worst_case_detection_s"])
-
-    log_note = (
-        "the log-ingestion alarm's detection window ("
-        f"{log_detection_s:g} s) is not shorter than the first invocation alarm's "
-        f"({floor_s:g} s), so it cannot be the first to fire and leaving it unpriced "
-        "cannot make this floor too high."
-        if log_detection_s >= floor_s
-        else (
-            "WARNING: the log-ingestion alarm's detection window "
-            f"({log_detection_s:g} s) is SHORTER than the first invocation alarm's "
-            f"({floor_s:g} s). Whether it breaches at the flood rate is not computed here, "
-            "so this floor may be too high. That is an unknown, and it is named."
-        )
-    )
+    candidates, first, floor_s, log_note = first_alarm_to_fire(alarms, flood_rps)
 
     # ── The rate, priced directly from tier 1 for every window (convention 2) ────────────
     lags = sorted({floor_s} | {lag for lag in IN_WINDOW_LAG_SENSITIVITY_S if lag > floor_s})
@@ -1253,11 +1272,11 @@ def build_model(tariff: Tariff = TARIFF) -> dict[str, Any]:
     after_identity = pkg["after_largest_identity_bytes"]
     after_gz = pkg["after_largest_gz_bytes"]
 
-    fleet_served_rps = (
-        inputs["rate_limit"]["global_rps_per_instance"] * ACCOUNT_CONCURRENCY_CEILING
-    )
+    fleet_served_rps = inputs["rate_limit"]["global_rps_per_instance"] * ACCOUNT_CONCURRENCY_CEILING
 
-    def flood(label: str, duration_ms: float, request_bytes: int, memory_mb: int, **kw: Any) -> Flood:
+    def flood(
+        label: str, duration_ms: float, request_bytes: int, memory_mb: int, **kw: Any
+    ) -> Flood:
         return Flood(
             label=label,
             concurrency=ACCOUNT_CONCURRENCY_CEILING,
@@ -1271,32 +1290,42 @@ def build_model(tariff: Tariff = TARIFF) -> dict[str, Any]:
     ladder = [
         (
             flood("L0-modelled-100ms", HISTORIC_DURATION_FAST_MS, before_bytes, 512),
-            "the published headline: a 100 ms invocation nobody measured, against the "
-            "pre-strip package. Carried so the ladder starts where the document ends.",
+            (
+                "the published headline: a 100 ms invocation nobody measured, against the "
+                "pre-strip package. Carried so the ladder starts where the document ends."
+            ),
         ),
         (
             flood("L1-measured-duration", map_ms, before_bytes, 512),
-            f"the SAME flood at the MEASURED map duration of {map_ms} ms. Nothing was "
-            "fixed here and nothing was changed; the only edit is that the duration is now "
-            "a measurement. This is the honest 'today' the founder was never given.",
+            (
+                f"the SAME flood at the MEASURED map duration of {map_ms} ms. Nothing was "
+                "fixed here and nothing was changed; the only edit is that the duration is "
+                "now a measurement. This is the honest 'today' the founder was never given."
+            ),
         ),
         (
             flood("L2-strip-source-maps", js_ms, after_identity, 512),
-            "source maps stripped -- ALREADY SHIPPED, the default in both builders, and "
-            f"confirmed at {pkg['after_source_map_entries']} maps in the artefact. Bytes "
-            f"fall {before_bytes / after_identity:.2f}x. THE BILL DOES NOT: a smaller "
-            f"object serves faster, so the request rate RISES {map_ms / js_ms:.2f}x and "
-            "most of the saving is given straight back.",
+            (
+                "source maps stripped -- ALREADY SHIPPED, the default in both builders, and "
+                f"confirmed at {pkg['after_source_map_entries']} maps in the artefact. Bytes "
+                f"fall {before_bytes / after_identity:.2f}x. THE BILL DOES NOT: a smaller "
+                f"object serves faster, so the request rate RISES {map_ms / js_ms:.2f}x and "
+                "most of the saving is given straight back."
+            ),
         ),
         (
             flood("L3-gzip-on-the-wire", js_ms, after_gz, 512),
-            "the pre-compressed sibling actually served. This is the good byte lever "
-            "because the sibling is already built and the duration does not fall with it.",
+            (
+                "the pre-compressed sibling actually served. This is the good byte lever "
+                "because the sibling is already built and the duration does not fall with it."
+            ),
         ),
         (
             flood("L4-memory-512-to-256", js_ms, after_gz, 256),
-            "memory halved. Worth taking because it is DURATION-INDEPENDENT, not because "
-            "it is large -- it moves compute only, and compute is a rounding error here.",
+            (
+                "memory halved. Worth taking because it is DURATION-INDEPENDENT, not because "
+                "it is large -- it moves compute only, and compute is a rounding error here."
+            ),
         ),
         (
             flood(
@@ -1307,12 +1336,14 @@ def build_model(tariff: Tariff = TARIFF) -> dict[str, Any]:
                 served_rps_cap=fleet_served_rps,
                 refused_bytes=REFUSAL_BODY_BYTES,
             ),
-            f"the in-code rate limiter: {fleet_served_rps:g} rps served fleet-wide "
-            f"({inputs['rate_limit']['global_rps_per_instance']:g} rps/instance x "
-            f"{ACCOUNT_CONCURRENCY_CEILING} instances), every other invocation refused with "
-            f"a measured {REFUSAL_BODY_BYTES} B body. THE INVOCATION IS STILL BILLED: a 429 "
-            "is a Lambda invocation, so requests+compute survive this lever untouched and "
-            "become the floor under it.",
+            (
+                f"the in-code rate limiter: {fleet_served_rps:g} rps served fleet-wide "
+                f"({inputs['rate_limit']['global_rps_per_instance']:g} rps/instance x "
+                f"{ACCOUNT_CONCURRENCY_CEILING} instances), every other invocation refused "
+                f"with a measured {REFUSAL_BODY_BYTES} B body. THE INVOCATION IS STILL "
+                "BILLED: a 429 is a Lambda invocation, so requests+compute survive this "
+                "lever untouched and become the floor under it."
+            ),
         ),
     ]
 
@@ -1354,8 +1385,8 @@ def build_model(tariff: Tariff = TARIFF) -> dict[str, Any]:
         "bill_fell_by": round(l1.total_usd / l2.total_usd, 3),
         "stated_plainly": (
             f"bytes /{before_bytes / after_identity:.2f}, rate x{map_ms / js_ms:.2f}, "
-            f"bill /{l1.total_usd / l2.total_usd:.2f}. The strip is not a {before_bytes / after_identity:.2f}x "
-            "saving and was never going to be one."
+            f"bill /{l1.total_usd / l2.total_usd:.2f}. The strip is not a "
+            f"{before_bytes / after_identity:.2f}x saving and was never going to be one."
         ),
     }
 
@@ -1654,13 +1685,20 @@ def build_model(tariff: Tariff = TARIFF) -> dict[str, Any]:
         },
         "what_this_does_not_claim": [
             "Nothing here has been applied, no AWS API was called, and no database was read.",
-            "The sustained egress rate in `model_bound` is unobserved. It is the load-"
-            "bearing assumption of every 30-day total in this file.",
-            "L2 (strip) and L3 (gzip siblings) are priced as shipped because the artefact "
-            "confirms zero source maps and 57 siblings; whether the gzip sibling is SERVED "
-            "is static_site.py's contract and is asserted by its own tests, not here.",
-            "The residual assumes the responder is instantiated. It is not this model's "
-            "job to assert that the guard module is wired into the environment root.",
+            (
+                "The sustained egress rate in `model_bound` is unobserved. It is the load-"
+                "bearing assumption of every 30-day total in this file."
+            ),
+            (
+                "L2 (strip) and L3 (gzip siblings) are priced as shipped because the "
+                "artefact confirms zero source maps and 57 siblings; whether the gzip "
+                "sibling is SERVED is static_site.py's contract and is asserted by its own "
+                "tests, not here."
+            ),
+            (
+                "The residual assumes the responder is instantiated. It is not this model's "
+                "job to assert that the guard module is wired into the environment root."
+            ),
         ],
     }
 
@@ -1695,8 +1733,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     license_path = args.out.with_suffix(args.out.suffix + ".license")
     license_path.write_text(
-        "SPDX-FileCopyrightText: 2026 MAINLINE contributors\n"
-        "SPDX-License-Identifier: CC-BY-4.0\n",
+        "SPDX-FileCopyrightText: 2026 MAINLINE contributors\nSPDX-License-Identifier: CC-BY-4.0\n",
         encoding="utf-8",
         newline="\n",
     )

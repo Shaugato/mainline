@@ -101,14 +101,14 @@
       },
       "RUF001": {
         "verticals/": 19,
-        "tests/": 9,
+        "tests/": 0,
         "scripts/": 1
       },
       "PLR0912": {
         "packages/trappoint-*": 2,
         "verticals/": 13,
         "tests/": 1,
-        "scripts/": 2,
+        "scripts/": 0,
         "other/": 1
       },
       "T201": {
@@ -134,7 +134,7 @@
       },
       "RUF002": {
         "packages/trappoint-*": 8,
-        "tests/": 2
+        "tests/": 1
       },
       "D103": {
         "packages/trappoint-*": 6,
@@ -247,7 +247,7 @@
         "tests/": 2
       },
       "ARG002": {
-        "tests/": 1
+        "tests/": 0
       },
       "B017": {
         "tests/": 1
@@ -256,7 +256,7 @@
         "verticals/": 1
       },
       "E402": {
-        "tests/": 1
+        "tests/": 0
       },
       "F401": {
         "packages/trappoint-*": 1

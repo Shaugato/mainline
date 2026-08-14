@@ -124,7 +124,7 @@ _HEX = re.compile(r"^([0-9a-f]{2})+$")
 #: internet and these branches.
 #:
 #: **Measured on 2026-08-13, before these existed.** 100,000 bytes of path segment, query
-#: value or query *name* came back as a 400 ``detail`` of 100,034 – 100,118 bytes through
+#: value or query *name* came back as a 400 ``detail`` of 100,034 to 100,118 bytes through
 #: every one of the six refusals below: ratios 1.00, 1.00, 1.00, 1.00, 1.00, 1.00. The
 #: per-response ceiling in :func:`mainline_demo_api.static_site.max_response_bytes` does
 #: bound the result — it is 512 KiB and it is now a ceiling that refuses things — but it

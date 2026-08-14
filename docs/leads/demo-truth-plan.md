@@ -140,7 +140,7 @@ The existing test is the class again:
 ```python
 def test_gate_run_leaves_the_connection_usable(w4_conn) -> None:
     handle_transition("demo_gate_run", {}, {}, w4_conn)
-    assert w4_conn.execute("SELECT 1").fetchone() == (1,)   # passes INSIDE a transaction
+    assert w4_conn.execute("SELECT 1").fetchone() == (1,)  # passes INSIDE a transaction
 ```
 
 `SELECT 1` succeeds in autocommit and in an open transaction alike, and `w4_conn` is

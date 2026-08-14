@@ -663,9 +663,7 @@ def test_falsification__the_budget_leg_is_falsifiable_too(responder):
     real_client = lambda_client()
     real_stubber = expecting_one_stop(real_client)
     with real_stubber:
-        real_result = responder.handler(
-            budget_envelope(), FakeContext(), lambda_client=real_client
-        )
+        real_result = responder.handler(budget_envelope(), FakeContext(), lambda_client=real_client)
         real_stubber.assert_no_pending_responses()
     assert real_result["stopped"] is True
 

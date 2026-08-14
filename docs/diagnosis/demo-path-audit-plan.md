@@ -136,19 +136,31 @@ scratchpad and import it; do not shell out to a server.
 
 ```python
 import json, os, sys
-DB = "d_demolead"                              # or your own d_<id>
-os.environ["MAINLINE_DSN"] = f"postgresql://root@127.0.0.1:26257/{DB}?sslmode=disable&connect_timeout=8"
+
+DB = "d_demolead"  # or your own d_<id>
+os.environ["MAINLINE_DSN"] = (
+    f"postgresql://root@127.0.0.1:26257/{DB}?sslmode=disable&connect_timeout=8"
+)
 os.environ["MAINLINE_DEMO_PERMIT_ID"] = "dec0de00-0006-4000-8000-000000000001"
-os.environ["MAINLINE_WEB_ROOT"] = r"D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/console/dist"  # W5 only
+os.environ["MAINLINE_WEB_ROOT"] = (
+    r"D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/console/dist"  # W5 only
+)
 sys.path.insert(0, r"D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/demo-api/src")
 from mainline_demo_api import app
 
+
 def ev(method, path, body=None, qs=None, stage="$default", headers=None):
-    return {"version": "2.0", "rawPath": path, "rawQueryString": "",
-            "queryStringParameters": qs, "headers": headers or {},
-            "body": json.dumps(body) if body is not None else None,
-            "isBase64Encoded": False,
-            "requestContext": {"stage": stage, "http": {"method": method, "path": path}}}
+    return {
+        "version": "2.0",
+        "rawPath": path,
+        "rawQueryString": "",
+        "queryStringParameters": qs,
+        "headers": headers or {},
+        "body": json.dumps(body) if body is not None else None,
+        "isBase64Encoded": False,
+        "requestContext": {"stage": stage, "http": {"method": method, "path": path}},
+    }
+
 
 r = app.handler(ev("GET", "/v1/health"))
 print(r["statusCode"], r["body"][:400])

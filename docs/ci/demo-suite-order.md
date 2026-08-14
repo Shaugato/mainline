@@ -88,7 +88,7 @@ the site and the permit on every seeding — correctly, one world per database. 
 fixtures then do this, and restore only at **session** teardown:
 
 ```python
-os.environ["MAINLINE_DEMO_PERMIT_ID"] = str(permit_id)   # + SITE_ID, SIGNER_SUB, COUNTERSIGNER_SUB
+os.environ["MAINLINE_DEMO_PERMIT_ID"] = str(permit_id)  # + SITE_ID, SIGNER_SUB, COUNTERSIGNER_SUB
 ```
 
 `scenario.from_env()` reads those names at call time, and `scenario.resolve()` raises

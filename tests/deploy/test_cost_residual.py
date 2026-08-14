@@ -77,9 +77,7 @@ def in_window(model) -> dict:
 
 
 def _alarm_body(text: str, alarm: str) -> str:
-    body = cm._hcl_block(
-        text, rf'resource\s+"aws_cloudwatch_metric_alarm"\s+"{alarm}"\s*\{{'
-    )
+    body = cm._hcl_block(text, rf'resource\s+"aws_cloudwatch_metric_alarm"\s+"{alarm}"\s*\{{')
     assert body is not None, f"no aws_cloudwatch_metric_alarm.{alarm} block in the HCL"
     return body
 
@@ -142,7 +140,13 @@ def test_the_detection_floor_follows_the_hcl_and_is_not_a_literal(tmp_path, monk
     before = cm.build_model()["residual"]["in_window"]
     assert before["detection"]["floor_s"] == 60.0
 
-    _mutate_alarm(tmp_path, monkeypatch, "invocations_burst", "period              = 60", "period              = 120")
+    _mutate_alarm(
+        tmp_path,
+        monkeypatch,
+        "invocations_burst",
+        "period              = 60",
+        "period              = 120",
+    )
     after = cm.build_model()["residual"]["in_window"]
 
     assert after["detection"]["floor_s"] == 120.0
@@ -195,7 +199,9 @@ def test_the_floor_is_the_whole_period_and_not_the_time_to_cross_the_threshold(i
     )
     assert first["seconds_to_cross_the_threshold"] < detection["floor_s"]
     assert detection["floor_s"] == float(first["period_s"] * first["evaluation_periods"])
-    assert "does not exist until its period closes" in detection["why_the_floor_is_the_whole_period"]
+    assert (
+        "does not exist until its period closes" in detection["why_the_floor_is_the_whole_period"]
+    )
 
 
 def test_the_first_alarm_to_fire_is_derived_and_not_named(tmp_path, monkeypatch):
@@ -204,7 +210,11 @@ def test_the_first_alarm_to_fire_is_derived_and_not_named(tmp_path, monkeypatch)
     assert before["detection"]["first_alarm_to_fire"] == "invocations_burst"
 
     _mutate_alarm(
-        tmp_path, monkeypatch, "invocations_burst", "period              = 60", "period              = 7200"
+        tmp_path,
+        monkeypatch,
+        "invocations_burst",
+        "period              = 60",
+        "period              = 7200",
     )
     after = cm.build_model()["residual"]["in_window"]
 
@@ -275,9 +285,7 @@ def test_the_residual_is_linear_in_the_detection_lag(in_window):
             "the sensitivity table is not linear, so the published USD/minute is not a "
             "slope and multiplying by a lag budget would be wrong"
         )
-        assert row["total_usd"] == pytest.approx(
-            rate * row["detection_lag_s"] / 60.0, abs=0.01
-        )
+        assert row["total_usd"] == pytest.approx(rate * row["detection_lag_s"] / 60.0, abs=0.01)
     assert [row["detection_lag_s"] for row in rows] == sorted(
         row["detection_lag_s"] for row in rows
     )
@@ -301,10 +309,10 @@ def test_the_rate_reproduces_independently_of_the_model(in_window):
         convention,
         apply_free_tier=False,
     )
-    assert cost.total_usd == pytest.approx(
-        in_window["usd_per_minute_of_detection_lag"], abs=0.005
+    assert cost.total_usd == pytest.approx(in_window["usd_per_minute_of_detection_lag"], abs=0.005)
+    assert len(cost.tiers) == 1, (
+        "a 60-second window left egress tier 1; the linearity claim is false"
     )
-    assert len(cost.tiers) == 1, "a 60-second window left egress tier 1; the linearity claim is false"
 
 
 # ─────────────────────────────────────────────────────────────────────────────────────────
@@ -393,13 +401,13 @@ def test_the_responder_bound_is_read_from_terraform_and_not_a_literal(tmp_path, 
     before = cm.build_model()["residual"]["in_window"]
     assert before["lag_budget"]["bounded_seconds"] == 75.0
 
-    _mutate_variable(tmp_path, monkeypatch, "responder_timeout", "default     = 15", "default     = 45")
+    _mutate_variable(
+        tmp_path, monkeypatch, "responder_timeout", "default     = 15", "default     = 45"
+    )
     after = cm.build_model()["residual"]["in_window"]
 
     assert after["lag_budget"]["bounded_seconds"] == 105.0
-    bounded_after = next(
-        f for f in after["published_figures"] if f["name"] == "bounded-terms-only"
-    )
+    bounded_after = next(f for f in after["published_figures"] if f["name"] == "bounded-terms-only")
     assert bounded_after["detection_lag_s"] == 105.0
 
     # Priced independently at full precision rather than by multiplying the published

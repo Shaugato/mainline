@@ -773,9 +773,7 @@ def _within_ceiling(response: dict[str, Any], request_path: str) -> dict[str, An
     return _too_large(request_path, wire, ceiling)
 
 
-def _file(
-    path: Path, relative: str, *, head: bool, sibling: Path | None = None
-) -> dict[str, Any]:
+def _file(path: Path, relative: str, *, head: bool, sibling: Path | None = None) -> dict[str, Any]:
     """Answer 200 for the object *relative*, from *sibling*'s bytes when there is one.
 
     *path* is always the **identity** object: it decides the media type, the cache policy
@@ -961,9 +959,7 @@ def _answer(  # noqa: PLR0911 - one return per HTTP status, and the statuses ARE
 
     head = upper == "HEAD"
     if target.is_file():
-        return _file(
-            target, relative, head=head, sibling=_sibling(target, accept_encoding)
-        )
+        return _file(target, relative, head=head, sibling=_sibling(target, accept_encoding))
 
     first = relative.split("/", 1)[0]
     if first in ASSET_PREFIXES:
@@ -991,6 +987,4 @@ def _answer(  # noqa: PLR0911 - one return per HTTP status, and the statuses ARE
     # first, it has a sibling like everything else compressible, and a fallback that
     # quietly opted out of compression would be the one uncompressed response on the
     # hottest path.
-    return _file(
-        index, INDEX_NAME, head=head, sibling=_sibling(index, accept_encoding)
-    )
+    return _file(index, INDEX_NAME, head=head, sibling=_sibling(index, accept_encoding))

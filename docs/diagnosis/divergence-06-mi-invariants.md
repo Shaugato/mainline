@@ -246,7 +246,7 @@ me (reason in the last column).
   for inv in catalogue.with_status("pending"):
       witnesses = resolution[inv.mi_id]
       if witnesses.is_unwitnessed:
-          continue                      # ← the law does not apply
+          continue  # ← the law does not apply
   ```
 
   The flag that would make it apply, `--require-witness`

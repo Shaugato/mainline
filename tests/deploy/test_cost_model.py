@@ -45,7 +45,6 @@ import copy
 import dataclasses
 import json
 import re
-from pathlib import Path
 
 import pytest
 
@@ -174,11 +173,9 @@ def test_the_reproduction_covers_all_three_gb_conventions():
     covered = {row["convention"] for row in result["conventions"]}
     assert covered == {"audit-decimal", "decimal-gb-api-tiers", "binary-gb-api-tiers"}
 
-    totals = {
-        row["convention"]: row["checks"][0]["computed_usd"] for row in result["conventions"]
-    }
+    totals = {row["convention"]: row["checks"][0]["computed_usd"] for row in result["conventions"]}
     # They must actually differ, or the "three conventions" claim is decoration.
-    assert len(set(round(v) for v in totals.values())) == 3, totals
+    assert len({round(v) for v in totals.values()}) == 3, totals
 
 
 def test_the_0_06_percent_delta_is_explained_rather_than_absorbed():
@@ -277,7 +274,7 @@ def _tier_cost_naive(gb: float, edges, rates) -> float:
     total = 0.0
     remaining = gb
     position = 0.0
-    bounds = list(edges) + [float("inf")]
+    bounds = [*edges, float("inf")]
     for index, rate in enumerate(rates):
         upper = bounds[index]
         while remaining > 0 and position < upper:
@@ -323,9 +320,13 @@ def test_a_429_is_still_a_billed_invocation():
     If this ever stops holding, someone has modelled a 429 as free and the rate-bound layer
     is understated.
     """
-    common = dict(
-        concurrency=10, duration_ms=5.66, request_bytes=124_127, memory_mb=256, window_s=2_592_000
-    )
+    common = {
+        "concurrency": 10,
+        "duration_ms": 5.66,
+        "request_bytes": 124_127,
+        "memory_mb": 256,
+        "window_s": 2_592_000,
+    }
     unbounded = cm.price(cm.Flood(label="a", **common), cm.CONVENTIONS["audit-decimal"])
     bounded = cm.price(
         cm.Flood(label="b", served_rps_cap=100.0, refused_bytes=233, **common),
@@ -399,7 +400,7 @@ def test_the_byte_levers_are_visibly_self_limiting(model):
 
 
 def test_both_gb_conventions_are_published_for_every_layer(model):
-    """"Both GB conventions" is a deliverable, not a footnote."""
+    """ "Both GB conventions" is a deliverable, not a footnote."""
     for name in ("audit-decimal", "decimal-gb-api-tiers", "binary-gb-api-tiers"):
         layers = model["conventions"][name]["layers"]
         assert len(layers) >= 6
@@ -571,7 +572,7 @@ def test_the_measured_inputs_come_from_evidence_and_not_from_literals(model):
 
 
 def test_the_source_maps_are_gone_from_the_artefact(model):
-    """"18 source maps still shipping" is false, and the model prices it as false.
+    """ "18 source maps still shipping" is false, and the model prices it as false.
 
     The strip is the default in both builders and the artefact confirms it. If a map ever
     returns to the package this goes red, which is the only way the claim stays true.
@@ -597,7 +598,7 @@ def test_the_committed_model_matches_what_the_program_produces(model):
     committed_layers = committed["conventions"][cm.HEADLINE_CONVENTION]["layers"]
     fresh_layers = fresh["conventions"][cm.HEADLINE_CONVENTION]["layers"]
     assert [r["label"] for r in committed_layers] == [r["label"] for r in fresh_layers]
-    for c, f in zip(committed_layers, fresh_layers):
+    for c, f in zip(committed_layers, fresh_layers, strict=True):
         assert c["total_usd"] == pytest.approx(f["total_usd"], abs=0.01), (
             f"committed {c['label']} = {c['total_usd']} but the program computes "
             f"{f['total_usd']}. Regenerate with `python scripts/deploy/cost_model.py`; do "
