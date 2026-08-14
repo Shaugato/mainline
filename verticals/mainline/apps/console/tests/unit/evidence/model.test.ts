@@ -92,7 +92,14 @@ describe('every committed frame is filed under the content address of its own ke
   it('reports a missing or empty key as null rather than guessing one from the name', () => {
     const base = { path: 'frames/GET-540549b3695a753c.json', sha256: 'a'.repeat(64), bytes: 1 };
     expect(keyFromManifestEntry(base)).toBeNull();
-    expect(keyFromManifestEntry({ ...base, key: null })).toBeNull();
+    // `key: null` is CAST, and the cast is the point. bundle.schema.json declares the
+    // field `{"type": "string", "minLength": 1}`, and BundleTransport validates every
+    // manifest against that document before returning it, so a null here is refused at
+    // the door and `BundleFileEntry.key` is typed `string | undefined` to say so. The
+    // defensive branch in keyFromManifestEntry is kept and kept covered anyway — the
+    // validator is one line of code, and a reader who deletes this case would be
+    // trusting it absolutely on the strength of a type that describes intent.
+    expect(keyFromManifestEntry({ ...base, key: null as unknown as string })).toBeNull();
     expect(keyFromManifestEntry({ ...base, key: '' })).toBeNull();
     expect(keyFromManifestEntry({ ...base, key: 'GET /v1/audit' })).toBe('GET /v1/audit');
   });
@@ -257,8 +264,18 @@ describe('summarise — the conservation law', () => {
 
 describe('resourcesWithoutFrame', () => {
   it('names exactly the declared resources the committed bundle never captured', () => {
+    // `demo_gate_run` JOINED THIS LIST ON 2026-08-14, and it is recorded rather than
+    // excused. It became the seventeenth declared resource (lead ruling R1) so the
+    // deployed console could address the beat it is sitting on, and no frame for
+    // `POST /v1/demo/gate-run` has been captured into the bundle — so under REPLAY the
+    // beat has no counterpart and this surface is what says so.
+    //
+    // That is a REAL D7 gap and the honest place for it is on the screen, not in a
+    // comment: D7 requires every LIVE request to have a REPLAY counterpart, and the
+    // repair is to capture the frame, never to stop counting the gap. Deleting the entry
+    // here would make the console quietly claim a replay it cannot perform.
     const gaps = resourcesWithoutFrame(buildInventory(manifest()));
-    expect(gaps.map((gap) => gap.key)).toEqual(['change_request', 'suspend_permit']);
+    expect(gaps.map((gap) => gap.key)).toEqual(['change_request', 'demo_gate_run', 'suspend_permit']);
     for (const gap of gaps) {
       expect(gap.purpose.length).toBeGreaterThan(20);
       expect(['GET', 'POST']).toContain(gap.method);

@@ -14,8 +14,10 @@ the dispatcher was ever consulted. ``evidence/deploy/acceptance.json`` recorded 
     POST /v1/demo/gate-run (run 1) returned 404, expected 200
     POST /v1/demo/gate-run (run 2) returned 404, expected 200
 
-and ``console/src/features/gate/DemoDriver.tsx:255`` renders *"POST /v1/demo/gate-run is
-not addressable from this console"* on screen.
+and ``console/src/features/gate/DemoDriver.tsx`` put *"POST /v1/demo/gate-run is not
+addressable from this console"* on screen. That panel still exists — it is
+``DeclarationGapPanel``, and it is the honest rendering if the declaration is ever removed
+— but with the console's own registry it is now unreachable rather than what a judge sees.
 
 A route table and a dispatcher table are two lists that must agree and nothing in the
 language makes them. So the tests here are written as an agreement check in three
@@ -23,16 +25,37 @@ directions rather than as one happy-path assertion:
 
 1. the ROUTER resolves the path to the key,
 2. the DISPATCHER declares that key,
-3. and the difference between this API's table and the console's declaration is pinned to
-   exactly this one endpoint, so a *second* undeclared route is a failure too.
+3. and this API's table and the console's declaration are the SAME SET — so a route
+   nobody declared, and a declaration nobody routed, are both failures here.
 
-WHY THE CONSOLE STILL DOES NOT DECLARE IT
------------------------------------------
-``console/src/data/resources.ts`` has sixteen ``declare()`` calls and ``contracts.ts``
-does not register ``gate-run.schema.json``. Both files belong to the console domain, and
-until they change the console panel keeps reporting the gap. That is a true
-incompleteness and it is left visible on purpose; what is fixed here is the API half,
-which is what ``scripts/deploy`` acceptance and any ``curl`` address directly.
+THE SECOND GAP THIS FILE WAS WRITTEN AGAINST, AND THE DAY IT CLOSED
+-------------------------------------------------------------------
+Until **2026-08-14** ``console/src/data/resources.ts`` carried sixteen ``declare()``
+calls and ``contracts.ts`` did not register ``gate-run.schema.json``, so the endpoint was
+routable by ``curl`` and unreachable from the artefact a judge actually drives:
+``DemoDriver.tsx`` rendered *"POST /v1/demo/gate-run is not addressable from this
+console"* and refused — correctly — to reach it with a bare ``fetch``, because that would
+skip envelope and contract validation and have no REPLAY counterpart. Direction 3 above
+recorded that gap as a *pinned exception*: ``routed - declared == {DEMO_ROUTE}``, an
+exact set rather than a subset, so that a SECOND undeclared route was still a failure.
+
+On 2026-08-14 the console declared the seventeenth resource, ``contracts.ts`` registered
+the schema, and ``envelope.SCHEMA_IDS`` gained the matching entry. The exception had
+nothing left to except, so it was **collapsed rather than raised**: this file now pins
+
+    ``declared == routed``, both **seventeen**
+
+which is strictly stronger than the assertion it replaces. "Differs by exactly one row I
+have named" admits one undeclared route; "is the same set" admits none. The count moved
+up and the tolerance moved to zero in the same edit — raising ``_CONSOLE_ROUTE_COUNT``
+alone would have kept a hole open with a bigger number in it, and that is not what
+happened here.
+
+The history is kept rather than deleted because it is the whole value of the file: a gap
+that was real, was visible, and is now shut is evidence the process works, and a reader
+who does not know which defect an assertion prevents will eventually weaken it. Both
+halves of the original defect are still falsifiable from here — delete the route and
+direction 1 fails; delete the ``declare()`` and direction 3 fails naming the row.
 """
 
 from __future__ import annotations
@@ -47,14 +70,18 @@ from mainline_demo_api import db as demo_db
 
 from conftest import RESOURCES_TS
 
-#: The one route this API serves that the console's resource registry does not declare.
+#: The demo driver's endpoint. Declared by the console since 2026-08-14; before that it
+#: was the one route this API served that the console's resource registry did not.
 DEMO_ROUTE: tuple[str, str] = ("POST", "/v1/demo/gate-run")
 
 #: The dispatcher key ``transitions.handle_transition`` branches on.
 DEMO_KEY = "demo_gate_run"
 
+#: One number, written twice, because the two tables it counts are maintained by two
+#: different people in two different languages. They must be equal; that they are equal
+#: is the assertion, and a single shared constant would have made it unfalsifiable.
 _EXPECTED_ROUTE_COUNT = 17
-_CONSOLE_ROUTE_COUNT = 16
+_CONSOLE_ROUTE_COUNT = 17
 
 
 def _event(method: str, path: str, body: str | None = None) -> dict[str, Any]:
@@ -215,20 +242,55 @@ def _console_declared() -> set[tuple[str, str]]:
     return {(m.group("method"), m.group("template")) for m in _DECLARE.finditer(text)}
 
 
-def test_the_table_is_seventeen_and_the_extra_is_exactly_the_demo_endpoint() -> None:
-    """Sixteen transcribed from ``resources.ts``, plus one, pinned by name.
+def test_the_table_and_the_console_declaration_are_the_same_seventeen() -> None:
+    """``declared == routed``, both seventeen, with NO permitted exception.
 
-    Written as an exact set difference and not as a count so that adding a route the
-    console does not declare — the failure mode that produced the 404 in the first place,
-    inverted — still fails here rather than passing because the arithmetic worked out.
+    Until 2026-08-14 this pinned ``routed - declared == {DEMO_ROUTE}``: an exact set, so a
+    second undeclared route failed, but one named row was still allowed through. The
+    console declared that row on 2026-08-14, so the exception was collapsed to empty
+    instead of the count being raised around it. Equality of the two SETS is what is
+    asserted; the two counts are asserted beside it because a set cannot see a duplicate
+    row in ``app.ROUTES`` and a shadowed duplicate is unreachable.
+
+    It fails in both directions, which is the point. A route this API serves and the
+    console does not declare is the 404-in-front-of-a-judge defect this file was opened
+    for. A resource the console declares and this API does not route is the same defect
+    with the arrow reversed — a link on a page that answers ``no_route``.
     """
     declared = _console_declared()
     routed = {(r.method, r.template) for r in app.ROUTES}
 
     assert len(declared) == _CONSOLE_ROUTE_COUNT, sorted(declared)
     assert len(app.ROUTES) == _EXPECTED_ROUTE_COUNT, sorted(r.template for r in app.ROUTES)
-    assert declared <= routed, f"declared but not routed: {sorted(declared - routed)}"
-    assert routed - declared == {DEMO_ROUTE}
+    assert routed - declared == set(), f"routed but not declared: {sorted(routed - declared)}"
+    assert declared - routed == set(), f"declared but not routed: {sorted(declared - routed)}"
+    assert declared == routed
+    # Named, not merely counted: this is the row the file exists for, and an equality
+    # between two empty sets would satisfy every assertion above it.
+    assert DEMO_ROUTE in declared, (
+        f"{DEMO_ROUTE[0]} {DEMO_ROUTE[1]} is routed by this API and the console no longer "
+        "declares it, so the demo driver is back to rendering the not-addressable panel"
+    )
+    assert DEMO_ROUTE in routed
+
+
+def test_the_transcribed_contract_id_is_the_one_the_handler_actually_stamps() -> None:
+    """``envelope.SCHEMA_IDS[demo_gate_run]`` and ``gate_run.GATE_RUN_SCHEMA_ID`` are one id.
+
+    Two constants, two modules, one wire value — and until 2026-08-14 only one of them
+    existed. ``gate_run.py`` stamps its own ``schema_id`` onto the success payload and
+    never consults ``SCHEMA_IDS``; ``app.py``'s 501 branch consults ``SCHEMA_IDS`` and
+    cannot import ``gate_run`` (surviving that import failing is the branch's whole job).
+    So the two are read on paths that never meet, and nothing but this assertion makes
+    them agree. If they drift, one HTTP status names one contract and another names a
+    different one for the same endpoint, and ``finishExchange`` refuses whichever it did
+    not expect — *a payload that names a contract we do not hold is not forward
+    compatibility; it is an unverifiable claim*.
+    """
+    from mainline_demo_api import envelope, gate_run
+
+    assert envelope.SCHEMA_IDS[DEMO_KEY] == gate_run.GATE_RUN_SCHEMA_ID
+    assert envelope.SCHEMA_IDS[DEMO_KEY] == f"{envelope.CONTRACT_BASE}gate-run.schema.json"
 
 
 def test_no_two_routes_share_a_method_and_template() -> None:

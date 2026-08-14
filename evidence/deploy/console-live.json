@@ -1,0 +1,1697 @@
+{
+  "schema": "mainline.evidence.console-live/1",
+  "generated_at": "2026-08-14T14:55:28Z",
+  "generated_by": "scripts/deploy/console_live_acceptance.py",
+  "purpose": "Prove that a console built with VITE_MAINLINE_API_BASE set reads LIVE in its own honesty chrome, addresses POST /v1/demo/gate-run on its own origin, and renders the kernel's answer verbatim -- driven by a real chromium against the real, unstubbed mainline_demo_api.app.handler.",
+  "target": {
+    "kind": "local_emulator",
+    "is_the_deployment": false,
+    "emulator": "scripts/deploy/local_furl.py",
+    "emulates": "AWS Lambda Function URL, payload format 2.0, authorization NONE",
+    "handler": "mainline_demo_api.app.handler(event, None), UNSTUBBED",
+    "marker": "every response carries x-mainline-emulator: local_furl",
+    "the_deployment_is": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws -- NOT measured here. Nothing in this file is a transcript of it, and the emulator header above is what keeps the two apart."
+  },
+  "secrets": {
+    "dsn_supplied": false,
+    "ssm_parameter_written": false,
+    "scrubbed_from_the_emulator_environment": [
+      "MAINLINE_DSN",
+      "MAINLINE_DSN_PARAM",
+      "MAINLINE_DEMO_PERMIT_ID",
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_SESSION_TOKEN",
+      "AWS_PROFILE",
+      "AWS_REGION",
+      "AWS_DEFAULT_REGION"
+    ],
+    "note": "The SSM parameter /mainline/demo/cockroach_dsn is the founder's step and is not this wave's. The kernel therefore answers 503 dsn_unset, and that answer rendered honestly IS the passing condition (ruling R8). Every captured string passes through a connection-string redaction before it is written here."
+  },
+  "deploy": {
+    "terraform_apply": false,
+    "lambda_updated": false,
+    "anything_uploaded": false,
+    "note": "Built to a temporary directory, never to dist/. The ORCHESTRATOR deploys."
+  },
+  "build_id": "w5-2026-08-14T14:55:28Z-3933b97",
+  "runs": [
+    {
+      "label": "live",
+      "build": {
+        "label": "live",
+        "out_dir": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\dist-live",
+        "env_supplied": {
+          "VITE_MAINLINE_API_BASE": "/",
+          "MAINLINE_BUILD_ID": "w5-2026-08-14T14:55:28Z-3933b97"
+        },
+        "command": [
+          "<pnpm>",
+          "exec",
+          "vite",
+          "build",
+          "--mode",
+          "demo",
+          "--outDir",
+          "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\dist-live",
+          "--emptyOutDir"
+        ],
+        "passed_as": "an environment mapping to subprocess.run: no shell, so no MSYS path conversion is possible on this line (docs/deploy/console-build.md \u00a71)",
+        "exit_code": 0,
+        "elapsed_ms": 9770,
+        "stdout_tail": "\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/Counter-qqYZm0UG.js            \u001b[39m\u001b[1m\u001b[2m  2.15 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   1.08 kB\u001b[22m\u001b[2m \u2502 map:    16.62 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/StagedBadge-CfNht0nj.js        \u001b[39m\u001b[1m\u001b[2m  3.56 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   1.55 kB\u001b[22m\u001b[2m \u2502 map:    17.98 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/DemoDriver-DyWdw3E4.js         \u001b[39m\u001b[1m\u001b[2m 13.35 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   4.54 kB\u001b[22m\u001b[2m \u2502 map:    48.34 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/surface-C66dgTWX.js            \u001b[39m\u001b[1m\u001b[2m 19.26 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   5.85 kB\u001b[22m\u001b[2m \u2502 map:    55.57 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/surface-CobRYt7M.js            \u001b[39m\u001b[1m\u001b[2m 24.63 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   7.69 kB\u001b[22m\u001b[2m \u2502 map:    76.12 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/surface-CztEV-MM.js            \u001b[39m\u001b[1m\u001b[2m 28.19 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   8.37 kB\u001b[22m\u001b[2m \u2502 map:    99.17 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/surface-SOtRR6FR.js            \u001b[39m\u001b[1m\u001b[2m 28.45 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   9.72 kB\u001b[22m\u001b[2m \u2502 map:   102.78 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/surface-DSet82Oz.js            \u001b[39m\u001b[1m\u001b[2m 33.27 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   9.75 kB\u001b[22m\u001b[2m \u2502 map:   107.98 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/surface-C6oT6b5x.js            \u001b[39m\u001b[1m\u001b[2m 41.41 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:  12.01 kB\u001b[22m\u001b[2m \u2502 map:   143.33 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/surface-BCoHyHj2.js            \u001b[39m\u001b[1m\u001b[2m 51.27 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:  13.67 kB\u001b[22m\u001b[2m \u2502 map:   172.93 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-live/\u001b[22m\u001b[36massets/index-CplU8_v3.js              \u001b[39m\u001b[1m\u001b[33m457.15 kB\u001b[39m\u001b[22m\u001b[2m \u2502 gzip: 129.84 kB\u001b[22m\u001b[2m \u2502 map: 1,588.93 kB\u001b[22m\n\u001b[32m\u2713 built in 6.21s\u001b[39m",
+        "stderr_tail": "\u001b[33m\n(!) Some chunks are larger than 200 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\u001b[39m"
+      },
+      "compiled_literals": {
+        "entry_chunk": {
+          "name": "assets/index-CplU8_v3.js",
+          "bytes": 457147,
+          "sha256": "2fa5e005597c76fce590dcfa0e87288821c120168db2a494ad2a6ce7430cc27d"
+        },
+        "literals": {
+          "VITE_MAINLINE_API_BASE": [
+            "/"
+          ],
+          "VITE_MAINLINE_BUNDLE_URL": [
+            "./bundle/"
+          ],
+          "VITE_MAINLINE_LOG_VKEY": [
+            ""
+          ]
+        },
+        "build_ids": [
+          "unknown",
+          "w5-2026-08-14T14:55:28Z-3933b97"
+        ],
+        "scanned_js": 18,
+        "how": "grep -o 'VITE_MAINLINE_API_BASE:\"[^\"]*\"' over dist/assets/*.js, in Python so no shell can rewrite the pattern"
+      },
+      "packaging_guard": {
+        "declared": {
+          "console_transport": "live",
+          "exit_code": 0,
+          "stdout": "build_lambda: preflight ok: handler package, console dist/ and evidence bundle are all present, and dist/ carries the declared --console-transport live\n",
+          "stderr": ""
+        },
+        "falsification": {
+          "console_transport": "replay",
+          "exit_code": 2,
+          "stdout": "",
+          "stderr": "build_lambda: REFUSED [CONSOLE TRANSPORT] --console-transport replay was declared, which requires that the console starts REPLAY on load. This dist carries live, replay (VITE_MAINLINE_API_BASE=/; VITE_MAINLINE_BUNDLE_URL=./bundle/; VITE_MAINLINE_LOG_VKEY=(empty)), so selectSource would start it LIVE and switchable would be true. this dist DOES carry a live source (VITE_MAINLINE_API_BASE=/), so selectSource starts it LIVE and REPLAY is one control away rather than what a judge first sees. Declare --console-transport both if that is what you meant, or build without VITE_MAINLINE_API_BASE in the environment if it is not.\n"
+        }
+      },
+      "served_tree": {
+        "web_root": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\serve-live\\web",
+        "bundle_staged": null,
+        "source_maps_removed": 18,
+        "gz_siblings_written": 31,
+        "entries": 62,
+        "bytes": 1067798,
+        "largest_identity": {
+          "path": "web/assets/index-CplU8_v3.js",
+          "bytes": 457147
+        },
+        "largest_gz": {
+          "path": "web/assets/index-CplU8_v3.js.gz",
+          "bytes": 129422
+        },
+        "packer_refusals": [],
+        "why": "the packer's own strip_maps() and gzip_siblings(), so the emulator serves the tree the Lambda would serve rather than a raw dist/ that static_site.py would answer with 413 response_too_large"
+      },
+      "emulator": {
+        "base_url": "http://127.0.0.1:63343",
+        "web_root": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\serve-live\\web",
+        "env_names_checked": [
+          "MAINLINE_DSN",
+          "MAINLINE_DSN_PARAM",
+          "MAINLINE_DEMO_PERMIT_ID",
+          "AWS_ACCESS_KEY_ID",
+          "AWS_SECRET_ACCESS_KEY",
+          "AWS_SESSION_TOKEN",
+          "AWS_PROFILE",
+          "AWS_REGION",
+          "AWS_DEFAULT_REGION"
+        ],
+        "env_names_removed": [],
+        "env_names_absent_already": [
+          "MAINLINE_DSN",
+          "MAINLINE_DSN_PARAM",
+          "MAINLINE_DEMO_PERMIT_ID",
+          "AWS_ACCESS_KEY_ID",
+          "AWS_SECRET_ACCESS_KEY",
+          "AWS_SESSION_TOKEN",
+          "AWS_PROFILE",
+          "AWS_REGION",
+          "AWS_DEFAULT_REGION"
+        ],
+        "banner": [
+          "==============================================================================",
+          "LOCAL EMULATOR. THIS IS NOT THE DEMO URL AND MUST NOT BE PUBLISHED AS ONE.",
+          "==============================================================================",
+          "  serving       http://127.0.0.1:63343",
+          "  emulating     AWS Lambda Function URL, payload format 2.0, authorization NONE",
+          "  handler       D:\\CoackroachDBxAWS\\mainline\\verticals\\mainline\\apps\\demo-api\\src\\mainline_demo_api\\app.py",
+          "  web root      C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\serve-live\\web",
+          "  DSN           UNSET: /v1/* will answer 503",
+          "  DSN source    unset",
+          "  permit        (scenario default)",
+          "  concurrency   serialized  (one warm container: mainline_demo_api.db caches ONE connection)",
+          "  every response carries  x-mainline-emulator: local_furl",
+          "  the real demo URL is a Lambda Function URL; docs/submission/SUBMISSION.json",
+          "  holds UNRESOLVED until one exists. Do not paste this address into that file.",
+          "=============================================================================="
+        ]
+      },
+      "http_probes": {
+        "root": {
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "bytes": 4655,
+          "elapsed_ms": 67,
+          "headers": {
+            "server": "mainline-local-furl/1.0 ",
+            "date": "Fri, 14 Aug 2026 14:55:57 GMT",
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "no-cache",
+            "vary": "accept-encoding",
+            "x-mainline-api": "demo-static",
+            "x-mainline-static": "index.html",
+            "x-mainline-emulator": "local_furl",
+            "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+            "content-length": "4655"
+          },
+          "emulator_header": "local_furl",
+          "body": "<!doctype html>\n<!--\n  SPDX-FileCopyrightText: 2026 MAINLINE contributors\n  SPDX-License-Identifier: FSL-1.1-ALv2\n\n  The document shell. It carries no claim about the database, because at this point\n  no bytes have been verified. Everything it says about itself is true before any\n  script runs, and stays true if no script ever runs.\n\n  No external origin is referenced anywhere in this file \u2014 no font CDN, no analytics,\n  no icon host. The console must load from file:// and from an air-gapped static host\n  (the offline reproduction tier, BUILD_PLAN \u00a75, never-cut list).\n-->\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\" />\n    <meta name=\"color-scheme\" content=\"dark light\" />\n    <meta name=\"referrer\" content=\"no-referrer\" />\n    <meta name=\"robots\" content=\"noindex, nofollow\" />\n    <meta\n      name=\"description\"\n      content=\"MAINLINE console \u2014 every claim on screen is re-derived in the browser from signed bytes.\"\n    />\n    <title>MAINLINE console</title>\n    <style>\n      /*\n        Boot styling only. The register token set (docs/leads/ui.md \u00a71.1) is owned by\n        the visual-language worker and arrives as CSS custom properties; these values\n        are the fallbacks that keep the boot screen legible before it lands, and they\n        are deliberately the same neutral ramp.\n      */\n      :root {\n        color-scheme: dark light;\n        --tp-boot-bg: #0b0c0d;\n        --tp-boot-ink: #e8e6e3;\n        --tp-boot-dim: #8b8b8b;\n        --tp-boot-rule: #2a2c2e;\n        --tp-boot-mono: ui-monospace, \"SFMono-Regular\", \"Cascadia Mono\", \"Roboto Mono\", Menlo,\n          Consolas, \"Liberation Mono\", monospace;\n      }\n      html,\n      body {\n        margin: 0;\n        padding: 0;\n        min-height: 100%;\n        background: var(--tp-boot-bg);\n        color: var(--tp-boot-ink);\n      }\n      body {\n        font-family: var(--tp-boot-mono);\n        font-size: 14px;\n        line-height: 1.5;\n        -webkit-font-smoothing: antialiased;\n      }\n      #root:empty::before {\n        content: \"\";\n      }\n      .boot {\n        max-width: 62ch;\n        margin: 0;\n        padding: 2rem 1.5rem;\n        border-bottom: 1px solid var(--tp-boot-rule);\n      }\n      .boot h1 {\n        font-size: 14px;\n        font-weight: 600;\n        letter-spacing: 0.08em;\n        text-transform: uppercase;\n        margin: 0 0 0.75rem;\n      }\n      .boot p {\n        margin: 0 0 0.5rem;\n        color: var(--tp-boot-dim);\n      }\n      .boot code {\n        color: var(--tp-boot-ink);\n      }\n    </style>\n    <script type=\"module\" crossorigin src=\"./assets/index-CplU8_v3.js\"></script>\n    <link rel=\"stylesheet\" crossorigin href=\"./assets/index-DAuZRgAW.css\">\n  </head>\n  <body>\n    <!--\n      The failure mode of a single-page application is a white rectangle, which is\n      indistinguishable from \"the product has nothing to say\". This node is present in\n      the shipped HTML and is removed by src/main.tsx only once React has mounted. If\n      the bundle 404s, if the module graph throws at import time, if JavaScript is\n      disabled or blocked by policy \u2014 the reader gets a sentence instead of a void.\n    -->\n    <div id=\"boot-notice\" class=\"boot\">\n      <h1>MAINLINE console \u2014 not yet booted</h1>\n      <p>\n        The application bundle has not mounted. If this text is still here after the page has\n        finished loading, the script did not run: check the browser console for the import error,\n        and check that <code>assets/</code> was deployed alongside <code>index.html</code>.\n      </p>\n      <p>\n        This console renders nothing it has not verified. It has verified nothing yet, so it is\n        claiming nothing yet.\n      </p>\n    </div>\n\n    <noscript>\n      <div class=\"boot\">\n        <h1>JavaScript is required, and here is exactly why</h1>\n        <p>\n          This console does not render assertions handed to it by a server. It recomputes \u2014 in this\n          browser \u2014 the RFC&nbsp;8785 canonical bytes, the RFC&nbsp;6962 inclusion and consistency\n          proofs, and the checkpoint signature behind every claim it displays. That arithmetic runs\n          in a Web Worker; without scripting there is no arithmetic, and a page that showed you the\n          conclusions without them would be exactly the thing this console exists not to be.\n        </p>\n        <p>\n          The same checks are available as a command-line verifier\n          (<code>trappoint-verify</code>) that consumes the identical bytes.\n        </p>\n      </div>\n    </noscript>\n\n    <div id=\"root\"></div>\n  </body>\n</html>\n",
+          "body_json": null
+        },
+        "health": {
+          "method": "GET",
+          "path": "/v1/health",
+          "status": 503,
+          "bytes": 444,
+          "elapsed_ms": 22,
+          "headers": {
+            "server": "mainline-local-furl/1.0 ",
+            "date": "Fri, 14 Aug 2026 14:55:57 GMT",
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "x-mainline-api": "demo-read",
+            "x-mainline-emulator": "local_furl",
+            "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+            "content-length": "444"
+          },
+          "emulator_header": "local_furl",
+          "body": "{\"applied_by\":null,\"cluster_version\":null,\"database\":null,\"deploy_chain_applied\":null,\"deploy_chain_files\":null,\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.\",\"migrations_applied\":null,\"ok\":false,\"reason\":\"dsn_unset\",\"schema_fingerprint\":null,\"seconds\":0.0}",
+          "body_json": {
+            "applied_by": null,
+            "cluster_version": null,
+            "database": null,
+            "deploy_chain_applied": null,
+            "deploy_chain_files": null,
+            "detail": "neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.",
+            "migrations_applied": null,
+            "ok": false,
+            "reason": "dsn_unset",
+            "schema_fingerprint": null,
+            "seconds": 0.0
+          }
+        },
+        "gate_run": {
+          "method": "POST",
+          "path": "/v1/demo/gate-run",
+          "status": 503,
+          "bytes": 277,
+          "elapsed_ms": 15,
+          "headers": {
+            "server": "mainline-local-furl/1.0 ",
+            "date": "Fri, 14 Aug 2026 14:55:57 GMT",
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "x-mainline-api": "demo-read",
+            "x-mainline-emulator": "local_furl",
+            "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+            "content-length": "277"
+          },
+          "emulator_header": "local_furl",
+          "body": "{\"error\":{\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.\",\"kind\":\"dsn_unset\",\"status\":503}}",
+          "body_json": {
+            "error": {
+              "detail": "neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.",
+              "kind": "dsn_unset",
+              "status": 503
+            }
+          }
+        }
+      },
+      "browser": {
+        "exit_code": 0,
+        "stdout": "drive-console: live wrote C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\drive-live.json\ndrive-console: live PASSED 16/16 assertions\n",
+        "stderr": "",
+        "run": {
+          "label": "live",
+          "expect": "live",
+          "base_url": "http://127.0.0.1:63343",
+          "target_url": "http://127.0.0.1:63343/#/gate",
+          "page_url": "http://127.0.0.1:63343/#/gate",
+          "page_origin": "http://127.0.0.1:63343",
+          "started_at": "2026-08-14T14:55:58.792Z",
+          "finished_at": "2026-08-14T14:56:01.476Z",
+          "browser": {
+            "name": "chromium",
+            "version": "149.0.7827.55",
+            "headless": true,
+            "executable": {
+              "executablePath": "C:\\Users\\shaug\\AppData\\Local\\ms-playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+              "source": "newest chromium build already on this machine (C:\\Users\\shaug\\AppData\\Local\\ms-playwright)",
+              "revision": 1228,
+              "playwright_pinned_but_absent": "C:\\Users\\shaug\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe"
+            },
+            "library": "@playwright/test (library API; no playwright.config.ts, ruling R7)",
+            "downloaded_anything": false
+          },
+          "honesty_chrome": {
+            "transport": "LIVE",
+            "bundle": "unknown",
+            "seal": "NOT VERIFIED",
+            "corpus-root": "unknown",
+            "clock-skew": "unknown",
+            "signature-path": "unknown",
+            "render": "walk (3D)",
+            "build": "w5-2026-08-14T14:55:28Z-3933b97"
+          },
+          "source_chrome": {
+            "present": true,
+            "badge": "LIVE",
+            "location": "/",
+            "why": "VITE_MAINLINE_API_BASE was compiled into this artefact as /. Every byte on screen was fetched from that kernel while you were looking at it.",
+            "switch_present": true,
+            "switch_label": "Show the same screen from the signed bundle (REPLAY)"
+          },
+          "controls": [
+            {
+              "testid": "demo-control-merge",
+              "present": true,
+              "visible": true,
+              "text": "MERGEexpect REFUSED \u2014 23514, gate_closed_when_issued, reported by the driver"
+            },
+            {
+              "testid": "demo-control-forge",
+              "present": true,
+              "visible": true,
+              "text": "FORGE THE COUNTER AND MERGEexpect REFUSED ANYWAY \u2014 P0001, mainline.fn_permit_merge_gate. The counter is set to zero out of band first."
+            },
+            {
+              "testid": "demo-control-admit",
+              "present": true,
+              "visible": true,
+              "text": "SIGN A DISPOSITION AND MERGEexpect ADMITTED \u2014 00000, with a server-computed clearance digest"
+            },
+            {
+              "testid": "demo-control-all",
+              "present": true,
+              "visible": true,
+              "text": "RUN ALLall four beats, one transaction, rolled back \u2014 with the evidence for both claims"
+            }
+          ],
+          "pressed": "demo-control-all",
+          "requests_before_press": 16,
+          "outcome_panel": {
+            "testid": "demo-run-failed",
+            "title": "status",
+            "verbatim": "HTTP 503; body carries no envelope ({\"error\":{\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of).",
+            "text": "statusHTTP 503; body carries no envelope ({\"error\":{\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of).This is a transport failure, not the database refusing. Nothing on this screen is a claim about any record."
+          },
+          "gate_run_request": {
+            "method": "POST",
+            "url": "http://127.0.0.1:63343/v1/demo/gate-run",
+            "origin": "http://127.0.0.1:63343",
+            "pathname": "/v1/demo/gate-run",
+            "post_data": "{}",
+            "same_origin_as_page": true,
+            "captured_from": "page.on(\"request\") \u2014 the browser's own network log"
+          },
+          "gate_run_response": {
+            "status": 503,
+            "headers": {
+              "cache-control": "no-store",
+              "content-length": "277",
+              "x-mainline-api": "demo-read",
+              "date": "Fri, 14 Aug 2026 14:56:01 GMT",
+              "x-mainline-emulator": "local_furl",
+              "content-type": "application/json; charset=utf-8",
+              "server": "mainline-local-furl/1.0",
+              "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one."
+            },
+            "emulator_header": "local_furl",
+            "body": "{\"error\":{\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.\",\"kind\":\"dsn_unset\",\"status\":503}}",
+            "body_json": {
+              "error": {
+                "detail": "neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.",
+                "kind": "dsn_unset",
+                "status": 503
+              }
+            }
+          },
+          "network": [
+            {
+              "seq": 0,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/",
+              "resource_type": "document",
+              "status": 200
+            },
+            {
+              "seq": 1,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/index-CplU8_v3.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/index-CplU8_v3.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 2,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/index-DAuZRgAW.css",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/index-DAuZRgAW.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 3,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/DemoDriver-DyWdw3E4.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/DemoDriver-DyWdw3E4.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 4,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/useResource-mXeOx0YK.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/useResource-mXeOx0YK.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 5,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/ConstraintName-BhRqta1G.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/ConstraintName-BhRqta1G.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 6,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/register-context-DIm0kmiY.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/register-context-DIm0kmiY.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 7,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/register-context-BavKIzRY.css",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/register-context-BavKIzRY.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 8,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/Mono-DpTxz6T2.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/Mono-DpTxz6T2.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 9,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/Sqlstate-BdD--pOs.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/Sqlstate-BdD--pOs.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 10,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/surface-BCoHyHj2.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/surface-BCoHyHj2.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 11,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/StagedBadge-CfNht0nj.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/StagedBadge-CfNht0nj.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 12,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/StagedBadge-DrgLRBU8.css",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/StagedBadge-DrgLRBU8.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 13,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/Counter-qqYZm0UG.js",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/Counter-qqYZm0UG.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 14,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/Counter-CZyoSoUO.css",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/Counter-CZyoSoUO.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 15,
+              "method": "GET",
+              "url": "http://127.0.0.1:63343/assets/surface-BuSLyF5Q.css",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/assets/surface-BuSLyF5Q.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 16,
+              "method": "POST",
+              "url": "http://127.0.0.1:63343/v1/demo/gate-run",
+              "origin": "http://127.0.0.1:63343",
+              "pathname": "/v1/demo/gate-run",
+              "resource_type": "fetch",
+              "status": 503
+            }
+          ],
+          "console_messages": [
+            {
+              "type": "error",
+              "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+            }
+          ],
+          "page_errors": [],
+          "screenshot": {
+            "path": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\live.png",
+            "bytes": 93088,
+            "sha256": "b169e50ca10c0f52f70c5a0d2ec787843cd240d8cad7837637b370ef60476d4d",
+            "note": "Supplementary. NO assertion in this run reads a screenshot; every claim above is about a string, a status code or an origin."
+          },
+          "assertions": [
+            {
+              "id": "honesty_chrome_transport",
+              "ok": true,
+              "expected": "LIVE",
+              "actual": "LIVE",
+              "why": "src/app/HonestyChrome.tsx reads transport.describe().mode off the object that holds the bytes. This is the cell the founder read on the deployed URL."
+            },
+            {
+              "id": "source_badge",
+              "ok": true,
+              "expected": "LIVE",
+              "actual": "LIVE",
+              "why": "The composition root badge, from the same selection. Chrome and badge disagreeing would mean one of them is decoration."
+            },
+            {
+              "id": "source_why_names_the_build_time_variable",
+              "ok": true,
+              "expected": "a string containing \"VITE_MAINLINE_API_BASE\"",
+              "actual": "VITE_MAINLINE_API_BASE was compiled into this artefact as /. Every byte on screen was fetched from that kernel while you were looking at it.",
+              "why": "src/app/source-select.ts writes the sentence naming the variable that was compiled in. It is the sentence that told the founder the artefact was a replay."
+            },
+            {
+              "id": "source_location_is_the_compiled_api_base",
+              "ok": true,
+              "expected": "/",
+              "actual": "/",
+              "why": "The location is rendered exactly as the build supplied it, never rewritten. A value like C:/Program Files/Git/ here is the MSYS path-conversion hazard."
+            },
+            {
+              "id": "build_id_is_the_one_that_was_supplied",
+              "ok": true,
+              "expected": "w5-2026-08-14T14:55:28Z-3933b97",
+              "actual": "w5-2026-08-14T14:55:28Z-3933b97",
+              "why": "MAINLINE_BUILD_ID reaching the screen is what lets a screenshot name the artefact it came from (docs/deploy/console-build.md \u00a71). Ruling R5."
+            },
+            {
+              "id": "build_id_is_not_dev",
+              "ok": true,
+              "expected": "anything but \"dev\"",
+              "actual": "w5-2026-08-14T14:55:28Z-3933b97",
+              "why": "The deployed artefact carried buildId:\"dev\": MAINLINE_BUILD_ID was not supplied, so the chrome could not name the artefact. Ruling R5 refuses that under live."
+            },
+            {
+              "id": "the_gate_driver_rendered",
+              "ok": true,
+              "expected": "demo-driver present; neither demo-driver-not-declared nor demo-driver-no-source",
+              "actual": {
+                "demo_driver": true,
+                "demo_driver_not_declared": false,
+                "demo_driver_no_source": false
+              },
+              "why": "The not-declared panel is the honest rendering when resources.ts lacks the key. With W1 landed it must be unreachable, and the controls must be what a judge sees."
+            },
+            {
+              "id": "four_controls_render_in_order",
+              "ok": true,
+              "expected": [
+                "demo-control-merge",
+                "demo-control-forge",
+                "demo-control-admit",
+                "demo-control-all"
+              ],
+              "actual": [
+                {
+                  "testid": "demo-control-merge",
+                  "present": true,
+                  "visible": true
+                },
+                {
+                  "testid": "demo-control-forge",
+                  "present": true,
+                  "visible": true
+                },
+                {
+                  "testid": "demo-control-admit",
+                  "present": true,
+                  "visible": true
+                },
+                {
+                  "testid": "demo-control-all",
+                  "present": true,
+                  "visible": true
+                }
+              ],
+              "why": "Ruling R3: the controls are present in LIVE and in REPLAY. A control shown in one and hidden in the other would be the second code path D7 forbids."
+            },
+            {
+              "id": "the_press_produced_a_terminal_panel",
+              "ok": true,
+              "expected": "one of demo-run-failed, demo-run-refused, gate-run-report",
+              "actual": "demo-run-failed",
+              "why": "A press that produces nothing is indistinguishable on a screenshot from a press that produced an empty answer."
+            },
+            {
+              "id": "run_all_issued_a_post_to_the_gate_run_path",
+              "ok": true,
+              "expected": "exactly one POST /v1/demo/gate-run on the network log",
+              "actual": [
+                "POST http://127.0.0.1:63343/v1/demo/gate-run"
+              ],
+              "why": "Taken off page.on(\"request\") \u2014 what the browser put on the socket \u2014 never inferred from the source. Ruling R8 (iv)."
+            },
+            {
+              "id": "the_post_went_to_the_pages_own_origin",
+              "ok": true,
+              "expected": "http://127.0.0.1:63343",
+              "actual": "http://127.0.0.1:63343",
+              "why": "VITE_MAINLINE_API_BASE=/ compiles to a relative URL, so console and kernel share one origin and there is no CORS anywhere. A different origin here would mean the artefact named somebody else\u2019s host."
+            },
+            {
+              "id": "every_request_stayed_on_the_pages_own_origin",
+              "ok": true,
+              "expected": "http://127.0.0.1:63343",
+              "actual": [
+                "http://127.0.0.1:63343"
+              ],
+              "why": "A console that fetched a third origin would be a machine for producing authentic looking screenshots of somebody else's bytes under our chrome."
+            },
+            {
+              "id": "the_kernel_answered_the_expected_status",
+              "ok": true,
+              "expected": 503,
+              "actual": 503,
+              "why": "The SSM parameter /mainline/demo/cockroach_dsn is the founder\u2019s step and is not this wave\u2019s. 503 dsn_unset, rendered honestly, IS the passing condition (ruling R8)."
+            },
+            {
+              "id": "the_kernel_named_the_reason",
+              "ok": true,
+              "expected": "dsn_unset",
+              "actual": "dsn_unset",
+              "why": "A reachable route refusing for a NAMED reason. Not a 404, and it must never be described as one."
+            },
+            {
+              "id": "the_answer_is_rendered_verbatim",
+              "ok": true,
+              "expected": "the on-screen <pre> contains the first 200 characters of the body",
+              "actual": {
+                "on_screen": "HTTP 503; body carries no envelope ({\"error\":{\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of).",
+                "body_prefix": "{\"error\":{\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of"
+              },
+              "why": "The bytes on the wire compared against the bytes on the screen. Not a paraphrase, not a summary, and not a sentence this program composed."
+            },
+            {
+              "id": "no_uncaught_exception_reached_the_page",
+              "ok": true,
+              "expected": [],
+              "actual": [],
+              "why": "A console that threw would render its error boundary, which is a different screen from the one under test."
+            }
+          ],
+          "failed_assertions": [],
+          "ok": true
+        }
+      }
+    },
+    {
+      "label": "replay",
+      "build": {
+        "label": "replay",
+        "out_dir": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\dist-replay",
+        "env_supplied": {
+          "VITE_MAINLINE_API_BASE": null,
+          "MAINLINE_BUILD_ID": null
+        },
+        "command": [
+          "<pnpm>",
+          "exec",
+          "vite",
+          "build",
+          "--mode",
+          "demo",
+          "--outDir",
+          "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\dist-replay",
+          "--emptyOutDir"
+        ],
+        "passed_as": "an environment mapping to subprocess.run: no shell, so no MSYS path conversion is possible on this line (docs/deploy/console-build.md \u00a71)",
+        "exit_code": 0,
+        "elapsed_ms": 9211,
+        "stdout_tail": "\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/Counter-CKi7Ui6_.js            \u001b[39m\u001b[1m\u001b[2m  2.15 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   1.07 kB\u001b[22m\u001b[2m \u2502 map:    16.62 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/StagedBadge-CG0ELsFI.js        \u001b[39m\u001b[1m\u001b[2m  3.56 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   1.55 kB\u001b[22m\u001b[2m \u2502 map:    17.98 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/DemoDriver-CoBsBqmL.js         \u001b[39m\u001b[1m\u001b[2m 13.35 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   4.54 kB\u001b[22m\u001b[2m \u2502 map:    48.34 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/surface-D4aAi_8D.js            \u001b[39m\u001b[1m\u001b[2m 19.26 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   5.85 kB\u001b[22m\u001b[2m \u2502 map:    55.57 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/surface-CAjWT7FK.js            \u001b[39m\u001b[1m\u001b[2m 24.63 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   7.69 kB\u001b[22m\u001b[2m \u2502 map:    76.12 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/surface-S6TMBmwi.js            \u001b[39m\u001b[1m\u001b[2m 28.19 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   8.37 kB\u001b[22m\u001b[2m \u2502 map:    99.17 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/surface-w8YiFM5K.js            \u001b[39m\u001b[1m\u001b[2m 28.45 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   9.71 kB\u001b[22m\u001b[2m \u2502 map:   102.78 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/surface-CkhjYLh5.js            \u001b[39m\u001b[1m\u001b[2m 33.27 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:   9.75 kB\u001b[22m\u001b[2m \u2502 map:   107.98 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/surface-MskwKSv5.js            \u001b[39m\u001b[1m\u001b[2m 41.41 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:  12.02 kB\u001b[22m\u001b[2m \u2502 map:   143.33 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/surface-El1gt71J.js            \u001b[39m\u001b[1m\u001b[2m 51.27 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m \u2502 gzip:  13.67 kB\u001b[22m\u001b[2m \u2502 map:   172.93 kB\u001b[22m\n\u001b[2mC:/Users/shaug/AppData/Local/Temp/mainline-console-live-ub79w9fz/dist-replay/\u001b[22m\u001b[36massets/index-DD4hUmru.js              \u001b[39m\u001b[1m\u001b[33m457.12 kB\u001b[39m\u001b[22m\u001b[2m \u2502 gzip: 129.81 kB\u001b[22m\u001b[2m \u2502 map: 1,588.93 kB\u001b[22m\n\u001b[32m\u2713 built in 6.27s\u001b[39m",
+        "stderr_tail": "\u001b[33m\n(!) Some chunks are larger than 200 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\u001b[39m"
+      },
+      "compiled_literals": {
+        "entry_chunk": {
+          "name": "assets/index-DD4hUmru.js",
+          "bytes": 457118,
+          "sha256": "e7d5df840462fd5025194be14235ead7ce0a0e853b384f5064093f5d69724514"
+        },
+        "literals": {
+          "VITE_MAINLINE_API_BASE": [
+            ""
+          ],
+          "VITE_MAINLINE_BUNDLE_URL": [
+            "./bundle/"
+          ],
+          "VITE_MAINLINE_LOG_VKEY": [
+            ""
+          ]
+        },
+        "build_ids": [
+          "dev",
+          "unknown"
+        ],
+        "scanned_js": 18,
+        "how": "grep -o 'VITE_MAINLINE_API_BASE:\"[^\"]*\"' over dist/assets/*.js, in Python so no shell can rewrite the pattern"
+      },
+      "packaging_guard": {
+        "declared": {
+          "console_transport": "replay",
+          "exit_code": 0,
+          "stdout": "build_lambda: console   WARNING this dist carries buildId:\"dev\" (build ids found: \"dev\", \"unknown\"), so the honesty chrome cannot name the artefact a screenshot came from. Supply MAINLINE_BUILD_ID when you build dist/:  cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && VITE_MAINLINE_API_BASE=<origin> MAINLINE_BUILD_ID=<id> pnpm exec vite build --mode demo\nbuild_lambda: preflight ok: handler package, console dist/ and evidence bundle are all present, and dist/ carries the declared --console-transport replay\n",
+          "stderr": ""
+        },
+        "falsification": {
+          "console_transport": "live",
+          "exit_code": 2,
+          "stdout": "",
+          "stderr": "build_lambda: REFUSED [CONSOLE TRANSPORT] --console-transport live was declared, which requires that the console starts LIVE on load. This dist carries replay (VITE_MAINLINE_API_BASE=(empty); VITE_MAINLINE_BUNDLE_URL=./bundle/; VITE_MAINLINE_LOG_VKEY=(empty)), so selectSource would start it REPLAY and switchable would be false. VITE_MAINLINE_API_BASE is what selects the LIVE source and .env.demo leaves it EMPTY on purpose, so it has to arrive in the ENVIRONMENT:  cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && VITE_MAINLINE_API_BASE=<origin> MAINLINE_BUILD_ID=<id> pnpm exec vite build --mode demo  -- and it is worth reading the compiled value back out of dist/, because on Git Bash a bare / becomes C:/Program Files/Git/ through MSYS path conversion (docs/deploy/console-build.md sec 1, observed in a real artefact 2026-08-10).\nbuild_lambda: REFUSED [CONSOLE BUILD ID] this dist carries buildId:\"dev\" (build ids found: \"dev\", \"unknown\"), so the honesty chrome cannot name the artefact a screenshot came from. Supply MAINLINE_BUILD_ID when you build dist/:  cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && VITE_MAINLINE_API_BASE=<origin> MAINLINE_BUILD_ID=<id> pnpm exec vite build --mode demo\n"
+        }
+      },
+      "served_tree": {
+        "web_root": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\serve-replay\\web",
+        "bundle_staged": "verticals/mainline/apps/console/fixtures/bundles/demo-cloud",
+        "source_maps_removed": 18,
+        "gz_siblings_written": 57,
+        "entries": 114,
+        "bytes": 1308496,
+        "largest_identity": {
+          "path": "web/assets/index-DD4hUmru.js",
+          "bytes": 457118
+        },
+        "largest_gz": {
+          "path": "web/assets/index-DD4hUmru.js.gz",
+          "bytes": 129398
+        },
+        "packer_refusals": [],
+        "why": "the packer's own strip_maps() and gzip_siblings(), so the emulator serves the tree the Lambda would serve rather than a raw dist/ that static_site.py would answer with 413 response_too_large"
+      },
+      "emulator": {
+        "base_url": "http://127.0.0.1:51366",
+        "web_root": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\serve-replay\\web",
+        "env_names_checked": [
+          "MAINLINE_DSN",
+          "MAINLINE_DSN_PARAM",
+          "MAINLINE_DEMO_PERMIT_ID",
+          "AWS_ACCESS_KEY_ID",
+          "AWS_SECRET_ACCESS_KEY",
+          "AWS_SESSION_TOKEN",
+          "AWS_PROFILE",
+          "AWS_REGION",
+          "AWS_DEFAULT_REGION"
+        ],
+        "env_names_removed": [],
+        "env_names_absent_already": [
+          "MAINLINE_DSN",
+          "MAINLINE_DSN_PARAM",
+          "MAINLINE_DEMO_PERMIT_ID",
+          "AWS_ACCESS_KEY_ID",
+          "AWS_SECRET_ACCESS_KEY",
+          "AWS_SESSION_TOKEN",
+          "AWS_PROFILE",
+          "AWS_REGION",
+          "AWS_DEFAULT_REGION"
+        ],
+        "banner": [
+          "==============================================================================",
+          "LOCAL EMULATOR. THIS IS NOT THE DEMO URL AND MUST NOT BE PUBLISHED AS ONE.",
+          "==============================================================================",
+          "  serving       http://127.0.0.1:51366",
+          "  emulating     AWS Lambda Function URL, payload format 2.0, authorization NONE",
+          "  handler       D:\\CoackroachDBxAWS\\mainline\\verticals\\mainline\\apps\\demo-api\\src\\mainline_demo_api\\app.py",
+          "  web root      C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\serve-replay\\web",
+          "  DSN           UNSET: /v1/* will answer 503",
+          "  DSN source    unset",
+          "  permit        (scenario default)",
+          "  concurrency   serialized  (one warm container: mainline_demo_api.db caches ONE connection)",
+          "  every response carries  x-mainline-emulator: local_furl",
+          "  the real demo URL is a Lambda Function URL; docs/submission/SUBMISSION.json",
+          "  holds UNRESOLVED until one exists. Do not paste this address into that file.",
+          "=============================================================================="
+        ]
+      },
+      "http_probes": {
+        "root": {
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "bytes": 4655,
+          "elapsed_ms": 8,
+          "headers": {
+            "server": "mainline-local-furl/1.0 ",
+            "date": "Fri, 14 Aug 2026 14:56:15 GMT",
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "no-cache",
+            "vary": "accept-encoding",
+            "x-mainline-api": "demo-static",
+            "x-mainline-static": "index.html",
+            "x-mainline-emulator": "local_furl",
+            "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+            "content-length": "4655"
+          },
+          "emulator_header": "local_furl",
+          "body": "<!doctype html>\n<!--\n  SPDX-FileCopyrightText: 2026 MAINLINE contributors\n  SPDX-License-Identifier: FSL-1.1-ALv2\n\n  The document shell. It carries no claim about the database, because at this point\n  no bytes have been verified. Everything it says about itself is true before any\n  script runs, and stays true if no script ever runs.\n\n  No external origin is referenced anywhere in this file \u2014 no font CDN, no analytics,\n  no icon host. The console must load from file:// and from an air-gapped static host\n  (the offline reproduction tier, BUILD_PLAN \u00a75, never-cut list).\n-->\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\" />\n    <meta name=\"color-scheme\" content=\"dark light\" />\n    <meta name=\"referrer\" content=\"no-referrer\" />\n    <meta name=\"robots\" content=\"noindex, nofollow\" />\n    <meta\n      name=\"description\"\n      content=\"MAINLINE console \u2014 every claim on screen is re-derived in the browser from signed bytes.\"\n    />\n    <title>MAINLINE console</title>\n    <style>\n      /*\n        Boot styling only. The register token set (docs/leads/ui.md \u00a71.1) is owned by\n        the visual-language worker and arrives as CSS custom properties; these values\n        are the fallbacks that keep the boot screen legible before it lands, and they\n        are deliberately the same neutral ramp.\n      */\n      :root {\n        color-scheme: dark light;\n        --tp-boot-bg: #0b0c0d;\n        --tp-boot-ink: #e8e6e3;\n        --tp-boot-dim: #8b8b8b;\n        --tp-boot-rule: #2a2c2e;\n        --tp-boot-mono: ui-monospace, \"SFMono-Regular\", \"Cascadia Mono\", \"Roboto Mono\", Menlo,\n          Consolas, \"Liberation Mono\", monospace;\n      }\n      html,\n      body {\n        margin: 0;\n        padding: 0;\n        min-height: 100%;\n        background: var(--tp-boot-bg);\n        color: var(--tp-boot-ink);\n      }\n      body {\n        font-family: var(--tp-boot-mono);\n        font-size: 14px;\n        line-height: 1.5;\n        -webkit-font-smoothing: antialiased;\n      }\n      #root:empty::before {\n        content: \"\";\n      }\n      .boot {\n        max-width: 62ch;\n        margin: 0;\n        padding: 2rem 1.5rem;\n        border-bottom: 1px solid var(--tp-boot-rule);\n      }\n      .boot h1 {\n        font-size: 14px;\n        font-weight: 600;\n        letter-spacing: 0.08em;\n        text-transform: uppercase;\n        margin: 0 0 0.75rem;\n      }\n      .boot p {\n        margin: 0 0 0.5rem;\n        color: var(--tp-boot-dim);\n      }\n      .boot code {\n        color: var(--tp-boot-ink);\n      }\n    </style>\n    <script type=\"module\" crossorigin src=\"./assets/index-DD4hUmru.js\"></script>\n    <link rel=\"stylesheet\" crossorigin href=\"./assets/index-DAuZRgAW.css\">\n  </head>\n  <body>\n    <!--\n      The failure mode of a single-page application is a white rectangle, which is\n      indistinguishable from \"the product has nothing to say\". This node is present in\n      the shipped HTML and is removed by src/main.tsx only once React has mounted. If\n      the bundle 404s, if the module graph throws at import time, if JavaScript is\n      disabled or blocked by policy \u2014 the reader gets a sentence instead of a void.\n    -->\n    <div id=\"boot-notice\" class=\"boot\">\n      <h1>MAINLINE console \u2014 not yet booted</h1>\n      <p>\n        The application bundle has not mounted. If this text is still here after the page has\n        finished loading, the script did not run: check the browser console for the import error,\n        and check that <code>assets/</code> was deployed alongside <code>index.html</code>.\n      </p>\n      <p>\n        This console renders nothing it has not verified. It has verified nothing yet, so it is\n        claiming nothing yet.\n      </p>\n    </div>\n\n    <noscript>\n      <div class=\"boot\">\n        <h1>JavaScript is required, and here is exactly why</h1>\n        <p>\n          This console does not render assertions handed to it by a server. It recomputes \u2014 in this\n          browser \u2014 the RFC&nbsp;8785 canonical bytes, the RFC&nbsp;6962 inclusion and consistency\n          proofs, and the checkpoint signature behind every claim it displays. That arithmetic runs\n          in a Web Worker; without scripting there is no arithmetic, and a page that showed you the\n          conclusions without them would be exactly the thing this console exists not to be.\n        </p>\n        <p>\n          The same checks are available as a command-line verifier\n          (<code>trappoint-verify</code>) that consumes the identical bytes.\n        </p>\n      </div>\n    </noscript>\n\n    <div id=\"root\"></div>\n  </body>\n</html>\n",
+          "body_json": null
+        },
+        "health": {
+          "method": "GET",
+          "path": "/v1/health",
+          "status": 503,
+          "bytes": 444,
+          "elapsed_ms": 3,
+          "headers": {
+            "server": "mainline-local-furl/1.0 ",
+            "date": "Fri, 14 Aug 2026 14:56:15 GMT",
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "x-mainline-api": "demo-read",
+            "x-mainline-emulator": "local_furl",
+            "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+            "content-length": "444"
+          },
+          "emulator_header": "local_furl",
+          "body": "{\"applied_by\":null,\"cluster_version\":null,\"database\":null,\"deploy_chain_applied\":null,\"deploy_chain_files\":null,\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.\",\"migrations_applied\":null,\"ok\":false,\"reason\":\"dsn_unset\",\"schema_fingerprint\":null,\"seconds\":0.0}",
+          "body_json": {
+            "applied_by": null,
+            "cluster_version": null,
+            "database": null,
+            "deploy_chain_applied": null,
+            "deploy_chain_files": null,
+            "detail": "neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.",
+            "migrations_applied": null,
+            "ok": false,
+            "reason": "dsn_unset",
+            "schema_fingerprint": null,
+            "seconds": 0.0
+          }
+        },
+        "gate_run": {
+          "method": "POST",
+          "path": "/v1/demo/gate-run",
+          "status": 503,
+          "bytes": 277,
+          "elapsed_ms": 3,
+          "headers": {
+            "server": "mainline-local-furl/1.0 ",
+            "date": "Fri, 14 Aug 2026 14:56:15 GMT",
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "x-mainline-api": "demo-read",
+            "x-mainline-emulator": "local_furl",
+            "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+            "content-length": "277"
+          },
+          "emulator_header": "local_furl",
+          "body": "{\"error\":{\"detail\":\"neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.\",\"kind\":\"dsn_unset\",\"status\":503}}",
+          "body_json": {
+            "error": {
+              "detail": "neither $MAINLINE_DSN nor $MAINLINE_DSN_PARAM is set, so this function does not know which database to read. In the deployed stack Terraform sets $MAINLINE_DSN_PARAM to the name of the SecureString the deploy script wrote.",
+              "kind": "dsn_unset",
+              "status": 503
+            }
+          }
+        }
+      },
+      "browser": {
+        "exit_code": 0,
+        "stdout": "drive-console: replay wrote C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\drive-replay.json\ndrive-console: replay PASSED 10/10 assertions\n",
+        "stderr": "",
+        "run": {
+          "label": "replay",
+          "expect": "replay",
+          "base_url": "http://127.0.0.1:51366",
+          "target_url": "http://127.0.0.1:51366/#/gate",
+          "page_url": "http://127.0.0.1:51366/#/gate",
+          "page_origin": "http://127.0.0.1:51366",
+          "started_at": "2026-08-14T14:56:17.141Z",
+          "finished_at": "2026-08-14T14:56:19.936Z",
+          "browser": {
+            "name": "chromium",
+            "version": "149.0.7827.55",
+            "headless": true,
+            "executable": {
+              "executablePath": "C:\\Users\\shaug\\AppData\\Local\\ms-playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+              "source": "newest chromium build already on this machine (C:\\Users\\shaug\\AppData\\Local\\ms-playwright)",
+              "revision": 1228,
+              "playwright_pinned_but_absent": "C:\\Users\\shaug\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe"
+            },
+            "library": "@playwright/test (library API; no playwright.config.ts, ruling R7)",
+            "downloaded_anything": false
+          },
+          "honesty_chrome": {
+            "transport": "REPLAY",
+            "bundle": "unknown",
+            "seal": "verifying\u2026",
+            "corpus-root": "unknown",
+            "clock-skew": "unknown",
+            "signature-path": "unknown",
+            "render": "walk (3D)",
+            "build": "dev"
+          },
+          "source_chrome": {
+            "present": true,
+            "badge": "REPLAY",
+            "location": "./bundle/",
+            "why": "VITE_MAINLINE_BUNDLE_URL was compiled into this artefact as ./bundle/. The bytes on screen came from an EvidenceBundle captured from a real run, and no frame is served until this browser has recomputed the digests over it.",
+            "switch_present": false,
+            "switch_label": null
+          },
+          "controls": [
+            {
+              "testid": "demo-control-merge",
+              "present": true,
+              "visible": true,
+              "text": "MERGEexpect REFUSED \u2014 23514, gate_closed_when_issued, reported by the driver"
+            },
+            {
+              "testid": "demo-control-forge",
+              "present": true,
+              "visible": true,
+              "text": "FORGE THE COUNTER AND MERGEexpect REFUSED ANYWAY \u2014 P0001, mainline.fn_permit_merge_gate. The counter is set to zero out of band first."
+            },
+            {
+              "testid": "demo-control-admit",
+              "present": true,
+              "visible": true,
+              "text": "SIGN A DISPOSITION AND MERGEexpect ADMITTED \u2014 00000, with a server-computed clearance digest"
+            },
+            {
+              "testid": "demo-control-all",
+              "present": true,
+              "visible": true,
+              "text": "RUN ALLall four beats, one transaction, rolled back \u2014 with the evidence for both claims"
+            }
+          ],
+          "pressed": "demo-control-all",
+          "requests_before_press": 42,
+          "outcome_panel": {
+            "testid": "demo-run-failed",
+            "title": "missing_frame",
+            "verbatim": "bundle \"demo-cloud\" has no frame for this request. It captured a different set of exchanges; it is not incomplete for this one.",
+            "text": "missing_framebundle \"demo-cloud\" has no frame for this request. It captured a different set of exchanges; it is not incomplete for this one.This is a transport failure, not the database refusing. Nothing on this screen is a claim about any record."
+          },
+          "gate_run_request": null,
+          "gate_run_response": null,
+          "network": [
+            {
+              "seq": 0,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/",
+              "resource_type": "document",
+              "status": 200
+            },
+            {
+              "seq": 1,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/index-DD4hUmru.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/index-DD4hUmru.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 2,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/index-DAuZRgAW.css",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/index-DAuZRgAW.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 3,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/worker-BP2nXQVE.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/worker-BP2nXQVE.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 4,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/DemoDriver-CoBsBqmL.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/DemoDriver-CoBsBqmL.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 5,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/useResource-DbO7k5Wa.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/useResource-DbO7k5Wa.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 6,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/ConstraintName-DQZl-zTC.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/ConstraintName-DQZl-zTC.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 7,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/register-context-D1pBqxlt.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/register-context-D1pBqxlt.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 8,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/register-context-BavKIzRY.css",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/register-context-BavKIzRY.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 9,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/Mono-Dme06aQS.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/Mono-Dme06aQS.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 10,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/Sqlstate-VJyau-ZS.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/Sqlstate-VJyau-ZS.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 11,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/surface-El1gt71J.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/surface-El1gt71J.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 12,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/StagedBadge-CG0ELsFI.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/StagedBadge-CG0ELsFI.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 13,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/StagedBadge-DrgLRBU8.css",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/StagedBadge-DrgLRBU8.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 14,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/Counter-CKi7Ui6_.js",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/Counter-CKi7Ui6_.js",
+              "resource_type": "script",
+              "status": 200
+            },
+            {
+              "seq": 15,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/Counter-CZyoSoUO.css",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/Counter-CZyoSoUO.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 16,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/assets/surface-BuSLyF5Q.css",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/assets/surface-BuSLyF5Q.css",
+              "resource_type": "stylesheet",
+              "status": 200
+            },
+            {
+              "seq": 17,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/manifest.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/manifest.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 18,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-2284e747275041e5.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-2284e747275041e5.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 19,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-3ce81b0a480e4b87.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-3ce81b0a480e4b87.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 20,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-540549b3695a753c.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-540549b3695a753c.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 21,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-663da86a9b1659f6.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-663da86a9b1659f6.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 22,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-72a0b46a699c0b97.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-72a0b46a699c0b97.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 23,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-841e70d4e5f1d244.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-841e70d4e5f1d244.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 24,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-88410ba740130d24.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-88410ba740130d24.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 25,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-8fb03b306bdbf35c.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-8fb03b306bdbf35c.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 26,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-91fe3c12c2bb5e64.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-91fe3c12c2bb5e64.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 27,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-ab1ada34ee90fa73.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-ab1ada34ee90fa73.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 28,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-be21e053785beac5.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-be21e053785beac5.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 29,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-c467bec6e2dce54c.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-c467bec6e2dce54c.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 30,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-cfea8a9fadfdf768.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-cfea8a9fadfdf768.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 31,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-e2cef1b2929dc847.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-e2cef1b2929dc847.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 32,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/GET-f116fc2724f1b968.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/GET-f116fc2724f1b968.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 33,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/POST-1fc00b9fc7eccb33.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/POST-1fc00b9fc7eccb33.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 34,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/POST-80a989ef747e8d58.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/POST-80a989ef747e8d58.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 35,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/frames/POST-ff0c4ae590b05b49.json",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/frames/POST-ff0c4ae590b05b49.json",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 36,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/sql/beat-2-merge-refused-23514.txt",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/sql/beat-2-merge-refused-23514.txt",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 37,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/sql/beat-3-merge-refused-p0001.txt",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/sql/beat-3-merge-refused-p0001.txt",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 38,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/sql/beat-4-merge-admitted-00000.txt",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/sql/beat-4-merge-admitted-00000.txt",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 39,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/sql/cluster-fingerprint.txt",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/sql/cluster-fingerprint.txt",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 40,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/sql/persistence-check.txt",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/sql/persistence-check.txt",
+              "resource_type": "fetch",
+              "status": 200
+            },
+            {
+              "seq": 41,
+              "method": "GET",
+              "url": "http://127.0.0.1:51366/bundle/sql/twin-construction.txt",
+              "origin": "http://127.0.0.1:51366",
+              "pathname": "/bundle/sql/twin-construction.txt",
+              "resource_type": "fetch",
+              "status": 200
+            }
+          ],
+          "console_messages": [],
+          "page_errors": [],
+          "screenshot": {
+            "path": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz\\replay.png",
+            "bytes": 110936,
+            "sha256": "2c8c263491257cafd4086cd040f3f20c656271fa90aacf6c78956b28913a76c5",
+            "note": "Supplementary. NO assertion in this run reads a screenshot; every claim above is about a string, a status code or an origin."
+          },
+          "assertions": [
+            {
+              "id": "honesty_chrome_transport",
+              "ok": true,
+              "expected": "REPLAY",
+              "actual": "REPLAY",
+              "why": "src/app/HonestyChrome.tsx reads transport.describe().mode off the object that holds the bytes. This is the cell the founder read on the deployed URL."
+            },
+            {
+              "id": "source_badge",
+              "ok": true,
+              "expected": "REPLAY",
+              "actual": "REPLAY",
+              "why": "The composition root badge, from the same selection. Chrome and badge disagreeing would mean one of them is decoration."
+            },
+            {
+              "id": "source_why_names_the_build_time_variable",
+              "ok": true,
+              "expected": "a string containing \"VITE_MAINLINE_BUNDLE_URL\"",
+              "actual": "VITE_MAINLINE_BUNDLE_URL was compiled into this artefact as ./bundle/. The bytes on screen came from an EvidenceBundle captured from a real run, and no frame is served until this browser has recomputed the digests over it.",
+              "why": "src/app/source-select.ts writes the sentence naming the variable that was compiled in. It is the sentence that told the founder the artefact was a replay."
+            },
+            {
+              "id": "source_location_is_the_compiled_bundle_url",
+              "ok": true,
+              "expected": "./bundle/",
+              "actual": "./bundle/",
+              "why": "Same reading for the replay artefact, so the contrast run is measured and not assumed."
+            },
+            {
+              "id": "the_gate_driver_rendered",
+              "ok": true,
+              "expected": "demo-driver present; neither demo-driver-not-declared nor demo-driver-no-source",
+              "actual": {
+                "demo_driver": true,
+                "demo_driver_not_declared": false,
+                "demo_driver_no_source": false
+              },
+              "why": "The not-declared panel is the honest rendering when resources.ts lacks the key. With W1 landed it must be unreachable, and the controls must be what a judge sees."
+            },
+            {
+              "id": "four_controls_render_in_order",
+              "ok": true,
+              "expected": [
+                "demo-control-merge",
+                "demo-control-forge",
+                "demo-control-admit",
+                "demo-control-all"
+              ],
+              "actual": [
+                {
+                  "testid": "demo-control-merge",
+                  "present": true,
+                  "visible": true
+                },
+                {
+                  "testid": "demo-control-forge",
+                  "present": true,
+                  "visible": true
+                },
+                {
+                  "testid": "demo-control-admit",
+                  "present": true,
+                  "visible": true
+                },
+                {
+                  "testid": "demo-control-all",
+                  "present": true,
+                  "visible": true
+                }
+              ],
+              "why": "Ruling R3: the controls are present in LIVE and in REPLAY. A control shown in one and hidden in the other would be the second code path D7 forbids."
+            },
+            {
+              "id": "the_press_produced_a_terminal_panel",
+              "ok": true,
+              "expected": "one of demo-run-failed, demo-run-refused, gate-run-report",
+              "actual": "demo-run-failed",
+              "why": "A press that produces nothing is indistinguishable on a screenshot from a press that produced an empty answer."
+            },
+            {
+              "id": "replay_issued_no_request_for_the_gate_run",
+              "ok": true,
+              "expected": "no POST /v1/demo/gate-run on the network log",
+              "actual": [],
+              "why": "The replay transport answers out of a verified bundle and touches no socket. A REPLAY badge over a live fetch would be the badge lying."
+            },
+            {
+              "id": "replay_refused_by_naming_the_absent_frame",
+              "ok": true,
+              "expected": "missing_frame",
+              "actual": "missing_frame",
+              "why": "Measured: no bundle carries a POST /v1/demo/gate-run frame, and src/data/bundle.ts already refuses honestly. Ruling R3 calls that a named gap, not a defect to paper over, and forbids hand-authoring a frame."
+            },
+            {
+              "id": "no_uncaught_exception_reached_the_page",
+              "ok": true,
+              "expected": [],
+              "actual": [],
+              "why": "A console that threw would render its error boundary, which is a different screen from the one under test."
+            }
+          ],
+          "failed_assertions": [],
+          "ok": true
+        }
+      }
+    }
+  ],
+  "console_workspace_lint": {
+    "command": "pnpm exec eslint scripts/drive-console.mjs --max-warnings 0",
+    "exit_code": 1,
+    "clean": false,
+    "output": "\nD:\\CoackroachDBxAWS\\mainline\\verticals\\mainline\\apps\\console\\scripts\\drive-console.mjs\n  0:0  error  Parsing error: \"parserOptions.project\" has been provided for @typescript-eslint/parser.\nThe file was not found in any of the provided project(s): scripts\\drive-console.mjs\n\n\u2716 1 problem (1 error, 0 warnings)\n",
+    "measured_baseline": "pnpm exec eslint . --max-warnings 0 with this file ABSENT exited 0 on 2026-08-14; the console workspace lint was green before this file and this file is the only cause of any failure recorded here.",
+    "cause": "eslint.config.js supplies parserOptions.project in a block with no `files` key, so the type-aware TypeScript parser is applied to .mjs as well, and no tsconfig in this workspace includes .mjs (neither sets allowJs).",
+    "remedy": "One line in eslint.config.js: give that languageOptions block `files: ['**/*.{ts,tsx}']`. That fixes the class. Adding 'scripts/**/*.mjs' to `ignores` fixes the instance and stops linting the file, which is worse.",
+    "owner": "eslint.config.js is owned by no worker in docs/leads/console-live-plan.md \u00a72. This worker did not edit it. The lead assigns it.",
+    "not_a_defect_in": "verticals/mainline/apps/console/scripts/drive-console.mjs"
+  },
+  "packaging_guard": {
+    "extracted_from": "scripts/deploy/build_lambda.sh",
+    "sha256": "773de524274915554c6038e2d33d3c16d4e46000b75bd400858c95c93b236825",
+    "twin_is_identical": true,
+    "bytes": 61485
+  },
+  "steps": [
+    {
+      "step": "the_two_builders_embed_the_same_guard",
+      "ok": true,
+      "expected": true,
+      "actual": true,
+      "why": "build_lambda.sh and build_lambda.ps1 carry one program byte for byte. A guard in one twin and not the other is half a guard."
+    },
+    {
+      "step": "live_build_succeeded",
+      "ok": true,
+      "expected": 0,
+      "actual": 0,
+      "why": "vite build --mode demo, with the variables supplied as an environment mapping rather than on a command line."
+    },
+    {
+      "step": "live_compiled_api_base_is_what_was_supplied",
+      "ok": true,
+      "expected": [
+        "/"
+      ],
+      "actual": [
+        "/"
+      ],
+      "why": "Read back out of dist/assets/*.js. This is the step that catches the class of defect that shipped: a build-time value, invisible to any test that supplies its own value."
+    },
+    {
+      "step": "live_no_msys_path_conversion",
+      "ok": true,
+      "expected": "no literal containing 'Program Files'",
+      "actual": [
+        "/"
+      ],
+      "why": "docs/deploy/console-build.md \u00a71: a bare '/' on a Git Bash line becomes C:/Program Files/Git/ -- a path on somebody's laptop, named by a page served on the internet. Observed in a real artefact on 2026-08-10."
+    },
+    {
+      "step": "live_compiled_build_id_names_the_artefact",
+      "ok": true,
+      "expected": {
+        "contains": "w5-2026-08-14T14:55:28Z-3933b97",
+        "excludes": "dev"
+      },
+      "actual": [
+        "unknown",
+        "w5-2026-08-14T14:55:28Z-3933b97"
+      ],
+      "why": "Ruling R5: an artefact that cannot name itself cannot be the artefact a screenshot names."
+    },
+    {
+      "step": "live_guard_accepts_the_declared_transport",
+      "ok": true,
+      "expected": 0,
+      "actual": 0,
+      "why": "build_lambda's packer, --mode preflight --console-transport live. W4's gate, run over the dist this program is about to serve."
+    },
+    {
+      "step": "live_guard_REFUSES_the_wrong_declaration",
+      "ok": true,
+      "expected": 2,
+      "actual": 2,
+      "why": "The falsification, in this direction: this dist starts LIVE, so declaring REPLAY must be REFUSED. A guard that only ever accepted would be a guard nobody has run, and one that refused in a single direction would be satisfied by testing for the presence of one variable rather than for what selectSource starts."
+    },
+    {
+      "step": "live_serve_tree_staged_without_refusal",
+      "ok": true,
+      "expected": [],
+      "actual": [],
+      "why": "strip_maps() and gzip_siblings() from the packer itself, so the emulator serves the tree the Lambda would serve."
+    },
+    {
+      "step": "live_the_console_shell_serves",
+      "ok": true,
+      "expected": 200,
+      "actual": 200,
+      "why": "GET / through the same static_site module the Lambda uses."
+    },
+    {
+      "step": "live_every_response_is_marked_as_the_emulator",
+      "ok": true,
+      "expected": "local_furl on all three",
+      "actual": {
+        "root": "local_furl",
+        "health": "local_furl",
+        "gate_run": "local_furl"
+      },
+      "why": "The marker that keeps this transcript from ever being mistaken for one taken against the deployed URL."
+    },
+    {
+      "step": "live_the_gate_run_route_is_reachable_and_refuses_by_name",
+      "ok": true,
+      "expected": {
+        "status": 503,
+        "kind": "dsn_unset"
+      },
+      "actual": {
+        "status": 503,
+        "kind": "dsn_unset"
+      },
+      "why": "A reachable route refusing for a NAMED reason. NOT a 404, and it must never be described as one."
+    },
+    {
+      "step": "live_chromium_run_passed_every_assertion",
+      "ok": true,
+      "expected": 0,
+      "actual": 0,
+      "why": "A real chromium over the Playwright library API. Ruling R7: no playwright.config.ts, and nothing under tests/browser/** is touched."
+    },
+    {
+      "step": "live_browser_assertion_ledger_is_clean",
+      "ok": true,
+      "expected": [],
+      "actual": [],
+      "why": "Every browser-side claim, by name. No advisory tier exists."
+    },
+    {
+      "step": "replay_build_succeeded",
+      "ok": true,
+      "expected": 0,
+      "actual": 0,
+      "why": "vite build --mode demo, with the variables supplied as an environment mapping rather than on a command line."
+    },
+    {
+      "step": "replay_compiled_api_base_is_what_was_supplied",
+      "ok": true,
+      "expected": [
+        ""
+      ],
+      "actual": [
+        ""
+      ],
+      "why": "Read back out of dist/assets/*.js. This is the step that catches the class of defect that shipped: a build-time value, invisible to any test that supplies its own value."
+    },
+    {
+      "step": "replay_no_msys_path_conversion",
+      "ok": true,
+      "expected": "no literal containing 'Program Files'",
+      "actual": [
+        ""
+      ],
+      "why": "docs/deploy/console-build.md \u00a71: a bare '/' on a Git Bash line becomes C:/Program Files/Git/ -- a path on somebody's laptop, named by a page served on the internet. Observed in a real artefact on 2026-08-10."
+    },
+    {
+      "step": "replay_guard_accepts_the_declared_transport",
+      "ok": true,
+      "expected": 0,
+      "actual": 0,
+      "why": "build_lambda's packer, --mode preflight --console-transport replay. W4's gate, run over the dist this program is about to serve."
+    },
+    {
+      "step": "replay_guard_REFUSES_the_wrong_declaration",
+      "ok": true,
+      "expected": 2,
+      "actual": 2,
+      "why": "The falsification, in this direction: this dist starts REPLAY, so declaring LIVE must be REFUSED. A guard that only ever accepted would be a guard nobody has run, and one that refused in a single direction would be satisfied by testing for the presence of one variable rather than for what selectSource starts."
+    },
+    {
+      "step": "replay_serve_tree_staged_without_refusal",
+      "ok": true,
+      "expected": [],
+      "actual": [],
+      "why": "strip_maps() and gzip_siblings() from the packer itself, so the emulator serves the tree the Lambda would serve."
+    },
+    {
+      "step": "replay_the_console_shell_serves",
+      "ok": true,
+      "expected": 200,
+      "actual": 200,
+      "why": "GET / through the same static_site module the Lambda uses."
+    },
+    {
+      "step": "replay_every_response_is_marked_as_the_emulator",
+      "ok": true,
+      "expected": "local_furl on all three",
+      "actual": {
+        "root": "local_furl",
+        "health": "local_furl",
+        "gate_run": "local_furl"
+      },
+      "why": "The marker that keeps this transcript from ever being mistaken for one taken against the deployed URL."
+    },
+    {
+      "step": "replay_the_gate_run_route_is_reachable_and_refuses_by_name",
+      "ok": true,
+      "expected": {
+        "status": 503,
+        "kind": "dsn_unset"
+      },
+      "actual": {
+        "status": 503,
+        "kind": "dsn_unset"
+      },
+      "why": "A reachable route refusing for a NAMED reason. NOT a 404, and it must never be described as one."
+    },
+    {
+      "step": "replay_chromium_run_passed_every_assertion",
+      "ok": true,
+      "expected": 0,
+      "actual": 0,
+      "why": "A real chromium over the Playwright library API. Ruling R7: no playwright.config.ts, and nothing under tests/browser/** is touched."
+    },
+    {
+      "step": "replay_browser_assertion_ledger_is_clean",
+      "ok": true,
+      "expected": [],
+      "actual": [],
+      "why": "Every browser-side claim, by name. No advisory tier exists."
+    }
+  ],
+  "failed_steps": [],
+  "ok": true,
+  "workspace": {
+    "path": "C:\\Users\\shaug\\AppData\\Local\\Temp\\mainline-console-live-ub79w9fz",
+    "kept": false,
+    "note": "Temporary. The dists built here are never uploaded and never replace verticals/mainline/apps/console/dist.",
+    "screenshots": "The PNGs named under runs[].browser.run.screenshot live in this workspace and are REMOVED with it unless --keep was passed, so a digest recorded here may name a file that no longer exists. That is deliberate and is why no assertion reads one: this worker owns four repository paths and an image is not among them. Re-run with --keep to inspect them."
+  }
+}

@@ -31,12 +31,16 @@ wrong media type. Sections (d) and (e) below are interface **I1** — negotiate 
 and interface **I2**, which is the rule that the ceiling weighs what leaves the origin and
 not the base64 string it travelled in.
 
-**Its ceiling is derived from the tree it governs, and section (f) is what keeps it
-derived.** Twice now this constant has sat above every object it was supposed to bound —
-at 2 MiB, and then at 512 KiB once the strip removed the only thing 512 KiB refused. A
-ceiling above everything it governs cannot fail, so it proves nothing. The assertions in
-(f) read the built package, compute the largest response the origin can actually emit, and
-fail if the constant is not tight around it.
+**Its ceiling is bound to the tree it governs, and section (f) is what binds it.** Twice
+now this constant has sat above every object it was supposed to bound — at 2 MiB, and then
+at 512 KiB once the strip removed the only thing 512 KiB refused. A ceiling above
+everything it governs cannot fail, so it proves nothing. The assertions in (f) read the
+built package, compute the largest response the origin can actually emit, and fail if the
+constant is not tight around it. Ruling **R10** (``docs/leads/reconcile-constants-plan.md``
+§1) settles which of those assertions is the LAW: interface I3, plus the straddle, plus
+exactly-one-identity-object-refused, all measured over the tree that ships. The 8 KiB
+derivation that first CHOSE 139,264 is kept beside them as dated provenance over the tree
+it chose from, and is not re-asserted against a tree it did not choose from.
 """
 
 from __future__ import annotations
@@ -678,9 +682,11 @@ def test_the_ceiling_weighs_the_wire_and_not_the_base64_string(
     carries. It is not what AWS bills: a Function URL base64-DECODES the body before it
     leaves, so egress is charged on 3,300 and the extra 1,100 exists only between this
     handler and the service. Refusing on the encoded length over-refuses every binary
-    object by exactly a third — and the object it would hurt most is the 124,177 B
-    compressed entry bundle, weighed as 165,572 B, which is the single path the cost model
-    depends on callers taking.
+    object by exactly a third — and the object it would hurt most is the 129,400 B
+    compressed entry bundle of the package that ships (``sha256 7e49fd5e…``), weighed as
+    172,536 B, which is the single path the cost model depends on callers taking. It was
+    124,177 B / 165,572 B against ``sha256 12fcba7a…``; the hazard is the ratio, not either
+    figure, and both sides of it are over 139,264 either way.
 
     **This contradicts** ``test_response_contract.py::test_base64_inflation_is_measured_
     and_not_assumed``, deliberately and with the arithmetic above. That test is W2's file
@@ -808,15 +814,32 @@ def test_the_refusal_separates_what_was_asked_for_from_what_would_have_gone_out(
     assert error["bytes"] < error["bytes_on_disk"]
 
 
-# ── (f) The ceiling is DERIVED from the deployed tree — interface I3 ────────────────
+# ── (f) The ceiling is BOUND to the deployed tree — interface I3 ────────────────────
 #
 # Twice this constant has sat above every object it governs: at 2 MiB, and then at 512 KiB
 # once `build_lambda` began stripping source maps and removed the only object 512 KiB
 # refused. Both times the docstring beside it claimed otherwise. A ceiling that cannot fail
-# proves nothing, so the number is now a CONSEQUENCE of the tree and these assertions are
-# what keep it one.
+# proves nothing, so the number is held against the tree and these assertions are what hold
+# it there.
+#
+# **Ruling R10 (2026-08-15, `docs/leads/reconcile-constants-plan.md` §1) says WHICH of them
+# is the law.** The law is `_assert_i3`, plus the straddle
+# `0 < largest_served < ceiling < largest_identity`, plus exactly one identity object
+# refused — all three measured over the package that ships. The derivation
+# `ceil(floor(1.10 x g) / 8192) x 8192` is NOT the law. It has a rounding step, so it is
+# many-to-one, and `derive(g) == ceiling` therefore does not say the ceiling is correct: it
+# says `g` landed inside one pre-image band, which is a statement about how large the
+# console is allowed to be. That is a bundle-size budget wearing a ceiling's clothes, and
+# this repository already owns a bundle-size budget
+# (`verticals/mainline/apps/console/scripts/check-budgets.ts`). Conflating the two is what
+# generates pressure on this constant every time the console legitimately grows.
+#
+# So the derivation is kept below as dated PROVENANCE, over the frozen tree it chose from
+# (`_CEILING_PROVENANCE_G`), and the live law is asserted over today's tree. Note what did
+# NOT happen: `DEFAULT_MAX_RESPONSE_BYTES` is byte-identical either way. Nothing that was
+# refused is now served, and nothing that cost X now costs more.
 
-#: The deployed artefact. This is the tree the ceiling is derived over, and it is the only
+#: The deployed artefact. This is the tree the ceiling is measured against, and it is the only
 #: tree that HAS the `.gz` siblings: the packer's input tree (`console/dist` +
 #: `console/fixtures/bundles/demo-cloud`, which is what `test_response_contract.py` falls
 #: back to) is 75 pre-strip files with 18 source maps and zero siblings, so a derivation
@@ -824,15 +847,61 @@ def test_the_refusal_separates_what_was_asked_for_from_what_would_have_gone_out(
 #: mistake the 512 KiB value was made of.
 _PACKAGE: Final = REPO_ROOT / "out/lambda/mainline-demo-api-arm64.zip"
 
-#: Measured over that package on 2026-08-14, from the zip's central directory — the figures
-#: `cluster-tests` run **31770005759** published for the package it built at HEAD `7535670`
-#: from the COMMITTED console source (zip `sha256 5a071ce1869d30be…acbf650`), reproduced off
-#: the runner from a `git archive HEAD` export before being written here. Declared rather
-#: than looked up so the two can be compared: a number read out of the tree at test time
-#: agrees with the tree by construction and asserts nothing.
-_LARGEST_SERVED_WIRE_BYTES: Final = 124_177  # web/assets/index-DzVoV1YM.js.gz
-_LARGEST_IDENTITY_BYTES: Final = 433_564  # web/assets/index-DzVoV1YM.js
-_SECOND_LARGEST_IDENTITY_BYTES: Final = 51_266  # web/assets/surface-BcxWkbKu.js
+#: **FROZEN HISTORY. This is NOT a measurement of the tree that ships.** It is the gzipped
+#: figure that 139,264 was CHOSEN from, on 2026-08-14: package
+#: `sha256 12fcba7ad69b2ffe8240b1ecbf763744d9441e12309109f7fab88ac62dfbcc27`, object
+#: `assets/index-DzVoV1YM.js.gz`, 124,177 B. It is the one number in this section that
+#: **MUST NEVER BE RE-MEASURED.** Re-measuring it against a later build would silently
+#: RE-CHOOSE the ceiling, and re-choosing a bound is a decision a lead writes down, not
+#: something a rebuild does on the way past. It moves only with such a decision. Everything
+#: below it is re-measured per build; this one is not, and that asymmetry is the point.
+#: (Ruling **R10** §1.6, `docs/leads/reconcile-constants-plan.md`.)
+_CEILING_PROVENANCE_G: Final = 124_177
+
+# Everything from here to `_IDENTITY_ENTRIES` was **RE-MEASURED 2026-08-15**, from the
+# central directory of the package that ships: `out/lambda/mainline-demo-api-arm64.zip`,
+# `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`, built
+# `--console-transport live` with `MAINLINE_BUILD_ID=3933b97`. That rebuild is why they
+# moved: the deployed console was serving a RECORDED bundle, so it was rebuilt live, and
+# `demo_gate_run` and its contract came into the entry chunk with it. The previously
+# declared figures were read from `sha256 12fcba7a…`, which no longer deploys. Declared
+# rather than looked up so the two can be compared: a number read out of the tree at test
+# time agrees with the tree by construction and asserts nothing.
+#
+# **Why re-recording them is not moving a floor** — R1, and R5's derived/authoritative
+# split. Each is a description of what one build emitted. None of them bounds anything:
+# nothing is refused because one of them holds a particular value, and nothing gets cheaper
+# if one of them shrinks. They are the INPUTS the bounds are checked against. The bounds are
+# `static_site.DEFAULT_MAX_RESPONSE_BYTES`, `_HEADROOM`, `_ROUNDING`, `_RATCHET` and
+# `_CEILING_PROVENANCE_G` — not one of those moves in this wave. Freezing a measurement
+# would protect nothing; it would only make this file describe a tree that stopped existing,
+# which is how the 512 KiB ceiling survived as long as it did.
+
+#: **was 124,177 → is 129,400** (`sha256 7e49fd5e…`, `--console-transport live`). Interface
+#: I3's live input: the largest number of bytes this origin can put on the wire for one
+#: response. A measurement of a build, not a floor — it bounds nothing, it is what the bound
+#: is checked against. `_derive_ceiling(129_400)` is 147,456 rather than 139,264; see
+#: `test_the_ceiling_still_equals_the_number_its_derivation_chose` for why that is a
+#: provenance record going out of date and not a ceiling going wrong.
+_LARGEST_SERVED_WIRE_BYTES: Final = 129_400  # web/assets/index-DJX27H0M.js.gz
+
+#: **was 433,564 → is 457,123**, +23,559 B, same package `sha256 7e49fd5e…`. The one
+#: identity object the ceiling refuses. A measurement of the entry chunk, not a limit on it:
+#: what is authoritative is that EXACTLY ONE object is refused, and this records which.
+_LARGEST_IDENTITY_BYTES: Final = 457_123  # web/assets/index-DJX27H0M.js
+
+#: **was 51,266 → is 51,266.** The VALUE did not move; the OBJECT did. In `sha256 7e49fd5e…`
+#: the second-largest identity object is `assets/surface-COD-Iou0.js`, where in
+#: `sha256 12fcba7a…` it was `assets/surface-BcxWkbKu.js` at the same size. Re-recorded
+#: because a stale filename beside a correct number is exactly the folklore this section
+#: exists to prevent. Still a measurement: it is here so a silent reshuffle of the chunk
+#: graph cannot pass unnoticed, not because 51,266 is permitted and 51,267 is not.
+_SECOND_LARGEST_IDENTITY_BYTES: Final = 51_266  # web/assets/surface-COD-Iou0.js
+
+#: **was 114 / 57 → is 114 / 57: UNCHANGED BY MEASUREMENT.** Re-read from
+#: `sha256 7e49fd5e…` and found identical to `sha256 12fcba7a…` — 114 `web/` entries, 57
+#: identity objects, 57 `.gz` siblings. The console grew; it did not gain or lose a file.
+#: Verified, deliberately not touched.
 _WEB_ENTRIES: Final = 114
 _IDENTITY_ENTRIES: Final = 57
 
@@ -873,22 +942,70 @@ def _assert_i3(ceiling: int, largest_served_wire_bytes: int) -> None:
     )
 
 
-def test_the_ceiling_is_the_derivation_and_not_a_number_somebody_liked() -> None:
-    """The constant reproduced from the rule and the measurement, arithmetic in the open.
+def test_the_ceiling_still_equals_the_number_its_derivation_chose() -> None:
+    """**PROVENANCE.** How 139,264 was CHOSEN, kept checkable so it cannot be re-chosen.
 
     ``1.10 x 124,177 = 136,594.7``; the next 8 KiB boundary above that is 139,264 = 136 KiB;
     ``139,264 / 124,177 = 1.121``, inside the 1.20 ratchet. Anyone can check those three
     lines by hand, which is the whole point of writing them here rather than asserting the
-    constant against itself.
+    constant against itself. What this guarantees is narrow and worth keeping: because the
+    input is frozen and nobody may re-measure it, any change to
+    ``DEFAULT_MAX_RESPONSE_BYTES`` breaks this equality. The ceiling can be re-chosen, but
+    never *silently*.
 
-    The ceiling itself did NOT move when the console source grew: 136 KiB is what the rule
-    derives from 124,127 B and from 124,177 B alike, which is the rounding doing its job.
+    **What it deliberately no longer claims** — ruling **R10**,
+    ``docs/leads/reconcile-constants-plan.md`` §1. It does not require 139,264 to be
+    re-derivable from the tree that ships today, and as of ``sha256 7e49fd5e…`` it is not:
+    ``_derive_ceiling(129_400)`` is 147,456. That is the derivation record going out of
+    date, not the bound going wrong, and the difference matters because **a derivation with
+    a rounding step is many-to-one.** ``ceil(floor(1.10 x g) / 8192) x 8192`` returns
+    139,264 for every ``g`` in ``[119,158, 126,604]``, so ``derive(g) == ceiling`` never
+    said *the ceiling is correct*; it said *g fell inside one 7,447 B pre-image band*, which
+    is a statement about how large the console is permitted to be. That is **a bundle-size
+    budget wearing a ceiling's clothes**, and this repository already owns a bundle-size
+    budget in ``console/scripts/check-budgets.ts``. Conflating the two is what puts pressure
+    on this constant every time the console legitimately grows — and raising the ceiling to
+    147,456 so the arithmetic agreed would have loosened a cost bound to satisfy a formula.
+
+    The live law is **I3 plus the straddle**, over today's tree, asserted immediately below.
     """
-    derived = _derive_ceiling(_LARGEST_SERVED_WIRE_BYTES)
-    assert derived == 139_264 == 136 * 1024
-    assert derived == static_site.DEFAULT_MAX_RESPONSE_BYTES
-    ratio = static_site.DEFAULT_MAX_RESPONSE_BYTES / _LARGEST_SERVED_WIRE_BYTES
-    assert round(ratio, 3) == 1.121
+    derived = _derive_ceiling(_CEILING_PROVENANCE_G)
+    assert derived == 139_264 == 136 * 1024 == static_site.DEFAULT_MAX_RESPONSE_BYTES
+    # 139,264 / 124,177 — the tightness the ceiling had on the day it was chosen.
+    assert round(139_264 / _CEILING_PROVENANCE_G, 3) == 1.121
+
+
+def test_the_live_law_holds_over_the_tree_that_ships_today() -> None:
+    """**THE LIVE LAW.** I3 and the straddle, over the package that ships, not over history.
+
+    Ruling **R10** §1.2. What the ceiling must actually guarantee is three things, and all
+    three are measured true against ``sha256 7e49fd5e…``: the origin can still serve its own
+    site, the ceiling is still tight enough to refuse something, and it sits between the
+    largest object this origin puts on the wire and the largest one it turns away. This is
+    the assertion that goes red if the console outgrows the origin, and the first one to
+    read when it does — the provenance test above cannot tell you that, and is not asked to.
+    """
+    ceiling = static_site.DEFAULT_MAX_RESPONSE_BYTES
+    _assert_i3(ceiling, _LARGEST_SERVED_WIRE_BYTES)
+
+    # The straddle: 0 < 129,400 < 139,264 < 457,123. Above everything this origin puts on
+    # the wire, below the one identity object it refuses. A ceiling that failed either half
+    # would be a decoration: too low and the demo goes dark, too high and it refuses nothing.
+    assert 0 < _LARGEST_SERVED_WIRE_BYTES < ceiling < _LARGEST_IDENTITY_BYTES
+
+    # Headroom, and this is the number with teeth. It FELL from 15,087 B (139,264 - 124,177)
+    # to 9,864 B when the live rebuild moved `g`. The next console growth exceeding 9,864
+    # GZIPPED bytes puts `g` above the ceiling, and the origin then 413s its own entry chunk
+    # to every browser — a real outage, caught by `_assert_i3`'s lower half. Carry THIS
+    # number in documents; R10 §1.5 retired R4's `119,158 <= g <= 126,604` window, which was
+    # a pre-image band and not a live constraint.
+    assert ceiling - _LARGEST_SERVED_WIRE_BYTES == 9_864
+
+    # 139,264 / 129,400. The ratio fell from 1.121, i.e. TOWARD 1.0, which is the safe
+    # direction: the bound is biting harder relative to the tree, not floating further above
+    # it. Climbing toward `_RATCHET` = 1.20 is the dangerous direction, and that is the one
+    # `_assert_i3` refuses.
+    assert round(ceiling / _LARGEST_SERVED_WIRE_BYTES, 3) == 1.076
 
 
 def test_the_declared_largest_served_object_binds_the_ceiling() -> None:
@@ -909,11 +1026,15 @@ def test_the_declared_largest_served_object_binds_the_ceiling() -> None:
         (512 * 1024, "the value that refused 0 of 57 once the source-map strip landed"),
         (1024 * 1024, "halfway between the two, and just as far above everything"),
         # DERIVED, and it moves whenever _LARGEST_SERVED_WIRE_BYTES does: the smallest
-        # integer at or above 1.20 x 124,177 = 149,012.4. It was 149,000 against the
-        # 124,127 B measurement, where 1.20 x gave 148,952.4. Leaving it at 149,000 after
-        # the tree grew would not have weakened the ratchet quietly — it would have made
-        # THIS case stop raising, which is the loud failure the pin is for.
-        (149_013, "one step past the ratchet, to pin where the edge is"),
+        # integer at or above 1.20 x 129,400 = 155,280.0, which is 155,280 exactly. It was
+        # 149,013 against the 124,177 B measurement (1.20 x gave 149,012.4), and 149,000
+        # against 124,127 B before that. Leaving it at 149,013 after the live rebuild
+        # (`sha256 7e49fd5e…`) moved `g` to 129,400 would not have weakened the ratchet
+        # quietly: 149,013 is now BELOW 1.20 x 129,400, so `_assert_i3` would ACCEPT it and
+        # THIS case would stop raising — the loud failure the pin exists to produce. Raising
+        # the pin is not raising a ceiling. `DEFAULT_MAX_RESPONSE_BYTES` is untouched at
+        # 139,264; this is a value nobody may ship, pinned to show where the edge now is.
+        (155_280, "one step past the ratchet, to pin where the edge is"),
         (100_000, "below the largest served object: the origin would 413 its own site"),
     ],
     ids=["two-mib", "five-twelve-kib", "one-mib", "just-over-the-ratchet", "too-tight"],
@@ -959,6 +1080,14 @@ def test_the_deployed_package_is_the_tree_the_ceiling_was_derived_from() -> None
     equality rather than a bound, because a bound would let the tree grow toward the
     ceiling without anybody deciding that was acceptable — which is precisely how the
     largest object drifted while every test stayed green last time.
+
+    **Read this test's name in the past tense** (ruling **R10**). The ceiling was derived
+    over the 2026-08-14 tree, whose gzipped figure is frozen in ``_CEILING_PROVENANCE_G``.
+    The tree read here is the one that ships today, ``sha256 7e49fd5e…``, and what must hold
+    over it is I3 and the straddle, asserted by
+    ``test_the_live_law_holds_over_the_tree_that_ships_today``. This test's own job is
+    narrower and unchanged: keep the declarations above equal to the artefact, so that when
+    the tree moves somebody has to come here and say so in writing.
     """
     web = _package_web()
     identity = {name: size for name, size in web.items() if not name.endswith(".gz")}
@@ -992,11 +1121,13 @@ def test_serving_the_deployed_package_derives_the_ceiling_end_to_end(
     exists to bound the choice they make, not the choice we would prefer.
 
     What it asserts about the refusal is stated rather than tolerated: **exactly one object
-    of the 57 answers 413, on the identity path only.** ``assets/index-DzVoV1YM.js`` at
-    433,564 B is a 200 to every browser that will ever load this console and a 413 to a
-    client that asked for 433 KB uncompressed — which is the caller a wire ceiling is for.
-    ``curl`` without ``--compressed`` is such a client; that cost is real and is the price
-    of the 124,177 B multiplier the cost model quotes.
+    of the 57 answers 413, on the identity path only.** Today that object is
+    ``assets/index-DJX27H0M.js`` at 457,123 B, in the package that ships
+    (``sha256 7e49fd5e…``, ``--console-transport live``); it was ``index-DzVoV1YM.js`` at
+    433,564 B in ``sha256 12fcba7a…``. It is a 200 to every browser that will ever load this
+    console and a 413 to a client that asked for 457 KB uncompressed — which is the caller a
+    wire ceiling is for. ``curl`` without ``--compressed`` is such a client; that cost is
+    real and is the price of the 129,400 B multiplier the cost model quotes.
     """
     monkeypatch.delenv(static_site.RESPONSE_BYTES_ENV, raising=False)
     web = _package_web()
@@ -1023,14 +1154,20 @@ def test_serving_the_deployed_package_derives_the_ceiling_end_to_end(
             if wire > widest[1]:
                 widest = (name, wire)
 
-    assert refused == {"assets/index-DzVoV1YM.js [identity]": 413}, (
+    # The refusal set, re-measured from `sha256 7e49fd5e…`: was `index-DzVoV1YM.js`, is
+    # `index-DJX27H0M.js`. The NAME is the measurement; the property — exactly one, identity
+    # path only — is what is authoritative and it did not move.
+    assert refused == {"assets/index-DJX27H0M.js [identity]": 413}, (
         f"the deployed package refuses {sorted(refused)}. Exactly one object, on the "
         "identity path, is the declared consequence of the derived ceiling; anything else "
         "is an asset nobody decided to stop serving, or a ceiling that stopped biting."
     )
 
-    # The derivation, from the responses rather than from the declaration.
-    assert widest == ("assets/index-DzVoV1YM.js", _LARGEST_SERVED_WIRE_BYTES)
+    # The live law, from the responses rather than from the declaration (ruling R10): the
+    # widest thing that actually left this origin is what I3 is checked against. The name
+    # was `index-DzVoV1YM.js` and is `index-DJX27H0M.js`; the number was 124,177 and is
+    # 129,400. Both are measurements of `sha256 7e49fd5e…` — what they feed is the bound.
+    assert widest == ("assets/index-DJX27H0M.js", _LARGEST_SERVED_WIRE_BYTES)
     _assert_i3(ceiling, widest[1])
 
     # And the browser — the client every judge will actually be — gets all 57.

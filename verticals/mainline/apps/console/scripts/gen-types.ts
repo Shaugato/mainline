@@ -64,6 +64,11 @@ const ROOT_NAMES = new Map<string, string | null>([
   ['propagation', 'PropagationResponse'],
   ['audit', 'AuditResponse'],
   ['invoke', 'InvokeResponse'],
+  // The demo's own POST contract, a verbatim copy of the demo API's (see
+  // `src/data/contracts.ts`). It needs an entry here for the same reason every other
+  // contract does: `buildNames` REFUSES a contract with no ROOT_NAMES row rather than
+  // skipping it, so a schema added to `contracts/` cannot reach the read model unnamed.
+  ['gate-run', 'GateRunResponse'],
   ['bundle', 'EvidenceBundleManifest'],
   ['refusal', 'RefusalPayload'],
 ]);

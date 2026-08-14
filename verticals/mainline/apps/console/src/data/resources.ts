@@ -204,6 +204,22 @@ const DECLARED: readonly ResourceDescriptor[] = Object.freeze([
     'kernel',
     'trappoint.suspend_permit() — the declared path when an issued permit acquires a new precursor: suspend and fork, never rewrite.',
   ),
+  // THE TEMPLATE TAKES NO PATH PARAMETER, AND THAT IS THE POINT.
+  //
+  // Every other transition above is addressed by a `{permit_id}` or `{check_id}` the
+  // caller supplies. This one is not: the subject is the SEEDED DEMO PERMIT, resolved
+  // server-side, so a stranger holding the public URL cannot point the driver at
+  // somebody else's row. `resolveRequest` refuses a `path` argument for a resource that
+  // declares no path parameter, which turns the guarantee into an error rather than a
+  // convention.
+  declare(
+    'demo_gate_run',
+    'POST',
+    '/v1/demo/gate-run',
+    `${C}gate-run.schema.json`,
+    'kernel',
+    'The four-beat demo run against the seeded permit — read, refused, refused under a forged counter, admitted — inside ONE serializable transaction that is rolled back.',
+  ),
 ]);
 
 export const RESOURCES: ReadonlyMap<string, ResourceDescriptor> = Object.freeze(
@@ -224,6 +240,7 @@ export const RESOURCE_KEYS = [
   'change_request',
   'clause_ancestry',
   'clause_version',
+  'demo_gate_run',
   'disposition',
   'exposure_receipt',
   'ledger',

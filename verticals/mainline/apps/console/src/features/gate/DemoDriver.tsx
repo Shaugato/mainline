@@ -58,7 +58,7 @@ import { ConstraintName, Mono, Sqlstate } from '../../design/primitives';
 import styles from './demo-driver.module.css';
 import { useGateTransport } from './transport-context';
 
-// ── The resource, and the three files that must name it ────────────────────
+// ── The resource, and the files that must name it ──────────────────────────
 
 /**
  * The resource key the console would address. It is checked against `RESOURCES` at
@@ -68,23 +68,56 @@ import { useGateTransport } from './transport-context';
 export const DEMO_GATE_RUN = 'demo_gate_run';
 
 /**
- * The three files that have to name this endpoint before the controls can fire, none of
- * which this worker owns. Rendered verbatim in the unavailable panel: an absence a reader
- * can act on beats an absence they have to go and diagnose.
+ * WHAT WOULD STILL BE MISSING IF THIS PANEL EVER RENDERED — AND WHAT WOULD NOT BE.
+ *
+ * `DeclarationGapPanel` is UNREACHABLE in this build. `demo_gate_run` is declared in
+ * `src/data/resources.ts`, so `RESOURCES.has(DEMO_GATE_RUN)` is true and the controls
+ * render instead; `tests/unit/data/resources.test.ts` pins that, and both
+ * `tests/unit/app/composition.test.tsx` and `tests/unit/gate/demo-driver.test.tsx` render
+ * the driver against the REAL registry and require the panel to be absent. The list is
+ * nevertheless KEPT, and kept accurate, because a build that ever strips the declaration
+ * must still tell its reader what to restore rather than fail silently — an absence a
+ * reader can act on beats an absence they have to go and diagnose.
+ *
+ * Every repository path any line below names is READ OFF DISK by
+ * `tests/unit/gate/demo-driver.test.tsx`. That is the whole remedy for how this list went
+ * stale: prose about another file is only as true as the last time somebody checked, so
+ * the checking is now a test rather than a habit.
+ *
+ * ── THE CORRECTION, 2026-08-14 ───────────────────────────────────────────────────
+ *
+ * The third entry used to say of `app.py` that *"the route table declares the four kernel
+ * POSTs and no demo route, so the endpoint 404s."* **THAT WAS FALSE**, and a founder read
+ * it off a deployed screen. `app.py:229` carries
+ * `Route("POST", "/v1/demo/gate-run", "demo_gate_run")`, `app.py:188-206` describes it as
+ * the seventeenth route, `demo-api/tests/test_routes_gate_run.py` pins it, and the live
+ * URL answers **503 `dsn_unset`** — a reachable route refusing for a NAMED reason, which
+ * is not a 404 and must not be described as one.
+ *
+ * Prose that sends a reader to go and fix something already fixed is a defect of the same
+ * family as prose that hides something broken: both make the screen a worse guide to the
+ * system than reading the system would be.
  */
 const DECLARATION_GAP: readonly string[] = [
-  'verticals/mainline/apps/console/src/data/resources.ts — a seventeenth declare(): ' +
+  'verticals/mainline/apps/console/src/data/resources.ts — a declare() for this key: ' +
     "declare('demo_gate_run', 'POST', '/v1/demo/gate-run', <contract prefix>gate-run.schema.json, " +
-    "'kernel', …). Sixteen resources are declared today and this is not one of them.",
-  'verticals/mainline/apps/console/src/data/contracts.ts — gate-run.schema.json registered ' +
-    'alongside the other sixteen, as a verbatim copy of ' +
+    "'kernel', …). Without it the key is undeclared and resolveRequest() would throw rather " +
+    'than build a request.',
+  'verticals/mainline/apps/console/src/data/contracts.ts — gate-run.schema.json registered in ' +
+    'CONTRACT_SOURCES as an explicit ?raw import, a verbatim copy of ' +
     'verticals/mainline/apps/demo-api/contracts/gate-run.schema.json. The transport validates ' +
     'every response against its contract before returning it, and a schema $id nobody registered ' +
     'raises rather than passes.',
-  'verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py — Route("POST", ' +
-    '"/v1/demo/gate-run", "demo_gate_run") plus SCHEMA_IDS["demo_gate_run"]. The handler is ' +
-    'complete (gate_run.py) and is reachable through handle_transition today; the route table ' +
-    'declares the four kernel POSTs and no demo route, so the endpoint 404s.',
+  'verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py — ALREADY DONE, and this entry ' +
+    'says so rather than sending anybody to repeat it. Route("POST", "/v1/demo/gate-run", ' +
+    '"demo_gate_run") is on the route table and ' +
+    'verticals/mainline/apps/demo-api/tests/test_routes_gate_run.py pins it. Its ' +
+    'contract id is gate_run.GATE_RUN_SCHEMA_ID and NOT envelope.SCHEMA_IDS — deliberately, so ' +
+    'that the branch which reports a missing write surface cannot itself raise KeyError while ' +
+    'doing it. The deployed URL answers 503 dsn_unset: a reachable route refusing for a named ' +
+    'reason, never a 404. What is outstanding there is operational, not a code edit — the SSM ' +
+    'parameter /mainline/demo/cockroach_dsn is unset, so the kernel refuses by name until an ' +
+    'operator sets it. That refusal is the honest answer and this console renders it as one.',
 ];
 
 // ── The payload ────────────────────────────────────────────────────────────
@@ -141,8 +174,77 @@ export interface GateRunSubject {
   readonly site_code: string;
 }
 
+/**
+ * The permit row's own columns, as a fingerprint reads them. `null` when the subject was
+ * absent at that end of the run.
+ *
+ * These columns are here rather than a count because BEAT 3 IS A COLUMN EDIT: it forces
+ * `open_blocking` to zero out of band, which moves nothing a `count(*)` can see. A
+ * persistence check made only of counts would report `identical: true` over the one write
+ * this demo exists to talk about.
+ */
+export interface GateRunPermitRow {
+  readonly state: string;
+  readonly head_seq: number;
+  readonly gate_epoch: number;
+  readonly open_blocking: number;
+  readonly unmet_floor_count: number;
+  readonly countersigned_count: number;
+  readonly merged_commit: string | null;
+}
+
+export interface GateRunFingerprint {
+  /** Every table the four beats can write, counted WHOLE — unscoped, deliberately. */
+  readonly row_counts: Readonly<Record<string, number>>;
+  /** The same question asked of THIS permit only. */
+  readonly subject_row_counts: Readonly<Record<string, number>>;
+  readonly permit_row: GateRunPermitRow | null;
+}
+
+/**
+ * The run-scoped readings `self_persisted` is computed from — carried in the payload, the
+ * contract says, "so that a reader can recompute the verdict rather than take it".
+ * Rendering them is what makes that sentence true of this screen as well.
+ */
+export interface GateRunSelfEvidence {
+  readonly minted_disposition_id: string | null;
+  readonly minted_disposition_rows_after_rollback: number;
+  readonly subject_row_counts_before: Readonly<Record<string, number>>;
+  readonly subject_row_counts_after: Readonly<Record<string, number>>;
+  readonly permit_row_identical: boolean;
+}
+
+/**
+ * WIDENED 2026-08-14 — the contract moved and this reading had not.
+ *
+ * `gate-run.schema.json` requires eight members here: `before`, `after`, `identical`,
+ * `self_persisted`, `self_evidence`, `concurrent_writes`, `tables`, `note`. This
+ * interface declared three, and the three it declared were led by the one the contract's
+ * own `persistence_check` description says the verdict does NOT key on:
+ *
+ *   `identical` is a statement about THE DATABASE — every one of those tables, counted
+ *   whole. `self_persisted` is the statement about THIS RUN, and it is what the verdict
+ *   keys on, because a whole-table count cannot distinguish "I persisted something" from
+ *   "somebody else did".
+ *
+ * A screen that showed only `identical` therefore showed the wrong field with a straight
+ * face: a busy shared cluster makes `identical` false for reasons that have nothing to do
+ * with the run in front of the reader. Nothing was removed to fix that — `identical` is
+ * still on screen, beside the field it was standing in for, and `concurrent_writes` names
+ * the other caller's tables rather than letting the reader guess.
+ */
 export interface GateRunPersistence {
+  readonly before: GateRunFingerprint;
+  readonly after: GateRunFingerprint;
   readonly identical: boolean;
+  readonly self_persisted: boolean;
+  readonly self_evidence: GateRunSelfEvidence;
+  /**
+   * `null` when `identical` is true. Otherwise the tables whose unscoped count moved
+   * while this run was open, each as `[before, after]` — ANOTHER caller's rows, reported
+   * rather than blamed on the run.
+   */
+  readonly concurrent_writes: Readonly<Record<string, readonly [number, number]>> | null;
   readonly tables: readonly string[];
   readonly note: string;
 }
@@ -249,31 +351,7 @@ export function DemoDriver(): ReactNode {
   }
 
   if (!declared) {
-    return (
-      <section className={styles.absent} data-testid="demo-driver-not-declared">
-        <span className={styles.absentTitle}>
-          POST /v1/demo/gate-run is not addressable from this console
-        </span>
-        <p className={styles.driverProse}>
-          The four beats are produced by one endpoint, inside one <Mono>SERIALIZABLE</Mono>{' '}
-          transaction that is rolled back. This console addresses a server only through declared
-          resources, and <Mono>{DEMO_GATE_RUN}</Mono> is not one of the{' '}
-          <Mono>{RESOURCES.size}</Mono> it declares. Reaching the endpoint with a bare{' '}
-          <Mono>fetch</Mono> would skip envelope and contract validation and would have no REPLAY
-          counterpart — which is exactly the second code path D7 forbids — so the driver refuses to
-          do that and says what is missing instead.
-        </p>
-        <ol className={styles.absentList}>
-          {DECLARATION_GAP.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ol>
-        <p className={styles.driverProse}>
-          The contract these three would satisfy already exists and has been measured:{' '}
-          <Mono>docs/deploy/gate-run-contract.md</Mono>.
-        </p>
-      </section>
-    );
+    return <DeclarationGapPanel resources={RESOURCES} />;
   }
 
   return (
@@ -338,6 +416,54 @@ export function DemoDriver(): ReactNode {
       {state.status === 'ready' && reveal !== null && (
         <GateRunReport run={state.data} reveal={reveal} />
       )}
+    </section>
+  );
+}
+
+// ── The honest fallback ────────────────────────────────────────────────────
+
+/**
+ * THE PANEL FOR A BUILD THAT STRIPPED THE DECLARATION — unreachable in this one.
+ *
+ * It takes the registry it reports about rather than reading `RESOURCES` itself, and the
+ * reason is a test rather than a taste. The panel says *"`demo_gate_run` is not one of
+ * the N this console declares"*, which is FALSE of the shipped registry — so the only way
+ * to render it and read it back is to hand it a registry in which the sentence is true.
+ * A parameter does that without touching the real declaration, which a module mock or a
+ * `delete` on the shared map would both have to do, and either of those would leave the
+ * suite one accident away from testing a console nobody ships.
+ *
+ * `tests/unit/gate/demo-driver.test.tsx` holds both halves: this panel rendered against a
+ * stubbed registry, and `DemoDriver` rendered against the real one with the panel proven
+ * absent. The fallback keeps its coverage; it merely stops being what a judge sees.
+ */
+export function DeclarationGapPanel({
+  resources,
+}: {
+  readonly resources: ReadonlyMap<string, unknown>;
+}): ReactNode {
+  return (
+    <section className={styles.absent} data-testid="demo-driver-not-declared">
+      <span className={styles.absentTitle}>
+        POST /v1/demo/gate-run is not addressable from this console
+      </span>
+      <p className={styles.driverProse}>
+        The four beats are produced by one endpoint, inside one <Mono>SERIALIZABLE</Mono>{' '}
+        transaction that is rolled back. This console addresses a server only through declared
+        resources, and <Mono>{DEMO_GATE_RUN}</Mono> is not one of the <Mono>{resources.size}</Mono>{' '}
+        it declares. Reaching the endpoint with a bare <Mono>fetch</Mono> would skip envelope and
+        contract validation and would have no REPLAY counterpart — which is exactly the second code
+        path D7 forbids — so the driver refuses to do that and says what is missing instead.
+      </p>
+      <ol className={styles.absentList}>
+        {DECLARATION_GAP.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ol>
+      <p className={styles.driverProse}>
+        The contract these three would satisfy already exists and has been measured:{' '}
+        <Mono>docs/deploy/gate-run-contract.md</Mono>.
+      </p>
     </section>
   );
 }
@@ -412,14 +538,49 @@ export function GateRunReport({
               ['site', run.subject.site_code],
             ]}
           />
+          {/*
+            THE ORDER IS THE ARGUMENT, again. `self_persisted` is first because it is what
+            the verdict keys on; `identical` keeps its place beside it because it is a
+            true statement about a different subject — the database, not this run — and
+            removing it would have hidden a real reading rather than corrected a misread
+            one. `concurrent_writes` is the third because it is the answer to the question
+            a false `identical` raises: WHOSE rows moved.
+          */}
           <Facts
             testId="gate-run-persistence"
-            title="what the database looked like before and after"
+            title="what this run left behind, and what the database did meanwhile"
             entries={[
+              ['self_persisted', String(run.persistence_check.self_persisted)],
               ['identical', String(run.persistence_check.identical)],
+              ['concurrent_writes', concurrentWrites(run.persistence_check.concurrent_writes)],
               ['tables compared', String(run.persistence_check.tables.length)],
               ['note', run.persistence_check.note],
             ]}
+          />
+          <Facts
+            testId="gate-run-persistence-self"
+            title="how self_persisted was computed — recompute it, do not take it"
+            entries={[
+              [
+                'minted disposition',
+                run.persistence_check.self_evidence.minted_disposition_id ?? '—',
+              ],
+              [
+                'rows carrying it after the rollback',
+                String(
+                  run.persistence_check.self_evidence.minted_disposition_rows_after_rollback,
+                ),
+              ],
+              [
+                'permit row identical',
+                String(run.persistence_check.self_evidence.permit_row_identical),
+              ],
+            ]}
+          />
+          <BeforeAfter
+            testId="gate-run-fingerprint"
+            title="the fingerprint those readings were taken from"
+            rows={fingerprintRows(run.persistence_check)}
           />
         </>
       )}
@@ -527,6 +688,138 @@ function renderValue(value: unknown): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
   return JSON.stringify(value) ?? '—';
+}
+
+/**
+ * `concurrent_writes`, rendered as the tables it names and the counts it carries.
+ *
+ * `null` is the contract's word for "`identical` was true, so there is nothing to name",
+ * and it is shown as the same em dash every other absent value on this screen uses. The
+ * arrow is a separator between two numbers the payload supplied; no number here is
+ * computed by this module.
+ */
+function concurrentWrites(writes: GateRunPersistence['concurrent_writes']): string {
+  if (writes === null) return '—';
+  const entries = Object.entries(writes);
+  if (entries.length === 0) return '{}';
+  return entries.map(([table, [before, after]]) => `${table} ${before} → ${after}`).join('   ');
+}
+
+/**
+ * The union of two records' keys, sorted.
+ *
+ * A union rather than the keys of `before`, because a table that appears on ONE side only
+ * is exactly the reading a reader must not lose — and iterating one side would drop it
+ * silently.
+ */
+function unionKeys(
+  left: Readonly<Record<string, unknown>>,
+  right: Readonly<Record<string, unknown>>,
+): readonly string[] {
+  return [...new Set([...Object.keys(left), ...Object.keys(right)])].sort((a, b) =>
+    a.localeCompare(b),
+  );
+}
+
+/**
+ * The permit row as a walkable record, and `{}` for the row that was not there.
+ *
+ * `GateRunPermitRow` is an interface, and TypeScript gives an interface no implicit index
+ * signature, so it cannot be handed to `unionKeys` as a record. Copying it through
+ * `Object.entries` keeps the declared columns declared — a reader still sees the seven
+ * the contract names — while letting the walk below iterate whatever the payload actually
+ * carried, which is the behaviour a contract amendment needs.
+ */
+function permitColumns(row: GateRunPermitRow | null): Readonly<Record<string, unknown>> {
+  const columns: Record<string, unknown> = {};
+  if (row === null) return columns;
+  for (const [column, value] of Object.entries(row)) columns[column] = value;
+  return columns;
+}
+
+/**
+ * Every reading the two fingerprints carry, as `[member, before, after]`.
+ *
+ * The row labels are the payload's own member paths — `row_counts.mainline.permit`,
+ * `permit_row.open_blocking` — and not prose, for the reason the `Observed` docstring
+ * gives: a label is a sentence the console wrote. The permit row's COLUMNS are walked
+ * rather than listed here, so a column added to the contract appears on screen without
+ * this module being edited to admit it.
+ */
+function fingerprintRows(
+  check: GateRunPersistence,
+): readonly (readonly [string, string, string])[] {
+  const rows: (readonly [string, string, string])[] = [];
+
+  for (const table of unionKeys(check.before.row_counts, check.after.row_counts)) {
+    rows.push([
+      `row_counts.${table}`,
+      renderValue(check.before.row_counts[table]),
+      renderValue(check.after.row_counts[table]),
+    ]);
+  }
+
+  for (const table of unionKeys(check.before.subject_row_counts, check.after.subject_row_counts)) {
+    rows.push([
+      `subject_row_counts.${table}`,
+      renderValue(check.before.subject_row_counts[table]),
+      renderValue(check.after.subject_row_counts[table]),
+    ]);
+  }
+
+  const beforeRow = permitColumns(check.before.permit_row);
+  const afterRow = permitColumns(check.after.permit_row);
+  for (const column of unionKeys(beforeRow, afterRow)) {
+    rows.push([
+      `permit_row.${column}`,
+      renderValue(beforeRow[column]),
+      renderValue(afterRow[column]),
+    ]);
+  }
+
+  return rows;
+}
+
+/**
+ * Two readings of the same member, side by side, with the comparison left to the reader.
+ *
+ * `data-moved` is derived from the two strings on the row and from nothing else, so a
+ * browser spec can find the rows that moved without this module having to say which ones
+ * are interesting. It is an attribute rather than a colour: an EVIDENCE surface may not
+ * make a claim that only survives in a screenshot.
+ */
+function BeforeAfter({
+  title,
+  rows,
+  testId,
+}: {
+  readonly title: string;
+  readonly rows: readonly (readonly [string, string, string])[];
+  readonly testId: string;
+}): ReactNode {
+  return (
+    <table className={styles.compare} data-testid={testId}>
+      <caption className={styles.metaKey}>{title}</caption>
+      <thead>
+        <tr>
+          <th scope="col">reading</th>
+          <th scope="col">before</th>
+          <th scope="col">after</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(([member, before, after]) => (
+          <tr key={member} data-testid={`${testId}-${member}`} data-moved={String(before !== after)}>
+            <th scope="row" className={styles.compareMember}>
+              {member}
+            </th>
+            <td className={styles.metaValue}>{before}</td>
+            <td className={styles.metaValue}>{after}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 }
 
 function Facts({

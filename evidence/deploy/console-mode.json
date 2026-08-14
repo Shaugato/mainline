@@ -1,0 +1,177 @@
+{
+  "measured": "2026-08-14",
+  "notes": [
+    "No package was rebuilt to produce this record. --mode consolecheck reads a zip that already exists, so the bytes a judge met on 2026-08-14 are still on disk and are still the thing that was measured.",
+    "The arm64 reading is the DEPLOYED tree: its web/index.html is 4,655 B and its assets/index-DzVoV1YM.js is the file the live URL serves.",
+    "buildId 'dev' in the arm64 reading is a second fact about the same artefact: it shipped without MAINLINE_BUILD_ID, so the honesty chrome could not name the build a screenshot came from.",
+    "Nothing here was deployed, applied, or written to AWS. No DSN and no credential appears in this file or was read to produce it."
+  ],
+  "program": {
+    "builder": "scripts/deploy/build_lambda.sh",
+    "packer_bytes": 61485,
+    "packer_sha256": "773de524274915554c6038e2d33d3c16d4e46000b75bd400858c95c93b236825",
+    "twin": "scripts/deploy/build_lambda.ps1",
+    "twin_packer_sha256": "773de524274915554c6038e2d33d3c16d4e46000b75bd400858c95c93b236825"
+  },
+  "readings": [
+    {
+      "artifact": "mainline-demo-api-arm64.zip",
+      "command": "python <packer extracted from scripts/deploy/build_lambda.sh> --mode consolecheck --package out/lambda/mainline-demo-api-arm64.zip --console-transport live",
+      "console": {
+        "build_ids": [
+          "dev",
+          "unknown"
+        ],
+        "effective": [
+          "replay"
+        ],
+        "initial": "replay",
+        "literals": {
+          "VITE_MAINLINE_API_BASE": [
+            ""
+          ],
+          "VITE_MAINLINE_BUNDLE_URL": [
+            "./bundle/"
+          ],
+          "VITE_MAINLINE_LOG_VKEY": [
+            ""
+          ]
+        },
+        "mode": "demo",
+        "names_itself": false,
+        "note": "read from the central directory of mainline-demo-api-arm64.zip, over its web/assets/*.js entries: the bytes a browser executes, not the tree they were packed from. Everything else in this record means what it means for the directory probe.",
+        "scanned": 18,
+        "sources": {
+          "live": null,
+          "replay": "./bundle/"
+        },
+        "switchable": false
+      },
+      "exit_code": 2,
+      "refusals": [
+        "REFUSED [PACKAGE CONSOLE TRANSPORT] --console-transport live was declared, but the web/assets/*.js inside mainline-demo-api-arm64.zip carry replay (VITE_MAINLINE_API_BASE=(empty); VITE_MAINLINE_BUNDLE_URL=./bundle/; VITE_MAINLINE_LOG_VKEY=(empty)), so the console this package serves would start REPLAY and switchable would be false. VITE_MAINLINE_API_BASE is what selects the LIVE source and .env.demo leaves it EMPTY on purpose, so it has to arrive in the ENVIRONMENT:  cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && VITE_MAINLINE_API_BASE=<origin> MAINLINE_BUILD_ID=<id> pnpm exec vite build --mode demo  -- and it is worth reading the compiled value back out of dist/, because on Git Bash a bare / becomes C:/Program Files/Git/ through MSYS path conversion (docs/deploy/console-build.md sec 1, observed in a real artefact 2026-08-10)."
+      ],
+      "sha256": "12fcba7ad69b2ffe8240b1ecbf763744d9441e12309109f7fab88ac62dfbcc27",
+      "synthetic": false,
+      "transport_declared": "live",
+      "verdict": "REFUSED",
+      "why_this_case": "The artefact that was serving when the founder opened the demo, declared as the thing a deployed console has to be."
+    },
+    {
+      "artifact": "mainline-demo-api-arm64.zip",
+      "command": "python <packer extracted from scripts/deploy/build_lambda.sh> --mode consolecheck --package out/lambda/mainline-demo-api-arm64.zip --console-transport replay",
+      "console": {
+        "build_ids": [
+          "dev",
+          "unknown"
+        ],
+        "effective": [
+          "replay"
+        ],
+        "initial": "replay",
+        "literals": {
+          "VITE_MAINLINE_API_BASE": [
+            ""
+          ],
+          "VITE_MAINLINE_BUNDLE_URL": [
+            "./bundle/"
+          ],
+          "VITE_MAINLINE_LOG_VKEY": [
+            ""
+          ]
+        },
+        "mode": "demo",
+        "names_itself": false,
+        "note": "read from the central directory of mainline-demo-api-arm64.zip, over its web/assets/*.js entries: the bytes a browser executes, not the tree they were packed from. Everything else in this record means what it means for the directory probe.",
+        "scanned": 18,
+        "sources": {
+          "live": null,
+          "replay": "./bundle/"
+        },
+        "switchable": false
+      },
+      "exit_code": 0,
+      "refusals": [],
+      "sha256": "12fcba7ad69b2ffe8240b1ecbf763744d9441e12309109f7fab88ac62dfbcc27",
+      "synthetic": false,
+      "transport_declared": "replay",
+      "verdict": "ACCEPTED",
+      "why_this_case": "The same bytes, declared honestly. A deliberate Phase-1 package is still buildable; what is refused is calling it live."
+    },
+    {
+      "artifact": "mainline-demo-api-x86_64.zip",
+      "command": "python <packer extracted from scripts/deploy/build_lambda.sh> --mode consolecheck --package out/lambda/mainline-demo-api-x86_64.zip --console-transport live",
+      "console": {
+        "build_ids": [
+          "dev",
+          "unknown"
+        ],
+        "effective": [],
+        "initial": null,
+        "literals": {},
+        "mode": "production",
+        "names_itself": false,
+        "note": "read from the central directory of mainline-demo-api-x86_64.zip, over its web/assets/*.js entries: the bytes a browser executes, not the tree they were packed from. Everything else in this record means what it means for the directory probe.",
+        "scanned": 18,
+        "sources": {
+          "live": null,
+          "replay": null
+        },
+        "switchable": false
+      },
+      "exit_code": 2,
+      "refusals": [
+        "REFUSED [PACKAGE CONSOLE TRANSPORT] --console-transport live was declared, but the web/assets/*.js inside mainline-demo-api-x86_64.zip carry no source (no VITE_MAINLINE_* literals at all), so the console this package serves would start NOWHERE and switchable would be false. VITE_MAINLINE_API_BASE is what selects the LIVE source and .env.demo leaves it EMPTY on purpose, so it has to arrive in the ENVIRONMENT:  cd verticals/mainline/apps/console && pnpm install --frozen-lockfile && VITE_MAINLINE_API_BASE=<origin> MAINLINE_BUILD_ID=<id> pnpm exec vite build --mode demo  -- and it is worth reading the compiled value back out of dist/, because on Git Bash a bare / becomes C:/Program Files/Git/ through MSYS path conversion (docs/deploy/console-build.md sec 1, observed in a real artefact 2026-08-10)."
+      ],
+      "sha256": "548f410c0e935734d9e27a6a0645c913e861a268f320b486b6b6a6153ecb31d5",
+      "synthetic": false,
+      "transport_declared": "live",
+      "verdict": "REFUSED",
+      "why_this_case": "A stale x86_64 package built without --mode demo: MODE=production and not one VITE_MAINLINE_* literal, so it carries NO SOURCE."
+    },
+    {
+      "artifact": "synthetic-live.zip",
+      "command": "python <packer extracted from scripts/deploy/build_lambda.sh> --mode consolecheck --package <synthetic>/synthetic-live.zip --console-transport live",
+      "console": {
+        "build_ids": [
+          "w2-control"
+        ],
+        "effective": [
+          "live",
+          "replay"
+        ],
+        "initial": "live",
+        "literals": {
+          "VITE_MAINLINE_API_BASE": [
+            "/"
+          ],
+          "VITE_MAINLINE_BUNDLE_URL": [
+            "./bundle/"
+          ],
+          "VITE_MAINLINE_LOG_VKEY": [
+            ""
+          ]
+        },
+        "mode": "demo",
+        "names_itself": true,
+        "note": "read from the central directory of synthetic-live.zip, over its web/assets/*.js entries: the bytes a browser executes, not the tree they were packed from. Everything else in this record means what it means for the directory probe.",
+        "scanned": 1,
+        "sources": {
+          "live": "/",
+          "replay": "./bundle/"
+        },
+        "switchable": true
+      },
+      "exit_code": 0,
+      "refusals": [],
+      "sha256": "ca2f8895a1c7829176784a47073e0203e0d99f2780363f980360b6614acc3d4c",
+      "synthetic": true,
+      "transport_declared": "live",
+      "verdict": "ACCEPTED",
+      "why_this_case": "A synthetic archive carrying a non-empty VITE_MAINLINE_API_BASE. The acceptance half: a guard that only ever refuses has not discriminated either."
+    }
+  ],
+  "rule": "src/app/source-select.ts:104-108 trims each of the two build-time variables and treats an empty or whitespace-only value as UNSET; :120-203 then selects LIVE when both are set (with a control), the one that is set when exactly one is, and NO SOURCE when neither is. The packer transcribes that rule once, in _classify(), and both its readers -- the directory probe and probe_console_package -- end there.",
+  "subject": "the web/assets/*.js entries of out/lambda/mainline-demo-api-<arch>.zip, read through the archive's central directory. Ruling R6: not verticals/mainline/apps/console/dist, which is the packer's INPUT, and not source.",
+  "worker": "w2 - artefact-mode-refusal (docs/leads/package-and-verify-plan.md sec 7)"
+}

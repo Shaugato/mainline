@@ -56,10 +56,16 @@ Three properties fall out of the single origin, and they are what make this surv
   bundle travel *inside the Lambda package*, which is why stage 0 opens the zip and checks
   for `web/index.html` and `web/bundle/manifest.json` before anything is deployed.
 * **REPLAY and LIVE on the same hostname.** The badge is read off
-  `transport.describe().mode` at run time. If the database is unreachable the console
-  degrades to the signed bundle and *says so on screen* — which is why there is no longer a
-  `--phase1` deploy mode. Passing `--phase1` now exits 2 and explains this; under D1 a
-  deploy with no Lambda has no URL at all, because the Lambda **is** the hostname.
+  `transport.describe().mode` at run time, off the object holding the bytes, so it cannot
+  disagree with the screen. A build that compiles **both** sources starts LIVE and carries a
+  control that switches to REPLAY — one click, same URL, same package, no redeploy — which
+  is why there is no longer a `--phase1` deploy mode. Passing `--phase1` now exits 2 and
+  explains this; under D1 a deploy with no Lambda has no URL at all, because the Lambda
+  **is** the hostname.
+  **Corrected 2026-08-14: that switch is a control a reader presses, not an automatic
+  degradation.** Nothing swaps transport because a request failed; a failed live request is
+  rendered as a failure, verbatim. §7 has the measurement and the reason this distinction
+  is load-bearing rather than pedantic.
 
 ---
 
@@ -551,6 +557,27 @@ cd ../../../..
 > `dist/` it is handed and says what is in it, and a command that produces a `dist/` the
 > checker objects to is the command that is wrong.
 
+> **THE ARTEFACT CHECK WAS WEAKER THAN THIS PARAGRAPH READS. MEASURED 2026-08-14.**
+> The transcript above is real and reproduces — but it only reproduces for a
+> **production-mode** build, and understanding why is the whole finding.
+>
+> `probe_console()` collected the compiled literals **keyed on the variable NAME, with no
+> test on the VALUE** (`found.setdefault(key, value)`). `pnpm run build` reads no `.env`
+> file at all — this console has `.env.demo` and no `.env` — so neither key is inlined,
+> `found` is empty, and the warning fires, exactly as printed. A `--mode demo` build reads
+> `.env.demo`, which declares `VITE_MAINLINE_API_BASE=` **empty on purpose**, so Vite
+> inlines `VITE_MAINLINE_API_BASE:""`, `found` is never empty, and the warning branch is
+> **unreachable**. The branch was live for the build nobody ships and dead for the build
+> everybody ships.
+>
+> That is not hypothetical. The artefact on the demo URL was packaged that way and served a
+> REPLAY console over a live kernel; the compiled literals are in
+> [`console-build.md`](console-build.md) §7.1, extracted from the JavaScript the URL
+> actually serves. The packer now takes a **required** `--console-transport live|replay|both`
+> and **refuses** a `dist/` that does not match the declaration, rather than printing a line
+> about it ([`console-build.md`](console-build.md) §7.3). **Treat the warning above as a
+> historical transcript, not as the guard.** The guard is the refusal.
+
 ##### Step 2 — the evidence bundle is already in the clone; do not re-capture it to read a plan
 
 `build_lambda.sh` reads `verticals/mainline/apps/console/fixtures/bundles/demo-cloud/`, and
@@ -859,10 +886,29 @@ Only then is the URL printed.
 `$MAINLINE_WEB_ROOT` disagrees with it. Compare `terraform output -raw web_root` against
 `unzip -l <package> | grep ' web/'`.
 
-**If step 4 returns 503:** the body names the reason. `dsn_unset` — the Lambda cannot see
-the SSM parameter; check the role's `ssm:GetParameter` grant. `unreachable` — the DSN is
-wrong or the cluster refused. `no_bookkeeping` — it connected to a database the migration
-chain never touched, which is almost always `defaultdb`.
+**If step 4 returns 503:** the body names the reason. `dsn_unset` — the Lambda cannot read
+the SSM parameter. `unreachable` — the DSN is wrong or the cluster refused.
+`no_bookkeeping` — it connected to a database the migration chain never touched, which is
+almost always `defaultdb`.
+
+> **`dsn_unset` has two causes and the body tells you which. Measured 2026-08-14 against
+> the deployed URL**, `GET /v1/health` returns `503` with
+>
+> ```
+> "reason": "dsn_unset",
+> "detail": "SSM GetParameter '/mainline/demo/cockroach_dsn' in ap-southeast-1 answered
+>            HTTP 400: {\"__type\":\"ParameterNotFound\"}"
+> ```
+>
+> `ParameterNotFound` means **the parameter does not exist** — stage 5.2 has not run, or
+> has run into a different name or region. `AccessDeniedException` would mean the parameter
+> exists and the role cannot read it, which is the `ssm:GetParameter` grant. **They are
+> different failures with different fixes and the `detail` string distinguishes them
+> without guessing.** Read it before touching IAM.
+>
+> Writing that parameter is a **secret-handling step and is deliberately not scripted on
+> this page**: §5.2 owns it, the value is the `mainline_api` DSN and not the operator's own,
+> and no DSN is printed anywhere in this repository.
 
 ### 5.8 · Proof
 
@@ -879,6 +925,133 @@ Prints the URL, what was proved about it, the shape, the account, the Lambda nam
 judge access block — which says plainly that the URL needs no credential, names the
 read-only `mainline_judge` login, and states that its password is *not stored by this
 script or anywhere in the repository*.
+
+### 5.10 · What the URL serves today — measured 2026-08-14, and not dressed up
+
+**The apply has run.** The stages above are the procedure; this section is the state, and it
+is written because a runbook whose "what happens next" is a description of a hypothetical is
+a runbook nobody can check.
+
+| request | answer | measured |
+|---|---|---|
+| `GET /` | **`200`**, 4,655 B, 1.52 s | the static console shell serves |
+| `GET /assets/index-DzVoV1YM.js` (`--compressed`) | **`200`**, 124,177 B | the entry chunk |
+| `GET /v1/health` | **`503`**, `ok=false`, `reason="dsn_unset"` | §5.7 step 4 |
+| `POST /v1/demo/gate-run` | **`503`**, `kind="dsn_unset"`, 174-byte body | **not `404`** — the route exists and is reachable |
+
+Both API answers carry the same `detail`, naming the cause exactly:
+`SSM GetParameter '/mainline/demo/cockroach_dsn' in ap-southeast-1 answered HTTP 400:
+{"__type":"ParameterNotFound"}`.
+
+> **The byte counts and the status codes reproduce; the elapsed time does not, and it is not
+> supposed to.** Four independent readings of `GET /` were taken on 2026-08-14 by four
+> programs and people — **1.52 s** here, **1.63 s** in
+> [`evidence/deploy/APPLIED.md`](../../evidence/deploy/APPLIED.md), **1,617.4 ms** by
+> `scripts/deploy/judge_walk.py` and **0.700 s** by the package-and-verify lead — and all four
+> returned **200** and **4,655 B**. A cold Lambda's first byte is a distribution, not a
+> constant, so none of those supersedes another and none is corrected to match. **What must
+> agree is the status, the body size and the reason string, and those four readings agree on
+> every one.** §5.11 is how to take a fifth.
+
+#### The parameter is the founder's step and nobody else's
+
+`/mainline/demo/cockroach_dsn` must hold the **`mainline_api`** DSN — the least-privileged
+role, holding `CONNECT`/`USAGE`/`SELECT`/`UPDATE`/`INSERT`/`EXECUTE` and nothing more. It
+must **not** hold the administrative DSN this repository's `.env` carries, which holds `ALL`
+on every object in the demo database, because the Function URL is `authorization_type = NONE`
+and anyone with the hostname reaches the handler that reads it. **No DSN appears in this
+repository, in this page, or in any example on it, and none may be added.**
+
+#### Until it lands, `dsn_unset` is the demo beat — and it is a good one
+
+This is the part not to apologise for. With a correctly built LIVE console in front of that
+handler, a judge presses a control and the console:
+
+1. issues `POST /v1/demo/gate-run` **to the page's own origin** — no CORS, no second
+   hostname, the request is visible in the network panel;
+2. gets `503` with a body that is not an envelope, which `src/data/transport.ts` classifies
+   as a `status` failure rather than a gate refusal — *"the client asked wrongly"* and
+   *"the gate refused"* are different findings and only one of them is about the product;
+3. renders the answer **verbatim**. The body is 174 bytes and the transport quotes the first
+   200, so the whole thing reaches the screen, `ParameterNotFound` and the parameter's name
+   included.
+
+**A judge is shown a console that reached its own kernel and printed exactly what the kernel
+said, including the fact that an operator has not finished.** That is the product's central
+claim demonstrated on the one screen where it is cheapest to fake. Compare what it replaces:
+the artefact deployed today is a **REPLAY** console — `TRANSPORT REPLAY (staged)`,
+`BUILD dev`, every byte a recording — which looks healthier and proves less.
+[`console-build.md`](console-build.md) §7 has the compiled literals and the packaging guard
+that now refuses to ship that combination.
+
+**What this section does NOT claim.** It does not claim the four beats run; they cannot until
+the parameter exists. It does not claim the deployed artefact is the corrected one; it is not,
+and no worker in this wave deploys — the orchestrator does. `demo_acceptance.py` against this
+URL will exit non-zero for exactly this reason, and that is the correct behaviour: **a deploy
+that cannot show the gate refusing and then admitting is a failed deploy and says so** (§5.8).
+
+### 5.11 · Re-run this whole section yourself — `scripts/deploy/judge_walk.py`
+
+**Every reading in §5.10 is regenerable by one command, from a bare checkout, with no AWS
+credential, no `terraform init` and no state file.** That is the whole point of the program:
+§5.10 is a transcript, and a transcript nobody can reproduce is a screenshot.
+
+```bash
+python scripts/deploy/judge_walk.py \
+  --base-url https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
+```
+
+On Windows: `.venv\Scripts\python.exe scripts\deploy\judge_walk.py --base-url <the URL>`.
+It writes [`evidence/deploy/judge-walk.json`](../../evidence/deploy/judge-walk.json) and prints
+a step-by-step account. **It is not `post_apply_verify.py`** (§5.7): that one reads
+`terraform output`, calls AWS for alarm inventory and drives the kill switch, so it needs
+credentials and state. This one takes **a URL and nothing else**.
+
+| flag | what it does |
+|---|---|
+| `--base-url <url>` | required; the only input |
+| `--out <path>` | where the JSON document goes (default `evidence/deploy/judge-walk.json`) |
+| `--enumeration origin\|repo\|auto` | where the request list is read from; `auto` prefers the origin and records which it used |
+| `--allow-replay` | **downgrades the REPLAY finding from FAILED to a named refusal.** It must be typed; a document produced with it is stamped `allow_replay_declared: true` and can never be cited as a reading of a LIVE artefact |
+
+**Three outcomes and a closed set of reasons.** `SATISFIED` — it answered what it was supposed
+to answer. `REFUSED` — it refused **for a reason from a written-down table**, and that refusal
+is the correct behaviour of a correct deployment in a known state. `FAILED` — anything else.
+`REFUSED` without a reason from that table is not representable: the program raises rather than
+inventing one. **`dsn_unset` is a `REFUSED`, not a `FAILED`**, and the walk says the words in
+full: *the origin is up, the route is reachable, and the SSM parameter is the founder's
+remaining step.* A walk that exited red for a step belonging to somebody else would teach its
+reader to ignore it tomorrow.
+
+**It drives what the artefact itself declares, not a list somebody typed here.** The console
+ships an EvidenceBundle whose `manifest.json` enumerates every request the console makes and
+the REPLAY counterpart of each; the walk reads that manifest — from the origin, at the bundle
+URL *compiled into the served JavaScript*, falling back to the repository copy and saying which
+it used — and drives all **18** frames. A hand-written endpoint list is a list that drifts from
+the console in silence.
+
+**What it said on 2026-08-14, against this URL, live:**
+
+```
+23 steps: 2 satisfied, 20 refused (dsn_unset), 1 FAILED (transport: REPLAY)   -> exit 1
+with --allow-replay:  21 refused, 0 failed                                    -> exit 0
+```
+
+**Exit 1 is the correct answer today and the transport step is why.** `dsn_unset` is a correct
+deployment answering correctly about somebody else's step; a REPLAY console is a **wrong
+artefact**, and filing the two in the same exit-neutral drawer would hand a reader a green walk
+while they look at a recording. The transport step reads the compiled `VITE_MAINLINE_*`
+literals out of the served entry chunk and applies `source-select.ts`'s own `trimmed()` rule —
+no browser, no screenshot, the bytes a judge executes. **Once the artefact is rebuilt LIVE and
+the orchestrator redeploys, the bare command exits 0 with `dsn_unset` recorded**, and that
+transition — not a re-worded page — is what will show this section has moved.
+
+**It writes nothing to AWS.** It knows no Terraform verb and no AWS API, it never reads or
+writes `/mainline/demo/cockroach_dsn`, and it masks every `postgres(ql)://` URL, every embedded
+`user:password@` and every bare twelve-digit run before anything reaches stdout or the file.
+Its own caveat, which is not hidden: three of the eighteen frames are `POST` merges, so driving
+them against a seeded live cluster **writes**, exactly as a judge clicking the console writes.
+Nothing is skipped to avoid that; `scripts/deploy/seed_demo.py` restores the world.
 
 ---
 
@@ -1068,10 +1241,37 @@ refused to print the URL. Check `terraform output -raw api_authorization_type`.
 
 ### The demo is broken and judging starts in an hour
 
-There is no `--phase1` any more, and there does not need to be. If the database is
-unreachable the console **degrades to the signed EvidenceBundle on its own** and shows a
-`REPLAY` badge saying so — same URL, same package, no redeploy. That is a run-time property
-of the console, not a deploy mode.
+There is no `--phase1` any more, and there does not need to be — but the sentence that used
+to be here overstated how automatic the fallback is, so read the correction before relying
+on it.
+
+> ~~If the database is unreachable the console **degrades to the signed EvidenceBundle on
+> its own** and shows a `REPLAY` badge saying so — same URL, same package, no redeploy. That
+> is a run-time property of the console, not a deploy mode.~~
+>
+> **CORRECTED 2026-08-14: the switch is a CONTROL, not an automatic degradation.** Read
+> against `src/app/source-select.ts`, the source is chosen by a pure function of the
+> **build** and of nothing else — its own header says so: *"decided by a pure function of
+> the BUILD, and of nothing else"*. With both variables compiled in, the console starts
+> **LIVE** and renders a control that switches to **REPLAY**; with one, it uses that one and
+> renders no control. **Nothing anywhere switches transport because a request failed.** A
+> console that silently swapped a live answer for a recording when the live answer was
+> inconvenient would be the exact machine this product argues against, so the absence of
+> that behaviour is a feature and not the gap this paragraph implied.
+
+What is true, and is what you actually get:
+
+* **Same URL, same package, no redeploy — one click.** A LIVE-built console keeps the
+  REPLAY bundle inside the same package and the control is on screen, so a reader who wants
+  the recorded evidence is one click from it and the badge tells them which one they are
+  looking at. The badge is read from `transport.describe().mode`, off the object holding the
+  bytes, so it cannot disagree with what is on screen.
+* **A failed live request renders as a failure, verbatim.** That is the honest outcome and
+  §5.10 is what it looks like today: `503 dsn_unset`, the parameter named, on screen.
+* **If the artefact was built with only the bundle**, as the currently deployed one was, the
+  console is REPLAY and there is no control at all — and no request ever reaches the kernel.
+  That is the failure mode to check for first: read the badge, and read
+  [`console-build.md`](console-build.md) §1's `grep` if you have the `dist/`.
 
 ---
 
@@ -1277,9 +1477,21 @@ Honesty is the moat, so this section is explicit.
 
 **Not proven, and stated here rather than implied away:**
 
-* **A live demo URL. There is none yet**, because `terraform apply` is gated on the
-  founder's approval of the committed plan and that approval has not been given. Every
-  artefact upstream of it is built, hashed and checked; `deploy.sh --dry-run` exits 0.
+* ~~**A live demo URL. There is none yet**, because `terraform apply` is gated on the
+  founder's approval of the committed plan and that approval has not been given.~~
+  **SUPERSEDED 2026-08-14: the apply has run and the URL serves.** Measured, not inferred:
+  `GET https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/` answers
+  **`200`** with 4,655 B of console shell. This page records the *observable consequence*;
+  the approval itself is the founder's and is not something this document witnessed.
+  What is **still** not proven, and is the narrower claim the struck bullet was standing in
+  for: **that the URL can run the four beats.** It cannot. Stage 5.2 has not written
+  `/mainline/demo/cockroach_dsn` — the API answers `503` with `ParameterNotFound`, verbatim
+  — so the Lambda has no database, and `demo_acceptance.py` against that hostname exits
+  non-zero at the health check, correctly. Separately, the console artefact deployed on it
+  is a **REPLAY** build, so nothing on its screen is that kernel. §5.10 has the whole
+  measured picture and [`console-build.md`](console-build.md) §7 has the packaging defect
+  that produced it. Every artefact upstream is built, hashed and checked; `deploy.sh
+  --dry-run` exits 0.
 * **Stage 6's runtime behaviour end to end.** Reaching stage 6 requires stage 1 to create
   the state bucket and stage 2 to write the real `mainline_api` DSN to SSM. Stage 6 is
   therefore verified statically — exactly one executable `terraform apply`, unreachable

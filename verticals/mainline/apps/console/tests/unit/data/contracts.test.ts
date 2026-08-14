@@ -2,14 +2,27 @@
 // SPDX-License-Identifier: FSL-1.1-ALv2
 
 /**
- * The contracts themselves: they compile, they cross-reference, and the copy of the
- * refusal payload contract is still the specification's.
+ * The contracts themselves: they compile, they cross-reference, and the two documents
+ * this directory holds as COPIES are still identical to the files that own them.
  *
- * The last of those is the CI check `docs/leads/ui.md` §4 asks for. The console
- * workspace may not reach outside itself at build time, so `spec/wire/refusal.schema.json`
- * is COPIED into `contracts/`. A copy rots. This test compares the two structurally —
- * every JSON pointer, both directions — so a field added, removed or retyped in the
- * specification fails the console's own suite, by name, on the next run.
+ * The console workspace may not reach outside itself at build time, so two schemas owned
+ * elsewhere are copied into `contracts/`:
+ *
+ *   * `refusal.schema.json` ← `spec/wire/refusal.schema.json` (the CI check
+ *     `docs/leads/ui.md` §4 asks for);
+ *   * `gate-run.schema.json` ← `verticals/mainline/apps/demo-api/contracts/gate-run.schema.json`,
+ *     the contract the demo API serves `POST /v1/demo/gate-run` against. The console
+ *     validates that response before rendering it, so if the two drift the demo's front
+ *     door refuses its own kernel's answer in front of a judge.
+ *
+ * A copy rots. Each is checked TWO ways, and both matter:
+ *
+ *   1. **Byte for byte**, because "verbatim" is the instruction and a reformat that
+ *      preserves structure still makes two readers looking at the two files disagree
+ *      about what they are reading.
+ *   2. **Pointer by pointer, in BOTH directions**, because that is what names the field
+ *      that moved. A byte diff on a 23 KB schema says "these differ"; a pointer diff
+ *      says `/$defs/persistence_check/required/3`.
  *
  * D18: never invent a refusal field.
  */
@@ -27,6 +40,7 @@ import { RESOURCES } from '../../../src/data/resources';
 import { REPO_ROOT, nodeFs } from './_support';
 
 const SPEC_REFUSAL = `${REPO_ROOT}spec/wire/refusal.schema.json`;
+const DEMO_API_GATE_RUN = `${REPO_ROOT}verticals/mainline/apps/demo-api/contracts/gate-run.schema.json`;
 
 type Json = unknown;
 
@@ -46,6 +60,61 @@ function flatten(value: Json, pointer = '', out = new Map<string, string>()): Ma
     out.set(pointer, JSON.stringify(value) ?? 'undefined');
   }
   return out;
+}
+
+/**
+ * Asserts that `contracts/<name>` is a verbatim copy of `originalPath`.
+ *
+ * Written once and used by both copies rather than twice with the pointers renamed: a
+ * drift check that exists in two hand-maintained versions has two chances to be the
+ * weaker one, and the weaker one is the check nobody notices has stopped checking.
+ */
+async function expectVerbatimCopy(name: string, originalPath: string, reCopy: string): Promise<void> {
+  const fs = await nodeFs();
+
+  // If the original is not reachable the test must FAIL, not skip: a drift check that
+  // silently stops checking is worse than no drift check.
+  expect(fs.existsSync(originalPath), `${originalPath} must be readable from the console workspace`).toBe(
+    true,
+  );
+
+  const originalSource = fs.readFileSync(originalPath, 'utf8');
+  const registered = CONTRACT_SOURCES.find(([entry]) => entry === name)?.[1];
+  expect(registered, `contracts.ts must register "${name}" in CONTRACT_SOURCES`).toBeDefined();
+
+  // (1) The two FILES, byte for byte. Both are read the same way, so a line-ending
+  // difference between them is a real difference and not a checkout artefact. Compared
+  // on disk rather than against the `?raw` import, because the bundler owns that string
+  // and this assertion is about what is committed.
+  const copyOnDisk = fs.readFileSync(`contracts/${name}`, 'utf8');
+  const bytes =
+    copyOnDisk === originalSource
+      ? 'identical'
+      : `DIFFER (${copyOnDisk.length} chars here, ${originalSource.length} there)`;
+
+  // (2) The two DOCUMENTS, pointer by pointer, both directions — which is what NAMES
+  // the field that moved. This one reads the registered `?raw` source, so it also
+  // proves the string the runtime validator compiles is the document on disk.
+  const original = flatten(JSON.parse(originalSource));
+  const copy = flatten(JSON.parse(registered ?? '{}'));
+
+  const missing = [...original.keys()].filter((pointer) => !copy.has(pointer));
+  const extra = [...copy.keys()].filter((pointer) => !original.has(pointer));
+  const different = [...original.entries()]
+    .filter(([pointer, value]) => copy.has(pointer) && copy.get(pointer) !== value)
+    .map(([pointer, value]) => `${pointer}: original ${value} / console ${copy.get(pointer) ?? '?'}`);
+
+  // Asserted TOGETHER, in one object, deliberately. Asserting the byte comparison first
+  // and returning on failure would make the pointer diff unreachable — it would only
+  // ever run when the bytes already matched, which is exactly when it cannot fail. A
+  // check that can only pass is not a check. One object means a real drift reports both
+  // that the files differ AND which pointers moved.
+  expect({ bytes, missing, extra, different }, `contracts/${name} has drifted. ${reCopy}`).toEqual({
+    bytes: 'identical',
+    missing: [],
+    extra: [],
+    different: [],
+  });
 }
 
 describe('contracts', () => {
@@ -72,32 +141,49 @@ describe('contracts', () => {
     expect(registry.get(REFUSAL_SCHEMA_ID)).toBeDefined();
   });
 
-  it('contracts/refusal.schema.json is structurally identical to spec/wire/refusal.schema.json', async () => {
-    const fs = await nodeFs();
-
-    // If the specification file is not reachable the test must FAIL, not skip: a drift
-    // check that silently stops checking is worse than no drift check.
-    expect(fs.existsSync(SPEC_REFUSAL), `${SPEC_REFUSAL} must be readable from the console workspace`).toBe(
-      true,
+  it('contracts/refusal.schema.json is identical to spec/wire/refusal.schema.json', async () => {
+    await expectVerbatimCopy(
+      'refusal.schema.json',
+      SPEC_REFUSAL,
+      'Re-copy it from the specification; never edit it here.',
     );
+  });
 
-    const specSource = fs.readFileSync(SPEC_REFUSAL, 'utf8');
-    const consoleSource = CONTRACT_SOURCES.find(([name]) => name === 'refusal.schema.json')?.[1];
-    expect(consoleSource).toBeDefined();
+  it('contracts/gate-run.schema.json is identical to the demo API’s, both directions', async () => {
+    // The demo API OWNS this contract: it serves POST /v1/demo/gate-run against it and
+    // repeats its $id inside the payload. This test is what stops the copy drifting.
+    //
+    // The direction of repair is not symmetric and is not a matter of taste. If these
+    // two ever disagree, the fix is to argue about the ORIGINAL on the record and then
+    // re-copy — never to edit one side until they match, which would make the console
+    // agree with a document nobody decided on.
+    await expectVerbatimCopy(
+      'gate-run.schema.json',
+      DEMO_API_GATE_RUN,
+      'Re-copy it from verticals/mainline/apps/demo-api/contracts/gate-run.schema.json; ' +
+        'never edit either side to make them agree.',
+    );
+  });
 
-    const spec = flatten(JSON.parse(specSource));
-    const copy = flatten(JSON.parse(consoleSource ?? '{}'));
+  it('compiles the gate-run contract rather than admitting it vacuously', () => {
+    // createContractRegistry() calls compileAll(), which refuses any keyword this
+    // validator does not implement and resolves every $ref. This contract uses
+    // allOf / if / then / else / oneOf / const / enum / format and a cross-document
+    // $ref to the specification's refusal payload, so "it is registered" and "it is
+    // enforceable" are two different claims. This asserts the second.
+    const registry = createContractRegistry();
+    const id = 'https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json';
+    expect(registry.ids()).toContain(id);
 
-    const missing = [...spec.keys()].filter((pointer) => !copy.has(pointer));
-    const extra = [...copy.keys()].filter((pointer) => !spec.has(pointer));
-    const different = [...spec.entries()]
-      .filter(([pointer, value]) => copy.has(pointer) && copy.get(pointer) !== value)
-      .map(([pointer, value]) => `${pointer}: spec ${value} / console ${copy.get(pointer) ?? '?'}`);
+    // The $ref that reaches outside this document resolves to a registered document.
+    expect(registry.get(REFUSAL_SCHEMA_ID)).toBeDefined();
 
-    expect(
-      { missing, extra, different },
-      'contracts/refusal.schema.json has drifted from the specification. Re-copy it; never edit it here.',
-    ).toEqual({ missing: [], extra: [], different: [] });
+    // And it discriminates: a payload missing the member the verdict keys on is refused
+    // rather than passed. A contract that accepts everything is a contract asserting
+    // nothing, which is the exact failure compileAll() exists to prevent.
+    const result = registry.validate(id, { resource: 'demo_gate_run' });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((error) => error.keyword === 'required')).toBe(true);
   });
 
   it('the refusal contract still declares the five payload members the console renders', () => {

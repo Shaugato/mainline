@@ -826,10 +826,26 @@ if ($SkipBuild) {
         Stop-Deploy ("neither scripts\deploy\build_lambda.ps1 nor build_lambda.sh exists. It is owed by`n" +
                      "worker w2-lambda-bundle and builds the psycopg-bearing deployment zip.")
     }
+    # -ConsoleTransport live, HARD-WIRED, and not an option of this script.
+    #
+    # This stage packages the console for THIS origin, and this origin has a live kernel
+    # behind it: infra/modules/demo-api serves /v1/* and the SPA from one Function URL. So
+    # the only honest declaration a deploy can make is `live`, and making it a flag would
+    # be offering an operator the ability to re-ship the defect of 2026-08-14 -- a console
+    # compiled with VITE_MAINLINE_API_BASE="" and VITE_MAINLINE_BUNDLE_URL="./bundle/",
+    # every byte on a judge's screen a recording of a run that happened somewhere else.
+    #
+    # Not a lock-out: an operator who genuinely means to deploy a different artefact builds
+    # it themselves with build_lambda -ConsoleTransport <x> and passes -SkipBuild here,
+    # which is a decision that appears in a shell history rather than one that happens by
+    # default. The POSIX twin hard-wires the same value in the same place.
+    $transportFail = ("build_lambda failed. If it REFUSED [CONSOLE TRANSPORT] or [CONSOLE BUILD ID],`n" +
+                      "the console dist/ is not a live artefact: rebuild it with VITE_MAINLINE_API_BASE`n" +
+                      "and MAINLINE_BUILD_ID set (docs/deploy/console-build.md).")
     if ($BuildLambda.EndsWith('.ps1')) {
-        Invoke-Native 'pwsh' @('-NoProfile', '-File', $BuildLambda, '-Arch', $Arch, '-Out', $LambdaZip) -OnFail 'build_lambda.ps1 failed.'
+        Invoke-Native 'pwsh' @('-NoProfile', '-File', $BuildLambda, '-Arch', $Arch, '-Out', $LambdaZip, '-ConsoleTransport', 'live') -OnFail $transportFail
     } else {
-        Invoke-Native $GitBash @((& $GitBash -c "cygpath -u '$BuildLambda'").Trim(), '--arch', $Arch, '--out', $LambdaZip) -OnFail 'build_lambda.sh failed.'
+        Invoke-Native $GitBash @((& $GitBash -c "cygpath -u '$BuildLambda'").Trim(), '--arch', $Arch, '--out', $LambdaZip, '--console-transport', 'live') -OnFail $transportFail
     }
     if (-not (Test-Path $LambdaZip)) {
         Stop-Deploy "build_lambda finished but $LambdaZip is not there. Set `$env:MAINLINE_LAMBDA_ZIP if it writes elsewhere."

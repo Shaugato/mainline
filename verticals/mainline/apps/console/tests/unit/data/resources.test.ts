@@ -21,14 +21,78 @@ import {
 const PERMIT_ID = '018f3a2f-1104-7c88-b3aa-77c1de40e2b1';
 
 describe('the resource catalogue', () => {
-  it('declares the kernel’s four POST endpoints and no others', () => {
+  it('declares seventeen resources, and the seventeenth is the demo gate run', () => {
+    // The count is asserted as an EXACT number rather than a floor. A floor would admit
+    // an eighteenth resource arriving unannounced, and the whole point of this module is
+    // that the console's read surface is a closed, declared set — `resolveRequest` refuses
+    // anything not on it, so a resource nobody noticed being added is a request nobody
+    // reviewed being sendable.
+    expect(RESOURCES.size).toBe(17);
+    expect(RESOURCE_KEYS.length).toBe(17);
+    expect([...RESOURCES.keys()]).toContain('demo_gate_run');
+  });
+
+  it('makes DemoDriver’s not-declared panel unreachable', () => {
+    // `src/features/gate/DemoDriver.tsx` gates its whole render on exactly this
+    // predicate — `const declared = RESOURCES.has(DEMO_GATE_RUN)` — and shows the
+    // "POST /v1/demo/gate-run is not addressable from this console" panel when it is
+    // false. That panel is the honest fallback for a build that ever strips the
+    // declaration, and it is KEPT for that reason; this asserts that the build shipped
+    // today does not take it.
+    //
+    // The render-level proof is `tests/unit/app/composition.test.tsx`, which mounts the
+    // driver and asserts the panel is absent and the four controls are present. This one
+    // pins the predicate itself, so a failure here names the cause rather than a symptom
+    // three layers up.
+    expect(RESOURCES.has('demo_gate_run')).toBe(true);
+  });
+
+  it('declares the kernel’s four transition POSTs, the demo POST, and no others', () => {
+    // Was "four POST endpoints and no others" until 2026-08-14, when `demo_gate_run`
+    // was declared so the deployed console could reach the endpoint it is sitting on
+    // (docs/leads/console-live-plan.md §0.4). The assertion did not loosen to admit it:
+    // it is still an EXACT list, so a sixth POST arriving unannounced still fails here.
     const posts = [...RESOURCES.values()].filter((resource) => resource.method === 'POST');
     expect(posts.map((resource) => resource.template).sort()).toEqual([
       '/v1/checks/{check_id}/disposition',
+      '/v1/demo/gate-run',
       '/v1/permits/{permit_id}/checks:materialise',
       '/v1/permits/{permit_id}/merge',
       '/v1/permits/{permit_id}/suspend',
     ]);
+  });
+
+  it('gives the demo run no path parameter, so a caller cannot aim it at another row', () => {
+    // The four kernel transitions are addressed by a {permit_id} or {check_id} the
+    // caller supplies. The demo run is NOT: its subject is the seeded demo permit,
+    // resolved server-side. The demo URL is `authorization_type = NONE`, so a path
+    // parameter here would let any stranger holding the link drive the four beats —
+    // including the forged-counter attack — against somebody else's subject.
+    const demo = resourceOrThrow('demo_gate_run');
+    expect(demo.method).toBe('POST');
+    expect(demo.template).toBe('/v1/demo/gate-run');
+    expect(demo.pathParams).toEqual([]);
+    expect(demo.queryParams).toEqual([]);
+    expect(demo.owner).toBe('kernel');
+    expect(demo.schemaId).toBe('https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json');
+  });
+
+  it('refuses a path argument on the demo run rather than ignoring it', () => {
+    // The guarantee above is only worth having if it is enforced rather than documented.
+    expect(() =>
+      resolveRequest({ resource: 'demo_gate_run', path: { permit_id: PERMIT_ID }, body: {} }),
+    ).toThrow(/has no path parameter "permit_id"/);
+  });
+
+  it('addresses the demo run by one key regardless of how often it is pressed', () => {
+    // Four controls, one exchange, one body. `src/features/gate/DemoDriver.tsx` says why:
+    // the request key is what names a frame inside an EvidenceBundle, so an identical
+    // body means ONE captured frame serves all four controls in REPLAY. A run_id in the
+    // body would mint a new key per press and make the replay path uncapturable.
+    const first = resolveRequest({ resource: 'demo_gate_run', body: {} });
+    const second = resolveRequest({ resource: 'demo_gate_run', body: {} });
+    expect(first.key).toBe('POST /v1/demo/gate-run');
+    expect(second.key).toBe(first.key);
   });
 
   it('records that the ancestry read endpoint has no owner', () => {

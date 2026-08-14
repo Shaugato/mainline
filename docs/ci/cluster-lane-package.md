@@ -289,11 +289,70 @@ assert  124173 ==  124127     (largest gzipped sibling)
 ```
 
 **This is a stale artefact, not build nondeterminism.** Two consecutive fresh builds are
-byte-identical across all 49 dist entries, and the console source is clean against HEAD
-(`git status --porcelain` names nothing under `apps/console`). The currently-green local run
+byte-identical across all 49 dist entries, and ~~the console source is clean against HEAD
+(`git status --porcelain` names nothing under `apps/console`)~~. The currently-green local run
 is green against a `dist/` that no longer corresponds to the committed source — which is
 precisely the class of defect this repository exists to make visible, and building in-lane
 is what made it visible.
+
+> **RE-MEASURED 2026-08-15. ONE HALF OF THAT PARAGRAPH IS CONFIRMED AND THE OTHER HALF IS
+> STRUCK.** Both halves were checked by `scripts/deploy/console_repro.py`, which builds N≥3
+> times and records the name, byte size and sha256 of **every** emitted asset into
+> `evidence/deploy/console-repro.json`. R5 of this page permits a derived number to be
+> re-recorded when the build that produced it is named, and both builds are named below.
+>
+> * **CONFIRMED, and stronger than it was written.** *"Byte-identical"* holds at **N = 3**, not
+>   2, and in **three** independent configurations: `runs["committed-phase1"]`,
+>   `runs["committed-phase2"]` and `runs["worktree-phase2"]` each record one tree digest across
+>   three builds, `byte_identical: true`, `assets_that_differ: []`. **The console build is
+>   reproducible.** Nothing in this page rests on nondeterminism and nothing needs to.
+> * ~~**FALSE as a matter of bytes, and true only as git reported it.**~~ **CORRECTED: the
+>   console source was NOT clean against HEAD when §4's figures were taken.** Git for Windows
+>   ships `core.autocrlf=true` at system scope; a file checked out under it holds CRLF in the
+>   worktree and LF in the index, and the index's cached stat size is the CRLF size, so
+>   `git status` declares the entry unmodified **without re-reading it**. W1 counted
+>   **fifty-one** files under `apps/console` drifted that way at the time. `git status
+>   --porcelain` really did name nothing — and the bytes `vite` read were not the committed
+>   bytes. *(The drift has since been repaired where it reached the bundle:
+>   `evidence/deploy/console-repro.json` → `runs[*].source.eol` reports **31** worktree-CRLF
+>   files today and **none of them under `src/`**. `tests/deploy/test_console_repro.py` now
+>   fails by name on any `src/**` file whose worktree bytes differ from the commit only in
+>   line endings, so the state that produced `index-BKZMI9SJ.js` is an assertion away rather
+>   than a discovery away. A worktree build can still differ from the committed one — today's
+>   does, because the seventeenth resource is genuinely uncommitted — but it can no longer
+>   differ **invisibly**.)*
+>
+> **That is what produced `index-BKZMI9SJ.js`.** Reproduced deliberately by W1 of the
+> package-and-verify wave: export HEAD, convert `src/design/primitives/instrument.module.css`
+> from LF to CRLF, change nothing else, build.
+>
+> ```
+> committed (LF)          assets/index-DzVoV1YM.js  433,564 B   identity total 794,736 B
+> one CSS module CRLF     assets/index-BKZMI9SJ.js  433,564 B   identity total 794,741 B
+> all 51 drifted CRLF     assets/index-BKZMI9SJ.js  433,564 B   identity total 794,741 B
+> ```
+>
+> A CSS-module scoped class name is a hash of the module's bytes, and a hash is a
+> **fixed-length** string — so its value moves and the bundle's length does not, which is
+> exactly how two different files come to be recorded at one identical byte count. Of the 51
+> drifted files, **one** reaches the emitted identity bytes; the other fifty move only source
+> maps, which the packer strips.
+>
+> **So the sentence that has to change is the diagnosis, not the number.** §3.2's eight
+> failures were still a stale artefact rather than nondeterminism — that part stands. What was
+> wrong was believing the *replacement* was clean: the fresh build this page recorded was
+> itself taken over a drifted worktree, and the build the committed source produces is
+> `assets/index-DzVoV1YM.js`, which is the file the Function URL serves and the file
+> `out/lambda/mainline-demo-api-arm64.zip` carried when this was written on 2026-08-15.
+> *(**Later the same day** the zip under that path was rebuilt from the worktree console with
+> `--console-transport live` and now carries `assets/index-DJX27H0M.js` — §4's second
+> annotation. The origin is unchanged and still answers with `assets/index-DzVoV1YM.js`; what
+> moved is the package on disk, which is why the sentence above names both separately.)*
+> **Restore
+> drifted bytes rather than re-recording a hash measured while they were there** —
+> `tests/deploy/test_console_repro.py` now fails by name on any `src/**` file whose worktree
+> bytes differ from the commit **only** in line endings, and a genuine edit is not drift and
+> does not fail it. The full derivation is `docs/deploy/console-build.md` §1.
 
 ### 3.4 The build reproduces on Linux — measured, not assumed
 
@@ -340,6 +399,39 @@ system zlib, which is 1.3 there rather than 1.3.1. Deflate output is unchanged b
 two point releases as far as this worker can establish, but it was not measured, and the
 lane's own first run is the measurement that settles it.
 
+> **STILL TRUE, AND ABOUT A DIFFERENT TREE THAN IT MEANT TO BE — annotated 2026-08-15.** The
+> cross-platform claim this section makes is unaffected by §3.3's correction and is not
+> withdrawn: two interpreters on two operating systems emitted the same asset names, the same
+> byte counts and the same `.gz` digests, and that is a real result about `rollup`, `esbuild`
+> and `zlib`. **What moved is which source tree both halves were built from.** The Linux
+> container was handed *"a clean copy of `apps/console`"* copied out of the **worktree**, so it
+> carried the same CRLF drift the Windows build did — which is why both agree on
+> `index-BKZMI9SJ.js` and on `gz9 = 124,173`. Agreement across platforms over one input is
+> exactly what this section set out to show and exactly what it showed; it is not evidence
+> about the committed input, and it was read as though it were.
+>
+> **The committed input's figures, for the same two quantities**
+> (`evidence/deploy/console-repro.json` → `runs["committed-phase1"]`, three builds, byte
+> identical, `git archive`'d from HEAD so no worktree can reach it):
+>
+> ```
+> committed HEAD, LF      assets/index-DzVoV1YM.js  433,564 B identity   124,177 B gzip(9)
+> drifted worktree, CRLF  assets/index-BKZMI9SJ.js  433,564 B identity   124,173 B gzip(9)
+> ```
+>
+> Same length, four bytes apart on the wire, different files. ~~**`124,177 B` is the figure the
+> response ceiling is derived from today**, it is the one the deployed package carries, and it
+> is what `verticals/mainline/apps/demo-api/tests/test_static_site.py` declares as
+> `_LARGEST_SERVED_WIRE_BYTES`.~~ **CORRECTED 2026-08-15: `124,177 B` is the figure the ceiling
+> was CHOSEN from, over the 2026-08-14 tree, and it is the figure the package the Function URL
+> is answering with carries.** It is no longer what the package on disk measures — see §4's
+> second annotation, where the package of record reads **129,400 B** — and under ruling
+> **R10** (`docs/leads/reconcile-constants-plan.md` §1) the ceiling is not re-derived from
+> either: it stands at **139,264 B**, kept by interface I3. The `124,173` above is kept because
+> it is the measurement that
+> was taken, and because the four-byte gap between two builds of the *same commit* is the whole
+> of §3.3's correction stated as a number.
+
 ---
 
 ## 4. THE FRESH BUILD'S REAL NUMBERS
@@ -376,6 +468,108 @@ INPUT tree *before* the strip, not the served tree; the served tree is **1,274,7
 114 entries**, of which what actually goes on the wire for the biggest single response is
 **124,173 B**.
 
+> **§4 ANNOTATED 2026-08-15 — THE "FRESH BUILD AT HEAD" WAS NOT A BUILD OF HEAD.**
+>
+> **Every figure in the table above stays.** They were measured, they are reproducible from the
+> input that produced them, and R5 of this page permits a derived number to be re-recorded
+> *"naming the build"* — so the answer is to name the build, not to delete the row.
+>
+> **The build named in the sentence above the table — *"from a `vite build --mode demo` of
+> clean HEAD `eefae1c`"* — is not the build that produced these numbers.** §3.3's annotation
+> has the mechanism: the worktree carried CRLF line-ending drift in fifty-one files under
+> `apps/console`, `git status --porcelain` could not see it, and one of the fifty-one
+> (`src/design/primitives/instrument.module.css`) reaches the emitted identity bytes. So the
+> right-hand column is **a build of HEAD-plus-drift**, and `index-BKZMI9SJ.js` is its name.
+>
+> **What clean HEAD emits, and what is on the origin.** Read out of
+> `out/lambda/mainline-demo-api-arm64.zip` with `zipfile` over its `web/` entries, **earlier on
+> 2026-08-15**, when that path held `sha256 12fcba7a…` — the package the plan's
+> `source_code_hash` names and the one the Function URL is answering with:
+>
+> | quantity | §4's right column — HEAD **+ CRLF drift** | **the committed source** — measured from the zip | Δ |
+> |---|---|---|---|
+> | `web/` as packed | 114 entries, 1,274,726 B | **114 entries, 1,274,743 B** | +17 |
+> | `web/` identity after the strip | 57 entries, 985,311 B | **57 entries, 985,306 B** | −5 |
+> | `.gz` siblings written | 57 files, 289,415 B | **57 files, 289,437 B** | +22 |
+> | source maps in the package | 0 | **0** | — |
+> | largest identity object | `assets/index-BKZMI9SJ.js`, 433,564 B | **`assets/index-DzVoV1YM.js`, 433,564 B** | 0 B, different file |
+> | largest gzipped sibling | `…BKZMI9SJ.js.gz`, 124,173 B | **`…DzVoV1YM.js.gz`, 124,177 B** | +4 |
+> | `web/index.html` | — | **4,655 B** | — |
+> | zip bytes / entries | 7,702,078 / 250 | **7,703,067 / 250** | +989 / 0 |
+>
+> **The identity row is the one to read twice: same 433,564 B, different file.** A CSS-module
+> class name is a fixed-length hash, so drift moves the content and not the length — which is
+> how this repository came to hold two records at one byte count and spend a wave deciding
+> which was wrong. Neither was arithmetic; one was a build nobody could re-measure.
+>
+> **Reproducibility is not in question and was measured rather than argued.**
+> `evidence/deploy/console-repro.json` records three configurations × three builds, every one
+> `byte_identical: true` with `assets_that_differ: []`, and the committed-source entry chunk's
+> `sha256 4596d00cb33ee2d1…` is byte for byte the `web/assets/index-DzVoV1YM.js` inside the zip
+> above. **The build reproduces; the input was not what the sentence said it was.**
+>
+> **What this does NOT change.** The ceiling below — `136 × 1024 = 139,264` — is unmoved and
+> re-derives from the committed figure as readily as from the drifted one:
+> `1.10 × 124,177 = 136,594.7`, next 8 KiB boundary `17 × 8192 = 139,264`, and
+> `0 < 124,177 < 139,264 < 433,564` holds with **exactly one** identity object refused. The
+> conclusion of the next subsection is correct under both builds and is not restated to fit.
+> *(Both builds in that sentence are 2026-08-14-generation consoles. A third build has since
+> been packaged and the derivation no longer lands on 139,264 over it — the annotation
+> immediately below carries it, and the ceiling still does not move.)*
+
+> **§4 ANNOTATED A SECOND TIME, 2026-08-15 — A THIRD CONSOLE IS NOW PACKAGED, AND THE CEILING
+> STILL DOES NOT MOVE.** Every figure above stays. This annotation adds a dated column and
+> nothing else.
+>
+> **The artefact, named by digest rather than by path**, because one path has now held three
+> different packages in two days: `out/lambda/mainline-demo-api-arm64.zip`,
+> `sha256 7e49fd5e1426a4d2aaba12a2cd7aa086c95430f0b5daa3645bc8b55eaaed2738`, built
+> `--console-transport live` with `MAINLINE_BUILD_ID=3933b97`, read out of its own central
+> directory on 2026-08-15. **It has not been applied and nothing was redeployed to measure it**
+> — the Function URL is still answering with `sha256 12fcba7a…` and its
+> `assets/index-DzVoV1YM.js`.
+>
+> | quantity | **the committed source** (`12fcba7a…`), the column above | **the package of record** (`7e49fd5e…`), read 2026-08-15 | Δ |
+> |---|---|---|---|
+> | `web/` as packed | 114 entries, 1,274,743 B | **114 entries, 1,308,543 B** | +33,800 |
+> | `web/` identity after the strip | 57 entries, 985,306 B | **57 entries, 1,012,812 B** | +27,506 |
+> | `.gz` siblings written | 57 files, 289,437 B | **57 files, 295,731 B** | +6,294 |
+> | source maps in the package | 0 | **0** | — |
+> | largest identity object | `assets/index-DzVoV1YM.js`, 433,564 B | **`assets/index-DJX27H0M.js`, 457,123 B** | +23,559 |
+> | largest gzipped sibling | `…DzVoV1YM.js.gz`, 124,177 B | **`…DJX27H0M.js.gz`, 129,400 B** | +5,223 |
+> | 2nd largest identity | `assets/surface-BcxWkbKu.js`, 51,266 B | **`assets/surface-COD-Iou0.js`, 51,266 B** | 0 B, different file |
+> | `web/index.html` | 4,655 B | **4,655 B** | 0 |
+> | identity objects over the 139,264 B ceiling | 1 | **1** | 0 |
+>
+> **The growth is not drift and is not a defect.** It is a seventeenth declared console resource
+> and a 23,138 B `gate-run.schema.json` imported as raw text on the critical path — a decision
+> `docs/deploy/console-build.md` §2 records. **The identity length moved this time**, which is
+> what distinguishes it from §3.3's CSS-module story, where the length was fixed and only the
+> hash moved.
+>
+> **What the ceiling does about it, under ruling R10** (`docs/leads/reconcile-constants-plan.md`
+> §1): nothing, and that is the ruling rather than an omission.
+> `DEFAULT_MAX_RESPONSE_BYTES` stands at `136 * 1024 = 139,264`, **not raised and not lowered**,
+> and what is asserted against the tree is the straddle, interface I3 and exactly-one-refusal:
+>
+> ```
+> straddle   0 < 129,400 < 139,264 < 457,123                          HOLDS
+> I3         129,400 ≤ 139,264 < 1.20 × 129,400 = 155,280             HOLDS
+> refusals   identity objects over 139,264 : 1 of 57                  HOLDS
+>            today that object is assets/index-DJX27H0M.js, 457,123 B
+> headroom   139,264 − 129,400 = 9,864 gzipped bytes   (it was 15,087)
+> ratio      139,264 / 129,400 = 1.076                 (it was 1.121)
+> ```
+>
+> **The derivation is provenance now, not law.** `139,264` was CHOSEN over the 2026-08-14 tree
+> (`floor(1.10 × 124,177) = 136,594 → 17 × 8,192 = 139,264`); over the package of record the
+> same arithmetic emits `floor(1.10 × 129,400) = 142,340 → 18 × 8,192 = 147,456`. **147,456 is
+> recorded and refused**: a cost bound is not raised so a formula agrees. The ratio falling
+> **1.121 → 1.076** is the *safe* direction — the `1.20` ratchet guards against the ratio
+> climbing, where a ceiling refuses nothing at all — and **9,864 gzipped bytes** is now the
+> number to watch, because a console growth past it puts the origin's own entry chunk over its
+> own ceiling.
+
 ### The ceiling does not move, and it did not need to
 
 `136 * 1024 = 139,264` is authoritative and stays. Re-derived from the fresh measurement
@@ -391,6 +585,17 @@ Both declaration-only tests survive the fresh numbers unchanged: `derived == 139
 holds, and `round(ratio, 3) == 1.122` still holds. **Nothing in the fresh tree exceeds the
 ceiling, and no cost regression was found.** The largest object this origin can put on the
 wire grew by 46 bytes — 0.037 %.
+
+> **THE HEADING IS STILL TRUE AND THE MIDDLE LINE OF THAT BLOCK IS NOW HISTORY — annotated
+> 2026-08-15.** The ceiling has not moved: it is `136 * 1024 = 139,264` and this wave did not
+> open the file it lives in. What has moved is the *status* of the arithmetic printed above.
+> Over the package of record (`sha256 7e49fd5e…`, §4's second annotation) the same derivation
+> emits `18 × 8,192 = 147,456`, the I3 ratio is **1.076** rather than 1.122, and the I3 bound
+> reads `129,400 ≤ 139,264 < 155,280`. **Ruling R10** settles which of those is the law: the
+> derivation is a **dated record of how 139,264 was CHOSEN**, over the tree it was chosen from,
+> and the live assertions are the straddle, I3 and exactly-one-refusal — all three measured
+> true. The three lines above are therefore correct **about the build named beside them**, and
+> the block is kept, dated, rather than re-run against a tree it was not taken over.
 
 ---
 
@@ -445,6 +650,21 @@ So the honest sequence is:
 4. if the runner's `largest gzipped sibling` lands outside `(119,157 … 126,603)` B, the
    derivation moves the ceiling and **that is a decision, not a re-record** — the answer to
    an object above 139,264 B is a smaller artefact, never a bigger ceiling.
+
+> **STEP 4'S WINDOW IS SUPERSEDED AS A LIVE TRIPWIRE — 2026-08-15, ruling R10**
+> (`docs/leads/reconcile-constants-plan.md` §1). Its *conclusion* is upheld and is now settled
+> law: **a ceiling is never raised to admit a bigger artefact**, and 147,456 B was recorded and
+> refused when the arithmetic offered it (§4's second annotation). What is retired is the
+> **window** as a rule anything must satisfy. `ceil(floor(1.10·g)/8192)·8192` has a rounding
+> step, so it returns 139,264 for **every** `g` in `[119,158, 126,604]` — the band is a
+> 7,447-byte *bundle-size budget*, not a statement that the ceiling is correct, and this
+> repository already owns a bundle budget
+> (`verticals/mainline/apps/console/scripts/check-budgets.ts`).
+>
+> **The tripwire that replaces it, and it has teeth:** `139,264 − g` is the gzipped headroom,
+> and it is **9,864 B** measured on the package of record. A console growth larger than that
+> puts `g` above the ceiling and the origin answers **413** to its own entry chunk. The
+> assertion that catches it is `_assert_i3`'s lower half, not the derivation.
 
 Those constants belong to no worker in this wave (`docs/leads/lane-honest-plan.md` §3
 enumerates six owners and neither test file is among them), so this page is where the work
@@ -645,6 +865,18 @@ ceiling."*
 derivation is untouched, `139264` stands, and the outstanding work is a **re-record** and not
 a **decision**. Had it landed outside, this section would be saying the opposite and the
 correct answer would have been a smaller artefact.
+
+> **AND IT LATER LANDED OUTSIDE — 2026-08-15, and the answer was neither of those two.** The
+> console was rebuilt with the LIVE transport and packaged (`sha256 7e49fd5e…`, §4's second
+> annotation): `g` is **129,400 B**, which is outside the band above, and the derivation would
+> emit **147,456**. **The ceiling was not raised** — that is the half of the sentence above
+> that was right and remains binding. **Nor was the artefact cut down**, because it grew for a
+> declared reason and was already proven in cloud. **Ruling R10** took the third road: the
+> straddle, interface I3 and exactly-one-refusal are the law and are measured true
+> (`129,400 ≤ 139,264 < 155,280`, one identity object refused of 57), while the derivation is
+> demoted to a dated record of how 139,264 was CHOSEN over the 2026-08-14 tree. **The number
+> `139264` still has not moved**, which is the only thing this section ever asked of it, and
+> the live figure to watch is the **9,864 B** of gzipped headroom that remains.
 
 **§5's residual doubt was also answered.** Reason 1 for not re-recording was that
 `actions/setup-python`'s CPython on `ubuntu-24.04` links zlib 1.3 against 1.3.1 locally, and

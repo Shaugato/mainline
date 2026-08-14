@@ -105,14 +105,29 @@ STATEMENT_REF_CAP: Final = 32
 
 #: Resource key → the ``$id`` of the contract governing its ``data``.
 #:
-#: TRANSCRIBED, NOT DERIVED, from ``console/src/data/resources.ts``. Four of the twelve
-#: reads name a file whose stem is not their key (``change_request`` →
-#: ``change-request``, ``blocking_checks`` → ``blocking-check``, ``exposure_receipt`` →
-#: ``exposure``, ``clause_version`` → ``clause``, ``clause_ancestry`` → ``ancestry``,
-#: ``recall_run`` → ``recall-run``), so any rule that computed these would be a rule
-#: with six exceptions. The four POST keys are carried too: this API does not implement
-#: them, but ``app.py`` must be able to route them and name their contract when the
-#: transitions module is absent.
+#: TRANSCRIBED, NOT DERIVED, from ``console/src/data/resources.ts``, and it is a
+#: transcription of the console's **seventeen** ``declare()`` calls — twelve reads and
+#: five POSTs. Six of the twelve reads name a file whose stem is not their key
+#: (``change_request`` → ``change-request``, ``blocking_checks`` → ``blocking-check``,
+#: ``exposure_receipt`` → ``exposure``, ``clause_version`` → ``clause``,
+#: ``clause_ancestry`` → ``ancestry``, ``recall_run`` → ``recall-run``), so any rule that
+#: computed these would be a rule with six exceptions. The POST keys are carried too:
+#: this module implements none of them, but ``app.py`` must be able to route them and
+#: name their contract when the transitions module is absent.
+#:
+#: ``demo_gate_run`` IS THE ONE ENTRY THAT IS NOT A CONSOLE READ CONTRACT. The other
+#: sixteen name a contract some function in this package emits: the twelve GETs through
+#: :func:`read_envelope`, the four kernel POSTs through the ``invoke.schema.json``
+#: envelope ``transitions`` builds. This one names ``gate-run.schema.json``, which
+#: ``gate_run.py`` holds as ``GATE_RUN_SCHEMA_ID`` and stamps onto its own payload; the
+#: success path never consults this table. It is transcribed here anyway for the two
+#: reasons the table exists at all — the console declared it on 2026-08-14 and
+#: ``tests/test_envelope.py::test_schema_ids_match_the_console_declaration`` compares the
+#: two lists key for key, and ``app.py``'s 501 branch reads ``SCHEMA_IDS.get(key)`` to
+#: name the contract a caller was denied at the one moment ``gate_run`` cannot be
+#: imported to be asked. Measured 2026-08-14: that body's ``error.schema_id`` was
+#: ``null`` for this key before the entry and is the ``gate-run.schema.json`` ``$id``
+#: after it. Nothing else in this package changes.
 SCHEMA_IDS: Final[Mapping[str, str]] = {
     "permit": f"{CONTRACT_BASE}permit.schema.json",
     "change_request": f"{CONTRACT_BASE}change-request.schema.json",
@@ -130,6 +145,7 @@ SCHEMA_IDS: Final[Mapping[str, str]] = {
     "sign_disposition": f"{CONTRACT_BASE}invoke.schema.json",
     "merge_permit": f"{CONTRACT_BASE}invoke.schema.json",
     "suspend_permit": f"{CONTRACT_BASE}invoke.schema.json",
+    "demo_gate_run": f"{CONTRACT_BASE}gate-run.schema.json",
 }
 
 #: ``envelope.schema.json`` — ``resource`` pattern.

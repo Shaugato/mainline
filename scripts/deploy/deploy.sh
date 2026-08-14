@@ -817,9 +817,26 @@ if [ "$SKIP_BUILD" -eq 1 ]; then
 else
   [ -f "$BUILD_LAMBDA" ] || die "neither scripts/deploy/build_lambda.sh nor build_lambda.ps1 exists.
    It is owed by worker w2-lambda-bundle and builds the psycopg-bearing deployment zip." 1
+  # --console-transport live, HARD-WIRED, and not an option of this script.
+  #
+  # This stage packages the console for THIS origin, and this origin has a live kernel
+  # behind it: infra/modules/demo-api serves /v1/* and the SPA from one Function URL. So
+  # the only honest declaration a deploy can make is `live`, and making it a flag would
+  # be offering an operator the ability to re-ship the defect of 2026-08-14 -- a console
+  # compiled with VITE_MAINLINE_API_BASE="" and VITE_MAINLINE_BUNDLE_URL="./bundle/",
+  # every byte on a judge's screen a recording of a run that happened somewhere else.
+  #
+  # This is not a lock-out. An operator who genuinely means to deploy a different artefact
+  # builds it themselves with `scripts/deploy/build_lambda.sh --console-transport <x>` and
+  # passes --skip-build here, which is a decision that appears in a shell history and in
+  # this script's log rather than one that happens by default.
   case "$BUILD_LAMBDA" in
-    *.ps1) pwsh -NoProfile -File "$BUILD_LAMBDA" -Arch "$ARCH" -Out "$LAMBDA_ZIP" || die "build_lambda.ps1 failed." 1 ;;
-    *)     bash "$BUILD_LAMBDA" --arch "$ARCH" --out "$LAMBDA_ZIP" || die "build_lambda.sh failed." 1 ;;
+    *.ps1) pwsh -NoProfile -File "$BUILD_LAMBDA" -Arch "$ARCH" -Out "$LAMBDA_ZIP" -ConsoleTransport live || die "build_lambda.ps1 failed. If it REFUSED [CONSOLE TRANSPORT] or
+   [CONSOLE BUILD ID], the console dist/ is not a live artefact: rebuild it with
+   VITE_MAINLINE_API_BASE and MAINLINE_BUILD_ID set (docs/deploy/console-build.md)." 1 ;;
+    *)     bash "$BUILD_LAMBDA" --arch "$ARCH" --out "$LAMBDA_ZIP" --console-transport live || die "build_lambda.sh failed. If it REFUSED [CONSOLE TRANSPORT] or
+   [CONSOLE BUILD ID], the console dist/ is not a live artefact: rebuild it with
+   VITE_MAINLINE_API_BASE and MAINLINE_BUILD_ID set (docs/deploy/console-build.md)." 1 ;;
   esac
   [ -f "$LAMBDA_ZIP" ] || die "build_lambda finished but $LAMBDA_ZIP is not there.
    Set MAINLINE_LAMBDA_ZIP if it writes somewhere else." 1

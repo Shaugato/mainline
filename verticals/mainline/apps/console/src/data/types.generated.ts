@@ -331,12 +331,14 @@ export type NamedValue = {
 };
 
 export type FileEntry = {
-  /** Relative, forward-slashed, no '..' and no leading '/'. `~` is admitted because it is the escape character in the frame-name encoding (src/data/resources.ts): a request key's reserved bytes become ~XX, which keeps the mapping from request to file name injective without inventing a second index. */
+  /** Relative, forward-slashed, no '..' and no leading '/'. Frames are named `frames/<METHOD>-<sha256(key)[:16]>.json` by scripts/capture-bundle.ts. `~` remains admitted for non-frame content only; it was the escape character of the retired request-line naming scheme, which produced 218-character repository paths that a default Windows install cannot check out (scripts/submission/check_path_lengths.py). */
   readonly path: string;
   readonly sha256: Sha256Hex;
   /** Byte length. A length mismatch is caught before a digest is computed, which is the difference between a clear error and a silent one on a truncated download. */
   readonly bytes: number;
   readonly media_type?: string | null;
+  /** Frames only: the canonical request key this frame answers, verbatim, and the ONLY way a player addresses it. The file name is a content address and carries no request information, so this field is where the request line lives — inside the sealed set the verifier hashes, rather than on a directory entry nothing checks. The frame repeats its own key and the transport compares the two on every exchange, so the manifest is an index that cannot silently disagree with what it indexes. */
+  readonly key?: string;
 };
 
 /**
@@ -375,7 +377,7 @@ export type CheckpointRef = {
 
 export type EvidenceBundleFrame = {
   readonly frame_version: 1;
-  /** The canonical request key, derived by src/data/resources.ts from method, path and sorted query. It is also how the frame's file name is derived, so a player can find a frame without an index — an index is a second place for the truth to live. */
+  /** The canonical request key, derived by src/data/resources.ts from method, path and sorted query. The file name is the SHA-256 content address of this string, so the frame and its name cannot drift apart without `capture-bundle.ts check` saying so; the manifest carries the same string as the player's index. */
   readonly key: string;
   readonly request: {
     readonly method: "GET" | "POST";
@@ -913,6 +915,229 @@ export type ExposureLine = {
   readonly payload_digest: Sha256Hex;
   readonly tokens: number;
 };
+
+// ──────────────────────────────────────────────────────────────────────────
+// gate-run.schema.json — MAINLINE demo — four-beat gate run
+// ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Four beats played against the seeded permit inside ONE SERIALIZABLE transaction that is
+ * rolled back: read the subject, merge and be refused, forge the projected counter and be
+ * refused anyway, sign one disposition and be admitted. The payload carries what the DATABASE
+ * said at each beat — SQLSTATE, constraint name, how that name was obtained — and it proves
+ * rather than asserts the two properties the demo depends on: that the beats shared one
+ * transaction (equal cluster logical timestamps) and that nothing persisted (a fingerprint
+ * taken before and after).
+ */
+
+export type GateRunResponse = ReadEnvelope & {
+  readonly data: GateRun;
+};
+
+export type GateRun = {
+  /** This contract's own $id, repeated inside the payload so that a gate-run captured into an evidence bundle still names the contract that governs it once it is separated from its envelope. */
+  readonly schema_id: "https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json";
+  readonly run_id: UuidOrToken;
+  readonly generated_at: GateRunTimestamp;
+  /** completed = all four beats were attempted. retry = SQLSTATE 40001 aborted the run; the transaction was UNDECIDED, which is not a refusal, and this driver does not re-send on the caller's behalf. */
+  readonly outcome: "completed" | "retry";
+  /** PROVEN only when every beat matched the expectation it was written against AND the persistence check proves this run persisted nothing (`persistence_check.self_persisted` is false). It used to key on `persistence_check.identical`, which is a statement about the whole database and therefore false whenever any other caller committed a row — see that field. A run that observed something else still returns 200 and still says NOT PROVEN — a truthful red beats a fabricated green. */
+  readonly verdict: "PROVEN" | "NOT PROVEN";
+  /** One sentence per thing that did not hold. Empty exactly when the verdict is PROVEN. */
+  readonly failures: readonly string[];
+  /** Always false. The whole transaction is rolled back, including the beat that succeeded. This is the field that makes the demo safe to share with a hundred judges at once, and `persistence_check` is the evidence for it. */
+  readonly persisted: false;
+  readonly elapsed_ms: number;
+  readonly transaction: Transaction;
+  readonly subject: Subject;
+  /** Exactly four, in order. The count is fixed because the narrative is fixed: refuse, refuse under attack, admit — with the reading that makes the first two legible in front of them. */
+  readonly beats: readonly Beat[];
+  readonly persistence_check: PersistenceCheck;
+};
+
+/**
+ * How the four beats were run, with the evidence for the claim rather than the claim alone.
+ */
+
+export type Transaction = {
+  /** Issued explicitly by the client on every attempt, never inherited from a pool default (spec/errors.md §2.1). On a warm Lambda the session is by definition a reused one. */
+  readonly isolation: "SERIALIZABLE";
+  readonly disposition: "rolled_back";
+  /** cluster_logical_timestamp() read at the first beat. */
+  readonly opened_logical_timestamp: string;
+  /** The same builtin read after the last beat. Null when the run was aborted by 40001 before it could be read. */
+  readonly closed_logical_timestamp: string | null;
+  /** The two timestamps are equal. cluster_logical_timestamp() is constant within a CockroachDB transaction and moves between them, so this is a READ-ONLY witness that no beat quietly opened a transaction of its own — not an assertion the driver makes about itself. */
+  readonly single_transaction: boolean;
+  /** The savepoint fenced around each write beat. A constraint refusal rolls back to its own savepoint and the transaction keeps taking statements. */
+  readonly savepoints: readonly string[];
+  /** 40001 when the run was abandoned as undecided; null otherwise. Never a refusal code: an undecided transaction has no reason set. */
+  readonly retry_sqlstate: "40001" | null;
+  /** Which implementation produced a_canon_bytes and a_leaf_hash for the merge call. The procedure takes both from the CLIENT so that a third party can recompute the ledger leaf without this cluster (migration 0117), which only works if the client says which canonicaliser it used. */
+  readonly canonicalisation: string;
+};
+
+/**
+ * The gated subject as it stood when the run opened. Read from the database in one statement,
+ * so the counters and the state describe one moment rather than several.
+ */
+
+export type Subject = {
+  readonly subject_kind: "permit";
+  readonly subject_id: GateRunUuid;
+  readonly external_ref: string;
+  readonly state: "draft" | "checks_materialised" | "dispositioned" | "merged" | "suspended" | "closed" | "abandoned";
+  readonly head_seq: number;
+  readonly gate_epoch: number;
+  /** The PROJECTED counter — the column a trigger wrote. */
+  readonly open_blocking: number;
+  /** The same quantity re-derived from blocking_check LEFT JOIN disposition by the anti-join the gate itself uses. Carried separately and never reconciled: the whole product is the observation that a gate trusting the first is a gate one UPDATE disarms. */
+  readonly open_blocking_derived: number;
+  readonly blocking_check_id: GateRunUuid | null;
+  readonly exposure_receipt_id: GateRunUuid | null;
+  readonly site_code: string;
+};
+
+export type Beat = {
+  readonly ordinal: number;
+  readonly name: "read" | "merge" | "projection_drift_attack" | "admit";
+  readonly label: string;
+  /** What this beat was WRITTEN against, carried in the response so that a reader can check the driver's arithmetic instead of taking `matched_expectation` on trust. */
+  readonly expected: {
+    readonly outcome: BeatOutcome;
+    readonly sqlstate?: string;
+    readonly constraint?: string;
+    readonly constraint_source?: "reported" | "parsed";
+  };
+  readonly outcome: BeatOutcome;
+  /** Verbatim from the driver. 00000 for a beat that did not raise. Never composed. */
+  readonly sqlstate: string | null;
+  /** The exhibit. A constraint or unique-index name for 23514/23503/23505; the fully-qualified name of the raising object for P0001. */
+  readonly constraint: string | null;
+  /** reported = taken from driver diagnostics. parsed = recovered from the kernel's own `refused by <schema>.<object>` clause, which is a WEAKENED diagnosis and must be rendered as such. Every P0001 lands in the parsed case, measured: on CockroachDB v26.2.5 a PL/pgSQL RAISE carries no constraint_name and no PL/pgSQL context. */
+  readonly constraint_source: "reported" | "parsed" | "absent" | null;
+  /** The database's own message, verbatim apart from whitespace normalisation and the length cap. The driver never writes this sentence. */
+  readonly message: string | null;
+  readonly matched_expectation: boolean;
+  readonly elapsed_ms: number;
+  /** The parameterised SQL this beat sent, so a reader can run it themselves. */
+  readonly statement: string | null;
+  /** The spec/wire refusal payload, unchanged. Its minimal unsatisfiable subset and nearest admissible alternative come from trappoint.explain_refusal — the same engine that produced the refusal — so the explanation cannot disagree with it. */
+  readonly refusal: RefusalPayload | null;
+  readonly observed: Observed;
+  /** Set only when something needs saying: a beat that was skipped, or a beat whose outcome was not the one it was written against. */
+  readonly note: string | null;
+};
+
+/**
+ * read = a SELECT, nothing attempted. refused = the gate said no and named what said it.
+ * admitted = the transition succeeded (and was then rolled back). retry = 40001. skipped = a
+ * precondition the API refuses to fabricate was absent. error = a SQLSTATE outside the
+ * modelled taxonomy, reported rather than smoothed over.
+ */
+
+export type BeatOutcome = "read" | "refused" | "admitted" | "retry" | "skipped" | "error";
+
+/**
+ * What this beat saw. Every member is optional because the beats observe different things, and
+ * every member that is present is a value the database produced.
+ */
+
+export type Observed = {
+  readonly state?: string;
+  readonly gate_epoch?: number;
+  readonly head_seq?: number;
+  readonly open_blocking_projected?: number;
+  readonly open_blocking_derived?: number;
+  readonly blocking_check_id?: GateRunUuid | null;
+  readonly counters_agree?: boolean;
+  readonly counter_forced_to?: number | null;
+  readonly attack?: string;
+  readonly disposition_id?: GateRunUuid;
+  readonly disposition_kind?: "applied" | "mitigated" | "mechanism_absent" | "escalated" | "accept_residual" | "emergency_override";
+  readonly open_blocking_after_signature?: number | null;
+  readonly merge_record?: {
+    /** SHA-256 over the sorted (check_id, disposition_id) set, computed by the SERVER from the base tables — so a completion record cannot claim a clearance set the database does not hold. */
+    readonly clearance_digest: string | null;
+    readonly merged_commit: string;
+    readonly gate_epoch: number;
+    readonly merged_at: GateRunTimestamp;
+    readonly permit_state?: string;
+    readonly permit_open_blocking?: number;
+    readonly permit_head_seq?: number;
+  } | null;
+};
+
+/**
+ * The evidence for `persisted: false`. Row counts over every table the four beats can write,
+ * taken before the transaction opened and after it was rolled back, plus mainline.permit's own
+ * columns — because the attack beat mutates a column without changing a count. That reading is
+ * `identical` and it is a statement about the DATABASE. `self_persisted` is the statement
+ * about THIS RUN, and it is what the verdict keys on: a whole-table count cannot distinguish
+ * 'I persisted something' from 'somebody else did', and this endpoint used to report the
+ * difference as its own failure. Amended 2026-08-14 under docs/leads/cloud-hardening-final.md
+ * ruling R2, which permits the contract to move only by argument on the record; the argument
+ * is docs/deploy/gate-run-contract.md §3 and the reproduction that identified the writer is
+ * docs/diagnosis/gate-run-fingerprint.md. NOTHING WAS NARROWED: the ten counts are unchanged,
+ * no table left the list, and the run-scoped evidence was ADDED beside them.
+ */
+
+export type PersistenceCheck = {
+  readonly before: Fingerprint;
+  readonly after: Fingerprint;
+  /** The ten unscoped counts and the permit row are byte-identical before and after. False means SOMETHING in those tables moved — not necessarily this run; read `self_persisted` and `concurrent_writes` for which. */
+  readonly identical: boolean;
+  /** Did anything THIS RUN wrote survive the rollback? False is the claim `persisted: false` makes, and it is proven rather than asserted: the disposition beat 4 minted is a uuid4 no other writer holds and it is absent; this subject's own merge_record / permit_event / disposition counts are unchanged; and its permit row is unchanged, which is where beat 3's out-of-band UPDATE would show. True is a defect in the gate and makes the verdict NOT PROVEN. */
+  readonly self_persisted: boolean;
+  readonly self_evidence: SelfEvidence;
+  /** Null when `identical` is true. Otherwise the tables whose unscoped count moved while this run was open, each as [before, after]. These are ANOTHER caller's rows — a fact about the database this demo shares, reported rather than blamed on the run, and never a reason to narrow the counts above. */
+  readonly concurrent_writes: StringMap<readonly number[]> | null;
+  readonly tables: readonly string[];
+  readonly note: string;
+};
+
+/**
+ * The run-scoped readings `self_persisted` is computed from, in the payload so that a reader
+ * can recompute the verdict rather than take it.
+ */
+
+export type SelfEvidence = {
+  /** The uuid4 beat 4 minted for its disposition. Null when beat 4 was skipped, in which case the run wrote nothing the database accepted at all. */
+  readonly minted_disposition_id: string | null;
+  /** How many rows carry that identifier once the transaction is rolled back. Zero is the proof; anything else means the transaction committed. */
+  readonly minted_disposition_rows_after_rollback: number;
+  readonly subject_row_counts_before: SubjectRowCounts;
+  readonly subject_row_counts_after: SubjectRowCounts;
+  readonly permit_row_identical: boolean;
+};
+
+/**
+ * The three tables a successful beat 4 writes a surviving row into, counted for THIS permit
+ * only. Added beside the ten unscoped counts, never in place of them.
+ */
+
+export type SubjectRowCounts = StringMap<number>;
+
+export type Fingerprint = {
+  /** Every table the four beats can write, counted WHOLE. Unscoped on purpose and it stays unscoped: the attack beat mutates a column without changing a count, and a check that only looked where this run was expected to write could not see a write it was not expecting. */
+  readonly row_counts: StringMap<number>;
+  readonly subject_row_counts: SubjectRowCounts;
+  readonly permit_row: {
+    readonly state: string;
+    readonly head_seq: number;
+    readonly gate_epoch: number;
+    readonly open_blocking: number;
+    readonly unmet_floor_count: number;
+    readonly countersigned_count: number;
+    readonly merged_commit: string | null;
+  } | null;
+};
+
+export type GateRunUuid = string;
+
+export type UuidOrToken = string;
+
+export type GateRunTimestamp = string;
 
 // ──────────────────────────────────────────────────────────────────────────
 // invoke.schema.json — MAINLINE console — kernel procedure result

@@ -18,12 +18,45 @@ Three things, before anything else: what to click, what to run, and what we are 
 ### 0.1 · What to click
 
 ```
-<DEMO-URL-PENDING-APPLY>
+https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
 ```
 
-**This is a placeholder and it is deliberately not a hostname.** Terraform has never been applied
-(`evidence/deploy/terraform-plan-furl.txt` is a *plan*, `Plan: 24 to add, 0 to change, 0 to destroy` at line 843),
-so no origin exists yet. The count is **24, not the 11 an earlier revision of this page quoted**:
+> **UPDATED 2026-08-14 — THE APPLY HAS RUN AND THIS LINE IS NO LONGER A PLACEHOLDER.**
+> The token `<DEMO-URL-PENDING-APPLY>` stood here, above the paragraph beginning *"This is a
+> placeholder and it is deliberately not a hostname"*, and the paragraph is kept below
+> because the reasoning in it is still the reasoning: **an invented hostname is the one
+> failure this project will not commit**, so the token stayed until there was a real one to
+> replace it with. There is now.
+>
+> Measured against that hostname on 2026-08-14, not assumed:
+>
+> | request | answer |
+> |---|---|
+> | `GET /` | **`200`**, 4,655 B, 1.52 s — the console shell serves |
+> | `GET /v1/health` | **`503`**, `ok=false`, `reason="dsn_unset"` |
+> | `POST /v1/demo/gate-run` | **`503`**, `kind="dsn_unset"` — the route exists; it does not 404 |
+>
+> **Every row of that table is regenerable by one command that needs no credential of ours:**
+> `python scripts/deploy/judge_walk.py --base-url` followed by the hostname above.
+> **§1.1** is what it does, what its three outcomes mean, and what it answered on 2026-08-14.
+> Run it rather than believing this note.
+>
+> **Read §0.4 before you click.** The origin is up and the database behind it is not yet
+> wired to it: both API answers name the missing SSM parameter, verbatim, and
+> [`RUNBOOK.md`](RUNBOOK.md) §5.10 says what that gets you and what it does not,
+> [§5.11](RUNBOOK.md) how to re-run it.
+> `docs/submission/SUBMISSION.json` still holds `"demo_url": "UNRESOLVED"` — that file is
+> not this page's to write, and the two disagree until its owner resolves it. **Where they
+> disagree, the wire wins and this note is the record of the disagreement.**
+
+The paragraph this line used to carry, kept because its arithmetic is still the arithmetic:
+
+~~**This is a placeholder and it is deliberately not a hostname.** Terraform has never been applied,
+so no origin exists yet.~~ **SUPERSEDED 2026-08-14 — the apply has run and the hostname above is the
+one it produced.** `evidence/deploy/terraform-plan-furl.txt` remains a *plan*
+(`Plan: 24 to add, 0 to change, 0 to destroy` at line 843) and is still what the count below is read
+from; it is a record of what was going to be created, not a claim that nothing was.
+The count is **24, not the 11 an earlier revision of this page quoted**:
 the plan now creates 11 resources in `module.api[0]` and 13 in `module.guard[0]`, because
 `infra/envs/demo/main.tf:631` instantiates the cost guard that used to be written and never
 wired in. The guard module declares 14 `resource` blocks and the plan creates 13 of them, so
@@ -35,10 +68,12 @@ subscription is a control that looks present and is not, which is why the defaul
 why nothing here is silently missing. 11 + 13 = 24 creates, plus one data-source read
 (`module.guard[0].data.aws_iam_policy_document.topic`) for 25 `resource_changes` in
 `evidence/deploy/terraform-plan-furl.json`. Re-derive it rather than believing this paragraph:
-`grep -n '^Plan:' evidence/deploy/terraform-plan-furl.txt`. When the apply runs it prints a Lambda Function
+`grep -n '^Plan:' evidence/deploy/terraform-plan-furl.txt`. The apply printed a Lambda Function
 URL of the shape `https://<id>.lambda-url.ap-southeast-1.on.aws`, and **that string, not an
-invented one, is what replaces the token above** and what goes into
-`docs/submission/SUBMISSION.json`, which holds `"demo_url": "UNRESOLVED"` until then.
+invented one, is what replaced the token above**. It has **not** yet gone into
+`docs/submission/SUBMISSION.json`, which still holds `"demo_url": "UNRESOLVED"` — that file
+belongs to the submission domain and is not this page's to write. Until its owner resolves it,
+the two disagree, and this page says so rather than quietly agreeing with either.
 
 There is no CloudFront hostname on this page because there is no CloudFront distribution: the AWS
 account carries a verification hold — `AccessDenied: Your account must be verified before you can
@@ -46,9 +81,12 @@ add new CloudFront resources.`, verbatim with its `RequestID` in
 [`RUNBOOK.md`](RUNBOOK.md) Appendix A — proven by a real apply attempt, so the origin is the
 Function URL itself.
 
-**If the token above is still a token when you read this, the demo is not deployed, and §0.2 is
-the whole of what you can do.** That is not a workaround: it is the path this submission leads
-with, and it needs no deployment of ours at all.
+**§0.2 stands on its own and needs no deployment of ours at all.** That was written when the line
+above was a token, and it is the reason this submission leads with the ledger rather than with a
+URL. It is still the strongest thing on this page: **the origin can be down, half-configured, or
+serving a recording, and §0.2 is unaffected**, because it puts a judge's own SQL client against the
+deployed cluster with none of our code in the path. Today the origin is up and half-configured
+(§0.4), which is precisely the case §0.2 was written to survive.
 
 ### 0.2 · What to run — the ledger in your own SQL client, no checkout, no build
 
@@ -85,8 +123,8 @@ Each line names the artefact that measures it.
 
 | We do **not** claim | The measurement |
 |---|---|
-| **That the demo is deployed.** It is not. Terraform has never been applied and no hostname exists. | `evidence/deploy/terraform-plan-furl.txt` is a plan; `SUBMISSION.json.demo_url` is `UNRESOLVED` |
-| **That the acceptance run was taken through a public demo URL.** It was not. Both acceptance artefacts carry `target_is_local_emulator: true`, read from a header the target volunteered — there is no Function URL to point them at yet. The **database** underneath the Cloud run is the deployed one. | `evidence/deploy/cloud-acceptance.json` → `target_provenance`, §6 |
+| ~~**That the demo is deployed.** It is not. Terraform has never been applied and no hostname exists.~~ **SUPERSEDED 2026-08-14: it is deployed.** What we do not claim is narrower and sharper — **that the deployed origin can run the four beats.** It cannot: the Lambda has no DSN, and `POST /v1/demo/gate-run` answers `503 dsn_unset` naming the missing SSM parameter. Nor do we claim the deployed console talks to that kernel: the artefact on the URL is a **REPLAY** build (`buildId:"dev"`) and every byte on its screen is a recording. §0.4, §1 | measured against the URL 2026-08-14; compiled literals in [`console-build.md`](console-build.md) §7.1 |
+| **That the acceptance run was taken through the public demo URL.** It was not. Both acceptance artefacts carry `target_is_local_emulator: true`, read from a header the target volunteered. ~~there is no Function URL to point them at yet~~ **CORRECTED 2026-08-14: the URL exists and still cannot host the run** — it has no DSN and answers `503 dsn_unset`, so a re-capture against it would transcribe a 503, not four beats. The **database** underneath the Cloud run is the deployed one. | `evidence/deploy/cloud-acceptance.json` → `target_provenance`, §6 |
 | **That beat 4's signature was shown, over the wire, to pin the vocabulary the rows carry.** The gate-run payload does not publish the digest it bound. A credential-free caller can prove the vocabulary *resolved*; the equality is asserted in-process by a test. | `cloud-acceptance.json` → `signature_path.not_established_here`, §6 |
 | **That there is end-to-end Australian data residency.** The database is in Singapore (`aws-ap-southeast-1`); Bedrock inference is in Sydney (`ap-southeast-2`). | `docs/HONESTY.md` § *GEOGRAPHY AND LATENCY* |
 | **That any row is real.** Every row is synthetic: fictional operator, fictional sites, fictional people, fictional incidents. | `verticals/mainline/db/seeds/`, §5 |
@@ -104,58 +142,164 @@ The long forms are [`docs/HONESTY.md`](../HONESTY.md),
 
 | | |
 |---|---|
-| Demo URL | **NOT YET DEPLOYED.** §0.1 |
+| Demo URL | ~~**NOT YET DEPLOYED.**~~ **DEPLOYED AND SERVING, HALF-CONFIGURED.** `GET /` → `200`. `GET /v1/health` and `POST /v1/demo/gate-run` → `503 dsn_unset`, both naming the SSM parameter that does not exist. The console artefact on it is a **REPLAY** build, so what is on screen is a recording rather than that kernel. Measured 2026-08-14. §0.1, §1 |
 | Read-only SQL login | **LIVE, rotated 2026-08-11, verified from the other side** — 14/14 views readable, 11/11 refusals at `42501`. §2 |
 | Managed MCP | **available on Basic and working.** The key is deliberately not published and §4 says exactly why |
-| Acceptance gate | **GREEN, against the deployed database.** `PROVEN`, twice, all four beats, with the row census unmoved before and after — `evidence/deploy/cloud-acceptance.json`, 2026-08-14. Reproduced locally in `evidence/deploy/acceptance.json`. Neither run reached a public URL, because there is none. §6 |
+| Acceptance gate | **GREEN, against the deployed database.** `PROVEN`, twice, all four beats, with the row census unmoved before and after — `evidence/deploy/cloud-acceptance.json`, 2026-08-14. Reproduced locally in `evidence/deploy/acceptance.json`. **Neither run reached the public URL** — both carry `target_is_local_emulator: true`, and the URL cannot run the beats until the DSN parameter exists. §6 |
 
 **The one thing this page is for — a judge reading the ledger with none of our code in the path —
-works right now, over §0.2 and §2.** The demo URL is a separate and currently unmet obligation,
-and this page does not pretend otherwise.
+works right now, over §0.2 and §2.** The demo URL exists and is a **partial** obligation: the
+origin serves, and the kernel behind it cannot reach a database. **Two things are outstanding and
+neither is hidden here.** (1) An operator must write `/mainline/demo/cockroach_dsn` — a secret step,
+deliberately not scripted and deliberately not in this repository. (2) The console artefact must be
+rebuilt against its own origin and redeployed; the packaging guard that refuses the wrong
+combination is [`console-build.md`](console-build.md) §7.3. **Neither is a claim this page is
+making in advance of the work.**
 
-### 0.5 · The two placeholders on this page, and nothing else
+### 0.5 · The one placeholder left on this page, and nothing else
 
-Everything on this page is a real, checkable value except exactly two tokens:
+Everything on this page is a real, checkable value except exactly one token:
 
 | token | who fills it | why it is not here |
 |---|---|---|
-| `<DEMO-URL-PENDING-APPLY>` | the operator, after the apply, from the Terraform `function_url` output | the origin does not exist yet, and an invented hostname is the one failure this project will not commit |
+| ~~`<DEMO-URL-PENDING-APPLY>`~~ | ~~the operator, after the apply, from the Terraform `function_url` output~~ | **RESOLVED 2026-08-14.** The apply ran and the hostname it produced is in §0.1 and §1. The reasoning stands and is why the token existed: *an invented hostname is the one failure this project will not commit.* |
 | `<PASSWORD-FROM-THE-SUBMISSION-FORM>` | the submission form's credentials field | **a live database password committed to a public repository is a published password.** §2.1 |
 
-**There is no third fill-in token.** Two other angle-bracketed strings appear on this page and
-neither is one: `<id>` in `https://<id>.lambda-url.ap-southeast-1.on.aws` is *shape notation* for a
-hostname AWS generates, and `<date>` in §7 step 3 describes a future edit to this file. Anything
-else in angle brackets is a defect — re-derived with
+**There is no second fill-in token.** Three other angle-bracketed strings appear on this page and
+none of them is one: `<id>` in `https://<id>.lambda-url.ap-southeast-1.on.aws` is *shape notation*
+for a hostname AWS generates, `<date>` in §7 step 3 describes a future edit to this file, and
+`<DEMO-URL-PENDING-APPLY>` now survives **only** in the places that record it as resolved — the
+struck row above and the §0.1 note — because a token deleted is a token nobody can tell was ever
+filled. Anything else in angle brackets is a defect — re-derived with
 `grep -o '<[A-Za-z][A-Za-z0-9 ._-]*>' docs/deploy/JUDGE-PACK.md | sort -u`, which returns exactly
 these four.
+
+> **CORRECTED 2026-08-15.** This paragraph used to end *"and `grep -n 'DEMO-URL-PENDING-APPLY'
+> docs/deploy/JUDGE-PACK.md`, which returns exactly those two lines and no third."* **That
+> grep returns FOUR lines, not two**, and always did: the two that record the token as
+> resolved, plus the two lines of this very paragraph, which name it in order to describe the
+> check. A self-check that does not count itself is a self-check that goes red the first time
+> somebody runs it, and it was written by somebody who reasoned about the file instead of
+> grepping it — on a page whose entire claim is *"you do not have to take our word for
+> anything."* The `grep -o … | sort -u` above **is** exact and returns exactly the four
+> tokens named; only the second grep's count was wrong, and it is removed rather than
+> re-numbered, because a count that includes the sentence stating the count is a number that
+> changes whenever the sentence is reworded.
 
 ---
 
 ## 1 · The demo URL
 
 ```
-<DEMO-URL-PENDING-APPLY>            # shape: https://<id>.lambda-url.ap-southeast-1.on.aws
+https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
 ```
 
-When the apply has run, this line carries the real hostname and
-`evidence/deploy/acceptance.json` carries a run against it.
-[`RUNBOOK.md`](RUNBOOK.md) is the deploy procedure and
-[`terraform-plan.md`](terraform-plan.md) reads the committed plan.
+[`RUNBOOK.md`](RUNBOOK.md) is the deploy procedure, §5.10 of it is what that hostname serves
+today, and [`terraform-plan.md`](terraform-plan.md) reads the committed plan.
 
-Verify it yourself, from outside, with no credentials:
+Check it yourself, from outside, with no credentials and no checkout. These are the three
+requests this page's claims rest on, and the answers measured on 2026-08-14:
 
 ```bash
-python scripts/deploy/demo_acceptance.py --url <DEMO-URL-PENDING-APPLY>
+curl -s -o /dev/null -w '%{http_code} %{size_download}\n' \
+  https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/
+#  200 4655        — the console shell serves
+
+curl -s https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health
+#  503, "ok": false, "reason": "dsn_unset"
+
+curl -s -X POST -H 'content-type: application/json' -d '{}' \
+  https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/gate-run
+#  503, "kind": "dsn_unset"   — 174 bytes, and NOT a 404: the route exists and is reachable
+```
+
+Both API answers carry the same `detail` and it names the cause exactly:
+`SSM GetParameter '/mainline/demo/cockroach_dsn' in ap-southeast-1 answered HTTP 400:
+{"__type":"ParameterNotFound"}`. **An operator has not finished, and the endpoint says so
+rather than pretending.** That is the demo's own thesis applied to its own deployment.
+
+**Two things this page will not overstate.**
+
+1. **The kernel cannot run the four beats yet.** It has no DSN. Writing that parameter is a
+   secret-handling step, it is the operator's, and no DSN appears anywhere in this repository.
+2. **The console artefact currently on that origin is a REPLAY build.** Measured off the
+   JavaScript the URL serves: `VITE_MAINLINE_API_BASE:""`, `VITE_MAINLINE_BUNDLE_URL:"./bundle/"`,
+   `buildId:"dev"`, and zero occurrences of `gate-run` in the bundle. So the screen a judge sees
+   today is a **verified recording**, badged `REPLAY (staged)`, not that kernel — and it carries no
+   gate-run control at all. The compiled literals, why the packer did not catch it, and the guard
+   that now refuses that combination are [`console-build.md`](console-build.md) §7.
+
+Verify the whole path with the acceptance program, which is stricter than the three requests above:
+
+```bash
+python scripts/deploy/demo_acceptance.py --url https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
 ```
 
 That program fetches `/`, asserts the console loads, calls `GET /v1/health`, then calls
 `POST /v1/demo/gate-run` **twice** and requires the two runs to agree. It exits non-zero if the
-gate did not refuse and then admit.
+gate did not refuse and then admit. **Pointed at the URL today it exits non-zero, at the health
+check, and that is the correct answer** — a program that passed against a kernel with no database
+would be worth nothing.
 
-**Today it exits zero, and §6 says against what.** There is still no public URL to give it, so it
-was pointed at the same handler over a local socket — but against the **deployed CockroachDB
-Cloud database**, which is the half of the claim that was never proven before 2026-08-14.
-`evidence/deploy/cloud-acceptance.json` is that run.
+**Where the beats HAVE been proven, and against what.** `evidence/deploy/cloud-acceptance.json` is
+a run of the same program that came back `PROVEN`, twice, all four beats, against the **deployed
+CockroachDB Cloud database** — but over a local socket, not this hostname. It carries
+`target_is_local_emulator: true`, read from a header the target volunteered, so a transcript taken
+against the emulator can never be mistaken for one taken against the deployment. §6 is that run.
+`evidence/deploy/acceptance.json` is the local reproduction.
+
+### 1.1 · The judge's walk — one command that regenerates every claim in §0.1 and §1
+
+**You should not have to trust the three `curl`s above, and you do not have to run them one at a
+time.** `scripts/deploy/judge_walk.py` takes **a URL and nothing else** — no AWS credential, no
+`terraform`, no state file, no build — and writes a document of what the deployment answered:
+
+```bash
+python scripts/deploy/judge_walk.py \
+  --base-url https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
+#  -> evidence/deploy/judge-walk.json
+```
+
+It does five things, in this order, and the fourth is the one worth knowing about:
+
+1. `GET /` — is it 200, and are the bytes a console shell (a doctype, the `#root` mount, at
+   least one `./assets/*.js` and one `./assets/*.css`)?
+2. **The transport badge, read out of the shipped JavaScript rather than off a screen.** It
+   fetches the entry chunks the shell references, extracts the compiled `VITE_MAINLINE_*`
+   literals, and applies `src/app/source-select.ts`'s own rule — empty and whitespace are
+   **unset**, exactly as they are in your browser. This is how the REPLAY finding in §0.3 and
+   §0.4 was established, and you can re-establish it yourself.
+3. `GET /v1/health`.
+4. **Every request the artefact itself declares.** The console ships an EvidenceBundle whose
+   `manifest.json` enumerates every request it makes; the walk reads that manifest *from the
+   origin*, at the bundle URL compiled into the served bytes, and drives all **18** frames. It
+   does not use a list written by us — a hand-written list drifts from the console in silence.
+5. `POST /v1/demo/gate-run` — the headline beat.
+
+**Three outcomes, and the reason vocabulary is closed and written down.** `SATISFIED`,
+`REFUSED` *(for a named reason from a fixed table)*, `FAILED`. `REFUSED` with a reason outside
+that table is not representable — the program raises rather than inventing one. **`dsn_unset` is
+a `REFUSED`**, because a 503 that names the SSM parameter it could not read is a *correct*
+deployment telling you an operator has not finished. Measured on 2026-08-14 against this URL:
+
+```
+23 steps: 2 satisfied, 20 refused (dsn_unset), 1 FAILED (transport: REPLAY)  -> exit 1
+```
+
+**Exit 1, and we are showing you the exit code rather than a summary.** The one failure is the
+REPLAY artefact, which is the defect §0.3 and §0.4 already declare — not a surprise, and not
+filed in the same drawer as the SSM step, because a missing secret is somebody's remaining work
+and a wrong artefact is a wrong artefact. `--allow-replay` will downgrade it to a named refusal
+and exit 0, it must be typed on the command line, and any document produced that way is stamped
+`allow_replay_declared: true` so it can never be quoted as a reading of a LIVE build. **When the
+corrected artefact is deployed, the bare command exits 0.** That transition is the check to
+apply to this page, and it needs no word from us.
+
+The program never applies anything, never redeploys, knows no AWS API, never reads or writes
+`/mainline/demo/cockroach_dsn`, and masks every database URL, embedded password and bare
+twelve-digit account number before anything reaches the screen or the file. Its own honest
+caveat: three of the eighteen frames are `POST` merges, so a walk against a seeded live cluster
+**writes** — exactly as clicking the console writes.
 
 ---
 
@@ -663,9 +807,13 @@ two transactions rather than taken from the server's own flag.
 The acceptance brief for this capture asked for `false`. It cannot be `false`, and writing it would
 be the plainest possible falsification. The flag is **read** from the `X-Mainline-Emulator` header
 the target sent, and `scripts/deploy/local_furl.py` stamps that header precisely so a transcript
-taken against it can never be mistaken for one taken against a deployment. There is no Function URL
+taken against it can never be mistaken for one taken against a deployment. ~~There is no Function URL
 to reach: `aws lambda get-function --function-name mainline-demo-api` answers
-`ResourceNotFoundException`.
+`ResourceNotFoundException`.~~ **CORRECTED 2026-08-14: a Function URL now exists** (§1) — but it
+still cannot host this run, for a different and equally checkable reason: it has no DSN, and
+`POST /v1/demo/gate-run` against it answers `503 dsn_unset`. So the flag stays `true` on both
+artefacts, and it stays true **honestly rather than by omission**: re-capturing against the
+hostname today would produce a transcript of a 503, not of four beats.
 
 What the criterion was reaching for — *did this meet the deployed cluster, or a local imitation of
 it?* — is true, and `target_provenance` carries it by separating the three things the one boolean
@@ -734,7 +882,13 @@ see it.
 
 ### What is still not proven
 
-1. **That a public demo URL exists.** It does not; `SUBMISSION.json` holds `UNRESOLVED`.
+1. ~~**That a public demo URL exists.** It does not; `SUBMISSION.json` holds `UNRESOLVED`.~~
+   **SUPERSEDED 2026-08-14: it exists and serves `200` at `/`** (§0.1, §1). What is still not
+   proven is the narrower claim this line was standing in for: **that the four beats can be
+   driven through it.** They cannot — the Lambda has no DSN, `POST /v1/demo/gate-run` answers
+   `503 dsn_unset`, and the artefact on the origin is a REPLAY build with no gate-run control.
+   `docs/submission/SUBMISSION.json` still holds `"demo_url": "UNRESOLVED"`; that file is the
+   submission domain's and the disagreement is recorded in §0.1 rather than resolved here.
 2. **That beat 4's signature pinned the digest those vocabulary rows carry.** The payload does not
    publish the digest it bound, so a credential-free caller can establish only that the vocabulary
    *resolved* — an absent one raises `DefeaterVocabularyAbsent` and the request is `422`, never a

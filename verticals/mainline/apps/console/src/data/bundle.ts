@@ -63,8 +63,22 @@ export interface BundleFileEntry {
    * puts it inside the sealed set the verifier hashes, which is a stronger place for it
    * than a directory entry nothing checks. The frame repeats its own key and the
    * transport compares the two below.
+   *
+   * OPTIONAL BUT NEVER NULL, and the difference is the contract's, not a preference.
+   * `contracts/bundle.schema.json#/$defs/file_entry` declares `key` as
+   * `{"type": "string", "minLength": 1}` — absent is allowed, null is not — and
+   * `BundleTransport.manifest()` validates every parsed manifest against that document
+   * before returning it, so a null key is refused at the door and cannot reach any
+   * consumer of this interface. This field read `string | null` until 2026-08-14, which
+   * was a claim the validated input could never satisfy; `types.generated.ts` had no
+   * `key` at all at the time, so the subtype assertion in `tests/unit/data/types.test.ts`
+   * could not see the disagreement. Regenerating the types made it visible.
+   *
+   * The runtime narrowing in `keyFromManifestEntry` is deliberately NOT relaxed to match:
+   * defence at the boundary is cheap, and this type describes what the contract permits
+   * rather than what a defensive reader tolerates.
    */
-  readonly key?: string | null;
+  readonly key?: string;
 }
 
 export interface BundleClusterFingerprint {

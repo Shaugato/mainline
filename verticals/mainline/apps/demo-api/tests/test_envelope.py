@@ -107,11 +107,19 @@ def _declared_query_params() -> dict[str, list[str]]:
     return out
 
 
-def test_the_console_declares_sixteen_resources() -> None:
-    """Guards the parser itself: if the regex stops matching, every test below passes vacuously."""
+def test_the_console_declares_seventeen_resources() -> None:
+    """Guards the parser itself: if the regex stops matching, every test below passes vacuously.
+
+    Sixteen until 2026-08-14, when the console declared ``demo_gate_run`` and closed the
+    gap that left ``POST /v1/demo/gate-run`` reachable by ``curl`` and not from the
+    artefact a judge drives. The GET count is UNCHANGED at twelve, and it is asserted here
+    rather than assumed: the seventeenth resource is a POST, so a change that moved the
+    total without moving the split is the one this second line can still see.
+    """
     declared = _declared()
-    assert len(declared) == 16, [entry["key"] for entry in declared]
+    assert len(declared) == 17, [entry["key"] for entry in declared]
     assert sum(1 for entry in declared if entry["method"] == "GET") == 12
+    assert sum(1 for entry in declared if entry["method"] == "POST") == 5
 
 
 def test_declared_parameters_match_the_console() -> None:
@@ -138,12 +146,21 @@ def test_declared_parameters_match_the_console() -> None:
 
 
 def test_schema_ids_match_the_console_declaration() -> None:
-    """``envelope.schema_id`` must be the EXACT ``$id`` the console holds, for all sixteen.
+    """``envelope.schema_id`` must be the EXACT ``$id`` the console holds, for all seventeen.
 
     ``finishExchange`` compares them as strings and refuses a mismatch outright:
     *a payload that names a contract we do not hold is not forward compatibility; it is
-    an unverifiable claim.* Six of the sixteen name a file whose stem is not their key,
+    an unverifiable claim.* Six of the seventeen name a file whose stem is not their key,
     so this cannot be a derivation and has to be a comparison.
+
+    The equality is two-directional and stays that way. ``demo_gate_run`` joined both
+    sides on 2026-08-14 and is the one entry whose contract this package does not emit
+    through :func:`envelope.read_envelope` — ``gate_run.py`` stamps
+    ``GATE_RUN_SCHEMA_ID`` onto its own payload — so a reader tempted to drop it from
+    :data:`envelope.SCHEMA_IDS` on the grounds that "nothing uses it" should read
+    ``app.py``'s 501 branch first, and
+    ``tests/test_routes_gate_run.py::test_the_transcribed_contract_id_is_the_one_the_handler_actually_stamps``
+    second.
     """
     expected = {entry["key"]: f"{envelope.CONTRACT_BASE}{entry['schema']}" for entry in _declared()}
     assert expected == envelope.SCHEMA_IDS
@@ -160,43 +177,44 @@ def test_every_contract_id_resolves_to_a_committed_file() -> None:
 
 
 def test_reads_implements_exactly_the_twelve_gets() -> None:
-    """The twelve GET keys, no more and no fewer. W4 owns the four POSTs."""
+    """The twelve GET keys, no more and no fewer. W4 owns the five POSTs."""
     gets = {entry["key"] for entry in _declared() if entry["method"] == "GET"}
     assert set(reads.READS) == gets
 
 
 def test_routes_match_the_console_path_templates() -> None:
-    """Every declared template is routable, and the only route the console does not
-    declare is the demo driver's own endpoint.
+    """Every declared template is routable and every routable template is declared.
 
-    ``POST /v1/demo/gate-run`` is routed by this API and is deliberately NOT one of the
-    console's sixteen ``declare()`` calls: it is governed by
-    ``demo-api/contracts/gate-run.schema.json`` rather than by ``invoke.schema.json``, and
-    its key ``demo_gate_run`` is declared in ``transitions.TRANSITION_RESOURCES`` instead
-    of in the console's resource registry. It was absent from ``app._routes()`` until
-    2026-08-11, which is why ``evidence/deploy/acceptance.json`` records
-    *"POST /v1/demo/gate-run (run 1) returned 404, expected 200"*.
+    ``POST /v1/demo/gate-run`` was routed by this API and NOT declared by the console
+    until **2026-08-14**. It was absent from ``app._routes()`` until 2026-08-11 — which is
+    why ``evidence/deploy/acceptance.json`` records *"POST /v1/demo/gate-run (run 1)
+    returned 404, expected 200"* — and absent from ``resources.ts`` for three days after
+    that, which is why the deployed console rendered *"POST /v1/demo/gate-run is not
+    addressable from this console"* in front of the founder.
 
-    The exception is pinned as an exact set rather than relaxed to a subset, so a SECOND
-    undeclared route still fails here — this assertion is strictly stronger than the
-    equality it replaces, not weaker. ``tests/test_routes_gate_run.py`` carries the rest
-    of the agreement check between the router and the dispatcher.
+    While that was true this test pinned the exception as an EXACT set difference,
+    ``routed - declared == {demo_route}``, so a *second* undeclared route still failed.
+    With the console declaring it the exception was collapsed, not enlarged: the
+    assertion is now plain set equality, which permits no undeclared route at all. That
+    is a ratchet up. Reverting either half of the 2026-08-14 change fails it, and the
+    failure names the row in whichever direction it went missing.
 
     The two set assertions are joined by a COUNT over the list, because ``app.ROUTES`` is a
     list and the sets above cannot see a duplicate in it: two identical ``Route`` rows
     collapse into one member and every assertion below would still hold while ``route()``
-    resolved to whichever came first. 16 declared + 1 demo endpoint = 17, re-derived here
-    rather than remembered — ``test_the_console_declares_sixteen_resources`` pins the 16.
+    resolved to whichever came first. 17 declared = 17 routed, re-derived here rather than
+    remembered — ``test_the_console_declares_seventeen_resources`` pins the 17.
     """
     demo_route = ("POST", "/v1/demo/gate-run")
     declared = {(entry["method"], entry["template"]) for entry in _declared()}
     routed = {(route.method, route.template) for route in app.ROUTES}
-    assert declared <= routed, f"declared but not routed: {sorted(declared - routed)}"
-    assert routed - declared == {demo_route}
-    assert demo_route not in declared, "the console declares the demo endpoint after all"
+    assert declared - routed == set(), f"declared but not routed: {sorted(declared - routed)}"
+    assert routed - declared == set(), f"routed but not declared: {sorted(routed - declared)}"
+    assert declared == routed
+    assert demo_route in declared, "the console has stopped declaring the demo endpoint"
     pairs = [(route.method, route.template) for route in app.ROUTES]
     duplicated = sorted(pair for pair in routed if pairs.count(pair) > 1)
-    assert len(pairs) == len(declared) + 1 == 17, (
+    assert len(pairs) == len(declared) == 17, (
         f"app.ROUTES holds {len(pairs)} rows for {len(routed)} distinct (method, template) "
         f"pairs; a duplicate is unreachable and hides the row it shadows: {duplicated}"
     )

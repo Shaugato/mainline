@@ -390,6 +390,58 @@
   overflow-wrap: anywhere;
 }
 
+/*
+ * The before/after fingerprint.
+ *
+ * A real <table> because it is one: three columns, one reading per row, a <caption> that
+ * names what was read and `scope` on every header. `data-moved` is on the row and is NOT
+ * given a colour — a reading that moved is a fact the payload carries, and an EVIDENCE
+ * surface may not encode a fact in a hue a printout or a screenshot loses. It gets a rule
+ * on the left instead, which prints.
+ */
+.compare {
+  border-collapse: collapse;
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink);
+  text-align: left;
+}
+
+.compare caption {
+  text-align: left;
+  padding-bottom: var(--tp-space-2);
+}
+
+.compare th,
+.compare td {
+  border-bottom: var(--tp-hairline) solid var(--tp-rule);
+  padding: var(--tp-space-1) var(--tp-space-3) var(--tp-space-1) 0;
+  vertical-align: baseline;
+}
+
+.compare thead th {
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-faint);
+  border-bottom-color: var(--tp-rule-strong);
+}
+
+.compareMember {
+  font-weight: var(--tp-weight-regular);
+  color: var(--tp-ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.compare tbody tr[data-moved='true'] .compareMember {
+  color: var(--tp-ink);
+  font-weight: var(--tp-weight-strong);
+  border-left: var(--tp-space-1) solid var(--tp-refuse);
+  padding-left: var(--tp-space-2);
+}
+
 .verdict {
   display: flex;
   flex-wrap: wrap;
@@ -487,6 +539,27 @@
     background: none;
     border-color: currentcolor;
     white-space: pre-wrap;
+  }
+
+  /*
+   * The fingerprint is the exhibit a reader would hold up, so it prints whole: no page
+   * break inside a row, and the header repeats on every page a long table spills onto.
+   */
+  .compare {
+    break-inside: auto;
+  }
+
+  .compare thead {
+    display: table-header-group;
+  }
+
+  .compare tr {
+    break-inside: avoid;
+  }
+
+  .compare th,
+  .compare td {
+    border-bottom-color: currentcolor;
   }
 
   .statement[open] summary {

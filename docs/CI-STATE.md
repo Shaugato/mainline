@@ -1597,6 +1597,71 @@ pass"*. That work is not this documents wave's; `docs/ci/cluster-lane-package.md
 why W1 deliberately did **not** re-record them, and that reasoning is what a reader should
 check before anybody re-records them now.
 
+##### 6.8.2a THE CONDITION WAS MET, THE EIGHT WERE RE-RECORDED, AND A NINTH DECLARATION WAS NOT — 2026-08-15
+
+The paragraph above set one condition — *"only after a build that reproduces has been shown to
+produce them"* — and it has since been met, twice over, by measurement rather than by argument.
+This subsection records what happened to each half, because a condition met and never referred
+to again is indistinguishable from a condition quietly dropped.
+
+**The build reproduces. Measured, N=3, from the committed bytes.**
+`scripts/deploy/console_repro.py` exports the console subtree with `git archive` and builds
+there, so the measurement is of the committed source and not of whatever a working tree
+happens to hold. `evidence/deploy/console-repro.json` → `runs["committed-phase1"]` records
+**three builds, one tree digest, `byte_identical: true`, `assets_that_differ: []`**, emitting
+`assets/index-DzVoV1YM.js` at **433,564 B**, `sha256 4596d00cb33ee2d1…`. That sha256 is byte
+for byte the `web/assets/index-DzVoV1YM.js` inside `out/lambda/mainline-demo-api-arm64.zip`
+that the Function URL is serving. **`index-DzVoV1YM.js` is what the committed source emits and
+what the origin serves; `index-BjAGxrVJ.js` came from a `console/dist` no commit produces**
+(`docs/deploy/COST-BOUND.md` §0.3) **and `index-BKZMI9SJ.js` from the same source built over a
+worktree carrying CRLF line-ending drift** (`docs/ci/cluster-lane-package.md` §4, annotated
+there). Three names, one length, and only one of them is a build anybody can re-measure.
+
+**The eight named above were re-recorded, at commit `f68abb7`.**
+`test_response_contract.py` now declares `_WEB_TREE_BYTES = 1_274_743`,
+`_LARGEST_WEB_OBJECT_BYTES = 433_564`, `_LARGEST_SERVED_OBJECT_BYTES = 124_177` and
+`_REFUSED_BY_THE_CEILING = ("assets/index-DzVoV1YM.js",)`; `test_static_site.py` declares
+`_LARGEST_SERVED_WIRE_BYTES = 124_177` and `_LARGEST_IDENTITY_BYTES = 433_564`. **The ceiling
+did not move to accommodate any of it**: `139_264` is unchanged, `1.10 × 124,177 = 136,594.7`
+still rounds up to `17 × 8192`, and exactly one identity object is still refused. That is R5's
+permitted motion — the derived side re-recorded, naming the build — and not R4's forbidden one.
+
+**A NINTH declaration of the same four constants was left behind, red for three days, and no
+lane could see it.** `tests/deploy/test_furl_compression.py` pinned
+`ENTRY_PATH = "/assets/index-BjAGxrVJ.js"`, `ENTRY_IDENTITY_BYTES = 433_396`,
+`ENTRY_GZIP_BYTES = 124_127` and `SIBLING_TOTAL_BYTES = 289_312`, and it **unpacks the real
+artefact** to check them. Measured on this workstation at 2026-08-15T00:25, with the package
+built:
+
+```
+.venv/Scripts/python.exe -m pytest tests/deploy --crdb=none -q -p no:randomly
+-> 293 passed, 30 errors in 140.45 s
+   junitxml <testsuite>: tests=323 failures=0 errors=30 skipped=0
+   FileNotFoundError: …\furl-web0\web\assets\index-BjAGxrVJ.js
+```
+
+All 30 errors were one fixture, `web_root`, failing in setup for the same reason the eight
+failed: the artefact carries `index-DzVoV1YM.js` and the file declared `index-BjAGxrVJ.js`.
+**It appeared on no known-red list — not in this page, not in `docs/HONESTY.md`, not in
+`qa/cluster-known-red.json`.**
+
+**CLOSED at 2026-08-15T00:46**, in the same wave, by the worker who owns that file: it now
+declares `/assets/index-DzVoV1YM.js`, `433_564`, `124_177` and `289_437` — the deployed
+package's figures, re-recorded from a build that reproduces, with the ceiling unmoved. Same
+workstation, 00:56:
+
+```
+.venv/Scripts/python.exe -m pytest tests/deploy --crdb=none -q -p no:randomly
+-> 331 passed in 67.92 s
+   junitxml <testsuite>: tests=331 failures=0 errors=0 skipped=0
+```
+
+**The re-record closed the reds. It did not close the reason nobody saw them**, and that is
+§10.20 — a structural finding about how this repository is wired rather than a fact about one
+file. `docs/decisions/response-ceiling-authoritative-tree.md` §9.4 says the same set goes red
+again *"at once and by design"* the moment a LIVE console is packaged into the default output
+path, so the question of which lane can see it is not historical.
+
 #### 6.8.3 The inventory is now stale in the direction nobody polices
 
 The same run printed:
@@ -2532,3 +2597,214 @@ re-run on this working tree gives **15 / 10196 / 10211**, and the 61-test differ
 for by name: four untracked test files collect exactly 61 (`test_txn.py` 17,
 `test_seed_permit_needs_retry.py` 2, `test_defeaters.py` 29, `test_judge_can_sign.py` 13).
 **Four collections, four different trees, one `RED_FLOOR`.**
+
+---
+
+### 10.20 THE ARTEFACT-LEVEL SUITE IS RUN BY THE ONE LANE THAT NEVER BUILDS THE ARTEFACT — a green that is a skip wearing a tick
+
+**Measured 2026-08-15. This is a finding about the wiring of this repository, not about one
+file, and it is the reason a red aimed squarely at the defect that reached the founder sat
+unseen while every board on this page stayed the same colour.**
+
+`tests/deploy/` holds this repository's only assertions about the **packaged bytes** — the
+Function URL's compression negotiation, its `.gz` sibling set, its response ceiling, the
+console's compiled transport, the judge's walk. The founder's complaint was about packaged
+bytes. So the question *"which lane runs `tests/deploy`?"* is not bookkeeping.
+
+**Reading one: no workflow names it.**
+
+```
+$ grep -rn "tests/deploy" .github/          → zero hits
+```
+
+Twenty workflow files, and not one of them mentions the directory. That is where the enquiry
+would have stopped, and stopping there gives the wrong answer.
+
+**Reading two: it is nevertheless collected, and by the largest lane on the board.**
+`pyproject.toml:167-172` declares `testpaths = ["tests", "packages",
+"verticals/*/packages/*/tests", "verticals/*/apps/demo-api/tests"]`, and `tests/deploy` is
+under the first of those. `ci.yml:627` runs the whole of it — `uv run --frozen --all-packages
+pytest --crdb=none -m "not (${RED_SELECTOR})" -q --durations=10`, **no path argument**.
+Measured on the pinned interpreter, 2026-08-15T00:33, on this working tree:
+
+```
+.venv/Scripts/python.exe -m pytest --crdb=none --collect-only -q
+-> 10467 tests collected in 63.72 s
+   of which node ids beginning `tests/deploy/`:  323
+```
+
+**Not one of the 323 carries `g4alpha` or `pl2_red`** (`grep -rn` over the directory: zero
+hits), so `-m "not (${RED_SELECTOR})"` deselects none of them and `hermetic-tests` really does
+run the lot. `grep` alone would have reported the opposite, and that correction matters more
+than the original claim: *a lane that runs a directory it never names is a lane nobody can
+audit by reading it.* (The directory is 331 nodes as this section is written; the reading
+above is dated because two workers landed tests in the same hour.)
+
+**Reading three — the actual hole. The lane that RUNS them never BUILDS the artefact, and the
+lane that BUILDS the artefact never runs them.**
+
+| lane | builds `out/lambda/mainline-demo-api-arm64.zip`? | runs `tests/deploy`? |
+|---|---|---|
+| `ci.yml` · `hermetic-tests` (`:627`) | **no** — `out/` is a `.gitignore`d build output and no step creates it | **yes**, all 323, by `testpaths` inheritance |
+| `cluster-tests.yml` (`:281`, `:93`) | **yes** — `uses: ./.github/actions/build-demo-package` | **no** — `SUITE: verticals/mainline/apps/demo-api/tests`, pinned |
+
+`tests/deploy/test_furl_compression.py`'s `web_root` fixture skips, loudly and honestly, when
+the artefact is absent: *"the deployment artefact … has not been built, so this file did NOT
+run in this session."* **That skip is correct behaviour and it is not the defect.** The defect is that the
+only lane it can fire in is the one that can never build the artefact, so the skip is
+permanent, and a permanent skip inside a green job is a tick that means *"not measured"*.
+
+**What it cost, in one number.** On a workstation where the artefact HAS been built, those
+same 30 tests were **30 errors** (§6.8.2a), against a declaration three console builds stale,
+about the exact object the ceiling refuses. They were red on disk for anybody who ran the
+suite the way this repository's own runbook says to run it, and green-by-absence in CI, and on
+**no** known-red list — not this page, not `docs/HONESTY.md`, not `qa/cluster-known-red.json`.
+
+**They were re-recorded on 2026-08-15 and the directory is green again — which does not close
+this section, it dates it.** `docs/decisions/response-ceiling-authoritative-tree.md` §9.4
+states, in advance and in writing, that a rebuild into `out/lambda/mainline-demo-api-arm64.zip`
+turns *"every case in `tests/deploy/test_furl_compression.py`"* red *"at once and by design"*,
+because the LIVE console leaves the ceiling's derivation window. **So the next red in this
+directory is already scheduled, is already documented, and will land in exactly the same blind
+spot** unless the wiring changes. A finding whose repair is known and whose recurrence is
+predicted is the cheapest kind to fix and the most embarrassing kind to leave.
+
+**This is §10's own category and it is a new member of it.** §10.6 found a lane with no floor
+on what it collects; §10.3 found a lane that fails to parse and is on nobody's list; §10.17
+found cluster-backed assertions no lane executes. This one is *artefact*-backed rather than
+cluster-backed, and it is worse than any of the three, because the skip is **self-describing
+and still invisible**: the test prints exactly what is wrong with the lane it is running in,
+into a log of a job that goes green, every run.
+
+**Activation, and it is deliberately not taken here.** The repair is either (a) `cluster-tests`
+runs `tests/deploy` after its existing `build-demo-package` step, or (b) `hermetic-tests`
+gains that step, or (c) the directory is declared `unlanded` with a reason. **No workflow file
+is edited by this worker**, for two reasons and neither of them is timidity. None is in this
+worker's file set. And `scripts/qa/check_pytest_lanes.py` (Contract A, QA-RATCHET-3) requires
+every pytest invocation in `.github/workflows/` to carry a `# trappoint:pytest-lane=` marker
+declaring which side of the cluster line it is on, **and fails when a lane's undeclared count
+falls BELOW its published ceiling as well as above it** — so adding a pytest step is a
+three-file change that re-publishes a census. A marker is a claim about a step; a worker who
+does not own the step must not write the claim, and must certainly not move somebody else's
+ceiling to accommodate it. **Reported to the orchestrator, named, counted, and left wired as
+it is.**
+
+---
+
+### 10.21 The docs worker's own numbers, the four reds the wave created and closed, and the one it did not
+
+**Both readings from `--junitxml` AND from the terminal, and they agree — which is itself the
+finding, because the last time this pair was taken they did not.** The
+package-and-verify lead's §1.2 records a run whose terminal reported
+`test_transitions.py::test_a_run_that_really_persists_is_caught` as FAILED while *its own
+JUnit document recorded that test as passed, with zero `<failure>` elements*, and it named the
+malignant reading of that: a lane that records a failure as a pass launders every number every
+worker reports. **That did not happen here.** The two readings below match on the totals *and*
+on the five node ids, compared element by element rather than count by count.
+
+```
+.venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api \
+  --crdb=reuse -q -p no:randomly --junitxml=<path>
+MAINLINE_TEST_DSN -> a scratch database of this worker's own (`w_w6`)
+```
+
+| reading | collected | passed | failed | errors | skipped | wall |
+|---|---|---|---|---|---|---|
+| the standing baseline this wave was handed | 576 | 575 | 0 | 0 | 1 | — |
+| **W6 BEFORE**, junitxml `<testsuite>`, 00:23 | **577** | **571** | **5** | **0** | **1** | 1,741.2 s |
+| **W6 BEFORE**, terminal summary | 577 | **`5 failed, 571 passed, 1 skipped`** | | | | 1,741.9 s |
+| **W6 AFTER**, junitxml `<testsuite>`, 00:53 | **579** | **577** | **1** | **0** | **1** | 1,547.9 s |
+| **W6 AFTER**, terminal summary | 579 | **`1 failed, 577 passed, 1 skipped`** | | | | 1,549.8 s |
+
+**Both pairs agree on the totals AND on the node ids**, compared `<testcase>` element by
+element rather than count by count. The one skip is the same declared one in both —
+`test_gate_run.py::test_payload_validates_against_the_json_schema`, *"jsonschema is not a
+workspace dependency"* — and it is not touched by anything this worker did.
+
+**The handed-down baseline is preserved above rather than replaced.** A worker who quietly
+adopts whichever baseline makes their diff look clean has deleted the evidence that the tree
+moved. The 26-to-29-minute wall clock is contention: a second worker's `--crdb=reuse` run of
+the same suite was executing against the same local node throughout both readings, measured
+from the process table. The collection moved **576 → 577 → 579** across three readings of
+three different trees, because four workers were landing tests in the same hour.
+
+#### The four that were red at 00:23 and green at 00:53 — a half-landed change, closed inside the hour
+
+The console now declares **17** resources and registers `gate-run.schema.json`. At the BEFORE
+reading the demo-api's mirror-side assertions still pinned **16**, and all four went red:
+
+```
+test_envelope.py::test_the_console_declares_sixteen_resources     assert 17 == 16
+test_envelope.py::test_schema_ids_match_the_console_declaration   left has one more:
+                                                                  demo_gate_run
+test_envelope.py::test_routes_match_the_console_path_templates    extra: POST /v1/demo/gate-run
+test_routes_gate_run.py::test_the_table_is_seventeen_and_the_extra_is_exactly_the_demo_endpoint
+                                                                  assert 17 == 16
+```
+
+**They are the correct behaviour of a ratchet whose subject moved, and they were red on the
+right side.** The console and the committed JSON schemas are authoritative for what the demo
+must carry — the ratified tiebreaker — so the console declaring the seventeenth resource is the
+authoritative side moving and the demo-api's mirror is the derived side that had to follow.
+
+**They were re-recorded between the two readings**, at 00:37–00:39:
+`test_envelope.py` now reads `test_the_console_declares_seventeen_resources` and pins 17, and
+`test_routes_gate_run.py` follows. Nothing was lowered to obtain it — the count moved to the
+authoritative side's value. All four pass in the AFTER.
+
+**The gap they exposed is recorded even though the reds are gone.** Neither
+`verticals/mainline/apps/demo-api/tests/test_envelope.py` nor `…/tests/test_routes_gate_run.py`
+appears in ANY of the six workers' file sets in `docs/leads/package-and-verify-plan.md` §7 —
+`test_response_contract.py` and `test_static_site.py` are the only two demo-api test files
+assigned. **The seventeenth resource could not have landed without producing those four reds,
+and the plan that scheduled it named nobody to answer them.** It was answered anyway, by
+somebody working outside the map. That worked; it is not a control.
+
+**The 40001 flake the lead named appeared in the BEFORE and not in the AFTER.**
+`test_transitions.py::test_a_run_that_really_persists_is_caught` failed at 00:23 on
+`SerializationFailure … RETRY_SERIALIZABLE - failed preemptive refresh` and passed at 00:53 —
+which is what a flake looks like, and is exactly the contention this repository goes out of its
+way to provoke. It is not silenced, not deselected and not exempted anywhere.
+
+#### The one red in the AFTER, and why the suite is not clean
+
+```
+FAILED test_demo_guard_anonymous.py::test_the_four_refusals_leave_the_subject_and_every_row_count_unchanged
+AssertionError: {'permit_rows_total': (1804, 1808), 'permits_that_appeared': [
+  "206d5d09-… external_ref='PTW-…' … minted by tests/test_transitions.py:137
+   (_seed_permit, via the fresh_history fixture)"]}
+```
+
+**It is not on any known-red list.** `qa/cluster-known-red.json`'s `unstable` array is **empty**
+— the CI-green wave deleted its four entries — and the node id appears in neither
+`docs/HONESTY.md` nor anywhere else on this page. **It is reported here as a live red rather
+than absorbed.**
+
+**What the assertion is, and why it is a good assertion.** The demo subject is
+write-protected: four anonymous mutating requests must all answer `423
+demo_subject_write_protected` **and leave every row count in the database unchanged**, so one
+judge cannot brick the demo for the next. The four refusals were correct — `outcomes` matched
+exactly. What moved was the row census: **four permits appeared during the window**, and the
+failure message names their minter itself: `_seed_permit`, via the `fresh_history` fixture in
+`test_transitions.py`.
+
+**The mechanism, measured rather than guessed.** `verticals/mainline/apps/demo-api/tests/
+conftest.py` names its database for `_fingerprint()` — a SHA-256 over every migration's name
+and bytes **and** every seed file — and not for the DSN's `dbname`. **So two concurrent runs of
+the same tree compute the same name and share one database, whatever DSN each was handed.**
+This worker ran with `MAINLINE_TEST_DSN` pointing at a private `w_w6`, and it bought nothing:
+a second worker's `--crdb=reuse` run of the same suite was executing throughout both readings
+(process table, two interpreters), and its `fresh_history` fixture mints permits into the same
+tables this guard counts.
+
+**That is a finding about the fixture's isolation model, not an excuse.** A row-count guard is
+correct to fail when rows appear; what is wrong is that the suite cannot tell *its own* rows
+from another run's, because the database name is a content hash with no per-run component.
+Until that changes, **two concurrent demo-api suites on one node cannot both be trusted**, and
+any `--crdb=reuse` number taken while another one is running carries this caveat. Reported to
+the lead. **Not silenced, not marked unstable, and no floor moved to accommodate it.**
+
+**This worker's change cannot touch any of the six reds above.** It edits four documents, one
+evidence record and `tests/deploy/test_docs_are_true.py`; the demo-api suite imports none of
+them. Both readings are reported for the arithmetic and not as a claim of causation — the shape
+§10.19 used, for the same reason.

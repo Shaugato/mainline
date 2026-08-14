@@ -139,8 +139,13 @@ describe('the intact bundle', () => {
   it('names the declared resources this bundle never captured, and the unowned one', async () => {
     mount(view(intact()));
     const gaps = await screen.findByTestId('evidence-gaps');
-    expect(gaps.querySelectorAll('li')).toHaveLength(2);
+    // Three since 2026-08-14: `demo_gate_run` became the seventeenth declared resource so
+    // the console could address the demo beat, and the bundle carries no frame for
+    // `POST /v1/demo/gate-run`. The count is asserted exactly, so a gap that is silently
+    // dropped from the screen fails here rather than disappearing from a judge's view.
+    expect(gaps.querySelectorAll('li')).toHaveLength(3);
     expect(gaps.querySelector('[data-resource="change_request"]')).not.toBeNull();
+    expect(gaps.querySelector('[data-resource="demo_gate_run"]')).not.toBeNull();
     expect(gaps.querySelector('[data-resource="suspend_permit"]')).not.toBeNull();
   });
 

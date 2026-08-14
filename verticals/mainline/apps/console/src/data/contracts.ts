@@ -9,21 +9,31 @@
  *
  * **They are imported with `?raw`, not as JSON modules.** A JSON module import makes
  * TypeScript infer a literal type for every string in a 12 KB schema, which costs
- * minutes of `tsc` across sixteen files and buys nothing — the schemas are consumed as
- * data by the validator, never as types by a call site. The types the console actually
- * uses come from `types.generated.ts`, which is generated from these same files by
- * `scripts/gen-types.ts`.
+ * minutes of `tsc` across every file in `contracts/` and buys nothing — the schemas are
+ * consumed as data by the validator, never as types by a call site. The types the
+ * console actually uses come from `types.generated.ts`, which is generated from these
+ * same files by `scripts/gen-types.ts`.
  *
  * **The imports are explicit, one per line, rather than an `import.meta.glob`.** A glob
  * would silently drop a contract that was renamed or deleted, and the first symptom
  * would be a `$ref` failing to resolve at runtime in front of a judge. An explicit list
  * turns the same mistake into a build error.
  *
- * `refusal.schema.json` is a VERBATIM copy of `spec/wire/refusal.schema.json`. It is
- * copied rather than imported because the console workspace may not reach outside
- * itself, and `tests/unit/data/contracts.test.ts` compares the two JSON-pointer by
- * JSON-pointer, in both directions, so it fails the moment the copy and the
- * specification disagree. Never edit it here — edit the specification, then re-copy.
+ * TWO of these documents are VERBATIM copies of a file this workspace may not import,
+ * and both are pinned the same way — `tests/unit/data/contracts.test.ts` compares copy
+ * and original JSON-pointer by JSON-pointer, in BOTH directions, so a field added,
+ * removed or retyped upstream fails the console's own suite by name on the next run:
+ *
+ *   * `refusal.schema.json` ← `spec/wire/refusal.schema.json`. The specification owns it.
+ *   * `gate-run.schema.json` ← `verticals/mainline/apps/demo-api/contracts/gate-run.schema.json`.
+ *     The demo API owns it, serves `POST /v1/demo/gate-run` against it, and repeats its
+ *     `$id` inside the payload; the console validates the response before rendering it,
+ *     so the two must be the same document or the demo's front door refuses its own
+ *     answer.
+ *
+ * Never edit either copy here. Edit the original, then re-copy byte for byte — the
+ * drift tests are structural, so a reformat passes them and still makes the two files
+ * disagree about what a reader is looking at.
  */
 
 import ancestryRaw from '../../contracts/ancestry.schema.json?raw';
@@ -36,6 +46,7 @@ import commonRaw from '../../contracts/common.schema.json?raw';
 import dispositionRaw from '../../contracts/disposition.schema.json?raw';
 import envelopeRaw from '../../contracts/envelope.schema.json?raw';
 import exposureRaw from '../../contracts/exposure.schema.json?raw';
+import gateRunRaw from '../../contracts/gate-run.schema.json?raw';
 import invokeRaw from '../../contracts/invoke.schema.json?raw';
 import ledgerRaw from '../../contracts/ledger.schema.json?raw';
 import permitRaw from '../../contracts/permit.schema.json?raw';
@@ -62,6 +73,7 @@ export const CONTRACT_SOURCES: readonly (readonly [string, string])[] = Object.f
   ['disposition.schema.json', dispositionRaw],
   ['envelope.schema.json', envelopeRaw],
   ['exposure.schema.json', exposureRaw],
+  ['gate-run.schema.json', gateRunRaw],
   ['invoke.schema.json', invokeRaw],
   ['ledger.schema.json', ledgerRaw],
   ['permit.schema.json', permitRaw],

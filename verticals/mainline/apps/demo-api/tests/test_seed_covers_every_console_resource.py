@@ -74,9 +74,35 @@ business, and the assertion was left exactly where it was rather than narrowed t
 ``NotFound`` to obtain a green. The measurement and the referral are in
 ``docs/diagnosis/demo-suite-falsification.md`` §5.
 
-**There is no key excluded from this file.** If a future reader is tempted to exclude one
+**NO GET KEY IS EXCLUDED FROM THIS FILE.** If a future reader is tempted to exclude one
 so that the suite goes green, that exclusion IS the defect: the console is telling a judge
 the resource exists. Seed it, or delete it from ``resources.ts``.
+
+THE NON-READS ARE NAMED, NOT FILTERED AWAY
+------------------------------------------
+:func:`_get_keys` drops the POST keys, because "drive the read and require a payload" is
+not a sentence about an invocation. That filter is a mechanism, and a mechanism that
+silently drops a key is exactly how ``change_request`` came to ship declared-but-unseeded.
+So the keys it drops are also written down, by name, in :data:`_NOT_A_READ`, and
+:func:`test_every_declared_key_is_either_driven_here_or_named_as_not_a_read` asserts the
+two agree exactly.
+
+``demo_gate_run`` is the newest member and was measured before it was admitted. The
+console declared it on 2026-08-14 as the seventeenth resource; this file was run against
+that tree and **did not go red**, because the ``method`` filter had already dropped it
+before any assertion looked at it. A silent pass is not a decision, so the decision is
+written here instead: ``demo_gate_run`` is a POST, it takes no path parameter — the
+subject is the seeded demo permit resolved server-side, so a stranger holding the public
+URL cannot point the driver at somebody else's row — and it mutates nothing, because the
+transaction is rolled back. There is no subject for ``_request`` to address and no
+payload for ``reads.read_resource`` to return, so the ``_ABSENT`` machinery above does not
+apply to it. What the seed owes it is asserted where it can be: the four beats are driven
+end to end against the seeded world in ``tests/test_gate_run.py``.
+
+Naming the five is what keeps this an exemption rather than a hole. A sixth key that
+stopped being driven would have to be added to :data:`_NOT_A_READ` by somebody who typed
+its name; widening the predicate instead would excuse it, and every one after it, in
+silence.
 
 Every test here needs a cluster and skips with the reason there is none.
 """
@@ -121,6 +147,27 @@ _QUOTED_NAME: Final = re.compile(r"'([a-z_]+)'")
 #: ``{param}`` in a path template, in template order — the console's own ``templateParams``.
 _TEMPLATE_PARAM: Final = re.compile(r"\{([a-z_]+)\}")
 
+#: The declared keys this file does NOT drive, written out by name with the reason each
+#: one is not a read. See the module docstring: the ``method`` filter in :func:`_get_keys`
+#: is the mechanism, this set is the DECISION, and
+#: :func:`test_every_declared_key_is_either_driven_here_or_named_as_not_a_read` refuses to
+#: let the two disagree. A key that leaves this file has to be typed here by somebody.
+_NOT_A_READ: Final = {
+    # The four kernel transitions. Each invokes a `trappoint.*` procedure against a
+    # subject the caller names, governed by `invoke.schema.json`, and is exercised against
+    # the seeded world by `tests/test_transitions.py`.
+    "materialise_checks",
+    "sign_disposition",
+    "merge_permit",
+    "suspend_permit",
+    # The demo driver, declared by the console on 2026-08-14. A POST with NO path
+    # parameter — the subject is the seeded demo permit, resolved server-side — governed
+    # by `gate-run.schema.json`, performing four beats in one SERIALIZABLE transaction
+    # that is rolled back. Nothing here can address it and nothing here can read it back;
+    # `tests/test_gate_run.py` drives it against the seeded world instead.
+    "demo_gate_run",
+}
+
 
 def _console_source() -> str:
     if not RESOURCES_TS.is_file():
@@ -152,9 +199,13 @@ def _declarations() -> dict[str, dict[str, str]]:
 def _get_keys() -> tuple[str, ...]:
     """The resources a judge can READ, in the console's own declared order.
 
-    ``method`` is the console's, not a judgement made here: the four POST entries are
-    invocations of ``trappoint.*`` functions, and "drive the read and require a payload" is
-    not a sentence about them. Filtering on a field the console declares is not an exclusion
+    ``method`` is the console's, not a judgement made here: four of the five POST entries
+    are invocations of ``trappoint.*`` functions and the fifth is the demo driver, and
+    "drive the read and require a payload" is not a sentence about any of them. The five
+    are also written out by name in :data:`_NOT_A_READ`, because this filter is silent and
+    a silent filter is how a resource disappears — see
+    :func:`test_every_declared_key_is_either_driven_here_or_named_as_not_a_read`.
+    Filtering on a field the console declares is not an exclusion
     list — adding a thirteenth GET adds a case here with no edit to this file.
     """
     declared = _declarations()
@@ -195,6 +246,52 @@ def test_the_console_s_two_declarations_of_its_own_key_set_agree() -> None:
     )
     assert len(set(keys)) == len(keys), f"RESOURCE_KEYS repeats a key: {keys}"
     assert _get_keys(), "the console declares no GET resource, which cannot be right"
+
+
+def test_every_declared_key_is_either_driven_here_or_named_as_not_a_read() -> None:
+    """No declared key may fall out of this file silently. It is driven, or it is named.
+
+    :func:`_get_keys` filters on the ``method`` the console itself declares, which is not
+    an exclusion list — but it IS a mechanism that removes keys without saying so, and
+    this file exists because a resource disappearing quietly is the defect. Measured
+    2026-08-14: the console's seventeenth ``declare()``, ``demo_gate_run``, was added and
+    every assertion in this file stayed green, because the filter had dropped it before
+    anything looked at it. That silence is what this test converts into a name.
+
+    Both directions are asserted. A key added to :data:`_NOT_A_READ` that the console no
+    longer declares fails here too, so the set cannot quietly accumulate excuses for
+    resources that stopped existing.
+    """
+    declared = _declarations()
+    driven = set(_get_keys())
+    dropped = set(_resource_keys()) - driven
+
+    assert dropped == _NOT_A_READ, (
+        "the set of declared resources this file does not drive has changed. It is written "
+        "out by name on purpose: widening the filter would excuse this key and every future "
+        f"one in silence. Not driven now: {sorted(dropped)}. Named in _NOT_A_READ: "
+        f"{sorted(_NOT_A_READ)}. Add the name and the reason, or seed the resource."
+    )
+    assert driven & _NOT_A_READ == set(), sorted(driven & _NOT_A_READ)
+
+    # The stated reason, checked rather than trusted: each excused key is excused because
+    # the CONSOLE declares it a POST, not because this file finds it inconvenient.
+    for key in sorted(_NOT_A_READ):
+        assert key in declared, f"{key} is named in _NOT_A_READ and the console does not declare it"
+        assert declared[key]["method"] == "POST", (
+            f"{key} is excused from this file as 'not a read' and the console declares it "
+            f"{declared[key]['method']}. A GET must be driven against the seed."
+        )
+
+    # And the demo driver's own reason, by name, because it is the one whose exemption was
+    # decided rather than inherited: no path parameter means there is no subject for
+    # `_request` to address, seeded or _ABSENT.
+    assert "demo_gate_run" in _NOT_A_READ
+    assert _TEMPLATE_PARAM.findall(declared["demo_gate_run"]["template"]) == [], (
+        "demo_gate_run has acquired a path parameter. Its exemption here rests on the "
+        "subject being the seeded demo permit resolved server-side; a caller-supplied "
+        "subject is a different resource and needs its own decision."
+    )
 
 
 def test_every_console_read_has_an_implementation_in_this_api() -> None:

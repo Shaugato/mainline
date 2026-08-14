@@ -238,13 +238,14 @@
 <header class="mast">
   <div class="eyebrow">
     <span>Project <b>MAINLINE</b></span>
-    <span>Verification <b>7</b> · documents wave</span>
-    <span>2026-08-14</span>
-    <span>Tree <b>d098721</b>, 4 ahead of <b>7535670</b> · 21 modified, 7 untracked</span>
+    <span>Verification <b>8</b> · judge-eye wave</span>
+    <span>2026-08-15</span>
+    <span>Tree <b>3933b97</b>, level with <b>origin/master</b> · 86 modified or untracked</span>
     <span>Deadline <b>2026-08-18</b></span>
   </div>
   <h1>State of the Build</h1>
   <p class="sub">Every number here came from a command run on this machine today, at the tree named above. Suite totals are read from <code>--junitxml</code> root elements and from nowhere else. Where a figure comes from a committed artefact rather than from a run of this page's author, the artefact is named beside it.</p>
+  <p class="sub"><strong>Re-headed 2026-08-15 for the EIGHTH verification.</strong> The masthead below this point still carries the seventh verification's body and is kept rather than deleted &mdash; a claim deleted is not a claim corrected. Its tree line read <del>Verification <b>7</b> &middot; 2026-08-14 &middot; Tree <b>d098721</b>, 4 ahead of <b>7535670</b> &middot; 21 modified, 7 untracked</del>. <code>docs/STATE-OF-THE-BUILD.md</code> is authoritative and is the current page; everything below §00 here describes the tree named in that strike, not the tree named above it.</p>
 </header>
 
 <div class="verdict cond">
@@ -252,7 +253,18 @@
     <span class="ord">Deploy verdict</span>
     <div class="big">NO-GO</div>
   </div>
-  <p><strong>Five of the six GO conditions are met, and the sixth fails for a procedural reason rather than a product defect.</strong> A judge can sign against Cloud, the suite is green in both orders, the gate proof is caveat-free and the plan reproduces at 24. But the commits that repair both cluster lanes have never been pushed, so no lane has executed a tree containing them &mdash; and a lane cannot be green at a tree it has never run.</p>
+  <p><strong>Ninth verification, 2026-08-15 &mdash; the first one taken against a package that starts LIVE.</strong> The founder opened the demo URL and found a console playing a recording with no way to press the headline button. He found it; seven prior certifications of this page did not, because the defect was a <strong>build-time value</strong> invisible to every source test.</p>
+  <p><strong>The wave that fixes it is good and is not deployed.</strong> The transport guard now refuses the exact package that reached him, the beat is declared and contract-registered, the false <code>404</code> sentence is corrected and policed by a checker that reads the route table, the demo-api suite is <strong>580 / 579 / 0 failures / 0 errors / 1 declared skip</strong> in two genuinely different orders, and the gate proof is <code>PROVEN</code> caveat-free. <strong>None of it is on the origin.</strong> The URL serves a REPLAY console whose bytes contain no <code>demo_gate_run</code> at all.</p>
+  <p><strong>Two of the eighth verification's four blockers are discharged and re-measured</strong> (<code>docs/STATE-OF-THE-BUILD.md</code> &sect;2.4 and &sect;7): the ruff <strong>LINT</strong> ratchet now has <strong>zero regressions and one improvement</strong> &mdash; the 223 remaining <code>ruff format</code> findings are this Windows checkout's line endings, 222 of 223 byte-identical to <code>HEAD</code> after newline normalisation &mdash; and the response-ceiling STOP is closed by ruling <strong>R10</strong>, which keeps <code>DEFAULT_MAX_RESPONSE_BYTES</code> at <strong>139,264</strong> unmoved and demotes its 8&nbsp;KiB derivation to dated provenance. Measured over the package of record, <code>0 &lt; 129,400 &lt; 139,264 &lt; 457,123</code> holds and <strong>exactly one</strong> identity object is refused. What remains is the redeploy, one stale block in <code>evidence/deploy/APPLIED.md</code>, and the founder's SSM secret.</p>
+  <p><strong>A judge opening the URL right now sees what the founder saw.</strong> That is the whole verdict.</p>
+</div>
+
+<div class="verdict cond">
+  <div>
+    <span class="ord">§00 &nbsp;What the wire says today</span>
+  </div>
+  <p><code>GET /</code> &rarr; <strong>200</strong>, 4,655 B, 1.58 s. <code>GET /v1/health</code> &rarr; <strong>503</strong> <code>ok=false reason="dsn_unset"</code>. <code>POST /v1/demo/gate-run</code> &rarr; <strong>503</strong> <code>kind="dsn_unset"</code> &mdash; <strong>the route exists; it does not 404</strong>. Both bodies name <code>SSM GetParameter '/mainline/demo/cockroach_dsn' &hellip; ParameterNotFound</code>, which is the founder's step and is the correct answer until it lands.</p>
+  <p><code>GET /</code> references <code>./assets/index-DzVoV1YM.js</code>; fetched, that object is 124,177 B on the wire / 433,564 B identity and compiles <code>VITE_MAINLINE_API_BASE:""</code> &mdash; empty, so the console starts <strong>REPLAY</strong> &mdash; with <code>buildId:"dev"</code>, and the strings <code>demo_gate_run</code> and <code>/v1/demo/gate-run</code> <strong>absent</strong>. No credential was used and nothing was deployed to take these readings.</p>
 </div>
 
 <div class="board">
@@ -614,7 +626,7 @@ database      <b>w_qr_gate_refusal_proof</b>     <b class="r">&lt;-- LOCAL</b></
 
 <footer>
   <span>MAINLINE · State of the Build</span>
-  <span>Seventh verification · 2026-08-14</span>
+  <span>Eighth verification · 2026-08-15 · <del>Seventh · 2026-08-14</del></span>
   <span>Verdict: NO-GO</span>
   <span>No <code style="background:none;padding:0">terraform apply</code> · no mutating AWS call</span>
 </footer>

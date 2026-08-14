@@ -388,17 +388,76 @@ a substitute, and it turns into the real validator the day the dependency lands.
 
 ## 9. Known gaps
 
+> **TWO OF THESE CLOSED ON 2026-08-14, AND THEY ARE KEPT ON THE PAGE.** The gaps struck
+> through below were real when they were written and are shut now. They stay, struck and
+> annotated, because **a gap that was named and is now closed is evidence the process
+> works**, and a page that quietly grew shorter would look like it had never been wrong.
+> That is the same preservation rule §3's amendment is written under.
+>
+> They also stayed on the page *too long*, and that is the more useful half of the record.
+> The first bullet was false in the tree before anyone noticed and false on the wire from
+> the apply — `docs/leads/console-live-plan.md` ruling R2 dates the route's landing to
+> 2026-08-13; this page measured only that it is there now — and it was still being read:
+> the identical sentence had been copied into the
+> console's own `DECLARATION_GAP` chrome, where the founder read it off a deployed screen
+> rather than out of a document. Nothing in this repository could see it, because no check
+> read a *reachability* claim against the route table. One now does:
+> `tests/deploy/test_docs_are_true.py::test_no_live_document_asserts_the_demo_route_is_unrouted_or_404s`
+> reads `app.py` and sweeps every live document, and it goes red against the exact text
+> that used to be here. **The gap this bullet records is not "the route was missing"; it is
+> "the claim outlived the defect and only a human noticed."**
+
 * **`jsonschema` is not installed in this workspace**, so no full JSON Schema validation of
   the gate-run payload has ever run. Measured, not assumed: `ModuleNotFoundError` on
-  2026-08-10. The structural check above is what runs.
-* **`POST /v1/demo/gate-run` is not yet routed.** `app.py`'s route table
+  2026-08-10. The structural check above is what runs. **Still open**, and still the one
+  skip in the demo-api suite (`test_gate_run.py::test_payload_validates_against_the_json_schema`).
+* ~~**`POST /v1/demo/gate-run` is not yet routed.** `app.py`'s route table
   (`w3-api-core-reads`) declares the four kernel POSTs and no demo route, so the endpoint
   404s until a `Route("POST", "/v1/demo/gate-run", "demo_gate_run")` and a
-  `SCHEMA_IDS["demo_gate_run"]` entry are added. The handler itself is complete and is
-  reachable today through `handle_transition("demo_gate_run", {}, {}, conn)`.
-* **The console does not declare `demo_gate_run`.** `resources.ts` declares sixteen
+  `SCHEMA_IDS["demo_gate_run"]` entry are added.~~
+  **CLOSED IN THE TREE, CONFIRMED ON THE WIRE 2026-08-14.**
+  `app.py:229` carries `Route("POST", "/v1/demo/gate-run", "demo_gate_run")` as the
+  **seventeenth** route, with the docstring at `app.py:180` explaining why it takes no path
+  parameter. Re-derive it rather than believing this paragraph:
+  `grep -n 'demo/gate-run' verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py`.
+  Measured against the deployed Function URL on 2026-08-14,
+  `POST /v1/demo/gate-run` answers **`503`** with
+  `{"error":{"kind":"dsn_unset","status":503,"detail":"SSM GetParameter '/mainline/demo/cockroach_dsn' … ParameterNotFound"}}`
+  — **not `404`**. A 503 that names the parameter it could not read is a reachable endpoint
+  refusing honestly; a 404 would have meant no such path. The remaining API-side item is
+  the narrower one the struck text bundled in: `SCHEMA_IDS` in `envelope.py` still has no
+  `demo_gate_run` entry, which the success path does not use — `transitions.py` builds its
+  own envelope from `gate_run.GATE_RUN_SCHEMA_ID` — and which is `demo-api-agreement`'s to
+  close. **The handler is complete and is also reachable in-process through
+  `handle_transition("demo_gate_run", {}, {}, conn)`**, which was true when the struck text
+  was written and is still true.
+* ~~**The console does not declare `demo_gate_run`.** `resources.ts` declares sixteen
   resources; a seventeenth is needed for the console to drive this endpoint through its
-  own transport.
+  own transport.~~
+  **CLOSED 2026-08-14** by `console-resource-declaration`. Measured in the working tree on
+  2026-08-14: `resources.ts` carries **17** `declare()` calls and **17** `RESOURCE_KEYS`,
+  the seventeenth being `demo_gate_run`; `contracts.ts` registers `gate-run.schema.json`;
+  and the console's copy of this document's governing schema is **byte-identical** to the
+  demo-api's — both 23,138 B, both `sha256:0948f853f65a29ff…`, compared as bytes and not as
+  parsed JSON. A verbatim-copy test compares the two JSON-pointer by JSON-pointer in both
+  directions, which is what stops the copy drifting.
+  **What this does NOT yet mean, and the page will not overstate it:** the *deployed*
+  artefact predates the declaration. Measured off the served bundle on 2026-08-14, it
+  carries `VITE_MAINLINE_API_BASE:""`, `VITE_MAINLINE_BUNDLE_URL:"./bundle/"` and
+  `buildId:"dev"`, and contains **zero** occurrences of `gate-run` — so a judge opening the
+  URL today gets a REPLAY console with no gate-run control. The declaration closes the
+  console's half; the packaging half is
+  [`console-build.md`](console-build.md) §7 and the redeploy is the orchestrator's.
+* **REPLAY carries no gate-run frame, and that is a named absence rather than a defect.**
+  Measured 2026-08-14: `fixtures/bundles/demo-cloud/manifest.json` lists 24 files, of which
+  **18 are captured frames** — 15 `GET`s and 3 `POST`s, all three of them a permit
+  `…/merge` — and **none** is `POST /v1/demo/gate-run`. So in REPLAY the control is
+  present — D7 forbids hiding it,
+  because a control shown in LIVE and hidden in REPLAY is a second code path — and
+  `src/data/bundle.ts` refuses with *"bundle … has no frame for this request"*. Capturing a
+  real frame needs a live capture against the cloud, which needs the SSM parameter. **No
+  frame may be hand-authored into a bundle to close this**; that is the laundering this
+  repository exists to refuse.
 * **Two test harnesses build two scratch databases.** `tests/conftest.py`
   (`w3-api-core-reads`) declares `demo_database` and `conn`; this worker's files declare
   `w4_database` and `w4_conn` and seed `w_w4_api_transitions` from
