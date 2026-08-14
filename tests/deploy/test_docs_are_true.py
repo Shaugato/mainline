@@ -1047,7 +1047,7 @@ def test_falsification__a_deleted_headline_does_not_buy_a_green():
 def test_falsification__a_stale_tree_sha_in_the_twin_is_caught():
     """The masthead SHA rotted three verifications running. It is checked, not trusted."""
     markdown = "Local `HEAD` is `d098721`, four commits ahead of `7535670`.\n"
-    stale = '<span>Tree <b>073dfea</b> + 48 modified</span>'
+    stale = "<span>Tree <b>073dfea</b> + 48 modified</span>"
     assert twin_tree_disagreements(markdown, stale), (
         "the HTML naming a tree the Markdown never mentions was not caught, which is how "
         "the twin came to advertise a tree three verifications out of date."
