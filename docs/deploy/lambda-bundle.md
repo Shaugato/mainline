@@ -53,7 +53,7 @@ by `scripts/deploy/capture_demo_bundle.py` and recorded in `evidence/deploy/bund
 (`verdict: CAPTURED AND VERIFIED`, 24 files agree, manifest digest `7772131b…`).
 
 The handler finds the site through **one contract, owned by W1**:
-`$MAINLINE_WEB_ROOT`, set to `/var/task/web` by `infra/modules/demo-api/main.tf:145` from
+`$MAINLINE_WEB_ROOT`, set to `/var/task/web` by `infra/modules/demo-api/main.tf:233` from
 `var.web_root`, and read by `mainline_demo_api.static_site.web_root()`. `/var/task` is
 `$LAMBDA_TASK_ROOT`; `web/` is where this build puts `dist/`. Nothing else in the package
 depends on where it is unpacked, because the console is built with `base: './'` and routes
@@ -73,10 +73,29 @@ carry this month. No web framework. No `tzdata`. No `__pycache__`, no `RECORD`.
 
 `sha256 09af589cf3b73e1708b2e3209a41ac3e2078db3df916e39827b2cfe930f45914` (arm64),
 `116c14eb23c7b4871c819996775b271bba2e544a49de623892cef5ca09011a4c` (x86_64) — both read out
-of the committed packages by `bundle_manifest.py --strict --forbid-source-maps` on
+of the **built** packages by `bundle_manifest.py --strict --forbid-source-maps` on
 **2026-08-14**, which is also where every other number on this page comes from. The entry
 count rose from 206 because the `.gz` siblings are now written (§4) and the zipped size fell
 anyway because the source maps are now stripped by default (§4.3).
+
+> **CORRECTED 2026-08-14 — this paragraph said "the committed packages", and there are
+> none.** `out/` is gitignored (`.gitignore:9`) and `git ls-files out/` returns **zero**
+> rows, so a judge who clones this repository finds no `.zip` to hash and cannot reproduce
+> these two shas by reading the checkout. **The committed record of these figures is
+> [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json)**
+> (`architectures[].after`), which carries both shas, both byte counts and both entry counts;
+> the packages themselves are build outputs and must be rebuilt (§5) to be re-hashed.
+>
+> **And a rebuild at the current working tree will NOT return these shas.** Rebuilt on
+> TRAPPOINT on 2026-08-14 the arm64 package hashes `cb34e123…f09cb9b` at **250** entries /
+> 7 701 872 B — four entries more — because the tree carries handler sources not yet
+> committed at HEAD `eefae1c` (`defeaters.py`, `retry.py`). **The `web/**` tree is
+> byte-identical across all of them: 114 entries, 1 274 342 B, 0 source maps**, so §4's table
+> and every ceiling derived from the served tree stand unchanged. **The whole-package shas
+> above are UNRESOLVED against the working tree** until those sources are committed and
+> `package-shape.json` is regenerated — which is `evidence/`'s owner's change, not this
+> page's. What settles it: commit the handler sources, rebuild both architectures, re-run
+> `bundle_manifest.py --strict --forbid-source-maps`, regenerate the evidence file.
 
 Headroom is 44.8 MB zipped and 236.0 MB unzipped on arm64. Both limits are **asserted on
 every build**, not assumed: the builder refuses, and deletes the zip it just wrote, rather
@@ -117,7 +136,7 @@ after the fact by reading the ELF header of every `.so` in the zip: arm64 → 18
 ## 3. The determinism argument
 
 Terraform decides whether to redeploy from `source_code_hash = filebase64sha256(var.package_path)`
-(`infra/modules/demo-api/main.tf:254`). A zip whose bytes move because the *clock* moved
+(`infra/modules/demo-api/main.tf:342`). A zip whose bytes move because the *clock* moved
 makes every `terraform plan` show a Lambda update, which trains an operator to skim the plan
 four days before a deadline. So the hash must be a statement about the **content** and
 nothing else.
@@ -183,6 +202,12 @@ could load and the other could not is a reproducibility bug waiting to happen.
 ## 4. The 57 `.gz` siblings — what they are, and that they are served
 
 ### 4.1 What ships
+
+**Tree: the DEPLOYED package** — `web/**` inside
+`out/lambda/mainline-demo-api-arm64.zip`, i.e. `evidence/deploy/cost/package-shape.json` →
+`architectures[arm64].after.web` (114 entries, 1 274 342 B). The rows below sum to exactly
+that: 57 + 57 = 114 entries, 985 030 + 289 312 = 1 274 342 B. **Not** the packer's input
+tree, which is 75 entries / 3 571 990 B and carries the 18 source maps §4.4 discusses.
 
 | | entries | bytes |
 |---|---|---|
@@ -264,9 +289,19 @@ one appears.
 
 This reversed an earlier decision, and the reason is the one this page has to state plainly:
 a judge opening DevTools benefits from maps, but `web/assets/*.js.map` is **18 files,
-2 586 960 B** in the input tree — **72.4 %** of the served tree — and this origin's cost is
-dominated by what it puts on the wire under an unauthenticated URL. The maps are still one
-flag away for a debug build; the bill is not.
+2 586 960 B** in the packer's **input** tree — ~~**72.4 %** of the served tree~~ **72.4 % of
+that input tree** (2 586 960 ÷ 3 571 990), and **0 % of the served tree, because they are
+stripped before it exists** — and this origin's cost is dominated by what it puts on the wire
+under an unauthenticated URL. The maps are still one flag away for a debug build; the bill is
+not.
+
+> **CORRECTED 2026-08-14 — "of the served tree" named the wrong tree.** The percentage is
+> right and the denominator was wrong: 72.4 % is the maps' share of the **input** tree
+> (75 entries, 3 571 990 B, `package-shape.json` → `architectures[].before.web`). Their share
+> of the **served** tree is **zero** — that tree is 114 entries and 1 274 342 B with 0 maps
+> (`…after.web`), as §4.1 tabulates. Both figures were already on this page; only the label
+> was crossed. **A figure that does not name its tree is wrong whichever tree it came from**
+> (`docs/leads/docs-and-cloud-plan.md` RULING 2).
 
 **No maps-kept build has been measured against the current tree**, so this page publishes no
 zipped-delta figure for one. The 660 333 B contrast that used to sit here was measured
@@ -422,7 +457,7 @@ In order. Stop at the first one that fits.
    unreachable (`docs/deploy/replay-fallback.md`). A package that fits by removing the
    fallback has traded the failure mode you can survive for the one you cannot.
 4. **Only then, S3.** Above 50 MB a deployment package must be uploaded to S3 and referenced
-   by `s3_bucket`/`s3_key`; `infra/modules/demo-api/main.tf:249` uses `filename =`, a direct
+   by `s3_bucket`/`s3_key`; `infra/modules/demo-api/main.tf:337` uses `filename =`, a direct
    upload, so this is a **module change** and not a build flag. It also re-introduces a
    bucket that D1 deliberately removed from the deploy path.
 5. The 250 MB unzipped ceiling has no flag at all — past it, the function must become a

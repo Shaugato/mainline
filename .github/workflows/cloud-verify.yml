@@ -464,6 +464,7 @@ jobs:
             echo "| time-travel assertions hold at Cloud's GC horizon | \`db.yml\`, pinned to 4500 | a pinned local node simulates Cloud; it is not Cloud |"
             echo "| prefix-constrained ANN uses the vector index | local, ~5 000 rows | an unhinted plan degrades to a scan silently, and a small table hides it |"
             echo "| the retry contract survives real contention | local, single node | \`40001\` is rare on a laptop and ordinary on a shared cluster |"
+            echo "| the demo-api suite passes where the demo DEPLOYS | \`cluster-tests.yml\`, one local node | a constructed race produces \`40001\` on one node — see \`docs/deploy/CLOUD-40001.md\` — but the RATE and the VARIETY (clock-uncertainty restarts, cross-node latency, \`RETRY_WRITE_TOO_OLD\`) are properties of a multi-node cluster and are observed by nothing local |"
             echo ""
             echo "**To enable it:** set the repository secret \`CRDB_CLOUD_DSN\` to the cluster's"
             echo "pgwire DSN. The lane runs nightly at 17:00 UTC and on \`workflow_dispatch\`."
@@ -1038,4 +1039,445 @@ jobs:
               sys.exit(1)
           print(f"the comparison bites: {WANTED} accepted and {control_tag} rejected by the "
                 "same pattern, in the same step, against two nodes that both answered SQL")
+          PY
+
+  # ---------------------------------------------------------------------------------
+  # THE PRODUCT'S OWN SUITE, AGAINST THE CLUSTER THE PRODUCT DEPLOYS TO.
+  #
+  # Everything above this job asserts about the REFERENCE vertical: migrate, attest,
+  # conform. None of it runs `verticals/mainline/apps/demo-api/tests` — the suite that
+  # decides whether a judge can walk the demo — and until this job existed that suite had
+  # met exactly one kind of database: a single-node CockroachDB started by `docker run` on
+  # a laptop or a runner. The demo deploys to CockroachDB Cloud Basic, which is managed and
+  # multi-node. Those are not the same system and this repository has already paid for
+  # assuming they were.
+  #
+  # WHAT THIS JOB IS NOT. It is NOT evidence that the suite passes against Cloud. Nothing
+  # in this repository is that evidence yet, and `docs/deploy/CLOUD-40001.md` says so in
+  # those words with the date on it. This job is the LANE — the thing the founder triggers
+  # to obtain that evidence, written so that it cannot come back green without having
+  # obtained it.
+  #
+  # WHY IT IS UNGATED, when `verify` above is gated on `has-cluster == 'true'`. A job
+  # gated on the secret does not run when the secret is missing, and GitHub renders that
+  # as `skipped` — a grey tick that reads, on the Actions tab, exactly like a lane that
+  # had nothing to do. This repository's own recorded standard is that "a skip is
+  # indistinguishable from a green tick on a dashboard", so this job always runs and
+  # FAILS BY NAME when `CRDB_CLOUD_DSN` is absent.
+  #
+  # That is a deliberate divergence from `skipped-loudly`, and it WEAKENS NOTHING.
+  # `skipped-loudly` still speaks for the platform-conformance half above — its PL-1
+  # reasoning ("a proof needing a credential of ours is evidence about us, not about the
+  # product") is untouched, its gate and its complement are both still declared, and the
+  # `preflight` step that greps for both strings still passes. The difference is that the
+  # conformance half degrades to "unconfirmed against Cloud" when the credential is
+  # missing, whereas THIS half degrades to nothing at all: there is no second place where
+  # the demo-api suite meets a multi-node cluster, so a silent absence here leaves a claim
+  # nobody is reminded is unmade.
+  #
+  # NO `continue-on-error`, NO `|| true`, NO defaulted return code. `set +e` brackets the
+  # pytest call ONLY, and only so its status can be handed to the report rather than
+  # thrown away by the shell — the identical idiom, for the identical reason, as
+  # `cluster-tests.yml`'s cluster step, which states it at length.
+  #
+  # THE EXIT CODE IS NOT THE VERDICT. `pytest` exits 0 when every test skips; this
+  # repository has recorded that sentence and been bitten by it. The verdict is computed
+  # from the `--junitxml` document — executed count, skip count, skip REASONS, failures
+  # and errors — and pytest's own status is passed in beside it as one more input that
+  # can only make the verdict worse, never better.
+  #
+  # NO CREDENTIAL REACHES THE LOG. The DSN is bound straight from `secrets` into the four
+  # environment names the suite reads and is never echoed, never written to
+  # `$GITHUB_ENV`, never interpolated into a `run:` body and never read by the reporter.
+  # `-q` is load-bearing rather than cosmetic: `trappoint_testkit.plugin`'s
+  # `pytest_report_header` prints the DSN it reused, and `-q` suppresses the header
+  # entirely (measured — a `-q` run prints no `trappoint-testkit:` line at all).
+  # ---------------------------------------------------------------------------------
+  cloud-demo-api-suite:
+    name: the demo-api suite, against the cluster the demo actually deploys to
+    runs-on: ubuntu-24.04
+    # Deliberately generous, and deliberately not unbounded. Every database this suite
+    # creates applies the whole committed migration chain and the demo seeds, and it does
+    # it from a GitHub runner to Singapore rather than over a loopback socket. A timeout
+    # here is a RESULT — "the suite does not fit in an hour against Cloud" is a finding
+    # worth having — and it is never a reason to trim the suite with `-k`.
+    timeout-minutes: 60
+    env:
+      SUITE: verticals/mainline/apps/demo-api/tests
+      REPORT: junit-cloud-demo-api.xml
+      # The demo-api suite carries exactly one HERMETIC skip —
+      # `test_gate_run.py::test_payload_validates_against_the_json_schema`, "jsonschema is
+      # not a workspace dependency" — which has nothing to do with any cluster. The
+      # ceiling is that one skip and no more. It is NEW here; it lowers nothing. It is
+      # also not the real assertion: the reporter fails on ANY skip whose reason mentions
+      # a cluster, at a count of one, regardless of this ceiling, because a suite that
+      # could not reach the cluster this job paid for has proved nothing about it.
+      CLOUD_SKIP_CEILING: "1"
+      # libpq's default is no timeout at all; a Cloud host that stops answering would
+      # otherwise hang this job to its `timeout-minutes` with no diagnosis.
+      PGCONNECT_TIMEOUT: "20"
+    steps:
+      - name: Deny egress except to the indexes and the cluster
+        uses: step-security/harden-runner@v2
+        with:
+          # The same list `verify` above carries, and for the same reasons stated there:
+          # this job holds a database credential and must not be able to post it anywhere.
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            raw.githubusercontent.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            astral.sh:443
+            cockroachlabs.cloud:443
+            cockroachlabs.cloud:26257
+
+      - uses: actions/checkout@v4
+
+      - name: THE SECRET, OR A NAMED FAILURE — never a quiet skip
+        # FIRST, before `setup-workspace`, because failing in four seconds with a sentence
+        # a human can act on beats failing in four minutes with the same sentence.
+        #
+        # Two refusals, and the second is the one this whole file was built around. An
+        # absent secret is refused because a lane that reports success without its
+        # credential manufactures a green tick for an assertion nobody made. A LOOPBACK
+        # DSN is refused because the suite's own resolution ladder
+        # (`trappoint_testkit.cluster.reuse`) tries `$MAINLINE_TEST_DSN`, `$COCKROACH_URL`,
+        # `$CRDB_URL`, `$TRAPPOINT_DSN` and then `127.0.0.1:26257` — so a DSN that has
+        # silently fallen back to a local node makes every assertion in the suite pass
+        # while proving nothing about the managed platform it claims to measure.
+        env:
+          CLOUD_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import sys
+          from urllib.parse import urlsplit
+
+          dsn = os.environ.get("CLOUD_DSN", "")
+          if not dsn:
+              print("::error title=the demo-api suite did not run against Cloud::the "
+                    "repository secret CRDB_CLOUD_DSN is not set, so the suite that decides "
+                    "whether a judge can walk the demo was NOT run against the multi-node "
+                    "cluster the demo deploys to. This job fails rather than skipping: a "
+                    "skip is indistinguishable from a green tick on a dashboard, and there "
+                    "is no second lane in this repository where this suite meets a "
+                    "multi-node cluster. Set CRDB_CLOUD_DSN, or read "
+                    "docs/deploy/CLOUD-40001.md for what stays unproven until it is set.")
+              sys.exit(1)
+
+          host = (urlsplit(dsn).hostname or "").lower()
+          if host in {"localhost", "127.0.0.1", "::1", ""} or host.endswith(".local"):
+              # The HOST is named here and nowhere else: a DSN that has fallen back to a
+              # loopback address has no secret left in the part being named.
+              print(f"::error title=CRDB_CLOUD_DSN is not Cloud::the secret resolves to "
+                    f"{host!r}. The demo-api suite resolves its cluster from "
+                    "$MAINLINE_TEST_DSN, $COCKROACH_URL, $CRDB_URL, $TRAPPOINT_DSN and "
+                    "then 127.0.0.1:26257, so running it against this DSN would produce a "
+                    "full green from a single local node and publish it under this lane's "
+                    "name.")
+              sys.exit(1)
+
+          # Presence only. Not the value, not the host, and not its length either: a length
+          # is a fact about a credential, and facts about credentials belong in no log.
+          print("CRDB_CLOUD_DSN is present and does not resolve to a loopback host")
+          PY
+
+      - name: The local fallback must be DEAD, or this job cannot claim what it claims
+        # ANTI-VACUITY, and it is the control the `verify` job above does not need and this
+        # one does. `verify` builds every DSN it uses by hand. This job hands a DSN to a
+        # SUITE that has a fallback ladder of its own, and the last rung of that ladder is
+        # `127.0.0.1:26257`. If the Cloud DSN fails to answer for any reason — a rotated
+        # credential, a paused cluster, a blocked egress rule — `--crdb=reuse` walks past
+        # it to the compose port. On this runner nothing should be listening there. That is
+        # an assumption until something checks it, and this is the check: if anything
+        # answers on the local port, the run is VOID before it starts, because a green
+        # afterwards could not be distinguished from a green obtained locally.
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import socket
+          import sys
+
+          probe = socket.socket()
+          probe.settimeout(5)
+          try:
+              probe.connect(("127.0.0.1", 26257))
+          except OSError:
+              print("127.0.0.1:26257 refused the connection, as it must — the suite's "
+                    "last fallback rung is dead, so a green here cannot have come from a "
+                    "local node")
+              sys.exit(0)
+          finally:
+              probe.close()
+
+          print("::error title=this job cannot prove what it claims::something is "
+                "LISTENING on 127.0.0.1:26257 inside this runner. The demo-api suite falls "
+                "back to that address when the DSNs it is given do not answer, so a pass "
+                "recorded here could have been produced entirely by a local node while "
+                "CockroachDB Cloud was never contacted. Remove the local node from this "
+                "job; do not relax this check.")
+          sys.exit(1)
+          PY
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          # No `packages:` — `--all-packages`. `mainline-demo-api` is deliberately NOT a
+          # uv workspace member (`verticals/*/apps/*` is absent from
+          # `[tool.uv.workspace] members`, because the console beside it is a pnpm
+          # workspace); its dependencies resolve through other members and its
+          # `tests/conftest.py` puts `../src` on `sys.path` itself. `cluster-tests.yml`
+          # runs this same suite the same way.
+          cache-suffix: "cloud-demo-api"
+
+      - name: How many tests SHOULD run — derived here, never written down
+        id: collect
+        # trappoint:pytest-lane=hermetic
+        #
+        # `--crdb=none`, and the marker is `hermetic`, because that is what this invocation
+        # IS: the testkit plugin returns before obtaining any cluster when `collectonly` is
+        # set, so this step reaches no database — and, in this job specifically, spends no
+        # part of the Cloud credential. Marking it `cluster` would be a declaration that
+        # cannot be checked against its own behaviour.
+        #
+        # THE FLOOR, AND IT CANNOT GO STALE. A literal floor is a number a future wave has
+        # to remember to raise, and the one thing this repository knows about numbers
+        # nobody is reminded of is that they rot. So the expected count is COLLECTED from
+        # the checked-out tree, in this job, seconds before the run — and the verdict below
+        # asserts that the number of tests the junitxml reports is EXACTLY that. A suite
+        # that half-collects, a module that fails to import, a lane that quietly runs a
+        # subset: all three move this number and all three are then refused.
+        #
+        # `--crdb=none` and `--collect-only`: the testkit plugin returns before obtaining
+        # any cluster when `collectonly` is set, so this reaches no database and costs no
+        # credential. Collection is also where a missing module surfaces, which is why it
+        # is asked separately rather than inferred from a failed run.
+        run: |
+          set -euo pipefail
+          # `set +e` brackets ONLY the pytest call, so a non-zero status can be EXPLAINED
+          # before it is obeyed. `set -e` is restored before anything is decided, and
+          # nothing is suppressed. This is diagnosis, not tolerance.
+          set +e
+          uv run --frozen --all-packages pytest "${SUITE}" \
+            --crdb=none --collect-only -q -p no:cacheprovider > collected.txt
+          rc=$?
+          set -e
+          if [ "${rc}" -ne 0 ]; then
+            echo "pytest --collect-only exited ${rc}; its own account of why follows."
+            tail -n 40 collected.txt
+            echo "::error title=the demo-api suite did not collect::pytest exited ${rc} while collecting ${SUITE}. A collection error here is a real defect in the checked-out tree — most often a module the committed tests import that was itself left uncommitted — and it is answered by landing what is missing. It is never answered by lowering a floor, by -k, by --deselect, or by stubbing the import."
+            exit "${rc}"
+          fi
+          count="$(python3 - <<'PY'
+          import pathlib
+          lines = pathlib.Path("collected.txt").read_text(encoding="utf-8", errors="replace")
+          print(sum(1 for line in lines.splitlines() if "::" in line))
+          PY
+          )"
+          echo "expected=${count}" >> "$GITHUB_OUTPUT"
+          echo "the tree collects ${count} test(s); the run below must report exactly that many"
+          if [ "${count}" -lt 1 ]; then
+            echo "::error title=the demo-api suite collected nothing::0 tests collected from ${SUITE}. Running a suite of zero tests against Cloud and reporting success is the precise vacuity this lane exists to refuse."
+            exit 1
+          fi
+
+      - name: THE SUITE, against Cloud — and the verdict, read from the junitxml
+        # trappoint:pytest-lane=cluster
+        #
+        # `--crdb=reuse`, and the cluster it reuses is CockroachDB Cloud — the only pytest
+        # invocation in this repository for which that is true. Every other `cluster` lane
+        # reuses a single-node container. The two steps above are what make the difference
+        # checkable rather than asserted: the DSN is refused if it resolves to a loopback
+        # host, and `127.0.0.1:26257` is proven dead before the suite starts.
+        #
+        # THE PYTEST INVOCATION AND THE VERDICT ARE ONE STEP, ON PURPOSE, and the reason is
+        # `cluster-tests.yml`'s: splitting them would leave a step whose deletion turns
+        # this lane green while the suite still fails, because pytest's status would have
+        # been captured and then dropped.
+        env:
+          # The four names `trappoint_testkit.cluster` publishes and the demo-api conftest
+          # reads (`conftest.py:171`). All four, because publishing three of them is how a
+          # lane silently falls back to the fourth rung. Bound straight from `secrets`,
+          # never echoed, never written to `$GITHUB_ENV`.
+          MAINLINE_TEST_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+          COCKROACH_URL: ${{ secrets.CRDB_CLOUD_DSN }}
+          CRDB_URL: ${{ secrets.CRDB_CLOUD_DSN }}
+          TRAPPOINT_DSN: ${{ secrets.CRDB_CLOUD_DSN }}
+          EXPECTED_TESTS: ${{ steps.collect.outputs.expected }}
+        run: |
+          set -euo pipefail
+          # `--crdb=reuse`, NEVER `auto`. `auto` means "reuse a cluster that answers, start
+          # one if none does", so a job whose Cloud DSN had stopped answering would quietly
+          # start a container of its own and report success. `reuse` cannot start anything.
+          set +e
+          uv run --frozen --all-packages pytest "${SUITE}" \
+            --crdb=reuse -q -p no:cacheprovider --junit-xml="${REPORT}"
+          rc=$?
+          set -e
+          echo "pytest exited ${rc} (recorded, not trusted — the verdict is below)"
+          PYTEST_RC="${rc}" python3 - <<'PY'
+          """The verdict. Computed from the junitxml, never from the exit code.
+
+          Reads $REPORT, $PYTEST_RC, $EXPECTED_TESTS, $CLOUD_SKIP_CEILING. Never reads,
+          prints or reconstructs a DSN.
+          """
+          import os
+          import pathlib
+          import sys
+          import xml.etree.ElementTree as ET
+
+          report = pathlib.Path(os.environ["REPORT"])
+          pytest_rc = int(os.environ["PYTEST_RC"])
+          expected = int(os.environ["EXPECTED_TESTS"])
+          ceiling = int(os.environ["CLOUD_SKIP_CEILING"])
+          failures: list[str] = []
+
+          if not report.is_file():
+              print("::error title=the Cloud run reported nothing::pytest wrote no "
+                    f"{report} (it exited {pytest_rc}). With no report there is no verdict, "
+                    "and a job with no verdict may not go green.")
+              raise SystemExit(1)
+          try:
+              root = ET.parse(report).getroot()
+          except ET.ParseError as exc:
+              print(f"::error title=the Cloud run reported nothing readable::{report} did "
+                    f"not parse ({exc}). A report that cannot be read is not evidence.")
+              raise SystemExit(1) from exc
+
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          if suite is None:
+              print(f"::error title=the Cloud run reported nothing readable::{report} "
+                    "carries no <testsuite> element.")
+              raise SystemExit(1)
+
+          tests = int(suite.get("tests", "0"))
+          fails = int(suite.get("failures", "0"))
+          errors = int(suite.get("errors", "0"))
+          skips = int(suite.get("skipped", "0"))
+          seconds = suite.get("time", "?")
+          executed = tests - skips
+
+          # ── 1 · the suite RAN. `pytest` exits 0 when every test skips. ───────────────
+          if tests == 0:
+              failures.append(
+                  "the junitxml reports 0 tests. `pytest` exits 0 when every test skips, "
+                  "so an exit code cannot tell this case from a full green — which is why "
+                  "this lane counts instead."
+              )
+          elif tests != expected:
+              failures.append(
+                  f"the junitxml reports {tests} test(s); this tree collects {expected}. "
+                  "The run and the tree disagree about which suite was executed. That is "
+                  "answered by landing what is missing, never by lowering the expectation "
+                  "or by narrowing the run with -k or --deselect."
+              )
+
+          # ── 2 · a skip that means "could not reach the cluster" is FATAL at one. ─────
+          # Not a matter of the ceiling. The whole point of this job is that the suite met
+          # a multi-node cluster; a skip saying it did not is the absence of the evidence
+          # the job exists to produce, and it is indistinguishable from a green tick on a
+          # dashboard.
+          # The last two are the Cloud-specific ones and they are PREDICTED, not imagined.
+          # `conftest.py:797-802` issues `CREATE DATABASE` and `ALTER DATABASE … CONFIGURE
+          # ZONE USING gc.ttlseconds` UNGUARDED, and the captured Cloud fingerprint
+          # (`demo-cloud/sql/cluster-fingerprint.txt`) already records the `mainline-sql`
+          # role being refused `42501` for other privileged reads. If either statement is
+          # refused on Basic, `conftest.py:806` turns the whole session into SKIPS — and
+          # pytest then exits 0. That is the precise shape of "a skip is indistinguishable
+          # from a green tick", so it is named here and is fatal at a count of one.
+          UNREACHED = (
+              "no cockroachdb",
+              "trappoint-testkit",
+              "obtained no cluster",
+              "reuse mode will not start one",
+              "--crdb=",
+              "did not apply into",
+              "cannot be exercised against",
+          )
+          unreached: list[str] = []
+          skipped_named: list[str] = []
+          for case in suite.iter("testcase"):
+              node = case.find("skipped")
+              if node is None:
+                  continue
+              reason = f"{node.get('message', '')} {(node.text or '')}".strip()
+              label = f"{case.get('classname', '?')}::{case.get('name', '?')}"
+              skipped_named.append(f"{label} — {reason[:160]}")
+              if any(needle in reason.lower() for needle in UNREACHED):
+                  unreached.append(f"{label} — {reason[:220]}")
+
+          if unreached:
+              failures.append(
+                  f"{len(unreached)} test(s) skipped because the session could not reach a "
+                  "cluster: " + " | ".join(unreached) + ". This job paid for a Cloud "
+                  "credential and then asserted nothing against it."
+              )
+          if skips > ceiling:
+              failures.append(
+                  f"{skips} test(s) skipped, ceiling {ceiling}. The one skip this suite is "
+                  "expected to carry is hermetic (`jsonschema is not a workspace "
+                  "dependency`) and has nothing to do with a cluster. Any further skip is "
+                  "an assertion that did not run, and it is answered by making it run — "
+                  "never by raising this ceiling. Skipped: " + " | ".join(skipped_named)
+              )
+
+          # ── 3 · failures and errors, named. ─────────────────────────────────────────
+          if fails or errors:
+              named = [
+                  f"{case.get('classname', '?')}::{case.get('name', '?')}"
+                  for case in suite.iter("testcase")
+                  if case.find("failure") is not None or case.find("error") is not None
+              ]
+              failures.append(
+                  f"{fails} failure(s) and {errors} error(s) against CockroachDB Cloud: "
+                  + ", ".join(named[:40])
+                  + ("" if len(named) <= 40 else f" (+{len(named) - 40} more)")
+                  + ". A test that passes on one local node and fails on a multi-node "
+                  "cluster is this lane working, not this lane misbehaving."
+              )
+
+          # ── 4 · the exit code, as one more input that can only make it worse. ───────
+          if pytest_rc != 0 and not failures:
+              failures.append(
+                  f"pytest exited {pytest_rc} while the junitxml reports "
+                  f"{tests} tests / {fails} failures / {errors} errors / {skips} skips — a "
+                  "combination the report cannot explain. The exit code is not trusted here, "
+                  "but it is not discarded either: an unexplained non-zero status means "
+                  "something went wrong outside the tests, and this job may not go green on it."
+              )
+
+          summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a", encoding="utf-8") as handle:
+              handle.write("## the demo-api suite, against CockroachDB Cloud\n\n")
+              handle.write("| item | value |\n|---|---|\n")
+              handle.write(f"| collected from this tree | {expected} |\n")
+              handle.write(f"| reported by the run | {tests} |\n")
+              handle.write(f"| executed (tests - skipped) | {executed} |\n")
+              handle.write(f"| failures | {fails} |\n")
+              handle.write(f"| errors | {errors} |\n")
+              handle.write(f"| skipped (ceiling {ceiling}) | {skips} |\n")
+              handle.write(f"| skipped for want of a cluster | {len(unreached)} |\n")
+              handle.write(f"| pytest exit status | {pytest_rc} |\n")
+              handle.write(f"| wall time | {seconds} s |\n\n")
+              handle.write(
+                  "This is the ONLY place in this repository where "
+                  "`verticals/mainline/apps/demo-api/tests` meets a multi-node cluster. "
+                  "Every other green it has is from a single-node CockroachDB. See "
+                  "`docs/deploy/CLOUD-40001.md` for what that does and does not settle.\n\n"
+              )
+
+          for failure in failures:
+              print(f"::error title=the Cloud run of the demo-api suite is not evidence::{failure}")
+          if failures:
+              raise SystemExit(1)
+          print(
+              f"the demo-api suite ran against CockroachDB Cloud: {tests} collected, "
+              f"{executed} executed, {fails} failed, {errors} errored, {skips} skipped "
+              f"(none for want of a cluster), in {seconds}s"
+          )
           PY

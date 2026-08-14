@@ -13,6 +13,22 @@ irreversible: a permit is never un-merged, and ``dispositioned -> checks_materia
 does not come back. Sharing one subject across them would make the suite order-dependent,
 which is the failure mode that ends with someone deleting an assertion to make a run green.
 
+EVERY TRANSACTION IN THIS FILE, AND WHAT GUARDS IT
+---------------------------------------------------
+There is exactly ONE multi-statement transaction here — :func:`_seed_permit`, twelve
+statements ending in a read-modify-write on ``mainline.permit`` — and it is now run by
+:func:`trappoint_testkit.txn.run_txn`, which retries the WHOLE transaction from ``BEGIN`` on
+a fresh connection when the database answers ``40001``. The loop itself is
+``trappoint_core.retry.run_gate``; nothing here re-implements one, because a second loop
+would be a second SQLSTATE taxonomy and ``spec/errors.md`` §2.1 already owns the first.
+
+The other three connection sites are deliberately NOT retried, and each says why where it
+is: ``w4_conn`` and ``shared_conn`` LEND a connection to ``handle_transition``, whose own
+transaction is the unit a ``40001`` would restart (that guard lives in the deployment
+package under R11, which forbids it importing ``trappoint_core``); ``bare_permit`` is
+autocommit, so each statement is an implicit transaction CockroachDB restarts server-side
+and there is no multi-statement unit to be the subject of a client retry.
+
 ``w4_database`` comes from ``test_gate_run`` for the reason stated there: this worker owns
 two test files and not the conftest, and pytest's default ``prepend`` import mode puts the
 tests directory on ``sys.path``. The ``w4_`` prefix keeps these clear of the fixtures
@@ -57,6 +73,7 @@ from mainline_demo_api.transitions import (
 )
 from psycopg.types.json import Jsonb
 from test_gate_run import w4_database  # noqa: F401 - re-exported so pytest can resolve it
+from trappoint_testkit.txn import from_dsn, run_txn
 
 pytestmark = pytest.mark.requires_cluster
 
@@ -124,8 +141,34 @@ def _seed_permit(w4_conn: psycopg.Connection[Any], demo_permit_id: str, signer: 
 
     Nothing here bypasses a trigger. The counter is written by ``check_materialised``, the
     chain digest by ``fn_permit_event_chain``, and the closure by whatever 0115 re-derives.
+
+    **THIS FUNCTION NO LONGER COMMITS, AND IT NO LONGER ROLLS BACK.** It is the WORK half of
+    one whole transaction; :func:`fresh_history` hands it to
+    :func:`trappoint_testkit.txn.run_txn`, which opens a fresh connection, states the
+    isolation level, runs this to completion, commits it, and — on ``40001`` — throws the
+    connection away and runs the WHOLE of it again. That granularity is the requirement, not
+    a preference: ``spec/errors.md`` §2.1 forbids retrying a statement, because a statement
+    replayed into a transaction CockroachDB has already aborted is not a retry of anything.
+
+    What was here before: twelve statements over seven tables, two of which read the
+    previous ``permit_event``'s ``chain_digest`` and then ``UPDATE mainline.permit`` — a
+    read-modify-write on one row — ending in a single ``.commit()`` with no retry of any
+    kind. ``tests/concurrency/test_seed_permit_needs_retry.py`` transcribes that shape and
+    races two callers at one subject against the LOCAL single-node CockroachDB v26.2.5:
+    ``40001`` in 6 of 6 races, one loser per race, and the loser's entire history — recall
+    run, receipt, the line that displayed the obligation, the event that claimed it disposed
+    of — gone. So this is not a Cloud-only hazard and was never provably absent here; it was
+    merely never raced.
+
+    **Every identifier is minted INSIDE this function**, and that has become load-bearing: a
+    retry runs the body again from the top, so a ``uuid4`` hoisted into the fixture would be
+    replayed and the second attempt would meet its own first attempt's key — a ``23505``,
+    which the loop must attempt exactly once and must never retry.
+
+    *w4_conn* is the connection ``run_txn`` opened for THIS attempt and nothing else holds.
+    It keeps psycopg's default ``tuple_row`` because :data:`_SITE_SQL`'s row is read by
+    POSITION, which is what the fixture opened by hand before.
     """
-    w4_conn.rollback()
     row = w4_conn.execute(_SITE_SQL, (demo_permit_id,)).fetchone()
     assert row is not None, "the demo history is not seeded in this database"
     site_id, site_role, clause_uuid, commit_id, event_id, policy_version = row
@@ -186,6 +229,34 @@ def _seed_permit(w4_conn: psycopg.Connection[Any], demo_permit_id: str, signer: 
             "A recalled precursor reaches the clause this permit relies on.",
         ),
     )
+    # THE VOCABULARY THIS CHECK OFFERS, added 2026-08-14 with the resolver that reads it.
+    #
+    # `_seed_permit` mints its OWN check with a fresh uuid, so the demo seed's vocabulary does not
+    # cover it and `defeaters.resolve_defeater_vocabulary` refuses the signature with
+    # `422 demo_history_not_seeded`. That refusal is CORRECT and is not worked around here: a
+    # disposition pins `vocab_sha256`, the digest of the option set the signer was shown, and a
+    # check offering nothing has no such digest — 0064's rationale calls a signature that pins
+    # nothing "a click-through with a signature on it". So this fixture now seeds what any real
+    # obligation would carry, rather than the test asserting that an unsignable check can be signed.
+    #
+    # The digest is aggregated from the rows under a deterministic ORDER BY, exactly as the demo
+    # seeds do, and NOT written down: a literal would be a constant that merely looks like a hash
+    # and would silently describe the wrong set the moment an option is added. The codes are the
+    # permit-side three, because this fixture mints a permit obligation against the same isolation
+    # clause the demo uses.
+    w4_conn.execute(
+        "WITH options (defeater_code, prompt) AS (VALUES "
+        "  ('ENERGY_SOURCE_ABSENT', 'Which stored-energy source was surveyed and found absent?'), "
+        "  ('MECHANISM_PRESENT_AND_VERIFIED', 'Which isolation point was locked, and who verified "
+        "it at zero?'), "
+        "  ('WORK_NOT_INTRUSIVE', 'Which task was assessed as non-intrusive, and against which "
+        "method statement?')), "
+        "vocab AS (SELECT digest(string_agg(defeater_code || chr(31) || prompt, chr(30) "
+        "  ORDER BY defeater_code), 'sha256') AS sha FROM options) "
+        "INSERT INTO mainline.defeater_option (check_id, defeater_code, prompt, vocab_sha256) "
+        "SELECT %s, o.defeater_code, o.prompt, v.sha FROM options AS o CROSS JOIN vocab AS v",
+        (check_id,),
+    )
     w4_conn.execute(
         "INSERT INTO mainline.exposure_receipt (receipt_id, subject_kind, permit_id, actor_sub, "
         "issued_at, issued_hlc, expires_at, corpus_root, silence_receipt_id, policy_version, "
@@ -222,28 +293,55 @@ def _seed_permit(w4_conn: psycopg.Connection[Any], demo_permit_id: str, signer: 
             "UPDATE mainline.permit SET state = %s, head_seq = %s WHERE permit_id = %s",
             (to, seq, permit_id),
         )
-    w4_conn.commit()
+    # No commit. `run_txn` owns it — see this function's docstring. A commit here would
+    # make the retried unit a PART of the transaction, and `TransactionNotCommittable`
+    # exists to refuse that rather than let it pass quietly.
     return _History(permit_id, check_id, site_id)
 
 
 @pytest.fixture
 def w4_conn(w4_database: str) -> Iterator[psycopg.Connection[Any]]:  # noqa: F811
-    """A connection to the w4 scratch database. Named apart from the conftest's `conn`."""
+    """A connection to the w4 scratch database. Named apart from the conftest's `conn`.
+
+    DELIBERATELY NOT RETRIED, and the reason is that this connection is not a transaction
+    site at all: it is the connection a test LENDS to ``handle_transition``, standing in for
+    the one ``app.handler`` lends it on a Function URL invocation. The transaction is opened
+    and closed inside ``transitions.py``, so the unit a ``40001`` would have to restart is
+    the request — which is what ``mainline_demo_api.retry`` guards, inside the deployment
+    package, under RULING R11 (the Lambda may not import ``trappoint_core``). A ``run_txn``
+    wrapped round a connection borrowed by somebody else's transaction is the exact mistake
+    ``spec/errors.md`` §2.1 names, so there is nothing for this fixture to wrap.
+    """
     with psycopg.connect(w4_database, autocommit=False) as connection:
         yield connection
 
 
 @pytest.fixture
-def fresh_history(w4_database: str) -> Iterator[_History]:  # noqa: F811
-    """A brand-new permit with one open obligation. Its own subject, so tests cannot collide."""
+def fresh_history(w4_database: str) -> _History:  # noqa: F811
+    """A brand-new permit with one open obligation. Its own subject, so tests cannot collide.
+
+    **THE RETRY OWNS THE CONNECTION, WHICH IS WHY THIS FIXTURE NO LONGER OPENS ONE.** It
+    used to ``psycopg.connect`` and hand the open connection to :func:`_seed_permit`, which
+    committed. Handing an already-open connection to a retry is the failure ``spec/errors.md``
+    §2.1 describes, and :class:`trappoint_testkit.txn.ConnectionNotFresh` makes that call
+    impossible to write: there is no parameter that accepts a connection, only a factory.
+    :func:`~trappoint_testkit.txn.from_dsn` builds the factory; ``run_txn`` opens a NEW
+    connection per attempt, so a poisoned one is discarded rather than replayed into.
+
+    It is also no longer a generator. Nothing downstream reads from the seeding connection —
+    every test does its own reads on ``w4_conn`` — and holding one open for the life of the
+    test was what made the commit look like the end of a scope rather than the end of a
+    transaction.
+    """
     import os
 
-    with psycopg.connect(w4_database, autocommit=False) as connection:
-        yield _seed_permit(
-            connection,
-            os.environ["MAINLINE_DEMO_PERMIT_ID"],
-            os.environ["MAINLINE_DEMO_SIGNER_SUB"],
-        )
+    permit_id = os.environ["MAINLINE_DEMO_PERMIT_ID"]
+    signer = os.environ["MAINLINE_DEMO_SIGNER_SUB"]
+    return run_txn(
+        from_dsn(w4_database),
+        lambda conn: _seed_permit(conn, permit_id, signer),
+        subject_kind="permit",
+    )
 
 
 @pytest.fixture
@@ -253,6 +351,12 @@ def bare_permit(w4_database: str) -> Iterator[uuid.UUID]:  # noqa: F811
     The subject a precondition failure is about. Nothing here is fabricated to produce an
     error: this is simply a permit that has not been through recall yet, which is what
     every permit is on the day it is drafted.
+
+    NOT RETRIED, and the reason is measurable rather than a judgement call: the connection
+    is ``autocommit=True``, so each of the two statements is its own implicit transaction
+    and CockroachDB restarts an implicit transaction SERVER-side. There is no multi-statement
+    unit here for a client retry to be OF — which is also why ``from_dsn`` refuses
+    ``autocommit=True`` outright rather than accepting it and retrying the last statement.
     """
     import os
 

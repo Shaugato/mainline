@@ -1,0 +1,412 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# THE LANE BUILDS WHAT IT TESTS.
+#
+# WHAT WAS TRUE BEFORE THIS FILE EXISTED, measured in GitHub Actions run 31735341117
+# (`cluster-tests`, HEAD `eefae1c`):
+#
+#     cluster lane: 528 collected, 518 executed, 10 skipped, 1 failed, 0 errored
+#     ::error::10 test(s) skipped, ceiling 1
+#
+# and, on the workstation where `out/lambda/mainline-demo-api-arm64.zip` happened to
+# exist, the identical command reported **528 collected, 527 executed, 1 skipped**. The
+# whole nine-test delta was one gitignored build output. From the run's own
+# `short test summary info`:
+#
+#     test_envelope.py:1016          1   "no deployment package has been built in this tree"
+#     test_response_contract.py:893  3   "the deployed package is not built"
+#     test_response_contract.py:1144 1   "the deployed package is not built"
+#     test_response_contract.py:1210 1   "the deployed package is not built"
+#     test_static_site.py:930        3   "the deployed package ... is not built"
+#     test_gate_run.py:945           1   "jsonschema is not a workspace dependency"
+#
+# The last line is the one the ceiling of **1** exists for and it has nothing to do with
+# the database or with this action. The other nine are the ones this file ends. THREE
+# modules are involved, not two: a lane that built the package for `test_response_contract`
+# and `test_static_site` alone would land at 2 against a ceiling of 1, and the temptation
+# then is to raise the ceiling. **The ceiling does not move.**
+#
+# WHY THE SKIPS WERE RIGHT AND THE FIX IS THE BUILD, NOT THE SKIP.
+#
+# Each of those nine reads the **deployed** tree — the `web/` entries of the finished zip —
+# and each refuses to fall back to the packer's INPUT tree (`console/dist` plus the evidence
+# bundle). That refusal is `docs/decisions/response-ceiling-authoritative-tree.md` and it is
+# correct: the input tree carries eighteen source maps the builder strips, so a cost
+# assertion measured there is measured over bytes that never leave the origin. The skip
+# messages say, in the tests' own words, that the tree-reading half "did NOT run in this
+# session". They were true. The defect was that no lane in `.github/workflows/` ever built
+# the artefact, so nine assertions about what this origin costs had never executed in CI —
+# and a skip on a dashboard is the same green tick as a pass.
+#
+# WHAT THIS ACTION ASSERTS, AND WHY IT ASSERTS THE ENTRIES RATHER THAN THE FILE.
+#
+# `_PACKAGE.is_file()` is what the tests check before they decide to run. A build that
+# produced a zip with an EMPTY `web/` would satisfy `.is_file()`, and the tests would then
+# skip anyway — on `if not entries` — while this action reported success. The lane would
+# have gained a build step and kept its ten skips, which is worse than not building at all
+# because it looks fixed. So the gate below opens the archive's **central directory** and
+# counts what is in it:
+#
+#   1. the zip exists;
+#   2. it carries at least one `web/` entry;
+#   3. it carries ZERO `*.map` entries, anywhere in the archive.
+#
+# (3) is not decoration. `--strip-source-maps` is the builder's default as of 2026-08-13,
+# and the maps are 18 files and ~2.59 MB of billable egress on a Function URL whose
+# `authorization_type` is `NONE`. `test_envelope.py`'s package assertion says the same
+# thing from the other side; this says it before 154 seconds of database work.
+#
+# WHAT THIS ACTION DELIBERATELY DOES NOT SET.
+#
+# `MAINLINE_BUILD_ID` is left **unset**. `vite.config.ts` inlines it into the bundle via
+# `define`, so setting it to `${{ github.sha }}` or to a run id would change the content
+# hash of `assets/index-<hash>.js` on every single run. The byte counts that
+# `test_response_contract.py` and `test_static_site.py` pin — and the whole I3 ceiling
+# derivation that rests on them — would then be unpinnable by construction, and this lane
+# would be red forever for a reason that is about a variable rather than about the tree.
+# Unset means `'dev'`, which is what a developer's build and a reviewer's build both use.
+#
+# `MAINLINE_ATTESTATION` is likewise unset, so `vite.config.ts` reads
+# `evidence/attestations/g1-attestation.json` out of the checkout. The signature path is a
+# render-time switch decided by a committed file, and a CI override would make the artefact
+# a statement about the workflow instead of about the repository.
+#
+# WHAT A CALLER'S `allowed-endpoints` MUST CONTAIN if it runs under `harden-runner`.
+# `cluster-tests.yml` runs no harden-runner and says so in its own header, so this list is
+# documentation there rather than configuration. Measured from what the two builders reach:
+#
+#     registry.npmjs.org:443        pnpm install --frozen-lockfile
+#     nodejs.org:443                actions/setup-node fetching the 24.x runtime
+#     github.com:443                \  pnpm/action-setup and setup-node release assets
+#     objects.githubusercontent.com:443  /
+#     pypi.org:443                  \  build_lambda.sh: pip download psycopg / psycopg-binary
+#     files.pythonhosted.org:443    /  for the manylinux target, which is not this runner
+#
+# ORDERING. This action must run AFTER `./.github/actions/setup-workspace`, because it
+# needs a CPython that has `pip` on it. `uv sync` creates a `.venv` WITHOUT pip unless it
+# is seeded, and `build_lambda.sh` prefers `$REPO_ROOT/.venv/bin/python` when one exists —
+# so the interpreter is resolved and checked here, explicitly, rather than left to that
+# preference. The check below fails loudly with that sentence in it rather than dying
+# inside `pip download` with a `No module named pip`.
+
+name: "Build the deployed demo package"
+description: >-
+  Build `console/dist` with the pinned pnpm and Node, pack the Lambda deployment zip with
+  `scripts/deploy/build_lambda.sh`, and refuse the result unless the archive's central
+  directory holds at least one `web/` entry and no source maps at all.
+
+inputs:
+  arch:
+    description: >-
+      The architecture to build. `arm64` is the deployed default and is the one the tests
+      read: `test_response_contract.py:187` and `test_static_site.py:825` both name
+      `out/lambda/mainline-demo-api-arm64.zip` literally, so a lane that built only
+      `x86_64` would build a package no assertion opens and would still skip nine tests.
+    required: false
+    default: "arm64"
+
+  node-version:
+    description: >-
+      The Node line. `24`, because `console/package.json` declares `engines.node >=24.0.0`
+      and `.github/workflows/console.yml:97-99` records 24 as the LTS line the lockfile was
+      resolved against and `pnpm run ci` was measured green on.
+    required: false
+    default: "24"
+
+  python:
+    description: >-
+      The interpreter handed to `build_lambda.sh --python`. Empty means "resolve `python3`
+      from PATH", which after `setup-workspace` is the `actions/setup-python` interpreter
+      and has `pip`. It is passed explicitly because the builder would otherwise prefer a
+      `.venv` that `uv sync` created, and a uv venv has no pip unless it was seeded.
+    required: false
+    default: ""
+
+  summary:
+    description: >-
+      `true` appends the built package's shape — entry counts, total bytes, the largest
+      identity object and the largest gzipped sibling — to `$GITHUB_STEP_SUMMARY`. Those
+      four numbers are the inputs to interface I3 and to the cost model, and a lane that
+      builds the artefact and does not publish them makes the next reader rebuild it to
+      find out.
+    required: false
+    default: "true"
+
+outputs:
+  package:
+    description: "Path to the zip that was built and passed the gate."
+    value: ${{ steps.gate.outputs.package }}
+  sha256:
+    description: "sha256 of that zip, as `bundle_manifest.py` records it."
+    value: ${{ steps.gate.outputs.sha256 }}
+  web-entries:
+    description: "How many `web/` entries the archive's central directory holds."
+    value: ${{ steps.gate.outputs.web-entries }}
+  web-bytes:
+    description: "Uncompressed bytes of those entries, summed."
+    value: ${{ steps.gate.outputs.web-bytes }}
+  largest-identity-bytes:
+    description: >-
+      The largest `web/` object with no `.gz` suffix — what a caller that sent no
+      `accept-encoding` can ask for by name.
+    value: ${{ steps.gate.outputs.largest-identity-bytes }}
+  largest-gz-bytes:
+    description: >-
+      The largest `web/**.gz` sibling — the most bytes this origin puts on the wire for one
+      response, and the input to the I3 derivation.
+    value: ${{ steps.gate.outputs.largest-gz-bytes }}
+
+runs:
+  using: composite
+  steps:
+    - name: pnpm, at the version console/package.json names
+      # No `version:` input, exactly as `console.yml:86-92` does it. The action reads
+      # `packageManager` out of `package.json`, which keeps the version in one place — the
+      # same rule `compose.yaml` holds for the CockroachDB image and the same rule this
+      # repository's image census enforces.
+      uses: pnpm/action-setup@v4
+      with:
+        package_json_file: verticals/mainline/apps/console/package.json
+
+    - name: Node ${{ inputs.node-version }}, with the pnpm store cached
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+        cache-dependency-path: verticals/mainline/apps/console/pnpm-lock.yaml
+
+    - name: The pnpm pin that was requested is the pin that arrived
+      # ANTI-VACUITY, and the same three lines `console.yml:103-115` runs. Reading a version
+      # out of `package.json` and handing it to an action proves the request was made; it
+      # does not prove the request was honoured. A pnpm that resolved differently would
+      # produce a different `node_modules` and therefore a different bundle, under this
+      # lane's name and with the byte counts below asserted against it.
+      shell: bash
+      working-directory: verticals/mainline/apps/console
+      run: |
+        set -euo pipefail
+        declared="$(node -p "require('./package.json').packageManager")"
+        expected="${declared#pnpm@}"
+        actual="$(pnpm --version)"
+        echo "package.json packageManager : ${declared}"
+        echo "pnpm on PATH                : ${actual}"
+        if [ "${expected}" != "${actual}" ]; then
+          echo "::error file=verticals/mainline/apps/console/package.json::package.json names pnpm ${expected} but pnpm ${actual} is on PATH. The bundle this lane is about to measure would be built by a package manager nobody pinned."
+          exit 1
+        fi
+        node --version
+
+    - name: pnpm install --frozen-lockfile
+      # `--frozen-lockfile` refuses to update `pnpm-lock.yaml`. A CI that silently
+      # re-resolves has tested a dependency graph nobody reviewed, and here it would also
+      # move the content hashes of every emitted chunk — so the byte constants the demo-api
+      # suite pins would be measured against a tree that no reviewer ever saw.
+      shell: bash
+      working-directory: verticals/mainline/apps/console
+      env:
+        CI: "true"
+      run: pnpm install --frozen-lockfile
+
+    - name: vite build --mode demo
+      # The exact command `docs/deploy/console-build.md` records and the one the packer
+      # prints when it refuses a missing `dist/`. `--mode demo` selects `.env.demo`, which
+      # ships `VITE_MAINLINE_BUNDLE_URL=./bundle/` and an EMPTY `VITE_MAINLINE_API_BASE`:
+      # the phase-1 console over a verified EvidenceBundle, with no backend in the request
+      # path. That is the build the deployed package carries, so it is the build this lane
+      # measures. Supplying `VITE_MAINLINE_API_BASE` here would be this workflow deciding
+      # a deploy question that `docs/leads/deploy-plan.md` §4 decides.
+      shell: bash
+      working-directory: verticals/mainline/apps/console
+      env:
+        CI: "true"
+      run: |
+        set -euo pipefail
+        pnpm exec vite build --mode demo
+        echo "dist/ entries: $(find dist -type f | wc -l)"
+
+    - name: Resolve the interpreter that will run pip
+      id: interpreter
+      # Named as its own step because the failure it prevents is silent and slow: with no
+      # `--python`, `build_lambda.sh` takes `$REPO_ROOT/.venv/bin/python` when one exists,
+      # `uv sync` puts one there, and a uv venv carries no pip unless it was seeded. The
+      # build would then die 40 lines into `pip download` with `No module named pip`, which
+      # reads as a broken builder rather than as a wrong interpreter.
+      shell: bash
+      env:
+        REQUESTED: ${{ inputs.python }}
+      run: |
+        set -euo pipefail
+        # The guard, not the suppression. `command -v` exits 1 when the name is not on
+        # PATH, and `|| true` is banned in this directory — `cluster-tests.yml`'s
+        # collection step argues the same case for `grep -c` and solves it the same way.
+        # A suppressed status here would also be indistinguishable from "python3 exists
+        # and printed nothing", which is the state this whole step is trying to detect.
+        python_bin="${REQUESTED}"
+        if [ -z "${python_bin}" ]; then
+          for candidate in python3 python; do
+            if command -v "${candidate}" >/dev/null 2>&1; then
+              python_bin="$(command -v "${candidate}")"
+              break
+            fi
+          done
+        fi
+        if [ -z "${python_bin}" ]; then
+          echo "::error title=no interpreter for the package build::Neither python3 nor python is on PATH. This action must run AFTER ./.github/actions/setup-workspace, which installs the CPython that scripts/deploy/build_lambda.sh drives pip with."
+          exit 1
+        fi
+        if ! "${python_bin}" -m pip --version; then
+          echo "::error title=the interpreter has no pip::${python_bin} cannot run 'python -m pip'. scripts/deploy/build_lambda.sh downloads the psycopg wheels for the manylinux target with pip, so an interpreter without it cannot build this package. A uv-created .venv has no pip unless it was seeded; pass the setup-python interpreter through this action's 'python' input."
+          exit 1
+        fi
+        echo "python=${python_bin}" >> "$GITHUB_OUTPUT"
+        "${python_bin}" --version
+
+    - name: scripts/deploy/build_lambda.sh --arch ${{ inputs.arch }}
+      # Invoked through `bash` rather than executed, so the build does not depend on a mode
+      # bit surviving a checkout on every platform this repository is cloned to.
+      #
+      # The builder is NOT reimplemented here and no flag of it is second-guessed. It runs
+      # its own preflight, stages the wheels, strips the source maps, writes the `.gz`
+      # siblings, packs reproducibly, and then re-checks the finished artefact with
+      # `scripts/deploy/bundle_manifest.py --strict` — a program that opens the zip and has
+      # never seen the staging tree. A workflow that restated any of that would be a second
+      # definition of "the package is correct" that drifts from the first one on the first
+      # edit, which is the defect `console.yml:124-130` names for `pnpm run ci`.
+      shell: bash
+      env:
+        BUILD_PYTHON: ${{ steps.interpreter.outputs.python }}
+        ARCH: ${{ inputs.arch }}
+      run: |
+        set -euo pipefail
+        bash scripts/deploy/build_lambda.sh --arch "${ARCH}" --python "${BUILD_PYTHON}"
+
+    - name: The archive carries a web tree and no source maps
+      id: gate
+      # THE ASSERTION THIS ACTION EXISTS FOR, and it reads the CENTRAL DIRECTORY.
+      #
+      # `zipfile.ZipFile.infolist()` is the central directory, so this costs no unpacking
+      # and reports the names and sizes a reader would get from `unzip -l`. It is the same
+      # source `test_response_contract.py:862-879` and `test_static_site.py:923-941` read,
+      # which is the point: if this gate is satisfied, those nine tests find a tree and run.
+      #
+      # AGAINST THE ENTRIES, NEVER AGAINST THE FILE. A zip with an empty `web/` satisfies
+      # `_PACKAGE.is_file()`, so the nine would skip on `if not entries` while this action
+      # reported a successful build — a lane that gained a step and kept its ten skips, and
+      # looked fixed while doing it.
+      #
+      # The `.map` count is over the WHOLE archive, not over `web/`. `--strip-source-maps`
+      # is the builder's default and `bundle_manifest.py --forbid-source-maps` says the same
+      # thing from the artefact's side; a map that arrived through some path other than
+      # `web/` would be egress on an unauthenticated Function URL just the same.
+      shell: bash
+      env:
+        BUILD_PYTHON: ${{ steps.interpreter.outputs.python }}
+        ARCH: ${{ inputs.arch }}
+        WANT_SUMMARY: ${{ inputs.summary }}
+      run: |
+        set -euo pipefail
+        "${BUILD_PYTHON}" - <<'PY'
+        import hashlib
+        import os
+        import pathlib
+        import sys
+        import zipfile
+
+        arch = os.environ["ARCH"]
+        package = pathlib.Path("out/lambda") / f"mainline-demo-api-{arch}.zip"
+
+        if not package.is_file():
+            print(
+                "::error title=the deployment package was not built::"
+                f"{package} does not exist after scripts/deploy/build_lambda.sh --arch {arch} "
+                "reported success. Nine assertions in the demo-api suite read this file and "
+                "SKIP when it is absent, and a skip is indistinguishable from a green tick on "
+                "a dashboard. Do not answer this by removing the build step."
+            )
+            sys.exit(1)
+
+        with zipfile.ZipFile(package) as archive:
+            infos = [info for info in archive.infolist() if not info.is_dir()]
+
+        web = {i.filename[len("web/"):]: i.file_size for i in infos if i.filename.startswith("web/")}
+        maps = sorted(i.filename for i in infos if i.filename.lower().endswith(".map"))
+
+        if not web:
+            print(
+                "::error title=the built package carries no web tree::"
+                f"{package} holds {len(infos)} entries and NOT ONE of them is under web/. "
+                "The nine package-dependent tests would skip on `if not entries` even though "
+                "the file exists, so this lane would report a build and keep its ten skips. "
+                "The cause is upstream: verticals/mainline/apps/console/dist was empty or "
+                "absent when the packer ran. Fix the console build; do not relax this check "
+                "to `the file exists`."
+            )
+            sys.exit(1)
+
+        if maps:
+            shown = ", ".join(maps[:5]) + (" ..." if len(maps) > 5 else "")
+            print(
+                "::error title=the built package ships source maps::"
+                f"{package} carries {len(maps)} *.map entr(y/ies): {shown}. "
+                "--strip-source-maps has been build_lambda's DEFAULT since 2026-08-13, and "
+                "the maps measured 18 files / 2,586,960 B / 72.42 per cent of the served tree - "
+                "billable egress on a Function URL whose authorization_type is NONE, for a "
+                "debugging convenience nobody has used on the deployed URL. Either "
+                "--keep-source-maps reached this build, or the default moved."
+            )
+            sys.exit(1)
+
+        identity = {n: b for n, b in web.items() if not n.lower().endswith(".gz")}
+        siblings = {n: b for n, b in web.items() if n.lower().endswith(".gz")}
+        largest_identity = max(identity.items(), key=lambda kv: kv[1], default=("", 0))
+        largest_gz = max(siblings.items(), key=lambda kv: kv[1], default=("", 0))
+        digest = hashlib.sha256(package.read_bytes()).hexdigest()
+
+        print(f"package   {package}")
+        print(f"sha256    {digest}")
+        print(f"entries   {len(infos)} total, {len(web)} under web/")
+        print(f"web       {len(identity)} identity + {len(siblings)} gz sibling(s), "
+              f"{sum(web.values())} bytes")
+        print(f"largest   identity {largest_identity[1]} B  {largest_identity[0]}")
+        print(f"          gzipped  {largest_gz[1]} B  {largest_gz[0]}")
+        print(f"maps      {len(maps)}")
+
+        out = os.environ.get("GITHUB_OUTPUT")
+        if out:
+            with open(out, "a", encoding="utf-8") as handle:
+                handle.write(f"package={package.as_posix()}\n")
+                handle.write(f"sha256={digest}\n")
+                handle.write(f"web-entries={len(web)}\n")
+                handle.write(f"web-bytes={sum(web.values())}\n")
+                handle.write(f"largest-identity-bytes={largest_identity[1]}\n")
+                handle.write(f"largest-gz-bytes={largest_gz[1]}\n")
+
+        # The four numbers interface I3 and the cost model are both derived from. Published
+        # here because this is the only lane that produces them on a machine other than the
+        # one workstation that has ever run the builder, and docs/deploy/COST-BOUND.md is
+        # recorded in docs/leads/lane-honest-plan.md R10 as being false about them. A reader
+        # who needs the real figures should not have to rebuild the artefact to get them.
+        summary = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary and os.environ.get("WANT_SUMMARY", "true") == "true":
+            with open(summary, "a", encoding="utf-8") as handle:
+                handle.write("\n## the deployed package this lane built\n\n")
+                handle.write("| | |\n|---|---|\n")
+                handle.write(f"| artefact | `{package.as_posix()}` ({arch}) |\n")
+                handle.write(f"| sha256 | `{digest}` |\n")
+                handle.write(f"| entries | {len(infos)} total, {len(web)} under `web/` |\n")
+                handle.write(f"| web bytes | {sum(web.values())} |\n")
+                handle.write(
+                    f"| largest identity object | {largest_identity[1]} B "
+                    f"`{largest_identity[0]}` |\n"
+                )
+                handle.write(
+                    f"| largest gzipped sibling | {largest_gz[1]} B `{largest_gz[0]}` |\n"
+                )
+                handle.write(f"| source maps | {len(maps)} |\n\n")
+                handle.write(
+                    "The gzipped figure is the input to interface I3: the ceiling is "
+                    "`ceil(1.10 x largest_gz / 8192) * 8192`. See "
+                    "`docs/ci/cluster-lane-package.md`.\n"
+                )
+        PY

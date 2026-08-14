@@ -40,6 +40,28 @@ had not; nothing about the product is demonstrated by a missing row. See
 ``credentials.py``'s module docstring for why resolving beats deriving in every seed this
 demo can meet.
 
+WHERE BEAT 4's DEFEATER VOCABULARY COMES FROM
+----------------------------------------------
+``defeater_vocab_sha256`` is the digest of the option set the signer was SHOWN.
+``db/migrations/0064_defeater_option.sql``: it *"digests the whole option set, not the row,
+so a signature that pins it pins the ALTERNATIVES the signer declined as well as the one
+they chose"*. Until 2026-08-14 this beat bound ``_sha("defeater-vocab")`` —
+``sha256(b"defeater-vocab")``, the SHA-256 of an ASCII string — and the deployed
+CockroachDB Cloud recorded that constant on its one signed disposition
+(``console/fixtures/bundles/demo-cloud/frames/GET-f116fc2724f1b968.json``,
+``signed.defeater_vocab_sha256``). So the demo's signature pinned nothing, and would have
+gone on pinning nothing after the vocabulary rows landed: seeding the options without
+closing this moves the visible half of the defect and leaves the invisible half.
+
+The digest is now RESOLVED from ``mainline.defeater_option`` through
+:func:`mainline_demo_api.defeaters.resolve_defeater_vocabulary`, in the same read-only
+transaction as the credentials and for the same reason, and the code this beat signs with
+is checked for MEMBERSHIP of the set that was offered. There is no foreign key from
+``mainline.disposition`` onto ``mainline.defeater_option`` — ``0066_disposition.sql``
+carries only ``CONSTRAINT disposition_defeater_code_stated CHECK (defeater_code <> '')`` —
+so nothing in the database would notice a signature naming a code no screen ever showed.
+That check is made here or it is not made at all.
+
 WHY IT PERSISTS NOTHING, AND WHY THAT IS NOT A COMPROMISE
 ---------------------------------------------------------
 All four beats run inside ONE ``SERIALIZABLE`` transaction. Each write beat is fenced by
@@ -67,6 +89,15 @@ It will not retry. ``40001`` aborts the run, is reported as ``outcome: "retry"``
 beats completed so far, and the caller decides. A driver that re-sent the merge because a
 socket closed is a driver that can issue a permit twice.
 
+One call to this function is therefore exactly one attempt, and that is what makes it a
+legitimate retryable unit ONE LEVEL UP: ``transitions._demo_gate_run`` re-runs the whole
+function under :func:`mainline_demo_api.retry.run_transaction` when it comes back
+undecided, which ``spec/errors.md`` §2.1 permits precisely because the unit re-run is the
+whole transaction from ``BEGIN`` and not a statement replayed into a poisoned one. Nothing
+here re-sends a statement, and nothing here decides on the caller's behalf; the sentence
+above is unchanged, and the paragraph it sits in is why re-running is safe at all — this
+run persists nothing, so a second attempt asks the same question of the same rows.
+
 It will not compose a message. Every ``sqlstate``, ``constraint`` and ``message`` in the
 response comes out of the driver's error object through
 :func:`mainline_demo_api.refusal.diagnose`; every reason set comes out of
@@ -91,6 +122,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from .credentials import resolve_credential_id
+from .defeaters import resolve_defeater_vocabulary
 from .refusal import Diagnosis, classify, diagnose, refusal_payload, rfc3339
 from .scenario import ResolvedScenario, Scenario, positional, resolve
 
@@ -100,6 +132,7 @@ __all__ = [
     "CF01_SQLSTATE",
     "CF03_EXHIBIT",
     "CF03_SQLSTATE",
+    "DEMO_DEFEATER_CODE",
     "GATE_RUN_SCHEMA_ID",
     "canonical_json",
     "gate_run",
@@ -121,6 +154,26 @@ _MERGE_SQL: Final = "CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)"
 
 _FORCE_SQL: Final = "UPDATE mainline.permit SET open_blocking = 0 WHERE permit_id = %s"
 
+#: The defeater the demo's one signature names, and the only thing about the vocabulary
+#: this module states rather than reads.
+#:
+#: It is the demo's authored answer to the obligation — the recalled precursor
+#: ``DEMO-INC-0001`` is answered by a verified zero-energy isolation procedure, which is
+#: what :data:`_RATIONALE` says in prose — and it is the code the deployed Cloud recorded
+#: on its ADMITTED merge (``demo-cloud/sql/beat-4-merge-admitted-00000.txt``, and
+#: ``GET-f116fc2724f1b968.json``'s ``signed.defeater_code``). It is a CHOICE, not a digest,
+#: which is why it may be stated here at all: what a signer picks is theirs, and 0064 puts
+#: exactly four things in the signer's gift — the kind, the defeater code, the rationale
+#: and the signature.
+#:
+#: Stating it does not make it legal. It is checked for membership of the vocabulary the
+#: database actually offers, before the beats' transaction opens, and the run refuses if
+#: this check never offered it. A hard-coded code that nothing verified is precisely the
+#: *"click-through with a signature on it"* 0064's rationale exists to forbid, and it was
+#: hard-coded into the statement below — unverifiable, because a literal inside a
+#: statement cannot be compared with anything — until 2026-08-14.
+DEMO_DEFEATER_CODE: Final = "MECHANISM_PRESENT_AND_VERIFIED"
+
 #: Every column on this row except the four a signer actually chooses is PROJECTED by
 #: `fn_disposition_project` from authoritative rows and the values supplied here are
 #: overwritten (invariant I02). The subject, the site, the virulence, the clearance
@@ -138,7 +191,7 @@ INSERT INTO mainline.disposition (
   min_signer_rank, severity_snapshot, deliberation_seconds, evidence_opened,
   prior_override_count)
 VALUES (%s, %s, %s, 'permit', %s, %s, 'applied', 'routine', 0,
-        'MECHANISM_PRESENT_AND_VERIFIED', %s, %s, %s, %s, 1, 'x', %s, %s, %s, 'ES256',
+        %s, %s, %s, %s, %s, 1, 'x', %s, %s, %s, 'ES256',
         %s, %s, true, %s, %s, %s, false, false, false, false, false, 1, 0, 0, true, 0)
 """
 
@@ -427,6 +480,14 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
             inside beat 4 dressed up as a refusal the gate never made.
         CredentialAmbiguous: a subject holds several live credentials and a disposition
             names one.
+        DefeaterVocabularyAbsent: the open obligation offers no defeater options, so beat
+            4's signature could not pin the vocabulary it was chosen from. Also a
+            ``ScenarioNotSeeded``, also raised before the beats' transaction opens.
+        DefeaterVocabularyAmbiguous: the obligation's options carry more than one distinct
+            digest, which 0064 says cannot be true of one generation.
+        DefeaterNotOffered: the obligation offers a vocabulary and
+            :data:`DEMO_DEFEATER_CODE` is not in it. A ``ValueError``, which
+            ``handle_transition`` answers with ``422 unprocessable_request``.
     """
     if conn.autocommit:
         raise ValueError(
@@ -455,6 +516,25 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
     #    the gate never produced, on a run that would still answer 200.
     signer_credential_id = resolve_credential_id(conn, opening.scenario.signer_sub)
     countersigner_credential_id = resolve_credential_id(conn, opening.scenario.countersigner_sub)
+
+    #    AND SO IS THE DEFEATER VOCABULARY BEAT 4 PINS, for a reason that is the mirror
+    #    image rather than a copy. A missing credential at least FAILS — `23503`, in the
+    #    wrong place and dressed as a refusal, but visibly. A missing vocabulary fails
+    #    nowhere: `mainline.disposition` has no foreign key onto `mainline.defeater_option`,
+    #    so a signature over an option set that does not exist commits, admits, and reports
+    #    `PROVEN`. That is why this read is a PRECONDITION and not an expectation: the only
+    #    place the condition can be caught is before anything is signed.
+    #
+    #    Read for `opening.check_id` — the obligation as the committed state has it — and
+    #    carried into beat 4, which re-reads the permit inside its own transaction and is
+    #    checked below for having found the same obligation.
+    vocabulary = (
+        resolve_defeater_vocabulary(conn, opening.check_id)
+        if opening.check_id is not None
+        else None
+    )
+    if vocabulary is not None:
+        vocabulary.require(DEMO_DEFEATER_CODE)
     conn.rollback()
 
     conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
@@ -593,6 +673,23 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
                 "foreign key lands on (check_id, receipt_id); the API does not fabricate "
                 "either."
             )
+        elif vocabulary is None or vocabulary.check_id != resolved.check_id:
+            # The obligation moved between the read-only opening and this transaction, so
+            # the vocabulary resolved above belongs to a different check. Signing anyway
+            # would record the digest of one obligation's option set against another's —
+            # the exact silent reinterpretation `disposition.schema.json` says the digest
+            # exists to prevent — and nothing in the database would refuse it. Beat 4 is
+            # skipped and says so; a run that cannot pin what it signed proves nothing,
+            # and reporting it as ADMITTED would be the fabricated exhibit.
+            beats[3]["outcome"] = "skipped"
+            beats[3]["note"] = (
+                "the open obligation changed between the opening read and the beats' "
+                f"transaction: the defeater vocabulary was resolved for "
+                f"{vocabulary.check_id if vocabulary else None} and this transaction found "
+                f"{resolved.check_id}. A disposition pins the digest of the option set its "
+                "own check offered, so this run will not sign one it cannot pin. Re-run; "
+                "this demo persists nothing, so nothing is left half-done."
+            )
         else:
             conn.execute("SAVEPOINT gate_run_beat_4")
             disposition_id = uuid.uuid4()
@@ -605,7 +702,14 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
                         resolved.receipt_id,
                         resolved.permit_id,
                         resolved.scenario.site_id,
-                        _sha("defeater-vocab"),
+                        # The code, and then the digest of the set it was chosen FROM. Both
+                        # come from `mainline.defeater_option`: the digest is read off the
+                        # rows and the code was checked for membership of them before this
+                        # transaction opened. Neither is computed here, and there is no
+                        # constant to fall back to — see the module docstring for the one
+                        # that used to be here and what it pinned.
+                        DEMO_DEFEATER_CODE,
+                        vocabulary.vocab_sha256,
                         _RATIONALE,
                         _sha("evidence", str(disposition_id)),
                         resolved.scenario.signer_sub,

@@ -87,6 +87,7 @@ from typing import Any
 import psycopg
 import pytest
 from psycopg.rows import dict_row, tuple_row
+from trappoint_testkit.txn import from_dsn, run_txn
 
 pytestmark = pytest.mark.requires_cluster
 
@@ -100,9 +101,27 @@ from mainline_demo_api import gate_run as gate_run_mod  # noqa: E402
 from mainline_demo_api.gate_run import gate_run  # noqa: E402
 from mainline_demo_api.scenario import ResolvedScenario, positional, resolve  # noqa: E402
 from mainline_demo_api.transitions import handle_transition  # noqa: E402
+from test_gate_run import _fingerprint  # noqa: E402 - one definition of "what builds a database"
 
 DEFAULT_DSN = "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable&connect_timeout=10"
-SCRATCH_DB = os.environ.get("MAINLINE_W1_DATABASE", "w_w1_rowfactory")
+
+#: The scratch database this file builds and adopts, named by a CONTENT FINGERPRINT.
+#:
+#: ``test_gate_run._fingerprint`` is IMPORTED rather than re-derived, and the asymmetry is
+#: the point: two copies of "what builds a database" is how one of them goes stale, which is
+#: the very failure the fingerprint exists to prevent. The import is the same shape
+#: ``test_transitions.py`` already uses for ``w4_database`` — pytest's default ``prepend``
+#: import mode puts this directory on ``sys.path``.
+#:
+#: WHY THIS NAME MOVED TOO. This file carried the identical hazard the RULING names in
+#: ``test_gate_run.py``: a FIXED default, so two concurrent runs shared one database, and
+#: :func:`_w1_built` ADOPTS a database whenever its demo subject still looks usable — which
+#: means a database built from an older migration chain or an older ``gate_refusal.py`` was
+#: indistinguishable from one built from this tree. Fixing one of two identical sites and
+#: leaving the other would have left the measurement hazard exactly where it was found.
+#: ``MAINLINE_W1_DATABASE`` is kept for the same reason ``MAINLINE_W4_DATABASE`` is: the
+#: order and falsification harnesses set it to give a run a private database.
+SCRATCH_DB = os.environ.get("MAINLINE_W1_DATABASE") or f"w_w1_rowfactory_{_fingerprint()}"
 
 #: The external reference ``scripts/proof/gate_refusal.py::seed_history`` gives its permit.
 _DEMO_EXTERNAL_REF = "PTW-PROOF-1"
@@ -133,6 +152,13 @@ _EXPECTED_CONVENTIONS: dict[str, str] = {
     # would have made it the third `KeyError: 0` in this package rather than the first.
     "credentials.py": "position",
     "db.py": "name",
+    # ADDED 2026-08-14 with the vocabulary resolver, and `position` is measured rather than
+    # inherited: `defeaters.py:257` reads its one statement through `scenario.positional()`
+    # and then indexes the row — `row[0]` for the code, `row[1]` for the digest. Under
+    # `dict_row` that is the same `KeyError: 0` this file exists for, on the statement a
+    # signature's `defeater_vocab_sha256` is read from, which would have made it the second
+    # module to ship the defect after the one that named it.
+    "defeaters.py": "position",
     "envelope.py": "silent",
     "gate_run.py": "position",
     "health.py": "name",
@@ -145,6 +171,12 @@ _EXPECTED_CONVENTIONS: dict[str, str] = {
     "ratelimit.py": "silent",
     "reads.py": "name",
     "refusal.py": "position",
+    # ADDED 2026-08-14 with the 40001 retry loop. `silent` by measurement — zero reading
+    # sites; the only `execute` in the file is the word inside a docstring explaining why a
+    # retry wrapped around one statement inside an already-open transaction is not a retry.
+    # It re-runs a CALLABLE from BEGIN and never reads a row itself, so it has no convention
+    # to inherit and this line is what will force the question if it ever grows one.
+    "retry.py": "silent",
     "scenario.py": "position",
     "static_site.py": "silent",
     "transitions.py": "position",
@@ -322,11 +354,24 @@ def _w1_built() -> tuple[str, str, str]:
                 f"{SCRATCH_DB}; the gate objects may be absent. First: "
                 f"{report.failures[0].version} [{report.failures[0].sqlstate}]"
             )
-        with psycopg.connect(dsn, autocommit=False) as conn:
-            conn.rollback()
-            conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
-            proof.seed_history(conn)
-            conn.commit()
+        # ONE whole transaction, retried on 40001 by the repository's ONE retry loop.
+        #
+        # CONTENDED, and the contention is not hypothetical. `seed_history` issues ~30
+        # statements ending in two `permit_event` INSERTs that each read the previous
+        # row's `chain_digest` and then UPDATE `mainline.permit` — a read-modify-write on
+        # one row. `tests/concurrency/test_seed_permit_needs_retry.py` races that shape
+        # against the LOCAL single-node node and gets 40001 in 6 of 6 races. This build
+        # also runs while `test_gate_run.py`'s session-scoped `w4_database` may be
+        # applying the same chain and the same seeder to a sibling database on the same
+        # cluster, so the loser used to lose its whole history and report the rebuild as
+        # a product failure.
+        #
+        # `from_dsn`, never a connection: `run_txn` opens a NEW connection per attempt so
+        # a poisoned transaction is discarded rather than replayed into — spec/errors.md
+        # §2.1. `row_factory` stays psycopg's default `tuple_row`, exactly as the
+        # hand-opened connection here did, because `scripts/proof/gate_refusal.py` reads
+        # its own rows by position.
+        run_txn(from_dsn(dsn), proof.seed_history, subject_kind="permit")
 
     ready = _demo_ready(dsn)
     assert ready is not None, (

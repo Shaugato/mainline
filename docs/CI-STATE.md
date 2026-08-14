@@ -38,6 +38,16 @@ lists the five claims that did not survive the re-measurement.
     the demo API's 187 cluster-backed tests — collected, counted, never executed (§6)
 ```
 
+> **SUPERSEDED ON ONE LINE, 2026-08-14.** The last line of that block — *"collected,
+> counted, never executed"* — **is no longer true**, and the block is kept exactly as it
+> was written rather than corrected in place, because it is the `2dc5c86` board and a
+> board edited after the fact is not a board. CI run
+> [31735341117](https://github.com/Shaugato/mainline/actions/runs/31735341117)
+> (`cluster-tests`, push, `eefae1c`, 2026-08-13T19:20:30Z) **executed 518 cluster-backed
+> demo-api tests against a real CockroachDB**: `1 failed, 517 passed, 10 skipped in
+> 154.21s`, from `528 collected`. §6 is rewritten around that run and carries the
+> before/after in full. Nothing else on the `2dc5c86` board is corrected by this note.
+
 **What a judge scanning the Actions tab needs first.** Five of the seven reds are lanes
 refusing to certify something this repository has not built yet, and **each one states so in
 the first clause of the message GitHub renders**. The other two are defects: `ci` on one
@@ -707,10 +717,20 @@ apart.
 | `judge-pack` | *the validator fires on every planted violation*; *a run with no cluster exits 3, never 0* | 31699580021 | conclusion only |
 | `submission` | *the submission gate can say no* | 31699563085 | conclusion only |
 | `ci` | *RED BY DESIGN, and it must stay red* — an inverted job that fails if a declared red goes green | 31699545661 | conclusion only |
+| `cluster-lane-bites` | *the cluster lane bites, and the hermetic lane cannot* — a 2×2 over {plant, no plant} × {`--crdb=none`, `--crdb=reuse`} | 31735341050 | **log read**, 2026-08-14 (§5.7) |
+| `cluster-tests` | `COLLECTED_FLOOR` + skip ceiling, asserted from the lane's own JUnit XML | 31735341117 | **log read**, 2026-08-14 (§6.5) |
+| `release-proof` | *a bare pytest run exits 0 on an all-skipped suite, and the gate refuses it by name* | 31699585931 | **log read**, 2026-08-14 (§5.7) |
+| `ci` | `RED_FLOOR: 15` — the same job, now read rather than inferred | 31735341191 | **log read**, 2026-08-14 (§10.14) |
 
 **The last column is not decoration.** Three rows were checked by reading what the job printed;
 four by reading the conclusion of a job whose *name* claims a refusal. The four are weaker
 evidence and are labelled rather than promoted.
+
+**Four rows added 2026-08-14 by W6 of the lane-honest wave**, each from a run at `eefae1c` or
+later and each read out of the log rather than out of a conclusion. The `ci` row appears twice
+on purpose: the 2026-08-13 reading of it was conclusion-only, the 2026-08-14 one is a log read,
+and replacing the weaker row with the stronger one would hide that the weaker one was ever
+accepted.
 
 ### 5.6 What this section does not claim
 
@@ -719,14 +739,119 @@ board** — a different sentence, and the honest one. `boundary`, `claims`, `clo
 `console`, `mutation-ratchet`, `release-proof`, `skills` and `supply-chain` each passed;
 whether each can be made to fail was not re-established here.
 
+### 5.7 PROVEN, 2026-08-14 — two controls that were watched refusing, one of them the most expensive in the repository
+
+**Added by W6 of the lane-honest wave. Both were read out of a run log, not out of a summary.**
+
+**`cluster-lane-bites`, run
+[31735341050](https://github.com/Shaugato/mainline/actions/runs/31735341050)** (push,
+`eefae1c`, 2026-08-13T19:20:30Z). The lane plants a defect that only a real database can see,
+then runs the same subset four ways. Every cell's pytest summary line, verbatim:
+
+| | plant ABSENT | plant PRESENT |
+|---|---|---|
+| `--crdb=none` | `7 passed, 71 skipped in 0.32s` → 7 executed, floor 7 | `7 passed, 71 skipped in 0.30s` → 7 executed, and **7 == 7** |
+| `--crdb=reuse` | `77 passed, 1 skipped in 109.21s` → 77 executed, floor 77 | `3 failed, 74 passed, 1 skipped in 76.12s` → **RED** |
+
+**The load-bearing cell is the top-right one, and it is the one people misread.** It is not a
+green to be celebrated; it is the proof that *the hermetic lane cannot tell the planted tree
+from the clean one* — same count, same duration, same colour. If the plant were visible
+hermetically, the cluster lane would be redundant for it and the answer would be a different
+plant, **never a relaxed assertion**. The bottom-right cell then shows the cluster lane
+catching what the hermetic lane could not. Two more assertions in the same run passed: the
+known-red inventory could not suppress the planted failure, and the frozen-seed guard went red
+against the plant. The lane's overall conclusion is **failure**, on a stale freeze baseline
+that ruling R2 governs — the 2×2 itself is intact and green.
+
+The 142 `conftest.py:294` skips in the hermetic cells carry the reason the fixture wrote:
+*"the session obtained no CockroachDB, so this cluster-backed test is skipped rather than
+allowed to reach a node the session declined to obtain."* **That is what the whole 2×2 is
+about: those 142 are the tests the hermetic lane cannot speak for, and the cluster lane is the
+only place they become evidence.**
+
+**`release-proof`, run
+[31699585931](https://github.com/Shaugato/mainline/actions/runs/31699585931)**, job *the
+database refuses the merge*, two pytest summary lines in one job:
+
+```
+15 skipped in 0.24s     ← the bare run, --crdb=none against a closed port. pytest exits 0.
+15 passed  in 44.49s    ← the same suite against a real node.
+```
+
+**Both halves of the defect are asserted in one step**: that `pytest` reports success on an
+all-skipped run, and that the gate refuses that run by name. This is the control §6.4 cites,
+and it is the reason `cluster-tests.yml` has a `COLLECTED_FLOOR` at all. It is the strongest
+anti-vacuity statement on this page after `aws-evidence`'s plant family (§4.1), and unlike that
+one it needs no plants: it exhibits the failure mode live and then refuses it.
+
+### 5.8 UNPROVEN, 2026-08-14 — `schema`'s unwelding matrix has never reached its own pytest step
+
+`schema.yml:483` runs `pytest packages/trappoint-conformance/unweld -m schema` against a
+disposable node. In run
+[31735341105](https://github.com/Shaugato/mainline/actions/runs/31735341105) the job
+*unwelding matrix (serial, disposable cluster)* died **before** that step, at
+`trappoint migrate up`:
+
+```
+##[error]RED BY DESIGN, NOT A CI DEFECT. 2 object(s) are referenced by
+packages/trappoint-sql/refvertical/sql and created by no file in it:
+trappoint_ref.clause, trappoint_ref.…
+```
+
+**Nobody is misled — the lane is red, and the red says so in its first clause.** But the
+matrix's four cases (`--collect-only` on that directory: **4 tests**) have not executed, so
+`REFUSAL_DEPTH.md`'s currency check at `schema.yml:487` is comparing a committed artefact
+against a matrix that did not run. This is §5.4's shape exactly — *a red lane and an unmeasured
+claim are different findings* — and it is recorded here so the second one is not absorbed into
+the first when the migration is fixed. **Activation:** the two missing producers land, the
+migration succeeds, and the four cases execute for the first time.
+
 ---
 
-## 6. The cluster line: no lane in this repository has ever executed a cluster-backed demo-api test
+## 6. The cluster line: a lane in this repository HAS now executed cluster-backed demo-api tests — 518 of them, in CI, against a real CockroachDB
 
-**This is the finding this board exists to publish, and no previous revision of this page
-carried it in any form.**
+**Rewritten 2026-08-14 by W6 of the lane-honest wave, under ruling R9 of
+[`docs/leads/lane-honest-plan.md`](leads/lane-honest-plan.md).**
 
-### 6.1 The sentence, and the two measurements that make it
+### 6.0 The sentence this section used to carry, and the run that ended it
+
+This section was titled, through every revision until this one:
+
+> **6. The cluster line: no lane in this repository has ever executed a cluster-backed
+> demo-api test**
+>
+> *This is the finding this board exists to publish, and no previous revision of this page
+> carried it in any form.*
+
+**That sentence is now FALSE, and the heading above is the correction.** Its two lines are
+quoted here in full — heading and standfirst — so that the version this page shipped for a day
+is readable beside the version that replaced it. §6.4 — written
+before the lane existed — already asked *"what would end it, and the number to check when
+it lands"*. This is that landing, and §6.4 is answered in §6.5 rather than deleted.
+
+The run, named once so every number below can be checked against it:
+
+| | |
+|---|---|
+| workflow | `cluster-tests` |
+| run | [31735341117](https://github.com/Shaugato/mainline/actions/runs/31735341117) |
+| event · head · started | push · `eefae1c` · 2026-08-13T19:20:30Z |
+| job | *the demo-api suite against a real CockroachDB* |
+| **pytest's own summary line** | **`1 failed, 517 passed, 10 skipped in 154.21s`** |
+| collected · executed · skipped · failed · errored | **528 · 518 · 10 · 1 · 0** |
+| conclusion | **failure** — and correctly so; §6.5 names the one failure |
+
+Read with `gh run view 31735341117 --log`, 1,023 log lines, parsed for every
+`SKIPPED [n] …` line rather than for a rollup — a skip census quoted from a summary is not
+a census. **The lane is RED, which is the state §6.4 predicted it would arrive in, and a
+red lane that executed 518 assertions is worth more than the green nothing it replaced.**
+
+**§§6.1–6.3 below are kept exactly as they were written.** They are the measurements that
+made the old sentence true, they are now the BEFORE, and a page that deletes its own
+superseded numbers stops being evidence. Their 2026-08-13 figures are not restated to
+match this run and this run is not restated to match them.
+
+### 6.1 The sentence, and the two measurements that make it — *kept as the BEFORE*
 
 ```
 $ git grep -n "demo-api" 2dc5c86 -- .github/workflows/ ; echo "exit=$?"
@@ -747,7 +872,7 @@ declined to obtain.
 > **The lane that reaches that directory has no cluster. Every lane that has a cluster is
 > pointed somewhere else.**
 
-### 6.2 What it costs, measured on this workstation in this sitting
+### 6.2 What it costs, measured on this workstation in this sitting — *kept as the BEFORE*
 
 ```
 $ pytest verticals/mainline/apps/demo-api/tests --collect-only -q
@@ -779,7 +904,7 @@ time, in a directory no workflow points a cluster at.**
 [`docs/ci/test-collection.md`](ci/test-collection.md) carries all three pairs with the
 commands that produced them.
 
-### 6.3 The same shape at repository scale
+### 6.3 The same shape at repository scale — *kept as the BEFORE*
 
 The exact argv `ci.yml`'s `hermetic-tests` job runs, plus `-ra`, on the local tree:
 
@@ -815,7 +940,7 @@ The per-root breakdown, the workflow census and the full account of the drift ar
 [`docs/ci/test-collection.md`](ci/test-collection.md), whose closing section states the
 sentence this board turns on: **collection is not execution.**
 
-### 6.4 What would end it, and the number to check when it lands
+### 6.4 What would end it, and the number to check when it lands — *kept as the BEFORE; answered in §6.5*
 
 `.github/workflows/cluster-tests.yml` exists in the working tree and is **untracked, absent
 from the remote, and never dispatched** (§0.2). It has no row on this board and will not get
@@ -828,6 +953,85 @@ to check is its executed floor: **`tests − skipped ≥ 440`**, asserted from i
 every test skips"* — live in this repository. **A lane that runs zero tests and exits 0 is
 worse than no lane at all**, and a cluster lane that quietly passes without a cluster converts
 *"we do not know"* into *"we checked"*.
+
+### 6.5 §6.4 ANSWERED — the floor it named, checked against the run that landed
+
+§6.4 asked for one number: **`tests − skipped ≥ 440`**, asserted from the lane's own JUnit
+XML. Run 31735341117 reports `528 − 10 = 518`. **518 ≥ 440. The floor §6.4 wrote is met, by
+78.**
+
+The lane also carries `COLLECTED_FLOOR: "445"` (`cluster-tests.yml:111`) and collected 528,
+so the anti-vacuity guard §6.4 was really about — *a lane that runs zero tests and exits
+0* — is armed and did not fire. Its error message forbids the obvious escape in writing:
+
+> *"A collection error here is a real defect in the checked-out tree … answered by landing
+> what is missing. It is never answered by lowering `COLLECTED_FLOOR`, by `-k`, by
+> `--deselect`, or by stubbing the import."*
+
+**The one failure, named rather than counted.**
+`test_reads.py::test_the_disposition_carries_the_lattice_and_the_projected_requirements`
+asserts `set() == {'MECHANISM_PRESENT_AND_VERIFIED', 'SCOPE_EXCLUDES_HAZARD'}` at
+`test_reads.py:414`, because `mainline.defeater_option` holds **zero rows**. A judge cannot
+choose a defeater and therefore cannot sign — the last beat of the demo. **The assertion was
+not weakened to match the seed**; the seed owes the rows. Owner: the demo-seed lead, out of
+scope for this wave by ruling R10.
+
+**The ten skips, every one of them, read out of the run's own `SKIPPED [n]` lines:**
+
+| source | skips | reason, in the test's own words |
+|---|---|---|
+| `test_response_contract.py:893` | 3 | *"the deployed package is not built, so the tree-reading half of the ratchet did NOT run in this session"* |
+| `test_static_site.py:930` | 3 | *"the deployed package … is not built, so the ceiling's derivation was NOT checked"* |
+| `test_envelope.py:1016` | 1 | *"no deployment package has been built in this tree, so there are no bytes to read"* |
+| `test_response_contract.py:1144` | 1 | same cause |
+| `test_response_contract.py:1210` | 1 | same cause |
+| `test_gate_run.py:945` | 1 | *"jsonschema is not a workspace dependency"* — **nothing to do with the database** |
+| | **10** | **against the lane's ceiling of 1** |
+
+**Nine of the ten are one cause: `out/lambda/mainline-demo-api-arm64.zip` is a gitignored
+build output and CI never builds it.** The tenth is unrelated. The lane's own message for
+this state is the standard the rest of the repository is now measured against:
+
+> *"10 test(s) skipped, ceiling 1. A skip here means the suite could not reach the cluster
+> this job started, and a skip is indistinguishable from a green tick on a dashboard."*
+
+**The ceiling of 1 is correct and does not move** (ruling R4). Building the package in-lane
+takes 10 → 1, landing exactly on it. Corroborated locally: with the package present on this
+workstation the same suite skips exactly one test, and it is the `jsonschema` one.
+
+### 6.6 What is in flight, has no run id, and is therefore not credited here
+
+This page's own rule, from §0.2: **a repair without a run id is a plan, and this page counts
+plans as red.** Three repairs to this lane exist in the working tree at the moment of
+writing, are uncommitted, are absent from the remote, and have produced no run:
+
+| change | owner | the number to check when it lands |
+|---|---|---|
+| `cluster-tests.yml` builds the deployment package in-lane (`./.github/actions/build-demo-package`, present at `cluster-tests.yml:281`, untracked) | W1 | the lane's JUnit reports **≤ 1 skipped** against the unchanged ceiling of 1, and **executed rises 518 → 527**; and the **nine** package-dependent assertions that have never run in CI get an outcome, pass or fail, named |
+| `qa/cluster-known-red.json` falls to **one** group of **one** id — the `defeater_option` failure above — with `floor.min_executed` **440 → 518** and `max_skipped` unchanged at **1** | W3 | the lane goes green on 63 of the 64 ids the inventory used to carry, and red on exactly one, by name |
+| `cluster-lane-bites.yml`'s falsifiability 2×2, re-run against a re-baselined frozen-seed guard | W2 | all four cells and all six assertions green end to end |
+
+**The floor rises to the CI number, 518, and not to this workstation's 527.** The file says
+why in its own words, and it is the right call: CI legitimately skips nine package-dependent
+assertions that run here, so a floor of 527 would trip the lane **for a cause it does not
+name**, and a floor that fires for the wrong reason teaches a reader to disable it.
+`min_executed` becomes 527 in the commit that PROVES 527 in CI — which is W1's, not W3's.
+
+### 6.7 What the cluster line still does not cover, stated before somebody reads it as more than it is
+
+* **Every green here is from a SINGLE-NODE CockroachDB.** `cluster-tests.yml` stands up one
+  pinned container; this workstation runs one local node. The demo deploys to CockroachDB
+  **Cloud**, which is multi-node and returns `40001 RETRY_SERIALIZABLE` under contention.
+  **Nothing in this lane exercises the retry loop.** `_seed_permit` at
+  `test_transitions.py:224` commits ~29 statements with no retry, and `test_gate_run.py:143`
+  names its scratch database with a fixed string — a measurement hazard that has already
+  corrupted one published "unstable" list. Owner: the Cloud lead (R10); recorded, not fixed.
+* **`cloud-verify` still has never touched CockroachDB Cloud in CI** (§4.3, §10.5). "Cluster"
+  in this section means the pinned local container, every time it appears.
+* **One run is not a distribution.** `qa/cluster-known-red.json` carries four `unstable`
+  entries in `test_transitions.py` with measured `runs_observed`/`runs_failed` — 19/2, 22/1,
+  19/1, 19/1 — precisely because three consecutive passes do not refute a flake. A single
+  green run of this lane would not either.
 
 ---
 
@@ -891,6 +1095,21 @@ runs then, and re-measured as five a fourth time here. Recorded because the mech
 caught it — re-running the command instead of trusting the note — is the only mechanism this
 page has.
 
+### 7.8 "§6: no lane in this repository has ever executed a cluster-backed demo-api test" → **518 executed** (§6.0)
+
+**Added 2026-08-14 by W6 of the lane-honest wave.** This was §6's own headline and the finding
+the `2dc5c86` board existed to publish. It was true when written, on the tree it was written
+about, and it is false at `eefae1c`: run 31735341117 executed **518 of 528** demo-api tests
+against a real CockroachDB. It is filed here — in the section for claims that did not survive
+re-measurement — rather than only in §6, because a page that corrects itself quietly and a page
+that never made the claim look identical to a stranger.
+
+**Note which direction this one moved.** §§7.1–7.5 are claims that were too kind to the
+repository. This one was too harsh: the hole was real, somebody filled it, and the page had to be
+edited to stop understating the tree. **Both directions belong in this section**, and a list that
+only ever collected the flattering corrections would be the more comfortable document and the less
+useful one.
+
 ---
 
 ## 8. The row a dispatch cannot produce: `ci`'s PL-2 red on a push
@@ -941,6 +1160,12 @@ and that reason is by design. It does not change §1: `ci` is red either way.
   per-lane declaration checker this wave planned — **do not exist in the tree at all**. §6 is
   therefore a measurement without a mechanism: it states the hole and nothing yet stops it
   reopening.
+  **DISCHARGED 2026-08-14, and kept above rather than deleted so the gap is dateable.** All four
+  exist and all four have run: `cluster-tests` (run 31735341117, §6.0), `cluster-lane-bites` (run
+  31735341050, §5.7), and both checkers landed with the sweep in §10.0. §6 now has a mechanism —
+  `COLLECTED_FLOOR: 445`, a skip ceiling of 1, and `qa/cluster-known-red.json`'s
+  `floor.min_executed` — and each of the three refuses in a direction that a lowered number cannot
+  satisfy quietly.
 * **`qa/ci-skip-census.json` landed and `docs/HONESTY.md` cannot cite it.** That file is a new
   evidence family, and `tests/release/test_honesty_is_checkable.py`'s `FAMILIES` tuple does not
   declare it — so a citation into it is rejected as *"an artefact family nobody declared"*, and
@@ -984,6 +1209,13 @@ yes" only if the lane has been seen saying no.** Everything on the list is a pla
 half is currently unproven. Each entry carries **the condition that would activate it** — the
 specific thing that has to become true before the green means anything — because a list of soft
 spots with no activation condition is itself a document that cannot fail.
+
+> **§§10.14–10.19 are a SECOND sweep, added 2026-08-14 at HEAD `eefae1c` by W6 of the
+> LANE-HONEST wave** — a different worker from the one who wrote §§10.0–10.13, who was W6 of the
+> lane-controls wave at HEAD `538193b`. Two waves numbered their workers the same way and this
+> page would otherwise read as one person contradicting themselves. **The earlier entries are not
+> re-measured and not edited**, except where a later measurement is appended inside one and says
+> so in bold (§10.6). Where the second sweep contradicts the first, it says which entry and why.
 
 ### 10.0 `ci`'s checker registry was RIGHT, and it is the reason this section exists
 
@@ -1085,6 +1317,12 @@ shape `skip_ratchet._is_invocation` does not match — see §10.11.
 | 10.9 | `qa/ci-skip-census.json` | lands **without** its producer; nothing in CI can re-derive it | `ci_skip_census.py` is tracked and `--check` runs in a lane |
 | 10.10 | `qa/skip-ratchet.json`'s licence | its in-band SPDX and `REUSE.toml` disagree, and no tool can see it | a ruling on which side is authoritative |
 | 10.11 | the shared pytest-invocation scanner | its no-blind-spot proof was taken by hand today, not in CI | the raw-grep cross-check lands as a test |
+| 10.14 | sixteen of the twenty workflows' pytest steps | **no `--crdb` flag at all** — each runs at the testkit default, so what it says about a database depends on the environment | a `--crdb` on every invocation, as `check_pytest_lanes.py` already demands a marker |
+| 10.17a | `custody-chain` vs `test_custodian_attestation.py` | 19 tests, 3 of them cluster-backed, and **no step in the lane names the file** | the lane runs the directory, not three files out of four |
+| 10.17b | `custody-chain`'s `test_k2_exit.py` step | 2 cluster-backed cases skip **inside a lane that has a node up**, because that step's job exports no DSN | the step moves into the job that stands the node up |
+| 10.17c | the conformance `db` tier, 181 cases | **180 skipped in `ci`**, and no lane runs them under pytest at all | a lane points those tests at a DSN, or the tier is declared `unlanded` with a reason |
+| 10.18 | four lanes' newest green | earned five commits behind the tip — down from §10.4's seven, not closed | a dispatch at `HEAD`, or a `paths:`-touching push |
+| §5.8 | `schema`'s unwelding matrix | the job dies at `trappoint migrate up`, so its 4-case pytest step is never reached | the two missing producers land |
 
 ### 10.2 The image-digest assertion is inert in FOUR workflows, not two
 
@@ -1227,6 +1465,17 @@ whole of the protection.**
 uses. Recorded, not written: `ci.yml` is not this worker's file, and adding an assertion to another
 lane's workflow inside a sweep commit is how a sweep becomes a merge conflict.
 
+**STILL OPEN, re-measured 2026-08-14 at `eefae1c`, and the ratio has got worse.** Run 31735341191's
+`hermetic-tests` printed `collected 10150 items` and `5 failed, 9052 passed, 1078 skipped, 15
+deselected` — the four halves add to 10,150, which is how the parse was checked. So the sentence
+above now reads **fifteen of 10,150**, not fifteen of ~9,884, and the unprotected population grew by
+311 tests while the protection stayed at fifteen. `ci.yml` **is** this worker's file in the
+lane-honest wave, and the floor was still not added: `COLLECTED_FLOOR` on `hermetic-tests` is a new
+assertion on a lane that is currently red for other reasons, and landing it inside a
+documentation-and-comments commit would make one commit that both records a state and changes what
+CI asserts. The number it should be drawn under, measured on a runner rather than a workstation, is
+**10,150**, and this paragraph exists so the commit that adds it does not have to re-derive it.
+
 ### 10.7 The one-way MI ratchet only runs on pull requests, and this repository does not use them
 
 `db-schema.yml:753`, the step *"The ratchet is one-way"*, is guarded by
@@ -1354,7 +1603,7 @@ in a commit that says which.
   implicit ceiling of 0, and the old key's ceiling now shows slack. Fails closed in both directions,
   by construction.
 
-### 10.12 Two hypotheses this sweep tested and REFUTED — recorded so nobody re-runs them
+### 10.12 Three hypotheses these sweeps tested and REFUTED — recorded so nobody re-runs them
 
 * **"Lanes triggered only by `schedule` that have never actually fired."** There are exactly two
   schedule-only workflows — `cloud-verify` and `demo-health` — and both have fired: `cloud-verify`
@@ -1368,6 +1617,12 @@ in a commit that says which.
   stating the narrow version is the point: *no human change has ever reached `master` through a PR*,
   which is what makes `db-schema.yml:753` inert without making sixteen `on: pull_request` triggers
   dead.
+* **ADDED 2026-08-14 — "every pytest lane without a `--crdb` flag silently skips its cluster
+  tests."** **Refuted for five of seven lanes and confirmed narrowly in three places**; the full
+  measurement, the collection counts that support it and the three places are in **§10.16 and
+  §10.17**. It is listed here as well as there because this bullet list is where a reader goes to
+  find out which plausible-sounding claims have already been tested, and the third one has the
+  same shape as the first two: *the blanket version is false, the narrow version is the finding.*
 
 ### 10.13 Adjacent, measured, and owned by somebody else
 
@@ -1397,3 +1652,233 @@ in a commit that says which.
   Recorded in this shape because §10.9's own caveat is about exactly this: a number measured while
   six workers write to one tree describes a tree that no longer exists by the time anybody reads it,
   and a single "after" figure would have implied a causation that the timestamps refute.
+
+### 10.14 The `--crdb` census: sixteen of twenty workflows run pytest without ever saying which side of the cluster line they are on
+
+**Measured 2026-08-14 by W6 of the lane-honest wave, at HEAD `eefae1c`.** The census is taken
+against `git show eefae1c:<file>` rather than against the working tree, deliberately: five other
+workers are writing to this directory and a lane that exists only on disk has no run id, so it
+cannot appear on a board (§0.2).
+
+```
+$ for f in $(git ls-files .github/workflows/); do
+    echo "$(basename $f)  none=$(git show eefae1c:$f | grep -c -- --crdb=none)"\
+         " reuse=$(git show eefae1c:$f | grep -c -- --crdb=reuse)"
+  done
+```
+
+**Exactly four of the twenty pass a `--crdb` flag at all:**
+
+| workflow | `--crdb=none` | `--crdb=reuse` |
+|---|---|---|
+| `ci.yml` | 20 | 0 |
+| `cluster-lane-bites.yml` | 13 | 10 |
+| `cluster-tests.yml` | 4 | 3 |
+| `release-proof.yml` | 4 | 0 |
+
+Every other pytest-running lane — `boundary`, `custody-chain`, `db-schema`, `mutation-ratchet`,
+`nightly-differential`, `schema`, `supply-chain` — runs pytest with **no `--crdb` mode**, so it
+runs at the testkit default and a cluster-backed test there skips on whatever the environment
+happens to hold. `check_pytest_lanes.py` (§10.0) already refuses a step that declares a lane its
+command contradicts; **it does not yet require a step to pass a mode at all**, and that is the
+gap this row names.
+
+**Two corrections to the census this sweep was handed, both measured rather than argued:**
+
+* **`db.yml` runs no pytest whatsoever.** Its only occurrence of the word is `".pytest_cache"`
+  inside a directory-exclusion list at `db.yml:282`. It runs the conformance suite through the
+  `trappoint-conform` CLI (`db.yml:525`, `:530`) — a different program over a different input —
+  so it belongs on no list of pytest lanes, and putting it on one would have made a green look
+  like a pytest green that it never was.
+* **A fifth `--crdb` lane is arriving and has no run id.** In the working tree at the time of
+  writing, `cloud-verify.yml` carries `3 × --crdb=none` and `4 × --crdb=reuse` and eleven pytest
+  lines; at `eefae1c` it carries **zero of each**. Uncommitted, absent from the remote, never
+  dispatched. Named here so the next census does not read it as drift, and **not credited**: a
+  repair without a run id is a plan.
+
+### 10.15 Every pytest-running lane, with the pass/skip split read out of its own newest run
+
+**A skip census is only evidence if you read it out of the run.** Each row below is the pytest
+summary line the job actually printed, recovered with `gh run view <id> --log` and parsed for
+`SKIPPED [n] …` lines rather than for a rollup. Where a lane runs several pytest steps, every
+step is listed, because a lane-level total hides which step was the empty one.
+
+| lane | newest run | head | conclusion | measured pytest outcome, per step |
+|---|---|---|---|---|
+| `ci` | [31735341191](https://github.com/Shaugato/mainline/actions/runs/31735341191) | `eefae1c` | failure | hermetic: **5 failed, 9052 passed, 1078 skipped, 15 deselected** in 349.02s, from `collected 10150 items` · red-by-design: **15 failed, 10135 deselected** in 20.43s |
+| `cluster-tests` | [31735341117](https://github.com/Shaugato/mainline/actions/runs/31735341117) | `eefae1c` | failure | **1 failed, 517 passed, 10 skipped** in 154.21s (§6.5) |
+| `cluster-lane-bites` | [31735341050](https://github.com/Shaugato/mainline/actions/runs/31735341050) | `eefae1c` | failure | `7p/71s` · `7p/71s` · `77p/1s` · `3f/74p/1s` · control `3f` · freeze `2f/1p` (§5.7) |
+| `release-proof` | [31699585931](https://github.com/Shaugato/mainline/actions/runs/31699585931) | `2dc5c86` | success | **15 skipped** in 0.24s (the control), then **15 passed** in 44.49s (§5.7) |
+| `boundary` | [31738665393](https://github.com/Shaugato/mainline/actions/runs/31738665393) | `eefae1c` | success | 7 steps: `11p/2s` · `12p` · `14p/1s` · `16p` · `32p/1s` · `38p` · `56p` = **179 passed, 4 skipped** |
+| `custody-chain` | [31735341212](https://github.com/Shaugato/mainline/actions/runs/31735341212) | `eefae1c` | failure | `82p` · `285p` · `95p` · `11p` · `1p` · `17p` in 28.82s · `2f/11p/2s` = **502 passed, 2 failed, 2 skipped** |
+| `db-schema` | [31735341076](https://github.com/Shaugato/mainline/actions/runs/31735341076) | `eefae1c` | failure | mi-red: **7 failed, 460 passed** in 102.06s · catalogue: **299 passed, 1 skipped** · **1 passed** |
+| `schema` | [31735341105](https://github.com/Shaugato/mainline/actions/runs/31735341105) | `eefae1c` | failure | **23 passed, 2 deselected** in 0.70s — and the `-m schema` step **never reached** (§5.8) |
+| `supply-chain` | [31735341020](https://github.com/Shaugato/mainline/actions/runs/31735341020) | `eefae1c` | success | **61 passed, 0 skipped** in 1.42s |
+| `mutation-ratchet` | [31729443279](https://github.com/Shaugato/mainline/actions/runs/31729443279) | `1a6e10a` | success | **1072 passed, 0 skipped** in 32.56s |
+| `nightly-differential` | [31720904696](https://github.com/Shaugato/mainline/actions/runs/31720904696) | `e944407` | failure | `11p` · **1 failed** in 1803.15s · `11p` in 18.94s · `11p` · **1 failed, 1 passed** in 1813.04s — **0 skipped** |
+| `db` | [31735341068](https://github.com/Shaugato/mainline/actions/runs/31735341068) | `eefae1c` | failure | **no pytest step exists in this lane** (§10.14) |
+
+**Four of these totals are exact against a local collection, which is how the parse was checked
+rather than trusted.** `mutation-ratchet`'s 1072 equals `tests/e2e/mutation` (967) +
+`tests/unit/domain/novelty` (105) collected here; `boundary`'s 179 + 4 equals `tests/boundary`
+(127) + `packages/mainline-boundary/tests` (56) = 183; `supply-chain`'s 61 equals
+`test_no_model_in_closure.py` (61); `db-schema`'s 299 + 1 equals `packages/trappoint-migrate/tests`
+(300). A parser that agreed with none of them would be reporting its own bugs as findings.
+
+### 10.16 The hypothesis this sweep was given, and what the measurement did to it
+
+**The hypothesis:** *"every pytest lane without a `--crdb` flag silently skips its
+`requires_cluster` tests, so its green says nothing about the database."*
+
+**REFUTED for five of the seven lanes, and for a reason that is better news than the hypothesis.**
+Counted with `pytest --crdb=none <lane's own target paths> -m requires_cluster --collect-only -q`
+on the pinned interpreter:
+
+| lane's target paths | tests collected | of which `requires_cluster` |
+|---|---|---|
+| `tests/boundary` + `packages/mainline-boundary/tests` | 183 | **0** |
+| `packages/trappoint-jcs` + `-ledger` + `-verify` | 462 | **0** |
+| `tests/e2e/mutation` + `tests/unit/domain/novelty` | 1072 | **0** |
+| `verticals/…/mainline-gate-svc/tests/test_no_model_in_closure.py` | 61 | **0** |
+| `packages/trappoint-migrate/tests` | 300 | **0** |
+| `packages/trappoint-conformance/unweld` | 4 | **0** |
+| `tests/integration/custody` | 62 | **12** |
+| `packages/trappoint-model/tests` | 33 | **14** |
+| `tests/concurrency/test_single_merge.py` | 4 | **4** |
+| `tests/concurrency/test_retry_taxonomy_spy.py` | 7 | **1** |
+
+**A lane cannot silently skip a cluster test it never collects.** `boundary`, `supply-chain`,
+`mutation-ratchet` and `db-schema` point pytest at directories that hold **zero** cluster-backed
+cases, and their four measured skips (`boundary` 4, `db-schema` 1) are all environment or
+artefact skips carrying written reasons — a live-IAM simulation, a missing kernel SBOM, an
+unshipped fleet register, an uninstalled `trappoint-sql`. **Not one is cluster-shaped.**
+
+**And the two lanes that DO collect cluster-backed cases both stand a node up and execute them.**
+`custody-chain` ran `tests/integration/custody/nemesis` as **17 passed in 28.82s** against a
+pinned container; `nightly-differential` ran `tests/concurrency/test_single_merge.py` +
+`test_retry_taxonomy_spy.py` as **11 passed in 18.94s**, and its `trappoint-model` differential
+arms for 1803 s and 1813 s each. **Neither lane reports a single skip.** The hypothesis predicted
+silence and the runs show execution.
+
+**CONFIRMED, narrowly, in exactly two places — and both are named in the next two entries.** The
+narrow version is the finding: *stating that no non-`--crdb` lane skips a cluster test would have
+been as wrong as the blanket hypothesis*, and §10.12 already established that the narrow form of a
+refuted hypothesis is usually the real one.
+
+### 10.17 Three cluster-backed assertion sets that no lane executes, named individually
+
+**(a) `tests/integration/custody/test_custodian_attestation.py` — 19 tests, 3 of them
+`requires_cluster` — is run by NO `custody-chain` step.** The lane runs
+`tests/integration/custody/test_ledger_append.py` (11), `…/nemesis` (17) and `…/test_k2_exit.py`
+(15) — 43 of the directory's 62 — and never names the fourth file. `custody-chain` stands a
+CockroachDB up for the nemesis job, so the node exists and those 3 assertions do not reach it.
+They are collected by `ci`'s hermetic lane instead, where they skip. **Activation:** the lane runs
+the directory rather than three files out of four, or the omission is enumerated with a reason.
+
+**(b) `custody-chain`'s `test_k2_exit.py` step skips 2 cluster-backed cases INSIDE a lane that has
+a node up**, because the step lives in a job that exports no DSN. From the run's own output:
+
+```
+SKIPPED [1] tests/integration/custody/test_k2_exit.py:607: SKIP(no-cluster): requires a
+disposable single-node CockroachDB. Green from K2 onward via …/nemesis/test_gate_attacks.py.
+SKIPPED [1] tests/integration/custody/test_k2_exit.py:615: SKIP(no-cluster): reads the live
+schema for row-level TTL on any ledger_* table.
+```
+
+**Credit where it is owed: the first skip names the file that covers it instead**, which is the
+only form of skip that is not a hole. The second names no substitute. **Activation:** the step
+moves into the job that stands the node up, or the second skip gains a cover-note or an entry in
+`qa/skip-ratchet.json`.
+
+**(c) The conformance `db` tier — 181 cases in `packages/trappoint-conformance/tests/
+test_conformance_cases.py` — is executed by no lane under pytest.** `ci`'s hermetic run skipped
+**180** of them, in four groups of 45, each printing:
+
+> *"SKIP WITH REASON: no `TRAPPOINT_DSN` or `LOCAL_DSN`. These assertions are about what a
+> database does; without one there is nothing to assert…"*
+
+`schema`'s conformance job runs a different 25 (`23 passed, 2 deselected`). `db.yml` exercises the
+conformance CASES through the `trappoint-conform` CLI against a live node — a real check, and a
+different program over a different input, so it is not this pytest tier. **180 skipped in CI
+against 181 collected here: the one-case difference is not smoothed**, it is what a moving tree
+looks like, and both numbers carry the command that produced them. **Activation:** a lane points
+`packages/trappoint-conformance/tests` at a DSN, or the tier is declared `unlanded` with a reason
+under Contract A.
+
+### 10.18 The board, re-swept — every workflow's newest run with its head, which is what §10.4 asked for
+
+§10.4 named the class *"a stale green looks exactly like a fresh one"* and said what would end it:
+**a board that prints each lane's `headSha` beside its conclusion.** Measured 2026-08-14 with
+`gh run list --limit 60 --json workflowName,conclusion,event,databaseId,headSha`:
+
+| head | workflows whose newest run is there | conclusion |
+|---|---|---|
+| `eefae1c` (local HEAD, public tip) | `boundary` · `supply-chain` | **success** |
+| `eefae1c` | `ci` · `cluster-tests` · `cluster-lane-bites` · `custody-chain` · `schema` · `db` · `db-schema` · `aws-evidence` · `claims` · `submission` · `demo-health` | failure |
+| `1a6e10a` (1 commit behind) | `cloud-verify` · `mutation-ratchet` | success |
+| `e944407` (2 behind) | `nightly-differential` | failure |
+| **`2dc5c86` (5 behind)** | **`console` · `judge-pack` · `release-proof` · `skills`** | **success** |
+
+**Four green ticks on the Actions tab were earned against bytes five pushed commits old.** That is
+down from §10.4's seven — `boundary` and `supply-chain` have since run at `eefae1c` — so the class
+has narrowed rather than closed, and the four that remain are named.
+
+**Three lanes turned red at `eefae1c` that the `2dc5c86` board recorded green**, and they are
+listed by their own job names so nobody has to guess which half moved:
+
+```
+claims       31735341024   4 jobs success · FAILURE :: claim hygiene (red half, then green half)
+submission   31735341080   2 jobs success · FAILURE :: a stranger can clone it, and every file names a licence
+aws-evidence 31735341177   FAILURE :: all three jobs, including "the red half is red for the reason it claims"
+```
+
+`aws-evidence` is the one that matters most: §4.1 and §5.3 record its plant family as the
+strongest anti-vacuity statement on this board, and **all three of its jobs are now red at
+`eefae1c`**, so that claim is currently unverified at the tip. §4.1's measurement is not deleted —
+it was true at `2dc5c86` — but it may not be quoted as a statement about `eefae1c`. Owner: the AWS
+evidence lead. Recorded, not fixed.
+
+### 10.19 This worker's own numbers, and the tree that moved under them
+
+Both readings are from `--junitxml`, from the `<testsuite>` element's attributes, never from a
+terminal scroll, on
+`pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q -p no:cacheprovider`:
+
+| reading | collected | executed | skipped | failed | errors | passed | wall |
+|---|---|---|---|---|---|---|---|
+| lane-honest lead's §1.1 baseline, 2026-08-14 early | 528 | 527 | 1 | 1 | 0 | 526 | 170.5 s |
+| **W6 BEFORE**, 2026-08-14T12:08:59+10:00 | **570** | **570** | **0** | **30** | **13** | **527** | 158.8 s |
+| **W6 AFTER**, 2026-08-14T12:28:37+10:00 | **570** | **570** | **0** | **30** | **13** | **527** | 128.7 s |
+
+**Every column is identical, and so is the set behind it.** The two JUnit reports were compared
+node id by node id, not count by count: **43 `<testcase>` elements carry a `<failure>` or an
+`<error>` in each, and the two sets of 43 are equal — nothing only-before, nothing only-after.**
+Equal totals over different sets is the failure mode that a totals-only comparison cannot see, and
+it is worth the six lines of parsing to exclude it. The 30 s of wall clock is a warm page cache.
+
+**The BEFORE this worker was handed was 528/527/1/1/0 and the BEFORE this worker MEASURED was
+570/570/0/30/13.** The gap is not a regression and it is not this worker's: between the two
+readings the judge-can-sign lead landed `test_defeaters.py` (29 cases) and `test_judge_can_sign.py`
+(13) into the working tree, untracked, and modified `test_transitions.py`,
+`test_row_factory_contract.py` and `test_gate_run.py`. `qa/cluster-known-red.json` calls that tree
+**"epoch-2"** in its own words and says of four `test_transitions.py` ids: *"On the UNCOMMITTED
+epoch-2 tree this id fails 17 of 17 runs, in every arm, order and database W4 measured. A failure
+present in every run is not instability, this exemption does not describe it."* **The handed-down
+BEFORE is preserved above rather than replaced**, because a worker who quietly adopts a
+better-looking baseline has deleted the evidence that the tree moved.
+
+**This worker's change cannot touch either number.** It edits `docs/CI-STATE.md` and appends
+comment lines to `.github/workflows/ci.yml`; the demo-api suite imports neither. The AFTER is
+reported for the arithmetic, not as a claim of causation — the same shape §10.13 used, and for the
+same reason.
+
+**One number this worker did move, and the direction it moved in.** `ci.yml` gains a third dated
+collection reading — **15 / 10135 / 10150 at `eefae1c`**, taken from CI run 31735341191's own
+output rather than from a workstation — appended beside the two readings already there. The
+`13 / 9240 / 9253` block is untouched, `RED_FLOOR` is still **15**, and the diff is
+**60 insertions, 0 deletions**. The collection moved **9839 → 10150, which is +311**; a figure of
++430 was in circulation and came from comparing the live number against a dirty tree. A local
+re-run on this working tree gives **15 / 10196 / 10211**, and the 61-test difference is accounted
+for by name: four untracked test files collect exactly 61 (`test_txn.py` 17,
+`test_seed_permit_needs_retry.py` 2, `test_defeaters.py` 29, `test_judge_can_sign.py` 13).
+**Four collections, four different trees, one `RED_FLOOR`.**

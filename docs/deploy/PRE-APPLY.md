@@ -344,14 +344,35 @@ means something re-ran a statement outside it.
 # expect a line ending: VERDICT PASS
 ```
 
-Measured today:
+Measured against the committed package shape (`evidence/deploy/cost/package-shape.json` →
+`architectures[arm64].after`, the **post-strip, deployed** package):
 
 ```
-bundle_manifest: mainline-demo-api-arm64.zip sha256=c85d7f00…b5b8a4b0 zipped=7989296
-                 unzipped=28364357 entries=206 VERDICT PASS
+bundle_manifest: mainline-demo-api-arm64.zip sha256=09af589c…30f45914 zipped=7646264
+                 unzipped=26117193 entries=246 VERDICT PASS
 manifest sha256 == zip sha256 on disk:  True
 runtime python3.13   architecture arm64
 ```
+
+> **CORRECTED 2026-08-14 — THIS BLOCK QUOTED THE PRE-STRIP PACKAGE AND CALLED IT "MEASURED
+> TODAY".** The struck figures — ~~`sha256=c85d7f00…b5b8a4b0 zipped=7989296
+> unzipped=28364357 entries=206`~~ — are `architectures[arm64].**before**` in the same
+> evidence file: the packer's input, before `--strip-source-maps` became the default and
+> before the `.gz` siblings were written. They were never wrong, they were **the wrong
+> tree**, presented in the present tense (RULING 2: *a figure that does not name its tree is
+> wrong whichever tree it came from*). The entry count moves **up** 206 → 246 because 57
+> `.gz` siblings are added, while both byte figures move **down** because 18 source maps
+> totalling 2 586 960 B are removed — which is why a reader who only checked "the number got
+> bigger" would not have caught this.
+>
+> **A rebuild on this machine today does NOT reproduce that sha, and that is expected rather
+> than a defect.** `out/lambda/mainline-demo-api-arm64.zip` currently hashes
+> `cb34e123…f09cb9b` at 250 entries / 7 701 872 B zipped, because the working tree carries
+> source files not yet committed at HEAD `eefae1c` (`defeaters.py`, `retry.py`). **The
+> `web/**` tree is byte-identical either way — 114 entries, 1 274 342 B, 0 source maps** —
+> so every cost and ceiling claim that rests on the served tree is unaffected. The
+> whole-package sha becomes reproducible again once those sources are committed and
+> `package-shape.json` is regenerated; that file belongs to whoever owns `evidence/`.
 
 **The architecture in the filename and in `-var lambda_architecture` must agree.** A mismatch
 is a clean plan, a clean apply, and an `ELFCLASS` error on the first request — which reads
@@ -441,7 +462,7 @@ was always the account, never the reservation.
 > (`infra/modules/cost-guard/`) is the item on this checklist that matters most.
 >
 > **That parenthesis used to end "still not instantiated", and that is no longer true.** The
-> module is instantiated at `infra/envs/demo/main.tf:632`, it contributes thirteen of the
+> module is instantiated at `infra/envs/demo/main.tf:631`, it contributes thirteen of the
 > twenty-four resources in G7's plan, and its three alarms appear in the plan text as
 > `mainline-demo-api-invocations-burst`, `-invocations-hourly` and `-log-ingestion`. The
 > sentence is corrected rather than deleted, because a checklist that quietly drops the item
@@ -539,9 +560,11 @@ Never regenerate or reconfigure a plan in order to obtain the number a document 
 carries.
 
 The count moved 11 → 24 when `module "guard"` was instantiated at
-`infra/envs/demo/main.tf:632`. It is 11 + 13, not 11 + 14: `cost-guard` declares fourteen
-`resource` blocks, and `aws_sns_topic_subscription.email` is `count =
-length(var.notification_emails)` over a list that defaults to empty.
+`infra/envs/demo/main.tf:631` (`:632` is its `source` line). It is 11 + 13, not 11 + 14:
+`cost-guard` declares fourteen `resource` blocks, and `aws_sns_topic_subscription.email`
+(`infra/modules/cost-guard/main.tf:337`) is **`for_each = toset(var.notification_emails)`**
+— ~~`count = length(var.notification_emails)`~~ — over a list that defaults to empty, so it
+plans zero instances.
 
 ### Also assert, on the plan text
 

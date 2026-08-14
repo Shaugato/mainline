@@ -131,6 +131,107 @@ else, on a quiet tree, with the number in this file going to `0` in the same com
 
 ---
 
+## `cluster-known-red.json` — the cluster lane's inventory of failures it already knows about
+
+### What it is, and the one property that matters
+
+When `.github/workflows/cluster-tests.yml` points the demo-api suite at a real
+CockroachDB, some tests fail for reasons that predate the lane. This file names every one
+of them, with the cause and the lead who owns it. **It is an inventory, not a suppression
+list**, and that is a structural property rather than a promise:
+
+```
+scripts/ci/cluster_lane_report.py --pytest-rc N   →   exits N when N is non-zero,
+                                                      whatever this file says
+```
+
+Adding a node id here therefore **cannot** turn a red run green. It changes only the
+sentence printed beside the failure — `known`, `unstable`, or **`NEW`**. The two verdicts
+the report owns are both ones that fire when *pytest was green*:
+
+| verdict | what it refuses |
+|---|---|
+| **the floor** (`floor.min_executed`, `floor.max_skipped`) | a lane that reached no database. `release-proof.yml:219-320` records the defect live in this repository: *pytest exits 0 when every test skips*, so a lane whose container failed to start runs 186 skips and reports success |
+| **the ceiling** (`groups[].nodeids`) | an inventory larger than the truth. A node id listed here that **passes** is a hard failure, naming whoever fixed it and telling them to delete the line |
+
+`unstable` is the one category the ceiling does not police, because the failing set for
+this suite is measurably not deterministic. The schema refuses an `unstable` entry that
+carries no `runs_observed`/`runs_failed`, and refuses one that failed **every** run it was
+seen in — that is not unstable, it is failing, and it belongs in a group with a cause.
+
+### The shape it is in today
+
+| | |
+|---|---|
+| `groups` | **1** group, **1** node id — `mainline.defeater_option` holds zero rows, so a judge cannot choose a defeater and cannot sign |
+| `unstable` | **4** node ids, all in `test_transitions.py`, all with measured counts |
+| `floor.min_executed` | **518** — what CI run `31735341117` actually executed at `eefae1c` |
+| `floor.max_skipped` | **1** — the one skip is `jsonschema is not a workspace dependency`, which has nothing to do with the database |
+
+**`groups` is a ceiling that must reach empty.** One entry away.
+
+### Re-derive the classification, in one command
+
+```
+python scripts/ci/cluster_lane_report.py \
+  --junit <the run's junit.xml> \
+  --known qa/cluster-known-red.json \
+  --suite-root verticals/mainline/apps/demo-api/tests \
+  --pytest-rc <pytest's REAL exit status>
+```
+
+`--pytest-rc` is not advisory and is not decoration. The report also refuses a run whose
+JUnit records failures while the caller claims pytest exited 0 — the one rewiring that
+would let a fully-inventoried red run present as green. `.github/workflows/cluster-lane-bites.yml`
+proves both refusals every run, against a deliberately doctored copy of this file with
+`min_executed: 0`, `max_skipped: 10000` and every failure declared known.
+
+### The 2026-08-14 pruning, and why deleting 63 entries was not a ceiling falling for free
+
+The file's own rule is *"entries leave it only in the commit that FIXES them"*. On
+2026-08-14, 63 of the 64 inventoried ids passed — in CI and on this workstation — because
+`eefae1c` landed the `demo_world.sql` build-out and the session-scoped `payloads` fixture
+began to build. `docs/leads/lane-honest-plan.md` **R7** ruled that a landed, identifiable
+fix discharges that rule **provided the deletion cites the commit by hash**: the rule
+exists to stop a ceiling falling for an entry nobody fixed, not to freeze an inventory
+because the fixing commit forgot to prune it. *A ceiling that cannot fall when the work is
+provably done is a monument, not a ratchet.*
+
+So the 62 fixed ids and the `reads-undeclared-query-parameter` group were deleted citing
+`eefae1c`, and the attribution was **checked rather than assumed** — `git status` over the
+seed and the reads paths printed nothing, so all of them are byte-identical to that commit
+and the pass cannot be credited to a neighbour's uncommitted work. Both deleted groups'
+`cause`, `cause_superseded` and `status_at_handoff` are preserved verbatim under the
+top-level **`superseded`** key. The node ids themselves are recoverable in one command:
+
+```
+git show eefae1c:qa/cluster-known-red.json
+```
+
+A number replaced in place teaches nobody anything, which is the same convention
+`ruff-ratchet.json` follows above.
+
+### What may never be done to this file
+
+* **Never** add a test that *started* failing — `policy.what_this_file_may_never_become`
+  says so, and a new failure is reported **NEW**. The file records, by name and with the
+  reason, every occasion somebody declined to: three 40001 `RETRY_SERIALIZABLE` setup
+  errors on 2026-08-14, and 29 failures downstream of another lead's uncommitted work
+  later the same day.
+* **Never** lower `min_executed`, raise `max_skipped`, or delete a group to obtain a green.
+  `min_executed` may rise and `max_skipped` may fall as the suite is repaired; moving
+  either the other way is the single most damaging edit available here.
+* **Never** fold observations from a different source tree into an `unstable` entry's
+  counts. `how_the_unstable_counts_were_folded` records a case where doing so would have
+  turned a *deterministic* breakage of an uncommitted tree into *flakiness* of a committed
+  one — which is precisely the loophole `unstable` is fenced against. The rejected numbers
+  are recorded beside the accepted ones so the choice is auditable.
+* `measured_executed` and `measured_skipped` are **historical**: they record the run that
+  set the floor, not a live reading. Live readings are appended, dated, and carry the
+  command that produced them, under `measured.re_measured`.
+
+---
+
 ## Sibling artefacts
 
 `qa/mypy-ratchet.json` and `scripts/qa/mypy_targets.py` (type coverage) are owned by a

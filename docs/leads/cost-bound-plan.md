@@ -22,11 +22,11 @@ Every row below is a command I ran today on this workstation, not a figure inher
 
 | # | Measurement | Value | How |
 |---|---|---|---|
-| M1 | Served tree in the deployed package | **75 files, 3,571,990 B** under `web/` | `zipfile` over `out/lambda/mainline-demo-api-arm64.zip` |
-| M2 | …of which source maps | **18 files, 2,586,960 B** (72.42 %) | same |
-| M3 | …non-map | **57 files, 985,030 B** | same |
-| M4 | Largest emittable object | **1,554,168 B** `web/assets/index-BjAGxrVJ.js.map` | same |
-| M5 | Largest non-map object | **433,396 B** `web/assets/index-BjAGxrVJ.js` | same |
+| M1 | ~~Served tree in the deployed package~~ **Served tree in what is now the packer's INPUT tree** | **75 files, 3,571,990 B** under `web/` | ~~`zipfile` over `out/lambda/mainline-demo-api-arm64.zip`~~ → `evidence/deploy/cost/package-shape.json` `architectures[].before.web` |
+| M2 | …of which source maps | **18 files, 2,586,960 B** (72.42 %) | ~~same~~ → `…before.web.source_maps` (**deployed today: 0 files, 0 B**) |
+| M3 | …non-map | **57 files, 985,030 B** | ~~same~~ → `…before` non-map, and `…after.web.identity` — **the same 57 / 985,030** |
+| M4 | ~~Largest emittable object~~ **Largest object in the INPUT tree** | **1,554,168 B** `web/assets/index-BjAGxrVJ.js.map` | ~~same~~ → `…before.web.largest_identity_object` (**deployed today: 433,396 B identity, 124,127 B gz — the map is not in the package**) |
+| M5 | Largest non-map object | **433,396 B** `web/assets/index-BjAGxrVJ.js` | ~~same~~ → `…after.web.largest_identity_object`, unchanged across both trees |
 | M6 | **gzip −9 of the whole non-map tree** | **289,312 B** (0.294 of M3) | `gzip.compress(level=9)` per entry |
 | M7 | **Largest gzipped object** | **124,127 B** — and it is the only object above 64 KiB compressed | same; 56 of 57 are ≤ 65,536 B gz |
 | M8 | Response ceiling in force | `DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024` (`static_site.py:170`) — **refuses 0 of 75**; M4/ceiling = 0.741 | read |
@@ -39,6 +39,45 @@ Every row below is a command I ran today on this workstation, not a figure inher
 | M15 | `json.dumps` of the finished payload | +**2.03 ms** (non-map) · +**7.36 ms** (map) | 30 iterations |
 | M16 | Request-time gzip cost | **17.8 ms** (level 6) / **25.9 ms** (level 9) for the 433 KB asset | timed |
 | M17 | `testpaths` | already includes `verticals/*/apps/demo-api/tests` (`pyproject.toml:129-134`) | read |
+
+> **ANNOTATED 2026-08-14 — M1–M5 NAME THE WRONG TREE, AND THE DIGITS ARE NOT THE DEFECT.**
+> This table is a **dated record of 2026-08-13**, before this plan's own W2 made
+> `--strip-source-maps` the build default. On that date `out/lambda/mainline-demo-api-arm64.zip`
+> really did hold 75 `web/` entries, 3,571,990 B and 18 source maps, so **every value in
+> M1–M7 was measured correctly and none of them is retyped here.** What has since become
+> false is the *label and the sourcing*: M1 says *"in the deployed package"* and M4 says
+> *"largest **emittable** object"*, both sourced to a zip that a reader can open today and
+> find **zero source maps** in. That tree is now the packer's **input**, and the sourcing is
+> corrected to the artefact that carries both:
+> [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json).
+>
+> | | files | bytes | source maps | `.gz` siblings | largest object |
+> |---|---:|---:|---:|---:|---:|
+> | `architectures[].before` — the packer's **input** tree (what M1–M7 measured) | 75 | 3,571,990 | 18 / 2,586,960 B | 0 | **1,554,168 B** `index-BjAGxrVJ.js.map` |
+> | `architectures[].after` — the **deployed** package, today | 114 | 1,274,342 | **0 / 0 B** | 57 / 289,312 B | 433,396 B identity / **124,127 B** gz |
+>
+> **The digits stay because they are load-bearing.** `1,554,168 B` is the input from which
+> `docs/deploy/COST-BOUND.md` §2.2's **$33,251.87** is re-derived by
+> `scripts/deploy/cost_model.py`, under a build gate
+> (`tests/deploy/test_cost_model.py::test_the_model_reproduces_every_published_headline`), and
+> it is the byte count the **×6.91** correction in that document's §0.1 row L1 rests on.
+> Retyping them would silently break a reproduction and delete a finding. **A figure that does
+> not name its tree is wrong, whichever tree it came from** — so both are named, here and in
+> §4 below.
+>
+> **M6/M7 need no re-sourcing and are called out so nobody "fixes" them**: 289,312 B and
+> 124,127 B were computed by gzipping the non-map tree, and those are exactly the `.gz` figures
+> the **deployed** package now carries (`…after.web.gz`, `…after.web.largest_gz_object`).
+> M6/M7 are true of *both* trees.
+>
+> **M8, M11 and M12 are superseded by date, not corrected here**, because this is a record of
+> what was true when the plan was written and the whole point of keeping it is to show what
+> moved: the ceiling M8 read at `2 * 1024 * 1024` is now **139,264 B**; M11's actionless
+> `var.alarm_actions = []` is now `local.guard_stop_topic_actions`; and M12's plan count of
+> **11 to add** is now **24** per `evidence/deploy/terraform-plan-furl.txt:843`. The live
+> statements of all three are in `docs/deploy/COST-BOUND.md` §0.2 and §5.1, which is where a
+> reader should take a current number from. **Nothing in this dated table should be quoted as
+> current.**
 
 ### 0.1 · The one number the existing model never measured, and it is the load-bearing one
 
@@ -315,6 +354,15 @@ now false and must move in the same wave that falsified it.
 
 **Not a result. A prediction, recorded so that a disagreement with W7's measured output is
 visible rather than absorbed.**
+
+> **ANNOTATED 2026-08-14 — the `1,554,168` in the "today" row is the packer's INPUT tree**
+> (`evidence/deploy/cost/package-shape.json` `architectures[].before.web.largest_identity_object`),
+> **not what the deployed origin can emit.** The deployed package's largest object is
+> **433,396 B** identity / **124,127 B** gz, and the response ceiling in force refuses the
+> identity form. The digit stays because the whole value of this table is that a *prediction*
+> can be compared with what W7 measured — and the comparison is only meaningful against the
+> input it was predicted from. The measured ladder that replaced it is
+> `docs/deploy/COST-BOUND.md` §0.1, which is the one table anyone should quote.
 
 | Stage | Bytes/request | Time-to-stop | Worst case |
 |---|---|---|---|

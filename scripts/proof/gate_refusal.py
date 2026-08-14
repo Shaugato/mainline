@@ -49,6 +49,41 @@ overwrites it from ``clause_blame_current``; ``fn_check_materialised`` (AFTER IN
 0121) then copies ``(NEW).severity`` into the outbox row.  A signal carrying ``4``
 where the client wrote ``0`` is the projection ordering demonstrated, not asserted.
 
+EVERY TRANSACTION THIS SCRIPT COMMITS, AND WHY NONE OF THEM IS RETRIED
+----------------------------------------------------------------------
+Eight ``conn.commit()`` sites live below — :func:`seed_history` in :func:`run`,
+:func:`attempt_merge`, :func:`record_refusal` (two), :func:`force_counter`,
+:func:`sign_disposition` (two) and :func:`read_merge_record`.  None is wrapped in
+``trappoint_testkit.txn.run_txn``, and that is a decision with two measured reasons, stated
+here so a later reader can disagree with a claim rather than guess at an omission.
+
+**1. This file may not grow an import.**  ``.github/workflows/release-proof.yml`` installs
+``psycopg``, ``pytest``, ``pytest-timeout`` and ``trappoint-migrate --no-deps`` — and
+nothing else — and then runs this script; ``scripts/submission/judge_dry_run.py`` runs it
+inside a FRESH CLONE on whatever ``python`` is on a judge's PATH, with no workspace install
+at all.  A module-scope ``import trappoint_testkit.txn`` (which pulls ``trappoint_core``)
+turns both of those into an ``ImportError`` — the release lane and the front door, four days
+from a deadline.  That is the same hard constraint RULING R11 records for the Lambda, for
+the same reason: the artefact's behaviour must not depend on what happens to be installed.
+
+**2. Nothing here has a second transaction to conflict with.**  :func:`run` opens ONE
+connection against a database this same run created with :func:`_prepare_database`, and
+drives every statement below through it, single-threaded.  There is no concurrent writer, so
+the ``40001`` that ``tests/concurrency/test_seed_permit_needs_retry.py`` produces six times
+out of six — two callers racing one subject — is unreachable by construction on this path.
+
+**WHAT IS THEREFORE STILL UNGUARDED, IN WORDS.**  A MULTI-NODE cluster restarts a
+transaction for clock uncertainty with no second writer at all
+(``ReadWithinUncertaintyIntervalError``, ``RETRY_WRITE_TOO_OLD``), and reason 2 does not
+cover that.  So: pointed at a single node this script cannot meet ``40001``; pointed at
+CockroachDB Cloud it can, and it will not retry.  What it now does instead is refuse to
+MISREPORT one — see :func:`attempt_merge`, which classifies ``40001`` as ``UNDECIDED``
+rather than as a refusal, because until this wave a serialisation restart was recorded as a
+gate decision and written into ``mainline.refusal_ledger`` as one.  The guarded path exists
+for the callers that CAN import the adapter and DO contend: ``test_gate_run.py``,
+``test_row_factory_contract.py`` and ``scripts/submission/seed_demo_state.py`` all call
+:func:`seed_history` — which deliberately does not commit — inside ``run_txn``.
+
 WHAT THIS SCRIPT WILL NOT DO
 ----------------------------
 It will not create a table that has no migration, and for most of this repository's
@@ -1110,6 +1145,46 @@ def seed_history(conn: psycopg.Connection[Any]) -> History:  # noqa: PLR0915
     )
     counters_after = _permit_counters(conn, permit_id)
 
+    # ── THE DEFEATER VOCABULARY THIS OBLIGATION OFFERS, added 2026-08-14.
+    #
+    #    DELIBERATELY BELOW `counters_after`, AND THAT PLACEMENT IS LOAD-BEARING. The
+    #    projection assertion above promises "one INSERT INTO mainline.blocking_check, with
+    #    no other statement between the before and after readings", and it is that isolation
+    #    which lets the run claim the trigger moved `open_blocking` and `gate_epoch` rather
+    #    than something else in the seeder. A second INSERT above this line would not fail —
+    #    it would quietly make the strongest sentence in the proof untrue.
+    #
+    #    WHY THE SEEDER OWES THIS AT ALL. This function builds the world the demo-api suite
+    #    signs against (`test_gate_run._fingerprint` hashes this file precisely because it is
+    #    that world's seeder), and since the same day
+    #    `mainline_demo_api.defeaters.resolve_defeater_vocabulary` READS the digest a
+    #    disposition pins instead of deriving one. A check offering nothing therefore cannot
+    #    be signed at all: `422 demo_history_not_seeded`, correctly, because
+    #    `disposition.defeater_vocab_sha256` digests the option set the signer was SHOWN and
+    #    a check with no options has no such digest. Before that resolver, both signing paths
+    #    bound `_sha("defeater-vocab")` — one constant for every check in every generation —
+    #    so the signature pinned nothing and nothing noticed.
+    #
+    #    The digest is aggregated from these rows under a deterministic ORDER BY rather than
+    #    written down, for the same reason the demo seeds do it that way: a literal would be a
+    #    constant that merely looks like a hash, and it would go on describing three options
+    #    after somebody added a fourth.
+    conn.execute(
+        "WITH options (defeater_code, prompt) AS (VALUES "
+        "  ('ENERGY_SOURCE_ABSENT', 'Which stored-energy source was surveyed and found "
+        "absent within this permit''s boundary, and by whom?'), "
+        "  ('MECHANISM_PRESENT_AND_VERIFIED', 'Which isolation point was locked, and who "
+        "verified it at zero?'), "
+        "  ('WORK_NOT_INTRUSIVE', 'Which task in this permit''s scope was assessed as "
+        "non-intrusive, and against which method statement?')), "
+        "vocab AS (SELECT digest(string_agg(defeater_code || chr(31) || prompt, chr(30) "
+        "  ORDER BY defeater_code), 'sha256') AS sha FROM options) "
+        "INSERT INTO mainline.defeater_option (check_id, defeater_code, prompt, vocab_sha256) "
+        "SELECT %s, o.defeater_code, o.prompt, v.sha FROM options AS o CROSS JOIN vocab AS v "
+        "ON CONFLICT DO NOTHING",
+        (check_id,),
+    )
+
     # ── WHO WROTE THE COUNTER, AND THE EVIDENCE THAT THEY DID.
     #    `check_materialised` (0121) is the projection that bumps `open_blocking` and
     #    `gate_epoch` and emits `check_opened` into `mainline_ops.outbox`. Since
@@ -1261,13 +1336,38 @@ def _merge_payload(history: History) -> tuple[dict[str, Any], bytes, bytes]:
     return payload, canon, _sha(b"\x00" + canon)
 
 
+#: The one SQLSTATE that means *the database did not decide*. Named here, and nowhere
+#: re-implemented: ``spec/errors.md`` §2.1/§5 owns the taxonomy and
+#: ``trappoint_core.errors.RETRYABLE_SQLSTATE`` is its executable form. This script cannot
+#: import that module (see the module docstring, "EVERY TRANSACTION THIS SCRIPT COMMITS"),
+#: so the ONE value it needs is transcribed with the specification named beside it.
+RETRYABLE_SQLSTATE = "40001"
+
+
 def attempt_merge(conn: psycopg.Connection[Any], history: History) -> dict[str, Any]:
     """Call ``mainline.merge_permit`` in its own SERIALIZABLE transaction.
 
     Returns the outcome as evidence: on refusal, the SQLSTATE, the exhibit and how the
-    exhibit was obtained; on admission, ``00000``. The transaction is never reused, because
-    a refused attempt must leave the database exactly as it found it and the only honest way
-    to show that is a rollback.
+    exhibit was obtained; on admission, ``00000``; on ``40001``, ``UNDECIDED``. The
+    transaction is never reused, because a refused attempt must leave the database exactly
+    as it found it and the only honest way to show that is a rollback.
+
+    **THE THIRD OUTCOME IS NEW, AND IT IS A CORRECTNESS FIX RATHER THAN A REFINEMENT.**
+    This function used to classify everything ``psycopg`` raised as ``REFUSED``. A ``40001
+    RETRY_SERIALIZABLE`` therefore came back as ``{"outcome": "REFUSED", "sqlstate":
+    "40001"}``, :func:`run` compared it against ``CF01_SQLSTATE``, appended *"CF-01: expected
+    SQLSTATE 23514, observed 40001"* — and then called :func:`record_refusal`, which WRITES
+    that row into ``mainline.refusal_ledger``. A serialisation restart is not a decision the
+    gate made (``spec/errors.md`` §5: *an undecided transaction is not a refusal and has no
+    reason set*), so that path put a non-decision into the ledger of decisions and made its
+    count a count of something else. On a multi-node cluster — which is where the demo runs
+    — that is reachable, and it is reachable without any second writer at all.
+
+    ``UNDECIDED`` is deliberately NOT retried here, and the module docstring gives both
+    reasons in full: this file may not import the retry adapter (the release lane and the
+    judge's fresh clone install neither ``trappoint-core`` nor ``trappoint-testkit``), and
+    :func:`run` drives one connection against a database it just built, with nothing to
+    contend with. What is fixed is the misreport, which is the half that was silently wrong.
     """
     payload, canon, leaf = _merge_payload(history)
     conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
@@ -1287,10 +1387,19 @@ def attempt_merge(conn: psycopg.Connection[Any], history: History) -> dict[str, 
         )
     except psycopg.Error as exc:
         conn.rollback()
+        state = _sqlstate(exc)
+        if state == RETRYABLE_SQLSTATE:
+            return {
+                "outcome": "UNDECIDED",
+                "sqlstate": state,
+                "constraint": "",
+                "constraint_source": "absent",
+                "message": _message(exc),
+            }
         exhibit, source = _constraint(exc)
         return {
             "outcome": "REFUSED",
-            "sqlstate": _sqlstate(exc),
+            "sqlstate": state,
             "constraint": exhibit,
             "constraint_source": source,
             "message": _message(exc),
@@ -1358,6 +1467,12 @@ def record_refusal(
             "sqlstate": _sqlstate(exc),
             "message": _message(exc),
         }
+    # UNRETRIED, and singly so. Two statements, one writer, one connection, a database this
+    # run created — see the module docstring for why this file may not import the adapter
+    # and why nothing here has a second transaction to conflict with. There is also a
+    # reason this particular site must never acquire a naive retry: it INSERTS into
+    # mainline.refusal_ledger, so a loop that re-ran it would write N rows for one
+    # attempted history and the ledger's count would stop counting refusals (§4).
     conn.commit()
     row = conn.execute(
         "SELECT refusal_id, observed_at, sqlstate, constraint_name, constraint_source, "
@@ -1366,6 +1481,9 @@ def record_refusal(
         "ORDER BY observed_at DESC LIMIT 1",
         (refusal["sqlstate"], refusal["constraint"]),
     ).fetchone()
+    # UNRETRIED: one SELECT, read-only, single writer. Module docstring for the general
+    # reason; the specific one is that a re-read of a row this transaction already committed
+    # has nothing to serialise against on a single node.
     conn.commit()
     if row is None:
         return {"written": True, "read_back": False}
@@ -1388,7 +1506,13 @@ def record_refusal(
 
 
 def force_counter(conn: psycopg.Connection[Any], history: History, value: int) -> None:
-    """Set ``open_blocking`` out of band — the disarmed-projector history (CF-03, anomaly A8)."""
+    """Set ``open_blocking`` out of band — the disarmed-projector history (CF-03, anomaly A8).
+
+    UNRETRIED. One blind UPDATE — it writes a constant and reads nothing, so it is not even
+    a read-modify-write — on the single connection :func:`run` drives, against a database
+    this run created. See the module docstring for the two reasons no site in this file is
+    wrapped and for what remains unguarded on a multi-node cluster.
+    """
     conn.execute(
         "UPDATE mainline.permit SET open_blocking = %s WHERE permit_id = %s",
         (value, history.permit_id),
@@ -1456,6 +1580,9 @@ def sign_disposition(conn: psycopg.Connection[Any], history: History) -> dict[st
             "constraint": _constraint(exc)[0],
             "message": _message(exc),
         }
+    # UNRETRIED. One INSERT whose projection triggers do the rest, on the single connection
+    # `run` drives against a database this run created. Module docstring for the two
+    # reasons, and for the multi-node residual this does not cover.
     conn.commit()
     row = conn.execute(
         "SELECT d.virulence::STRING, d.signer_rank, d.reading_floor_met, "
@@ -1464,6 +1591,7 @@ def sign_disposition(conn: psycopg.Connection[Any], history: History) -> dict[st
         "WHERE d.disposition_id = %s",
         (disposition_id,),
     ).fetchone()
+    # UNRETRIED: one read-only SELECT over rows this transaction just committed.
     conn.commit()
     return {
         "signed": True,
@@ -1480,7 +1608,12 @@ def sign_disposition(conn: psycopg.Connection[Any], history: History) -> dict[st
 
 
 def read_merge_record(conn: psycopg.Connection[Any], history: History) -> dict[str, Any]:
-    """Read back what the admitted merge actually wrote: the record, and the event chain."""
+    """Read back what the admitted merge actually wrote: the record, and the event chain.
+
+    UNRETRIED. Two read-only SELECTs over rows the admission just committed, on the single
+    connection :func:`run` drives. See the module docstring for the two reasons and the
+    residual.
+    """
     row = conn.execute(
         "SELECT m.subject_kind, m.subject_id, m.gate_epoch, m.merged_by, "
         "encode(m.merged_commit, 'hex'), encode(m.clearance_digest, 'hex'), m.merged_at, "
@@ -1642,6 +1775,16 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
         evidence["verdict"] = "NOT PROVEN"
         evidence["failures"] = [*failures, f"the history could not be seeded: {_message(exc)}"]
         return EXIT_NOT_PROVEN, evidence
+    # THE ONE SITE IN THIS FILE THAT WOULD MOST WANT A RETRY, AND THE ONE THAT ALREADY HAS
+    # ONE EVERYWHERE THAT CONTENDS. `seed_history` is ~30 statements ending in two
+    # `permit_event` INSERTs that read the previous row's chain_digest and then UPDATE
+    # `mainline.permit` — a read-modify-write over one row, which
+    # `tests/concurrency/test_seed_permit_needs_retry.py` races into a real 40001 six times
+    # out of six. It is UNRETRIED here for the two reasons in the module docstring (this
+    # file may not import the adapter; `run` is the only writer on a database it just
+    # built), and `seed_history` deliberately does not commit, so every caller that CAN
+    # contend — test_gate_run.py, test_row_factory_contract.py,
+    # scripts/submission/seed_demo_state.py — hands it to `run_txn` instead of doing this.
     work.commit()
     evidence["history"] = {"seeded": True, **history.as_json()}
 
@@ -1671,7 +1814,17 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
     refusal["history"] = "one open blocking check, no signed disposition"
     refusal["expected_sqlstate"] = CF01_SQLSTATE
     refusal["expected_constraint"] = CF01_EXHIBIT
-    if refusal["outcome"] != "REFUSED":
+    if refusal["outcome"] == "UNDECIDED":
+        # NOT "the merge was admitted", and not a row in the refusal ledger. The database
+        # returned 40001, so it decided nothing; recording an undecided transaction as a
+        # gate decision is what `attempt_merge`'s docstring describes and what this branch
+        # exists to prevent. NOT PROVEN is the honest verdict, and re-running is the remedy.
+        failures.append(
+            f"CF-01: the merge was never decided — [{RETRYABLE_SQLSTATE}] on the single "
+            "attempt this proof makes. That is contention, not a verdict about the gate. "
+            "Re-run; if it persists, something is holding a conflicting transaction."
+        )
+    elif refusal["outcome"] != "REFUSED":
         failures.append("CF-01: the merge was ADMITTED with an open obligation")
     else:
         if refusal["sqlstate"] != CF01_SQLSTATE:
@@ -1697,7 +1850,12 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
     drift["history"] = "open_blocking forced to zero out of band; the obligation is still open"
     drift["expected_sqlstate"] = CF03_SQLSTATE
     drift["expected_constraint"] = CF03_EXHIBIT
-    if drift["outcome"] != "REFUSED":
+    if drift["outcome"] == "UNDECIDED":
+        failures.append(
+            f"CF-03: the merge was never decided — [{RETRYABLE_SQLSTATE}]. See CF-01 above: "
+            "an undecided transaction is not a refusal and is not written to the ledger."
+        )
+    elif drift["outcome"] != "REFUSED":
         failures.append("CF-03: the merge was ADMITTED against a drifted counter")
     else:
         if drift["sqlstate"] != CF03_SQLSTATE:
@@ -1725,7 +1883,13 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
         admission = attempt_merge(work, history)
         admission["case"] = "admission"
         admission["expected_sqlstate"] = "00000"
-        if admission["outcome"] != "ADMITTED":
+        if admission["outcome"] == "UNDECIDED":
+            failures.append(
+                f"the admission was never decided — [{RETRYABLE_SQLSTATE}]. A gate that "
+                "always refuses is a broken gate, and this run cannot say whether this one "
+                "does: the transaction was restarted, not answered. Re-run."
+            )
+        elif admission["outcome"] != "ADMITTED":
             failures.append(
                 "the merge was REFUSED after a signed disposition — a gate that always "
                 f"refuses is a broken gate: [{admission.get('sqlstate')}] "

@@ -42,10 +42,19 @@ creates **24** resources, not eleven.
 | shipping plan (`enable_cloudfront = false`) | 11 | **24** | `evidence/deploy/terraform-plan-furl.txt:843` |
 | upgrade plan (`enable_cloudfront = true`) | 22 | **35** | `evidence/deploy/terraform-plan-cloudfront.txt:1219` |
 
-The cause was `module "guard"`, instantiated at `infra/envs/demo/main.tf:632` under
+The cause was `module "guard"`, instantiated at `infra/envs/demo/main.tf:631` under
 `count = var.enable_api ? 1 : 0`. It contributes **13** created resources to both plans. The
 page was written before that instantiation landed and was never re-derived from the
 regenerated artefact.
+
+> **This citation was 632 until 2026-08-14, and 632 is the `source =` line.** The block
+> opens at **631**. Off by one, and off by one in the direction that still lands inside the
+> right block — which is why it survived a revision whose whole subject was this module.
+> Every other line-number citation on this page was re-read against the file it names in
+> the same pass; the results are in
+> [`evidence/deploy/lead/plan-repro-fresh-clone.json`](../../evidence/deploy/lead/plan-repro-fresh-clone.json)
+> under `citations_verified_in_docs_deploy_terraform_plan_md`, and the only other move was
+> the same 632 repeated in §7.
 
 **The direction of the fix is not a matter of taste.** The committed plan artefact is
 **authoritative** and this prose is **derived**. No plan was regenerated or reconfigured in
@@ -122,6 +131,10 @@ mutating AWS call, and `docs/deploy/PRE-APPLY.md` is the document that owns the 
 It automates exactly the sequence below — write a local `backend_override.tf`,
 `init -reconfigure`, `validate`, `plan`, `show -json`, and remove the override on any exit —
 so the block is kept as a statement of shape, not as a second recipe to keep in sync.
+**§1.3 is the numbered runbook a stranger follows from `git clone` to a printed count**, and
+it was written from a run rather than from this script's header; it names the two things a
+fresh clone does not have and the one hazard that makes a partial checkout look like a
+working one.
 
 ```bash
 cd infra/envs/demo
@@ -224,6 +237,214 @@ Two properties are asserted over the result, and both are checkable:
 The only twelve-digit run a naive scan still finds in any of the four is `000000000001`, the
 final group of the demo permit UUID `dec0de00-0006-4000-8000-000000000001`, which is a UUID
 and not an account.
+
+### 1.3 · REPRODUCING THIS FROM A FRESH CLONE — the numbered runbook
+
+**This section was written from a run, not from the script's header.** Every step below was
+executed on 2026-08-14 against a fresh `git clone` of `github.com/Shaugato/mainline` at
+`eefae1c`, and the transcript — commands, Terraform and provider versions, every exit code,
+both counts, and a byte-for-byte comparison against the four committed artefacts — is in
+[`evidence/deploy/lead/plan-repro-fresh-clone.json`](../../evidence/deploy/lead/plan-repro-fresh-clone.json).
+Where a step below has a hazard attached, the hazard is one this run actually hit.
+
+> **Read these two before you type anything.**
+>
+> **(a) `core.longpaths`.** On Windows with `core.longpaths` unset, `git clone` of this
+> repository into a long parent directory produces a **partial checkout**, and the message
+> a human reads begins *"Clone succeeded"*. Measured here: a clone into a **136-character**
+> parent wrote **1,131 of 7,548** tracked files and left **6,417** missing. It kept **all**
+> of `infra/`, `scripts/deploy/`, `evidence/deploy/` and `docs/deploy/` and dropped
+> `verticals/` and `tests/` — so `terraform validate` in the fragment answers *"Success!
+> The configuration is valid."* about **something that is not this repository**. A clone
+> into `D:/_fc` (a six-character parent) lost zero files, and so did a clone into the same
+> 136-character parent run as `git -c core.longpaths=true clone …`.
+>
+> **(b) Exit codes do not survive a pipe.** `terraform plan … | tail -n 40` reports
+> `tail`'s exit status, so a refused plan reads as a success. Capture `$?` immediately
+> after the command, or redirect to a file and read the file. Every exit code on this page
+> was taken that way.
+
+**1 · Clone, and prove the clone is whole.**
+
+```bash
+git -c core.longpaths=true -c core.autocrlf=false \
+    clone https://github.com/Shaugato/mainline.git mainline
+cd mainline
+git status --short          # MUST print nothing at all
+git rev-parse HEAD
+```
+
+`git status --short` must be **empty**. Anything else means the checkout is incomplete and
+nothing after this step means what it says. (In the truncated clone above it printed
+**7,580** rows. That number is a *detector*, not a file census — the aborted checkout also
+left the index empty, so every tracked file shows as deleted whether or not it is on disk.
+The census is `git ls-tree -r HEAD --name-only` diffed against the filesystem, and it said
+6,417.)
+
+`core.autocrlf=false` is in that command line for a reason given in step 6: with Git for
+Windows' default of `true`, the `.tf` files come out CRLF and the regenerated **JSON**
+artefact is 4,588 bytes larger than the committed one, in 125 variable `description`
+strings, with no change of meaning anywhere. This repository ships no `.gitattributes`, so
+the flag is the only thing standing between a reviewer and a diff that looks alarming and
+means nothing.
+
+**2 · Confirm the toolchain the artefacts were made with.**
+
+```bash
+terraform version          # expect: Terraform v1.14.8 on windows_amd64
+aws --version
+aws sts get-caller-identity --profile mainline-dev --query Arn
+```
+
+A plan needs a **readable** identity — the root reads `data.aws_caller_identity.current` —
+and nothing more. No write, no state object, no lock.
+
+**3 · See for yourself what a clean clone can and cannot do.** This step produces no
+artefact; it exists so the next one is not taken on trust.
+
+```bash
+cd infra/envs/demo
+terraform init -backend=false -input=false -no-color ; echo "exit=$?"   # 0
+terraform validate -no-color                          ; echo "exit=$?"  # 0
+terraform plan -no-color -input=false -var enable_cloudfront=false ; echo "exit=$?"  # 1
+cd ../../..
+```
+
+Measured: `init -backend=false` **exits 0** and installs `hashicorp/aws v6.58.0` and
+`hashicorp/archive v2.8.0`, each *"(signed by HashiCorp)"*, from the committed
+`.terraform.lock.hcl`. `validate` **exits 0** with *"Success! The configuration is valid."*
+`plan` **exits 1**:
+
+```
+Error: Backend initialization required, please run "terraform init"
+Reason: Initial configuration of the requested backend "s3"
+…
+Changes to backend configurations require reinitialization.
+```
+
+**That refusal is the whole problem `scripts/deploy/plan_repro.sh` exists to solve**, and
+§1's block above is its shape. `backend.tf` declares a *partial* S3 backend whose bucket
+name cannot be a constant in a public repository, so the documented way to a real backend
+is `bootstrap_state.sh` — which **creates a bucket**, a mutating call no reviewer should
+have to make to read a plan.
+
+**4 · Run the negative control first, in one second, before you believe the script.**
+
+```bash
+scripts/deploy/plan_repro.sh --prove-refusal ; echo "exit=$?"
+```
+
+Measured — **exit 0**, one second, **zero AWS calls**:
+
+```
+  terraform apply        REFUSED, exit 2   [ok]
+  terraform destroy      REFUSED, exit 2   [ok]
+  terraform import       REFUSED, exit 2   [ok]
+  terraform taint        REFUSED, exit 2   [ok]
+  terraform force-unlock REFUSED, exit 2   [ok]
+  terraform state        REFUSED, exit 2   [ok]
+  terraform plan -destroy REFUSED, exit 2   [ok]
+
+Seven refusals, seven exits of 2. The allowlist is: init validate plan show version
+```
+
+Each of those calls the same `tf` wrapper every real Terraform invocation in the script
+goes through, so the read-only claim is a demonstration rather than a sentence in a header.
+
+**5 · Build the two gitignored things the plan reads.** **This step is the one nobody had
+written down, and skipping it is why the first fresh-clone run failed.**
+
+```bash
+# 5a. the console SPA — verticals/mainline/apps/console/dist/ is a BUILD OUTPUT.
+#     This is the command build_lambda.sh names when the tree is missing (its own
+#     lines 312-313), with pnpm 11.5.3 pinned by the console's `packageManager` field:
+cd verticals/mainline/apps/console && pnpm install --frozen-lockfile \
+  && pnpm exec vite build --mode demo && cd -
+
+# 5b. the deployment package — out/ is gitignored (.gitignore:9 is the literal `out/`)
+scripts/deploy/build_lambda.sh          # arm64, the deployed default
+```
+
+`infra/modules/demo-api/main.tf:342` calls `source_code_hash = filebase64sha256(var.package_path)`,
+and `filebase64sha256` is evaluated at **plan** time, not at apply time. Without the zip the
+run gets all the way through identity, the empty-state check, `init`, `validate` and the
+entire rendered plan, and *then* dies:
+
+```
+Error: Error in function call
+  on ..\..\modules\demo-api\main.tf line 342, in resource "aws_lambda_function" "this":
+ 342:   source_code_hash = filebase64sha256(var.package_path)
+Call to function "filebase64sha256" failed: open
+..\..\..\out\lambda\mainline-demo-api-arm64.zip: The system cannot find the path specified.
+```
+
+`plan_repro.sh` now checks this **before** it asks Terraform anything and refuses with
+**exit 10** naming the fix, because a Terraform stack trace ninety seconds into a run that
+has already printed four green steps reads as a tool bug and is not one. The check reads
+`var.lambda_package_path`'s own `default` out of `infra/envs/demo/variables.tf` rather than
+hardcoding the path, so moving the variable cannot leave it reporting a green.
+
+**6 · Reproduce the plan, and land on a count.**
+
+```bash
+scripts/deploy/plan_repro.sh --json --out-dir /some/path/outside/the/repo ; echo "exit=$?"
+scripts/deploy/plan_repro.sh --cloudfront --json --out-dir /another/path ; echo "exit=$?"
+```
+
+`--out-dir` **must** be outside the repository and the script refuses if it is not: the raw
+plan text carries the account id unmasked, and writing it into the tree is how it reaches a
+commit. Measured, from both a `core.autocrlf=true` clone and a `core.autocrlf=false` one,
+all four runs **exit 0**:
+
+| Run | Prints | Committed artefact |
+|---|---|---|
+| default | `Plan: 24 to add, 0 to change, 0 to destroy.` | agrees |
+| `--cloudfront` | `Plan: 35 to add, 0 to change, 0 to destroy.` | agrees |
+
+The script exits **6**, not 0, if the fresh count disagrees with the committed artefact, and
+it never edits the artefact. **A disagreement is an escalation, not an edit** — a plan is
+not re-run with different variables until it produces the number a document already carries.
+
+Stage 2 of the same run measures, read-only, that nothing has been applied — no
+`mainline-demo-tfstate-*` bucket holds `demo/terraform.tfstate`, and `mainline-demo-api`
+does not exist — because the local-backend reproduction is only faithful while the remote
+state is empty. It **exits 5** when that stops being true, and `--prove-expiry-refusal <a
+function that does exist>` demonstrates the exit-5 path without applying anything.
+
+**7 · Compare against the committed artefacts, and know which differences are expected.**
+
+Mask the account id the way the repository does — the twelve digits replaced by
+`0229REDACTED8246` — and diff. From a `core.autocrlf=false` clone, **all four regenerated
+files came back at the committed byte count** (44,742 / 336,459 / 59,308 / 366,494), and
+these are the *only* differences, all of them re-measured:
+
+| Difference | Where | Expected? |
+|---|---|---|
+| the plan's own `timestamp` | both JSONs | **yes** — it is a clock |
+| order of `Reading…` / `Read complete` lines | both human plans | **yes** — data sources are read concurrently and Terraform does not order the log |
+| order of the `relevant_attributes` list | both JSONs | **yes** — the list is *set-equal*, checked explicitly |
+| `source_code_hash` of `module.api[0].aws_lambda_function.this` | one line in each file | **yes** — it hashes the step-5 build output, which is not in the clone at all |
+| anything else | — | **no. That is a finding.** |
+
+`resource_changes` and its addresses, `checks` and every instance status, `planned_values`,
+`output_changes`, `configuration`, `prior_state`, `variables`, and `applyable` /
+`complete` / `errored` were all compared and were all **identical**. That is the sense in
+which this page's numbers are reproducible: not that a second run writes the same bytes,
+but that everything a bit of prose could be derived from does.
+
+**One caveat this run owes its reader.** The step-5 package was **not** rebuilt inside the
+clone — the console build needs a 305 MB dependency tree — so the package was supplied from
+the workstation, and its hash is therefore the one difference above rather than a match.
+The package reaches the plan as exactly one value and does not touch the resource count,
+which is why the counts are trustworthy and the bytes are not identical. Recorded, not
+glossed: `evidence/deploy/lead/plan-repro-fresh-clone.json` → `package_supplied_for_this_run`.
+
+**Why the committed artefacts were not overwritten with these runs.** The regeneration
+confirmed the record; it did not contradict it. The one substantive difference is a hash of
+a package built from a working tree carrying other workers' uncommitted edits, and writing
+that into committed evidence would replace a record of a coherent tree with a record of one
+machine's afternoon. The reasoning, and what would change it, is written out in the same
+evidence file under `decision_on_committing_the_regenerated_artefacts`.
 
 **Nothing else was redacted, because Terraform marked nothing sensitive.** Every
 `sensitive_values` object in the JSON is empty or all-`false`; the literal key `"sensitive"`
@@ -505,6 +726,14 @@ Lambda throttles at the account's concurrency quota, so the ConcurrentExecutions
 is capped at 10 and an alarm at or above it could never breach - a control that looks
 present and is not …
 ```
+
+> **`line 621` in that transcript is not a line of this repository, and following it lands
+> on an unrelated string.** The refusal was planned from a throwaway root **outside** this
+> repository (§7 says so), against that root's copy of the module. In **this** tree the
+> condition is at **`infra/modules/demo-api/main.tf:835`**, verified 2026-08-14. The
+> transcript is verbatim tool output and is annotated rather than edited: rewriting a
+> number inside a quoted transcript so that a citation resolves is not correcting a
+> citation, it is falsifying the evidence the citation points at.
 
 Three older checks are still worth naming:
 
@@ -798,7 +1027,10 @@ Before any `terraform apply`:
    `scripts/deploy/plan_repro.sh` and confirm `Plan: 24 to add`. A plan older than the code
    is not evidence — **and this page exists because that stopped being true twice**: once
    when attribute values drifted, and once when the count itself moved from 11 to 24 and
-   this page went on saying it had not.
+   this page went on saying it had not. **§1.3 is the numbered procedure**, including the
+   two gitignored build outputs a fresh clone does not have; the script refuses with exit
+   **10** if you skip them and with exit **6** if the fresh count and the committed artefact
+   disagree.
 2. **`authorization_type` is `NONE` on purpose, and the list of what bounds it is no longer
    as short as it was.** The Function URL is public. What bounds it is **not**
    authentication, and — since 2026-08-13 — it is **not** `reserved_concurrent_executions`
@@ -855,8 +1087,10 @@ Everything on this page is derived from the **four** committed artefacts and not
 
 §2.2 additionally reads `infra/modules/cost-guard/main.tf` (the fourteen `resource` blocks
 and the `for_each` on `aws_sns_topic_subscription.email`), `infra/modules/cost-guard/variables.tf`
-and `infra/envs/demo/main.tf:632,649` — those are **source, not evidence**, and the diff
+and `infra/envs/demo/main.tf:631,649` — those are **source, not evidence**, and the diff
 against the plan JSON is what turns them into a checked claim rather than a reading.
+(`631` read `632` until 2026-08-14; 632 is the module's `source =` line and the block opens
+at 631. §0.1 records the same correction.)
 
 Four things on this page are **not** from those artefacts and say so where they appear: rows
 three and four of the four-configuration table in §5 and the `fmt`/`validate` results, which

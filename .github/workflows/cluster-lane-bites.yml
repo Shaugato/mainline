@@ -608,6 +608,12 @@ jobs:
         # and this job happens to be holding exactly the edit it exists to notice, so the
         # demonstration is free. Inverted, like cell 4: green here means the guard did NOT
         # fire, which means it is not guarding.
+        #
+        # THE ONE WAY THIS STEP GOES GREEN THAT IS NOT A BROKEN GUARD BUT A BROKEN COMMIT:
+        # somebody re-baselined `FROZEN` onto a tree that had the plant in it. That is the
+        # forbidden edit exactly - the SEED made to match the CODE, with the hash carried
+        # along behind it - so the error below names the procedure that exists to stop it
+        # rather than only naming the symptom.
         run: |
           # trappoint:pytest-lane=hermetic
           set -euo pipefail
@@ -617,7 +623,7 @@ jobs:
           rc=$?
           set -e
           if [ "${rc}" -eq 0 ]; then
-            echo "::error title=the frozen-seed guard did not fire::tests/ci/test_demo_seed_is_frozen.py passed while a deliberate edit to verticals/mainline/db/seeds/demo/demo_world.sql was present in the tree. The hash it records no longer describes the file it reads, so it is guarding nothing."
+            echo "::error title=the frozen-seed guard did not fire::tests/ci/test_demo_seed_is_frozen.py passed while a deliberate edit to verticals/mainline/db/seeds/demo/demo_world.sql was present in the tree. The hash it records no longer describes the file it reads, so it is guarding nothing. Check FIRST whether FROZEN was re-baselined onto a PLANTED tree: that is the seed being made to match an application constant, which is the incident this whole lane exists to prevent, and the four-part negative control under 'HOW TO RE-BASELINE' in tests/ci/test_demo_seed_is_frozen.py's module docstring is what refuses it. Run that control; if any part of it fails, revert the seed. Never re-baseline to make this step green."
             exit 1
           fi
           echo "the frozen-seed guard is red against the planted edit, as it must be"
@@ -657,34 +663,171 @@ jobs:
         # The other half of the sixth assertion, and the reason it is a separate step: a
         # guard that is red against the plant proves nothing on its own if it is red all
         # the time. Red with the edit, green without it, in one job.
+        #
+        # THIS IS THE STEP THAT FAILED IN RUN 31735341050, AND IT IS WORTH SAYING WHY,
+        # because the shape of that failure is the reason the error message below exists.
+        # Steps 1-18 of that run all passed - all four cells of the 2x2, the
+        # inventory-cannot-suppress control, and the RED half of this guard - and then this
+        # step reported `2 failed, 1 passed in 0.17s` on a tree the step immediately above
+        # had just proved byte-for-byte clean. Both seed files had changed in `eefae1c` and
+        # `FROZEN` was not re-measured in that commit, so the guard was red WITH the plant
+        # and red WITHOUT it, which discriminates nothing. The job's `Process completed with
+        # exit code 1` was the whole of the diagnosis, 1,590 lines down a log, under sixty
+        # lines of CockroachDB session output.
+        #
+        # So the failure is now bracketed and NAMED. The step still exits with pytest's
+        # status - the assertion is not weakened and must never become a warning - it just
+        # stops making the reader reconstruct which of the two possible causes it is.
         if: always()
         run: |
           # trappoint:pytest-lane=hermetic
           set -euo pipefail
+          set +e
           uv run --frozen --all-packages pytest tests/ci/test_demo_seed_is_frozen.py \
             --crdb=none -q -p no:cacheprovider
+          rc=$?
+          set -e
+          if [ "${rc}" -ne 0 ]; then
+            echo "::error title=the frozen-seed guard is red at a CLEAN tree::tests/ci/test_demo_seed_is_frozen.py failed AFTER the revert, on a tree the step above proved byte-for-byte clean, so this is not about the plant. Either a deployed seed changed and the freeze was not re-measured in the same commit (the stale-baseline case: read which side moved, and note that a hash computed FROM a file is never authoritative OVER that file), or a deployed seed has been reshaped and the freeze is telling you so. The procedure that separates those two is written out under 'HOW TO RE-BASELINE' in that file's module docstring, and its precondition is a FOUR-PART NEGATIVE CONTROL that runs BEFORE the constants are touched: the seed diff carries no moved credential line; test_the_seed_derives_the_demo_credentials_from_their_names passes; test_credentials.py passes in full under --crdb=reuse; and demo_world.sql still enrols exactly one signer as a digest of its NAME. All four must come back clean. If any one of them does not, the answer is to revert the seed and NOT to edit the recorded hash - that is the edit that put 23503 in front of a judge, and re-baselining is how it would come back."
+            exit "${rc}"
+          fi
+          echo "the frozen-seed guard is green at a tree this job proved clean; red with the plant and green without it, in one job"
 
       - name: The 2x2, as one table
         # Reached only when every step above passed, so it reports rather than decides. It
         # exists because the argument this lane makes is a shape, and a reader scrolling
         # sixteen steps of log should not have to reassemble it.
+        #
+        # THE NUMBERS ARE READ BACK OUT OF THE FOUR JUnit REPORTS, not restated from
+        # `HERMETIC_FLOOR` and `CLUSTER_FLOOR`. Until 2026-08-14 this table printed the
+        # FLOORS - "GREEN, 7+ executed" - which is a statement about what the lane would
+        # have accepted, not about what it measured. A summary that cannot disagree with
+        # the run it summarises is decoration, and this repository has already paid for one
+        # of those. Every cell below therefore comes from the `<testsuite>` attributes of
+        # the report that cell wrote into ART, and the floors appear beside them so a
+        # reader can see the margin. `$GITHUB_STEP_SUMMARY` renders at the TOP of the run
+        # page, which is where a reader actually lands.
+        #
+        # NO `if: always()`, DELIBERATELY, and it is not an oversight to be corrected. This
+        # table's heading is a verdict - "the cluster lane is falsifiable" - and a job that
+        # failed has not earned it. In run 31735341050 this step was correctly SKIPPED
+        # because the last frozen-seed step failed, and the right repair was to fix that
+        # step, which this commit does. Publishing a green-looking 2x2 beside a red job is
+        # the same defect as a skip that reads as a pass.
         run: |
           set -euo pipefail
-          {
-            echo "## the cluster lane is falsifiable"
-            echo
-            echo "| | plant ABSENT | plant PRESENT |"
-            echo "|---|---|---|"
-            echo "| \`--crdb=none\` | GREEN, ${HERMETIC_FLOOR}+ executed | **GREEN**, the same tests, the same result |"
-            echo "| \`--crdb=reuse\` | GREEN, ${CLUSTER_FLOOR}+ executed | **RED**, caught by the control the plant names |"
-            echo
-            echo "Plus: the known-red inventory could not suppress the planted failure, with"
-            echo "pytest's real status or with a dropped one; the frozen-seed guard was red"
-            echo "against the edit and green without it; and the tree is byte-for-byte clean."
-            echo
-            echo "Subset: \`test_credentials.py test_gate_run.py test_transitions.py\`."
-            echo "See \`docs/ci/cluster-lane-falsifiability.md\`."
-          } >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import sys
+          import xml.etree.ElementTree as ET
+
+          art = pathlib.Path(os.environ["ART"])
+          hermetic_floor = int(os.environ["HERMETIC_FLOOR"])
+          cluster_floor = int(os.environ["CLUSTER_FLOOR"])
+
+          # (label, plant, --crdb, report, the floor this cell is actually held to)
+          CELLS = [
+              ("1", "absent", "reuse", "junit-absent-cluster.xml", cluster_floor),
+              ("2", "absent", "none", "junit-absent-hermetic.xml", hermetic_floor),
+              ("3", "present", "none", "junit-planted-hermetic.xml", hermetic_floor),
+              ("4", "present", "reuse", "junit-planted-cluster.xml", None),
+          ]
+
+          def read(name):
+              path = art / name
+              if not path.is_file():
+                  # Unreachable while every step above passed, and it stays here anyway: a
+                  # summary that printed a plausible number for a report it could not find
+                  # would be the exact failure this step was just rewritten to end.
+                  print(f"::error title=the 2x2 summary cannot find a report it claims to "
+                        f"summarise::{path} does not exist, so the table below would be "
+                        "inventing the cell it describes. Every number in that table must "
+                        "come from the JUnit the cell wrote.")
+                  sys.exit(1)
+              root = ET.parse(path).getroot()
+              s = root if root.tag == "testsuite" else root.find("testsuite")
+              collected = int(s.get("tests", "0"))
+              skipped = int(s.get("skipped", "0"))
+              failures = int(s.get("failures", "0"))
+              errors = int(s.get("errors", "0"))
+              return {
+                  "collected": collected,
+                  "executed": collected - skipped,
+                  "skipped": skipped,
+                  "failures": failures,
+                  "errors": errors,
+                  "passed": collected - skipped - failures - errors,
+                  "time": float(s.get("time", "0") or 0),
+              }
+
+          m = {label: read(report) for label, _, _, report, _ in CELLS}
+
+          # The names cell 4 went red on, read from cell 4's own report. NOT read from the
+          # plant's manifest: `--revert` has already deleted `.plant-cluster-defect/` by the
+          # time this step runs, and a table that restated the expected name from anywhere
+          # else would be printing what the lane hoped for rather than what it measured.
+          # Cell 4's own assertion, above, is what requires the plant's declared `caught_by`
+          # to be among these; this step only shows the reader the list.
+          planted_root = ET.parse(art / "junit-planted-cluster.xml").getroot()
+          planted = planted_root if planted_root.tag == "testsuite" else planted_root.find("testsuite")
+          red_names = sorted(
+              case.get("name", "")
+              for case in planted.iter("testcase")
+              if case.find("failure") is not None or case.find("error") is not None
+          )
+
+          out = []
+          out.append("## the cluster lane is falsifiable")
+          out.append("")
+          out.append("All four cells below were MEASURED in this run and read back out of "
+                     "the four JUnit reports it wrote; the floors are printed beside them.")
+          out.append("")
+          out.append("| | plant ABSENT | plant PRESENT |")
+          out.append("|---|---|---|")
+          out.append(
+              f"| `--crdb=none` | GREEN - {m['2']['executed']} executed, "
+              f"{m['2']['skipped']} skipped (floor {hermetic_floor}) "
+              f"| **GREEN - {m['3']['executed']} executed, the same "
+              f"{'count' if m['3']['executed'] == m['2']['executed'] else 'cell, a DIFFERENT count'}"
+              " as plant-absent** |"
+          )
+          out.append(
+              f"| `--crdb=reuse` | GREEN - {m['1']['executed']} executed, "
+              f"{m['1']['passed']} passed (floor {cluster_floor}) "
+              f"| **RED - {m['4']['failures'] + m['4']['errors']} failed/errored, and the "
+              "test the plant declares is among them** |"
+          )
+          out.append("")
+          out.append("| cell | plant | `--crdb` | collected | executed | skipped | fail | err | passed | floor | wall |")
+          out.append("|---|---|---|---|---|---|---|---|---|---|---|")
+          for label, plant, crdb, _, floor in CELLS:
+              c = m[label]
+              out.append(
+                  f"| **{label}** | {plant} | `{crdb}` | {c['collected']} | {c['executed']} "
+                  f"| {c['skipped']} | {c['failures']} | {c['errors']} | {c['passed']} "
+                  f"| {floor if floor is not None else 'n/a'} | {c['time']:.2f} s |"
+              )
+          out.append("")
+          out.append("Cell 4 carries no executed floor: its verdict is the `caught_by` check, "
+                     "which is stricter than a count. A red cell that is red for an unrelated "
+                     "reason is not a falsifiability proof. What went red in cell 4:")
+          out.append("")
+          for name in red_names:
+              out.append(f"- `{name}`")
+          out.append("")
+          out.append("Plus: the known-red inventory could not suppress the planted failure, with")
+          out.append("pytest's real status or with a dropped one; the frozen-seed guard was red")
+          out.append("against the edit and green without it; and the tree is byte-for-byte clean.")
+          out.append("")
+          out.append("Subset: `test_credentials.py test_gate_run.py test_transitions.py`.")
+          out.append("See `docs/ci/cluster-lane-falsifiability.md`.")
+
+          text = "\n".join(out) + "\n"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as fh:
+              fh.write(text)
+          print(text)
+          PY
 
       - name: The container's own account of the run
         # Diagnosis only. It decides nothing and runs only when the job has ALREADY failed,

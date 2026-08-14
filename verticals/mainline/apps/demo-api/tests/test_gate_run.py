@@ -26,6 +26,27 @@ repository's central proof runs on; re-implementing a 300-line seeder here would
 second history that could drift from the proven one. What the demo API needs is exactly
 what that proof needs, which is the point.
 
+EVERY TRANSACTION THIS FILE COMMITS, AND WHAT GUARDS IT
+--------------------------------------------------------
+Two, and both are now run by :func:`trappoint_testkit.txn.run_txn` over
+``trappoint_core.retry.run_gate`` — the WHOLE transaction, from ``BEGIN``, on a connection
+opened for that attempt and thrown away if it loses:
+
+* :func:`seed_history_into` — ~30 statements ending in two ``permit_event`` rows that read
+  the previous ``chain_digest`` and then move the permit's head. It used to take a
+  connection and commit; it now takes a DSN, because a retry handed an already-open
+  connection retries inside the transaction that just failed, which ``spec/errors.md`` §2.1
+  names as the mistake.
+* :func:`_reissue` — a receipt and its lines, cloned from the receipt that displayed the
+  obligation. It used to carry a hand-rolled three-attempt loop keyed on the psycopg
+  EXCEPTION CLASS; that loop is deleted. One taxonomy, specified and spied on, beats two.
+
+Everything else here is either DDL on an autocommit connection (``DROP``/``CREATE
+DATABASE``, ``CONFIGURE ZONE``, the migration chain — CockroachDB restarts an implicit
+transaction server-side, and DDL inside a multi-statement transaction can fail at ``COMMIT``
+even when every statement succeeded), or a probe that reads and rolls back. Neither is a
+multi-statement unit for a retry to be OF.
+
 THE ROW FACTORY, AND WHY THIS FILE IS SPLIT IN TWO ALONG IT
 -----------------------------------------------------------
 Until 2026-08-13 every connection below was ``psycopg.connect(dsn, autocommit=…)`` —
@@ -95,6 +116,7 @@ back. A green whose red is never exhibited is a green nobody has checked.
 
 from __future__ import annotations
 
+import ast
 import contextlib
 import datetime as _dt
 import hashlib
@@ -113,6 +135,7 @@ from typing import Any, Final
 import psycopg
 import pytest
 from psycopg.rows import tuple_row
+from trappoint_testkit.txn import from_dsn, run_txn
 
 # `requires_cluster` only. `verticals/mainline/apps/demo-api/pyproject.toml` runs with
 # --strict-markers and registers exactly that one, so `integration` — which the repository
@@ -140,7 +163,6 @@ from mainline_demo_api.gate_run import (  # noqa: E402
 )
 
 DEFAULT_DSN = "postgresql://root@127.0.0.1:26257/defaultdb?sslmode=disable&connect_timeout=10"
-SCRATCH_DB = os.environ.get("MAINLINE_W4_DATABASE", "w_w4_api_transitions")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -149,6 +171,91 @@ def _repo_root() -> Path:
         if (candidate / "spec").is_dir() and (candidate / "compose.yaml").is_file():
             return candidate
     raise RuntimeError("no workspace root above this test file")
+
+
+#: The name this file gives the scratch database, minus the fingerprint.
+_SCRATCH_PREFIX = "w_w4_api_transitions"
+
+
+#: ``scripts/deploy/seed_demo.py``'s ``SEED_FILES``, parsed out of its SOURCE.
+#:
+#: Parsed rather than imported, and that is the cheaper of two correct options here.
+#: ``conftest._deployer()`` imports the module to get this list and has to put the
+#: repository root on ``sys.path`` and take it off again to do so — a session-wide change
+#: its own docstring spends fourteen lines justifying. This file only needs the list of
+#: NAMES, so it reads the assignment instead, exactly as
+#: ``test_credentials.py::test_the_seed_file_list_is_the_deployment_s_own`` does. If the
+#: assignment is ever renamed or computed, this raises rather than silently fingerprinting
+#: a shorter list.
+def _seed_files() -> tuple[str, ...]:
+    """Return the seed file names ``scripts/deploy/seed_demo.py`` applies, in order."""
+    source = (_repo_root() / "scripts" / "deploy" / "seed_demo.py").read_text(encoding="utf-8")
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.AnnAssign | ast.Assign):
+            targets = [node.target] if isinstance(node, ast.AnnAssign) else node.targets
+            names = {t.id for t in targets if isinstance(t, ast.Name)}
+            if "SEED_FILES" in names and node.value is not None:
+                return tuple(ast.literal_eval(node.value))
+    raise RuntimeError(
+        "scripts/deploy/seed_demo.py declares no literal SEED_FILES, so this fixture "
+        "cannot fingerprint what the deployment seeds and would adopt a database built "
+        "from a seed it never read"
+    )
+
+
+def _fingerprint() -> str:
+    """SHA-256 over everything that BUILDS this database: migrations, seeds, and the seeder.
+
+    **THE MEASUREMENT HAZARD THIS CLOSES, AND WHY IT IS A FINGERPRINT AND NOT A UUID.**
+    Until this change the name was ``os.environ.get("MAINLINE_W4_DATABASE",
+    "w_w4_api_transitions")`` — a FIXED default. Two concurrent runs therefore shared one
+    database, and :func:`w4_database` adopts a database whenever its demo subject still
+    looks usable, so an adopted database built from an older copy of the migration chain or
+    the seeder was indistinguishable from one built from this tree. That is not a
+    hypothetical: ``docs/ci/demo-suite-order.md`` §4 records ``w_w4_api_transitions``
+    growing monotonically across runs to 834 ``mainline.permit`` rows, and one published
+    "unstable" list was corrupted by exactly this class of cross-run sharing.
+
+    ``uuid4``/``token_hex`` would fix the collision and **lose** the adoption that makes
+    this suite runnable twice in a minute — and, worse, would make it impossible to notice
+    that a seed edit had been read against a stale database, because every run would build
+    a new one and none would ever be wrong. The fingerprint fixes the collision AND makes
+    the staleness unreachable: a changed input is a changed name, and a changed name is a
+    rebuild. The pattern is the repository's own, three files away
+    (``conftest._fingerprint``, ``conftest.demo_database``), and it is followed rather than
+    re-invented.
+
+    THREE INPUTS, and the third is this world's difference from ``conftest``'s. The
+    migrations and ``SEED_FILES`` are in the digest for the reasons ``conftest`` gives.
+    ``scripts/proof/gate_refusal.py`` is in it because THIS database is not seeded from the
+    seed files at all — :func:`seed_history_into` builds it by calling that script's
+    ``seed_history``, so it is this world's seeder, and leaving it out would leave the one
+    input most likely to move unfingerprinted. ``SEED_FILES`` stays in the digest anyway
+    because ``test_the_deployed_seed_and_the_proof_seed_are_two_different_worlds`` reads
+    both worlds in one assertion, so an edit to either must not be readable against a
+    stale copy of the other.
+    """
+    digest = hashlib.sha256()
+    root = _repo_root()
+    migrations = root / "verticals" / "mainline" / "db" / "migrations"
+    for path in sorted(migrations.glob("*.sql"), key=lambda p: p.name):
+        digest.update(path.name.encode("utf-8"))
+        digest.update(path.read_bytes())
+    seeds = root / "verticals" / "mainline" / "db" / "seeds" / "demo"
+    for name in _seed_files():
+        digest.update(name.encode("utf-8"))
+        digest.update((seeds / name).read_bytes())
+    seeder = root / "scripts" / "proof" / "gate_refusal.py"
+    digest.update(seeder.name.encode("utf-8"))
+    digest.update(seeder.read_bytes())
+    return digest.hexdigest()[:12]
+
+
+#: The scratch database this file builds and adopts. The ``MAINLINE_W4_DATABASE`` override
+#: is KEPT: ``scripts/qa/demo_suite_falsification.py:499`` and
+#: ``scripts/qa/demo_suite_order.py`` both set it to give a run a private database, and
+#: removing it would silently re-collide the very harnesses that measure contamination.
+SCRATCH_DB = os.environ.get("MAINLINE_W4_DATABASE") or f"{_SCRATCH_PREFIX}_{_fingerprint()}"
 
 
 def _admin_dsn() -> str:
@@ -183,18 +290,32 @@ def _gate_refusal_module() -> ModuleType:
     return module
 
 
-def seed_history_into(conn: psycopg.Connection[Any]) -> Any:
-    """Seed one fresh demo history on *conn* and commit it. Returns the proof's History."""
-    was_autocommit = conn.autocommit
-    if was_autocommit:
-        conn.autocommit = False
-    conn.rollback()
-    conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
-    history = _gate_refusal_module().seed_history(conn)
-    conn.commit()
-    if was_autocommit:
-        conn.autocommit = True
-    return history
+def seed_history_into(dsn: str) -> Any:
+    """Seed one fresh demo history into *dsn* as ONE retried transaction. Returns a History.
+
+    **A DSN AND NOT A CONNECTION, WHICH IS THE WHOLE CHANGE.** ``seed_history`` issues
+    roughly thirty statements — a site, a clause version, a recall run with its Proof of
+    Exhausted Recall, a boundary certificate, an exposure receipt with its lines, and two
+    ``permit_event`` rows each of which READS the previous row's ``chain_digest`` and then
+    moves the permit's head. That is a read-modify-write over one subject, and under
+    ``SERIALIZABLE`` the loser of a race with any other writer is ``40001``. It used to
+    commit with no retry at all.
+
+    :func:`trappoint_testkit.txn.run_txn` retries the WHOLE transaction, from ``BEGIN``, on
+    a connection nothing else has touched — which is why this function may not accept one.
+    ``spec/errors.md`` §2.1 names the alternative as the mistake: a statement replayed into
+    a transaction CockroachDB has already aborted is not a retry of anything, and every
+    replay would meet the same ``40001`` until the budget ran out. The retry loop itself is
+    ``trappoint_core.retry.run_gate`` — imported, never re-written, because a second loop
+    would be a second SQLSTATE taxonomy and the one nobody spies on would win the day they
+    disagreed.
+
+    ``row_factory`` is psycopg's default ``tuple_row``, spelled out by omission the same way
+    the previous call site left it: ``scripts/proof/gate_refusal.py`` reads its own rows by
+    POSITION, and its connection is its contract rather than ``db.py``'s.
+    """
+    proof = _gate_refusal_module()
+    return run_txn(from_dsn(dsn), proof.seed_history, subject_kind="permit")
 
 
 #: The external reference ``scripts/proof/gate_refusal.py::seed_history`` gives its permit.
@@ -416,34 +537,36 @@ def reissue_exposure_receipt(
 
 
 def _reissue(dsn: str, subject: DemoSubject) -> uuid.UUID | None:
-    """``reissue_exposure_receipt`` in one committed transaction, with a 40001 retry.
+    """``reissue_exposure_receipt`` in one committed transaction, retried by the ONE loop.
 
     The receipt and its lines are ONE transaction: a receipt committed without the line
     that binds it to the obligation would satisfy nothing — ``scenario._RECEIPT_SQL`` joins
-    through ``exposure_line`` — and the next run would re-issue again, forever. The retry
-    loop is there because this DSN may be CockroachDB Cloud, where SERIALIZABLE returns
-    ``40001 RETRY_SERIALIZABLE`` and a single-node Docker never does.
+    through ``exposure_line`` — and the next run would re-issue again, forever. It reads a
+    source receipt and writes two rows derived from it, so it is a read-modify-write and the
+    loser of a race is ``40001``.
+
+    **THE HAND-ROLLED LOOP THAT USED TO BE HERE IS GONE, AND ITS DELETION IS THE POINT.**
+    Three attempts, a bare ``except psycopg.errors.SerializationFailure``, and no ceiling on
+    anything else: it retried the right code, but it was a SECOND retry taxonomy in a
+    repository whose first one — ``trappoint_core.retry.run_gate`` — is specified by
+    ``spec/errors.md`` §2.1/§4 and watched by ``tests/concurrency/test_retry_taxonomy_spy.py``.
+    Two loops means two things to keep correct, and on the day they disagreed the one nobody
+    was spying on would have won. It also discriminated on the psycopg EXCEPTION CLASS
+    rather than on the SQLSTATE, and ``40001`` arrives in more than one costume
+    (``RETRY_SERIALIZABLE``, ``WriteTooOldError``); only the code is the contract.
 
     ``tuple_row``, deliberately: this repairs the FIXTURE and asserts nothing about the
     production path. It is spelled out rather than inherited because
     :func:`reissue_exposure_receipt` reads its source receipt by position.
     """
     assert subject.check_id is not None
-    for attempt in range(3):
-        with psycopg.connect(dsn, autocommit=False, row_factory=tuple_row) as conn:
-            try:
-                receipt_id = reissue_exposure_receipt(conn, subject.permit_id, subject.check_id)
-            except psycopg.errors.SerializationFailure:
-                conn.rollback()
-                if attempt == 2:
-                    raise
-                continue
-            if receipt_id is None:
-                conn.rollback()
-                return None
-            conn.commit()
-            return receipt_id
-    return None  # pragma: no cover - the loop returns or raises
+    check_id = subject.check_id
+    return run_txn(
+        from_dsn(dsn, row_factory=tuple_row),
+        lambda conn: reissue_exposure_receipt(conn, subject.permit_id, check_id),
+        subject_kind="permit",
+        subject_id=str(subject.permit_id),
+    )
 
 
 @pytest.fixture(scope="session")
@@ -529,8 +652,10 @@ def w4_database() -> Iterator[str]:
                 f"{SCRATCH_DB}; the gate objects may be absent. First: "
                 f"{report.failures[0].version} [{report.failures[0].sqlstate}]"
             )
-        with psycopg.connect(dsn, autocommit=False, row_factory=tuple_row) as conn:
-            seed_history_into(conn)
+        # The DSN, not a connection: `seed_history_into` hands the whole transaction to
+        # `run_txn`, which opens a fresh connection per attempt. A connection opened here
+        # and passed in would put the retry INSIDE the transaction that had just failed.
+        seed_history_into(dsn)
         subject = _subject(dsn)
 
     assert subject is not None, (

@@ -557,7 +557,7 @@ scripts/deploy/plan_repro.sh --prove-expiry-refusal <a function that exists> --r
 
 **If it exits 6, the committed artefact is stale — regenerate the artefact, never the
 number.** `plan_repro.sh --cloudfront` exits 6 today: the committed CloudFront artefact
-predates the `cost-guard` instantiation at `infra/envs/demo/main.tf:632` and no longer
+predates the `cost-guard` instantiation at `infra/envs/demo/main.tf:631` and no longer
 describes what that configuration would create. Regenerating it belongs to whoever owns
 `evidence/deploy/`; **the plan is the fact and the artefact is the record**, so the artefact
 moves to the plan and never the other way round.
@@ -747,7 +747,7 @@ demonstrated when this page was first written. It cannot stay that way, because
 push — and it is right to: a scanner that cannot tell a deliberately-wrong account id from
 a real one is a scanner with a hole in it, and one carved exception becomes the next. The
 gate is a plain string comparison against `aws sts get-caller-identity`
-(`scripts/deploy/teardown.sh:190`), so `SOMEONE-ELSES-ACCOUNT` reaches exactly the branch a
+(`scripts/deploy/teardown.sh:250`, compared at `:256`), so `SOMEONE-ELSES-ACCOUNT` reaches exactly the branch a
 mistyped account id reaches, and refuses with exit `3` for exactly the same reason. The
 transcript in `evidence/deploy/deploy-dry-run.json` is the output of that command run
 against the live account on 2026-08-12 — the block above was re-measured, not re-worded.
@@ -882,10 +882,10 @@ the arithmetic does not expire.
 
 | Line | Basis | Arithmetic | USD/month |
 |---|---|---|---|
-| Lambda | perpetual free: 1 M requests, 400 000 GB-s | 512 MB × 300 ms × 10 000 req = 1 536 GB-s → 0.4 % of the allowance | **0.00** |
+| Lambda | perpetual free: 1 M requests, 400 000 GB-s | **256 MB** × 300 ms × 10 000 req = **768 GB-s → 0.19 %** of the allowance (~~512 MB … 1 536 GB-s → 0.4 %~~) | **0.00** |
 | Lambda **Function URL** | no charge beyond the invocation | — | **0.00** |
 | CloudWatch Logs | 7-day retention | far under the 5 GB free ingest | **0.00** |
-| CloudWatch alarms | 4 alarms; first 10 free | | **0.00** |
+| CloudWatch alarms | **7** alarms (4 `demo-api` + 3 `guard`); first 10 free (~~4 alarms~~) | | **0.00** |
 | S3 — **state bucket only** | one small versioned object, noncurrent versions expire at 30 days | < 1 MB | **0.01** |
 | **State locking** | `use_lockfile = true` | **no DynamoDB table** | **0.00** *(vs $0.25)* |
 | SSM Parameter Store | Standard SecureString | Standard tier is free | **0.00** |
@@ -896,6 +896,33 @@ the arithmetic does not expire.
 | Route 53 / ACM | **not used** — the Function URL's own AWS certificate | | **0.00** |
 | CloudWatch Synthetics | **not used** — see below | | **0.00** |
 | | | **Total** | **≈ $0.02** |
+
+> **TWO STALE INPUTS CORRECTED 2026-08-14, AND THE CONCLUSION IS UNCHANGED — SAID OUT LOUD
+> RATHER THAN LEFT IMPLICIT.**
+>
+> 1. **The Lambda row divided by 512 MB; the plan ships 256.**
+>    `evidence/deploy/terraform-plan-furl.txt:290` reads `memory_size = 256`, confirmed by
+>    the plan-known `api_published_bounds.memory_size_mb = 256` at `:867`. Recomputed at
+>    256 MB the figure **halves**, to 768 GB-s and 0.19 % of the 400 000 GB-s allowance.
+>    (Both the old and new numbers use this table's own 1 GB = 1000 MB convention; at
+>    1 GB = 1024 MB it is 750 GB-s / 0.19 %. The choice does not matter at three orders of
+>    magnitude of headroom.) **The row still rounds to $0.00 and the ≈ $0.02 total does not
+>    move** — the input was stale, not the conclusion.
+> 2. **The alarm row counted 4; the stack now plans 7.** `module.guard[0]` adds
+>    `-invocations-burst`, `-invocations-hourly` and `-log-ingestion`. **Still under the
+>    first-10-free allowance, so still $0.00.**
+>
+> **WHAT THIS TABLE STILL DOES NOT COST, STATED AS A GAP RATHER THAN A ZERO.** It predates
+> `module "guard"` and does not have a row for the other ten resources it creates (SNS topic,
+> topic policy, responder subscription, responder Lambda + its log group, IAM role, two
+> policies, an attachment, and an AWS Budgets budget). Idle, all of them bill nothing I can
+> show: the responder is invoked only on a breach, and SNS's first million requests are free.
+> **The exception is `aws_budgets_budget.guard`: UNRESOLVED.** AWS Budgets bills per budget
+> per day beyond a free allotment, and settling it needs two facts this machine cannot supply
+> — the current AWS Budgets tariff, and how many budgets already exist in account
+> `0229…8246`. **A read-only `aws budgets describe-budgets --account-id …` against the real
+> account, plus the published Budgets price, settles it.** Nothing is applied, so no budget
+> exists to bill yet.
 
 **Round it to two cents a month.** The founder's ceiling is ~USD 5/month, and *this table*
 is two orders of magnitude under it. Removing CloudFront and the site bucket from the

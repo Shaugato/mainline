@@ -152,13 +152,25 @@ not become an outage yet.
 ## 3. The four CloudWatch alarms — what they mean, and who reads them
 
 Declared by `infra/modules/demo-api`. All four are 5-minute periods, 1 evaluation period,
-named `${function_name}-<suffix>`, and all four plan `alarm_actions = []`.
+named `${function_name}-<suffix>`. ~~and all four plan `alarm_actions = []`.~~
+**CORRECTED 2026-08-14 — that clause was false.** All four now plan
+`alarm_actions = (known after apply)`
+([`terraform-plan-furl.txt:68,98,131,164`](../../evidence/deploy/terraform-plan-furl.txt)),
+because `infra/envs/demo/main.tf:586` feeds them `local.guard_stop_topic_actions` — the cost
+guard's SNS topic. See the corrected §"If you want to be paged" below; the `[]` reading
+survived from before `module "guard"` was instantiated.
+
+**These four are not all the alarms the stack plans.** `module.guard[0]` declares three more
+(`-invocations-burst`, `-invocations-hourly`, `-log-ingestion`, at
+`terraform-plan-furl.txt:541,575,609`), so a `describe-alarms` against an applied stack
+returns **seven**, not four. This section is scoped to the four `demo-api` declares; the
+guard's three are documented in `docs/deploy/COST-BOUND.md`.
 
 | Alarm | Metric | Statistic | Threshold | Dimension | What a breach means |
 |---|---|---|---|---|---|
 | `-errors` | `Errors` | `Sum` | `> 0` | `FunctionName` | The Lambda **raised**. The handler is written never to raise — refusals are a `200` with a `REFUSED` verdict, failures are a JSON problem document — so one datapoint is a real defect, not load. |
 | `-throttles` | `Throttles` | `Sum` | `> 0` | `FunctionName` | Invocations were refused. With no per-function reservation this means the **account** ceiling of 10 was reached in `ap-southeast-1`. Do not go looking for a per-function cap to raise; there isn't one. Reaches the caller as a bodiless `429`. |
-| `-duration-p99` | `Duration` | `p99` | `> 12 000 ms` | `FunctionName` | The slow tail, approaching the 15 s timeout. On this stack that is almost always the pgwire round trip to Singapore, not the handler — `/v1/health` reports connect time separately and is the first thing to read. |
+| `-duration-p99` | `Duration` | `p99` | `> 13 500 ms` | `FunctionName` | The slow tail, approaching the 14 s timeout. On this stack that is almost always the pgwire round trip to Singapore, not the handler — `/v1/health` reports connect time separately and is the first thing to read. |
 | `-concurrency` | `ConcurrentExecutions` | `Maximum` | `> 8` | **none — account-level** | **An abuse tripwire, not a capacity signal.** A judging session is a handful of browsers making four requests each; 8 concurrent executions is not reachable by legitimate use of this demo. |
 
 Two of those cells are recent repairs, and both are the same defect wearing different hats:
@@ -178,6 +190,22 @@ Two of those cells are recent repairs, and both are the same defect wearing diff
   the region's first function and the account aggregate **is** its concurrency. **The day a
   second function lands in `ap-southeast-1` that stops being true**, and the repair is a
   `metric_query` that filters to this function — never a raised threshold.
+
+> **CORRECTED 2026-08-14 — the `-duration-p99` row said `> 12 000 ms` "approaching the 15 s
+> timeout". Both numbers were stale, and the document lost to the artefact.** The committed
+> plan reports `threshold = 13500`
+> ([`terraform-plan-furl.txt:124`](../../evidence/deploy/terraform-plan-furl.txt)) and
+> `timeout = 14` (`:315`), confirmed a second time in the plan-known `api_published_bounds`
+> object at `:864` (`duration_p99_threshold_ms = 13500`) and `:875` (`timeout_seconds = 14`).
+> **The committed plan artefact is authoritative and this prose is derived**
+> (`docs/leads/docs-and-cloud-plan.md` RULING 4); the evidence file was not touched.
+>
+> The pair is not arbitrary and the gap is the point: `:868` records
+> `modelled_worst_legitimate_duration_ms = 13022`, so the threshold sits **above** the worst
+> duration a legitimate request is modelled to take and **below** the timeout. An alarm under
+> 13,022 ms would page on success; one at or above 14,000 ms could never breach, because the
+> function is killed at the timeout first. That second failure mode is the one
+> `duration_p99`'s `lifecycle.precondition` refuses at plan time.
 
 ### What a state means — and why `INSUFFICIENT_DATA` is the honest answer
 
@@ -290,8 +318,23 @@ a finding with its own exit code rather than a short table.
 
 ### If you want to be paged: what the founder must actually click
 
-`var.alarm_actions` takes a list of ARNs. Setting it is one variable — but the reader only
+~~`var.alarm_actions` takes a list of ARNs. Setting it is one variable~~ — but the reader only
 becomes real at the end of a chain, and **every link has to be verified, not assumed**:
+
+> **CORRECTED 2026-08-14 — THERE IS NO `var.alarm_actions` FOR A FOUNDER TO SET.** This root
+> declares no such variable: `grep 'variable "alarm_actions"' infra/envs/demo/variables.tf`
+> returns nothing, and every occurrence of `var.alarm_actions` in
+> `infra/envs/demo/main.tf` is inside a **comment**. It is an input of the *module*
+> (`infra/modules/demo-api/variables.tf:1151`), and the root hard-wires it to the guard's
+> topic at `main.tf:586`. A founder who followed the struck sentence would search for a
+> variable that does not exist and conclude the documentation was for a different tree.
+>
+> **The one variable that does exist, and is the actual answer to this heading, is
+> `guard_notification_emails`** — `infra/envs/demo/variables.tf:619`, `type = list(string)`,
+> `default = []`, passed to the guard at `main.tf:649`. Setting it creates the
+> `aws_sns_topic_subscription.email` instances that are the fourteenth resource type the
+> guard declares and the one the shipping plan creates **zero** of. Steps 2–4 below are
+> exactly what that variable automates and what still has to be confirmed by hand.
 
 1. ~~**Create an SNS topic *outside this stack*.**~~ **No longer necessary, and no longer the
    recommendation.** `infra/modules/cost-guard/` now creates the topic
@@ -299,18 +342,62 @@ becomes real at the end of a chain, and **every link has to be verified, not ass
    `PutFunctionConcurrency(0)`, and all three alarms — and it **exports `sns_topic_arn`**,
    which is what `var.alarm_actions` on the demo-api module is meant to be fed.
 
-   The remaining gap is that `infra/envs/demo/main.tf` has **no `module "guard"` block**, so
-   `var.alarm_actions` is still `[]` and every alarm on the demo function is actionless. A
-   hand-made topic would page a human; the module stops the function. Instantiating it is
-   strictly better and is the open item.
+   ~~The remaining gap is that `infra/envs/demo/main.tf` has **no `module "guard"` block**, so
+   `var.alarm_actions` is still `[]` and every alarm on the demo function is actionless.~~
+   ~~Instantiating it is strictly better and is the open item.~~
 
-   **The resource count will move when it lands, and this document does not guess the new
-   number.** `Plan: 11 to add, 0 to change, 0 to destroy` is what
-   [`evidence/deploy/terraform-plan-furl.txt`](../../evidence/deploy/terraform-plan-furl.txt)
-   records **today**, and that file is the authority — the count here and in the five other
-   documents that quote it is checked against it by
+   > **CORRECTED 2026-08-14. THE STRUCK SENTENCE ASSERTED THE ABSENCE OF A BLOCK THAT IS IN
+   > THE TREE, AND IT DID SO IN THE PARAGRAPH THAT EXPLAINS THIS PAGE'S OWN RATCHET.** The
+   > block was instantiated and this page was not re-read. It is at
+   > **`infra/envs/demo/main.tf:631`** (`module "guard" {`), `source = "../../modules/cost-guard"`
+   > at `:632`, under `count = var.enable_api ? 1 : 0` at `:633`. The wiring completes:
+   > `local.guard_stop_topic_actions = try([module.guard[0].sns_topic_arn], [])` at **`:292`**
+   > is fed to the demo-api module's `alarm_actions` at **`:586`**.
+   >
+   > So `var.alarm_actions` is **not** `[]` and the four alarms are **not** actionless. What
+   > replaces "actionless" is not "armed" but *unknown at plan time*: `try()` over a counted
+   > module yields unknown, so the plan renders `alarm_actions = (known after apply)` and the
+   > `api_alarm_actions_armed` output reads `(known after apply)` at
+   > [`terraform-plan-furl.txt:846`](../../evidence/deploy/terraform-plan-furl.txt). This is
+   > recorded as not fixable at `infra/envs/demo/outputs.tf:229`.
+   >
+   > **A DIFFERENT LINK IN THIS CHAIN IS STILL UNVERIFIED, AND IT IS NOT THE INSTANTIATION.**
+   > The guard's SNS topic policy admits `cloudwatch.amazonaws.com` under an `ArnLike` on
+   > `aws:SourceArn` naming exactly the guard's **own three** alarms. None of these four
+   > `demo-api` alarms is in that list, and this root passes them the guard topic anyway.
+   > Whether they may publish rests on the policy's first statement and **only an apply plus a
+   > real breach settles it** (`infra/envs/demo/outputs.tf:187–196`). If they may not, four
+   > alarms carry an action SNS denies — which `describe-alarms` cannot distinguish from one
+   > that delivers. **UNRESOLVED**, and it stays that way until an apply happens;
+   > `evidence/deploy/cost/plan-shape.json` records both ARN sets so the question outlives
+   > this paragraph.
+
+   **The resource count moved when it landed, and this document no longer guesses it.**
+   **`Plan: 24 to add, 0 to change, 0 to destroy.`** is what
+   [`evidence/deploy/terraform-plan-furl.txt:843`](../../evidence/deploy/terraform-plan-furl.txt)
+   records **today**, and that file is the authority.
+
+   ~~Until 2026-08-14 this sentence quoted a shipping count of **11** and said that was what
+   the artefact recorded "today".~~ **It was not, and the 11 was not a typo:** it was the
+   count *before* `module "guard"` was instantiated, and it is still exactly
+   `module.api[0]`'s contribution. **`module.guard[0]` creates the other 13** — counted from
+   the artefact's own `will be created` lines, 11 + 13 = 24 — which is why arming the alarms
+   was never the one-variable change the top of this section promises. The CloudFront
+   configuration reads **35**
+   ([`terraform-plan-cloudfront.txt:1219`](../../evidence/deploy/terraform-plan-cloudfront.txt)).
+
+   *(The stale figure is described above rather than re-quoted verbatim. The ratchet scans
+   for the literal `Plan: N to add` form and cannot tell a historical citation from a live
+   one, and the one exemption it carries is deliberately keyed to an unrelated variant so
+   that a stale shipping count cannot be laundered through it. Reproducing the old string
+   here would either re-break the test or require abusing that exemption; the correction is
+   what matters and it is preserved in full.)*
+
+   The count here and in the other documents that quote it is checked against the artefact by
    `tests/deploy/test_cost_model.py::test_the_shipping_plan_count_in_the_docs_matches_the_plan_evidence`,
-   which goes red the moment the plan is regenerated and a document still says 11.
+   which went red the moment the plan was regenerated and this document still said 11 — **and
+   that is how this correction was found.** The ratchet worked; the page it was documented on
+   was the page failing it.
 2. **Subscribe an address** — `aws sns subscribe --protocol email --notification-endpoint …`.
 3. **Click the confirmation link AWS emails to that address.** This is the step that is
    actually a decision, and the one that gets skipped.
@@ -398,7 +485,11 @@ expire` is the AWS default and would quietly keep a request log forever for a de
 exists for eight days.
 
 **The handler logs no DSN, no password, and no query string that could carry one.**
-`scripts/deploy/cloud_chain.redact` is the single chokepoint for anything that could, and
+`redact()` in `scripts/deploy/cloud_chain.py` (defined at `:219`) is the single chokepoint
+for anything that could — written here as a path plus a function because
+`scripts/deploy/cloud_chain.redact` is neither a file nor an importable dotted name; the
+module path is `scripts.deploy.cloud_chain.redact`, as `scripts/deploy/__init__.py:20`
+writes it — and
 `scripts/deploy/__init__.py` states the rule for the whole package.
 `scripts/deploy/local_furl.py` prints the DSN through `redact_dsn()` for the same reason, and
 it is the one line of that banner most likely to be on a screen share.

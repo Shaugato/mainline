@@ -323,6 +323,72 @@ INSERT INTO mainline.blocking_check (
 ON CONFLICT DO NOTHING;
 
 -- ──────────────────────────────────────────────────────────────────────────────────────────────
+-- 3b · THE DEFEATER VOCABULARY — the alternatives the signer declined
+--
+-- WITHOUT THESE ROWS A JUDGE CANNOT SIGN, AND THAT IS THE WHOLE POINT OF THE TABLE. The obligation
+-- above is open; `mainline_demo_api.defeaters.resolve_defeater_vocabulary` READS the digest a
+-- disposition pins and refuses when the check offers nothing, because there is no constant to fall
+-- back to. Until 2026-08-14 both signing paths bound `_sha("defeater-vocab")` — the same 32 bytes
+-- for every check in every generation — so the demo's one signature pinned a constant and the
+-- deployed Cloud row records that constant to this day. A signature that pins a constant pins
+-- nothing, which is exactly the "click-through with a signature on it" 0064's rationale exists to
+-- forbid.
+--
+-- WHY THREE OPTIONS, AND WHY THESE THREE. 0064 generates the vocabulary PER CHECK precisely so
+-- that a universal escape hatch would have to be authored for THIS mechanism at THIS severity —
+-- at which point it is an authored, hashed defeater rather than a default. The clause this permit
+-- relies on reads *"Before any intrusive work, stored energy shall be isolated, locked and verified
+-- at zero by a competent person"* (anchors LOTO, ZERO_ENERGY; severity 4; blood_major). There are
+-- exactly three ways that obligation can legitimately not bind, and each corresponds to one clause
+-- of the sentence: the mechanism IS in place, the work is not intrusive, or there is no stored
+-- energy to isolate. Nothing here means "not applicable" — there is no such row, in this product,
+-- for any check.
+--
+-- `prompt` IS THE QUESTION, NOT A LABEL, per 0064. Each one below demands a specific answer — an
+-- isolation point, a task and a method statement, a surveyed source — so a defeater chosen wrongly
+-- is visible to a reviewer reading the disposition. "N/A" cannot be answered wrongly at all, which
+-- is what makes it worthless.
+--
+-- `MECHANISM_PRESENT_AND_VERIFIED` is not authored here; it is RECOVERED. It is the code the
+-- runtime, `scripts/proof/gate_refusal.py` and the captured Cloud exhibit
+-- `beat-4-merge-admitted-00000.txt` (outcome ADMITTED) all already name, so the vocabulary must
+-- offer it or beat 4 would sign a code that was never on the screen.
+--
+-- THE DIGEST IS COMPUTED FROM THE SET, NOT WRITTEN DOWN. `vocab_sha256` digests the whole option
+-- set so a signature pins the ALTERNATIVES declined as well as the choice made — "the only other
+-- option was 'accept'" being the interesting fact. So it is derived below by aggregating the rows
+-- themselves under a deterministic ORDER BY, with chr(31)/chr(30) separators that cannot occur in
+-- a code or a prompt. Writing a literal digest here would reintroduce the defect one layer up: it
+-- would be a constant that merely looks like a hash, and adding a fourth option would leave it
+-- silently describing a set that no longer exists.
+-- ──────────────────────────────────────────────────────────────────────────────────────────────
+
+WITH options (defeater_code, prompt) AS (
+  VALUES
+    ('ENERGY_SOURCE_ABSENT',
+     'Which stored-energy source was surveyed and found absent within this permit''s boundary, and by whom?'),
+    ('MECHANISM_PRESENT_AND_VERIFIED',
+     'Which isolation point was locked, and who verified it at zero?'),
+    ('WORK_NOT_INTRUSIVE',
+     'Which task in this permit''s scope was assessed as non-intrusive, and against which method statement?')
+),
+vocab AS (
+  SELECT digest(
+           string_agg(defeater_code || chr(31) || prompt, chr(30) ORDER BY defeater_code),
+           'sha256'
+         ) AS sha
+    FROM options
+)
+INSERT INTO mainline.defeater_option (check_id, defeater_code, prompt, vocab_sha256)
+SELECT
+  'dec0de00-0007-4000-8000-000000000001',
+  o.defeater_code,
+  o.prompt,
+  v.sha
+  FROM options AS o CROSS JOIN vocab AS v
+ON CONFLICT DO NOTHING;
+
+-- ──────────────────────────────────────────────────────────────────────────────────────────────
 -- 4 · THE EXPOSURE RECEIPT — what was actually put in front of a human
 --
 -- A disposition takes a composite foreign key onto the exact rows the same serializable

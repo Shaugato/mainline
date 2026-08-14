@@ -203,6 +203,26 @@ class Case:
 
 # ── The cases ───────────────────────────────────────────────────────────────────────
 
+# NO TRANSACTION IN THIS FILE IS RETRIED, AND THE REASON IS THAT THERE IS NOT ONE.
+#
+# A sweep for `.commit()` finds exactly one occurrence, at the end of `_W4_PLANTED` below.
+# It is not a transaction this program opens: it is a LITERAL inside the planted defect this
+# harness splices into `transitions.py` to prove W4's snapshot test can fail. Its whole
+# purpose is to commit a row a refusal should never have written, so wrapping it in a retry
+# — or touching it at all — would edit the plant rather than the program, and a negative
+# control that has been adjusted to behave better is not a control. The two bytes of it that
+# matter are `conn.commit()`; they stay exactly as they are.
+#
+# What this file DOES do against a database is two single statements, each on its own
+# `autocommit=True` connection: `DROP DATABASE IF EXISTS … CASCADE` in
+# `_drop_fixture_database` and one `DELETE … WHERE external_ref LIKE 'FALSIFY-%'` in
+# `_cleanup_planted_rows`. Each is an implicit transaction, which CockroachDB restarts
+# server-side, so there is no multi-statement unit for a client retry to be OF.
+#
+# The scratch-database rename in `test_gate_run.py` (a content fingerprint replacing a fixed
+# default) does not reach this harness: line ~499 sets `MAINLINE_W4_DATABASE` to
+# `SCRATCH_DB` for every child run, and `_cleanup_planted_rows` reads the same override with
+# the same fallback, so both ends still name one database and it is a private one.
 _W4_WRITE: Final = """    if _demo_subject_is_established(conn, scenario):
         return None
 

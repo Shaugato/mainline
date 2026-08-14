@@ -81,10 +81,21 @@ this build only compiles the path at which the console will look for it.
 ## 2. What comes out — measured, 2026-08-10
 
 ```
+dist/ (this build's output, pre-packaging — NOT what the origin serves)
 dist bytes: 3 380 488  (3.2 MB)      49 files
   sourcemaps: 2 580 278  (2.5 MB)    18 files
   everything else: 800 210 (781 KB)  31 files
 ```
+
+> **WHICH TREE THIS IS, AND WHY IT MATTERS (added 2026-08-14).** Every figure in this block
+> describes **`dist/`, the tree this build emits**, measured 2026-08-10. It is an input to
+> the Lambda packer, **not** the tree a browser reaches. The packer strips source maps by
+> default, so the **deployed** `web/**` tree carries **114 entries, 1,274,342 B and 0 source
+> maps** (`evidence/deploy/cost/package-shape.json` → `architectures[arm64].after.web`).
+> Its pre-strip `before.web` counterpart is 75 entries / 3,571,990 B — also not this block,
+> because `web/**` in the package is a superset of `dist/`. **A byte figure that does not
+> name its tree is wrong whichever tree it came from**
+> (`docs/leads/docs-and-cloud-plan.md` RULING 2), so: this one is `dist/`.
 
 | Chunk | Purpose |
 |---|---|
@@ -119,7 +130,28 @@ a lazily-loaded verifier is one more thing that can fail to load between the byt
 seal, and on the Phase-1 demo the verifier *is* the product. The number is recorded here
 so the next person to look at the budget knows what moved and why.
 
-### Sourcemaps ship. Here is the argument.
+### ~~Sourcemaps ship. Here is the argument.~~ Sourcemaps are BUILT here and do NOT ship.
+
+> **CORRECTED 2026-08-14. THE HEADING WAS FALSE ABOUT THE DEPLOYED ARTEFACT.** This build
+> still sets `sourcemap: true` and still emits the 18 maps counted in §2 — that part is
+> unchanged and the argument below is preserved because it is why they are still *built*.
+> **What is false is "ship".** `--strip-source-maps` is now the **default** in both Lambda
+> builders, so the packaged tree carries **0** source maps, gated on every build by
+> `bundle_manifest.py --forbid-source-maps`
+> (`docs/deploy/lambda-bundle.md` §4.4; `evidence/deploy/cost/package-shape.json` →
+> `architectures[].after.web`). A judge who opens devtools against the **deployed origin**
+> gets no maps; a judge who runs this build locally does.
+>
+> The reason the decision flipped is recorded verbatim in the evidence artefact's
+> `what_changed.one`: the keep-the-maps argument *"was sound while the package was something
+> an operator downloaded and is not sound for a tree served from a Function URL with
+> `authorization_type = NONE`"* — which the plan confirms is the shipping shape
+> (`evidence/deploy/terraform-plan-furl.txt:351`). Point 2 below priced the maps in **S3**;
+> the shipping origin is a **Lambda Function URL**, where the bytes are egress from the
+> function, not S3 storage. **`vite.config.ts` belongs to the UI domain and was not touched
+> by this correction** — only the claim about what reaches a browser.
+
+The four points below are the original argument for building them, retained unedited:
 
 `vite.config.ts` sets `sourcemap: true` and this build keeps it, deliberately.
 
@@ -273,4 +305,8 @@ fail.
 * **No Playwright spec covers the composition root.** `tests/browser/gate.spec.ts` and its
   siblings belong to the cinema-conformance-harness worker. The browser evidence in §4 is
   a measured session, not a spec that will re-run in CI.
-* **Sourcemaps are shipped** (§2). Stated here because it is a decision, not an oversight.
+* ~~**Sourcemaps are shipped** (§2). Stated here because it is a decision, not an oversight.~~
+  **CORRECTED 2026-08-14: they are BUILT here and do NOT ship.** `--strip-source-maps` is
+  the default in both Lambda builders and the deployed tree carries **0** maps, refused on
+  every build by `bundle_manifest.py --forbid-source-maps`. Still a decision rather than an
+  oversight — just the opposite decision from the one this line recorded. See §2.

@@ -21,8 +21,21 @@ was run to produce it, and no mutating AWS call was made.
 > be checked against.
 >
 > **Where a §1–§9 sentence has since become false, it is struck through or annotated in
-> place, never removed** (§3.2, §3.3, §3.6, §5, §5.1, §6, §9). A claim deleted is not a claim
-> corrected, and the corrections are only checkable against the claims they correct.
+> place, never removed** (**§1**, §3.2, §3.3, §3.6, **§3.7**, §5, §5.1, §6, §9). A claim
+> deleted is not a claim corrected, and the corrections are only checkable against the claims
+> they correct. *(§1 and §3.7 were added to this list on 2026-08-14. §1 was annotated in the
+> same wave; its omission here is exactly why §1 read as current when it is historical, and an
+> enumeration that does not enumerate is the same defect one level up.)*
+>
+> **Every byte figure in this document names its tree, and there are two.** The packer's
+> **input** tree — 75 entries, 3,571,990 B, 18 source maps — is the pre-strip baseline §2.2's
+> $33,251.87 reproduces from. The **deployed** package — 114 entries, 1,274,342 B, **0** source
+> maps — is what the origin can actually emit, and it is therefore the authoritative side of
+> every cost and ceiling claim, because cost is bytes leaving the deployed origin
+> (`docs/decisions/response-ceiling-authoritative-tree.md` §1). Both trees are recorded in
+> [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json)
+> as `architectures[].before` and `architectures[].after`. **A figure that does not name its
+> tree is wrong, whichever tree it came from.**
 >
 > **§0.1 is the one table.** Every figure in it is a lookup into
 > `evidence/deploy/cost/cost-model.json`, named cell by cell in that table's last column. If
@@ -100,7 +113,7 @@ looks like an answer and is missing its denominator.
 | L1 | **the same flood at the measured 14.106 ms** — **30 d** | $33,251.87 | **$229,804.98** | **×6.91 ↑** | **1.102** | nothing. *No lever was applied here.* The only edit is that the duration is now a measurement — this is the honest **"before"** | `…layers` `L1-measured-duration` |
 | L2 | strip source maps — already shipped, default in both builders — **30 d** | $229,804.98 | **$160,667.84** | ÷1.43 | 0.766 | bytes/request, **÷3.59**. **Not** the request rate, which **rose ×2.49** and gave most of it back | `…layers` `L2-strip-source-maps` |
 | L3 | serve the `.gz` sibling on the wire — **30 d** | $160,667.84 | **$47,363.92** | ÷3.39 | 0.219 | bytes on the wire, and duration does **not** fall with it. **Not** the request rate | `…layers` `L3-gzip-on-the-wire` |
-| L4 | `memory_size` 512 → 256 MB — **30 d** | $47,363.92 | **$47,277.52** | ÷1.002 | 0.219 | compute only — **$86.40**, 0.2 %. **Not** the other 99.8 % | `…layers` `L4-memory-512-to-256` |
+| L4 | `memory_size` 512 → 256 MB — **SHIPPED, not proposed** — **30 d** | $47,363.92 | **$47,277.52** | ÷1.002 | 0.219 | compute only — **$86.40**, 0.2 %. **Not** the other 99.8 %. **The plan already ships `memory_size = 256`** (`evidence/deploy/terraform-plan-furl.txt:290`), so this row prices a lever that is *taken*, not one on offer | `…layers` `L4-memory-512-to-256` |
 | L5 | the in-code rate bound (100 rps fleet-wide) — **30 d** | $47,277.52 | **$4,172.63** | ÷11.33 | 0.013 | egress from a paced caller. **Not the invocation charge** — a 429 is a billed invocation, and $1,002 of what remains is requests + compute | `…layers` `L5-rate-bound` |
 | L6 | **THE STOP** — **one 5 min window** | $47,277.52 | **$8.01** | **÷5,902** | 0.219 | everything, from the moment it lands. **Not** the interval before it lands — which is rows R4–R6 | `the_stop.rows` `stop-5min` |
 | L6′ | the stop — **one 1 h window** | $47,277.52 | **$96.13** | ÷492 | 0.219 | as above, an hour of not looking | `the_stop.rows` `stop-1h` |
@@ -110,13 +123,30 @@ looks like an answer and is missing its denominator.
 | R3′ | *counterfactual:* R1 if the ceiling were raised above 433,396 B — **24 h** | — | $18.80 | ×3.5 ↑ | — | published because the ceiling is a code constant one commit from moving | `residual.rows` `residual-identity-24h`, = `residual.worst_if_the_ceiling_were_lifted_usd` |
 | R3″ | same counterfactual — **8 h** | — | $6.27 | ×3.5 ↑ | — | the near edge of the same counterfactual | `residual.rows` `residual-identity-8h` |
 | R4 | **residual — in-window, at flood rate (1,767 rps)** — **per 60 s of detection lag** | — | **$1.60** | — | 0.219 | **a floor.** It counts the burst alarm's own evaluation window (`period 60 × evaluation_periods 1`) and **nothing after it** | `…in_window.published_figures` `floor` |
-| R5 | same — **per 75 s**, the only two terms with a read-only upper bound | — | $2.00 | — | 0.219 | the alarm window **plus** the responder's configured 15 s timeout. **Still not the answer** — five delivery-path terms are unbounded and additive | `…published_figures` `bounded-terms-only` |
+| R5 | same — **per 75 s**, the only two terms with a read-only upper bound | — | $2.00 | — | 0.219 | the alarm window **plus** the **guard responder's** configured 15 s timeout — `infra/modules/cost-guard/variables.tf :: responder_timeout`, **a different function from demo-api, whose timeout is 14 s**. **Still not the answer** — five delivery-path terms are unbounded and additive | `…published_figures` `bounded-terms-only` |
 | R6 | same, as a rate — **USD per minute of detection lag** | — | **$1.6022 / min** | — | 0.219 | linear: a window this short never leaves egress tier 1, so any lag budget prices by multiplying | `…in_window.usd_per_minute_of_detection_lag` |
 | **T** | **THE TRADE — what the stop costs that is not measured in dollars** | — | **not a dollar figure** | — | — | **THE GUARD CONVERTS A COST ATTACK INTO AN AVAILABILITY ATTACK.** The URL is `authorization_type = NONE` by the founder's explicit choice, so **anyone at all** can trip the burst alarm, and the responder's stop is **not aimed at attackers** — it stops **the demo, for everyone**, at reserved concurrency 0, until a human runs `scripts/deploy/kill_switch.{sh,ps1} --restore`. **An outage is recoverable by one command and an unbounded bill is not — and it is still a trade.** | `residual.the_trade_this_makes` |
 
 `…layers` is `conventions["audit-decimal"].layers[]`, matched on `label`; `…in_window` is
 `residual.in_window`. **Every figure above is a lookup, not a retyping** — if a cell and the
 JSON disagree, the JSON is authoritative and the cell is the defect.
+
+> **RE-VERIFIED 2026-08-14, cell by cell, against the committed
+> [`cost-model.json`](../../evidence/deploy/cost/cost-model.json).** Every dollar figure,
+> every `÷`/`×` factor and every `GB/s` value above resolves to the lookup named in its own
+> last column, and **no cell disagreed with the JSON**, so nothing here was moved in either
+> direction. Also confirmed: **every ladder row L0–L5 carries both a before and an after**
+> (L0's before is `—` because it *is* the baseline, which its own row says); **every row
+> names its window** — L0–L5 `30 d`, L6 `5 min`, L6′ `1 h`, R1/R3′ `24 h`, R2/R3″ `8 h`, R3
+> `30 d`, R4 `60 s`, R5 `75 s`, R6 `per minute`; and the residual rows carry `—` in the
+> *before* column because they are residuals of the after state, not levers with a before.
+> The supporting prose reproduces too: 1,766.784 rps → "1,767", 708.918 → "708", 1.698 s →
+> "1.70 s", `$1,993.99`, `$0.000151`, `$1.3847/min` at **13.57 %** understatement,
+> `$5.5364/min` lifted-ceiling, and the whole sensitivity ladder **1.60 / 3.20 / 4.81 / 8.01
+> / 16.02 / 24.03**. One wording note, recorded rather than silently normalised: row **T**
+> opens *"THE GUARD CONVERTS…"* where the JSON's `the_trade_this_makes` opens *"THIS
+> CONVERTS…"*. The claim is the same and the JSON is the authority; the row names the
+> mechanism rather than saying "this", and no figure depends on it.
 
 **Row T is a row and not a footnote, deliberately.** It was a blockquote under this table
 until 2026-08-14, which is a footnote wearing a heading. A trade the founder accepted on the
@@ -129,7 +159,9 @@ reader who scans the table and stops has been told the good half.
    and the bill **1.43×**. A smaller object is faster to serve, so the request rate rose
    **2.49×** and ate two thirds of the saving. Every byte lever on a concurrency-bound
    origin behaves this way. L4 is worth taking *because it is duration-independent*, not
-   because it is large.
+   because it is large — **and it has been taken**: the shipping plan reads
+   `memory_size = 256` (`evidence/deploy/terraform-plan-furl.txt:290`), so L4 is a record of
+   a decision, not an offer.
 2. **Every byte lever multiplied together still leaves five figures.** $229,805 → $47,278.
 3. **The stop is the whole answer**, and it is the only lever whose effect is not eroded by
    the rate rising to meet it.
@@ -177,7 +209,9 @@ effect?**
   the identical shape of error as the $33,251.87 headline, which multiplied a real tariff by
   an invocation duration nobody had measured. Of the seven terms in
   `residual.in_window.lag_budget`, **two carry a read-only bound** (the 60 s alarm window,
-  read from HCL; the responder's 15 s configured timeout, read from HCL — and that one bounds
+  read from HCL; the **guard responder's** 15 s configured timeout, read from HCL
+  (`infra/modules/cost-guard/variables.tf :: responder_timeout` — **not** demo-api's, which is
+  14 s) — and that one bounds
   *one attempt* of its invoke phase, not the path) and **five are named as unknowns rather
   than guessed**: metric publication delay, alarm evaluation delay, SNS delivery to the
   responder, the responder's async retry if it is itself throttled, and reserved-concurrency
@@ -292,27 +326,75 @@ applied**, so this is written as an open question and not as a result.
 
 ## 1 · The measured inputs
 
-Every row is a command I ran today, not a figure inherited from a board or an audit.
+> **ANNOTATED 2026-08-14 — I4, I6 AND I7 DESCRIBE THE PACKER'S *INPUT* TREE, AND THEY SAID
+> OTHERWISE.** All three were sourced to *"`zipfile` over
+> `out/lambda/mainline-demo-api-arm64.zip`"* — the **deployed** zip — and written in the
+> present tense (*"Largest response the origin **can emit**"*). That zip has held **zero
+> source maps** since the strip became the build default (§3.2). This is the worst way for a
+> claim to be false: it names an artefact a reader can open in thirty seconds and be told the
+> opposite.
+>
+> **The digits are correct and are not retyped.** They are true measurements of the
+> **pre-strip input tree**, recorded as such in
+> [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json)
+> under `architectures[].before`, and they are **load-bearing**. `1,554,168 B` is the input
+> §2.2's **$33,251.87** is re-derived from, which
+> `tests/deploy/test_cost_model.py::test_the_model_reproduces_every_published_headline` fails
+> the build over; it is also the byte count §0.1 row **L1**'s **×6.91** correction — the
+> largest honesty finding in this document — is built on. Retyping them would break the
+> reproduction this document's own header promises and erase that finding. **What was false is
+> the tense and the sourcing.** Those are corrected in place, and the deployed-tree figure is
+> printed beside each row.
+>
+> | | files | bytes | source maps | `.gz` siblings | largest object |
+> |---|---:|---:|---:|---:|---:|
+> | `architectures[].before` — the packer's **input** tree, pre-strip | 75 | 3,571,990 | 18 / 2,586,960 B | 0 | **1,554,168 B** `index-BjAGxrVJ.js.map` |
+> | `architectures[].after` — the **deployed** package, today | 114 | 1,274,342 | **0 / 0 B** | 57 / 289,312 B | 433,396 B identity / **124,127 B** gz |
+>
+> **Both columns are true, of different trees**, and neither may be quoted without naming
+> which. Cost is bytes leaving the deployed origin, so every ceiling and cost claim is the
+> **after** column (`docs/decisions/response-ceiling-authoritative-tree.md` §1); the
+> **before** column is the pre-strip baseline the reproduction runs from and nothing else.
+> The `x86_64` architecture carries byte-identical `web/` figures in the same artefact.
+
+Every row is a command I ran today, not a figure inherited from a board or an audit. **Rows
+I4–I7 are dated 2026-08-13 and are annotated above: they measure the input tree, not the
+package that ships.**
 
 | # | Input | Measured value | How |
 |---|---|---|---|
 | I1 | Account concurrency ceiling, `ap-southeast-1` | **10** (`ConcurrentExecutions`, `UnreservedConcurrentExecutions`) | `aws lambda get-account-settings --region ap-southeast-1` |
 | I2 | Same, `ap-southeast-2` | **10**, `FunctionCount 1` (an unrelated live project — do not touch) | `aws lambda get-account-settings --region ap-southeast-2` |
 | I3 | The quota behind I1 | `L-B99A9384` "Concurrent executions" = **10.0**, **`Adjustable: true`** | `aws service-quotas get-service-quota --service-code lambda --quota-code L-B99A9384` |
-| I4 | Largest response the origin can emit | **1,554,168 B** — `web/assets/index-BjAGxrVJ.js.map` | `zipfile` over `out/lambda/mainline-demo-api-arm64.zip` |
-| I5 | Largest **non-map** asset | **433,396 B** — `web/assets/index-BjAGxrVJ.js` | same |
-| I6 | Whole served tree | **3,571,990 B** over **75** files under `web/` | same |
-| I7 | …of which source maps | **2,586,960 B** over **18** files = **72.4235 %** | same |
-| I8 | Function URL auth | `NONE` | `evidence/deploy/terraform-plan-furl.txt:329` |
-| I9 | Function shape | `mainline-demo-api`, arm64, `memory_size = 512`, `timeout = 15`, `reserved_concurrent_executions = 20` | `evidence/deploy/terraform-plan-furl.txt:264-301` |
+| I4 | ~~Largest response the origin can emit~~ **Largest object in the packer's INPUT tree** (pre-strip) | **1,554,168 B** — `web/assets/index-BjAGxrVJ.js.map`. **Deployed tree today: 433,396 B** identity (`index-BjAGxrVJ.js`) and **124,127 B** on the wire as its `.gz` sibling; **the map is not in the package at all** | ~~`zipfile` over `out/lambda/mainline-demo-api-arm64.zip`~~ → `evidence/deploy/cost/package-shape.json` `architectures[].before.web.largest_identity_object`; deployed figure from `architectures[].after.web` |
+| I5 | Largest **non-map** asset — **the same object in both trees** | **433,396 B** — `web/assets/index-BjAGxrVJ.js`. A browser receives the **124,127 B** `.gz` sibling; the **139,264 B** ceiling refuses the identity form (§3.3) | `architectures[].before.web` (largest non-map) and `architectures[].after.web.largest_identity_object` — **both 433,396** |
+| I6 | ~~Whole served tree~~ **Whole `web/` tree in the packer's INPUT tree** | **3,571,990 B** over **75** files. **Deployed tree today: 1,274,342 B over 114 entries** — 57 identity / 985,030 B plus 57 `.gz` siblings / 289,312 B | ~~same~~ → `architectures[].before.web`; deployed figure from `architectures[].after.web` |
+| I7 | …of which source maps — **in the INPUT tree** | **2,586,960 B** over **18** files = **72.4235 %**. **Deployed tree today: 0 B over 0 files** — stripping is the default in both builders (§3.2) | ~~same~~ → `architectures[].before.web.source_maps`; deployed figure from `architectures[].after.web.source_maps`, which reads `0 / 0` |
+| I8 | Function URL auth | `NONE` | `evidence/deploy/terraform-plan-furl.txt:`~~329~~ **351** *(the `aws_lambda_function_url.this` block opens at 349)* |
+| I9 | Function shape | `mainline-demo-api`, arm64, `memory_size = `~~512~~ **256**, `timeout = `~~15~~ **14**, `reserved_concurrent_executions = `~~20~~ **-1** | `evidence/deploy/terraform-plan-furl.txt:`~~264-301~~ **276-348** — the `aws_lambda_function.this` block; `memory_size` at **:290**, `reserved_concurrent_executions` at **:296**, `timeout` at **:315** |
+
+**I8 and I9 moved because the artefact is authoritative and this prose is derived.** The
+values struck through above were the pre-plan shape; `evidence/deploy/terraform-plan-furl.txt`
+is the committed plan artefact and it is the side that decides. The old line citation in I8
+(`:329`) was never re-checked after the plan was regenerated, which is the kind of rot that is
+invisible until a reviewer follows the citation, lands on an unrelated line, and stops trusting
+the rest of the page.
 
 Two facts from I4–I7 that decide most of this document:
 
 * `web/` is the **only** servable tree in the package (the other top-level entries are
   `mainline_demo_api/`, `psycopg/`, `psycopg_binary/` and their dist-infos — code, not
-  routes). So the flood target is fully enumerated above.
-* **Exactly one file in the entire package is ≥ 512 KiB, and it is a source map.** Every
-  non-map asset is ≤ 433,396 B. That single fact is what makes L3 cost-free (§3.3).
+  routes). So the flood target is fully enumerated above. *(True of both trees. The deployed
+  one holds 114 entries rather than 75 because every compressible entry gained a `.gz`
+  sibling and every source map was dropped.)*
+* ~~**Exactly one file in the entire package is ≥ 512 KiB, and it is a source map.**~~
+  **True of the INPUT tree only.** Every non-map asset was, and still is, ≤ 433,396 B.
+  ~~That single fact is what makes L3 cost-free (§3.3).~~ **It is also what made the 512 KiB
+  form of L3 worthless**: in the deployed package **nothing is ≥ 512 KiB at all**, so that
+  line would have refused *zero* of 114 entries once the strip landed. The ceiling in force is
+  **139,264 B**, derived from the deployed tree rather than chosen, and it refuses even the
+  433,396 B identity bundle. A ceiling above everything it governs is a decoration, not a
+  control — the correction is recorded in §3.3 and the reasoning it replaces is kept there.
 
 ### 1.1 · The tariff, read from the Pricing API rather than from memory
 
@@ -462,7 +544,7 @@ All deltas are against that.
 | **L4** | Per-IP throttle in the handler | ≈ **$230** vs one source | egress from one source (~7,000×) | a distributed flood; the invocation charge | none | 0 |
 | **L5** | Shared-secret gate | ≈ **$230** | egress from every caller who has not read the submission | a determined attacker | one longer URL | 0 |
 | **L6** | Budgets → SNS → responder → `PutFunctionConcurrency(0)` | ≈ **$1,100 already spent** | nothing in the first day | the first 8–24 h, which is where the money is | none | 0, +3 resources |
-| **L7** | Timeout 15→5 s, memory 512→256 MB | $33,165 | **0.28 %** of the bill | 99.7 % of it | worse cold starts | 0 |
+| **L7** | Timeout 15→5 s, memory 512→256 MB *(the shipping shape is **14 s / 256 MB** — §3.7)* | $33,165 | **0.28 %** of the bill | 99.7 % of it | worse cold starts | 0 |
 | **L8** | `authorization_type = AWS_IAM` | **≈ $0** | everything — rejection is pre-invocation | nothing | **total: 403 to the judges** | 0 |
 | **L9** | `PutFunctionConcurrency(0)` kill switch | **$0** from the moment it runs | everything, instantly | the time before somebody looks | none | 0 |
 
@@ -609,6 +691,21 @@ presented on the same line as one.
 
 ### 3.7 · L7 — reducing memory and timeout is **not** a cost control
 
+> **THE SHIPPING NUMBERS ARE 14 s AND 256 MB, NOT 15 s AND 512 MB.** The committed plan
+> artefact reads `timeout = 14` (`evidence/deploy/terraform-plan-furl.txt:315`),
+> `memory_size = 256` (`:290`) and `reserved_concurrent_executions = -1` (`:296`). The
+> "15 s" and "512 MB" below are the **pre-plan** shape this section argued against; they are
+> kept because an argument is only checkable against the thing it argued about.
+>
+> **The reasoning is unchanged, and it is the reason the number is 14 s rather than 3 s.**
+> `timeout` is a **reliability** bound, not a spend bound — Lambda bills actual duration, so
+> the timeout is not in the cost arithmetic at any value. What moved is only the value, and it
+> was chosen from measurement: the founder's requested 3 s is **0.80×** the corrected warm
+> in-region gate-run p99 of ≈ 3,729 ms (`docs/deploy/LATENCY.md` §0, §3), so a 3 s timeout
+> would **truncate the headline beat** — a far worse defect than a larger bill. Read every
+> *"keep the 15 s timeout"* in this document as **keep the 14 s timeout**, for the same reason
+> the sentence gave in the first place.
+
 Say this plainly, because it is the most commonly mis-sold lever in the menu:
 
 ```
@@ -628,7 +725,9 @@ Selling L7 as a cost bound would be the same defect this module's own
 One nuance, so this is not overstated: *after* L4/L5 land, compute is 77 % of the remaining
 $230, and L7 would then matter proportionally. But by then the absolute number is two
 hundred dollars, and L7 was never what got it there. **Reject L7 as a cost control. Keep the
-15 s timeout for the pgwire round trip it exists for.**
+~~15 s~~ 14 s timeout for the pgwire round trip it exists for** — 14 s is what the plan ships
+(`evidence/deploy/terraform-plan-furl.txt:315`), and it is kept for a **reliability** reason,
+not a spend one.
 
 ### 3.8 · L8 — `AWS_IAM` bounds everything, and breaks the submission
 
@@ -779,7 +878,12 @@ Worth taking on those terms and no others.
 ### Reject
 
 * **L8** — bounds everything and 403s the judges; CloudFront, the only fix, is refused here.
-* **L7 as a cost control** — 0.28 % of the bill. Keep the 15 s timeout for its real reason.
+* **L7 as a cost control** — 0.28 % of the bill. Keep the ~~15 s~~ **14 s** timeout for its
+  real reason: it is a **reliability** bound on one hung invocation, and at 3 s it would
+  truncate the headline gate-run beat at 0.80× its measured p99 (§3.7).
+  *(`memory_size` 512 → 256 MB is a separate matter and is **already shipped** —
+  `evidence/deploy/terraform-plan-furl.txt:290`, §0.1 row L4. Rejecting L7 rejects the
+  **claim that it is a cost control**, not the change.)*
 
 ### Residual after Layers 1–3
 

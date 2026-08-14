@@ -26,6 +26,30 @@ gate against the real seeded history, concurrently, and the database is exactly 
 This script exercises that property on every run and reads ``open_blocking`` back afterwards to
 confirm nothing moved. If the rollback ever stops working, this is where it is found out.
 
+EVERY TRANSACTION THIS SCRIPT OPENS AGAINST THE CLOUD, AND WHAT GUARDS IT
+-------------------------------------------------------------------------
+This is the script that writes to the DEPLOYED database, so each of its transactions is
+stated here rather than left to be inferred. ``40001 RETRY_SERIALIZABLE`` is what a
+multi-node cluster answers a loser, and it is not a Cloud-only phenomenon: it is
+reproducible against a single node — six of six deliberate two-connection races —
+``docs/diagnosis/retry-negative-control.md``.
+
+* **The two seed FILES** — ``apply_seeds`` — go through ``cloud_chain.Applier``, which has
+  retried ``40001`` since it was written and is proved to by ``--inject-40001``. Nothing
+  changed there and nothing needed to; it is named here because it is the transaction a
+  reader worries about first, and a half-applied seed in front of a judge is what it
+  prevents.
+* **The merge probe** — ``verify_refusable`` — is the one that was unguarded, and it is now
+  ONE whole transaction under :func:`trappoint_testkit.txn.run_txn`, whose loop is
+  ``trappoint_core.retry.run_gate``. It retries ``40001`` and only ``40001``; it attempts the
+  ``23514`` this probe exists to obtain exactly ONCE, ever; and an exhausted budget is
+  reported as ``UNDECIDED`` rather than as a refusal, because the database did not decide.
+* **The two censuses** — ``census`` and ``observe`` — and the after-rollback read are NOT
+  retried, and the reason is measurable rather than a judgement: they run on
+  ``cloud_chain.Applier.conn``, which is opened ``autocommit=True``, so every statement is
+  its own implicit transaction and CockroachDB restarts an implicit transaction server-side.
+  Their ``conn.commit()`` calls are no-ops and are marked as such where they sit.
+
 WHAT "IDEMPOTENT" MEANS HERE
 ----------------------------
 Both seed files use fixed UUIDs, fixed timestamps, deterministic ``digest(...)`` values and
@@ -74,6 +98,8 @@ from psycopg.types.json import Jsonb
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from trappoint_testkit.txn import from_dsn, run_txn
+
 from scripts.deploy.cloud_chain import _JITTER as JITTER
 from scripts.deploy.cloud_chain import (
     DEFAULT_DATABASE,
@@ -88,6 +114,12 @@ from scripts.deploy.cloud_chain import (
     rewrite_dsn,
     row_of,
     sqlstate_of,
+)
+from trappoint_core.errors import (
+    AuthorisationDenied,
+    GateRefused,
+    RetryBudgetExhausted,
+    UnmodelledRefusal,
 )
 
 EXIT_OK = 0
@@ -154,6 +186,15 @@ def constraint_of(exc: psycopg.Error) -> tuple[str, str]:
     EMPTY for ``P0001``, where the raising body wrote the name into the message instead. The two
     are recorded differently — ``reported`` versus ``parsed`` — because a parsed exhibit is a
     weaker diagnosis and ``mainline.refusal_ledger``'s own CHECK insists the difference be stated.
+
+    NO LONGER CALLED FROM THIS FILE, and that is recorded rather than left to be noticed.
+    :func:`verify_refusable` now gets the same distinction from the specified taxonomy —
+    ``trappoint_core.errors.diagnose`` sets ``GateRefused.weakened``, which is this
+    function's ``"parsed"`` under another name — because the refusal has to travel out of a
+    retry loop that classifies it, and two classifiers would be two things to keep correct.
+    It survives as this file's spelling for a caller holding a raw ``psycopg.Error`` (the
+    ``--check`` path may grow one), and it must not acquire a second, divergent opinion: if
+    the two ever disagree, ``spec/errors.md`` §3.1 is the arbiter and this one loses.
     """
     diag = getattr(exc, "diag", None)
     reported = (diag.constraint_name if diag is not None else None) or ""
@@ -289,51 +330,97 @@ def observe(conn: psycopg.Connection[Any]) -> dict[str, Any]:
         (PERMIT_ID,),
     ).fetchone()
     out["re_derived_open_obligations"] = int(derived[0]) if derived else 0
+    # NOT A TRANSACTION, AND THEREFORE NOT A RETRY SITE — stated rather than left to a
+    # reader to work out. `conn` is `cloud_chain.Applier.conn`, opened `autocommit=True`
+    # (cloud_chain.py:371), so each SELECT above is its own IMPLICIT transaction and
+    # CockroachDB restarts an implicit transaction SERVER-side; there is no multi-statement
+    # unit here for a client retry to be OF. This `commit()` is consequently a no-op — kept
+    # because removing it would read as a claim that something changed. What this DOES cost
+    # is a consistent snapshot: the eight reads above are eight instants, not one. That is a
+    # separate (and unchanged) property of this census and is not what a retry would fix.
     conn.commit()
     return out
 
 
-def verify_refusable(conn: psycopg.Connection[Any]) -> dict[str, Any]:
-    """Ask the database to merge the seeded permit, then roll the whole thing back.
+class _Admitted(Exception):
+    """The seeded permit MERGED. Raised so the adapter DISCARDS the transaction.
 
-    Nothing here is allowed to persist. The transaction is opened explicitly, the procedure is
-    called, the outcome — refusal or admission — is captured, and the transaction is rolled back
-    on BOTH paths. An admission that committed would leave the demo in a merged state and the
-    next judge would see a different database from the last one.
+    Not an error condition in the transport sense — it is the outcome this probe is looking
+    for the absence of. It is an exception because :func:`trappoint_testkit.txn.run_txn`
+    COMMITS whatever its callable returns, and committing here would merge the demo permit
+    on the deployed cluster and leave the next judge a different database from the last one.
+    ``run_txn``'s ``finally`` rolls back and closes on any exception, and ``run_gate`` passes
+    a non-``psycopg`` exception straight through without classifying it — so raising is the
+    supported way to say "do not commit this" and get the rollback the docstring promises.
+    """
+
+
+def _attempt_seeded_merge(conn: psycopg.Connection[Any]) -> None:
+    """Call ``mainline.merge_permit`` on the seeded permit. Never returns normally.
+
+    The WORK half of one whole transaction. It does not commit, does not roll back and does
+    not catch: ``run_txn`` owns the first two and ``run_gate`` owns the third, which is what
+    makes a ``40001`` here a RETRY of the whole call and a ``23514`` here a REFUSAL attempted
+    exactly once, ever.
     """
     payload = {"permit": PERMIT_ID, "merged_by": "demo.signer", "probe": "seed_demo.verify"}
     canon = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     leaf = hashlib.sha256(b"\x00" + canon).digest()
     merged_commit = hashlib.sha256(b"mainline-demo/commit/verify-merge").digest()
+    conn.execute(
+        "CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)",
+        (PERMIT_ID, merged_commit, "demo.signer", "human", Jsonb(payload), canon, 1, leaf),
+    )
+    raise _Admitted
 
-    conn.execute("BEGIN")
-    conn.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+
+def verify_refusable(dsn: str, conn: psycopg.Connection[Any]) -> dict[str, Any]:
+    """Ask the database to merge the seeded permit, then roll the whole thing back.
+
+    Nothing here is allowed to persist. The procedure is called inside a transaction of its
+    own, the outcome — refusal, admission or undecided — is captured, and the transaction is
+    rolled back on EVERY path. An admission that committed would leave the demo in a merged
+    state and the next judge would see a different database from the last one.
+
+    CONTENDED, AND THIS IS THE ONE IN THIS FILE THAT IS. This runs against the DEPLOYED
+    CockroachDB Cloud database — multi-node, ``SERIALIZABLE`` — and ``CALL
+    mainline.merge_permit`` is a read-modify-write over the permit, its obligations and its
+    event chain. Two judges driving ``POST /v1/demo/gate-run`` while ``deploy.sh`` re-runs
+    this probe is the demo's actual concurrency, and a Cloud cluster also restarts
+    transactions for clock uncertainty with no second writer at all.
+
+    **WHAT THAT USED TO COST, and it is not a hypothetical shape.** The old body caught
+    ``psycopg.Error`` and classified whatever it caught as ``REFUSED``. A ``40001`` therefore
+    came out as ``{"outcome": "REFUSED", "sqlstate": "40001"}``, ``as_expected`` went false,
+    and ``deploy.sh`` reported ``VERDICT WRONG STATE`` — a transient conflict published as a
+    broken demo, on the deployment path, minutes before a judge arrives. **An undecided
+    transaction is not a refusal** (``spec/errors.md`` §5): the database did not decide, so
+    the honest answers are "ask again" (which the loop now does, up to the policy's budget)
+    and then ``UNDECIDED``, which is reported as its own outcome and never as a verdict about
+    the gate.
+
+    **AND WHAT IS DELIBERATELY NOT RETRIED.** ``23514 gate_closed_when_issued`` is the
+    answer this probe exists to obtain. ``run_gate`` raises it as
+    :class:`~trappoint_core.errors.GateRefused` on the FIRST attempt and never asks again —
+    ``spec/errors.md`` §4, because a client that retried a refusal would write five identical
+    rows for one attempted history and the refusal ledger's count would stop being a count of
+    anything. That property is not re-implemented here; it is the reason the loop is imported.
+
+    Args:
+        dsn: the database this run seeded. ``run_txn`` opens its OWN connection from this —
+            a fresh one per attempt — because a retry that reused a poisoned connection
+            would replay statements into a transaction CockroachDB has already aborted.
+        conn: the applier's autocommit connection, used only for the after-rollback read.
+    """
     started = time.time()
     try:
-        conn.execute(
-            "CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)",
-            (PERMIT_ID, merged_commit, "demo.signer", "human", Jsonb(payload), canon, 1, leaf),
+        run_txn(
+            from_dsn(dsn),
+            _attempt_seeded_merge,
+            subject_kind="permit",
+            subject_id=PERMIT_ID,
         )
-    except psycopg.Error as exc:
-        seconds = round(time.time() - started, 3)
-        exhibit, source = constraint_of(exc)
-        state = sqlstate_of(exc)
-        message = one_line(exc)
-        conn.rollback()
-        result = {
-            "outcome": "REFUSED",
-            "sqlstate": state,
-            "constraint": exhibit,
-            "constraint_source": source,
-            "message": message,
-            "seconds": seconds,
-            "expected_sqlstate": EXPECTED_SQLSTATE,
-            "expected_constraint": EXPECTED_CONSTRAINT,
-            "as_expected": state == EXPECTED_SQLSTATE and exhibit == EXPECTED_CONSTRAINT,
-        }
-    else:
-        seconds = round(time.time() - started, 3)
-        conn.rollback()
+    except _Admitted:
         result = {
             "outcome": "ADMITTED",
             "sqlstate": "00000",
@@ -343,14 +430,64 @@ def verify_refusable(conn: psycopg.Connection[Any]) -> dict[str, Any]:
                 "the seeded permit MERGED. The demo's central claim is not demonstrable against "
                 "this database: an open obligation did not stop an issue."
             ),
-            "seconds": seconds,
+            "seconds": round(time.time() - started, 3),
+            "expected_sqlstate": EXPECTED_SQLSTATE,
+            "expected_constraint": EXPECTED_CONSTRAINT,
+            "as_expected": False,
+        }
+    except GateRefused as refused:
+        # `weakened` is the same distinction `constraint_of` draws: the database REPORTED
+        # `diag.constraint_name`, or the exhibit was recovered from the message. The
+        # refusal ledger's own CHECK insists the difference be stated, so it is carried
+        # here rather than flattened.
+        result = {
+            "outcome": "REFUSED",
+            "sqlstate": refused.sqlstate,
+            "constraint": refused.constraint,
+            "constraint_source": "parsed" if refused.weakened else "reported",
+            "message": " ".join(refused.message.split()),
+            "seconds": round(time.time() - started, 3),
+            "expected_sqlstate": EXPECTED_SQLSTATE,
+            "expected_constraint": EXPECTED_CONSTRAINT,
+            "as_expected": (
+                refused.sqlstate == EXPECTED_SQLSTATE and refused.constraint == EXPECTED_CONSTRAINT
+            ),
+        }
+    except RetryBudgetExhausted as exhausted:
+        result = {
+            "outcome": "UNDECIDED",
+            "sqlstate": RETRYABLE,
+            "constraint": "",
+            "constraint_source": "absent",
+            "message": (
+                f"{exhausted}. The cluster returned 40001 on every attempt, so this merge was "
+                "never decided. That is NOT a refusal and NOT an admission: nothing here is "
+                "evidence about the gate, and re-running the probe is the remedy."
+            ),
+            "seconds": round(time.time() - started, 3),
+            "expected_sqlstate": EXPECTED_SQLSTATE,
+            "expected_constraint": EXPECTED_CONSTRAINT,
+            "as_expected": False,
+        }
+    except (AuthorisationDenied, UnmodelledRefusal) as exc:
+        # 42501, or a SQLSTATE outside the five the specification models. Reported as
+        # itself rather than dressed as a gate refusal — a permission error and a refusal
+        # have different remedies and only one of them is about the product.
+        result = {
+            "outcome": "REFUSED",
+            "sqlstate": getattr(exc, "sqlstate", "") or "",
+            "constraint": "",
+            "constraint_source": "absent",
+            "message": f"{type(exc).__name__}: {' '.join(str(exc).split())}",
+            "seconds": round(time.time() - started, 3),
             "expected_sqlstate": EXPECTED_SQLSTATE,
             "expected_constraint": EXPECTED_CONSTRAINT,
             "as_expected": False,
         }
 
-    # THE OTHER HALF OF THE CLAIM: nothing persisted. Read after the rollback, in a fresh
-    # transaction, from the base tables.
+    # THE OTHER HALF OF THE CLAIM: nothing persisted. Read after the rollback, on the
+    # applier's AUTOCOMMIT connection, so each statement is its own implicit transaction —
+    # the same stated reason as `observe()`, and the reason the `commit()` below is a no-op.
     after = conn.execute(
         "SELECT state::STRING, open_blocking, gate_epoch FROM mainline.permit WHERE permit_id = %s",
         (PERMIT_ID,),
@@ -469,6 +606,18 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
             "produced. Retries this program injected with --inject-40001 are counted separately "
             "and are never allowed to inflate the first number."
         ),
+        "merge_probe_executor": (
+            "trappoint_testkit.txn.run_txn over trappoint_core.retry.run_gate — the WHOLE "
+            "transaction, retried from BEGIN on a fresh connection. It is a DIFFERENT loop "
+            "from the Applier's above, and deliberately so: the Applier retries one "
+            "statement batch it re-sends in full, while the probe's unit is a transaction "
+            "whose refusal must be attempted exactly once. Both retry 40001 and only 40001."
+        ),
+        "merge_probe_refusal_is_never_retried": (
+            "spec/errors.md §4. run_gate raises GateRefused on the first 23514/23503/23505/"
+            "P0001 and never asks again: a retried refusal writes N identical rows into "
+            "mainline.refusal_ledger for one attempted history."
+        ),
     }
 
     observed = evidence["observed"]
@@ -506,11 +655,20 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:  # noqa: PLR091
             "the seeded obligation — the demo's first beat would not refuse"
         )
 
-    evidence["verification"] = verify_refusable(applier.conn)
+    evidence["verification"] = verify_refusable(dsn, applier.conn)
     applier.close()
 
     verification = evidence["verification"]
-    if verification["outcome"] != "REFUSED":
+    if verification["outcome"] == "UNDECIDED":
+        # A distinct branch, because it has a distinct remedy. "the gate admitted" is a
+        # statement about the product; "the cluster never decided" is a statement about
+        # contention, and reporting the second as the first is how a transient 40001
+        # becomes a WRONG STATE verdict on the deployment path.
+        failures.append(
+            "the merge probe was never decided: 40001 on every attempt of the retry budget. "
+            "Nothing here is evidence about the gate — re-run seed_demo.py --check."
+        )
+    elif verification["outcome"] != "REFUSED":
         failures.append("the seeded permit MERGED — the gate admitted an open obligation")
     elif not verification["as_expected"]:
         failures.append(

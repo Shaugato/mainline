@@ -1,0 +1,164 @@
+{
+  "generated_at": "2026-08-14T01:59:34Z",
+  "walk": "the judge path, end to end, through mainline_demo_api.app.handler",
+  "verdict": "INCOMPLETE",
+  "blocked_at": {
+    "beat": 2,
+    "reason": "the check offered no defeater vocabulary, so no judge could choose",
+    "field": "offered",
+    "expected": true,
+    "observed": false,
+    "server_said": null
+  },
+  "driver": "psycopg 3.3.4",
+  "database": "w_w3_judge_path_3b0aafc625f2_5a0edd59",
+  "subject": {
+    "permit_id": "dec0de00-0006-4000-8000-000000000001",
+    "check_id": "dec0de00-0007-4000-8000-000000000001"
+  },
+  "seconds": {
+    "beat_1": 0.631,
+    "beat_2": 0.035,
+    "beat_3": 0.031,
+    "beat_4": 0.02,
+    "beat_5": 0.579,
+    "build_chain": 95.2,
+    "build_seeds": 1.0,
+    "migrations_applied": 271.0
+  },
+  "foreign_keys_onto_defeater_option": [],
+  "offered_vocabulary": [],
+  "signed": null,
+  "beats": [
+    {
+      "beat": 1,
+      "title": "the merge is refused while the obligation is open",
+      "request": {
+        "method": "POST",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+        "body": {}
+      },
+      "status": 409,
+      "outcome": "refused",
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued",
+      "constraint_source": "reported",
+      "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+      "detail": null,
+      "read_back": {
+        "permit_state": "dispositioned",
+        "open_blocking": 1,
+        "merge_records": 0,
+        "dispositions": 0
+      },
+      "note": "MEASURED. Every field above except the request came from the server: the SQLSTATE and the constraint name are psycopg's Diagnostic fields, not this program's words. Nothing was persisted \u2014 a refused transaction is rolled back, and the merge_record count read back beside it is the check on that."
+    },
+    {
+      "beat": 2,
+      "title": "the disposition offers a vocabulary a judge can choose from",
+      "request": {
+        "method": "GET",
+        "path": "/v1/checks/dec0de00-0007-4000-8000-000000000001/disposition"
+      },
+      "status": 200,
+      "outcome": null,
+      "sqlstate": null,
+      "constraint": null,
+      "constraint_source": null,
+      "message": null,
+      "detail": null,
+      "read_back": {
+        "defeater_options": 0,
+        "codes": [],
+        "distinct_vocab_sha256": [],
+        "signed": null
+      },
+      "note": "MEASURED. The codes, the prompts and the digest are rows of mainline.defeater_option as reads._DEFEATER_SQL returned them; this program supplied only the check_id in the path. `signed` is null here because demo_permit.sql seeds no disposition \u2014 that absence is what beat 1 refused on."
+    },
+    {
+      "beat": 3,
+      "title": "a defeater code this check never offered is refused",
+      "request": {
+        "method": "POST",
+        "path": "/v1/checks/dec0de00-0007-4000-8000-000000000001/disposition",
+        "body": {
+          "kind": "applied",
+          "defeater_code": "NOT_OFFERED_BY_THIS_CHECK_",
+          "rationale": "<180 chars>"
+        }
+      },
+      "status": 422,
+      "outcome": null,
+      "sqlstate": null,
+      "constraint": null,
+      "constraint_source": null,
+      "message": "demo_history_not_seeded",
+      "detail": "mainline.defeater_option holds no row for check dec0de00-0007-4000-8000-000000000001 in this database: this check offers no defeater vocabulary, so a signature cannot pin one. mainline.disposition.defeater_vocab_sha256 digests the option set a signer was SHOWN (0064_defeater_option.sql), and this API resolves that digest rather than deriving one \u2014 there is no constant to fall back to, because a constant pins nothing and a signature that pins nothing is the click-through with a signature on it that 0064's rationale exists to forbid. Seed the vocabulary for this check \u2014 the demo history does so in verticals/mainline/db/seeds/demo/demo_world.sql \u2014 or sign against a check whose options this database actually carries.",
+      "read_back": {
+        "permit_state": "dispositioned",
+        "open_blocking": 1,
+        "merge_records": 0,
+        "dispositions": 0
+      },
+      "note": "STAGED INPUT, MEASURED OUTCOME. The code was composed by this program so that it could not be a member of the offered set; everything else is the server's. THERE IS NO SQLSTATE HERE AND THAT IS THE FINDING: no constraint refused this, because mainline.disposition has no foreign key onto mainline.defeater_option and 0066_disposition.sql constrains defeater_code only with CHECK (defeater_code <> ''). If this beat ever reports an SQLSTATE, a migration added the key and this control has become a duplicate of it. THE REFUSAL OBSERVED WAS NOT THE MEMBERSHIP CHECK: this check offers no vocabulary at all, so resolve_defeater_vocabulary refused before require() was reached and this beat controlled nothing. What was measured is that an unseeded vocabulary refuses; what remains unmeasured is that a SEEDED one refuses a non-member."
+    },
+    {
+      "beat": 4,
+      "title": "a judge signs with a code the check actually offered",
+      "request": {
+        "method": "POST",
+        "path": "/v1/checks/dec0de00-0007-4000-8000-000000000001/disposition",
+        "body": {
+          "kind": "applied",
+          "defeater_code": "MECHANISM_PRESENT_AND_VERIFIED",
+          "rationale": "<180 chars>"
+        }
+      },
+      "status": 422,
+      "outcome": null,
+      "sqlstate": null,
+      "constraint": null,
+      "constraint_source": null,
+      "message": null,
+      "detail": "mainline.defeater_option holds no row for check dec0de00-0007-4000-8000-000000000001 in this database: this check offers no defeater vocabulary, so a signature cannot pin one. mainline.disposition.defeater_vocab_sha256 digests the option set a signer was SHOWN (0064_defeater_option.sql), and this API resolves that digest rather than deriving one \u2014 there is no constant to fall back to, because a constant pins nothing and a signature that pins nothing is the click-through with a signature on it that 0064's rationale exists to forbid. Seed the vocabulary for this check \u2014 the demo history does so in verticals/mainline/db/seeds/demo/demo_world.sql \u2014 or sign against a check whose options this database actually carries.",
+      "read_back": {
+        "disposition_rows": 0,
+        "defeater_code": null,
+        "defeater_vocab_sha256": null,
+        "kind": null,
+        "permit_state": "dispositioned",
+        "open_blocking": 1,
+        "merge_records": 0,
+        "dispositions": 0,
+        "read_surface_status": 200
+      },
+      "note": "STAGED INPUT. The kind, the code and the rationale are the four things 0064 puts in a signer's gift and this program supplied them. defeater_vocab_sha256 is never supplied: it is resolved out of mainline.defeater_option by mainline_demo_api.defeaters. NO ROW WAS WRITTEN. The signature was refused, so there is nothing to read back and every read_back field about the disposition is null because the row does not exist \u2014 not because it was not looked for. The server's reason is in `detail` above."
+    },
+    {
+      "beat": 5,
+      "title": "the same merge is admitted",
+      "request": {
+        "method": "POST",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+        "body": {}
+      },
+      "status": 409,
+      "outcome": "refused",
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued",
+      "constraint_source": null,
+      "message": null,
+      "detail": null,
+      "read_back": {
+        "merged_commit": null,
+        "clearance_digest": null,
+        "merged_at": null,
+        "permit_state": "dispositioned",
+        "open_blocking": 1,
+        "merge_records": 0,
+        "dispositions": 0
+      },
+      "note": "MEASURED. This is the SAME request as beat 1, byte for byte. IT REFUSED AGAIN, with the same exhibit, because no signature was recorded at beat 4 and the obligation is still open. The gate is behaving correctly and the arc did not close: a gate that always refuses is broken, not safe, and this run has not shown it admitting."
+    }
+  ]
+}

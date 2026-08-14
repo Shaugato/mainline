@@ -60,6 +60,17 @@ SCHEMA: str = "mainline.qa.cluster-known-red/1"
 DEFAULT_KNOWN = pathlib.Path("qa/cluster-known-red.json")
 DEFAULT_SUITE_ROOT = pathlib.Path("verticals/mainline/apps/demo-api/tests")
 
+#: How many failing node ids get their assertion text rendered into `--summary`. EVERY
+#: failing id is listed whatever this is; this caps only how many carry their text.
+#: GitHub truncates `$GITHUB_STEP_SUMMARY` at 1 MiB SILENTLY, and a summary cut off by
+#: GitHub is a summary whose end nobody can tell was removed. An explicit cap with a
+#: printed marker is the alternative to that. This number decides nothing: the verdict is
+#: `--pytest-rc` and the gates in `report()`, neither of which reads it.
+SUMMARY_ASSERTIONS_RENDERED = 20
+
+#: Per-assertion line cap inside `--summary`, for the same reason.
+SUMMARY_ASSERTION_LINES = 24
+
 
 class Refusal(Exception):
     """A condition under which this program refuses to report at all."""
@@ -169,6 +180,51 @@ def resolve_nodeid(classname: str, name: str, suite_root: pathlib.Path) -> str:
     )
 
 
+def assertion_of(element: Any) -> list[str]:
+    """Pull the assertion out of one `<failure>`/`<error>` body, for `--summary` only.
+
+    THIS IS DIAGNOSIS AND IT TOUCHES NO VERDICT. Nothing below `report()` reads the result;
+    it is rendered into the Markdown summary and nowhere else. If this function returned an
+    empty list on every input, every gate in this program would still fire identically.
+
+    WHY IT IS HERE RATHER THAN IMPORTED FROM `scripts/ci/lane_log_digest.py`, WHICH DOES
+    THE SAME JOB. This program is the one that must be able to report. An `import` of a
+    sibling module is a new way for it to fail before it reaches `load_inventory`, and the
+    failure mode of a *verdict* program is not the same cost as the failure mode of a
+    diagnosis program. Twenty lines duplicated is the cheaper of the two.
+
+    THE ASSERTION IS AT THE END OF THE BODY, NOT THE START. pytest writes the whole
+    longrepr: fixture reprs, then the test source *including its docstring*, then the `>`
+    line that failed, then the `E` block. Taking the head would print a docstring. The
+    calibration case — `test_reads.py::test_the_disposition_carries_the_lattice_and_the_
+    projected_requirements` — is 53 lines of which the first ~40 are its docstring.
+    """
+    lines = [line.rstrip() for line in (element.text or "").replace("\r\n", "\n").split("\n")]
+    exception_at = [index for index, line in enumerate(lines) if line.lstrip().startswith("E ")]
+    marked_at = [index for index, line in enumerate(lines) if line.lstrip().startswith(">")]
+    non_empty = [index for index, line in enumerate(lines) if line.strip()]
+
+    if exception_at:
+        start = marked_at[-1] if marked_at and marked_at[-1] < exception_at[0] else exception_at[0]
+        picked = [line for line in lines[start : exception_at[-1] + 1] if line.strip()]
+        location = lines[non_empty[-1]] if non_empty else ""
+        if location and location not in picked:
+            picked.append(location)
+    else:
+        # No `E` block: a fixture raised during setup, or the body is not a pytest
+        # longrepr at all. The TAIL is the diagnosis in that shape.
+        picked = [line for line in lines if line.strip()][-SUMMARY_ASSERTION_LINES:]
+
+    if not picked:
+        # `message` is pytest's own one-line summary, and it is ellipsised - it is the
+        # fallback, never the first choice. A one-element list is always truthy, so the
+        # empty case is tested on the STRING; ruff's SIM222 caught that written the other
+        # way round, where the placeholder could never have been reached.
+        message = " ".join((element.get("message") or "").split())
+        picked = [message] if message else ["(the element carried no message and no text)"]
+    return picked
+
+
 def read_run(junit: pathlib.Path, suite_root: pathlib.Path) -> dict[str, Any]:
     """Parse the JUnit XML into totals plus the outcome of every test case."""
     try:
@@ -187,11 +243,18 @@ def read_run(junit: pathlib.Path, suite_root: pathlib.Path) -> dict[str, Any]:
 
     bad: dict[str, str] = {}
     passed: set[str] = set()
+    # `assertions` is DIAGNOSIS ONLY and is read by `--summary` and by nothing else. It is
+    # a separate mapping rather than a richer `bad` on purpose: `bad` is what guard 0, the
+    # classification and the ceiling are computed from, and none of them may acquire a new
+    # shape because the summary wanted a sentence to print.
+    assertions: dict[str, list[str]] = {}
     for case in suite.iter("testcase"):
         nodeid = resolve_nodeid(case.get("classname", ""), case.get("name", ""), suite_root)
         for kind in ("failure", "error"):
-            if case.find(kind) is not None:
+            found = case.find(kind)
+            if found is not None:
                 bad[nodeid] = kind
+                assertions[nodeid] = assertion_of(found)
                 break
         else:
             if case.find("skipped") is None:
@@ -207,6 +270,7 @@ def read_run(junit: pathlib.Path, suite_root: pathlib.Path) -> dict[str, Any]:
         "errors": int(suite.get("errors", "0")),
         "bad": bad,
         "passed": passed,
+        "assertions": assertions,
     }
 
 
@@ -331,6 +395,100 @@ def report(
     return verdicts
 
 
+def _fence(lines: list[str]) -> str:
+    """A code fence longer than any backtick run inside the text it will wrap.
+
+    An assertion diff can contain a triple backtick — this repository's messages quote
+    code — and a fence the text can close is a summary that renders as garbage from that
+    point down. That would silently swallow the failures listed after it.
+    """
+    longest = 0
+    for line in lines:
+        run = 0
+        for char in line:
+            run = run + 1 if char == "`" else 0
+            longest = max(longest, run)
+    return "`" * max(3, longest + 1)
+
+
+def summary_failures(run: dict[str, Any], inv: dict[str, Any]) -> list[str]:
+    """The Markdown block that names WHAT failed, not merely HOW MANY did.
+
+    WHY THIS EXISTS. `$GITHUB_STEP_SUMMARY` renders at the TOP of the run page, which is
+    where a reader lands. Until 2026-08-14 the summary carried the classification — the
+    counts table above — but not the sentence that failed, so a reader who opened a red
+    cluster run still had to scroll ~180 lines up from the bottom of a 1,023-line log,
+    past 60 lines of CockroachDB session log, to find one assertion. Measured over run
+    `31735341117`; `docs/ci/cluster-lane-diagnosis.md` records the measurement and why the
+    container log is NOT the thing to delete.
+
+    WHAT IT DOES NOT DO. It adds no verdict, reads no floor and no ceiling, and cannot
+    change an exit status: `main()` calls it after every gate has already run, and its
+    return value is written to a file. Deleting this function would leave every refusal in
+    this program exactly as it is — which is the property that made it safe to add to the
+    program that owns the verdict.
+    """
+    bad, known, unstable = run["bad"], inv["known"], inv["unstable"]
+    if not bad:
+        return ["### failing tests", "", "None. Every executed test passed.", ""]
+
+    ordered = sorted(bad)
+    rows = [
+        "### failing tests",
+        "",
+        (
+            f"{len(ordered)} failing test(s), each with the assertion that failed. The "
+            "verdict is above and in the job's exit status; this section is what failed, "
+            "not whether the lane passed."
+        ),
+        "",
+    ]
+
+    for index, nodeid in enumerate(ordered, start=1):
+        slug = known.get(nodeid)
+        seen = unstable.get(nodeid)
+        if slug is not None:
+            label = f"known [`{slug}`]"
+        elif seen is not None:
+            label = f"unstable ({seen['runs_failed']}/{seen['runs_observed']} runs)"
+        else:
+            label = "**NEW**"
+        rows.append(f"{index}. {label} — `{run['bad'][nodeid]}` — `{nodeid}`")
+
+        if index > SUMMARY_ASSERTIONS_RENDERED:
+            # The id is still listed above. Only its text is withheld, and the marker
+            # below says so once, after the loop.
+            continue
+
+        text = run["assertions"].get(nodeid, [])
+        kept = text[:SUMMARY_ASSERTION_LINES]
+        if kept:
+            fence = _fence(kept)
+            rows.extend(["", f"{fence}text", *kept])
+            if len(kept) < len(text):
+                rows.append(
+                    f"[{len(kept)} of {len(text)} line(s) shown; the rest is in the "
+                    "JUnit XML this job uploaded]"
+                )
+            rows.extend([fence, ""])
+
+    if len(ordered) > SUMMARY_ASSERTIONS_RENDERED:
+        rows.extend(
+            [
+                "",
+                (
+                    f"Every one of the {len(ordered)} failing ids is listed above; the "
+                    f"assertion text is rendered for the first {SUMMARY_ASSERTIONS_RENDERED}. "
+                    "GitHub truncates this summary at 1 MiB without saying so, and a cap "
+                    "nobody can see is worse than one that is written down. The full text "
+                    "for every id is in the JUnit XML."
+                ),
+                "",
+            ]
+        )
+    return rows
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Classify a cluster-backed demo-api run against the known-red inventory.",
@@ -400,6 +558,7 @@ def main(argv: list[str] | None = None) -> int:
             f"| pytest exit status | {args.pytest_rc} |",
             "",
         ]
+        rows.extend(summary_failures(run, inv))
         with args.summary.open("a", encoding="utf-8") as handle:
             handle.write("\n".join(rows) + "\n")
 

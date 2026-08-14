@@ -234,6 +234,18 @@ measurement against the delivered files.
 
 Against the pinned local node — Docker `mainline-crdb`, `cockroachdb/cockroach:v26.2.5`,
 `postgresql://root@127.0.0.1:26257` — into throwaway database `w_w1_unproduced_tables`,
+
+> **ANNOTATED 2026-08-14 — the container name still resolves, but the port no longer reaches
+> it.** `mainline-crdb` exists on TRAPPOINT and is `Exited`; the node answering
+> `127.0.0.1:26257` today is a **different** container, `trappoint-crdb` (same image,
+> `cockroachdb/cockroach:v26.2.5`). The results below are not withdrawn — they were taken
+> against the named node and the image is identical — but **anyone re-running this section
+> by pointing at the DSN alone will be measuring a different container than the one this
+> section names**, and would not be told. Confirm with
+> `docker ps --format '{{.Names}}\t{{.Image}}'` before treating a re-run as a reproduction;
+> the `gc.ttlseconds = 4500` pin below is a property of the database, not of the container,
+> and must be re-asserted on whichever node is actually answering.
+
 with `gc.ttlseconds` pinned to **4500**, the value Cloud Basic enforces, so a local pass is
 not a pass under a more permissive setting.
 

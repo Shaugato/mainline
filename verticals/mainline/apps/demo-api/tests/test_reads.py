@@ -411,10 +411,39 @@ def test_the_disposition_carries_the_lattice_and_the_projected_requirements(
     assert data["virulence"] == "blood_major"
     assert {row["virulence"] for row in data["lattice"]} == {"blood_major"}
     assert len(data["lattice"]) >= 1
+    # RE-BASELINED 2026-08-14 to the vocabulary the seed now offers, and this is the one
+    # direction of travel the no-shortcut rule polices, so the reasoning is recorded here
+    # rather than left to the diff.
+    #
+    # `MECHANISM_PRESENT_AND_VERIFIED` was never in question: the runtime, the proof seeder,
+    # and the captured Cloud exhibit `beat-4-merge-admitted-00000.txt` (outcome ADMITTED) all
+    # already name it, so the vocabulary had to offer it or beat 4 would sign a code that was
+    # never on a screen. `SCOPE_EXCLUDES_HAZARD` was the opposite case: a repo-wide search put
+    # it in exactly TWO places — this assertion, and `qa/cluster-known-red.json` quoting this
+    # assertion's own failure text. It appears in no schema, no console file, no migration, no
+    # runtime module, no capture and no document. It was a code this test invented and nothing
+    # else ever offered, so seeding it to satisfy the assertion would have been the seed being
+    # reshaped to match a test — the exact move that was caught and reverted on 2026-08-13,
+    # merely pointing the other way.
+    #
+    # The three below are authored from the demo's own facts, per 0064's rule that a
+    # vocabulary is generated PER CHECK so that a universal escape hatch would have to be
+    # written specifically for this mechanism at this severity. The clause reads *"Before any
+    # intrusive work, stored energy shall be isolated, locked and verified at zero by a
+    # competent person"* (anchors LOTO, ZERO_ENERGY; severity 4; blood_major), and these are
+    # the three ways that obligation can legitimately not bind — one per clause of the
+    # sentence. None of them means "not applicable"; there is no such row in this product.
     assert {option["defeater_code"] for option in data["defeater_options"]} == {
+        "ENERGY_SOURCE_ABSENT",
         "MECHANISM_PRESENT_AND_VERIFIED",
-        "SCOPE_EXCLUDES_HAZARD",
+        "WORK_NOT_INTRUSIVE",
     }
+    # The digest is the same on every row of one generation (0064), because it digests the
+    # SET — so a signature pinning it pins the alternatives declined, not just the choice.
+    assert len({option["vocab_sha256"] for option in data["defeater_options"]}) == 1, (
+        "the options carry more than one vocab_sha256, so two generations are interleaved "
+        "and a signature pinning either would pin a set that was never on one screen"
+    )
     assert data["reading_floor"] is None, "S19's components are on no table in this tree"
 
     # NO SIGNATURE IS SEEDED. `mainline.disposition` holds no rows — `demo_permit.sql` says

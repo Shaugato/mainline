@@ -74,9 +74,15 @@ jobs:
     name: the demo-api suite against a real CockroachDB
     runs-on: ubuntu-24.04
     # The fixture applies 271 migrations and both deployed seed files before the first
-    # test runs — 46.7 s locally, and it is built once per session. 25 minutes is room
-    # for that plus the suite; a lane that hangs must fail rather than hold a runner.
-    timeout-minutes: 25
+    # test runs — 46.7 s locally, and it is built once per session. The suite itself was
+    # 154.21 s in run 31735341117. Since 2026-08-14 this job ALSO builds the deployed
+    # package (`./.github/actions/build-demo-package`), which is a `pnpm install`, a
+    # `vite build` measured at 3.7 s, a `pip download` of two manylinux wheels and a
+    # 250-entry pack — about two further minutes on a cold runner. 30 minutes is room for
+    # all of it; a lane that hangs must fail rather than hold a runner. This is a
+    # RELIABILITY bound and not a spend bound, and it rose because the job's work grew,
+    # which is the only reason it may rise.
+    timeout-minutes: 30
 
     env:
       # Unique per run. `db-schema.yml` uses a fixed container name and its own step 4
@@ -241,6 +247,41 @@ jobs:
         with:
           python-version: "3.13"
 
+      # ── THE LANE BUILDS WHAT IT TESTS ────────────────────────────────────────────────
+      #
+      # Run 31735341117 reported `10 test(s) skipped, ceiling 1` and errored on it, which
+      # was correct. Nine of those ten skipped for ONE reason:
+      # `out/lambda/mainline-demo-api-arm64.zip` is a `.gitignore`'d build output and no
+      # lane in `.github/workflows/` built it. The tenth — `test_gate_run.py:945`,
+      # *"jsonschema is not a workspace dependency"* — is the one the ceiling of 1 exists
+      # for, has nothing to do with the database, and is NOT this step's business.
+      #
+      # The nine live in THREE modules, not the two a reader would guess:
+      # `test_response_contract.py` (5), `test_static_site.py` (3) and — easy to miss —
+      # `test_envelope.py` (1). A lane that armed only the first two would land at 2
+      # against a ceiling of 1 and would invite exactly the edit this repository forbids.
+      # **The ceiling stays at 1** — it lives in `qa/cluster-known-red.json` under
+      # `floor.max_skipped` and nothing here touches it.
+      #
+      # WHY BEFORE THE SUITE AND NOT AFTER. The console build and the pack cost about two
+      # minutes; the suite costs 154 s of database work on top of a 46.7 s migration
+      # fixture. A missing `console/dist` discovered after all of that is three minutes of
+      # runner spent to learn something the packer's own preflight can say immediately.
+      #
+      # WHY BEFORE THE DSN STEP. Nothing here reads a database, and putting it above the
+      # DSN keeps the four published spellings adjacent to the collection and the suite
+      # that consume them, so the DSN block still reads as one thought.
+      #
+      # THIS STEP DOES NOT WEAKEN THE SKIP CEILING; IT REMOVES THE REASON FOR THE SKIPS.
+      # If the nine now FAIL, that is nine assertions about what this origin costs
+      # executing in CI for the first time, and the answer is to fix what they found — not
+      # to delete this step and go back to a lane whose skips looked like passes.
+      # `docs/ci/cluster-lane-package.md` records what they were measured to do, and why.
+      - name: Build the deployed package the ratchets read
+        uses: ./.github/actions/build-demo-package
+        with:
+          arch: arm64
+
       - name: Publish the DSN under all four spellings the tree checks
         # `packages/trappoint-testkit/cluster.py:103-106` reads these four names, and the
         # demo-api conftest reads the same four before falling back to 127.0.0.1:26257.
@@ -316,31 +357,71 @@ jobs:
             echo "::notice::the suite grew to ${count}; raise COLLECTED_FLOOR to match in the same commit"
           fi
 
+      # ── THE SUITE, AND WHY THIS STEP IS SHAPED THE WAY IT IS ────────────────────────
+      #
+      # The rationale lives HERE, above the step, and not inside the `run:` body. GitHub
+      # echoes a `run:` body into the log and does not echo the comment: over run
+      # 31735341117 that echo was 186 of 1,023 log lines, mostly this file's own (good,
+      # long) step comments printed a second time on top of the output a reader came for.
+      # The prose is kept in full; it just stops being printed twice per run. The lane
+      # marker below stays INSIDE the step, adjacent to the invocation it governs —
+      # `scripts/qa/check_pytest_lanes.py` binds a marker to the first pytest call within
+      # 40 lines under it, and MARKER_REACH is a measured constant, not a dial.
+      #
+      # THE PYTEST INVOCATION AND THE VERDICT ARE ONE STEP, ON PURPOSE. Splitting them
+      # would leave a step whose deletion turns this lane green while the suite still
+      # fails, because pytest's status would have been captured and then dropped. Here
+      # the last command of the step exits with pytest's own status when pytest failed
+      # (`--pytest-rc`), so there is nothing to delete that does not delete the run.
+      #
+      # No step-level error tolerance, no shell-level error suppression, and the verdict
+      # is not deferred into a step that runs unconditionally. `set +e` brackets ONLY the
+      # pytest call, and only so its status can be handed to the report rather than thrown
+      # away by the shell; `set -e` is restored before anything is decided.
+      #
+      # The two steps that FOLLOW do run unconditionally, and neither is a verdict: one
+      # prints a digest of the XML this step wrote and the other uploads it. They are
+      # diagnosis in the same sense `db.yml`'s container log is, they emit no `::error`,
+      # and nothing they do can change what `--pytest-rc` was handed above. The verdict is
+      # the LAST command of THIS step and stays there.
+      #
+      # THE STDOUT IS CAPTURED WITH `tee`, AND `rc=$?` IS STILL PYTEST'S OWN ANSWER.
+      # `> file` would hand the reader a run whose live log is empty for three minutes,
+      # and this suite is I/O-bound and silent under a redirect — healthy runs have been
+      # killed for looking hung. `tee` keeps the log live AND writes the file the digest
+      # step and the artifact upload below both read.
+      #
+      # `set +e` disables errexit and NOTHING ELSE — `set -o pipefail`, from the
+      # `set -euo pipefail` at the top of the body, stays in force — so `$?` after the
+      # pipeline is its rightmost non-zero status. `tee` exits 0 whenever it could write,
+      # which makes `rc` pytest's own status in every normal run; and in the one case
+      # where it is not — `tee` itself failed — `rc` is non-zero and the lane goes RED.
+      # That is the right direction to fail: a run that could not write its own log must
+      # not be able to report success. Measured, bash 5.2: pytest exiting 7 through `tee`
+      # yields `rc=7`.
+      #
+      # `${PIPESTATUS[0]}` names pytest's element explicitly and was tried first. It is
+      # NOT used, for two measured reasons. `tests/ci/test_cluster_lane_report.py:1002`
+      # reads the literal `rc=$?` out of THIS FILE as the wiring every one of its
+      # `--pytest-rc` controls rests on; with the substring gone from this step that
+      # control would still pass — satisfied by the collection step's copy above — which
+      # is a control that has quietly stopped discriminating, and this repository treats
+      # that as worse than the defect it hides. And a bare `rc=$?` assignment resets
+      # `PIPESTATUS` to `(0)`, so the two cannot both be captured and compared afterwards.
       - name: The suite against the cluster, and the verdict
         # trappoint:pytest-lane=cluster
         #
         # `--crdb=reuse`, NEVER `auto`. `auto` means "reuse a cluster that answers, start
         # one if none does", so a lane whose `docker run` had failed would quietly start
         # a container of its own and report success — a lane that cannot report that its
-        # cluster is missing. `reuse` skips instead, and the floor below refuses the skip.
-        #
-        # THE PYTEST INVOCATION AND THE VERDICT ARE ONE STEP, ON PURPOSE. Splitting them
-        # would leave a step whose deletion turns this lane green while the suite still
-        # fails, because pytest's status would have been captured and then dropped. Here
-        # the last command of the step exits with pytest's own status when pytest failed
-        # (`--pytest-rc`), so there is nothing to delete that does not delete the run.
-        #
-        # No step-level error tolerance, no shell-level error suppression, and the
-        # verdict is not deferred into a step that runs unconditionally. `set +e`
-        # brackets ONLY the pytest call, and only so its status can be handed to the
-        # report rather than thrown away by the shell; `set -e` is restored before
-        # anything is decided.
+        # cluster is missing. `reuse` skips instead, and the floor refuses the skip.
         run: |
           set -euo pipefail
           report="junit-cluster.xml"
+          captured="pytest-cluster.txt"
           set +e
           uv run --frozen --all-packages pytest "${SUITE}" \
-            --crdb=reuse -q -p no:cacheprovider --junit-xml="${report}"
+            --crdb=reuse -q -p no:cacheprovider --junit-xml="${report}" 2>&1 | tee "${captured}"
           rc=$?
           set -e
           echo "pytest exited ${rc}"
@@ -351,6 +432,59 @@ jobs:
             --pytest-rc "${rc}" \
             --summary "$GITHUB_STEP_SUMMARY"
 
+      - name: What failed, in the few lines a reader needs first
+        # Diagnosis, and it is its OWN step ON PURPOSE — the one deviation in this file
+        # from `docs/leads/lane-honest-plan.md`'s wording, argued here rather than made
+        # quietly.
+        #
+        # The plan says to call the digest "after the report". Folding it into the step
+        # above would have meant one of two things, and both are worse than this:
+        #
+        #   * digest LAST, which needs a trailing `exit "${verdict_rc}"` — and that
+        #     replaces the property the step above is built on ("the last command exits
+        #     with pytest's own status, so there is nothing to delete that does not delete
+        #     the run") with a single deletable line standing between the verdict and the
+        #     job's status;
+        #   * digest BEFORE the verdict, which puts a program that can fail in front of
+        #     the one that decides, so a broken diagnosis tool would hide the diagnosis.
+        #
+        # As its own step AFTER the verdict it is literally "after the report", it cannot
+        # come between pytest's exit status and `--pytest-rc`, and deleting it cannot turn
+        # a red run green. `scripts/ci/lane_log_digest.py` exits 0 on every input by
+        # construction and emits no `::error`, so the verdict stays in exactly one place.
+        #
+        # `always()` and not `failure()`: the skip census is the half a reader needs on a
+        # GREEN run — ten skips against a ceiling of one is the defect this whole wave was
+        # about, and a digest that only appeared on red would never have published it.
+        if: always()
+        run: |
+          set -euo pipefail
+          uv run --frozen --all-packages python scripts/ci/lane_log_digest.py \
+            --junit junit-cluster.xml \
+            --stdout pytest-cluster.txt \
+            --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: The run's own files, as files
+        # `gh run download` yields these two instead of 1,023 lines of interleaved log.
+        # Measured over run 31735341117: the FAILURES block and the verdict are lines
+        # 760-919 of that log, and the one failing assertion is a single line at 830.
+        #
+        # `if-no-files-found: warn` is chosen rather than defaulted. A collection error in
+        # the step above aborts this job before pytest ever writes a JUnit file, and that
+        # is a real defect with its own `::error` already attached; making this upload a
+        # SECOND red for the same cause would teach a reader that the lane fails twice for
+        # one problem. `ignore` would be wrong the other way — a missing artefact after a
+        # run that DID reach pytest is worth a line in the log.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cluster-lane-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            junit-cluster.xml
+            pytest-cluster.txt
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: The container's own account of the run
         # Diagnosis only, and it is the one step in this job allowed to run after a
         # failure — it decides nothing, and it runs only when the job has ALREADY failed,
@@ -359,5 +493,18 @@ jobs:
         # that shows up. It suppresses nothing: this directory permits exactly one
         # suppressed command, `db.yml`'s container cleanup, and a second would make that
         # ban unenforceable.
+        #
+        # FOLDED, NOT QUIETED, AND NOT SHORTENED. Measured over run 31735341117: these 60
+        # lines are 943-1003 of a 1,023-line log, so a reader who opens a failed run lands
+        # on CockroachDB's session log and the failing assertion is ~180 lines above it.
+        # `::group::` collapses them in the UI and keeps every byte one click away. The
+        # obvious alternatives were both refused: `tail -20` throws away the part of an
+        # event log that is furthest from the failure and usually the part that explains
+        # it, and a `--log` filter on the container would silence exactly the case this
+        # step exists for.
         if: failure()
-        run: docker logs "${CRDB_CONTAINER}" 2>&1 | tail -60
+        run: |
+          set -euo pipefail
+          echo "::group::docker logs ${CRDB_CONTAINER} | tail -60"
+          docker logs "${CRDB_CONTAINER}" 2>&1 | tail -60
+          echo "::endgroup::"

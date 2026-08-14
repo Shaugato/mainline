@@ -20,12 +20,29 @@ carries a file and a line number, and every entry carries a verdict saying wheth
 thing has actually run.
 
 ```bash
-python scripts/submission/capture_tool_evidence.py --check   # exit 1 if any number here is stale
+python scripts/submission/capture_tool_evidence.py --check   # non-zero if anything here is stale
 ```
 
 That command is standard-library only, takes no network and no credential, and re-derives
 both evidence files from the tree. A document about which cloud services a project uses
 must not require those cloud services in order to check it.
+
+> **Run on 2026-08-14 it exits `2`, and this page says so before a reader discovers it.**
+> Not on a count — on two **anchors**. `evidence/tool-usage/aws-services.json` cites
+> `infra/modules/demo-api/main.tf:333` for the Lambda row's `authorization_type` and `:215`
+> for the SSM row's `ssm:GetParameter`; that module has grown to 978 lines and the two
+> subjects are now at `:432` and `:280`. The generator **refuses to write anything** while an
+> anchor has drifted, and `--print` refuses identically, so **whether
+> `scan.files_scanned` is still fresh cannot be re-derived on this machine today and is
+> recorded as `UNRESOLVED` rather than guessed.** `scripts/aws/verify_evidence.py` reports
+> the same pair under `[CEN-ANCHORS]` and also exits `1`.
+>
+> That refusal is the mechanism described at the end of this section working as designed, on
+> the next drift after the five it was built for. The regeneration is owed on
+> `evidence/tool-usage/`, which this page does not write and did not touch: **a document is
+> not made true by editing the artefact it is checked against.** No verdict, count or
+> `[src: …]` citation on this page rests on either line number, and both are corrected in
+> place below.
 
 **One convention, borrowed from `docs/HONESTY.md`.** A bare number carries a `[src: …]`
 reference to a committed artefact. Digits inside `code spans` are **names**, not
@@ -127,6 +144,27 @@ that was written to respect it.
 `compose.yaml:31`, and CockroachDB Cloud Basic cluster `mainline-dev` in
 `aws-ap-southeast-1` (Singapore). The pinned version string appears in
 329 [src: evidence/tool-usage/crdb-features.json#rows.crdb_database.file_count] files.
+
+**And, since 2026-08-13, in CI.** `.github/workflows/cluster-tests.yml` starts the same
+pinned image on the runner and runs the demo API's suite against it at `--crdb=reuse`. Before
+that lane existed, every workflow in this repository passed `--crdb=none`, so **every
+cluster-backed test skipped and the claims on this page had never been executed by a lane.**
+GitHub Actions run
+[`31735341117`](https://github.com/Shaugato/mainline/actions/runs/31735341117) at
+`headSha eefae1c` measured `528` collected, `518` executed, `10` skipped, `1` failed,
+`0` errored — *"1 failed, 517 passed, 10 skipped in 154.21s"*.
+
+**Its conclusion is `failure`, and the residual is stated here rather than left for a reader
+to find.** The `10` skips stand against a ceiling of `1`
+(`qa/cluster-known-red.json#floor.max_skipped`, beside `min_executed: 440`), and they exist
+because two test files read `out/lambda/mainline-demo-api-arm64.zip`, a `.gitignore`'d build
+output that lane does not build. **A lane that skips is indistinguishable from a green tick
+on a dashboard**, which is the lane's own sentence and the reason it refuses instead of
+reporting. The ceiling has not been raised and must not be; the fix is to build the package
+in the lane. **This is a container on a runner, not CockroachDB Cloud** — nothing in this
+repository has ever run a test suite against the managed cluster in CI, and the distinction
+matters because a single node never returns `40001 RETRY_SERIALIZABLE` and a multi-node
+Cloud cluster does.
 
 ### The exhibit: three beats, one committed transcript
 
@@ -627,11 +665,21 @@ where a reader will see it, not in a footnote.
 | S3 + Object Lock | DESIGNED | 126 [src: evidence/tool-usage/aws-services.json#rows.aws_s3_object_lock.file_count] | `infra/modules/evidence-store/main.tf:100` | none — not applied; the live check is one of the seven that did not run |
 | KMS | DESIGNED | 43 [src: evidence/tool-usage/aws-services.json#rows.aws_kms.file_count] | `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` | none — unit-tested against an injected client only |
 | CloudTrail | DESIGNED | 35 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudtrail.file_count] | `infra/envs/evidence/main.tf:114` | none — no trail exists in the account |
-| Lambda | DESIGNED | 23 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:310` | none — **not applied.** A plan exists ([`evidence/deploy/terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt), `11 to add`) and a plan is not an apply |
+| Lambda | DESIGNED | 23 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:326` | none — **not applied.** A plan exists ([`evidence/deploy/terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843`, `Plan: 24 to add, 0 to change, 0 to destroy.` — `11` in `module.api[0]`, `13` in `module.guard[0]`) and a plan is not an apply |
 | CloudFront + OAC | DESIGNED | 67 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudfront.file_count] | `infra/modules/demo-site/main.tf:299` | none — **excluded from the plan**, and not by choice: `403 AccessDenied`, account not verified for new CloudFront resources. See below |
 | IAM | DESIGNED | 29 [src: evidence/tool-usage/aws-services.json#rows.aws_iam.file_count] | `infra/modules/evidence-store/main.tf:145` | none — Rego asserts the denials against plan fixtures, offline |
-| SSM Parameter Store | DESIGNED | 18 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:192` | none — granted in an unapplied role; no parameter written |
+| SSM Parameter Store | DESIGNED | 18 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:280` | none — granted in an unapplied role; no parameter written |
 | EventBridge | DESIGNED | 29 [src: evidence/tool-usage/aws-services.json#rows.aws_eventbridge.file_count] | `verticals/mainline/apps/steward/schedules.yaml:14` | none — and there is no `aws_cloudwatch_event_*` resource anywhere under `infra/` |
+
+**Two `mechanism` cells moved on 2026-08-14, and the old values are named rather than
+erased.** The Lambda row cited `infra/modules/demo-api/main.tf:310`, which now reads
+`test = "StringEquals"` — a condition operator inside an unrelated policy statement. The SSM
+row cited `:192`, which now reads `LOG_LEVEL = var.log_level`. Both are the same drift the
+census refuses on, in the same module, and both are exactly the *"citation onto a closing
+brace"* failure this page describes below: they resolved perfectly and told a reader nothing.
+The tree is authoritative and this column is derived, so the column moved:
+`resource "aws_lambda_function" "this"` opens at `:326` and `actions = ["ssm:GetParameter"]`
+is at `:280`. **Nothing under `infra/` or `evidence/` was edited to make this table true.**
 
 Each row's full `verdict_basis` — the sentence that has to be re-derivable from a committed
 artefact — is at `evidence/tool-usage/aws-services.json#rows.<key>.verdict_basis`, and for
@@ -947,8 +995,12 @@ retries that are separate HTTP requests AWS served and counted, and an unattribu
 from iterations run while these programs were being written — calls **no artefact in this
 repository records, so no artefact in this repository may claim them.**
 
-**What is still DESIGNED.** The log group with finite retention, the four metric alarms and
-the dashboard in `infra/modules/demo-api/main.tf:391` are **written and unapplied**. No log
+**What is still DESIGNED.** The log group with finite retention
+(`infra/modules/demo-api/main.tf:239`), the four metric alarms (`:581` errors, `:615`
+throttles, `:648` duration p99, `:757` concurrency) and the dashboard (`:841`) are **written
+and unapplied**. *This paragraph cited `main.tf:391` for all six until 2026-08-14; that line
+is a comment inside the function resource about an `ELFCLASS` error, and it named none of
+them.* No log
 group, alarm, dashboard, metric filter or IAM role was created by any program in this fleet,
 and `bedrock-metrics.json`'s `prohibitions` block asserts each of those false and reads the
 account state back to check.
@@ -989,25 +1041,48 @@ runbook that assumes a support queue will answer in time is not a runbook.
 principal to grant `lambda:InvokeFunctionUrl` to. An `AWS_IAM` Function URL with nothing
 authorised to sign for it is not a hardened demo — **it is a demo nobody, including the
 judges, can reach.** So `var.url_authorization_type` defaults to `NONE`
-(`infra/modules/demo-api/main.tf:310`), the plan carries
-`authorization_type = "NONE"` (`evidence/deploy/terraform-plan-furl.txt:329`),
+(`infra/modules/demo-api/variables.tf:103`, the `default = "NONE"` line itself),
+`infra/modules/demo-api/main.tf:432` passes it to the URL, the plan carries
+`authorization_type = "NONE"` (`evidence/deploy/terraform-plan-furl.txt:351`),
 `enable_cloudfront` is `false`, and **no `aws_cloudfront_*` resource appears among the plan's
-`11` additions**.
+`24` additions**.
+
+*Three citations in that sentence moved on 2026-08-14, and each moved because the artefact
+said so.* The default was cited as `main.tf:310`, which today reads `test = "StringEquals"`.
+The plan's `authorization_type` was cited as `furl.txt:329`, which today reads
+`+ "MAINLINE_RATE_GLOBAL_RPS" = "10"`; the attribute is at `furl.txt:351`. And the additions
+were given as `11`: `evidence/deploy/terraform-plan-furl.txt:843` reads
+`Plan: 24 to add, 0 to change, 0 to destroy.` — **`11` in `module.api[0]` and `13` in
+`module.guard[0]`.** The `11` was true before the cost guard was wired in at
+`infra/envs/demo/main.tf:631`; it is the API module's own count and it is still `11`.
 
 **A public URL is a public gateway to a database, and this module does not pretend
-otherwise.** What actually bounds it is written down rather than assumed:
-`reserved_concurrent_executions` is a hard cap that **stops** a bill rather than reporting
-one; the handler's write surface is one transaction that ends in `ROLLBACK`; the
-CockroachDB Basic cluster carries its own `spend_limit`; and the concurrency alarm is the
-tripwire. That is a **smaller** claim than *"invocable by one distribution and nothing
-else"*, and it is the true one for this account.
+otherwise.** What actually bounds it is written down rather than assumed — and **the first
+item on that list used to be false, so it is corrected here rather than dropped.** This
+paragraph said `reserved_concurrent_executions` *"is a hard cap that **stops** a bill rather
+than reporting one"*. **The committed plan sets `reserved_concurrent_executions = -1`**
+(`evidence/deploy/terraform-plan-furl.txt:296`) — no reservation at all — because this
+account's Lambda concurrency ceiling is `10` and AWS refuses every positive reservation
+against it. The same correction is already recorded in the census's own
+`rows.aws_lambda.verdict_basis`, dated 2026-08-13, and this page had not absorbed it. So what
+bounds the bill is: **nothing named in this module.** The handler's write surface is one
+transaction that ends in `ROLLBACK`, and the CockroachDB Basic cluster carries its own
+`spend_limit` — but **neither of those two is under attack in a flood**, where the target is
+the static tree. The concurrency alarm **reports and does not stop.** The only thing bounding spend today
+is the account's measured concurrency ceiling of `10`, which is `Adjustable: true` and which
+nobody in this repository chose; `docs/deploy/COST-BOUND.md` carries the arithmetic. That is
+a **much smaller** claim than *"invocable by one distribution and nothing else"*, and it is
+the true one for this account.
 
 * **Lambda** — one `python3.13` `arm64` function
-  (`infra/modules/demo-api/main.tf:238`, `512 MB`, `15 s`) behind the Function URL at
-  `:303`, whose authorisation is decided at `:310`. It runs in `ap-southeast-1` beside the
-  cluster because the same call from `ap-southeast-2` pays roughly `90 ms` each way and the
-  gate screen makes six of them — about `1.1 s` of pure geography on the one page judges
-  look at.
+  (`infra/modules/demo-api/main.tf:326`, `256 MB`, `14 s`) behind the Function URL at
+  `:425`, whose authorisation is decided at `:432`. *This bullet read `main.tf:238`, `512 MB`
+  and `15 s`; `:238` is a blank line, and the committed plan gives `memory_size = 256`
+  (`furl.txt:290`) and `timeout = 14` (`furl.txt:315`). The plan artefact is authoritative
+  for what would be created and this prose is derived from it.* It runs in `ap-southeast-1`
+  beside the cluster because the same call from `ap-southeast-2` pays roughly `90 ms` each
+  way and the gate screen makes six of them — about `1.1 s` of pure geography on the one page
+  judges look at.
 * **CloudFront + Origin Access Control** — one distribution
   (`infra/modules/demo-site/main.tf:299`) with two OACs (`:273`, `:286`) is **written and
   excluded**. As designed it would front both the private S3 origin holding the static
@@ -1018,8 +1093,9 @@ else"*, and it is the true one for this account.
   `infra/modules/evidence-store/main.tf:145` is the policy document that denies the
   checkpoint writer `s3:DeleteObjectVersion` and denies `PutObjectRetention` without a
   bounded retention date. The Lambda execution role's entire non-managed grant is
-  `ssm:GetParameter` (`infra/modules/demo-api/main.tf:192`) on **one** parameter ARN
-  (`:197`) plus a conditioned `kms:Decrypt`.
+  `ssm:GetParameter` (`infra/modules/demo-api/main.tf:280`) on **one** parameter ARN
+  (`:285`, `resources = [local.dsn_parameter_arn]`) plus a conditioned `kms:Decrypt`.
+  *Cited as `:192` and `:197` until 2026-08-14; `:192` reads `LOG_LEVEL = var.log_level`.*
 * **SSM Parameter Store** — the CockroachDB Cloud DSN is a SecureString parameter, **not** a
   Lambda environment variable, so the connection string never appears in the function
   configuration that anyone holding `lambda:GetFunction` can read. Terraform is given the
@@ -1028,9 +1104,10 @@ else"*, and it is the true one for this account.
 
 **Verdict on all four: DESIGNED, and deliberately still DESIGNED.** As this is written a
 `terraform apply` is planned, reviewed and authorised, and the plan is committed at
-[`evidence/deploy/terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt) —
-`11 to add, 0 to change, 0 to destroy`. **An authorised plan is not an apply.** Nothing is
-deployed: no function, no role, no log group, no parameter, no alarm. The submission's demo
+[`evidence/deploy/terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843` —
+`Plan: 24 to add, 0 to change, 0 to destroy.`, being `11` in `module.api[0]` and `13` in
+`module.guard[0]`. **An authorised plan is not an apply.** Nothing is
+deployed: no function, no role, no log group, no parameter, no alarm, no guard. The submission's demo
 URL is unresolved as of this document, and `docs/submission/SUBMISSION.json` is the single
 place a resolved URL is written. These four rows move when an apply has happened and a
 transcript records it — not when one is scheduled.
@@ -1151,8 +1228,12 @@ Collected here so a judge does not have to hunt for it. Every line is also in
 #   2. does every `N [src: evidence/tool-usage/...]` number ON THIS PAGE equal the
 #      value it cites? Regenerating the artefacts does not update the prose, and a
 #      fresh census under a stale sentence is the false negative that matters.
+#   3. does every row's anchor still land on the line's declared subject? This is the
+#      one that is RED on 2026-08-14: it exits 2, not 1, and it refuses BEFORE 1 and 2
+#      are computed, so a green on this command today would be a green nobody has.
 python scripts/submission/capture_tool_evidence.py            # write
-python scripts/submission/capture_tool_evidence.py --check    # exit 1 if either is stale
+python scripts/submission/capture_tool_evidence.py --check    # non-zero if any of the three is stale
+python scripts/aws/verify_evidence.py --list                  # the same anchor rule, as [CEN-ANCHORS]
 
 # the node every "Measured on the pinned local node" block ran against
 just up     # cockroachdb/cockroach:v26.2.5, single node, insecure

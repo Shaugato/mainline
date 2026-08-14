@@ -1,0 +1,293 @@
+{
+  "schema": "mainline/evidence/plan-repro-fresh-clone/1",
+  "what_this_is": "The record of an end-to-end reproduction of the two committed Terraform plan artefacts from a genuinely fresh `git clone` of github.com/Shaugato/mainline, taken on 2026-08-14 by worker W4 of the docs-and-deploy wave. Every command, exit code and count below was captured from the process's own exit status, never from the tail of a pipeline. NO `terraform apply` WAS RUN. plan_repro.sh's refusal allowlist and its stage-2 empty-state equivalence check were not weakened; a stage-2b build-input check and exit code 10 were ADDED, and both are exercised below.",
+  "worker": "W4 · plan-repro",
+  "date_local": "2026-08-14",
+  "host": "TRAPPOINT",
+
+  "repository": {
+    "remote": "https://github.com/Shaugato/mainline.git",
+    "branch": "master",
+    "head": "eefae1c01a3d56d0db1640b8e50cad7bdda432e9",
+    "head_short": "eefae1c",
+    "tracked_files_in_head": 7548,
+    "note": "`git ls-remote origin master` answered the same sha as the local HEAD, so the public clone and this workstation were at the same commit for the whole of this run."
+  },
+
+  "tooling": {
+    "terraform": {"version": "1.14.8", "platform": "windows_amd64"},
+    "providers_from_committed_lock": [
+      {"provider": "registry.terraform.io/hashicorp/aws", "version": "6.58.0", "init_said": "Installed hashicorp/aws v6.58.0 (signed by HashiCorp)"},
+      {"provider": "registry.terraform.io/hashicorp/archive", "version": "2.8.0", "init_said": "Installed hashicorp/archive v2.8.0 (signed by HashiCorp)"}
+    ],
+    "git": "2.50.0.windows.1",
+    "aws_cli": "aws-cli/2.32.21 Python/3.13.11 Windows/11",
+    "aws_profile": "mainline-dev",
+    "aws_region": "ap-southeast-1",
+    "aws_caller_arn": "arn:aws:iam::0229REDACTED8246:user/mainline-dev",
+    "account_id_handling": "Masked here and in every artefact by the repository convention established at commit 1d41442: the twelve digits are replaced by `0229REDACTED8246`. The raw plan text under the run's --out-dir is UNMASKED and lives outside the repository."
+  },
+
+  "hazard_1_core_longpaths": {
+    "claim": "On Windows with `core.longpaths` unset, `git clone` of this repository into a long parent directory produces a PARTIAL checkout. The reviewer is left with a tree that still contains all of `infra/`, `scripts/deploy/`, `evidence/deploy/` and `docs/deploy/` — so `terraform init -backend=false` and `terraform validate` both SUCCEED against something that is not this repository.",
+    "git_config_core_longpaths": {"system": "unset (exit 1)", "global": "unset (exit 1)", "local": "unset (exit 1)"},
+    "attempt_A_long_parent_no_longpaths": {
+      "command": "git -c core.longpaths=false clone --depth 1 https://github.com/Shaugato/mainline.git <136-char parent>/mainline",
+      "parent_path_length_chars": 136,
+      "clone_exit_code": 128,
+      "git_said": [
+        "6 x `error: unable to create file packages/mainline-agentkit/tests/cassettes_live/<64-hex>.json: Filename too long`",
+        "fatal: cannot create directory at 'skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts': Filename too long",
+        "warning: Clone succeeded, but checkout failed.",
+        "You can inspect what was checked out with 'git status'"
+      ],
+      "why_this_is_dangerous_even_at_exit_128": "The message a human reads begins `Clone succeeded`. The directory exists, the branch is checked out, and every path a Terraform reviewer needs is present. A shell that chains with `&&` stops; a human, or a `;`-separated recipe, does not.",
+      "measured_truncation": {
+        "head_tracked_files": 7548,
+        "present_on_disk": 1131,
+        "missing_on_disk": 6417,
+        "missing_by_top_directory": {"verticals": 5758, "tests": 609, "spec": 40, "packages": 6, "skills": 3, "uv.lock": 1},
+        "missing_under_infra_slash": 0,
+        "missing_under_scripts_deploy": 0,
+        "missing_under_evidence_deploy": 0,
+        "missing_under_docs_deploy": 0,
+        "longest_missing_path_chars": 141
+      },
+      "detector": {
+        "command": "git status --short",
+        "rows": 7580,
+        "row_breakdown": {"D  (staged-deleted)": 7548, "?? (untracked)": 32},
+        "reading_note": "The aborted checkout also left the INDEX empty, which is why every one of the 7,548 HEAD files shows as `D ` even though 1,131 of them are on disk. The row count is therefore a DETECTOR, not a file census — it over-reports. The census is `git ls-tree -r HEAD --name-only` diffed against the filesystem, and it says 6,417. Both numbers are recorded here rather than one, because a runbook that hands a reviewer a number they cannot reproduce is the defect this wave exists to remove.",
+        "requirement": "`git status --short` MUST be empty immediately after a clone. Anything else means the checkout is incomplete."
+      }
+    },
+    "attempt_B_same_long_parent_with_longpaths": {
+      "command": "git -c core.longpaths=true clone --depth 1 https://github.com/Shaugato/mainline.git <same 136-char parent>/mainline-lp",
+      "clone_exit_code": 0,
+      "files_written": "7548/7548",
+      "git_status_short_rows": 0,
+      "verdict": "`core.longpaths=true` is a complete remedy at this path length. The hazard is a configuration default, not a repository defect."
+    },
+    "attempt_C_short_parent": {
+      "command": "git -c core.longpaths=false clone --depth 1 https://github.com/Shaugato/mainline.git D:/_fc/mainline",
+      "parent_path": "D:/_fc",
+      "parent_path_length_chars": 6,
+      "clone_exit_code": 0,
+      "git_status_short_rows": 0,
+      "head": "eefae1c01a3d56d0db1640b8e50cad7bdda432e9"
+    }
+  },
+
+  "hazard_2_autocrlf": {
+    "claim": "This repository carries NO `.gitattributes`. Git for Windows sets `core.autocrlf=true` in a fresh clone's local config, so a fresh Windows clone's `.tf` files are CRLF while the tree the committed artefacts were generated from is LF. `terraform show -json` embeds a variable's `description` heredoc verbatim, so every newline inside it becomes `\\r\\n` in the JSON — and the regenerated JSON artefact is 4,588 bytes larger with 125 differing `description` values, none of which is a change of meaning.",
+    "measured": {
+      "fresh_clone_local_core_autocrlf": "true",
+      "workstation_tree_core_autocrlf": "false",
+      "infra_envs_demo_main_tf_crlf_count": {"fresh_clone_default": 652, "workstation_tree": 0},
+      "furl_json_bytes": {"committed": 336459, "regenerated_from_autocrlf_true_clone": 341047, "regenerated_from_autocrlf_false_clone": 336459},
+      "configuration_block_delta_bytes": 4588,
+      "configuration_differing_leaves": 125,
+      "configuration_differing_leaf_shape": "all of them /root_module/module_calls/*/module/variables/*/description",
+      "second_order_effect": "In the CRLF clone `module.guard[0].data.archive_file.responder` also came back with a different id (57394f85… -> b99493da…) and a different `source_code_hash`, because `archive_file` zips the responder's own source and CRLF changes those bytes. In the LF clone the responder's id and hash reproduce EXACTLY."
+    },
+    "remedy": "Clone with `git -c core.autocrlf=false clone …` when the point of the clone is to regenerate or byte-compare an artefact.",
+    "reported_to_lead_not_actioned": "A committed `.gitattributes` pinning `*.tf text eol=lf` would remove this class of difference for every future reviewer. `.gitattributes` is not a file W4 owns, so this is a recommendation, not a change."
+  },
+
+  "stage_1_terraform_from_a_fresh_clone": {
+    "clone_used": "D:/_fc/mainline (attempt C)",
+    "working_directory": "infra/envs/demo",
+    "steps": [
+      {"n": 1, "command": "terraform init -backend=false -input=false -no-color", "exit_code": 0, "said": "Terraform has been successfully initialized!; hashicorp/aws v6.58.0 and hashicorp/archive v2.8.0 both `signed by HashiCorp`, reused from the committed .terraform.lock.hcl"},
+      {"n": 2, "command": "terraform validate -no-color", "exit_code": 0, "said": "Success! The configuration is valid."},
+      {"n": 3, "command": "terraform plan -no-color -input=false -var enable_cloudfront=false", "exit_code": 1, "said": "Error: Backend initialization required, please run \"terraform init\" — Reason: Initial configuration of the requested backend \"s3\" … Changes to backend configurations require reinitialization … run \"terraform init\" with either the \"-reconfigure\" or \"-migrate-state\" flags"}
+    ],
+    "verdict": "Confirms the lead's §1.5 exactly. From a clean clone only `init -backend=false` and `validate` run; `plan` does not. That refusal is the problem plan_repro.sh exists to solve, and stage 2 below shows it solved.",
+    "exit_code_discipline": "Every exit code above was read from `$?` immediately after the command. Piping terraform through `tail` or `head` returns the exit status of the LAST stage of the pipeline, which is the pager, and a failed plan then reads as a success."
+  },
+
+  "stage_2_plan_repro": {
+    "prove_refusal": {
+      "command": "bash scripts/deploy/plan_repro.sh --prove-refusal",
+      "run_from": "D:/_fc/mainline (fresh clone, HEAD copy of the script)",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "aws_calls": 0,
+      "refusals": [
+        {"subcommand": "terraform apply", "exit": 2},
+        {"subcommand": "terraform destroy", "exit": 2},
+        {"subcommand": "terraform import", "exit": 2},
+        {"subcommand": "terraform taint", "exit": 2},
+        {"subcommand": "terraform force-unlock", "exit": 2},
+        {"subcommand": "terraform state", "exit": 2},
+        {"subcommand": "terraform plan -destroy", "exit": 2}
+      ],
+      "printed": "Seven refusals, seven exits of 2. The allowlist is: init validate plan show version"
+    },
+    "first_real_run_from_the_fresh_clone_UNMODIFIED_script": {
+      "command": "bash scripts/deploy/plan_repro.sh --out-dir <outside the repo>",
+      "exit_code": 7,
+      "got_as_far_as": "stage 1 identity ok; stage 2 equivalence HOLDS (no mainline-demo-tfstate-* bucket, lambda mainline-demo-api does not exist); stage 3 override written; stage 4 init ok, validate `Success! The configuration is valid.`, and the plan rendered its whole output diff",
+      "then_died_with": "Error: Error in function call — on ..\\..\\modules\\demo-api\\main.tf line 342, in resource \"aws_lambda_function\" \"this\": 342: source_code_hash = filebase64sha256(var.package_path) — Call to function \"filebase64sha256\" failed: open ..\\..\\..\\out\\lambda\\mainline-demo-api-arm64.zip: The system cannot find the path specified.",
+      "finding": "THE BACKEND REFUSAL IS NOT THE LAST OBSTACLE A FRESH CLONE MEETS. `out/` is gitignored (.gitignore:9), so the deployment zip is never in a clone, and `filebase64sha256` is evaluated at PLAN time. `verticals/mainline/apps/console/dist/` — which the package build reads — is also untracked. Two gitignored build outputs stand between a clone and a plan count, and nothing had written that down."
+    },
+    "fix_applied_to_plan_repro_sh": {
+      "what": "A new stage 2b that reads `var.lambda_package_path`'s own default out of infra/envs/demo/variables.tf, checks the file exists, and refuses with a NEW exit code 10 naming `scripts/deploy/build_lambda.sh` as the fix.",
+      "what_it_is_not": "It does not touch the `tf` allowlist, the `-destroy`/`-refresh-only`/`-auto-approve` refusals, or the stage-2 empty-state equivalence check. It adds a refusal; it relaxes nothing.",
+      "negative_control": {
+        "command": "bash scripts/deploy/plan_repro.sh (in a clone with out/lambda removed)",
+        "exit_code": 10,
+        "refused_before_writing_backend_override_tf": true
+      },
+      "regression_control_after_the_change": [
+        {"command": "plan_repro.sh --prove-refusal", "exit_code": 0, "refusals_seen": 7},
+        {"command": "plan_repro.sh --json", "exit_code": 0, "count": "Plan: 24 to add", "stage_2b_said": "lambda package  ../../../out/lambda/mainline-demo-api-arm64.zip   [present]"}
+      ]
+    },
+    "package_supplied_for_this_run": {
+      "path_in_clone": "out/lambda/mainline-demo-api-arm64.zip",
+      "bytes": 7701872,
+      "sha256": "cb34e12349cb5176206458405cdc343bb0ce7a53e2e3585fa837b4fd1f09cb9b",
+      "base64_sha256_as_terraform_sees_it": "yzThI0nLUXYgZFhAXNw0O7DOelPi41hfqDe0/R8Jy5s=",
+      "provenance": "Copied in from the workstation's `out/lambda/`, NOT built inside the clone. Rebuilding it inside the clone needs `verticals/mainline/apps/console/dist/`, which needs a 305 MB `node_modules` and a pnpm/vite build; that chain was out of this run's reach and is recorded as an honest limit rather than glossed. THE PACKAGE'S BYTES REACH THE PLAN AS EXACTLY ONE VALUE — `source_code_hash` — and do not touch the resource count, which is why the counts below are trustworthy while the artefact bytes are not byte-identical.",
+      "known_impurity": "That zip was built from the workstation's working tree, which at the time of this run carried four other workers' uncommitted edits under verticals/mainline/apps/demo-api/. It is therefore NOT the HEAD package, and its hash differs from the one in the committed artefact. This is the single reason the regenerated artefacts are not byte-identical, and it is also the single reason they were NOT committed over the top."
+    }
+  },
+
+  "stage_3_counts_RULING_7": {
+    "ruling": "docs/leads/docs-and-cloud-plan.md RULING 7 — a regenerated plan returning a count other than 24 / 35 is an escalation, not an edit.",
+    "outcome": "NO ESCALATION REQUIRED. Both counts reproduced, four times, across two independently taken clones.",
+    "runs": [
+      {"clone": "D:/_fc/mainline (autocrlf=true)", "shape": "furl (enable_cloudfront=false)", "exit_code": 0, "count_line": "Plan: 24 to add, 0 to change, 0 to destroy.", "committed_artefact_says": 24, "agree": true},
+      {"clone": "D:/_fc/mainline (autocrlf=true)", "shape": "cloudfront (enable_cloudfront=true)", "exit_code": 0, "count_line": "Plan: 35 to add, 0 to change, 0 to destroy.", "committed_artefact_says": 35, "agree": true},
+      {"clone": "D:/_fc/mainline-lf (autocrlf=false)", "shape": "furl", "exit_code": 0, "count_line": "Plan: 24 to add, 0 to change, 0 to destroy.", "committed_artefact_says": 24, "agree": true},
+      {"clone": "D:/_fc/mainline-lf (autocrlf=false)", "shape": "cloudfront", "exit_code": 0, "count_line": "Plan: 35 to add, 0 to change, 0 to destroy.", "committed_artefact_says": 35, "agree": true}
+    ],
+    "gate_assertions_seen_on_every_run": {
+      "G6_reserved_concurrent_executions": "-1",
+      "G7_twelve_zero_mask_occurrences": 0,
+      "raw_account_id_occurrences_in_unmasked_plan_text": {"furl": 12, "cloudfront": 19}
+    },
+    "residue_after_every_run": {
+      "git_status_short_rows_in_the_clone": 0,
+      "backend_override_tf": "absent (removed by the EXIT trap)",
+      "dot_terraform_terraform_tfstate": "absent (removed, so the next operator must init deliberately)"
+    }
+  },
+
+  "stage_4_byte_comparison_against_the_committed_artefacts": {
+    "method": "The raw plan text is unmasked. Each regenerated file was masked with the repository's own convention — the twelve account digits replaced by `<first four>REDACTED<last four>`, asserted to equal `0229REDACTED8246` — and then compared to the committed artefact byte for byte, then structurally.",
+    "from_the_LF_clone": {
+      "terraform-plan-furl.txt": {
+        "bytes_regenerated": 44742, "bytes_committed": 44742, "lines": 934, "byte_identical": false,
+        "diff_lines_total": 26,
+        "diff_lines_that_are_not_data_source_read_chatter": 1,
+        "the_one_line": "+ source_code_hash = \"Ca9YnPO3PhcIsuMgmkGsPiB42z35FuOYJ7LP6TD0WRQ=\" (committed) -> \"yzThI0nLUXYgZFhAXNw0O7DOelPi41hfqDe0/R8Jy5s=\" (regenerated)"
+      },
+      "terraform-plan-furl.json": {
+        "bytes_regenerated": 336459, "bytes_committed": 336459, "byte_identical": false,
+        "canonically_equal_keys": ["applyable", "checks", "complete", "configuration", "errored", "format_version", "output_changes", "prior_state", "terraform_version", "variables"],
+        "differing_keys": {
+          "timestamp": "2026-08-13T18:41:44Z -> 2026-08-14T00:35:41Z (the plan's own clock)",
+          "planned_values": "1 differing leaf: /root_module/child_modules[0]/resources[9]/values/source_code_hash",
+          "resource_changes": "1 differing leaf: /resource_changes[9]/change/after/source_code_hash",
+          "relevant_attributes": "103 positional leaves differ; the LIST IS SET-EQUAL — Terraform does not serialise it in a stable order"
+        }
+      },
+      "terraform-plan-cloudfront.txt": {
+        "bytes_regenerated": 59308, "bytes_committed": 59308, "lines": 1314, "byte_identical": false,
+        "diff_lines_that_are_not_data_source_read_chatter": 2,
+        "the_lines": "the same source_code_hash pair as the FURL shape"
+      },
+      "terraform-plan-cloudfront.json": {
+        "bytes_regenerated": 366494, "bytes_committed": 366494, "byte_identical": false,
+        "differing_keys": {
+          "timestamp": "2026-08-13T18:42:39Z -> 2026-08-14T00:37:38Z",
+          "planned_values": "1 differing leaf (source_code_hash)",
+          "resource_changes": "1 differing leaf (source_code_hash)",
+          "relevant_attributes": "order only; set-equal"
+        }
+      }
+    },
+    "substantive_equivalence_checked_explicitly": {
+      "furl": {"resource_changes_total": 25, "actions": {"create": 24, "read": 1}, "addresses_set_equal": true, "checks": 85, "check_instance_status": {"pass": 71}, "checks_with_zero_instances": 14, "planned_outputs": 30, "output_changes_known": 22, "output_changes_unknown": 8, "applyable": true, "complete": true, "errored": false, "all_of_the_above_match_the_committed_artefact": true},
+      "cloudfront": {"resource_changes_total": 37, "actions": {"create": 35, "read": 2}, "addresses_set_equal": true, "checks": 85, "check_instance_status": {"pass": 81, "unknown": 4}, "checks_with_zero_instances": 0, "planned_outputs": 30, "output_changes_known": 19, "output_changes_unknown": 11, "applyable": true, "complete": true, "errored": false, "all_of_the_above_match_the_committed_artefact": true}
+    }
+  },
+
+  "decision_on_committing_the_regenerated_artefacts": {
+    "decision": "THE FOUR COMMITTED PLAN ARTEFACTS WERE NOT OVERWRITTEN. `git diff` over `evidence/**` for this worker adds this file and changes nothing else.",
+    "which_side_is_authoritative": "The committed plan artefact, per docs/leads/docs-and-cloud-plan.md RULING 4 and docs/deploy/terraform-plan.md §0.1 — the artefact is authoritative and the prose is derived. Nothing was moved to match anything: the artefacts were re-measured and found correct on every claim any document derives from them.",
+    "why_not_overwrite": [
+      "The purpose of regenerating was to test the authoritative count. The count reproduced, four times, in both shapes. A regeneration that confirms the record is a reason to keep the record, not to replace it.",
+      "The ONLY substantive difference is `source_code_hash`, and the package it hashes was built from a working tree carrying four other workers' UNCOMMITTED edits. Writing that hash into committed evidence would replace a record of a coherent tree with a record of a tree that exists on one machine for one afternoon. That is strictly worse evidence.",
+      "The regeneration environment is a Windows clone. Committing its JSON without `core.autocrlf=false` would rewrite 125 `description` values from LF to CRLF — the exact defect docs/deploy/terraform-plan.md §1 already records and corrected: `All four are LF-terminated, because that is what Terraform writes; two of them previously carried CRLF, which was an artefact of the shell that captured them and not something the tool emitted.`",
+      "Every remaining difference — the plan's `timestamp`, the ordering of concurrent data-source reads, the order of `relevant_attributes` — is non-deterministic output of the tool and carries no information. Churning four evidence files, and the §1 SHA-256 table that quotes them, to record noise would make the next real drift harder to see."
+    ],
+    "what_would_change_this": "A regeneration from a clone taken with `core.autocrlf=false` whose Lambda package was built inside that clone from HEAD. If such a run returns a count other than 24 / 35 it is an escalation under RULING 7 and not an edit; if it returns the same counts with a different `source_code_hash`, the artefacts should be replaced as a set, in one commit, together with the §1 hash table.",
+    "what_was_NOT_done": "No evidence file was edited so that a document would become true. No document was edited to a new number on this worker's authority. No count, floor, ceiling or known-red list was lowered. No `terraform apply`, no `continue-on-error`, no `|| true`."
+  },
+
+  "citations_verified_in_docs_deploy_terraform_plan_md": {
+    "method": "Every line-number citation on the page was read out of the file it names and compared to the text the page attributes to it.",
+    "corrected": [
+      {"where": "terraform-plan.md:45", "was": "infra/envs/demo/main.tf:632", "is": "infra/envs/demo/main.tf:631", "why": "631 is `module \"guard\" {`; 632 is its `source =` line. The page cites the instantiation, so it owes the line the block opens on."},
+      {"where": "terraform-plan.md §7 provenance", "was": "infra/envs/demo/main.tf:632,649", "is": "infra/envs/demo/main.tf:631,649", "why": "the same off-by-one, in the paragraph that tells a reader where to check"}
+    ],
+    "annotated_not_rewritten": [
+      {"where": "terraform-plan.md §2.6", "what": "the quoted precondition refusal cites `.../demo-api/main.tf line 621`. That transcript came from a throwaway root outside this repository; in THIS tree the condition is `infra/modules/demo-api/main.tf:835`. The transcript is verbatim tool output and was annotated in place rather than edited — editing a transcript's line number to make a citation resolve is falsifying evidence."}
+    ],
+    "verified_correct_no_change": {
+      "into_evidence_deploy_terraform-plan-furl_txt": [33, 42, 51, 65, 91, 95, 124, 128, 161, 194, 236, 269, 276, 290, 296, 315, 323, 332, 349, 351, 356, 461, 518, 524, 541, 575, 609, 643, 685, 712, 719, 777, 789, 817, 826, 843],
+      "into_evidence_deploy_terraform-plan-cloudfront_txt": [325, 334, 1219],
+      "into_infra_envs_demo_outputs_tf": [61],
+      "into_infra_envs_demo_main_tf": [649],
+      "section_1_sha256_table": "re-derived and matches on all four rows (934/44742, 1/336459, 1314/59308, 1/366494 and their digests)",
+      "section_1_2_mask_and_sensitivity_counts": "12 / 37 / 19 / 52 mask occurrences; `\"sensitive\"` 48 in the FURL JSON and 49 in the CloudFront JSON with zero `true` leaves; the word `sensitive` zero times in either human plan; `secret` twice in each JSON; zero occurrences of twelve zeros in any of the four — all re-measured and all correct",
+      "section_2_and_2_5_and_2_6_json_counts": "25 resource_changes (24 create + 1 read), 11 + 14 in planned_values, 30 outputs, 22 known / 8 unknown, 85 checks with 71 passing instances and 14 zero-instance checks — all re-measured and all correct",
+      "section_3_2_json_counts": "37 resource_changes (35 create + 2 read), 85 checks with 81 pass and 4 unknown, 19 known / 11 unknown outputs — all re-measured and all correct",
+      "section_1_eight_files_in_infra_envs_demo": "correct: .terraform.lock.hcl, README.md, backend.tf, main.tf, outputs.tf, terraform.tfvars.example, variables.tf, versions.tf"
+    }
+  },
+
+  "neighbour_check": {
+    "suite": "verticals/mainline/apps/demo-api/tests, --crdb=reuse, numbers read from --junitxml `tests=` and friends, never from a terminal scroll",
+    "before": {"tests": 557, "failures": 20, "errors": 13, "skipped": 0, "seconds": 30.579},
+    "after": {"tests": 557, "failures": 20, "errors": 13, "skipped": 0, "seconds": 29.142},
+    "verdict": "IDENTICAL. Same collection, same failures, same errors, no new skips. W4 broke no neighbour.",
+    "caveat": "Neither number is comparable to the lead's 528 / 527 / 1 baseline, and saying so is the point. Both measurements were taken on a working tree that five other workers of this wave are editing concurrently: `verticals/mainline/apps/demo-api/src/mainline_demo_api/{gate_run,transitions}.py` were modified and `{defeaters,retry}.py` added by other workers across both runs. W4 changed no file the demo-api suite imports — its whole diff is docs/deploy/terraform-plan.md, scripts/deploy/plan_repro.sh and this evidence file — so the 20 failures and 13 errors are a neighbour's in-flight work and not a regression this worker introduced or is entitled to claim it fixed."
+  },
+
+  "other_wave_gates_re_measured_after_the_change": {
+    "tests/deploy/test_cost_model.py --crdb=none": "36 passed, 0 failed (the lead's BEFORE was 1 failed / 35 passed; the failing row named docs/deploy/OBSERVABILITY.md, which is W3's file and which W3 corrected — recorded here as an observation, not as a W4 result)",
+    "tests/release/test_honesty_is_checkable.py --crdb=none": "34 passed — unchanged, as required",
+    "scripts/submission/check_submission_prose.py": "the same 3 `docs/HONESTY.md` [HYG-sha-literal] violations and no others; W4's new prose added none. HONESTY.md is out of scope under RULING 8 and was not touched",
+    "scripts/submission/check_submission_ready.py": "NOT READY. The two rows the lead recorded are unchanged and still UNRESOLVED (demo_url, video_url). A THIRD row is present — `remote is in sync: … 34 path(s) are uncommitted` — which is the wave itself being mid-flight rather than a regression; it names every worker's uncommitted files, W4's among them, and resolves when the wave commits"
+  },
+
+  "reported_to_the_lead_not_touched_by_W4": [
+    {
+      "finding": "`scripts/aws/verify_evidence.py` fails CEN-ANCHORS on two anchors in `evidence/tool-usage/aws-services.json`: `infra/modules/demo-api/main.tf:333` is quoted as `authorization_type = var.url_authorization_type` but now reads `handler = \"mainline_demo_api.app.handler\"`, and `:215` is quoted as `actions = [\"ssm:GetParameter\"]` but now reads `#`. Both citations have silently retargeted.",
+      "pre_existing": "Yes — `git status` shows neither `infra/modules/demo-api/main.tf` nor `evidence/tool-usage/` modified in this working tree, so the drift is at HEAD and predates this wave.",
+      "why_W4_did_not_fix_it": "Neither path is a W4 path. This is the same defect class W4 was sent to fix on terraform-plan.md — a line citation that resolves to an unrelated line — one file over, and it deserves an owner rather than a drive-by edit."
+    },
+    {
+      "finding": "The repository ships no `.gitattributes`. A committed `*.tf text eol=lf` (and the same for the other text types the artefacts quote) would remove the CRLF class of regeneration difference for every future reviewer on Windows.",
+      "why_W4_did_not_do_it": "`.gitattributes` is not a W4 path, and adding one rewrites working trees on the next checkout for every worker in this wave."
+    },
+    {
+      "finding": "`psycopg.connect` against `postgresql://root@localhost:26257/...` hung past a 120-second wall on this machine while `127.0.0.1` connected in 0.01 s. That is the dead-`::1` behaviour the standing notes attribute to `/v1/health`, observed here outside the handler.",
+      "why_W4_did_not_chase_it": "Not a W4 path; recorded because it was measured in passing and because a two-order-of-magnitude connect difference will be blamed on the wrong layer by whoever meets it next."
+    },
+    {
+      "finding": "SELF-REPORTED PROCESS SLIP: while diagnosing the account-id mask, W4 ran a one-off diagnostic that printed the raw twelve-digit AWS account id into its own session transcript. No file on disk carries it: every artefact and this evidence file use the `0229REDACTED8246` mask, and the unmasked plan text lives only under an --out-dir outside the repository. Reported rather than quietly corrected, because a rule that is only obeyed when it is convenient to report is not a rule."
+    }
+  ],
+
+  "still_not_proven_by_this_run": [
+    "Nothing was applied. Every figure here describes an exposure that does not exist.",
+    "The Lambda package was not built inside the clone, so the reproduction is complete for the plan's SHAPE and COUNT and incomplete for its `source_code_hash`.",
+    "The console `dist/` build was not exercised at all; the runbook names it as a step on the authority of build_lambda.sh's own header, not of a run.",
+    "`terraform plan` was reproduced against a LOCAL backend whose state is empty. plan_repro.sh MEASURES that the remote state is empty on every run and exits 5 when it is not, and it measured it as empty here — but the equivalence expires at the first apply and this run cannot prove anything about the world after one."
+  ]
+}

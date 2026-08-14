@@ -892,6 +892,52 @@ INSERT INTO mainline.blocking_check (
 )
 ON CONFLICT DO NOTHING;
 
+-- THE DEFEATER VOCABULARY FOR THIS OBLIGATION, for the same reason `demo_permit.sql` §3b carries
+-- one: `defeaters.resolve_defeater_vocabulary` refuses a check that offers nothing, because a
+-- disposition pins the digest of the set the signer was SHOWN and there is no constant to fall
+-- back to. Seeding only the permit's vocabulary would leave the second gated subject signable in
+-- principle and unsignable in fact — the same defect, one subject over, which is the shape this
+-- repository keeps rediscovering.
+--
+-- THE CODES ARE NOT COPIED FROM THE PERMIT'S, AND THAT IS 0064 WORKING RATHER THAN AN
+-- INCONSISTENCY. `PRIMARY KEY (check_id, defeater_code)`: a code is unique WITHIN a check and
+-- meaningless outside it, because the prompt beside it is what gives it meaning. The permit's
+-- obligation asks whether stored energy was isolated before intrusive work — a question about a
+-- JOB. This one is about a proposed EDIT to the clause that carries that requirement, so the
+-- honest defeaters are about the edit: whether it preserves the control the precursor's blame
+-- reaches, whether the anchor it touches is the one under blame, and whether the precursor's
+-- finding was already answered by a different control. Reusing `WORK_NOT_INTRUSIVE` here would be
+-- a code that reads plausibly and means nothing, which is worse than an absent row because it
+-- survives review.
+--
+-- The digest is aggregated from these rows, never written down — see `demo_permit.sql` §3b for
+-- why a literal here would be a constant that merely looks like a hash.
+
+WITH options (defeater_code, prompt) AS (
+  VALUES
+    ('CONTROL_PRESERVED_BY_EDIT',
+     'Which control from the precursor''s corrective set does the proposed text still require, and where in it?'),
+    ('EDIT_OUTSIDE_BLAMED_ANCHOR',
+     'Which anchor does this edit touch, and why is it not the one the precursor''s blame reaches?'),
+    ('PRECURSOR_ANSWERED_ELSEWHERE',
+     'Which other clause version already carries the control DEMO-INC-0001 called for, and at which commit?')
+),
+vocab AS (
+  SELECT digest(
+           string_agg(defeater_code || chr(31) || prompt, chr(30) ORDER BY defeater_code),
+           'sha256'
+         ) AS sha
+    FROM options
+)
+INSERT INTO mainline.defeater_option (check_id, defeater_code, prompt, vocab_sha256)
+SELECT
+  'dec0de00-000d-4000-8000-000000000001',
+  o.defeater_code,
+  o.prompt,
+  v.sha
+  FROM options AS o CROSS JOIN vocab AS v
+ON CONFLICT DO NOTHING;
+
 -- THE CLIENT'S CLAIM, ON THE CHANGE REQUEST'S OWN HASH CHAIN: `draft` → `checks_materialised`.
 -- `cr_legal_edge` is a foreign key onto `mainline.subject_transition`, so an illegal transition
 -- here is not refused by a rule — it is NOT REPRESENTABLE. `chain_digest` is a STORED generated

@@ -5,6 +5,270 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # The cluster lane's 2×2, measured — with the artefacts attached
 
+**This document now carries two measurements of the same 2×2, and neither replaces the
+other.**
+
+| | where | when | what it can say |
+|---|---|---|---|
+| [**§A**](#a-the-lanes-first-complete-run-in-ci--run-31735341050) | GitHub Actions, `ubuntu-24.04`, fresh checkout, fresh container | run **31735341050**, 2026-08-13, HEAD `eefae1c` | the lane itself, end to end, including the `git status --porcelain` hygiene assertions that **cannot** be exercised locally |
+| [**§0–§10**](#0-why-this-document-was-rewritten) | TRAPPOINT, local node, long-lived databases | 2026-08-14, HEAD `538193b` | the cells in far more depth — executed node-id **sets**, eight attempts, two plant/revert cycles, committed JUnit artefacts |
+
+§A is newer and is the one that measures the *lane*; §0–§10 is deeper and is the one that
+measures the *claim*. §A.5 records, cell by cell, which of §5's five findings the CI run
+reproduced and which it did not. Nothing in §0–§10 has been edited except for four dated
+forward-pointers, which add a reference and change no number.
+
+---
+
+## A. The lane's first complete run in CI — run 31735341050
+
+**Worker:** W2, lane-honest wave, 2026-08-14. **Read out of the run log** via
+`gh run view 31735341050 --repo Shaugato/mainline --log`, not from a summary page — the run
+published no step summary at all, for the reason §A.4 gives.
+
+| | |
+|---|---|
+| workflow | `.github/workflows/cluster-lane-bites.yml` |
+| run | [`31735341050`](https://github.com/Shaugato/mainline/actions/runs/31735341050), event `push`, HEAD `eefae1c` |
+| job | *"the cluster lane bites, and the hermetic lane cannot"*, `2026-08-13T19:20:53Z` → `19:24:31Z` (**3 m 38 s**) |
+| runner | `ubuntu-24.04` |
+| image | `cockroachdb/cockroach:v26.2.5`, resolved to `sha256:771325a0586bf61d53322d24f5a6de8962568b0fc181fa45db364278e5961282` |
+| the server's own answer | *"compose.yaml asked for v26.2.5; the server said: CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)"* |
+| conclusion | **failure — at the last step, and only there.** Steps 1–18 passed; step 19 failed; step 20 was skipped |
+
+### A.1 The four cells, as the run printed them
+
+Every figure below is a line the job echoed. `executed` is `collected − skipped`, which is
+how the workflow computes it.
+
+| cell | plant | `--crdb` | pytest's own line | collected | executed | skipped | verdict |
+|---|---|---|---|---|---|---|---|
+| **1/4** | absent | `reuse` | `77 passed, 1 skipped in 109.21s` | 78 | **77** | 1 | GREEN, floor 77, **margin 0** |
+| **2/4** | absent | `none` | `7 passed, 71 skipped in 0.32s` | 78 | **7** | 71 | GREEN, floor 7, **margin 0** |
+| **3/4** | present | `none` | `7 passed, 71 skipped in 0.30s` | 78 | **7** | 71 | **GREEN, and equal to cell 2** |
+| **4/4** | present | `reuse` | `3 failed, 74 passed, 1 skipped in 76.12s` | 78 | 77 | 1 | **RED, for the named control** |
+
+```
+cell 1/4: 77 executed under a cluster (floor 77)
+cell 2/4: 7 executed with no cluster (floor 7)
+cell 3/4: 7 executed with the plant present; cell 2 ran 7
+the hermetic lane cannot tell the planted tree from the clean one
+cell 4/4: 3 failure(s)/error(s) under a cluster: ['test_the_admission_is_a_green_this_database_could_have_refused',
+ 'test_the_deployed_seed_and_the_proof_seed_are_two_different_worlds',
+ 'test_the_deployed_seed_does_not_enrol_the_value_gate_run_used_to_derive']
+the cluster lane is RED, and test_the_deployed_seed_does_not_enrol_the_value_gate_run_used_to_derive is what caught it
+```
+
+Reduced to the shape the lane argues about:
+
+|  | plant ABSENT | plant PRESENT |
+|---|---|---|
+| `--crdb=none`  | GREEN — 7 executed, 7 passed | **GREEN — 7 executed, 7 passed, the same count** |
+| `--crdb=reuse` | GREEN — 77 executed, 77 passed | **RED — 3 failed, and `caught_by` is among them** |
+
+**The load-bearing cell is the top-right one, and it passed.** The tree carried the exact
+edit that put `23503 disposition_signer_credential_id_fkey` in front of a judge, and the
+hermetic lane executed the same seven tests and reported success — which is the sentence
+`cluster-tests.yml` exists to earn. Any claim that this lane "has never completed one cell of
+its 2×2" is false, and correcting it is worth more than repeating it: **a passing 2×2 that
+somebody restructures because a summary described it wrongly is the most expensive thing this
+repository could lose.**
+
+### A.2 The other two assertions, which are not cells
+
+The 2×2 is four of the six things this job asserts. Both of the others also passed.
+
+**Fifth — the known-red inventory cannot be turned into a silencer.** The job builds a copy
+of `qa/cluster-known-red.json` as permissive as the schema allows (`min_executed: 0`,
+`max_skipped: 10000`, every failing node id of cell 4 declared known) and requires the report
+to stay non-zero anyway, twice:
+
+```
+cluster lane: 78 collected, 77 executed, 1 skipped, 3 failed, 0 errored
+report exited 1 when told pytest exited 1
+report exited 1 when told pytest exited 0
+   ↳ the JUnit report records 3 failure(s) and 0 error(s) in its summary and 3 failing test
+     case(s) in its body, but this program was told pytest exited 0. The caller is not
+     passing pytest's real status to --pytest-rc, so the inventory would be deciding the
+     verdict on its own.
+the inventory could not suppress: neither with pytest's real status nor with a dropped one
+```
+
+**Sixth-A — the frozen-seed guard is RED against the plant.**
+`the frozen-seed guard is red against the planted edit, as it must be`.
+
+**And the tree went back.** `reverted 'seed-credential-swap': …restored byte-for-byte
+(sha256 e2aa9706ffca…) and .plant-cluster-defect/ removed`, then `git diff --exit-code`
+clean, `git status --porcelain` empty, `--status` → *"no plant is present"*, and
+`the tree is byte-for-byte where it started`.
+
+### A.3 Sixth-B — the one step that failed
+
+| step | name | conclusion |
+|---|---|---|
+| 1–18 | everything above, including all four cells, the inventory control, the RED half of the guard, and the revert | **success** |
+| **19** | **The frozen-seed guard is GREEN again** | **failure** — `2 failed, 1 passed in 0.17s` |
+| 20 | The 2×2, as one table | *skipped* |
+| 21 | The container's own account of the run | success (`if: failure()` diagnosis) |
+
+That step runs **after** the revert, on a tree the step before it had just proved
+byte-for-byte clean, so the failure had nothing to do with the plant:
+
+```
+assert 'e2aa9706ffca...76bcc173787bf' == '50535d1db0ba...61950cfc07aee'   demo_world.sql
+assert 'df3470cb2665...a9817259c2d35' == '198d44ef6e84...d63dcdf66dcc6'   demo_permit.sql
+```
+
+Both seed files changed in `eefae1c` and `FROZEN` in `tests/ci/test_demo_seed_is_frozen.py`
+was not re-measured in that commit. So the guard was red **with** the plant and red
+**without** it, and a guard that fires either way discriminates nothing — sixth-A had
+silently stopped being a proof, which is the same failure mode as a skip that reads as a
+pass, viewed from the other side.
+
+**Which side was authoritative.** `FROZEN` is a `sha256` *of* those files: a value computed
+from a file cannot be authoritative over that file, so the hash is the derived side and the
+seed is not. The file's own failure message says a re-baseline is allowed. But
+re-baselining a hash to turn a red test green is also the exact shape of the edit this whole
+lane exists to refuse, so the re-baseline was gated on a **four-part negative control that
+ran before the constants were touched**, written out in full in that module's docstring:
+
+1. `git diff 8e6a195..eefae1c` over both seeds shows **0** changed lines matching
+   `signing_credential`, `credential_id` or `digest('mainline-demo/credential/` — out of 650
+   changed lines (619 insertions, 31 deletions);
+2. `test_the_seed_derives_the_demo_credentials_from_their_names` **passes** at HEAD;
+3. `test_credentials.py` under `--crdb=reuse` is **17 tests, 0 failures, 0 errors, 0
+   skipped** — including `…_does_not_enrol_the_value_gate_run_used_to_derive`;
+4. `demo_world.sql` still enrols **exactly one** signer as
+   `digest('mainline-demo/credential/demo.signer','sha256')` (line 124) and one
+   countersigner (line 132), and `sha256(b"credsigner")` appears **0** times in the file.
+
+All four came back clean, so the freeze was re-measured to
+`e2aa9706…` / `df3470cb…`. Had any one of them failed, the answer was to revert the seed and
+leave the hash alone. The superseded pair is kept in that file rather than deleted.
+
+**An independent corroboration of the new baseline, from this very run.** The CI revert
+printed `restored byte-for-byte (sha256 e2aa9706ffca…)` — on a Linux runner, from a fresh
+`actions/checkout`, with no working tree of anyone's in sight. That is the same value
+re-baselined into `FROZEN` from a Windows workstation, which is also the first evidence in
+this repository that the `.gitattributes` `* -text` claim behind *"what is committed is what
+is applied"* actually holds across the two platforms this project builds on.
+
+### A.4 Why the run published no 2×2 table, and what changed
+
+Step 20 — *"The 2×2, as one table"*, the only step that writes `$GITHUB_STEP_SUMMARY` — has
+no `if:`, so when step 19 failed it was **skipped**. The run therefore published **no summary
+at all**: a reader who opened it landed at the bottom of a 1,695-line log, on sixty lines of
+CockroachDB session output, with `Process completed with exit code 1` as the entire
+diagnosis, ~130 lines above. Four cells of a falsifiability proof had passed and no reader
+could see it.
+
+Three changes were made, and one deliberate non-change:
+
+* step 19 now brackets pytest, keeps **pytest's own exit status**, and prints a named
+  `::error` that separates the two possible causes — a stale baseline, or a reshaped seed —
+  and points at the re-baseline procedure and its four-part precondition;
+* step 17 (the RED half) now also names that procedure, because the one way *it* goes green
+  without the guard being broken is somebody re-baselining `FROZEN` onto a **planted** tree,
+  which is the forbidden edit exactly;
+* step 20's table is now **read back out of the four JUnit reports** rather than restating
+  `HERMETIC_FLOOR` and `CLUSTER_FLOOR`. It previously printed *"GREEN, 7+ executed"* — a
+  statement about what the lane would have accepted, not about what it measured. A summary
+  that cannot disagree with the run it summarises is decoration. The floors are printed
+  beside the measurements so the margin is visible, and the step exits 1 rather than
+  inventing a cell if a report it claims to summarise is missing;
+* **step 20 still has no `if: always()`, on purpose.** Its heading is a verdict — *"the
+  cluster lane is falsifiable"* — and a job that failed has not earned it. Skipping was the
+  correct behaviour; the repair is to stop the last step failing, which is what the
+  re-baseline does.
+
+Neither floor moved. No cell was restructured. `scripts/ci/plant_cluster_defect.py` was not
+touched. No assertion or error message was weakened.
+
+### A.5 What this run settles about §5's local findings
+
+| §5 finding | what CI run 31735341050 shows |
+|---|---|
+| **1** — unretried `40001` in `test_transitions.py::_seed_permit` | **Did not reproduce.** Cell 1 passed on its first and only attempt, 77 executed, 0 errors. **Not fixed — not observed.** `_seed_permit` still ends in a bare `commit()` with no retry loop, and one clean CI run on a single-node in-memory store is no evidence about a multi-node cluster. |
+| **2** — fresh databases partially failing to build from inside a pytest session | **Did not reproduce, and the prediction it carried did not come true.** §5 warned this was *"the most likely reason `cluster-lane-bites` will not reach cell 4 on its first real run"*. In CI **every** database is fresh, in every cell, and both cluster cells skipped exactly **1** — the `jsonschema` skip — against a local baseline of 8 and 11. Cell 1 did not fall below `CLUSTER_FLOOR`. Worth keeping open: it is a nondeterministic defect that a single run cannot refute. |
+| **3** — the frozen-seed guard is red at a clean tree, so its "green again" half cannot pass | **CONFIRMED in CI**, and it is the whole of this run's failure. **Discharged** by the re-baseline in §A.3. §5's instruction — that the judgement belonged to the file's owner and not to a worker who noticed the drift while measuring something else — is what routed it here, correctly. |
+| **4** — both floors hold exactly, with zero margin | **Confirmed.** 77 against a floor of 77; 7 against a floor of 7, twice. Cell 4 also executed 77, so in CI it would have cleared `CLUSTER_FLOOR` too — but cell 4 is still not held to a floor, because `caught_by` is the stricter check. |
+| **5** — the plant harness's hygiene properties | **Confirmed, and for the first time in the way that counts.** §6 recorded that the workflow's `git diff --exit-code` and empty-`git status --porcelain` assertions are CI-only and *"were not exercised"* locally, because that tree was dirty by 52 modified and 42 untracked files. In this run they ran, before and after, on a fresh checkout, and **passed**. That verdict was the only one that counted for them, and it is now in. |
+
+One difference worth naming rather than smoothing over: **cell 4 in CI reproduces the
+2026-08-13 reading, not either of §2's local attempts.** All three failures present at once,
+with only the one `jsonschema` skip:
+
+```
+test_the_admission_is_a_green_this_database_could_have_refused
+test_the_deployed_seed_and_the_proof_seed_are_two_different_worlds
+test_the_deployed_seed_does_not_enrol_the_value_gate_run_used_to_derive   ← caught_by
+```
+
+§8 called that older reading *"plausible as the case where both fresh builds happened to
+succeed"*. In CI both fresh builds did succeed, and the reading came back. That is a point
+for the older measurement and against the idea that it was mis-transcribed.
+
+### A.6 What this run does not establish, stated rather than left to be assumed
+
+* **One run is not a distribution.** Everything above is `n = 1`. §5 finding 1 was measured
+  at 1 red in 4 locally; a single green CI cell does not move that.
+* **A single-node, in-memory CockroachDB is not CockroachDB Cloud.** Nothing here exercises
+  the `40001 RETRY_SERIALIZABLE` path the deployed demo will meet under contention.
+* **Cell 4 carries no executed floor.** Its verdict is the `caught_by` check. If cell 4 ever
+  goes red *and* skips most of the subset, the `caught_by` assertion is what must catch it —
+  and on §2's local attempt 1 it did exactly that, refusing a red run in which `caught_by`
+  had been skipped rather than banking it as a proof.
+* **This document reports the run; it did not run it.** The lane must be re-run at the
+  re-baselined tree for §A.3 to be closed by CI rather than by a local reading. The local
+  reading, taken 2026-08-14 on TRAPPOINT: with the plant applied,
+  `2 failed, 1 passed` (rc 1, so sixth-A holds); after `--revert`, **`3 passed in 0.49s`**
+  (so sixth-B holds). Both halves of the guard now discriminate, and the guard is now red
+  *only* for the file the plant actually edits.
+
+### A.7 Full-suite `--crdb=reuse`, before and after — and why the "after" is not comparable
+
+All figures from `--junitxml`, read off the `<testsuite>` attributes.
+
+| | when | collected | executed | skipped | fail | err | wall |
+|---|---|---|---|---|---|---|---|
+| **before** | 09:13 | 528 | 527 | 1 | **1** | **0** | 49.2 s |
+| **control** — W2's three files reverted to HEAD | 10:05 | 556 | 556 | 0 | 22 | 23 | 220.3 s |
+| **after** — W2's three files present | 10:11 | 556 | 546 | 10 | 21 | 13 | 151.3 s |
+
+The tree moved a long way under this measurement, and the movement is **not this worker's**.
+Between the "before" run and the others, four files appeared or changed under
+`verticals/mainline/apps/demo-api/src/mainline_demo_api/` — `gate_run.py` and
+`transitions.py` modified, `retry.py` and `defeaters.py` new — with mtimes of 09:21:26
+through 09:25:39, i.e. **during** the first "after" attempt, plus a new
+`tests/test_defeaters.py` (+28 collected). W2 wrote none of them.
+
+So attribution was measured rather than asserted, back to back, by the strongest control
+available: **run the suite with W2's three files reverted to HEAD, then run it again with
+them present.**
+
+```
+red with W2 ABSENT but green with W2 PRESENT:  11   (all tests.test_defeaters, a module
+                                                     another worker was writing between
+                                                     the two runs)
+red with W2 PRESENT but green with W2 ABSENT:   0   <- any entry here would be W2's
+symmetric difference, excluding test_defeaters: []  <- the failing node-id SETS are IDENTICAL
+```
+
+Set equality, not count equality — a count can be satisfied by one test dropping out as
+another appears. **W2's delta on the demo-api suite is exactly zero**, which is what a change
+confined to `tests/ci/`, `.github/workflows/` and `docs/` should be. The 1-failure "before"
+reading remains the honest baseline for this wave; the 21/13 in the "after" column belongs to
+work in flight in other workers' files and is recorded here rather than quietly banked.
+
+---
+
+## The local 2×2 of 2026-08-14, preserved in full below
+
+Everything from here down is the lane-controls wave's measurement, unchanged apart from four
+dated pointers into §A. It is deeper than §A in every respect that does not require a runner.
+
+---
+
 **Worker:** W4, lane-controls wave. **Measured 2026-08-14 on TRAPPOINT**, working tree
 `D:/CoackroachDBxAWS/mainline` at HEAD `538193b`, `.venv/Scripts/python.exe` (pytest 9.1.1),
 against the local **CockroachDB CCL v26.2.5** on `127.0.0.1:26257`.
@@ -245,6 +509,13 @@ and it should be diagnosed before that verdict is read as a fault in the 2×2.
 
 ### Finding 3 — half of the frozen-seed guard is red all the time, so its "green again" step cannot pass
 
+> **[2026-08-14, W2 — CONFIRMED IN CI AND NOW DISCHARGED. See §A.3.]** This is the whole of
+> run `31735341050`'s failure, at its last step, with all four cells green. `FROZEN` has been
+> re-measured to `e2aa9706…` / `df3470cb…` after the four-part negative control this finding
+> correctly declined to skip. The paragraph below — *"the remedy is not to re-baseline these
+> hashes to make my measurement green"* — is what routed the decision to the file's owner
+> instead of to a passing worker, and it stands as written.
+
 `cluster-lane-bites.yml` asserts the guard twice — red with the plant, green after the revert
 — *"because a guard that is red against the plant proves nothing on its own if it is red all
 the time."* Measured, in this sitting:
@@ -317,6 +588,12 @@ need to be exercised that way, but it was available both times.
 ---
 
 ## 6. What could NOT be measured here, stated rather than faked
+
+> **[2026-08-14, W2 — the verdict this section defers to is now in. See §A.2 and §A.5.]** The
+> two cleanliness assertions ran in CI run `31735341050`, on a fresh checkout, before and
+> after the plant, and **passed**: `git diff --exit-code` clean, `git status --porcelain`
+> empty, `--status` → *"no plant is present"*, and the file restored byte-for-byte to
+> `sha256 e2aa9706ffca…`. Nothing below is retracted — it was right not to claim them.
 
 **The workflow's cleanliness assertions are CI-only and were not exercised.** The bites lane
 brackets the plant with `git diff --exit-code` and an empty `git status --porcelain`, before
@@ -401,6 +678,11 @@ What today's re-measurement changes about them:
 
 - **Cells 1, 2 and 3 reproduce.** The executed counts are identical (77 / 7 / 7) and cell 3
   still matches cell 2.
+> **[2026-08-14, W2 — the 2026-08-13 cell-4 reading DOES reproduce, in CI. See §A.5.]** Run
+> `31735341050` returned `3 failed, 74 passed, 1 skipped`, all three failures at once with
+> only the `jsonschema` skip — exactly the reading below. The hypothesis in the second bullet
+> is the right one: in CI both fresh builds succeeded.
+
 - **Cell 4 does not reproduce as stated.** The 2026-08-13 reading has all three failures
   present at once with only the one jsonschema skip; neither attempt today reproduced that.
   Attempt 1 skipped `caught_by` entirely; attempt 2 failed `caught_by` alone and skipped the
@@ -464,6 +746,9 @@ held. Finding 5 records the hashes.
    fresh-database build that partially fails from inside a pytest session (finding 2).
 5. **One assertion in the lane cannot pass on the current tree** — the frozen-seed guard's
    "green again" half, because its two recorded hashes are stale (finding 3).
+   **[2026-08-14, W2: fixed. The hashes were re-measured after the four-part negative
+   control in §A.3; the guard is now `3 passed` at a clean tree and still red against the
+   plant.]**
 6. **Nothing was moved to obtain any of the above.** No floor, no ceiling, no fixture, no seed,
    no expected value. Where a control disagreed with the tree, the disagreement is written down
    above and the control was left alone.

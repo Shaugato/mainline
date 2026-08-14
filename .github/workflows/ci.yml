@@ -159,6 +159,47 @@ env:
   # marked `pl2_red` on 2026-08-13 with the argument written into that file's own module
   # docstring. Both were measured here before this line was edited, not inferred from it.
   #
+  # A THIRD DATED READING, APPENDED 2026-08-14 at HEAD eefae1c. Nothing above is edited.
+  # The whole argument for keeping the first two is that a number replaced in place
+  # teaches nobody anything, and a third reading that overwrote the second would be that
+  # same edit wearing a later date:
+  #
+  #   -m "g4alpha or pl2_red"        ->    15 collected, 10135 deselected
+  #   -m "not (g4alpha or pl2_red)"  -> 10135 collected,    15 deselected
+  #                                      ----  10150, the whole collection
+  #
+  # THIS ONE WAS NOT TAKEN ON A WORKSTATION, which is why it is the reading to quote. It
+  # is CI's own measurement of the COMMITTED tree, read out of run 31735341191 (push,
+  # `eefae1c`, 2026-08-13T19:20:30Z): `hermetic-tests` printed `collected 10150 items`
+  # and `10150 tests collected in 18.91s`, and `red-by-design` printed
+  # `15 failed, 10135 deselected in 20.43s`. The two jobs are the exact complement of
+  # each other over one collection and their halves add to it — which is the property
+  # this env block exists to keep true, now checked against a runner rather than against
+  # a developer's tree.
+  #
+  # THE COLLECTION MOVED 9839 -> 10150, which is +311. A figure of +430 was in
+  # circulation when this reading was ordered; it came from comparing the live number
+  # against a dirty working tree, and it is wrong. RED_FLOOR DID NOT MOVE: 15 at 073dfea,
+  # 15 in the 9899 re-reading three hours later, 15 here. Three readings, three different
+  # collections, one floor — which is exactly what the paragraph above predicted a count
+  # of DECLARED reds would do and a tally of the whole collection would not.
+  #
+  # RE-RUN ON THIS WORKSTATION on 2026-08-14, on the pinned interpreter, at the same HEAD
+  # but on a working tree five other workers were writing to at the time:
+  #
+  #   -m "g4alpha or pl2_red"        ->    15/10211 collected (10196 deselected) in 20.47s
+  #   -m "not (g4alpha or pl2_red)"  -> 10196/10211 collected (   15 deselected) in 14.18s
+  #
+  # 10211 - 10150 = 61, and the 61 is accounted for BY NAME rather than called drift.
+  # Four test files exist on disk and in no commit —
+  # `packages/trappoint-testkit/tests/test_txn.py` (17),
+  # `tests/concurrency/test_seed_permit_needs_retry.py` (2),
+  # `verticals/mainline/apps/demo-api/tests/test_defeaters.py` (29) and
+  # `verticals/mainline/apps/demo-api/tests/test_judge_can_sign.py` (13) — and collecting
+  # exactly those four gives 61 tests. The five TRACKED test files modified in the same
+  # tree contribute a net zero. `RED_FLOOR` is 15 in this reading too, on a collection 61
+  # tests larger than the one CI measured: a fourth agreement, on a fourth tree.
+  #
   # `g4alpha` is registered in `pyproject.toml` ("observed RED by design until K4").
   # `pl2_red` is the marker for the `PL-2 RED, as intended.` cases — registered in
   # `pyproject.toml` beside it, with `scripts/mi_ratchet.py`'s own wording, and applied
@@ -675,6 +716,25 @@ jobs:
       # their argument is in that file's own module docstring; the REGISTRY below gains
       # the file in this same edit, because a marked file absent from the registry fails
       # this job as "UNDECLARED by-design red" — correctly, and it did.
+      #
+      # RE-MEASURED 2026-08-14 at HEAD eefae1c, AND THE FLOOR DID NOT MOVE. This is a
+      # THIRD dated reading appended beside the two above, not a replacement for either —
+      # the `5 -> 13` block stays exactly where it is, for the reason the env block at the
+      # top of this file gives at length:
+      #
+      #   CI run 31735341191, this job, on the committed tree
+      #   ->  15 failed, 10135 deselected in 20.43s   (0 passed, 0 skipped)
+      #
+      # The collection around it moved 9824 -> 10135 deselected, +311 tests, while the
+      # declared red set stayed at fifteen and every one of the fifteen still failed. A
+      # floor that survives a 311-test move without being touched is the floor doing its
+      # job; the day it has to be edited to keep a lane green, the edit IS the finding.
+      #
+      # AND IT IS NOT RAISED HERE. Raising a floor is strengthening and is allowed — but
+      # only by a run that OBSERVED more than fifteen declared reds failing, and this run
+      # observed exactly fifteen. A floor raised to a number nobody watched fail makes
+      # this job red about itself instead of red about the suite, which the paragraph
+      # above already rules is the worse outcome.
       RED_FLOOR: "15"
     steps:
       - name: Deny egress except to the package indexes

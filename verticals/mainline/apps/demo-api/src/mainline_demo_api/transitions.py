@@ -46,10 +46,23 @@ it never composes a sentence, and neither does this module. Every ``sqlstate``,
                         was decided. The caller re-attempts, or does not.
     ==========  ======  ====================================================
 
-**There is no retry helper on this path and there will not be one.** ``40001`` is an
-undecided transaction, not a failure; a helper that re-sent a merge because a socket closed
-is a helper that can issue a permit twice. The outcome is surfaced and the decision keeps
-an author.
+**There is no retry helper on the four committing paths and there will not be one.**
+``40001`` is an undecided transaction, not a failure; a helper that re-sent a merge because
+a socket closed is a helper that can issue a permit twice. On ``merge_permit``,
+``sign_disposition``, ``materialise_checks`` and ``suspend_permit`` the outcome is surfaced
+as ``503``/``retry`` and the decision keeps an author.
+
+``POST /v1/demo/gate-run`` IS RETRIED, and the difference is a property of that transaction
+rather than a change of mind about this one. It **persists nothing** — every beat is fenced
+by a savepoint, the whole transaction is rolled back, and a fingerprint taken before and
+after is in the response — so re-running it re-asks the same question of the same rows and
+cannot issue anything twice. It is also the endpoint two judges press at the same moment,
+which is the only contention this deployment actually has. :func:`_demo_gate_run` therefore
+re-runs the WHOLE function under :func:`mainline_demo_api.retry.run_transaction`, which
+retries ``40001`` and only ``40001``: ``spec/errors.md`` §2.1 requires the retried unit to
+be the whole transaction from ``BEGIN``, and one call to ``gate_run`` is exactly one
+attempt. The four refusal codes are still attempted exactly once, ever (§4), because a
+client that retries a ``23514`` writes five identical refusals for one attempted history.
 
 Client errors — an unknown resource, a malformed identifier, a body that cannot be
 honoured, a subject that does not exist — return a status of 4xx and a **plain
@@ -122,8 +135,10 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from .credentials import resolve_credential_id
-from .gate_run import GATE_RUN_SCHEMA_ID, canonical_json, gate_run
+from .defeaters import resolve_defeater_vocabulary
+from .gate_run import DEMO_DEFEATER_CODE, GATE_RUN_SCHEMA_ID, canonical_json, gate_run
 from .refusal import classify, diagnose, refusal_payload, rfc3339
+from .retry import RetryBudgetExhausted, run_transaction
 from .scenario import ENV_PREFIX, Scenario, ScenarioNotSeeded, from_env, positional
 
 __all__ = [
@@ -986,10 +1001,26 @@ def _sign_disposition(
     read from elsewhere. What a signer actually chooses is the KIND, the defeater code, the
     rationale and the signature — and those four are what this endpoint takes.
 
+    THE DEFEATER IS NOT PART OF WHAT IS STAGED. The code the caller names is checked for
+    membership of ``mainline.defeater_option``, and the digest recorded beside it is READ
+    from those rows rather than computed — so ``defeater_vocab_sha256`` on the resulting
+    row pins the option set this check actually offered, which is the whole claim 0064 and
+    ``disposition.schema.json`` make about that column and the one this endpoint used to
+    make falsely.
+
     STAGED, and the envelope says so. The WebAuthn assertion is synthesised here: this demo
     has no authenticator, and the database does not verify signatures on this path. That is
     hand-authored demonstration material inside an otherwise live transition, which is
     exactly what ``envelope.staged`` exists to declare.
+
+    Raises:
+        DefeaterVocabularyAbsent: this check offers no defeater options, so a signature
+            cannot pin one. A ``ScenarioNotSeeded``, which :func:`handle_transition`
+            answers with ``422 demo_history_not_seeded``.
+        DefeaterVocabularyAmbiguous: the check's options carry several distinct digests.
+        DefeaterNotOffered: the ``defeater_code`` in the body is not one of them. A
+            ``ValueError``, which :func:`handle_transition` answers with ``422
+            unprocessable_request`` naming the codes that ARE offered.
     """
     procedure = "trappoint.sign_disposition"
     kind = _text(body, "kind", "applied", limit=64)
@@ -997,7 +1028,11 @@ def _sign_disposition(
         raise ValueError(
             f"body member 'kind' must be one of {sorted(_DISPOSITION_KINDS)}; got {kind!r}"
         )
-    defeater_code = _text(body, "defeater_code", "MECHANISM_PRESENT_AND_VERIFIED", limit=128)
+    # The DEFAULT is the demo's own authored choice, imported rather than re-typed so that
+    # this endpoint and beat 4 cannot come to disagree about which defeater the demo names.
+    # It is a default and not a guarantee: whatever the caller sends, or does not send, is
+    # checked against the vocabulary the database offers before the INSERT below.
+    defeater_code = _text(body, "defeater_code", DEMO_DEFEATER_CODE, limit=128)
     rationale = _text(body, "rationale", None, limit=_RATIONALE_MAX)
     if len(rationale) < _RATIONALE_MIN:
         raise ValueError(
@@ -1050,6 +1085,33 @@ def _sign_disposition(
             permit_id=str(permit_id),
         )
 
+    # THE VOCABULARY THIS SIGNATURE PINS, AND WHETHER IT CONTAINS THE CODE THE CALLER SENT.
+    #
+    # `defeater_vocab_sha256` used to be `_sha("defeater-vocab")` here and in `gate_run` —
+    # `sha256(b"defeater-vocab")`, the digest of an ASCII string, which the deployed Cloud
+    # duly recorded on its one signed disposition. 0064 says the column "digests the whole
+    # option set, not the row, so a signature that pins it pins the ALTERNATIVES the signer
+    # declined"; `disposition.schema.json` says "a later regeneration cannot silently
+    # reinterpret a past signature". A constant makes both sentences false, and it makes
+    # them false silently, because nothing recomputes the digest to notice.
+    #
+    # The membership check beside it is the foreign key `mainline.disposition` does not
+    # have: `0066_disposition.sql` constrains `defeater_code` only with
+    # `disposition_defeater_code_stated CHECK (defeater_code <> '')`, so a code no screen
+    # ever offered reaches the row unopposed. RULING R9 forbids adding the FK four days
+    # from a deadline — migrations are rendered under a `trappoint render --check` zero-diff
+    # assertion and a new constraint moves migrations.lock.json, the schema fingerprint and
+    # the parity gate — so it is closed here, in the one place that can close it, and
+    # recorded as a finding rather than left unwritten.
+    #
+    # Resolved AFTER the check has been found, unlike the credentials above: an unknown
+    # check_id must stay a `404 no_such_check`, and a vocabulary read placed earlier would
+    # answer a nonexistent obligation with "this check offers no defeater vocabulary" —
+    # true, useless, and a worse diagnosis than the one it displaced. Nothing has been
+    # written at this point, so raising here costs a rollback of two reads.
+    vocabulary = resolve_defeater_vocabulary(conn, check_id)
+    vocabulary.require(defeater_code)
+
     disposition_id = uuid.uuid4()
     try:
         conn.execute(
@@ -1062,7 +1124,7 @@ def _sign_disposition(
                 site_id,
                 kind,
                 defeater_code,
-                _sha("defeater-vocab"),
+                vocabulary.vocab_sha256,
                 rationale,
                 _sha("evidence", str(disposition_id)),
                 signer_sub,
@@ -1134,11 +1196,47 @@ def _demo_gate_run(
     that by clearing the flag itself and never putting it back. :func:`_borrowed` now owns
     both halves of that trade, so there is nothing to clear here and, more importantly,
     nothing to forget to restore.
+
+    AND THIS IS WHERE ``40001`` IS RETRIED. ``spec/errors.md`` §2.1 requires the retried
+    unit to be the whole transaction from ``BEGIN``, and one call to ``gate_run`` is
+    exactly one whole transaction: it rolls back whatever it was handed, opens its own,
+    plays four beats and rolls all of it back again. So the retry belongs HERE, around the
+    call, and not inside ``gate_run`` around a statement — a statement replayed into a
+    poisoned transaction is not a retry of anything.
+
+    Re-running is safe because the run PERSISTS NOTHING, which is a property the payload
+    proves rather than asserts. That is the whole reason this endpoint may be retried while
+    the four committing transitions above may not: a second attempt asks the same question
+    of the same rows, where a re-sent merge would issue a permit twice.
+
+    ``gate_run`` reports ``40001`` in its payload instead of raising, because it has to
+    return the beats that DID complete, so the undecided outcome is recognised by a
+    predicate on the result rather than by an exception. When the budget is spent the last
+    payload is returned as it stands and this function answers ``503`` from it — the run's
+    own account of what happened, which is more than a raised exception could say.
     """
     run_id = body.get("run_id")
     if run_id is not None and not isinstance(run_id, str):
         raise ValueError("body member 'run_id' must be a string when supplied")
-    payload = gate_run(conn, scenario, run_id=run_id)
+    try:
+        payload = run_transaction(
+            lambda: gate_run(conn, scenario, run_id=run_id),
+            undecided=lambda result: bool(result["outcome"] == "retry"),
+        )
+    except RetryBudgetExhausted as exhausted:
+        # A ``40001`` that escaped the beats entirely — from `resolve`, from the
+        # fingerprint, from the logical-clock read — and survived the budget. There is no
+        # payload to surface, so the honest thing to hand on is the DATABASE's own last
+        # error rather than a second exhaustion type this module would have to learn:
+        # `handle_transition` already has exactly one place that turns a driver error into
+        # a response, and a caller's answer must not depend on how many times the loop
+        # tried before giving up. `run_transaction` chains the exhaustion from that error
+        # for this purpose. The result is the answer an unretried 40001 produced before
+        # this loop existed, after the retries `spec/errors.md` §2.1 requires.
+        cause = exhausted.__cause__
+        if isinstance(cause, psycopg.Error):
+            raise cause from exhausted
+        raise
     status = _RETRY if payload["outcome"] == "retry" else _OK
     return status, _envelope(
         "demo_gate_run",

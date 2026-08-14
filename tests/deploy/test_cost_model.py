@@ -53,16 +53,86 @@ from scripts.deploy import cost_model as cm
 
 REPO_ROOT = cm.REPO_ROOT
 
-#: The six documents whose live claims this wave's measurements falsified. The plan-count
-#: ratchet below reads all of them.
+#: THE RATCHET'S APERTURE. Every doc-truth check in this file and in
+#: `tests/deploy/test_docs_are_true.py` sweeps exactly this list, so the list IS the
+#: aperture and shrinking it is the same move as lowering a floor.
+#:
+#: It held six paths until 2026-08-14, and **none of them was under `docs/submission/`**.
+#: That hole was not theoretical: `docs/submission/RULES-MATRIX.md` carried a shipping plan
+#: count of `11` that no committed artefact supported, in the same file that explains this
+#: very ratchet, and the sweep could not see it. `docs/submission/JUDGING-AXES.md` still
+#: does. A judge reads the submission directory FIRST; excluding it from the ratchet
+#: inverted the priority.
+#:
+#: The rule for membership, so the next person does not have to guess: a document belongs
+#: here if a reader takes it as CURRENT TRUTH about this repository's deploy or its
+#: submission. Lead plans under `docs/leads/` and dated verification records under
+#: `docs/verify/` and `docs/diagnosis/` are deliberately NOT here -- they are records of
+#: what was true on a date, and a ratchet that demanded they be re-typed would be demanding
+#: that history be falsified.
 LIVE_DOCS = (
+    # The deploy surface: what would be created, what it costs, how it is watched.
     "docs/deploy/COST-BOUND.md",
     "docs/deploy/JUDGE-PACK.md",
+    "docs/deploy/LATENCY.md",
     "docs/deploy/OBSERVABILITY.md",
     "docs/deploy/PRE-APPLY.md",
+    "docs/deploy/RUNBOOK.md",
     "docs/deploy/terraform-plan.md",
+    "docs/deploy/cloud-database.md",
+    "docs/deploy/console-build.md",
+    "docs/deploy/gate-run-contract.md",
+    "docs/deploy/lambda-bundle.md",
+    "docs/deploy/replay-fallback.md",
+    "docs/deploy/unproduced-tables.md",
+    # The two top-level pages a reviewer opens before anything else.
     "docs/STATE-OF-THE-BUILD.md",
+    "docs/TOOL-USAGE.md",
+    # The submission directory. A judge starts here, so the ratchet must too.
+    "docs/submission/DEVPOST.md",
+    "docs/submission/RULES-MATRIX.md",
+    "docs/submission/JUDGE-START.md",
+    "docs/submission/JUDGING-AXES.md",
+    "docs/submission/FIRST-FIVE-MINUTES.md",
+    "docs/submission/PUBLIC-READINESS.md",
+    "docs/submission/RUNBOOK.md",
 )
+
+
+def markdown_paragraphs(text: str) -> list[list[tuple[int, str]]]:
+    """Blank-line-separated blocks of `(line number, line)`.
+
+    Shared with `tests/deploy/test_docs_are_true.py`. Several exemptions below and there
+    are scoped to a paragraph rather than a line for one measured reason: this repository
+    wraps prose at ~95 columns, so a sentence and the correction that annotates it
+    routinely land on different lines. A table row, by contrast, is one line, so for tables
+    "same paragraph" and "same row" coincide.
+    """
+    blocks: list[list[tuple[int, str]]] = []
+    current: list[tuple[int, str]] = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if line.strip():
+            current.append((number, line))
+        elif current:
+            blocks.append(current)
+            current = []
+    if current:
+        blocks.append(current)
+    return blocks
+
+
+def markdown_sections(text: str) -> list[list[tuple[int, str]]]:
+    """Blocks delimited by ATX headings, each including its own heading line."""
+    blocks: list[list[tuple[int, str]]] = []
+    current: list[tuple[int, str]] = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        if line.startswith("#") and current:
+            blocks.append(current)
+            current = []
+        current.append((number, line))
+    if current:
+        blocks.append(current)
+    return blocks
 
 
 # ─────────────────────────────────────────────────────────────────────────────────────────
@@ -549,7 +619,19 @@ def test_the_evidence_file_carries_its_reuse_license_sidecar():
 # 7. THE DOCUMENT RATCHET.
 # ─────────────────────────────────────────────────────────────────────────────────────────
 
-_PLAN_COUNT = re.compile(r"Plan:\s*(\d+)\s*to add")
+#: What a `terraform plan` transcript actually prints. Used to read the AUTHORITATIVE side
+#: -- the committed artefacts -- because that is the only form they emit.
+_PLAN_COUNT_VERBATIM = re.compile(r"Plan:\s*(\d+)\s*to add")
+
+#: What a DOCUMENT may write, which is not the same thing. The `Plan:` prefix was optional
+#: all along and nobody had noticed: `docs/submission/RULES-MATRIX.md` wrote the shipping
+#: count as `committed: 11 to add, 0 to change, 0 to destroy` with no prefix, and the
+#: ratchet read straight past it. A pattern that only catches the count when it is written
+#: in one particular way is a pattern that teaches authors which spelling is unchecked.
+#:
+#: The negative lookbehind keeps `1,024 to add` and version-like `1.11 to add` out; the
+#: count is a bare integer in both the artefact and every document that quotes it.
+_PLAN_COUNT = re.compile(r"(?<![\d.,])(\d+)\s+to add\b")
 
 #: The ONE documented exception, and it is narrow on purpose.
 #:
@@ -569,12 +651,46 @@ def _plan_counts_supported_by_evidence() -> dict[int, list[str]]:
     """Every plan count any committed plan artefact currently reports."""
     supported: dict[int, list[str]] = {}
     for path in sorted((REPO_ROOT / "evidence").rglob("terraform-plan-*.txt")):
-        for found in _PLAN_COUNT.findall(path.read_text(encoding="utf-8", errors="replace")):
+        for found in _PLAN_COUNT_VERBATIM.findall(
+            path.read_text(encoding="utf-8", errors="replace")
+        ):
             supported.setdefault(int(found), []).append(
                 str(path.relative_to(REPO_ROOT)).replace("\\", "/")
             )
     assert supported, "no committed terraform plan artefact reports a resource count"
     return supported
+
+
+def stale_plan_counts(relative: str, text: str, supported: set[int]) -> list[str]:
+    """Every line in one document that quotes a count no committed artefact reports.
+
+    A pure function over `(path, text, supported)` on purpose: the falsification tests
+    below drive it with SYNTHETIC documents, which is the only way to show it going red for
+    the right reason. A ratchet that has only ever been observed returning `[]` is
+    indistinguishable from `return []`.
+    """
+    stale: list[str] = []
+    for paragraph in markdown_paragraphs(text):
+        blob = " ".join(line for _, line in paragraph)
+        # The correction must be ADJACENT to the claim it corrects, because that is the
+        # only place a reader looks for it. `Plan: 24` counts even without `to add`.
+        corrected_here = (
+            bool({int(f) for f in _PLAN_COUNT.findall(blob)} & supported)
+            or bool({int(f) for f in _PLAN_COUNT_VERBATIM.findall(blob)} & supported)
+            or any(int(f) in supported for f in re.findall(r"Plan:\s*(\d+)", blob))
+        )
+        for number, line in paragraph:
+            if _UNARTEFACTED_VARIANT_MARKER in line:
+                continue
+            for found in _PLAN_COUNT.findall(line):
+                if int(found) in supported or corrected_here:
+                    continue
+                stale.append(
+                    f"{relative}:{number} says '{found} to add', which no committed plan "
+                    f"artefact reports, and no line in its paragraph states a count that "
+                    f"one does"
+                )
+    return stale
 
 
 def test_the_shipping_plan_count_in_the_docs_matches_the_plan_evidence():
@@ -589,6 +705,24 @@ def test_the_shipping_plan_count_in_the_docs_matches_the_plan_evidence():
     A doc claim that disagrees with the evidence is stale whether or not anybody noticed,
     and the fix is ALWAYS to re-read the regenerated evidence -- never to edit the evidence
     to match the doc.
+
+    TWO APERTURE GAPS CLOSED ON 2026-08-14, both measured rather than supposed:
+
+    1. `LIVE_DOCS` held no `docs/submission/` file, so a stale count in the very directory
+       a judge opens first was invisible here.
+    2. `_PLAN_COUNT` required the literal prefix `Plan:`, and `RULES-MATRIX.md` wrote its
+       count without one. Widening the list alone would still have missed it.
+
+    THE HISTORY EXEMPTION, and why it cannot launder a stale count. The preservation rule
+    requires a superseded claim to be *"struck through or annotated in place, never
+    removed"*, so a document that says *"this bullet said `11 to add` until 2026-08-14"* is
+    obeying the rules, not breaking them. Such a line is exempt only when the SAME
+    PARAGRAPH also states a count a committed artefact supports -- the correction must be
+    adjacent to the claim it corrects, because that is the only place a reader will find
+    it. A stale count is precisely one whose paragraph never states the supported number,
+    so the exemption cannot be used to smuggle one through; and the supported set is read
+    from `evidence/` at run time, so when the artefact moves the exemption stops matching
+    and every annotated paragraph is re-read.
     """
     supported = _plan_counts_supported_by_evidence()
     stale: list[str] = []
@@ -596,27 +730,109 @@ def test_the_shipping_plan_count_in_the_docs_matches_the_plan_evidence():
         path = REPO_ROOT / relative
         if not path.exists():
             continue
-        for number, line in enumerate(
-            path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
-        ):
-            if _UNARTEFACTED_VARIANT_MARKER in line:
-                continue
-            for found in _PLAN_COUNT.findall(line):
-                if int(found) not in supported:
-                    stale.append(
-                        f"{relative}:{number} says 'Plan: {found} to add', which no "
-                        f"committed plan artefact reports"
-                    )
+        stale.extend(
+            stale_plan_counts(
+                relative, path.read_text(encoding="utf-8", errors="replace"), set(supported)
+            )
+        )
 
     assert not stale, (
         "The committed plan artefacts report "
         + ", ".join(
-            f"{count} ({'; '.join(sorted(set(where)))})" for count, where in sorted(supported.items())
+            f"{count} ({'; '.join(sorted(set(where)))})"
+            for count, where in sorted(supported.items())
         )
         + ".\nThese live claims quote a count nothing supports:\n  "
         + "\n  ".join(stale)
         + "\nRe-read the regenerated plan evidence and correct the documents. Do NOT edit "
         "the evidence file to match the documents."
+    )
+
+
+def test_falsification__a_count_written_without_the_plan_prefix_is_still_caught():
+    """The measured aperture gap, synthesised. This is why `_PLAN_COUNT` was widened.
+
+    `docs/submission/RULES-MATRIX.md` wrote its shipping count as
+    `committed: 11 to add, 0 to change, 0 to destroy` -- no `Plan:` prefix -- and the old
+    pattern read straight past it. Widening `LIVE_DOCS` alone would not have caught it, so
+    both had to move, and both are asserted here rather than described.
+    """
+    supported = set(_plan_counts_supported_by_evidence())
+    unsupported = max(supported) + 1_000  # cannot collide with a real artefact count
+
+    prefixed = f"The stack plans `Plan: {unsupported} to add, 0 to change, 0 to destroy`.\n"
+    bare = f"committed: {unsupported} to add, 0 to change, 0 to destroy\n"
+    for label, fragment in (("with the prefix", prefixed), ("without it", bare)):
+        assert stale_plan_counts("synthetic.md", fragment, supported), (
+            f"a count of {unsupported} written {label} was not caught, so a document can "
+            "quote a resource count no committed artefact supports simply by choosing a "
+            "spelling. The committed plan artefact is the authoritative side."
+        )
+
+    # And a SUPPORTED count in either spelling must not be flagged, or the checker is
+    # banning the sentence rather than checking the number.
+    real = min(supported)
+    assert not stale_plan_counts("synthetic.md", f"the plan is {real} to add today\n", supported)
+
+
+def test_falsification__the_unartefacted_variant_exemption_cannot_launder_a_stale_count():
+    """The one documented exception stays narrow, and this is what keeps it narrow.
+
+    `terraform-plan.md` §5 tabulates a `site with no API` variant whose count was measured
+    but whose artefact was never committed. The exemption is keyed to that row's own words,
+    so smuggling a stale SHIPPING count through it would require writing "site with no API"
+    beside it -- which is a lie a reader can see. This test asserts both halves: the marker
+    still exempts its own row, and removing the marker un-exempts it.
+    """
+    supported = set(_plan_counts_supported_by_evidence())
+    unsupported = max(supported) + 1_000
+
+    exempt = (
+        f"| `true` | `false` | `Plan: {unsupported} to add` -- {_UNARTEFACTED_VARIANT_MARKER} |\n"
+    )
+    assert not stale_plan_counts("synthetic.md", exempt, supported), (
+        "the documented `site with no API` exemption stopped working, so the one variant "
+        "this repository measured without committing an artefact now fails the ratchet. "
+        "Re-read docs/deploy/terraform-plan.md §5 before touching this."
+    )
+
+    without_marker = exempt.replace(f" -- {_UNARTEFACTED_VARIANT_MARKER}", "")
+    assert stale_plan_counts("synthetic.md", without_marker, supported), (
+        "the same row without its marker was still exempt, so the exemption is not keyed "
+        "to the row's own words and could be used to launder a stale shipping count."
+    )
+
+
+def test_falsification__an_annotated_history_needs_its_correction_in_the_same_paragraph():
+    """The preservation rule is honoured, and it is not a free pass.
+
+    A document MUST be able to say *"this bullet said `11 to add` until 2026-08-14"* -- the
+    preservation rule requires the superseded claim to stay visible. It may do so only
+    where the correction is adjacent, because a correction a reader never reaches is not a
+    correction. This control asserts the exemption exists AND that it evaporates when the
+    supported count is not in the same paragraph.
+    """
+    supported = set(_plan_counts_supported_by_evidence())
+    unsupported = max(supported) + 1_000
+    real = min(supported)
+
+    adjacent = (
+        f"The plan reads `Plan: {real} to add, 0 to change, 0 to destroy`.\n"
+        f"*This bullet said `{unsupported} to add` until 2026-08-14.*\n"
+    )
+    assert not stale_plan_counts("synthetic.md", adjacent, supported), (
+        "a superseded count recorded beside its correction was flagged, which would push "
+        "an author to DELETE the history. A claim deleted is not a claim corrected."
+    )
+
+    orphaned = (
+        f"The plan reads `Plan: {real} to add, 0 to change, 0 to destroy`.\n\n"
+        f"*This bullet said `{unsupported} to add` until 2026-08-14.*\n"
+    )
+    assert stale_plan_counts("synthetic.md", orphaned, supported), (
+        "the same history in a paragraph of its own was exempt, so the exemption reaches "
+        "across the whole document and any stale count anywhere in a file that states the "
+        "right one once would be laundered."
     )
 
 
@@ -628,7 +844,7 @@ def test_the_shipping_plan_count_is_actually_stated_somewhere_live():
     """
     shipping = {
         int(c)
-        for c in _PLAN_COUNT.findall(
+        for c in _PLAN_COUNT_VERBATIM.findall(
             cm.PLAN_EVIDENCE.read_text(encoding="utf-8", errors="replace")
         )
     }
@@ -659,12 +875,20 @@ def test_line_references_into_the_plan_evidence_point_at_the_plan_line():
     Added because this exact reference had drifted to 339 against a real line of 336 -- the
     kind of rot that is invisible until a reviewer follows the citation, finds an unrelated
     line, and stops trusting the rest of the document.
+
+    WIDENED 2026-08-14 for the same reason `_PLAN_COUNT` was: the pattern required the word
+    `at` and an 80-character window, and `docs/submission/JUDGING-AXES.md` writes the
+    citation as ``line `339` `` after a full markdown link to the artefact -- which is
+    roughly 120 characters on its own. A pattern that only sees one phrasing does not check
+    the citation; it checks the phrasing, and it teaches authors which phrasing is
+    unwatched. The window was measured, not guessed: 160 catches that citation and 200
+    catches nothing further in any live document.
     """
     plan_lines = cm.PLAN_EVIDENCE.read_text(encoding="utf-8", errors="replace").splitlines()
-    real = [n for n, line in enumerate(plan_lines, start=1) if _PLAN_COUNT.search(line)]
+    real = [n for n, line in enumerate(plan_lines, start=1) if _PLAN_COUNT_VERBATIM.search(line)]
     assert len(real) == 1, f"expected one plan-count line in {cm.PLAN_EVIDENCE}, found {real}"
 
-    cited = re.compile(r"Plan:\s*\d+\s*to add[^\n]{0,80}?at line (\d+)")
+    cited = re.compile(r"Plan:\s*\d+\s*to add[^\n]{0,160}?\bline\s*`?(\d+)`?")
     wrong: list[str] = []
     for relative in LIVE_DOCS:
         path = REPO_ROOT / relative

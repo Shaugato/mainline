@@ -69,6 +69,11 @@
 #   7  terraform init, validate or plan failed
 #   8  the run left residue in the working tree (this should be unreachable)
 #   9  the plan is valid but carries a value PRE-APPLY.md's gate refuses (§ G6)
+#  10  a GITIGNORED BUILD INPUT the plan reads is missing — the deployment zip named by
+#      `var.lambda_package_path`. A fresh clone never has it; `scripts/deploy/
+#      build_lambda.sh` makes it. Measured from a fresh clone on 2026-08-14: without this
+#      check the run got as far as rendering the whole plan and then died inside
+#      `filebase64sha256`, which reads as a Terraform bug rather than a missing build
 # END-USAGE
 
 set -euo pipefail
@@ -374,6 +379,66 @@ if [ "$MODE" = "prove-expiry" ]; then
 fi
 
 check_equivalence
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+#  STAGE 2b · THE GITIGNORED BUILD INPUT THE PLAN READS, checked before terraform is asked
+# ══════════════════════════════════════════════════════════════════════════════════════
+#
+# MEASURED 2026-08-14 from a genuinely fresh clone of github.com/Shaugato/mainline at
+# `eefae1c`: stage 1, stage 2, `init -reconfigure` and `validate` all succeeded, the plan
+# rendered its whole output diff, and only then did the run die with
+#
+#   Error: Error in function call
+#     on ..\..\modules\demo-api\main.tf line 342, in resource "aws_lambda_function" "this":
+#    342:   source_code_hash = filebase64sha256(var.package_path)
+#   Call to function "filebase64sha256" failed: open
+#   ..\..\..\out\lambda\mainline-demo-api-arm64.zip: The system cannot find the path
+#   specified.
+#
+# `out/` is gitignored (`.gitignore:9`), so the deployment zip is NOT in a fresh clone,
+# and `filebase64sha256` is evaluated at PLAN time rather than at apply time. Without
+# this check a reviewer meets that as a Terraform stack trace ninety seconds into a run
+# that has already printed four green steps. The refusal is a NEW exit code, not a
+# relaxation of anything: nothing here touches the allowlist or the stage-2 equivalence.
+#
+# The path is read out of the root's own `default` rather than hardcoded here, so moving
+# `variable "lambda_package_path"` cannot leave this check pointing at the wrong file and
+# reporting a green.
+say ""
+say "== 2b · the build inputs the plan reads (gitignored; not in a fresh clone)"
+
+PKG_REL="$(awk '/^variable "lambda_package_path"/{f=1}
+                f && /^ *default *=/{sub(/^ *default *= *"/,""); sub(/".*$/,""); print; exit}' \
+           "$ENV_DIR/variables.tf")"
+if [ -z "$PKG_REL" ]; then
+  step "package path" "UNREADABLE from $ENV_DIR/variables.tf — skipping this check"
+else
+  PKG_ABS="$ENV_DIR/$PKG_REL"
+  if [ -f "$PKG_ABS" ]; then
+    step "lambda package" "$PKG_REL   [present]"
+  else
+    die "THE PLAN CANNOT BE PRODUCED: the deployment package is missing.
+
+  var.lambda_package_path defaults to
+      $PKG_REL
+  resolved against infra/envs/demo, and no file is there.
+
+  \`out/\` is gitignored, so a FRESH CLONE never has it, and
+  infra/modules/demo-api/main.tf:342 calls filebase64sha256() on it at PLAN time — so
+  this is not an apply-time problem you can defer. Build it first:
+
+      scripts/deploy/build_lambda.sh          # arm64, the deployed default
+
+  and note that the build reads verticals/mainline/apps/console/dist/, which is ALSO a
+  gitignored build output — build the console before the package. docs/deploy/
+  terraform-plan.md § 1.3 is the numbered fresh-clone runbook and lists both in order.
+
+  The package's bytes reach the plan as ONE value, source_code_hash. It does not change
+  the resource count, so a plan produced with a different package is still 'Plan: 24 to
+  add' — but it is not byte-identical to the committed artefact, and § 1.3 says which
+  differences are expected and which would be findings." 10
+  fi
+fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════
 #  STAGE 3 · The override, written outside the repository's state and removed on any exit

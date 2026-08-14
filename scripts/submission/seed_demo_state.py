@@ -66,6 +66,9 @@ from types import ModuleType
 from typing import Any
 
 import psycopg
+from trappoint_testkit.txn import from_dsn, run_txn
+
+from trappoint_core.errors import TrappointError
 
 #: EVERY CAMERA-FACING LINE FITS IN THIS MANY COLUMNS — the `--camera` block and the
 #: caveat. That is a camera decision rather than a style one: a terminal soft-wraps a long
@@ -515,8 +518,58 @@ def _refuses(
     return "00000", "", "the statement SUCCEEDED and was rolled back"
 
 
+def _merge_observation(merge: dict) -> str:
+    """One line for the readiness table, and a DIFFERENT one for each of three outcomes.
+
+    Three, because ``gate_refusal.attempt_merge`` now distinguishes three and they have
+    three different remedies:
+
+    * ``ADMITTED`` — the gate let it through AND the admission committed. The database is
+      spent; rebuild before recording.
+    * ``UNDECIDED`` — ``40001``. The transaction was RESTARTED, not answered. Before this
+      wave that arrived here as ``REFUSED [40001]`` and this row simply read false, which
+      invites the reading *"the gate refused for the wrong reason"* — a statement about the
+      product. It is not one. Re-run; nothing here is filmable either way.
+    * anything else — the SQLSTATE, the exhibit, and how the exhibit was obtained.
+    """
+    outcome = merge.get("outcome")
+    if outcome == "ADMITTED":
+        return (
+            "ADMITTED [00000] — the gate let it through, and the admission COMMITTED. "
+            "This database is SPENT; rebuild it before recording."
+        )
+    if outcome == "UNDECIDED":
+        return (
+            "UNDECIDED [40001] — the transaction was RESTARTED, not answered. That is "
+            "contention, not a verdict about the gate: nothing is filmable from this row. "
+            "Re-run this script; if it persists, something is holding a conflicting "
+            "transaction against this database."
+        )
+    return (
+        f"{outcome} [{merge.get('sqlstate')}] "
+        f"{merge.get('constraint') or '(no exhibit)'} ({merge.get('constraint_source')})"
+    )
+
+
 def probe_merge_refusal(conn: psycopg.Connection[Any], proof: ModuleType, found: Found) -> dict:
-    """Shots s08/s09: the merge our client attempts, and the refusal it renders."""
+    """Shots s08/s09: the merge our client attempts, and the refusal it renders.
+
+    NOT RETRIED, ON PURPOSE. This is a REFUSAL probe: what it exists to obtain is
+    ``23514 gate_closed_when_issued``, and ``spec/errors.md`` §4 says a refusal is attempted
+    exactly once, ever. Wrapping it in a retry would be the one use of a retry this
+    repository forbids outright. ``attempt_merge`` catches the refusal itself and rolls back,
+    so a ``40001`` arriving here comes out as ``{"outcome": "REFUSED", "sqlstate": "40001"}``
+    — which is why ``gate_refusal.attempt_merge`` now classifies ``40001`` as ``UNDECIDED``
+    instead; see its docstring. A camera take that reports UNDECIDED is a take to re-shoot,
+    not a finding about the gate.
+
+    RECORDED, NOT REPAIRED: ``attempt_merge`` COMMITS when the merge is ADMITTED, which on
+    this path would merge the film's demo permit for real. An admission here is already the
+    finding — the gate would be broken — but the commit means the finding also destroys the
+    state the next take needs. Changing that belongs with ``gate_refusal.py``'s own proof,
+    where beat 4's admission MUST commit, so it is written down rather than quietly altered
+    from the caller that noticed it.
+    """
     history = history_from(proof, found)
     return proof.attempt_merge(conn, history)
 
@@ -677,17 +730,7 @@ def verify(conn: psycopg.Connection[Any], proof: ModuleType, table: Table) -> Fo
         and merge.get("sqlstate") == proof.CF01_SQLSTATE
         and merge.get("constraint") == proof.CF01_EXHIBIT
     )
-    if merge.get("outcome") == "ADMITTED":
-        observed = (
-            "ADMITTED [00000] — the gate let it through, and the admission COMMITTED. "
-            "This database is SPENT; rebuild it before recording."
-        )
-    else:
-        observed = (
-            f"{merge.get('outcome')} [{merge.get('sqlstate')}] "
-            f"{merge.get('constraint') or '(no exhibit)'} ({merge.get('constraint_source')})"
-        )
-    table.add("merge REFUSES", hit, observed, shots="s08 s09")
+    table.add("merge REFUSES", hit, _merge_observation(merge), shots="s08 s09")
 
     state, _exhibit2, message = probe_raw_update(conn, proof, found)
     table.add(
@@ -788,20 +831,37 @@ def build(args: argparse.Namespace, proof: ModuleType, root: Path, table: Table)
             shots="s08 s09",
         )
 
-        work.autocommit = False
-        work.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        # ONE whole transaction, retried on 40001 by the repository's ONE retry loop.
+        #
+        # CONTENDED. `proof.seed_history` issues ~30 statements ending in two
+        # `mainline.permit_event` INSERTs that each read the previous row's `chain_digest`
+        # and then UPDATE `mainline.permit` — a read-modify-write over one row under
+        # SERIALIZABLE. `tests/concurrency/test_seed_permit_needs_retry.py` races that exact
+        # shape and gets 40001 in 6 of 6 races on a SINGLE-NODE local node, so this was
+        # never provably safe here either; and this script is pointed at whatever
+        # `--dsn`/`--database` names, which for a submission take may be the multi-node
+        # Cloud cluster, where a restart needs no second writer at all.
+        #
+        # The DSN and not `work`: `run_txn` opens a FRESH connection per attempt, because a
+        # retry that reused this one would replay statements into a transaction CockroachDB
+        # has already aborted — spec/errors.md §2.1. `work` therefore stays autocommit and
+        # keeps doing what it was opened for, which is the migration chain above.
         try:
-            history = proof.seed_history(work)
-        except psycopg.Error as exc:
-            work.rollback()
+            history = run_txn(from_dsn(dsn), proof.seed_history, subject_kind="permit")
+        except (psycopg.Error, TrappointError) as exc:
+            # `TrappointError` as well as `psycopg.Error`: `run_gate` translates the
+            # database's verdict into GateRefused / AuthorisationDenied / UnmodelledRefusal /
+            # RetryBudgetExhausted, none of which is a psycopg exception. A bare
+            # `except psycopg.Error` here would let a refusal escape this function as a
+            # traceback instead of a row in the readiness table.
+            state = getattr(exc, "sqlstate", None) or proof._sqlstate(exc) or "?"
             table.add(
                 "seed history",
                 False,
-                f"[{proof._sqlstate(exc)}] {proof._message(exc)[:80]}",
+                f"[{state}] {' '.join(str(exc).split())[:80]}",
                 shots="all",
             )
             return dsn
-        work.commit()
         table.add(
             "seed history",
             True,
