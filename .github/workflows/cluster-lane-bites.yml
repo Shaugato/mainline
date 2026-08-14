@@ -366,6 +366,13 @@ jobs:
         # recorded because cell 3 must reproduce it EXACTLY: "green with the plant present"
         # is a claim about tests that RAN, and 71 skips are green in the same way a deleted
         # test is green.
+        #
+        # TWO numbers are handed to cell 3, not one, and the second is why this step writes
+        # JSON rather than the bare integer it used to. `executed` counts collected minus
+        # skipped, so it is EQUAL for a run in which a test ran and passed and a run in
+        # which the same test ran and FAILED. Cell 3's claim is that the hermetic lane
+        # cannot tell the two trees apart, and a cell 3 that executed the same 7 and passed
+        # only 6 of them has told them apart. `passed` is what makes that sayable.
         run: |
           # trappoint:pytest-lane=hermetic
           set -euo pipefail
@@ -384,18 +391,22 @@ jobs:
           uv run --frozen --all-packages pytest "${subset_paths[@]}" \
             --crdb=none -q -p no:cacheprovider --junit-xml="${ART}/junit-absent-hermetic.xml"
           python3 - <<'PY'
-          import os, pathlib, sys, xml.etree.ElementTree as ET
+          import json, os, pathlib, sys, xml.etree.ElementTree as ET
           s = ET.parse(os.environ["ART"] + "/junit-absent-hermetic.xml").getroot()
           s = s if s.tag == "testsuite" else s.find("testsuite")
           executed = int(s.get("tests", "0")) - int(s.get("skipped", "0"))
+          bad = int(s.get("failures", "0")) + int(s.get("errors", "0"))
+          passed = executed - bad
           floor = int(os.environ["HERMETIC_FLOOR"])
-          print(f"cell 2/4: {executed} executed with no cluster (floor {floor})")
+          print(f"cell 2/4: {executed} executed with no cluster (floor {floor}), {passed} passed")
           if executed < floor:
               print(f"::error title=the hermetic baseline ran nothing::{executed} test(s) "
                     f"executed, floor {floor}. Cell 3 compares against this number, and a "
                     "comparison against zero is satisfied by a lane that asserts nothing.")
               sys.exit(1)
-          pathlib.Path(os.environ["ART"], "hermetic-executed.txt").write_text(str(executed), encoding="utf-8")
+          pathlib.Path(os.environ["ART"], "hermetic-absent.json").write_text(
+              json.dumps({"executed": executed, "passed": passed}), encoding="utf-8"
+          )
           PY
 
       # ── THE PLANT. Between here and the revert, the tree carries a deliberate defect.
@@ -430,6 +441,17 @@ jobs:
         # If this cell is ever RED, DO NOT relax it. It means the plant is visible without
         # a database, the cluster lane is not what proves this defect, and the plant must
         # change.
+        #
+        # WHY PYTEST'S STATUS IS BRACKETED HERE THE WAY CELL 4 BRACKETS IT, THOUGH THE
+        # EXPECTATION IS THE OPPOSITE ONE. Until 2026-08-14 a red pytest killed this step
+        # under `set -e`, before a single number was read out of the report - so the one
+        # outcome this cell exists to detect arrived as `Process completed with exit code 1`
+        # and nothing else, at the bottom of a log, and the reader had to reconstruct from
+        # pytest's scroll whether the plant had become visible or the collection had
+        # shrunk. Those two have OPPOSITE repairs: the first needs a DIFFERENT PLANT, the
+        # second needs the subset looked at. The status is still fatal and the assertions
+        # below are strictly stronger than the ones they replace; what changed is that the
+        # counts are now read and printed FIRST, so the step says which of the two it is.
         run: |
           # trappoint:pytest-lane=hermetic
           set -euo pipefail
@@ -445,20 +467,69 @@ jobs:
           # banned repository-wide, so the lane could not land while it was red. The name
           # is the fix; the array and its quoting are unchanged.
           read -r -a subset_paths <<< "${SUBSET}"
+          set +e
           uv run --frozen --all-packages pytest "${subset_paths[@]}" \
             --crdb=none -q -p no:cacheprovider --junit-xml="${ART}/junit-planted-hermetic.xml"
+          rc=$?
+          set -e
+          echo "pytest exited ${rc} with the plant present, under --crdb=none"
+          export PLANTED_HERMETIC_RC="${rc}"
           python3 - <<'PY'
-          import os, pathlib, sys, xml.etree.ElementTree as ET
-          s = ET.parse(os.environ["ART"] + "/junit-planted-hermetic.xml").getroot()
-          s = s if s.tag == "testsuite" else s.find("testsuite")
+          import json, os, pathlib, sys, xml.etree.ElementTree as ET
+
+          art = pathlib.Path(os.environ["ART"])
+          report = art / "junit-planted-hermetic.xml"
+          rc = int(os.environ["PLANTED_HERMETIC_RC"])
+          if not report.is_file():
+              print("::error title=the planted hermetic cell wrote no report::pytest exited "
+                    f"{rc} without leaving {report}, so it died before it collected - a "
+                    "plugin, an import, or the plant breaking a file the collector reads. "
+                    "That is not a measurement of whether the hermetic lane can see the "
+                    "plant, so this cell makes no claim.")
+              sys.exit(1)
+          root = ET.parse(report).getroot()
+          s = root if root.tag == "testsuite" else root.find("testsuite")
           executed = int(s.get("tests", "0")) - int(s.get("skipped", "0"))
-          before = int(pathlib.Path(os.environ["ART"], "hermetic-executed.txt").read_text(encoding="utf-8"))
-          print(f"cell 3/4: {executed} executed with the plant present; cell 2 ran {before}")
-          if executed != before:
+          bad = int(s.get("failures", "0")) + int(s.get("errors", "0"))
+          passed = executed - bad
+          before = json.loads((art / "hermetic-absent.json").read_text(encoding="utf-8"))
+          floor = int(os.environ["HERMETIC_FLOOR"])
+
+          # BOTH numbers, side by side, before any verdict: this is the comparison the whole
+          # lane turns on and a reader must be able to see it without opening an artefact.
+          print(f"cell 3/4: {executed} executed with the plant present; "
+                f"cell 2 ran {before['executed']}  (floor {floor})")
+          print(f"cell 3/4: {passed} passed with the plant present; "
+                f"cell 2 passed {before['passed']}")
+
+          # A floor of its own, and not only equality with cell 2. Equality with a number
+          # that was itself floored is enough arithmetically; stating the floor here is what
+          # makes this cell READABLE as a claim rather than as a reference to another one,
+          # and it is what the summary table below already prints beside this row.
+          if executed < floor:
+              print(f"::error title=the planted hermetic cell ran nothing::{executed} "
+                    f"test(s) executed, floor {floor}. pytest exits 0 when every test skips, "
+                    "so 'green with the plant present' would be true of a run that asserted "
+                    "nothing at all.")
+              sys.exit(1)
+          if executed != before["executed"]:
               print(f"::error title=the two hermetic cells did not run the same tests::"
-                    f"{executed} executed with the plant, {before} without it. The cells "
-                    "are no longer comparable, so no claim about invisibility can be made "
-                    "from them.")
+                    f"{executed} executed with the plant, {before['executed']} without it. "
+                    "The cells are no longer comparable, so no claim about invisibility can "
+                    "be made from them.")
+              sys.exit(1)
+          if rc != 0 or passed != before["passed"]:
+              print("::error title=THE PLANT IS VISIBLE TO THE HERMETIC LANE::the same "
+                    f"{executed} test(s) ran on both trees, but {passed} passed with the "
+                    f"plant against {before['passed']} without it (pytest exited {rc}). "
+                    "This cell is the whole argument for cluster-tests.yml: it claims a "
+                    "defect only a database can see is INVISIBLE without one. A red here "
+                    "falsifies that claim for THIS plant, which means the cluster lane is "
+                    "not what proves this defect. THE REPAIR IS A DIFFERENT PLANT - one no "
+                    "static ratchet and no hermetic assertion can reach - in "
+                    "scripts/ci/plant_cluster_defect.py's catalogue. It is NEVER to relax "
+                    "this assertion, never to narrow the matrix, and never to drop the "
+                    "count comparison for an exit status.")
               sys.exit(1)
           print("the hermetic lane cannot tell the planted tree from the clean one")
           PY
@@ -785,12 +856,27 @@ jobs:
           out.append("")
           out.append("| | plant ABSENT | plant PRESENT |")
           out.append("|---|---|---|")
+          # BOTH NUMBERS IN THE DISCRIMINATING CELL ITSELF, not only in the table below it.
+          # This is the comparison the lane exists to make, `$GITHUB_STEP_SUMMARY` is where
+          # a reader lands, and "the same count as plant-absent" is a claim whose evidence
+          # was three rows further down. Passed is printed beside executed because cell 3
+          # asserts equality on both: same tests RAN and the same ones PASSED.
+          same = (
+              m["3"]["executed"] == m["2"]["executed"]
+              and m["3"]["passed"] == m["2"]["passed"]
+          )
           out.append(
               f"| `--crdb=none` | GREEN - {m['2']['executed']} executed, "
-              f"{m['2']['skipped']} skipped (floor {hermetic_floor}) "
-              f"| **GREEN - {m['3']['executed']} executed, the same "
-              f"{'count' if m['3']['executed'] == m['2']['executed'] else 'cell, a DIFFERENT count'}"
-              " as plant-absent** |"
+              f"{m['2']['passed']} passed, {m['2']['skipped']} skipped "
+              f"(floor {hermetic_floor}) "
+              f"| **GREEN - {m['3']['executed']} executed, {m['3']['passed']} passed - "
+              + (
+                  f"the SAME counts as plant-absent ({m['2']['executed']}/{m['2']['passed']})"
+                  if same
+                  else f"DIFFERENT counts from plant-absent "
+                       f"({m['2']['executed']}/{m['2']['passed']})"
+              )
+              + "** |"
           )
           out.append(
               f"| `--crdb=reuse` | GREEN - {m['1']['executed']} executed, "

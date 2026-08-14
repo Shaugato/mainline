@@ -144,6 +144,137 @@ for ``demo_permit.sql`` - are kept here rather than deleted, because a replaced 
 leaves no trace teaches nobody what moved.
 
 ================================================================================
+THE RE-BASELINE OF 2026-08-14 (SECOND), AND THE NEGATIVE CONTROL THAT RAN BEFORE IT
+================================================================================
+
+The paragraph at the very bottom of this docstring predicted this commit by name. It said
+``demo_world.sql`` owed rows to ``mainline.defeater_option``, that the lead who landed them
+WOULD break this freeze, and that the freeze SHOULD notice. That is exactly what happened:
+``898ad55`` seeded the defeater vocabularies into BOTH deployed seed files - checks ``0007``
+in ``demo_permit.sql`` and ``000d`` in ``demo_world.sql``, each ``vocab_sha256`` aggregated
+by ``string_agg`` over its own rows rather than written down as a literal - and, like
+``eefae1c`` before it, did not re-measure the freeze in the same commit. So from ``898ad55``
+until this commit the two hash assertions were red at a CLEAN tree for the second time.
+
+``.github/workflows/cluster-lane-bites.yml`` run **31770005766** is where that surfaced, and
+it is worth recording what that run proved before it died, because the failure was NOT in the
+2x2. Cells 1-4 all passed - ``cell 1/4: 77 executed under a cluster (floor 77)``,
+``cell 2/4: 7 executed with no cluster (floor 7)``, ``cell 3/4: 7 executed with the plant
+present; cell 2 ran 7``, and ``cell 4/4: 3 failure(s)/error(s) under a cluster`` with
+``test_the_deployed_seed_does_not_enrol_the_value_gate_run_used_to_derive`` among them - as
+did the inventory-cannot-suppress control and *"The frozen-seed guard is RED against this
+edit"*. Then *"The frozen-seed guard is GREEN again"*, which runs AFTER the revert on a tree
+the step above had just proved byte-for-byte clean, reported ``2 failed, 1 passed in 0.18s``.
+Red with the plant AND red without it discriminates nothing, so this file's sixth assertion
+had stopped being a proof again - and because the summary step deliberately carries no
+``if: always()``, the 2x2 table was SKIPPED and the lane's whole argument went unpublished.
+
+The same two failures also reddened ``ci``'s ``pytest --crdb=none`` job, so one guard left
+stale at a clean tree was holding two lanes down.
+
+The four-part negative control ran BEFORE any constant here was touched, and its entire job
+was to give this commit a way to come out "revert the seed instead". It came back clean on
+all four. Measured 2026-08-14 on TRAPPOINT at HEAD ``7535670``, tracked tree clean:
+
+1.  NO CREDENTIAL LINE MOVED IN THE SEED CHANGE BEING RE-BASELINED.
+
+        $ git diff eefae1c..7535670 --stat -- \\
+              verticals/mainline/db/seeds/demo/demo_world.sql \\
+              verticals/mainline/db/seeds/demo/demo_permit.sql
+         demo_permit.sql | 66 ++++++++++++++++++++++++
+         demo_world.sql  | 46 ++++++++++++++++
+         2 files changed, 112 insertions(+)
+
+        $ git diff eefae1c..7535670 -- <the same two files> \\
+          | grep -E '^[+-]' | grep -vE '^(\\+\\+\\+|---)' \\
+          | grep -cE "signing_credential|credential_id|digest\\('mainline-demo/credential/"
+        0
+
+    112 changed lines, **112 insertions and ZERO deletions**, and **zero** of them mention
+    ``signing_credential``, ``credential_id`` or the credential digest expression. A change
+    with no deletions cannot have moved a line that was already there, which is a stronger
+    statement than the 2026-08-13 re-baseline could make (that one had 31 deletions). What
+    did change: both files gained a ``mainline.defeater_option`` vocabulary for their own
+    obligation, with distinct codes per check because ``PRIMARY KEY (check_id,
+    defeater_code)`` makes a code meaningless outside the prompt beside it. Growth, in the
+    sense this file's header calls legitimate - not a reshaping of the enrolment.
+
+2.  THE CONTROL THAT CANNOT BE RE-BASELINED IS GREEN AT HEAD.
+
+        $ .venv/Scripts/python.exe -m pytest tests/ci/test_demo_seed_is_frozen.py \\
+              --crdb=none -q -p no:cacheprovider
+        2 failed, 1 passed in 0.77s
+
+    The 2 failed are the two hash assertions this commit re-baselines. **The 1 passed is
+    ``test_the_seed_derives_the_demo_credentials_from_their_names``** - run on its own,
+    ``1 passed in 0.81s``. It was passing before the re-baseline and is passing after it,
+    which is what makes the hash edit a re-measurement rather than a repair.
+
+3.  THE CLUSTER-BACKED CREDENTIAL CONTROLS PASS IN FULL, INCLUDING THE ONE THAT CAUGHT THE
+    ORIGINAL RESHAPING.
+
+        $ .venv/Scripts/python.exe -m pytest \\
+            verticals/mainline/apps/demo-api/tests/test_credentials.py \\
+            --crdb=reuse -q -p no:cacheprovider --junitxml=<report>
+        tests=17 failures=0 errors=0 skipped=0        (read from the JUnit, not the scroll)
+
+    ``skipped=0`` is the load-bearing half of that line: every one of the 17 is
+    ``requires_cluster``, so a run that had not reached a database would report 17 skips and
+    the same exit status. Among the 17 is
+    ``test_the_deployed_seed_does_not_enrol_the_value_gate_run_used_to_derive``, the control
+    whose message is *"the seed has been reshaped to match an application constant"*, and
+    the one the bites lane's plant declares as its ``caught_by``.
+
+4.  THE SEED STILL DERIVES EXACTLY ONE SIGNER FROM ITS NAME.
+
+        $ grep -n "digest('mainline-demo/credential/" \\
+              verticals/mainline/db/seeds/demo/demo_world.sql
+        124:    digest('mainline-demo/credential/demo.signer', 'sha256'),
+        132:    digest('mainline-demo/credential/demo.countersigner', 'sha256'),
+        $ derived=$(python -c "import hashlib
+        > print(hashlib.sha256(b'credsigner').hexdigest())")
+        $ grep -c "${derived}" verticals/mainline/db/seeds/demo/demo_world.sql
+        0
+
+    One signer enrolment, one countersigner enrolment, both still written as a digest OF A
+    NAME - and on the SAME LINES as the 2026-08-13 reading, 124 and 132, because the change
+    appended and deleted nothing. The 32-byte constant ``gate_run`` once derived appears
+    nowhere in the file.
+
+Had any of the four come back otherwise, the answer was to revert ``898ad55``'s seed rows and
+NOT to touch the constants below. They did not, so the hashes were re-measured. This is the
+SECOND time this re-baseline has arrived in a later commit than the seed change it describes,
+and that is a process defect being recorded rather than a rule relaxing: the same-commit rule
+in "HOW TO RE-BASELINE" below still stands, and the four-part control is the more expensive
+substitute for the review it did not get.
+
+AND THEN STEP 4 OF THE PROCEDURE, WHICH IS THE ONE THAT SAYS THE RE-BASELINE DID NOT COST
+ANYTHING. A freeze that is green at a clean tree AND green against the plant is not a freeze;
+re-baselining is the edit most likely to produce that, so it is checked here rather than left
+to the lane. Measured 2026-08-14 at ``7535670`` with the constants below already replaced,
+by planting and reverting in one sequence::
+
+    $ python scripts/ci/plant_cluster_defect.py --plant seed-credential-swap
+    planted 'seed-credential-swap' in .../demo_world.sql:124
+    $ pytest tests/ci/test_demo_seed_is_frozen.py --crdb=none -q -p no:cacheprovider
+    FAILED ...::test_the_deployed_seed_files_have_not_changed[demo_world.sql]
+    FAILED ...::test_the_seed_derives_the_demo_credentials_from_their_names
+    2 failed, 1 passed in 0.48s                                  (pytest exited 1)
+    $ python scripts/ci/plant_cluster_defect.py --revert
+    reverted 'seed-credential-swap': .../demo_world.sql restored byte-for-byte
+    (sha256 78158939baf0...) and .plant-cluster-defect/ removed
+    $ pytest tests/ci/test_demo_seed_is_frozen.py --crdb=none -q -p no:cacheprovider
+    3 passed in 0.36s
+
+Read the planted run's failure list, not just its count. Before this commit the same command
+reported ``3 failed``: both hash assertions and the derivation control, i.e. the guard was
+red for two reasons that had nothing to do with the plant, and would have gone on being red
+after it was removed. Now ``demo_permit.sql`` - the file the plant does NOT touch - PASSES
+while ``demo_world.sql`` fails alongside the derivation control. The guard is red *because
+of the plant* and green the moment it is gone, which is the only shape in which it is a
+guard at all.
+
+================================================================================
 HOW TO RE-BASELINE - the procedure, and its precondition
 ================================================================================
 
@@ -164,25 +295,30 @@ Then, and only then:
 2.  Replace the two constants in ``FROZEN``, and keep the superseded pair visible in this
     docstring beside the reading that replaced it.
 3.  Land it **IN THE SAME COMMIT as the seed change**, and make the commit message say what
-    changed in the seed and why. THIS COMMIT IS ITSELF AN EXCEPTION TO THAT RULE and says
-    so: the seed changed in ``eefae1c`` and the re-baseline is arriving afterwards. The
-    four-part control above is what stands in for the same-commit review that ``eefae1c``
-    did not get. Do not read that exception as the rule relaxing - it is the more expensive
-    way to do this, and it exists because the guard was left red at a clean tree.
+    changed in the seed and why. BOTH RE-BASELINES SO FAR HAVE BEEN EXCEPTIONS TO THAT RULE
+    and both say so: the seed changed in ``eefae1c`` and again in ``898ad55``, and each
+    re-baseline arrived afterwards. The four-part control above is what stands in for the
+    same-commit review neither commit got. Do not read that exception as the rule relaxing -
+    it is the more expensive way to do this, it exists because the guard was left red at a
+    clean tree, and it has now cost two CI lanes a red run each time.
 4.  Check that ``pytest tests/ci/test_demo_seed_is_frozen.py --crdb=none`` is **3 passed**
     at a clean tree, and that the bites lane's step 17 - the guard RED against the plant -
     still fails as it must. Green in both halves is the failure mode; this guard is only a
     guard when it is red with the plant and green without it.
 
-THIS WILL BE NEEDED AGAIN SHORTLY, AND THAT IS CORRECT RATHER THAN CHURN. ``demo_world.sql``
-owes rows to ``mainline.defeater_option``: the table holds zero today, so
+THIS WAS NEEDED AGAIN, EXACTLY AS PREDICTED, AND THAT IS CORRECT RATHER THAN CHURN. Until
+``898ad55`` the paragraph here read: *"``demo_world.sql`` owes rows to
+``mainline.defeater_option``: the table holds zero today, so
 ``test_reads.py::test_the_disposition_carries_the_lattice_and_the_projected_requirements``
-fails on an empty ``defeater_options`` set and a judge cannot choose a defeater, which is
-the last beat of the demo. The lead who lands those rows WILL break this freeze, and should
-- a freeze that did not notice new rows arriving in a deployed seed would be worth nothing.
-That lead runs the four-part control, re-measures, and lands both halves together. The cost
-of this file is one re-measurement per legitimate seed change; the thing it buys is that a
-quiet edit to a deployed seed becomes a conversation, and it has already been that once.
+fails on an empty ``defeater_options`` set and a judge cannot choose a defeater, which is the
+last beat of the demo. The lead who lands those rows WILL break this freeze, and should."*
+``898ad55`` landed them, in both seed files, and broke this freeze. The prediction was right
+about the rows and right about the freeze; what it got wrong was the assumption that the lead
+would *"re-measure, and land both halves together"*. That half did not happen, which is the
+only part of this episode worth changing behaviour over - the guard performed exactly as
+designed. The cost of this file is one re-measurement per legitimate seed change; the thing
+it buys is that a quiet edit to a deployed seed becomes a conversation, and it has now been
+that three times.
 """
 
 from __future__ import annotations
@@ -201,32 +337,44 @@ SEEDS_DIR: Final = REPO_ROOT / "verticals/mainline/db/seeds/demo"
 
 #: The files ``scripts/deploy/seed_demo.py`` applies to the deployed database - its
 #: ``SEED_FILES``, in the order it applies them - and their SHA-256, RE-MEASURED at
-#: ``eefae1c`` on 2026-08-14 after the four-part negative control in the module docstring
+#: ``7535670`` on 2026-08-14 after the four-part negative control in the module docstring
 #: came back clean on all four parts:
 #:
 #:     $ python -c "import hashlib, pathlib
 #:     > for p in sorted(pathlib.Path('verticals/mainline/db/seeds/demo').glob('*.sql')):
 #:     >     b = p.read_bytes(); print(p.name, len(b), hashlib.sha256(b).hexdigest())"
-#:     demo_permit.sql 28889 df3470cb…
-#:     demo_world.sql  55980 e2aa9706…
+#:     demo_permit.sql 33228 ba6c2339…
+#:     demo_world.sql  58457 78158939…
 #:
 #: Recorded over the bytes on disk, with no normalisation: ``.gitattributes`` sets
 #: ``* -text``, so what is committed is what is applied, and a line-ending change to a file
 #: the deployment feeds to a database is exactly as much of a change as any other.
 #:
 #: SUPERSEDED, KEPT RATHER THAN DELETED, because a number replaced in place teaches nobody
-#: what moved. The 2026-08-13 reading was ``demo_permit.sql 198d44ef…`` /
-#: ``demo_world.sql 50535d1d…``, measured on a working tree in which the demo-suite lead
-#: had 144 uncommitted added lines in ``demo_world.sql`` - the ``change_request`` gated
-#: subject argued in ``docs/decisions/demo-change-request.md``. That addition landed in
-#: ``eefae1c`` at a different shape (512 added lines in ``demo_world.sql``, 138 in
-#: ``demo_permit.sql``), exactly the case that comment predicted would need a
-#: re-measurement, and the re-measurement did not arrive with it. That is why the guard
-#: stood red at a clean tree until this commit, and why ``cluster-lane-bites`` run
-#: 31735341050 failed at its LAST step with all four cells of its 2x2 green.
+#: what moved. Both prior readings are kept, because the pattern across the three is the
+#: point:
+#:
+#:     2026-08-13, at ``073dfea`` + uncommitted work
+#:         demo_permit.sql 198d44ef…   demo_world.sql 50535d1d…
+#:     2026-08-14, re-measured at ``eefae1c`` (the ``change_request`` gated subject and the
+#:         RFC 6962 single-leaf boundary proof; 650 changed lines, 31 of them deletions)
+#:         demo_permit.sql 28889 df3470cb…   demo_world.sql 55980 e2aa9706…
+#:     2026-08-14, re-measured at ``7535670`` (THIS reading; ``898ad55`` seeded
+#:         ``mainline.defeater_option`` at checks 0007 and 000d; 112 changed lines, ZERO of
+#:         them deletions)
+#:         demo_permit.sql 33228 ba6c2339…   demo_world.sql 58457 78158939…
+#:
+#: THE PATTERN, SAID PLAINLY BECAUSE IT IS THE ACTIONABLE PART: twice in two days a seed
+#: change landed WITHOUT its re-measurement, and each time the guard stood red at a clean
+#: tree until somebody came back for it. ``eefae1c`` cost ``cluster-lane-bites`` run
+#: 31735341050, which failed at its LAST step with all four cells of its 2x2 green;
+#: ``898ad55`` cost run 31770005766 the same way, and reddened ``ci``'s ``pytest --crdb=none``
+#: job as well. Neither red was wrong. Both were avoidable by one command in the same commit,
+#: which is what step 3 of "HOW TO RE-BASELINE" asks for and what this comment exists to make
+#: unmissable to whoever edits these seeds next.
 FROZEN: Final[dict[str, str]] = {
-    "demo_world.sql": "e2aa9706ffca80f269edaa77e1dc8224b26b52ef6c4b666c74076bcc173787bf",
-    "demo_permit.sql": "df3470cb26659b4bb8a4b565447b279a1417ef773988843951aa9817259c2d35",
+    "demo_world.sql": "78158939baf0f9821ef99ead3e936589c19f2ff340a248d0d5f4f8954bf55156",
+    "demo_permit.sql": "ba6c2339c77ea05c4fa102b2a889ccdc8fc131ca74aef085d413074f1aaf4899",
 }
 
 #: The expression the seed uses to enrol the demo signer's credential. Written here as the
