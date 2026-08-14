@@ -104,40 +104,59 @@ _RESPONSE_MODULES: Final = (app, ratelimit, static_site)
 
 # ── The DEPLOYED web tree, as measured on 2026-08-14 ────────────────────────────────
 #
-# `zipfile` over the central directory of `out/lambda/mainline-demo-api-arm64.zip` (built
-# 2026-08-13 15:54). **This is the tree that deploys**, and under the ruling it is the only
-# tree these declarations may be measured over. Reproduce it with:
+# `zipfile` over the central directory of `out/lambda/mainline-demo-api-arm64.zip`. **This
+# is the tree that deploys**, and under the ruling it is the only tree these declarations
+# may be measured over. Reproduce it with:
 #
 #     python -c "import zipfile;z=zipfile.ZipFile('out/lambda/mainline-demo-api-arm64.zip');
 #                w=[i for i in z.infolist() if i.filename.startswith('web/') and not i.is_dir()];
 #                print(len(w), sum(i.file_size for i in w))"
 #
-#     web/ entries        114 files   1,274,342 B
-#       identity objects   57 files     985,030 B
-#       .gz siblings       57 files     289,312 B   one per identity object, no orphans
+#     web/ entries        114 files   1,274,743 B
+#       identity objects   57 files     985,306 B
+#       .gz siblings       57 files     289,437 B   one per identity object, no orphans
 #       source maps         0 files           0 B   stripped by build_lambda's default
 #
+# WHICH BUILD, AND WHY THAT ONE IS THE AUTHORITY. These are the figures the lane itself
+# published — `cluster-tests` run **31770005759** at HEAD `7535670`, which builds the
+# package with `./.github/actions/build-demo-package` from the COMMITTED console source and
+# then runs this suite against it; its zip is `sha256 5a071ce1869d30be…acbf650`. They were
+# reproduced off the runner before they were written here: a `git archive HEAD` export of
+# `apps/console`, `pnpm install --frozen-lockfile` and `pnpm exec vite build --mode demo`
+# with `MAINLINE_BUILD_ID` and `MAINLINE_ATTESTATION` unset — the action's environment —
+# emits `assets/index-DzVoV1YM.js` at exactly 433,564 B on Node 24 on either platform, and
+# `build_lambda.sh --arch arm64` over it reproduces every `web/` number in this block. A
+# content-hashed filename is only a legitimate constant if the build that names it is
+# reproducible; that is checked, not assumed.
+#
+# BEWARE THE WORKING TREE. 51 files under `apps/console` are stored LF in the index and can
+# be checked out CRLF on Windows (Git for Windows ships `core.autocrlf=true` at system
+# scope). CSS-module class names hash the file's bytes, so a CRLF worktree emits a bundle of
+# the SAME LENGTH under a DIFFERENT content hash — `index-BKZMI9SJ.js`, also 433,564 B, with
+# a 124,173 B sibling. That build is not this repository's build and must not be recorded
+# here. `git ls-files --eol verticals/mainline/apps/console` is how you tell.
+#
 # WHAT THESE NUMBERS ARE NOT. They are not the packer's input tree — `console/dist` +
-# `console/fixtures/bundles/demo-cloud`, 75 files and 3,571,990 B, of which eighteen are
-# source maps totalling 2,586,960 B. Until 2026-08-14 the constants below were that tree's,
+# `console/fixtures/bundles/demo-cloud`, 75 files and 3,566,324 B, of which eighteen are
+# source maps totalling 2,581,018 B. Until 2026-08-14 the constants below were that tree's,
 # and every one of them was therefore a statement about bytes this origin cannot emit. The
 # lists are not merely differently-sized: the input tree's refusal set is
-# `['assets/index-BjAGxrVJ.js', 3 x *.js.map]` and the deployed tree's is
-# `['assets/index-BjAGxrVJ.js']` alone, because the maps are absent **by construction**
+# `['assets/index-DzVoV1YM.js', 3 x *.js.map]` and the deployed tree's is
+# `['assets/index-DzVoV1YM.js']` alone, because the maps are absent **by construction**
 # rather than absent by measurement.
 _WEB_TREE_ENTRIES: Final = 114
-_WEB_TREE_BYTES: Final = 1_274_342
+_WEB_TREE_BYTES: Final = 1_274_743
 _IDENTITY_OBJECTS: Final = 57
-_IDENTITY_BYTES: Final = 985_030
-_SIBLING_BYTES: Final = 289_312
+_IDENTITY_BYTES: Final = 985_306
+_SIBLING_BYTES: Final = 289_437
 
 #: The largest single object the deployed tree holds, and the largest number of bytes any
 #: caller can ask this origin for by name. It is **above** the ceiling, which is what makes
 #: the ceiling demonstrably binding: a bound is only a bound if something is known to sit
 #: over it. It is not the largest thing that can be EMITTED — see below — because the object
 #: has two representations and this is the one nobody with a browser ever receives.
-_LARGEST_WEB_OBJECT: Final = "assets/index-BjAGxrVJ.js"
-_LARGEST_WEB_OBJECT_BYTES: Final = 433_396
+_LARGEST_WEB_OBJECT: Final = "assets/index-DzVoV1YM.js"
+_LARGEST_WEB_OBJECT_BYTES: Final = 433_564
 
 #: The largest number of bytes the origin actually PUTS ON THE WIRE for one response, and
 #: therefore the multiplier in force in the flood arithmetic and the input to interface I3.
@@ -145,8 +164,8 @@ _LARGEST_WEB_OBJECT_BYTES: Final = 433_396
 #: It is **the same object as above**, and that is the whole point rather than a coincidence
 #: to be tidied away. Every one of the 57 identity objects ships a `.gz` sibling and every
 #: browser sends `Accept-Encoding: gzip`, so the bytes that leave are the compressed column
-#: throughout: `assets/index-BjAGxrVJ.js` is 433,396 B to a client that refuses compression
-#: and 124,127 B to one that does not. The ceiling sits between those two numbers, so one
+#: throughout: `assets/index-DzVoV1YM.js` is 433,564 B to a client that refuses compression
+#: and 124,177 B to one that does not. The ceiling sits between those two numbers, so one
 #: object is a 413 and a 200 depending only on a request header — asserted end-to-end in
 #: `test_the_default_ceiling_refuses_the_declared_object_and_serves_the_declared_asset`.
 #:
@@ -154,16 +173,16 @@ _LARGEST_WEB_OBJECT_BYTES: Final = 433_396
 #: and decided the new number is acceptable; it may never drift upward on its own. It is
 #: deliberately a *declaration*, not a lookup: a number read out of the tree at test time
 #: would agree with the tree by construction and assert nothing.
-_LARGEST_SERVED_OBJECT: Final = "assets/index-BjAGxrVJ.js"
-_LARGEST_SERVED_CODING: Final = "assets/index-BjAGxrVJ.js.gz"
-_LARGEST_SERVED_OBJECT_BYTES: Final = 124_127
+_LARGEST_SERVED_OBJECT: Final = "assets/index-DzVoV1YM.js"
+_LARGEST_SERVED_CODING: Final = "assets/index-DzVoV1YM.js.gz"
+_LARGEST_SERVED_OBJECT_BYTES: Final = 124_177
 
 #: The widest response the origin can emit to a client that refuses compression *and is
 #: still served*. Declared because it is what says nothing else in the tree is anywhere near
 #: this bound: the refusal below is one object and the next one down is 51,266 B, 37 % of
 #: the ceiling. A ceiling that refused the second-largest object too would be a different
 #: trade and would have to be argued for separately.
-_WIDEST_SERVED_IDENTITY: Final = "assets/surface-Csi7pmRe.js"
+_WIDEST_SERVED_IDENTITY: Final = "assets/surface-BcxWkbKu.js"
 _WIDEST_SERVED_IDENTITY_BYTES: Final = 51_266
 
 #: Every object of the 57 that the default ceiling refuses, **by name and on the identity
@@ -178,7 +197,7 @@ _WIDEST_SERVED_IDENTITY_BYTES: Final = 51_266
 #: object look like a control that refuses fifty-eight. The enumeration below therefore
 #: walks identity objects, and the siblings' 404 is asserted as its own property in
 #: `test_the_compressed_sibling_has_no_url_of_its_own_and_is_not_a_ceiling_refusal`.
-_REFUSED_BY_THE_CEILING: Final = ("assets/index-BjAGxrVJ.js",)
+_REFUSED_BY_THE_CEILING: Final = ("assets/index-DzVoV1YM.js",)
 
 #: The deployed artefact these declarations are measured over. `test_static_site.py` reads
 #: the same file for interface I3's derivation, and the two must not disagree about what the
@@ -508,7 +527,7 @@ def test_base64_inflation_is_measured_and_not_assumed(
        ``3,300 < 4,096 < 4,400`` — so a control that read the envelope would answer 413 and
        this assertion would catch it. The failure mode is refusing 3,300 billable bytes as
        though they were 4,400: over-refusing by exactly the encoding's overhead, which at
-       the deployed ceiling is the 124,127 B compressed entry bundle weighed as 165,504 B.
+       the deployed ceiling is the 124,177 B compressed entry bundle weighed as 165,572 B.
     3. **The decoded length is computed, never decoded.** ``_wire_bytes`` runs on every
        response this module emits, so a version that called ``b64decode`` would allocate a
        second copy of every body. That is a structural claim about the function's source and
@@ -641,11 +660,15 @@ _UNNAMEABLE_PATHS: Final = [
 ]
 
 
-@pytest.mark.parametrize(("vector", "path", "filler"), _UNNAMEABLE_PATHS, ids=[
-    "one-huge-segment",
-    "legal-segments-illegal-whole",
-    "one-segment-over-name-max",
-])
+@pytest.mark.parametrize(
+    ("vector", "path", "filler"),
+    _UNNAMEABLE_PATHS,
+    ids=[
+        "one-huge-segment",
+        "legal-segments-illegal-whole",
+        "one-segment-over-name-max",
+    ],
+)
 def test_the_one_unmeasured_response_is_bounded_by_construction(
     monkeypatch: pytest.MonkeyPatch, web_root: Path, vector: str, path: str, filler: str
 ) -> None:
@@ -940,14 +963,14 @@ def test_the_declared_numbers_straddle_the_ceiling_rather_than_sitting_under_it(
 
     **Every number here is DERIVED, not transcribed.** The I3 rule is recomputed from
     ``_LARGEST_SERVED_OBJECT_BYTES`` on the line above the assertion that checks it, so a
-    reader can follow ``1.10 x 124,127 = 136,539.7`` → next 8 KiB boundary → 139,264 by hand.
+    reader can follow ``1.10 x 124,177 = 136,594.7`` → next 8 KiB boundary → 139,264 by hand.
     A constant that merely happens to equal what a run printed is not evidence, and this
     section had exactly that defect twice.
 
     The cost is real and is named rather than hidden: a client that will not accept gzip
     cannot fetch the console's entry bundle at all. ``curl`` without ``--compressed`` is such
-    a client. The alternative is a ceiling that leaves the flood multiplier at 433,396 B,
-    which makes the 124,127 B row of the cost model a number no attacker has to accept.
+    a client. The alternative is a ceiling that leaves the flood multiplier at 433,564 B,
+    which makes the 124,177 B row of the cost model a number no attacker has to accept.
     """
     ceiling = static_site.DEFAULT_MAX_RESPONSE_BYTES
     assert 0 < _LARGEST_SERVED_OBJECT_BYTES < ceiling < _LARGEST_WEB_OBJECT_BYTES
@@ -959,7 +982,7 @@ def test_the_declared_numbers_straddle_the_ceiling_rather_than_sitting_under_it(
 
     # Interface I3, recomputed from the measurement rather than quoted from the ruling.
     floor = 1.10 * _LARGEST_SERVED_OBJECT_BYTES
-    assert round(floor, 1) == 136_539.7
+    assert round(floor, 1) == 136_594.7
     rounding = 8 * 1024
     derived = -(-int(floor) // rounding) * rounding
     assert derived == ceiling == 139_264 == 136 * 1024, (
@@ -969,17 +992,17 @@ def test_the_declared_numbers_straddle_the_ceiling_rather_than_sitting_under_it(
     )
     ratio = ceiling / _LARGEST_SERVED_OBJECT_BYTES
     assert _LARGEST_SERVED_OBJECT_BYTES <= ceiling < 1.20 * _LARGEST_SERVED_OBJECT_BYTES
-    assert round(ratio, 3) == 1.122, f"the I3 ratio moved: {ratio}"
+    assert round(ratio, 3) == 1.121, f"the I3 ratio moved: {ratio}"
 
     headroom = ceiling - _LARGEST_SERVED_OBJECT_BYTES
-    assert headroom == 15_137, f"the declared headroom moved: {headroom} B"
+    assert headroom == 15_087, f"the declared headroom moved: {headroom} B"
 
     # The flood's multiplier, before and after negotiation, as a ratio somebody can check by
-    # hand. 433,396 / 124,127 = 3.491553…, which is 3.4916 to four places — NOT the 3.4917
+    # hand. 433,564 / 124,177 = 3.491500…, which is 3.4915 to four places — NOT the 3.4917
     # the ruling's prose carries, and not the 3.586 this assertion used to hold (that was
     # 1,554,168 / 433,396: the source-map strip's cut, a different pair of numbers entirely).
     cut = _LARGEST_WEB_OBJECT_BYTES / _LARGEST_SERVED_OBJECT_BYTES
-    assert round(cut, 4) == 3.4916, f"the declared reduction moved: {cut}"
+    assert round(cut, 4) == 3.4915, f"the declared reduction moved: {cut}"
 
 
 def test_the_ceiling_refuses_something_it_governs() -> None:
@@ -1287,7 +1310,7 @@ def test_the_built_web_tree_matches_the_shape_the_flood_arithmetic_assumed() -> 
     )
 
     # Zero source maps, and this is the assertion that would notice the strip being turned
-    # off — 2,586,960 B of debug artefact billable to this account by anyone on the internet.
+    # off — 2,581,018 B of debug artefact billable to this account by anyone on the internet.
     assert [n for n in entries if n.lower().endswith(".map")] == [], (
         f"{label} carries source maps. build_lambda strips web/**/*.map by default; a build "
         "that shipped them would put the whole of this file's arithmetic back on the wrong "
@@ -1318,8 +1341,8 @@ def test_the_built_web_tree_matches_the_shape_the_flood_arithmetic_assumed() -> 
 # over-states egress by 33 %. Both are wrong in the direction that is hardest to notice,
 # because both fail *conservatively* and a conservative wrong number reads as caution.
 #
-# The largest object this origin serves is the 124,127 B compressed entry bundle, whose
-# envelope is 165,504 characters. Weighing the envelope would refuse it at any ceiling
+# The largest object this origin serves is the 124,177 B compressed entry bundle, whose
+# envelope is 165,572 characters. Weighing the envelope would refuse it at any ceiling
 # between those two numbers — the single path the whole cost model depends on callers
 # taking. `tests/deploy/test_furl_compression.py` proves the same property end-to-end,
 # through a real socket, where the decode is actually performed.
@@ -1391,8 +1414,8 @@ def test_a_body_under_the_ceiling_on_the_wire_is_served_though_its_envelope_is_o
     4,000 bytes on the wire under a 4,096 ceiling is a **200**. Its envelope is 5,336
     characters, which is 30 % *over* that ceiling, so a control weighing the envelope
     answers 413 to a response that costs less than the bound allows — refusing bytes AWS
-    would never have billed. Scaled to the object this actually decides, the 124,127 B
-    compressed entry bundle would be weighed as 165,504 B: the single path the cost model
+    would never have billed. Scaled to the object this actually decides, the 124,177 B
+    compressed entry bundle would be weighed as 165,572 B: the single path the cost model
     (`docs/leads/cost-finish-plan.md` §0.5, $159,598 → $46,294) depends on callers taking.
 
     **This assertion and** ``test_base64_inflation_is_measured_and_not_assumed`` **above

@@ -678,8 +678,8 @@ def test_the_ceiling_weighs_the_wire_and_not_the_base64_string(
     carries. It is not what AWS bills: a Function URL base64-DECODES the body before it
     leaves, so egress is charged on 3,300 and the extra 1,100 exists only between this
     handler and the service. Refusing on the encoded length over-refuses every binary
-    object by exactly a third — and the object it would hurt most is the 124,127 B
-    compressed entry bundle, weighed as 165,504 B, which is the single path the cost model
+    object by exactly a third — and the object it would hurt most is the 124,177 B
+    compressed entry bundle, weighed as 165,572 B, which is the single path the cost model
     depends on callers taking.
 
     **This contradicts** ``test_response_contract.py::test_base64_inflation_is_measured_
@@ -824,12 +824,15 @@ def test_the_refusal_separates_what_was_asked_for_from_what_would_have_gone_out(
 #: mistake the 512 KiB value was made of.
 _PACKAGE: Final = REPO_ROOT / "out/lambda/mainline-demo-api-arm64.zip"
 
-#: Measured over that package on 2026-08-13, from the zip's central directory. Declared
-#: rather than looked up so the two can be compared: a number read out of the tree at test
-#: time agrees with the tree by construction and asserts nothing.
-_LARGEST_SERVED_WIRE_BYTES: Final = 124_127  # web/assets/index-BjAGxrVJ.js.gz
-_LARGEST_IDENTITY_BYTES: Final = 433_396  # web/assets/index-BjAGxrVJ.js
-_SECOND_LARGEST_IDENTITY_BYTES: Final = 51_266  # web/assets/surface-Csi7pmRe.js
+#: Measured over that package on 2026-08-14, from the zip's central directory — the figures
+#: `cluster-tests` run **31770005759** published for the package it built at HEAD `7535670`
+#: from the COMMITTED console source (zip `sha256 5a071ce1869d30be…acbf650`), reproduced off
+#: the runner from a `git archive HEAD` export before being written here. Declared rather
+#: than looked up so the two can be compared: a number read out of the tree at test time
+#: agrees with the tree by construction and asserts nothing.
+_LARGEST_SERVED_WIRE_BYTES: Final = 124_177  # web/assets/index-DzVoV1YM.js.gz
+_LARGEST_IDENTITY_BYTES: Final = 433_564  # web/assets/index-DzVoV1YM.js
+_SECOND_LARGEST_IDENTITY_BYTES: Final = 51_266  # web/assets/surface-BcxWkbKu.js
 _WEB_ENTRIES: Final = 114
 _IDENTITY_ENTRIES: Final = 57
 
@@ -873,16 +876,19 @@ def _assert_i3(ceiling: int, largest_served_wire_bytes: int) -> None:
 def test_the_ceiling_is_the_derivation_and_not_a_number_somebody_liked() -> None:
     """The constant reproduced from the rule and the measurement, arithmetic in the open.
 
-    ``1.10 x 124,127 = 136,540``; the next 8 KiB boundary above that is 139,264 = 136 KiB;
-    ``139,264 / 124,127 = 1.122``, inside the 1.20 ratchet. Anyone can check those three
+    ``1.10 x 124,177 = 136,594.7``; the next 8 KiB boundary above that is 139,264 = 136 KiB;
+    ``139,264 / 124,177 = 1.121``, inside the 1.20 ratchet. Anyone can check those three
     lines by hand, which is the whole point of writing them here rather than asserting the
     constant against itself.
+
+    The ceiling itself did NOT move when the console source grew: 136 KiB is what the rule
+    derives from 124,127 B and from 124,177 B alike, which is the rounding doing its job.
     """
     derived = _derive_ceiling(_LARGEST_SERVED_WIRE_BYTES)
     assert derived == 139_264 == 136 * 1024
     assert derived == static_site.DEFAULT_MAX_RESPONSE_BYTES
     ratio = static_site.DEFAULT_MAX_RESPONSE_BYTES / _LARGEST_SERVED_WIRE_BYTES
-    assert round(ratio, 3) == 1.122
+    assert round(ratio, 3) == 1.121
 
 
 def test_the_declared_largest_served_object_binds_the_ceiling() -> None:
@@ -902,7 +908,12 @@ def test_the_declared_largest_served_object_binds_the_ceiling() -> None:
         (2 * 1024 * 1024, "the value an independent verifier called a control in name only"),
         (512 * 1024, "the value that refused 0 of 57 once the source-map strip landed"),
         (1024 * 1024, "halfway between the two, and just as far above everything"),
-        (149_000, "one step past the ratchet, to pin where the edge is"),
+        # DERIVED, and it moves whenever _LARGEST_SERVED_WIRE_BYTES does: the smallest
+        # integer at or above 1.20 x 124,177 = 149,012.4. It was 149,000 against the
+        # 124,127 B measurement, where 1.20 x gave 148,952.4. Leaving it at 149,000 after
+        # the tree grew would not have weakened the ratchet quietly — it would have made
+        # THIS case stop raising, which is the loud failure the pin is for.
+        (149_013, "one step past the ratchet, to pin where the edge is"),
         (100_000, "below the largest served object: the origin would 413 its own site"),
     ],
     ids=["two-mib", "five-twelve-kib", "one-mib", "just-over-the-ratchet", "too-tight"],
@@ -981,11 +992,11 @@ def test_serving_the_deployed_package_derives_the_ceiling_end_to_end(
     exists to bound the choice they make, not the choice we would prefer.
 
     What it asserts about the refusal is stated rather than tolerated: **exactly one object
-    of the 57 answers 413, on the identity path only.** ``assets/index-BjAGxrVJ.js`` at
-    433,396 B is a 200 to every browser that will ever load this console and a 413 to a
+    of the 57 answers 413, on the identity path only.** ``assets/index-DzVoV1YM.js`` at
+    433,564 B is a 200 to every browser that will ever load this console and a 413 to a
     client that asked for 433 KB uncompressed — which is the caller a wire ceiling is for.
     ``curl`` without ``--compressed`` is such a client; that cost is real and is the price
-    of the 124,127 B multiplier the cost model quotes.
+    of the 124,177 B multiplier the cost model quotes.
     """
     monkeypatch.delenv(static_site.RESPONSE_BYTES_ENV, raising=False)
     web = _package_web()
@@ -1012,23 +1023,21 @@ def test_serving_the_deployed_package_derives_the_ceiling_end_to_end(
             if wire > widest[1]:
                 widest = (name, wire)
 
-    assert refused == {"assets/index-BjAGxrVJ.js [identity]": 413}, (
+    assert refused == {"assets/index-DzVoV1YM.js [identity]": 413}, (
         f"the deployed package refuses {sorted(refused)}. Exactly one object, on the "
         "identity path, is the declared consequence of the derived ceiling; anything else "
         "is an asset nobody decided to stop serving, or a ceiling that stopped biting."
     )
 
     # The derivation, from the responses rather than from the declaration.
-    assert widest == ("assets/index-BjAGxrVJ.js", _LARGEST_SERVED_WIRE_BYTES)
+    assert widest == ("assets/index-DzVoV1YM.js", _LARGEST_SERVED_WIRE_BYTES)
     _assert_i3(ceiling, widest[1])
 
     # And the browser — the client every judge will actually be — gets all 57.
     served = [
         name
         for name in identity_names
-        if static_site.serve("GET", "/" + name, root=root, accept_encoding=_BROWSER)[
-            "statusCode"
-        ]
+        if static_site.serve("GET", "/" + name, root=root, accept_encoding=_BROWSER)["statusCode"]
         == 200
     ]
     assert len(served) == _IDENTITY_ENTRIES

@@ -350,7 +350,7 @@ runs:
                 "::error title=the built package ships source maps::"
                 f"{package} carries {len(maps)} *.map entr(y/ies): {shown}. "
                 "--strip-source-maps has been build_lambda's DEFAULT since 2026-08-13, and "
-                "the maps measured 18 files / 2,586,960 B / 72.42 per cent of the served tree - "
+                "the maps measured 18 files / 2,581,018 B / 72.37 per cent of the served tree - "
                 "billable egress on a Function URL whose authorization_type is NONE, for a "
                 "debugging convenience nobody has used on the deployed URL. Either "
                 "--keep-source-maps reached this build, or the default moved."
