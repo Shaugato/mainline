@@ -123,6 +123,28 @@ inputs:
     required: false
     default: ""
 
+  console-transport:
+    description: >-
+      What the console in the built package must DO ON LOAD — `live`, `replay` or `both`.
+      `build_lambda.sh` requires it and refuses a dist whose measured behaviour contradicts
+      the declaration, because the guard it replaced keyed on a variable NAME and never on
+      its VALUE and so could never fire; the artefact that shipped to a reader in REPLAY
+      passed it.
+
+      ADDED 2026-08-15, AND THE OMISSION HAD A COST WORTH RECORDING. When the flag became
+      mandatory this action was not updated, so every `cluster-tests` run from `b822fdc`
+      onward died in THIS step, before a single test executed. The lane that exists to run
+      the demo-api suite against a real CockroachDB — the lane four NO-GO verdicts traced
+      to the absence of — was therefore asserting NOTHING, and it looked like an ordinary
+      red rather than an inert one.
+
+      The default is `replay`: a CI lane builds the package to measure its SHAPE, and the
+      replay artefact is the one the ratchets' recorded constants were taken from. A lane
+      that wants the live console asks for it, which is the direction the mistake above
+      makes worth enforcing — no default should quietly decide what a deployed console does.
+    required: false
+    default: "replay"
+
   summary:
     description: >-
       `true` appends the built package's shape — entry counts, total bytes, the largest
@@ -277,9 +299,13 @@ runs:
       env:
         BUILD_PYTHON: ${{ steps.interpreter.outputs.python }}
         ARCH: ${{ inputs.arch }}
+        CONSOLE_TRANSPORT: ${{ inputs.console-transport }}
       run: |
         set -euo pipefail
-        bash scripts/deploy/build_lambda.sh --arch "${ARCH}" --python "${BUILD_PYTHON}"
+        bash scripts/deploy/build_lambda.sh \
+          --arch "${ARCH}" \
+          --python "${BUILD_PYTHON}" \
+          --console-transport "${CONSOLE_TRANSPORT}"
 
     - name: The archive carries a web tree and no source maps
       id: gate
