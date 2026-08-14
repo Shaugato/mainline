@@ -344,3 +344,81 @@ measurement that *is* attributable to this change, and it is the one to re-run w
 ceiling, or a `NEW` failure is answered by landing what is missing. It is never answered by
 lowering `COLLECTED_FLOOR`, by `-k`, by `--deselect`, by stubbing an import, or by editing
 any number in this document.
+
+---
+
+## 8. RE-MEASURED AT THE PUBLIC TIP — the defect is MITIGATED, not CLOSED
+
+**Worker:** D3, DOCS-TRUE wave, 2026-08-14. **Run:**
+[31770005759](https://github.com/Shaugato/mainline/actions/runs/31770005759) — `cluster-tests`,
+push, HEAD **`7535670`**, the public tip. **Job:** `94673769475`, read whole with
+`gh api "repos/Shaugato/mainline/actions/jobs/94673769475/logs"`.
+
+§§0–7 above were measured at run **31735341117**, HEAD `eefae1c`. This section re-measures the
+same property at the tip, because §0's finding is the kind that decays quietly: a fix lands, a
+log grows, and the fix stops being enough without anybody re-reading it.
+
+### 8.1 The line geometry, at the tip, with the command that produced it
+
+| region | run 31735341117 (`eefae1c`) | run 31770005759 (`7535670`) |
+|---|---:|---:|
+| whole job log | **1,023 lines** | **2,061 lines** |
+| `FAILURES` block opens | 760 | **1,283** |
+| pytest's `short test summary info` | — | **1,653** |
+| the lane's own verdict line (`cluster lane: …`) | — | **1,716** |
+| **`lane_log_digest.py` — the one-screen digest** | *did not exist* | **1,742 → ~1,947** |
+| `docker logs "${CRDB_CONTAINER}" \| tail -60` | 943–1003 | **1,970 → 2,030** |
+| lines of CockroachDB `event_log.go` after the digest | 60 | **58** |
+| lines between the end of the digest and the end of the log | *(n/a)* | **≈ 114** |
+
+Counted with `grep -c 'event_log.go'` over the fetched log and by line number, not by
+impression — §1's own methodological rule, which was earned on a `tail -25` that cut three
+lines off a five-line list.
+
+### 8.2 What improved, stated first because it is real
+
+**The four-part fix landed and it works.** `scripts/ci/lane_log_digest.py` is invoked at line
+1742 with `--summary "$GITHUB_STEP_SUMMARY"`, and it printed, for this run, a per-failure
+digest naming all eight failing node ids with the assertion text for each, plus a skip census
+reading `skips: 1 across 1 distinct message(s)`. **The short version now exists.** §0's
+finding — *"nothing printed the short version"* — is discharged.
+
+The digest even carries its own anti-vacuity sentence, which is the standard the rest of this
+repository is measured against and is quoted rather than paraphrased:
+
+> *"A skip is indistinguishable from a green tick on a dashboard. This census does not judge
+> it — `qa/cluster-known-red.json`'s `floor.max_skipped` does, through
+> `scripts/ci/cluster_lane_report.py`."*
+
+### 8.3 What did not close, and is therefore still a live defect
+
+**A reader who opens the failed run and scrolls to the bottom of the raw log still lands on
+CockroachDB's session log, not on the diagnosis.** The digest ends around line 1,947; the last
+114 lines are artifact-upload chatter and then 58 lines of
+`4@util/log/event_log.go:90 … "EventType":"client_session_end"`.
+
+The absolute distance shrank — 113 lines after the assertion at `eefae1c`, ≈114 after the
+digest at `7535670` — but **the log itself doubled**, from 1,023 lines to 2,061, and the
+proportion of it that is CockroachDB's own event log is unchanged. **The defect §0 describes
+is a defect of where a reader lands, and where a reader lands has not moved.**
+
+§5 argues at length for keeping the container log and that argument is not reopened here: the
+container's account is what separates *"the code is wrong"* from *"the database was not
+there"*, and deleting it to shorten a log would be trading a diagnosis for a scroll bar. **The
+finding is not that the container log should go. It is that it should not be the last thing on
+the page.**
+
+### 8.4 The one thing this document cannot measure, said rather than assumed
+
+The digest is written to `$GITHUB_STEP_SUMMARY` as well as to stdout, and the rendered summary
+appears **above** the job list on the run page — which, if a reader opens the run page rather
+than the raw log, means the diagnosis is the first thing they see and this defect is closed for
+them. **This document does not claim that, because it cannot check it.** GitHub's API does not
+expose which surface an account opened, and `gh run view` returns the log, not the rendered
+summary. What is measured here is the raw log, because the raw log is what
+`gh run view <id> --log` returns and what an orchestrator or a CI-reading script gets.
+
+**A defect that is closed on one surface and open on another is open.** The cure is one line
+of ordering in `.github/workflows/cluster-tests.yml` — emit the digest, or a pointer to it,
+*after* the container log rather than before — and that file is not this documents wave's to
+edit. Recorded, with the run id and the line numbers, for whoever owns the lane.

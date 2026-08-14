@@ -42,6 +42,21 @@ VERDICT       PROVEN
 The third line is not decoration. A gate that always refuses is a broken gate, not a
 safe one.
 
+> **RE-VERIFIED 2026-08-14 by D3 — all four lines still hold, and there is a committed
+> artefact behind them.** `evidence/gate-refusal/proof-20260814T032418Z.json`, generated
+> `2026-08-14T03:24:18Z`, reads `verdict: "PROVEN"` with `caveats: []` and `failures: []`;
+> `refusal.sqlstate` `23514` `gate_closed_when_issued` (reported), `drift_refusal.sqlstate`
+> `P0001` `mainline.fn_permit_merge_gate` (parsed), `admission.sqlstate` `00000`. The chain
+> applied **271 of 271** files with `failed_count: 0`.
+>
+> **One thing this page must not be read as saying.** That artefact's
+> `cluster.database` is **`w_qr_gate_refusal_proof`** — a **local** single-node CockroachDB.
+> `just prove` is a local proof and this page never claimed otherwise; the distinction is
+> written here because the repository now also holds two CockroachDB **Cloud** artefacts, and
+> a reader who saw both could reasonably merge them. **The only `PROVEN` this repository
+> holds is local.** `docs/CI-STATE.md` §1.0.4 carries the full statement, including what is
+> still OWED against Cloud.
+
 ## The rest
 
 ```bash

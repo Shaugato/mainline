@@ -26,6 +26,58 @@ commands that produced those artefacts are printed in full.
 `show` only. A previous worker ran an apply and was correctly stopped; the apply belongs to
 the orchestrator, with the founder, after reading this page.
 
+> ## Both counts, as measured — the date, the command, and the exit code
+>
+> **Re-measured 2026-08-14 at HEAD `d098721`, on TRAPPOINT, by W5 (plan-truth).** Neither
+> number below is quoted from an earlier revision of this page; both were produced in one
+> sitting from the tree as it stands, and the artefacts named were overwritten with that
+> output.
+>
+> ```bash
+> bash scripts/deploy/plan_repro.sh             --json --out-dir <scratch outside the repo>
+> bash scripts/deploy/plan_repro.sh --cloudfront --json --out-dir <scratch outside the repo>
+> ```
+>
+> | shape | measured | artefact | `plan_repro.sh` exit |
+> |---|---:|---|---:|
+> | shipping, `enable_cloudfront = false` | **`Plan: 24 to add, 0 to change, 0 to destroy.`** | `evidence/deploy/terraform-plan-furl.txt:843` | **0** |
+> | upgrade, `enable_cloudfront = true` | **`Plan: 35 to add, 0 to change, 0 to destroy.`** | `evidence/deploy/terraform-plan-cloudfront.txt:1219` | **0** |
+>
+> **Exit 0 is the load-bearing part.** `plan_repro.sh` exits **6** when the fresh plan and
+> the committed artefact disagree on the count — it is the check that catches a stale
+> artefact, and it is why the two numbers above are a *measurement* rather than a
+> restatement. It also re-measured, on both runs, the two values §5 depends on:
+> `reserved_concurrent_executions = -1`, and **0** occurrences of the twelve-zero mask.
+>
+> **Every Terraform invocation went through that script's allowlist** — `init`, `validate`,
+> `plan`, `show`, `version` — which refuses `apply`, `destroy`, `import`, `state`, `taint`,
+> `force-unlock` and `plan -destroy` by name, before `terraform` is executed. **No apply was
+> run, and no mutating AWS call of any kind was made.**
+>
+> ### What moved in the artefacts, and what did not
+>
+> **One substantive line changed in each file, and it is the same line:**
+>
+> ```
+> - source_code_hash = "Ca9YnPO3PhcIsuMgmkGsPiB42z35FuOYJ7LP6TD0WRQ="
+> + source_code_hash = "Evy6etabL/6CQLHsv3Y3RNlEHhIwkQn3+riKxi37zCc="
+> ```
+>
+> `out/lambda/mainline-demo-api-arm64.zip` was rebuilt from the reproducible console build
+> re-recorded at commit `f68abb7`. The new value was checked against the file rather than
+> taken from the plan: `base64(sha256(zip))` over the 7,703,067-byte package equals the hash
+> above. Terraform evaluates `filebase64sha256` at **plan** time, so the package's bytes
+> reach the plan as this one value — **it does not change the resource count**, which is why
+> both counts reproduced exactly.
+>
+> Everything else below the provider-read preamble is byte-identical in both shapes. The
+> preamble's own line *order* differs from run to run, because Terraform reads data sources
+> concurrently and logs them as they complete. **That is log noise, not drift**, and it is
+> named here so the next reader does not mistake a reordered `Read complete` block for a
+> configuration change. Both files kept their line counts — **934** and **1,314** — so every
+> line-number citation on this page still resolves; each one was re-checked after the
+> regeneration.
+
 ---
 
 ## 0 · What changed, and why this page was rewritten twice
@@ -327,6 +379,48 @@ Changes to backend configurations require reinitialization.
 name cannot be a constant in a public repository, so the documented way to a real backend
 is `bootstrap_state.sh` — which **creates a bucket**, a mutating call no reviewer should
 have to make to read a plan.
+
+> ### OPEN DEFECT — `terraform plan` is not reproducible from a clean clone
+>
+> **The committed configuration alone will not produce a plan, and this page had described
+> the workaround without ever naming the defect.**
+>
+> **Recorded 2026-08-14. Nothing under `infra/` was changed to close it; this is a document
+> stating a true thing about its own repository, which is the only move available here.**
+>
+> **The fact, read rather than recalled.** `infra/envs/demo/backend.tf` declares
+> `backend "s3"` with `key`, `region`, `encrypt` and `use_lockfile` and **no `bucket`** — a
+> *partial* configuration, by the deliberate design its own header comment argues for: the
+> bucket name must be globally unique across all of S3 and therefore cannot be a constant in a
+> public repository. Terraform's answer to a partial backend is
+> `terraform init -backend-config=…`. **This repository commits no such value.**
+> `git ls-files infra/envs/demo/` returns eight paths and **not one `.tfbackend` file**, and
+> `git ls-files` over the whole tree matches no backend-config file anywhere. So the argument
+> a clean clone must supply to `init` **exists in no committed file** and is only obtainable by
+> running `bootstrap_state.sh`, which creates an S3 bucket.
+>
+> **Therefore, from `git clone` with no further inputs, exactly three things are true**, and
+> step 3 above measured all three: `init -backend=false` **exits 0**, `validate` **exits 0**,
+> and `plan` **exits 1** with *"Backend initialization required."* **A reviewer who clones this
+> repository cannot run `terraform plan` without first writing a file the repository does not
+> contain** — either the throwaway `backend_override.tf` of §1's block, or a
+> `-backend-config` line only `bootstrap_state.sh --print-backend-config` will compute.
+>
+> **Why this is stated as a defect and not as a procedure.** §1's block and
+> `plan_repro.sh` are a real and sufficient workaround, and they are what produced every
+> artefact on this page. But the previous revision of this section presented them *only* as
+> the solution, so a reader could finish it believing the committed configuration is
+> reproducible as it stands. **It is not.** *"The plan is reproducible, given a file we do not
+> ship"* and *"the plan is reproducible"* are different claims, and a page whose entire subject
+> is `plan` output has to be the one that says which of the two it means.
+>
+> **What would close it, and why no worker in this wave may do it.** A committed
+> `demo.s3.tfbackend` carrying the bucket name would close it — and the bucket name embeds the
+> AWS account id, which decision D2 (`docs/leads/ship-final.md` §1.6) already removed from
+> `backend.tf` once, on the grounds that an executable example carrying one account's id is
+> *wrong on every other account*. So the defect and the decision that causes it are in
+> genuine tension, the resolution is the founder's, and **this page records the open question
+> rather than settling it.** `infra/` was not touched to produce this paragraph.
 
 **4 · Run the negative control first, in one second, before you believe the script.**
 
@@ -786,16 +880,45 @@ It has been **regenerated, not re-quoted** — and it came back at the arithmeti
 predicts rather than at the old number, which is the outcome that would have been a finding
 had it gone the other way:
 
-| | Stale artefact (Aug 13 13:44) | Regenerated (Aug 14 04:42) |
-|---|---:|---:|
-| upgrade plan | 22 | **35** |
-| `module.guard[0]` | absent | 13 |
+| | Stale artefact (Aug 13 13:44) | Regenerated (Aug 14 04:42) | **Re-measured (Aug 14, HEAD `d098721`)** |
+|---|---:|---:|---:|
+| upgrade plan | 22 | **35** | **35** |
+| `module.guard[0]` | absent | 13 | **13** |
 
 `22 + 13 = 35`, and the plan says 35. **The guard reaches this configuration too** — it is
 gated on `enable_api`, not on `enable_cloudfront`, so turning CloudFront on does not turn
 the cost guard off. Had the regenerated file come back at 22, that would have meant the
 guard was *not* reaching this shape, and it would have been recorded here as an open defect
 rather than accepted.
+
+> **`22` is SUPERSEDED, and it is kept rather than corrected.** The temptation is to strike
+> it out or sweep it to 35 and be done. That would delete the only check anybody has on the
+> new number.
+>
+> **Because the 22 survives, the 35 is falsifiable.** W5 re-measured the upgrade shape on
+> 2026-08-14 and read its module breakdown out of `terraform-plan-cloudfront.json` rather
+> than out of this page:
+>
+> | module | created resources | what it is |
+> |---|---:|---|
+> | `module.api[0]` | **12** | the demo API, plus the CloudFront invoke grant this shape adds |
+> | `module.site[0]` | **10** | the bucket, the distribution, the two OACs and the bucket's five policies |
+> | `module.guard[0]` | **13** | the cost guard |
+> | **total** | **35** | `Plan: 35 to add, 0 to change, 0 to destroy.` |
+>
+> **12 + 10 = 22 — the superseded count, reproduced exactly, as the non-guard part of
+> today's tree.** The old number is not merely compatible with the new one; it is *derivable
+> from it*, and the derivation is what proves the guard is the whole of the delta. Had `22`
+> been overwritten in place, `35` would today rest on nothing but this page's own assertion.
+>
+> **This is the repository's convention for a number that has been superseded**: record it,
+> date what it described, and put the measured replacement beside it. A number replaced in
+> place teaches nobody anything — and the reader who has to audit the change is left with a
+> claim where there used to be an argument.
+>
+> Where `22` still correctly describes this shape's **history** it is not to be rewritten.
+> `docs/diagnosis/divergence-03-env-contract.md:386` is one such place and was deliberately
+> left untouched.
 
 ### 3.2 · The plan, as regenerated
 

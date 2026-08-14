@@ -68,7 +68,31 @@ REPO_ROOT = cm.REPO_ROOT
 #: submission. Lead plans under `docs/leads/` and dated verification records under
 #: `docs/verify/` and `docs/diagnosis/` are deliberately NOT here -- they are records of
 #: what was true on a date, and a ratchet that demanded they be re-typed would be demanding
-#: that history be falsified.
+#: that history be falsified. `docs/leads/`, `docs/decisions/`, `docs/adr/` and
+#: `docs/upstream/` carry the same status by the identical reasoning
+#: (`docs/leads/docs-true-final.md` RULING 3, which records the extension rather than
+#: leaving it to be inferred).
+#:
+#: WIDENED 2026-08-14 BY THREE ENTRIES, and the reason is worth more than the diff.
+#: `docs/CI-STATE.md`, `docs/submission/VIDEO-KIT.md` and `docs/state-of-the-build.html`
+#: were policed by NO ratchet in this repository, and all three are read as current truth:
+#: CI-STATE.md is the board a reviewer checks before believing any lane, VIDEO-KIT.md is
+#: the shooting script whose worked example prints a wall-clock deadline that expires, and
+#: state-of-the-build.html is the VERDICT PAGE -- the single document most likely to be the
+#: first thing a judge opens. It was headlining `NO-GO` about a build whose blocker had
+#: been fixed two commits earlier, and nothing in the tree could see that.
+#:
+#: The direction is the only one permitted. `test_docs_are_true.py::test_the_live_document
+#: _list_covers_the_documents_a_judge_reads` calls removing an entry *"lowering the aperture
+#: to obtain a green, which is the same move as lowering a floor"*, and all three new
+#: entries are pinned into that test's `required` set so this widening cannot be quietly
+#: undone. **Expect new reds, and expect them to be real: that is the point of a wider
+#: aperture, and a widening that produced no reds would not have been worth making.**
+#:
+#: The sweeps below are line- and paragraph-oriented over text, not markdown parsers, so
+#: the HTML twin is swept on the same terms as its Markdown original -- which is precisely
+#: what is wanted, because the two must agree sentence by sentence and a claim that is
+#: false is false in either syntax.
 LIVE_DOCS = (
     # The deploy surface: what would be created, what it costs, how it is watched.
     "docs/deploy/COST-BOUND.md",
@@ -84,9 +108,13 @@ LIVE_DOCS = (
     "docs/deploy/lambda-bundle.md",
     "docs/deploy/replay-fallback.md",
     "docs/deploy/unproduced-tables.md",
-    # The two top-level pages a reviewer opens before anything else.
+    # The top-level pages a reviewer opens before anything else -- including the verdict
+    # page in BOTH the syntaxes it ships in, because a judge opens whichever one renders.
     "docs/STATE-OF-THE-BUILD.md",
+    "docs/state-of-the-build.html",
     "docs/TOOL-USAGE.md",
+    # The board. A reviewer reads this before believing any lane's colour.
+    "docs/CI-STATE.md",
     # The submission directory. A judge starts here, so the ratchet must too.
     "docs/submission/DEVPOST.md",
     "docs/submission/RULES-MATRIX.md",
@@ -95,6 +123,7 @@ LIVE_DOCS = (
     "docs/submission/FIRST-FIVE-MINUTES.md",
     "docs/submission/PUBLIC-READINESS.md",
     "docs/submission/RUNBOOK.md",
+    "docs/submission/VIDEO-KIT.md",
 )
 
 

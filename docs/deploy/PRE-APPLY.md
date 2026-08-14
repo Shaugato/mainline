@@ -75,7 +75,7 @@ seconds here, or a full apply-and-destroy cycle there.
 
 | # | Precondition | Proven by | Absent today? |
 |---|---|---|---|
-| G0 | The tree is the reviewed commit, and the toolchain matches | `git status` / `terraform version` | no |
+| G0 | The tree is a **complete** checkout of the reviewed commit, and the toolchain matches | `plan_repro.sh` stage 0 / `terraform version` | no |
 | G1 | The caller is the intended identity in the intended account | `aws sts get-caller-identity` | no |
 | G2 | The Terraform state bucket exists and is configured | `aws s3api list-buckets` | **YES — ABSENT** |
 | G3 | The DSN SecureString exists in Parameter Store | `aws ssm describe-parameters` | **YES — ABSENT** |
@@ -119,10 +119,48 @@ aws --version                        # expect: aws-cli/2.x  (v2 is not negotiabl
 
 Measured today: `Terraform v1.14.8`, `aws-cli/2.32.21`, `Python 3.13.14`.
 
-**If it fails:** [`RUNBOOK.md` §4](RUNBOOK.md#4--prerequisites) has the version table and the
-reasons each floor is a floor — Terraform ≥ 1.10 for `use_lockfile`, Python 3.13 exactly
-because `build_lambda.sh` fetches `cp313` wheels. On Windows, read §4's Git Bash trap before
-blaming the tools: `bash` on `PATH` is WSL and has no AWS CLI.
+### G0.1 — "clean" is not "complete", and on Windows the difference is silent
+
+**`git status --porcelain` printing nothing does not establish that this tree is the
+repository.** Measured on TRAPPOINT, 2026-08-14, cloning `7535670` into a 125-character
+parent without `core.longpaths`: `git clone` printed **"Clone succeeded, but checkout
+failed"** and exited `128`, two of 7,577 tracked paths never reached the disk, the index was
+never written — and therefore:
+
+| the question you would ask | the answer you would get | the truth |
+|---|---:|---:|
+| `git ls-files --deleted` | **0** | 2 paths missing |
+| `git ls-files \| wc -l` | 0 | HEAD names 7,577 |
+| `git status --short` rows | 7,613 | 7,575 files were present |
+| missing under `infra/`, `scripts/deploy/`, `evidence/deploy/`, `docs/deploy/` | 0, 0, 0, 0 | 0, 0, 0, 0 — **all true** |
+
+The last row is why this gate needs its own step. **Every path Terraform reads was present,
+so `terraform init -backend=false` and `terraform validate` both succeeded** against a tree
+that is not this repository, and the first three rows are three different wrong answers to
+"is anything missing?" — one under-reporting to zero, one meaningless, one over-reporting by
+three thousand.
+
+The census that is not fooled is taken from `HEAD`, which the clone's object transfer wrote
+successfully and no failed checkout can corrupt:
+
+```bash
+scripts/deploy/plan_repro.sh --prove-truncation-refusal <a directory holding a bad checkout>
+# expect: verdict   REFUSED with exit 11   [ok — the truncated-checkout guard fires]
+```
+
+Stage 0 of `plan_repro.sh` runs that census on **every** invocation, before Terraform and
+before the AWS CLI, and refuses with **exit 11**. G7 therefore carries this check for free;
+this step is here so that the gate says out loud what G7 is relying on.
+
+**If it fails:** re-clone with
+`git clone --config core.longpaths=true --config core.autocrlf=false …`. Do not `git restore`
+your way out of it — a checkout that aborted has an index that does not describe `HEAD`, and
+every subsequent index-relative answer is unreliable.
+
+**If it fails on the version table instead:** [`RUNBOOK.md` §4](RUNBOOK.md#4--prerequisites)
+has the reasons each floor is a floor — Terraform ≥ 1.10 for `use_lockfile`, Python 3.13
+exactly because `build_lambda.sh` fetches `cp313` wheels. On Windows, read §4's Git Bash trap
+before blaming the tools: `bash` on `PATH` is WSL and has no AWS CLI.
 
 ---
 
@@ -384,6 +422,29 @@ and **404s the URL a judge opens**, because `static_site.resolve()` will not fal
 `index.html` under `/assets/` or `/bundle/`. That is the most expensive failure available to
 this project and it costs one `zipfile.namelist()` to prevent.
 
+### G5.1 — on a fresh clone this gate is reached by building, and the build has an order
+
+`out/` and `dist/` are gitignored, so **a clone has no package and no console to build one
+from**, and `filebase64sha256` is evaluated at *plan* time — so G7 cannot be walked before
+this one on a fresh machine. [`RUNBOOK.md` §5.6.0](RUNBOOK.md#560--from-git-clone-to-plan-24-to-add--the-ordered-walk-measured-end-to-end)
+is the walk, measured end to end on 2026-08-14 from a clone of `7535670`:
+
+```
+pnpm install --frozen-lockfile              exit 0
+pnpm exec vite build --mode demo            exit 0   → dist/, 49 files
+python3.13 -m venv .venv                    exit 0
+scripts/deploy/build_lambda.sh --arch arm64 exit 0   → VERDICT PASS, 250 entries, 7 702 186 B
+```
+
+> **`--mode demo`, and not `pnpm run build`.** Both exit 0. The production-mode build makes a
+> `dist/` that `build_lambda.sh`'s own console check then objects to — *"carries neither
+> `VITE_MAINLINE_API_BASE` nor `VITE_MAINLINE_BUNDLE_URL` … a website with no data"* — and it
+> would deploy cleanly, pass `/v1/health`, and render **no source on every surface** in front
+> of a judge. The demo-mode build reads the tracked `.env.demo` and the same check then prints
+> `VITE_MAINLINE_BUNDLE_URL=./bundle/`. **The artefact check is the authority here, not the
+> command**: `scripts/deploy/deploy.sh:879` runs `pnpm run build`, which is that script's line
+> to correct, and it is reported to its owner rather than edited from this page.
+
 **If it fails:** [`RUNBOOK.md` §5.4](RUNBOOK.md#54--the-lambda-package). Rebuild; do not
 hand-edit the manifest. The manifest is a description of the zip, and a description that was
 adjusted to match is not a check.
@@ -481,14 +542,28 @@ One command, and it is the whole gate:
 scripts/deploy/plan_repro.sh
 ```
 
-Measured on this machine, **2026-08-14**. **This is an ABRIDGEMENT, not a verbatim copy** —
-the account id is masked, absolute scratch paths are dropped, and so are the script's own
-explanatory lines, leaving the lines this gate asserts on. No value is changed and no line is
-reordered. The unabridged transcript is in
+**Re-measured 2026-08-14 from a genuinely fresh `git clone` of `master` = `7535670`, on a
+path that had never held this repository and a machine holding no `out/`.** That is the
+difference between "the gate passes here" and "the gate passes"; the ordered chain that gets
+a clone to this point — console build, interpreter, package — is
+[`RUNBOOK.md` §5.6.0](RUNBOOK.md#560--from-git-clone-to-plan-24-to-add--the-ordered-walk-measured-end-to-end),
+and the whole transcript with every exit code is
+[`evidence/deploy/lead/plan-repro-fresh-clone.json`](../../evidence/deploy/lead/plan-repro-fresh-clone.json).
+The run took 79 s and exited 0.
+
+**This is an ABRIDGEMENT, not a verbatim copy** — the account id is masked, absolute scratch
+paths are dropped, and so are the script's own explanatory lines, leaving the lines this gate
+asserts on. No value is changed and no line is reordered. The unabridged transcript is in
 [`RUNBOOK.md` §5.6.1](RUNBOOK.md#561--reproducing-the-plan-with-no-mutating-aws-call), and the
-authority is the command, which takes about fifteen seconds to re-run.
+authority is the command.
 
 ```
+== 0 · this is a complete checkout of this repository (no terraform, no AWS, no network)
+  HEAD                   7535670  (7577 tracked path(s))
+  on disk                7577 of 7577 present   (7577 file(s) walked)
+  index                  7577 entr(ies)
+  worktree eol           0 of 50 file(s) under infra/ converted on checkout
+
 plan_repro — reproducing the shipping plan with no mutating AWS call
 
 == 1 · identity (read-only)

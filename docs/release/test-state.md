@@ -28,6 +28,48 @@ Taken `2026-08-09T22:44:59Z` with `pytest 9.1.1` on Python 3.13.14 (win32), 2414
 
 Cluster pass ran against `<dsn>` — CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5), `gc.ttlseconds = 14400`.
 
+> ## ⚠ STALE, AND DELIBERATELY NOT RE-TYPED — annotated 2026-08-14 by D3
+>
+> **This is a generated file and it says so: *"Generated file. Do not edit."*** Every number
+> below is read out of `qa/test-state.json` by `scripts/qa/report_test_state.py`. **The
+> correct repair is to re-run that generator, not to hand-edit a row**, and the generator
+> writes into `qa/`, which the DOCS-TRUE wave does not own. So this file is annotated and its
+> digits are left untouched.
+>
+> **What is known to have moved, with today's measurement beside it:**
+>
+> | row | this file (2026-08-09 → 08-13) | measured 2026-08-14 by D3 |
+> |---|---|---|
+> | `verticals/mainline/apps/demo-api`, `--crdb=reuse` | folded into a `--crdb=reuse` total of `7632 / 7340P / 30F / 245E / 17S` | **576 tests · 575 passed · 0 failed · 0 errors · 1 skipped**, `217.7 s` |
+>
+> Read from `--junitxml`'s `<testsuite>` attributes, never a terminal scroll:
+>
+> ```
+> $ MAINLINE_W4_DATABASE=w_D3 .venv/Scripts/python.exe -m pytest \
+>       verticals/mainline/apps/demo-api/tests --crdb=reuse -q -p no:randomly \
+>       --junitxml=out/qa/D3-before2.xml
+> 575 passed, 1 skipped in 218.45s (0:03:38)
+> tests=576  failures=0  errors=0  skipped=1
+> ```
+>
+> The one skip is `test_gate_run.py:1294` — *"jsonschema is not a workspace dependency"*.
+>
+> **A measurement hazard worth naming, because it corrupted a reading in this very wave.**
+> The demo-api suite's scratch database is named from a **fingerprint of its own inputs**
+> (`test_gate_run.py:259`), so two workers running the suite against the same node on the
+> same tree get the *same* database. A first attempt at the reading above, taken while
+> another worker's suite was live, reported **1 failed** — and the failing test was
+> `test_a_concurrent_committer_moves_the_counts_and_is_not_this_runs_failure`, which observed
+> `mainline.permit` moving by **+2** where it requires **+1**. The test was right: there *was*
+> a concurrent committer. The clean reading was taken with the sanctioned
+> `MAINLINE_W4_DATABASE` override, which `test_gate_run.py:255-258` keeps for exactly this
+> purpose. **Both readings are reported here. A number taken under contention is not a
+> number, and quietly discarding the first one would have been the more flattering choice.**
+>
+> **The rest of the table below is not re-derived and may have moved in either direction.**
+> Re-run `python scripts/qa/report_test_state.py` to replace it wholesale; do not patch a
+> cell.
+
 ## Totals
 
 | pass | targets | tests | passed | failed | errored | skipped | xfailed | timed out |

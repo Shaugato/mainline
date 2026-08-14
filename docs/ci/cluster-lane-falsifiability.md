@@ -5,18 +5,183 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # The cluster lane's 2×2, measured — with the artefacts attached
 
-**This document now carries two measurements of the same 2×2, and neither replaces the
-other.**
+**This document now carries THREE measurements of the same 2×2, and none replaces another.**
 
 | | where | when | what it can say |
 |---|---|---|---|
+| [**§Z**](#z-the-four-cells-at-the-public-tip--run-31770005766-head-7535670) | GitHub Actions, `ubuntu-24.04`, fresh checkout, fresh container | run **31770005766**, 2026-08-14, HEAD **`7535670` — the public tip** | **all four cells at a CURRENT tree**, with the load-bearing cell measured rather than assumed |
 | [**§A**](#a-the-lanes-first-complete-run-in-ci--run-31735341050) | GitHub Actions, `ubuntu-24.04`, fresh checkout, fresh container | run **31735341050**, 2026-08-13, HEAD `eefae1c` | the lane itself, end to end, including the `git status --porcelain` hygiene assertions that **cannot** be exercised locally |
 | [**§0–§10**](#0-why-this-document-was-rewritten) | TRAPPOINT, local node, long-lived databases | 2026-08-14, HEAD `538193b` | the cells in far more depth — executed node-id **sets**, eight attempts, two plant/revert cycles, committed JUnit artefacts |
 
-§A is newer and is the one that measures the *lane*; §0–§10 is deeper and is the one that
-measures the *claim*. §A.5 records, cell by cell, which of §5's five findings the CI run
-reproduced and which it did not. Nothing in §0–§10 has been edited except for four dated
-forward-pointers, which add a reference and change no number.
+§Z is the newest and the only one taken at the tip a judge can fetch; §A measures the *lane*;
+§0–§10 is deeper and measures the *claim*. §A.5 records, cell by cell, which of §5's five
+findings the CI run reproduced and which it did not. Nothing in §A or §0–§10 has been edited
+by §Z's author — §Z is added beside them, because a 2×2 re-run at a newer tree that overwrote
+the older readings would destroy the only evidence that the lane behaves the same way twice.
+
+---
+
+## Z. The four cells at the public tip — run 31770005766, HEAD 7535670
+
+**Worker:** D3, DOCS-TRUE wave, 2026-08-14. **Read out of the job log** with
+`gh api "repos/Shaugato/mainline/actions/jobs/94673769513/logs"` — the whole job log, 1,756
+lines, not `--log-failed` and not a summary page, **because the run published no 2×2 table**
+for the reason §Z.4 gives.
+
+| | |
+|---|---|
+| workflow | `.github/workflows/cluster-lane-bites.yml` |
+| run | [`31770005766`](https://github.com/Shaugato/mainline/actions/runs/31770005766), event `push`, HEAD **`7535670`** — the public tip |
+| job | *"the cluster lane bites, and the hermetic lane cannot"*, `2026-08-14T04:29:07Z` → `04:33:22Z` |
+| conclusion | **failure — at step 19, and only there.** Steps **1–18 passed**; step **19 failed**; step **20 was skipped**; step **21 passed** |
+
+### Z.0 What is new about this run, stated before the numbers
+
+**The 2×2 had never completed at a current tree.** §A's run is at `eefae1c`, two commits
+behind the tip; §0–§10 is a local measurement at `538193b`, a tree that no longer exists on
+the remote. **At `7535670` all four cells ran and all four passed**, and so did the
+inventory-cannot-suppress control and the frozen-seed guard's plant-present half.
+
+The lane is still **red**, and the reason matters more than the colour: the failing step runs
+**after** the plant has been reverted and the tree proved byte-for-byte clean, so it says
+nothing at all about falsifiability. §Z.3 has it.
+
+### Z.1 The four cells, as the run printed them
+
+Every figure is the pytest summary line of that step, quoted:
+
+| cell | plant | lane | the runner's own summary | verdict |
+|---|---|---|---|---|
+| **1/4** | ABSENT | cluster | `77 passed, 1 skipped in 113.10s (0:01:53)` | **GREEN** — the subset is healthy before anything is planted |
+| **2/4** | ABSENT | hermetic | `7 passed, 71 skipped in 0.33s` | **GREEN**, and **7 tests actually ran** |
+| **3/4** | PRESENT | hermetic | `7 passed, 71 skipped in 0.34s` | **STILL GREEN, and the SAME 7 ran** |
+| **4/4** | PRESENT | cluster | `3 failed, 74 passed, 1 skipped in 110.63s (0:01:50)` | **RED, and the named control is what failed** |
+
+### Z.2 THE LOAD-BEARING CELL IS 3/4, AND THIS IS WHAT IT MEANS
+
+**The cell the entire lane exists to produce is cell 3: plant PRESENT, hermetic lane, passing
+the SAME count as plant ABSENT.** Cell 4 going red is the easy half — a defect that a cluster
+can see, seen by a cluster. Cell 3 is the half that is worth something: **it is the proof that
+the hermetic lane COULD NOT have caught this defect**, and therefore that the cluster lane is
+not redundant with the lane the repository already had.
+
+Stated as an equation, from the two summary lines above:
+
+```
+cell 2  (plant ABSENT,  --crdb=none):  7 passed, 71 skipped     ← the control
+cell 3  (plant PRESENT, --crdb=none):  7 passed, 71 skipped     ← the load-bearing cell
+                                       ↑ IDENTICAL
+```
+
+**Read the failure modes of this cell in both directions, because only one of them is
+obvious.**
+
+* **If cell 3 went RED**, the hermetic lane *would* have caught the plant, the cluster lane
+  would be proving nothing the repository did not already have, and the correct response is
+  **a different plant** — a defect genuinely invisible without a database. **It is never a
+  relaxed assertion.** Changing `executed == before` to `executed >= before`, or dropping the
+  comparison, or narrowing the subset until the numbers agree, each converts a refuted claim
+  into an unfalsifiable one. **A relaxed assertion here is not a weaker result; it is the
+  absence of a result wearing the same colour.**
+* **If cell 3 went GREEN because nothing ran** — 0 passed, 71 skipped — the equality would
+  hold vacuously and the cell would assert nothing whatever. That is why the workflow's step
+  name carries the count out loud (*"STILL GREEN, and the same 7 ran"*) and why §3's local
+  measurement compares **node-id sets** and not just integers: a count equality can be
+  satisfied by one test dropping out as another appears; a set equality cannot.
+
+Both failure modes are guarded and neither fired. **The 7 is as load-bearing as the equality**,
+and any future reading of this cell that reports the equality without the count has reported
+half of it.
+
+The seven node ids are enumerated in §3 above and are unchanged in this run. Two of them
+deserve re-naming here because they are why the claim is not trivial:
+`test_no_module_derives_a_credential_id` — the AST ratchet, which passes because the planted
+derivation is in a **seed** and not in code — and
+`test_the_seed_files_this_suite_runs_against_are_the_ones_the_deploy_applies`, which compares
+file **names** and passes because only the bytes inside one file changed. **Two hermetic
+controls whose names sound like they should have caught this ran, and could not.**
+
+### Z.3 The one failing step, and why it is downstream of the argument
+
+The job's step list, with the number and conclusion **GitHub itself records for each** —
+quoted from `gh run view 31770005766 --json jobs --jq '.jobs[].steps[] | "\(.number) \(.conclusion) \(.name)"'`
+rather than counted by hand, because a step ordinal depends on whether the describer counted
+`Set up job` and this document has no business inventing its own numbering:
+
+```
+11  success  Cell 1/4 - plant ABSENT,  cluster:  the subset is GREEN today
+12  success  Cell 2/4 - plant ABSENT,  hermetic: GREEN, and 7 tests actually ran
+13  success  Plant the defect only a database can see
+14  success  Cell 3/4 - plant PRESENT, hermetic: STILL GREEN, and the same 7 ran
+15  success  Cell 4/4 - plant PRESENT, cluster:  RED, and the named control is what failed
+16  success  The inventory cannot suppress a failure, even when it names every one
+17  success  The frozen-seed guard is RED against this edit
+18  success  Revert the plant, and prove the tree is where it started
+19  FAILURE  The frozen-seed guard is GREEN again
+20  skipped  The 2x2, as one table
+21  success  The container's own account of the run
+```
+
+The failure, quoted:
+
+```
+2 failed, 1 passed in 0.18s
+FAILED tests/ci/test_demo_seed_is_frozen.py::…[demo_permit.sql]
+FAILED tests/ci/test_demo_seed_is_frozen.py::…[demo_world.sql]
+```
+
+with the lane's own error, which diagnoses itself correctly:
+
+> *"`tests/ci/test_demo_seed_is_frozen.py` failed AFTER the revert, on a tree the step above
+> proved byte-for-byte clean, so this is not about the plant. Either a deployed seed changed
+> and the freeze was not re-measured in the same commit (the stale-baseline case: read which
+> side moved, and note that **a hash computed FROM a file is never authoritative OVER that
+> file**), or a deployed seed has been reshaped and the freeze is telling you so."*
+
+**It is the stale-baseline case, and the guard was RIGHT.** Commit `898ad55` seeded
+`mainline.defeater_option` into both deployed seed files and did not re-measure the freeze in
+the same commit — which is precisely the omission `test_demo_seed_is_frozen.py` exists to
+catch. From `898ad55` until the freeze is re-measured, those two hash assertions are red at a
+**clean** tree, and **red with the plant and red without it discriminates nothing.**
+
+**Note what the guard did NOT do.** It fired against the plant (step 17, green) and it fired
+against the tip (step 18, red). Both firings are correct behaviour. The file's own
+`HOW TO RE-BASELINE` procedure makes re-measurement conditional on a **four-part negative
+control** run *before* the constants are touched — the seed diff carries no moved credential
+line; the derivation control passes; `test_credentials.py` passes in full under
+`--crdb=reuse`; and `demo_world.sql` still enrols exactly one signer as a digest of its NAME.
+**All four must come back clean, and if any one does not, the answer is to revert the seed and
+not to edit the recorded hash.** That is the incident this whole lane was built after.
+
+### Z.4 The 2×2's own table has STILL never been published by a run
+
+Step 19, *The 2×2, as one table*, was **skipped**, because it carries no `if: always()` and
+step 18 failed. §A.4 recorded the same outcome at `eefae1c`; it has now happened at `7535670`
+as well. **Three CI runs of this lane have produced all or most of the 2×2 and not one has
+printed it.**
+
+This is a real defect of the lane and it is named here rather than worked around:
+
+> **A falsifiability argument whose conclusion is only reachable by reading nineteen step
+> names one at a time is a falsifiability argument most people will not read.**
+
+The fix is one `if: always()` on the summary step, in a workflow this documents wave does not
+own. **It is not a fix to make step 18 pass**, and the two must not be confused: step 18 is
+red for a real reason (§Z.3) and its cure is a re-measured freeze under the four-part control,
+not a green obtained by reordering.
+
+### Z.5 What this run does NOT establish
+
+* **It is one run.** §6.7 of `docs/CI-STATE.md` and §10 below both say a single green does not
+  refute a flake, and that applies to a single green 2×2 exactly as much as to anything else.
+* **The plant is one plant.** Cell 3 proves the hermetic lane cannot see **this** defect. It
+  is not a proof that the hermetic lane cannot see any seed-shaped defect, and no sentence in
+  this document should be read as claiming that.
+* **The cluster is a single node.** As everywhere else on this board, "cluster" means one
+  pinned `cockroachdb/cockroach:v26.2.5` container. Nothing here exercises multi-node
+  behaviour or the `40001` retry path.
+* **The `.gitignore`-clean assertions are still the part only CI can make.** They passed here
+  as they did in §A, and they remain unreproducible on a workstation that six workers share.
 
 ---
 

@@ -14,6 +14,83 @@ than a quiet lie.
 This page is the *count*. `docs/submission/LICENSING.md` is the *policy* — which tree is
 under which licence and why. Read that one if the question is "may I fork this".
 
+> ## ⚠ RE-RUN 2026-08-14 · THE COVERAGE CENSUS HAS MOVED, THE RATCHET HAS NOT, AND THE
+> ## SELF-TEST HAS A RED CELL THIS PAGE PRINTS AS GREEN
+>
+> `.venv/Scripts/python.exe scripts/qa/check_reuse.py`, RAN 2026-08-14, exits **0** —
+> *"7576 tracked files, 0 uncovered, 4 licence texts, no counted number rose"*. **The gate is
+> green.** Everything below is nevertheless out of date, and one paragraph of it is wrong.
+>
+> **1 · The §1 and §2 tables are from 2026-08-10 and describe a smaller tree.** They are not
+> re-typed here, because `qa/reuse-ratchet.json` is the artefact this page transcribes and
+> `--write` is the only thing entitled to re-take the snapshot — a command this documents wave
+> does not run. Today's live totals, for comparison:
+>
+> | | 2026-08-10 (§1, the artefact) | **2026-08-14 (live)** |
+> |---|---:|---:|
+> | tracked files | 7 120 | **7 576** |
+> | header | 2 250 | **2 531** |
+> | sidecar | 172 | **199** |
+> | `REUSE.toml` | 4 518 | **4 636** |
+> | exempt | 180 | **210** |
+> | **UNCOVERED** | **0** | **0** |
+> | `LicenseRef-FSL-1.1-ALv2` resolved | 4 773 | **4 890** |
+> | `FSL-1.1-ALv2` resolved | 1 213 | **1 213** |
+> | `Apache-2.0` resolved | 886 | **999** |
+> | `CC-BY-4.0` resolved | 68 | **264** |
+>
+> **`UNCOVERED` is 0 in both readings and in every directory** — that is the gated number and
+> it did not move. **`FSL-1.1-ALv2` is 1 213 in both** — that is the falling-only divergence
+> counter and it did not rise, which is the whole point of §3. `census` figures move with the
+> ordinary life of the tree and are recorded, never gated, exactly as §3 says.
+>
+> **2 · §4 is out of date in the good direction.** *"Five globs that match nothing"* is now
+> **one**: `#4:packages/**/*.jsonl`, the deliberately defensive pattern. `LICENSE`,
+> `docs/submission/**`, `evidence/provenance/**` and `evidence/tool-usage/**` are all tracked
+> now, exactly as §4 predicted they would be — *"four of the five are not dead, they are
+> waiting on a `git add`"*. §5's parenthetical is likewise closed: `exempt by declared policy`
+> now prints `REUSE.toml` (1), not 0.
+>
+> **3 · §7's table is WRONG about the GREEN control, and this is the one correction that is
+> not just arithmetic.** That table shows all seven `--self-test` scenarios passing. RAN
+> 2026-08-14:
+>
+> ```
+> --self-test — one synthetic repository, one planted violation per family
+> scenario                               expect  exit  result   why it is here
+> GREEN control                            pass     0  FAILED   a complete tree passes; a checker that always refuses is broken, not safe
+> no header, no sidecar, no annotation   REFUSE     1  ok       the file nobody licensed
+> identifier with no text in LICENSES/   REFUSE     1  ok       a licence named but not shipped
+> orphan text in LICENSES/               REFUSE     1  ok       a licence shipped but not used
+> REUSE.toml glob matching nothing       REFUSE     1  ok       a map with a road to nowhere
+> a counted number above the ratchet     REFUSE     1  ok       the divergent spelling grows by one
+> --write on a broken tree               REFUSE     1  ok       regeneration raises a number; it must never launder a broken one
+> 1 of 7 scenarios did not behave as declared.
+> ```
+>
+> Exit **1**. `python -m pytest tests/release/test_check_reuse.py` agrees: **2 failed, 31
+> passed, 1 error**, all three in the self-test.
+>
+> **The six refusal scenarios still fire. The one that broke is the GREEN control** — the
+> scenario whose entire job is to prove the checker is not simply refusing everything. §7's
+> own sentence, which is correct and is why this matters, reads: *"The GREEN control is not
+> decoration: a checker that refuses everything is broken, not safe."* **A checker whose green
+> half is red cannot support the sentence "0 uncovered" as strongly as this page claims it
+> can**, even though the production run over the real tree exits 0 and 0 is very probably
+> right.
+>
+> This is a defect in `scripts/qa/check_reuse.py` or in its synthetic fixture, not in this
+> page's tables, and **neither the checker nor `tests/release/test_check_reuse.py` is this
+> document's to edit** — and neither may be relaxed to obtain a green. **Raised as a
+> cross-domain finding, and added to §8.**
+>
+> **4 · This file's own NAME is a false positive in another scanner.** `provenance_census.py`
+> classifies `docs/submission/LICENCE-CENSUS.md` as a *foreign licence file* — its filename
+> matches `^(LICEN[CS]E|…)([._-]…)?$` — and therefore reports `bundles_third_party_code: true`
+> for the whole repository. The file is ours and carries this project's SPDX copyright.
+> **It is not renamed to make a scanner quieter.** `docs/submission/DISCLOSURE.md` §4 carries
+> the finding, the line numbers and the one honest repair.
+
 ---
 
 ## 0 · The sentence this page exists to make false
@@ -385,4 +462,7 @@ Recorded here rather than in a commit message, in the manner of `docs/HONESTY.md
 | `docs/HONESTY.md` still says this ratchet does not exist | True when it was written, false now. Not edited here: that file has an owner and this one does not. Raised as a cross-domain note with the exact `[src: …]` pointers to use. |
 | `qa/reuse-ratchet.json` is not a declared evidence *family* | `tests/release/test_honesty_is_checkable.py` carries a `FAMILIES` table that forces `docs/HONESTY.md` to cite an artefact once it lands. This ratchet is not in it, so nothing yet compels the citation. Adding the family and the citation must happen in one change, or that test goes red. |
 | the census is a snapshot taken mid-wave | Ten workers were writing to this tree. `census` figures are re-derived live on every run and go stale in the JSON the instant a file lands; they are recorded, never gated. Re-take once on the merge commit with `--write`. |
-| `LICENSE`, `REUSE.toml` and two of the four texts in `LICENSES/` are untracked | They exist on disk and are not committed, which is why four globs read as dead and `exempt_by_policy` reads 0. Not this worker's commit to make. |
+| `LICENSE`, `REUSE.toml` and two of the four texts in `LICENSES/` are untracked | They exist on disk and are not committed, which is why four globs read as dead and `exempt_by_policy` reads 0. Not this worker's commit to make. **CLOSED 2026-08-14** — all four are tracked; the dead-glob count fell 5 → 1 and `exempt_by_policy` reads 1. |
+| **`check_reuse.py --self-test`'s GREEN control FAILS** | **Opened 2026-08-14.** Six of seven scenarios behave as declared; the seventh — the one asserting a complete synthetic tree *passes* — does not, so `--self-test` exits 1 and `tests/release/test_check_reuse.py` reports 2 failed / 31 passed / 1 error. The production run over the real tree still exits 0 with `0 uncovered`. §7's table above is a record of an older run and is annotated rather than re-typed. **The checker and the test are not this page's to edit, and neither may be relaxed to obtain a green.** Owner: the quality domain. |
+| `qa/reuse-ratchet.json` records a 7 120-file tree and the tree is 7 576 | The `census` block goes stale by design — it is recorded, not gated — and only `--write` re-takes it. A documents wave does not run `--write`. The gated numbers (`uncovered_total` 0, `non_spdx_spelling` 1 213) are unmoved. Re-take once on a merge commit. |
+| `docs/submission/LICENCE-CENSUS.md` is read as a *foreign licence file* by `provenance_census.py` | Its filename matches that scanner's licence-file pattern and the holder it reads — ours — is never tested, so `bundles_third_party_code` flips true for the whole repository. **Not repaired by renaming this file.** Cross-domain finding; `DISCLOSURE.md` §4 carries it. |

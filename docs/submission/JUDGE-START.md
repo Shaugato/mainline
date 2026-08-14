@@ -45,13 +45,18 @@ message**. `continue-on-error` and `|| true` are banned in this repository.
 
 `github.com/Shaugato/mainline/actions` — public, no login.
 
-Green at `HEAD` includes `submission`, `claims`, `boundary`, `release-proof`, `console`,
-`skills`, `judge-pack` and `mutation-ratchet`. Red at `HEAD` includes `custody-chain`,
-`schema`, `demo-health`, `db`, `db-schema` and `ci`. **`CI-STATE.md` tells you which reds
-are load-bearing admissions and which are work in flight**, and it is the only honest way to
-read that page. A submission that showed you an all-green tab six days before a deadline,
-with nothing deployed, would be telling you something about its badges rather than about its
-software.
+**The lane-by-lane verdict lives in [`docs/CI-STATE.md`](../CI-STATE.md), and only there.**
+This page deliberately does not carry a second copy of the green/red list: a lane list
+transcribed into a document goes stale the next time a lane runs, and two lists that disagree
+are worse than one. `CI-STATE.md` names each lane, its conclusion and its run id, and it
+distinguishes the two kinds of red — **something is broken** from **a ratchet is holding a
+line we have not yet earned**. The custody chain has 7 of 16 checks unimplemented; the
+conformance suite has never been demonstrated end to end; a demo-health lane cannot be green
+while no demo is deployed. Those reds are the product.
+
+A submission that showed you an all-green tab four days before a deadline, with nothing
+deployed, would be telling you something about its badges rather than about its software.
+`continue-on-error` and `|| true` are banned in this repository.
 
 ---
 
@@ -61,17 +66,29 @@ software.
 as a recording rather than a sentence.
 
 Open the newest `proof-<UTC>.json`. It is what one CockroachDB cluster did at one instant,
-written by `scripts/proof/gate_refusal.py`. The newest, taken on 2026-08-12
-[src: `evidence/gate-refusal/proof-20260812T163857Z.json`]:
+written by `scripts/proof/gate_refusal.py`. The newest, taken on 2026-08-14 and read back
+on 2026-08-14 [src: `evidence/gate-refusal/proof-20260814T032418Z.json`]:
 
 | Field | Value |
 |---|---|
-| `chain` | `271` of `271` applied, `0` failed, `51.336` s |
-| `refusal` | `REFUSED`, SQLSTATE `23514`, constraint `gate_closed_when_issued` |
-| `drift_refusal` | `REFUSED`, SQLSTATE `P0001`, `mainline.fn_permit_merge_gate` |
+| `generated_at_utc` | `2026-08-14T03:24:18Z` |
+| `cluster` | CockroachDB CCL `v26.2.5`, database `w_qr_gate_refusal_proof`, `gc.ttlseconds` 4500 |
+| `chain` | `271` of `271` applied, `0` failed, `71.797` s |
+| `projection` | `10` of `10` assertions held |
+| `refusal` | `REFUSED`, SQLSTATE `23514`, constraint `gate_closed_when_issued` (`reported`) |
+| `drift_refusal` | `REFUSED`, SQLSTATE `P0001`, `mainline.fn_permit_merge_gate` (`parsed`) |
+| `disposition` | `signed: true`, `kind: applied`, `countersigned_count_after: 1` |
 | `admission` | `ADMITTED`, SQLSTATE `00000`, after one signed disposition |
-| `caveats` | *(none)* — nothing in this run is unproven-but-tolerated |
+| `caveats` | `[]` — nothing in this run is unproven-but-tolerated |
+| `failures` | `[]` |
 | `verdict` | `PROVEN` |
+
+**`cluster.database` reads `w_qr_gate_refusal_proof`. This is a LOCAL proof and this page does
+not say otherwise.** Two further artefacts record the same four beats against CockroachDB
+Cloud and against a local database through the real HTTP handler
+(`evidence/deploy/cloud-acceptance.json`, `evidence/deploy/acceptance.json`); both were taken
+over `scripts/deploy/local_furl.py`, a local emulator of a Lambda Function URL, and both set
+`target_is_local_emulator: true`. **Neither is a deployed demo** — see stop 6.
 
 Three attempts at the same permit merge. The first is a plain `CHECK` constraint refusing a
 merge while an obligation is open. The second is the same merge with the projected counter
@@ -82,13 +99,24 @@ A gate that always refuses is broken, not safe, so the third line is not decorat
 
 The `projection` block is the strongest part. One insert of one blocking check moved
 `open_blocking` from
-0 [src: `…proof-20260812T163857Z.json#projection.open_blocking.before`] to
-1 [src: `…#projection.open_blocking.after`], bumped the gate epoch, emitted a `check_opened`
-CDC row, and projected a severity of
+0 [src: `…proof-20260814T032418Z.json#projection.open_blocking.before`] to
+1 [src: `…#projection.open_blocking.after`], bumped the gate epoch from 0 to
+1 [src: `…#projection.gate_epoch`], emitted a `check_opened`
+CDC row into `mainline_ops.outbox` [src: `…#projection.outbox`], and projected a severity of
 4 [src: `…#projection.severity.projected_onto_the_check`]
 onto a row where the client had supplied
 0 [src: `…#projection.severity.supplied_by_this_script`].
 **The client did not write the number that closed the gate. The database did.**
+
+Since 2026-08-14 the fourth beat is load-bearing in a way it was not before: the admission
+requires a **signed disposition**, and signing now resolves the signer's credential and the
+defeater-vocabulary digest **out of the database** — `mainline.signing_credential` and
+`mainline.defeater_option` — instead of deriving them in the application. Until that landed,
+the digest a signature pinned was `sha256(b"defeater-vocab")`, a constant.
+[`MUST-NOT-CLAIM.md`](MUST-NOT-CLAIM.md) families 13 and 14 carry what may and may not be
+said about it, including the one this project is careful about: **there is no foreign key
+from `mainline.disposition` onto `mainline.defeater_option`**, so *that* particular refusal
+is the application's and not the database's.
 
 ---
 
@@ -105,16 +133,37 @@ git clone -c core.longpaths=true https://github.com/Shaugato/mainline.git
 cd mainline
 ```
 
-Clone into a **short** destination on Windows. Measured with real clones: without the flag a
-working tree survives a destination of
+Clone into a **short** destination on Windows. Measured with real clones on 2026-08-10:
+without the flag a working tree survived a destination of
 44 characters [src: `qa/judge-dry-run.json#clone_threshold.without_longpaths.max_working_dest_chars`]
-and fails at
+and failed at
 45 [src: `…#clone_threshold.without_longpaths.first_failing_dest_chars`];
 with the flag no clone failure was seen up to
 140 [src: `…#clone_threshold.with_longpaths.no_failure_observed_up_to`],
-but one console replay fixture then exceeds what Windows will hand to an ordinary program,
-so past 44 characters `git` can read the tree and a plain `open()` cannot. Unaffected on
+but one console replay fixture then exceeded what Windows will hand to an ordinary program,
+so past 44 characters `git` could read the tree and a plain `open()` could not. Unaffected on
 macOS and Linux.
+
+> **RE-MEASURED 2026-08-14, and the cliff has moved a long way out.** The 214-character
+> fixture paths that caused it are gone from the tree.
+> `python scripts/submission/check_path_lengths.py`, exit **0**:
+>
+> ```
+>   tracked files                     7576
+>   longest tracked path              141 chars
+>   longest single name component     69 chars
+>   Windows usable path               259 chars
+>   MAX SAFE CLONE DESTINATION        117 chars
+>   paths a 60-char destination cannot check out   0
+>   budget: max_tracked_path_chars=141 files_unclonable_at_typical_prefix=0  (falling-only)
+>   STATUS: OK
+> ```
+>
+> **A destination of up to 117 characters is now safe, and zero files are unreadable at a
+> typical prefix.** `qa/judge-dry-run.json` still records the 2026-08-10 numbers because it
+> is a recording and is not hand-edited; the budget program above is the live reading.
+> **Keep typing the flag anyway** — it costs nothing off Windows, and a judge cloning into a
+> deep path is still cheaper to protect than to diagnose.
 
 **1 · `python scripts/qa/doctor.py`** — exit
 1 [src: `qa/judge-dry-run.json#runs.1.steps.0.exit_code`], in
@@ -161,10 +210,11 @@ merge three times: refused, refused again under a forged projection, then admitt
 signed disposition. It writes its own `evidence/gate-refusal/proof-<UTC>.json` — compare it
 against the committed one.
 
-Run on this repository at `HEAD` on 2026-08-12 it printed, and exited `0`:
+Run on this repository at `HEAD` on 2026-08-14 it printed, and exited `0` — the transcript is
+the committed `evidence/gate-refusal/proof-20260814T032418Z.json`:
 
 ```
-chain         271/271 applied, 0 failed, 51.336s
+chain         271/271 applied, 0 failed, 71.797s
 unproduced    (none) — every relation this tree references has a producer
 PROJECTION    10/10 held · open_blocking 0->1 · gate_epoch 0->1 · outbox 'check_opened' severity 4 (client supplied 0)
 REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
@@ -220,9 +270,29 @@ promise.
 
 ## Stop 6 · What is not here, and what we are not claiming
 
-**There is no demo URL yet.** `docs/submission/SUBMISSION.json` holds the literal
-`UNRESOLVED` for `demo_url` and for `video_url`, because `terraform apply` has not been run
-and the film has not been shot. The plan that would create the origin is committed at
+**There is no demo URL yet, and two files that read `PROVEN` do not change that.**
+`docs/submission/SUBMISSION.json` holds the literal `UNRESOLVED` for `demo_url` and for
+`video_url`, because `terraform apply` has not been run and the film has not been shot.
+`check_submission_ready.py`, RAN 2026-08-14, still reports both as unresolved rows.
+
+Read this before you open `evidence/deploy/`, because it is the one place where an honest
+artefact could be misread as a deployment. **Both acceptance artefacts read `verdict:
+PROVEN` as of 2026-08-14, and both were taken over a local socket:**
+
+| artefact | database under test | HTTP hop | what it proves |
+|---|---|---|---|
+| `evidence/deploy/acceptance.json` | `w_w3` on `localhost:26257`, `is_cockroachdb_cloud: false` | `http://127.0.0.1:8792`, `target_is_local_emulator: true` | the real handler and the real console bundle work, reproducibly, on a laptop |
+| `evidence/deploy/cloud-acceptance.json` | `mainline_demo` on `mainline-dev-31219.…cockroachlabs.cloud:26257`, `is_cockroachdb_cloud: true` | `http://127.0.0.1:8791`, `target_is_local_emulator: true` | the same handler against the database the demo would actually meet |
+
+The HTTP hop in both is `scripts/deploy/local_furl.py`, an emulator of a Lambda Function URL,
+and it says so in a header it sets on every response:
+`x-mainline-not-the-demo-url: … It is not the deployed demo and must not be published as
+one.` **One artefact's `mode_description` field claims the run was "against CockroachDB
+Cloud" when its own `target_provenance` says `localhost` — read `target_provenance`, not
+`mode_description`.** At the time of writing, `cloud-acceptance.json` was untracked in the
+working tree; if it is not in your clone, that is why.
+
+The plan that would create the origin is committed at
 `evidence/deploy/terraform-plan-furl.txt` — `Plan: 24 to add, 0 to change, 0 to destroy` at line 843:
 11 resources in `module.api[0]` and 13 in `module.guard[0]`, the cost guard that
 `infra/envs/demo/main.tf:631` now instantiates. **An earlier version of this page said 11**,
@@ -239,7 +309,7 @@ submission; if anything, read it first.
 
 * **The migration count everyone quotes is a survey, not a deployment.** The newest
   committed proof records 271 of 271
-  applied [src: `evidence/gate-refusal/proof-20260812T163857Z.json#chain.applied_count`] with
+  applied [src: `evidence/gate-refusal/proof-20260814T032418Z.json#chain.applied_count`] with
   0 failures [src: `…#chain.failed_count`] — but the applier that produced it continues past
   every failure by design. It was not always this number: an earlier committed run records
   246 of 261 applied [src: `evidence/gate-refusal/proof-20260810T004200Z.json#chain.applied_count`]
@@ -275,8 +345,11 @@ submission; if anything, read it first.
 * **Every timing here is a local timing.** The inner loop is a single-node CockroachDB in
   Docker on one laptop, and the seconds on this page were recorded while other jobs shared
   the same container [src: `qa/judge-dry-run.json#operator_notes`].
-  Nothing has ever run against CockroachDB Cloud in CI. The cluster exists and there is a
-  captured transcript; no automated lane has ever pointed at it.
+  **Nothing has ever run against CockroachDB Cloud in CI** — re-checked 2026-08-14 and still
+  true. The cluster exists and several transcripts against it are committed
+  (`evidence/deploy/cloud-chain.json` `APPLIED`, `evidence/deploy/cloud-seed.json`
+  `SEEDED AND REFUSABLE`); every one of them was driven by hand. No automated lane has ever
+  pointed at it.
   Two further limits belong beside this one: `trappoint-verify` exits `2` over
   the reference ledger because
   9 [src: `qa/test-state.json#external_checks.custody_bundle_verification.counts.passed`] of

@@ -174,6 +174,24 @@ version produces a zip that imports here and fails on Lambda.
 is dead here. Every script in `scripts/deploy/` therefore calls `.venv/Scripts/python.exe`
 by name.
 
+**A fresh clone has no `.venv`, no `node_modules`, no `dist/` and no `out/`** — all four are
+gitignored. §5.6.0 is the ordered walk that creates them, and it is the section to read if
+you have just cloned this repository and want the plan.
+
+### How to clone this repository on Windows
+
+```bash
+git clone --config core.longpaths=true --config core.autocrlf=false \
+    https://github.com/Shaugato/mainline.git
+```
+
+Neither flag is decoration. Without `core.longpaths` a clone into a long parent directory
+prints **"Clone succeeded, but checkout failed"**, exits `128`, and leaves a tree that
+`terraform validate` is perfectly happy with — the measurement, and the guard that refuses
+it, are in §5.6.0 step 0. Without `core.autocrlf=false` the checkout can convert `.tf` files
+to CRLF, which changes no resource count and does change the bytes of every regenerated plan
+artefact.
+
 ### The Git Bash trap, on Windows — measured
 
 `deploy.ps1` needs Git Bash for stage 1, and it will not use the `bash` on `PATH`:
@@ -423,6 +441,204 @@ founder reviewed is what runs.
 
 ---
 
+#### 5.6.0 · From `git clone` to `Plan: 24 to add` — the ordered walk, measured end to end
+
+**A runbook that only works on one workstation is not a runbook.** Everything below was
+walked on 2026-08-14 from a genuinely fresh `git clone` of `github.com/Shaugato/mainline`
+at `master` = **`7535670`**, into a directory that had never held this repository, on a
+machine holding no `out/`, no `dist/`, no `node_modules/` and no `.venv/`. Every exit code
+quoted is the shell's `$?` for that command, read immediately after it and never from the
+tail of a pipeline. The full transcript is
+[`evidence/deploy/lead/plan-repro-fresh-clone.json`](../../evidence/deploy/lead/plan-repro-fresh-clone.json).
+
+**Why this section exists at all: the plan reads two build outputs that a clone does not
+have.** `infra/modules/demo-api/main.tf:342` calls `filebase64sha256(var.package_path)`,
+which Terraform evaluates at **plan** time, not at apply time. So the deployment zip must
+exist before `terraform plan` — and the zip is built from `verticals/mainline/apps/console/dist/`,
+which is itself a build output. `out/` and `dist/` are both gitignored
+([`.gitignore:9,10`](../../.gitignore)). Before this section was written, a fresh clone got
+as far as rendering the **whole** plan diff and then died inside `filebase64sha256`, which
+reads as a Terraform bug rather than as a missing build.
+
+##### Step 0 — clone, and check that the clone is complete
+
+```bash
+git clone --config core.longpaths=true --config core.autocrlf=false \
+    https://github.com/Shaugato/mainline.git mainline
+cd mainline
+```
+
+> ### ⚠ On Windows, `git clone` can print "Clone succeeded" and leave you a tree that is not this repository
+>
+> Measured on TRAPPOINT, 2026-08-14, cloning `7535670` into a 125-character parent directory
+> **without** `core.longpaths`:
+>
+> ```
+> error: unable to create file skills/upstream/…/verify_restore_merkle_root.py: Filename too long
+> fatal: unable to checkout working tree
+> warning: Clone succeeded, but checkout failed.
+> ```
+>
+> | question | answer |
+> |---|---:|
+> | `git clone` exit code | `128` |
+> | paths in `HEAD` | 7,577 |
+> | paths **absent from the working tree** | **2** |
+> | `git ls-files --deleted` | **0** ← a confident wrong answer |
+> | `git ls-files \| wc -l` (the index) | **0** ← never written |
+> | `git status --short` rows | 7,613 ← over-reports; a detector, not a census |
+> | missing under `infra/` | **0** |
+> | missing under `scripts/deploy/` | **0** |
+> | missing under `evidence/deploy/` | **0** |
+> | missing under `docs/deploy/` | **0** |
+>
+> **Read the last four rows.** Every path Terraform reads was present, so
+> `terraform init -backend=false` and `terraform validate` both **succeed** on that tree — a
+> reviewer gets a green tick from something that is not this repository. And the obvious
+> detector, `git ls-files --deleted`, answers **zero**, because the aborted checkout left the
+> index empty and `--deleted` compares the working tree against the index.
+>
+> **`plan_repro.sh` stage 0 refuses this by name, with exit 11, before Terraform or the AWS
+> CLI is invoked.** It takes its census from `git ls-tree -r HEAD` — the one list a failed
+> checkout cannot corrupt, because the object transfer succeeded — and diffs it against the
+> filesystem. Both of its branches are demonstrated firing in the evidence file: the
+> empty-index branch against the real truncated clone, and the missing-paths branch against a
+> complete clone with two `.tf` files moved aside.
+
+Do not take the guard on trust; it costs a second:
+
+```bash
+scripts/deploy/plan_repro.sh --prove-truncation-refusal <a directory holding a bad checkout>
+#   verdict   REFUSED with exit 11   [ok — the truncated-checkout guard fires]
+```
+
+`--config core.autocrlf=false` changes **no resource count** — it is there so that a
+regenerated plan artefact is byte-comparable with the committed one. This repository ships
+no `.gitattributes` and Git for Windows sets `core.autocrlf=true` at **system** level, so
+without it a clone can convert `.tf` files on checkout and every regenerated
+`terraform show -json` differs in its embedded `description` heredocs for a reason that is
+not a drift. Stage 0 measures the conversion with `git ls-files --eol` and reports it; it
+does not refuse it.
+
+##### Step 1 — build the console, **in `demo` mode**
+
+```bash
+cd verticals/mainline/apps/console
+pnpm install --frozen-lockfile          # exit 0
+pnpm exec vite build --mode demo        # exit 0  → dist/, 49 files
+cd ../../../..
+```
+
+> **`--mode demo` is load-bearing and `pnpm run build` is not a substitute.** Measured on
+> the fresh clone: `pnpm run build` succeeds, produces a `dist/`, and `build_lambda.sh` then
+> prints its own detector's verdict on it —
+>
+> ```
+> build_lambda: console   WARNING this dist/ carries neither VITE_MAINLINE_API_BASE nor
+> build_lambda: console           VITE_MAINLINE_BUNDLE_URL (import.meta.env MODE=production). The site
+> build_lambda: console           loads and then renders NO SOURCE on every surface. It is a
+> build_lambda: console           website with no data.
+> ```
+>
+> The demo-mode build reads `verticals/mainline/apps/console/.env.demo`, which is tracked, and
+> the same detector then prints `VITE_MAINLINE_BUNDLE_URL=./bundle/`. **A judge opening a
+> production-mode build sees a site that loads and shows nothing** — the most expensive
+> failure available to this project, and it is one flag.
+>
+> `scripts/deploy/deploy.sh:879` runs `pnpm run build`. That is the deploy script's line and
+> not this page's to change; it is reported to its owner in the evidence file. **The
+> authority here is the artefact check, not the command** — `build_lambda.sh` inspects the
+> `dist/` it is handed and says what is in it, and a command that produces a `dist/` the
+> checker objects to is the command that is wrong.
+
+##### Step 2 — the evidence bundle is already in the clone; do not re-capture it to read a plan
+
+`build_lambda.sh` reads `verticals/mainline/apps/console/fixtures/bundles/demo-cloud/`, and
+that directory is **tracked** — 26 files at `7535670`, present in any complete clone.
+`capture_demo_bundle.py` (§5.5) *refreshes* it against CockroachDB Cloud and is a **deploy**
+step; it needs a Cloud DSN and it is not needed to reproduce a plan. The zip's bytes reach
+the plan as exactly one value, `source_code_hash`, and change no resource count.
+
+##### Step 3 — an interpreter for the build
+
+A fresh clone has no `.venv`. `build_lambda.sh` looks for `.venv/Scripts/python.exe`, then
+`.venv/bin/python`, then `python3`/`python` on `PATH`. **Give it a CPython 3.13** — §4 says
+why — by making the repository's own venv:
+
+```bash
+python3.13 -m venv .venv          # Windows: py -3.13 -m venv .venv
+```
+
+On this build machine the 3.13 is registered with the launcher as
+`-V:Astral/CPython3.13.14` rather than as `-3.13`, so `py -3.13` answers *"No suitable
+Python runtime found"* and the base interpreter has to be named directly. **That is a
+property of this machine, not of the repository**, which is why the step is written as
+"any CPython 3.13" and not as a path.
+
+##### Step 4 — build the deployment package
+
+```bash
+scripts/deploy/build_lambda.sh --arch arm64        # exit 0, ~8 s with a warm wheelhouse
+```
+
+It downloads two wheels from PyPI on the first run (`psycopg`, `psycopg-binary`, both
+`cp313`, both `--only-binary=:all:` for the `manylinux_2_28_aarch64` tag), stages them,
+copies in the handler, the console `dist/` and the evidence bundle, strips source maps,
+writes the `.gz` siblings, packs reproducibly, and then re-opens the finished zip with
+`bundle_manifest.py --strict`, which printed `VERDICT PASS`.
+
+##### Step 5 — the plan
+
+```bash
+scripts/deploy/plan_repro.sh --out-dir <a directory OUTSIDE the repository> --json
+```
+
+Read §5.6.1 for what that script is and what it refuses. On the fresh clone it exited **0**
+— 79 s on the first run, which downloads `hashicorp/aws v6.58.0` and `hashicorp/archive
+v2.8.0` into `.terraform/`, and 50 s on a re-run once they are cached — and printed:
+
+```
+  fresh plan             Plan: 24 to add, 0 to change, 0 to destroy.
+  committed artefact     evidence/deploy/terraform-plan-furl.txt  says Plan: 24 to add
+```
+
+`scripts/deploy/plan_repro.sh --cloudfront` on the same clone exited **0** at
+`Plan: 35 to add, 0 to change, 0 to destroy.`, also agreeing with its committed artefact.
+
+##### The walk, as one table
+
+| # | Command | Exit | What it produced |
+|---:|---|---:|---|
+| 0 | `git clone --config core.longpaths=true --config core.autocrlf=false …` | `0` | 7,577/7,577 files, `git status --short` empty |
+| 0a | `plan_repro.sh --prove-refusal` | `0` | seven mutating subcommands refused, seven exits of 2 |
+| 0b | `plan_repro.sh --prove-truncation-refusal <bad checkout>` | `0` | the stage-0 guard demonstrated refusing with 11 |
+| 1 | `pnpm install --frozen-lockfile` | `0` | `node_modules/` |
+| 2 | `pnpm exec vite build --mode demo` | `0` | `dist/`, 49 files |
+| 3 | `python3.13 -m venv .venv` | `0` | an interpreter for step 4 |
+| 4 | `scripts/deploy/build_lambda.sh --arch arm64` | `0` | `out/lambda/mainline-demo-api-arm64.zip`, `VERDICT PASS` |
+| 4a | the same, with the zip moved aside | **`10`** | the stage-2b refusal, before `backend_override.tf` is written |
+| 5 | `scripts/deploy/plan_repro.sh --out-dir <outside> --json` | `0` | **`Plan: 24 to add, 0 to change, 0 to destroy.`** |
+| 5b | `scripts/deploy/plan_repro.sh --out-dir <outside> --cloudfront` | `0` | `Plan: 35 to add, 0 to change, 0 to destroy.` |
+
+Rows 0a, 0b and 4a are in the walk because they **refused**. A guard that has never been
+seen refusing is a comment; each of those three costs a second or two and is the reason the
+rows above them can be believed.
+
+**Residue after all of it:** `git status --porcelain` in the clone listed exactly the one
+file this worker had overlaid and nothing else; `infra/envs/demo/backend_override.tf` was
+absent and `infra/envs/demo/.terraform/terraform.tfstate` was absent, both removed by the
+script's `EXIT` trap. **No `terraform apply` appears anywhere in the walk**, and
+`aws lambda get-function --function-name mainline-demo-api` still answers
+`ResourceNotFoundException`.
+
+**What steps 1–4 do NOT change.** The zip's bytes reach the plan as one value,
+`source_code_hash`. They do not change the resource count, so a plan built from a different
+package is still `Plan: 24 to add` — and it is *not* byte-identical to the committed
+artefact. §5.6.1's exit 6 is about the **count**; artefact bytes are
+[`docs/deploy/terraform-plan.md`](terraform-plan.md) §1's subject.
+
+---
+
 #### 5.6.1 · Reproducing the plan with no mutating AWS call
 
 **The founder must approve the plan that will actually run, and until 2026-08-14 that plan
@@ -556,11 +772,21 @@ scripts/deploy/plan_repro.sh --prove-expiry-refusal <a function that exists> --r
   quietly rewritten on its way to disk.
 
 **If it exits 6, the committed artefact is stale — regenerate the artefact, never the
-number.** `plan_repro.sh --cloudfront` exits 6 today: the committed CloudFront artefact
-predates the `cost-guard` instantiation at `infra/envs/demo/main.tf:631` and no longer
-describes what that configuration would create. Regenerating it belongs to whoever owns
-`evidence/deploy/`; **the plan is the fact and the artefact is the record**, so the artefact
-moves to the plan and never the other way round.
+number.** **This page used to say `plan_repro.sh --cloudfront` exits 6 today.** Re-measured
+on 2026-08-14 from the fresh clone of `7535670`, it exits **0** at `Plan: 35 to add, 0 to
+change, 0 to destroy.` and the committed CloudFront artefact agrees. The sentence was true
+when it was written — the artefact then recorded `Plan: 22 to add` and predated the
+`cost-guard` instantiation at `infra/envs/demo/main.tf:631` — and it has since been
+regenerated. It is corrected here against a measurement rather than deleted, because *the
+plan is the fact and the artefact is the record*: the artefact moved to the plan, which is
+the only direction that is ever allowed.
+
+**The other exits worth knowing before you meet them.** `10` is the gitignored deployment
+zip missing — §5.6.0 step 4 is the fix, and the check exists because without it the run
+renders the entire plan diff and then dies inside `filebase64sha256`. `11` is a checkout
+that is not a complete copy of this repository — §5.6.0 step 0, and it is the one refusal
+on this page that fires *before* any AWS call, because it costs nothing and because
+`terraform validate` is green on a truncated clone.
 
 ---
 

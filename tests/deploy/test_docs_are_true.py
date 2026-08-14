@@ -804,17 +804,257 @@ def test_the_live_document_list_covers_the_documents_a_judge_reads():
         "docs/deploy/terraform-plan.md",
         "docs/submission/DEVPOST.md",
         "docs/submission/RULES-MATRIX.md",
+        # PINNED 2026-08-14. These three were policed by no ratchet at all, and the worst
+        # of them was the verdict page: `docs/state-of-the-build.html` headlined `NO-GO`
+        # about a build whose sole named blocker -- three unseeded `defeater_option` rows
+        # -- had been fixed two commits earlier, and nothing in this tree could see it.
+        # They are listed here, and not only in LIVE_DOCS, so that the widening is a
+        # RATCHET rather than a preference: dropping one from LIVE_DOCS now fails this
+        # test by name instead of silently turning every sweep green.
+        "docs/CI-STATE.md",
+        "docs/submission/VIDEO-KIT.md",
+        "docs/state-of-the-build.html",
     }
     assert required <= set(LIVE_DOCS), (
         f"LIVE_DOCS no longer covers {sorted(required - set(LIVE_DOCS))}. These are the "
-        "documents this wave's measurements falsified; removing one from the sweep is "
-        "lowering the aperture to obtain a green, which is the same move as lowering a "
+        "documents this repository's measurements falsified; removing one from the sweep "
+        "is lowering the aperture to obtain a green, which is the same move as lowering a "
         "floor."
+    )
+    # The verdict page ships in two syntaxes and both are swept. A judge opens whichever
+    # one renders in front of them, so a claim corrected in only one of them is still a
+    # false claim shipped to somebody.
+    assert {"docs/STATE-OF-THE-BUILD.md", "docs/state-of-the-build.html"} <= set(LIVE_DOCS), (
+        "the verdict page is swept in only one of its two syntaxes. The Markdown and the "
+        "HTML must agree sentence by sentence, and a ratchet that reads one of them "
+        "certifies the other by assumption."
     )
     assert any(relative.startswith("docs/submission/") for relative in LIVE_DOCS), (
         "LIVE_DOCS covers no submission document. The stale plan count in "
         "docs/submission/RULES-MATRIX.md was invisible to this ratchet for exactly that "
         "reason."
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# 2b. THE TWIN CHECK. The defect class that every other sweep in this repository was blind to.
+#
+# On 2026-08-14 `docs/state-of-the-build.html` headlined `NO-GO` while
+# `docs/STATE-OF-THE-BUILD.md` had been re-scored, and the HTML's masthead still named tree
+# `073dfea` -- a tree three verifications stale. Widening `LIVE_DOCS` to include the HTML was
+# necessary and NOT sufficient: every existing sweep checks plan counts, function shape, the
+# guard module, source-map URLs and line citations, and not one of them can see a headline
+# verdict that contradicts its own twin. This section is the checker for that class.
+#
+# It is deliberately structural rather than prose-keyed. It reads the ONE place each syntax
+# declares its verdict and the ONE place each declares its tree, and requires them to agree.
+# Nothing here can be satisfied by adding a sentence; it moves only when the headline moves.
+# ─────────────────────────────────────────────────────────────────────────────────────────
+
+VERDICT_PAGE_MD = "docs/STATE-OF-THE-BUILD.md"
+VERDICT_PAGE_HTML = "docs/state-of-the-build.html"
+
+#: The verdict vocabulary this page has ever headlined. `CONDITIONAL GO` is listed before
+#: `GO` so the alternation prefers the longer, more qualified reading -- a page that says
+#: `CONDITIONAL GO` must never be read as having said `GO`.
+_VERDICT_TOKEN = re.compile(r"(CONDITIONAL GO|NO-GO|GO)")
+
+#: Struck-through Markdown. The preservation rule REQUIRES superseded verdicts to stay on the
+#: page, so the extractor must skip them or an honestly annotated history would read as a
+#: live contradiction and this ratchet would punish the correct behaviour.
+_MD_STRUCK = re.compile(r"~~.*?~~", re.DOTALL)
+
+_HTML_TAG = re.compile(r"<[^>]+>")
+_HTML_STYLE = re.compile(r"<(style|script)\b.*?</\1>", re.DOTALL | re.IGNORECASE)
+
+#: The HTML's headline slab and its footer restatement -- the two places the twin declares a
+#: verdict to a reader who never scrolls.
+_HTML_BIG = re.compile(r'<div class="big">\s*(.*?)\s*</div>', re.DOTALL)
+_HTML_FOOTER_VERDICT = re.compile(r"Verdict:\s*([A-Z -]+?)\s*<", re.DOTALL)
+
+#: An abbreviated git object name as this repository writes them.
+_SHORT_SHA = re.compile(r"\b([0-9a-f]{7})\b")
+
+
+def html_to_text(html: str) -> str:
+    """Visible text of an HTML page, with style and script bodies removed."""
+    return _HTML_TAG.sub(" ", _HTML_STYLE.sub(" ", html))
+
+
+def headline_verdict_markdown(text: str) -> str | None:
+    """The verdict the Markdown page declares NOW, ignoring struck-through history.
+
+    Read from the `Verdict` section rather than from the first token in the file, because
+    the page opens by quoting the verdict it is retracting -- which is exactly what the
+    preservation rule asks it to do.
+    """
+    live = _MD_STRUCK.sub(" ", text)
+    for section in reversed(markdown_sections(live)):
+        heading = section[0][1]
+        if not heading.lstrip("#").strip().endswith("Verdict"):
+            continue
+        body = " ".join(line for _, line in section[1:])
+        found = _VERDICT_TOKEN.search(body)
+        if found:
+            return found.group(1)
+    return None
+
+
+def headline_verdicts_html(html: str) -> list[str]:
+    """Every verdict the HTML twin declares in a headline position."""
+    declared: list[str] = []
+    for raw in _HTML_BIG.findall(html) + _HTML_FOOTER_VERDICT.findall(html):
+        found = _VERDICT_TOKEN.search(_HTML_TAG.sub("", raw).strip())
+        if found:
+            declared.append(found.group(1))
+    return declared
+
+
+def twin_verdict_disagreements(md_text: str, html_text: str) -> list[str]:
+    """Every way the two syntaxes of the verdict page contradict each other.
+
+    A pure function over the two texts so the negative controls below can drive it with
+    SYNTHETIC pages. A checker only ever observed returning `[]` is indistinguishable from
+    `return []`.
+    """
+    problems: list[str] = []
+
+    md_verdict = headline_verdict_markdown(md_text)
+    if md_verdict is None:
+        problems.append(
+            "the Markdown verdict page declares no verdict in its `Verdict` section. "
+            "Deleting the headline is the cheapest way to make a disagreement check pass, "
+            "and a claim deleted is not a claim corrected."
+        )
+        return problems
+
+    html_verdicts = headline_verdicts_html(html_text)
+    if not html_verdicts:
+        problems.append(
+            "the HTML twin declares no verdict in either its headline slab or its footer, "
+            "so a reader of the rendered page is told nothing while the Markdown says "
+            f"{md_verdict!r}."
+        )
+    for declared in html_verdicts:
+        if declared != md_verdict:
+            problems.append(
+                f"the HTML twin headlines {declared!r} while the Markdown declares "
+                f"{md_verdict!r}. A judge opens whichever one renders in front of them, so "
+                "a verdict corrected in only one syntax is still a false verdict shipped to "
+                "somebody."
+            )
+    return problems
+
+
+def twin_tree_disagreements(md_text: str, html_text: str) -> list[str]:
+    """The twins must name the same tree.
+
+    The HTML's masthead named `073dfea` while the Markdown named `d098721`. A page that
+    misnames its own tree cannot be checked by anyone, and a stale SHA is the first thing
+    about a verdict page to rot -- it went stale here three verifications running.
+    """
+    md_shas = set(_SHORT_SHA.findall(md_text))
+    html_shas = set(_SHORT_SHA.findall(html_to_text(html_text)))
+    orphaned = sorted(html_shas - md_shas)
+    if orphaned:
+        return [
+            f"the HTML twin names tree object(s) {orphaned} that appear nowhere in the "
+            "Markdown. The Markdown is the authoritative side; re-read it and correct the "
+            "HTML, never the reverse."
+        ]
+    return []
+
+
+def test_the_verdict_page_says_the_same_thing_in_both_of_its_syntaxes():
+    """THE CHECK THAT WOULD HAVE CAUGHT THE WORST DOCUMENT DEFECT THIS REPOSITORY SHIPPED.
+
+    `docs/state-of-the-build.html` printed `NO-GO` in a 44-pixel headline, and again in its
+    footer, about a build whose sole named blocker had been fixed two commits earlier. The
+    Markdown had been re-scored; the HTML had not; and because the two are maintained by
+    hand with no generator between them, nothing in this tree could tell.
+    """
+    md_text = (REPO_ROOT / VERDICT_PAGE_MD).read_text(encoding="utf-8", errors="replace")
+    html_text = (REPO_ROOT / VERDICT_PAGE_HTML).read_text(encoding="utf-8", errors="replace")
+
+    problems = twin_verdict_disagreements(md_text, html_text) + twin_tree_disagreements(
+        md_text, html_text
+    )
+    assert not problems, (
+        "The verdict page contradicts itself across its two syntaxes:\n  "
+        + "\n  ".join(problems)
+        + f"\n{VERDICT_PAGE_MD} is authoritative. Correct the HTML to match it; do not "
+        "resolve a disagreement by weakening the Markdown."
+    )
+
+
+def test_falsification__a_twin_that_headlines_a_retracted_verdict_is_caught():
+    """The exact defect, synthesised. This is the control that makes the check above mean something."""
+    markdown = "# STATE OF THE BUILD\n\n## 11 · Verdict\n\n**CONDITIONAL GO — the conditions are named.**\n"
+
+    stale = '<div class="verdict"><div class="big">NO-GO</div></div>'
+    assert twin_verdict_disagreements(markdown, stale), (
+        "an HTML twin headlining NO-GO against a Markdown declaring CONDITIONAL GO was not "
+        "caught, so the single worst document defect this repository has shipped would ship "
+        "again unnoticed."
+    )
+
+    footer_only = "<footer><span>Verdict: NO-GO</span></footer>"
+    assert twin_verdict_disagreements(markdown, footer_only), (
+        "a stale verdict in the FOOTER was not caught. The footer is the last thing a "
+        "reader sees and it restated NO-GO on the real page."
+    )
+
+    agreeing = (
+        '<div class="big">CONDITIONAL GO</div><footer><span>Verdict: CONDITIONAL GO</span></footer>'
+    )
+    assert not twin_verdict_disagreements(markdown, agreeing), (
+        "twins that agree were flagged, so the checker is banning the sentence rather than "
+        "comparing the verdicts."
+    )
+
+
+def test_falsification__struck_history_is_not_read_as_a_live_contradiction():
+    """The preservation rule and this ratchet must not pull in opposite directions.
+
+    The page is REQUIRED to keep its superseded `NO-GO` visible, struck through. A checker
+    that read that as a live verdict would be pushing every author to DELETE the history to
+    get a green -- the precise move this repository forbids.
+    """
+    markdown = (
+        "# STATE OF THE BUILD\n\n"
+        "## Preserved\n\n"
+        "> ~~This is a NO-GO for the sixth time.~~\n\n"
+        "## 11 · Verdict\n\n"
+        "**CONDITIONAL GO — the conditions are named.**\n"
+    )
+    assert headline_verdict_markdown(markdown) == "CONDITIONAL GO"
+    agreeing = '<div class="big">CONDITIONAL GO</div>'
+    assert not twin_verdict_disagreements(markdown, agreeing), (
+        "an honestly struck-through NO-GO was read as the live verdict, which would reward "
+        "deleting the history the preservation rule exists to keep."
+    )
+
+
+def test_falsification__a_deleted_headline_does_not_buy_a_green():
+    """Removing the verdict is the cheapest way to end a disagreement. It must not work."""
+    silent = "# STATE OF THE BUILD\n\n## 11 · Verdict\n\nThe build is in a state.\n"
+    assert twin_verdict_disagreements(silent, '<div class="big">CONDITIONAL GO</div>'), (
+        "a Markdown page with no verdict at all passed the twin check, so an author could "
+        "clear a contradiction by deleting the claim instead of correcting it."
+    )
+
+
+def test_falsification__a_stale_tree_sha_in_the_twin_is_caught():
+    """The masthead SHA rotted three verifications running. It is checked, not trusted."""
+    markdown = "Local `HEAD` is `d098721`, four commits ahead of `7535670`.\n"
+    stale = '<span>Tree <b>073dfea</b> + 48 modified</span>'
+    assert twin_tree_disagreements(markdown, stale), (
+        "the HTML naming a tree the Markdown never mentions was not caught, which is how "
+        "the twin came to advertise a tree three verifications out of date."
+    )
+    current = "<span>Tree <b>d098721</b>, 4 ahead of <b>7535670</b></span>"
+    assert not twin_tree_disagreements(markdown, current), (
+        "twins naming the same tree were flagged, so the checker is not comparing SHAs."
     )
 
 

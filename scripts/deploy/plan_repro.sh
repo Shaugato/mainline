@@ -49,6 +49,31 @@
 # `bootstrap_state.sh` is NOT called except under `--print-backend-config`, which that
 # script documents as making zero AWS calls.
 #
+# ── THE HAZARD THAT IS WORSE THAN A MISSING BUCKET, BECAUSE IT IS SILENT ──────────────
+#
+# On Windows without `core.longpaths`, `git clone` of this repository writes some of the
+# tree, prints **"warning: Clone succeeded, but checkout failed"**, and leaves a directory
+# that still contains ALL of `infra/`, `scripts/deploy/`, `evidence/deploy/` and
+# `docs/deploy/`. `terraform init -backend=false` and `terraform validate` then SUCCEED
+# against something that is not this repository, and a reviewer gets a confident wrong
+# answer. Stage 0 refuses that BY NAME before any Terraform or AWS call, with exit 11.
+#
+# Measured on TRAPPOINT, 2026-08-14, cloning master `7535670` into a 125-character parent:
+#
+#     git clone exit code                       128   ("Clone succeeded, but checkout failed")
+#     paths in HEAD                            7577
+#     paths absent from the working tree          2   ← the truth
+#     `git ls-files --deleted`                    0   ← A CONFIDENT WRONG ANSWER
+#     `git ls-files | wc -l`                      0   ← the index was never written
+#     `git status --short` rows                7613   ← over-reports; it is a detector, not a census
+#     missing under infra/ scripts/deploy/ evidence/deploy/ docs/deploy/   0, 0, 0, 0
+#
+# The line that matters is the fourth. **The obvious detector answers zero on a tree that
+# is missing files**, because the aborted checkout left the index empty and
+# `--deleted` compares the working tree to the index. So stage 0 does not ask git what
+# changed; it takes the census from HEAD, which no failed checkout can touch, and diffs it
+# against the filesystem.
+#
 # USAGE
 #   scripts/deploy/plan_repro.sh                          # the shipping plan (FURL)
 #   scripts/deploy/plan_repro.sh --cloudfront             # the enable_cloudfront variant
@@ -58,6 +83,8 @@
 #   scripts/deploy/plan_repro.sh --prove-refusal          # negative control, no AWS calls
 #   scripts/deploy/plan_repro.sh --prove-expiry-refusal <fn> --region <r>
 #                                                         # negative control for stage 2
+#   scripts/deploy/plan_repro.sh --prove-truncation-refusal <dir>
+#                                                         # negative control for stage 0
 #
 # EXIT CODES
 #   0  the plan was reproduced and agrees with the committed artefact
@@ -74,6 +101,10 @@
 #      build_lambda.sh` makes it. Measured from a fresh clone on 2026-08-14: without this
 #      check the run got as far as rendering the whole plan and then died inside
 #      `filebase64sha256`, which reads as a Terraform bug rather than a missing build
+#  11  THE CHECKOUT IS INCOMPLETE, or its completeness could not be established. See the
+#      paragraph above. `terraform validate` passes on a truncated clone of this
+#      repository, so this refusal is the only thing between a partial checkout and a
+#      plan count a reviewer would believe
 # END-USAGE
 
 set -euo pipefail
@@ -93,6 +124,7 @@ WANT_CLOUDFRONT=0
 WANT_JSON=0
 MODE="plan"
 FUNCTION_NAME="mainline-demo-api"
+TRUNCATED_DIR=""
 
 say()  { printf '%s\n' "$*"; }
 step() { printf '  %-22s %s\n' "$1" "$2"; }
@@ -174,6 +206,199 @@ prove_refusal() {
   exit 0
 }
 
+# ══════════════════════════════════════════════════════════════════════════════════════
+#  STAGE 0 · IS THIS A COMPLETE CHECKOUT OF THIS REPOSITORY?
+# ══════════════════════════════════════════════════════════════════════════════════════
+#
+# Runs before Terraform, before the AWS CLI, before anything is written. Costs no network
+# call and about a second.
+#
+# THE CENSUS IS TAKEN FROM `HEAD`, NOT FROM THE INDEX. A failed checkout leaves the index
+# empty, so every index-relative question — `git ls-files --deleted`, `git diff HEAD`,
+# `git status` — answers about a comparison whose left-hand side is missing. Measured on a
+# truncated clone of master `7535670`: `git ls-files --deleted` said 0 while two tracked
+# paths were absent from the disk, and `git status --short` said 7,613 while 7,575 of the
+# 7,577 files were present. One under-reports to zero and the other over-reports by three
+# thousand; neither is a census. `git ls-tree -r HEAD` is written by the clone's object
+# transfer, which succeeded, so it is the one list a failed checkout cannot corrupt.
+#
+# It is a set difference and not a count comparison, so it names the missing paths.
+CHECKOUT_PRUNE='node_modules .venv __pycache__ .terraform out dist'
+
+check_checkout() {
+  local root="$1"
+
+  say ""
+  say "== 0 · this is a complete checkout of this repository (no terraform, no AWS, no network)"
+
+  command -v git >/dev/null 2>&1 || die "git is not on PATH, so whether this tree is a
+  complete checkout cannot be established. \`terraform validate\` SUCCEEDS on a truncated
+  clone of this repository, so an unverified tree is not a verified one: this script
+  refuses rather than planning against a directory it cannot identify." 11
+
+  git -C "$root" rev-parse --git-dir >/dev/null 2>&1 || die "$root is not a git work tree.
+  This script establishes that the configuration it plans is THIS repository by diffing
+  \`git ls-tree -r HEAD\` against the filesystem, and it has no way to do that here.
+  Clone the repository rather than copying or extracting it:
+
+      git clone --config core.longpaths=true --config core.autocrlf=false \\
+          https://github.com/Shaugato/mainline.git
+
+  docs/deploy/RUNBOOK.md § 5.6.0 is the ordered walk." 11
+
+  # No `|| true` here on purpose: the status is BRANCHED ON, not defaulted away. A
+  # defaulted return code is how "I could not tell" turns into "it was fine".
+  local head_sha
+  if ! head_sha="$(git -C "$root" rev-parse HEAD 2>/dev/null)"; then
+    die "$root has no readable HEAD. A clone whose checkout failed can still answer
+  \`rev-parse --git-dir\`, so this is refused rather than assumed benign." 11
+  fi
+  [ -n "$head_sha" ] || die "$root printed an empty HEAD." 11
+
+  # ── the two lists ───────────────────────────────────────────────────────────────────
+  local tmp head_list disk_list miss_list
+  tmp="$(mktemp -d)"
+  head_list="$tmp/head.txt"; disk_list="$tmp/disk.txt"; miss_list="$tmp/missing.txt"
+
+  git -C "$root" ls-tree -r HEAD --name-only | LC_ALL=C sort > "$head_list"
+
+  # Directories excluded from the filesystem walk, each one confirmed FIRST to contain no
+  # path HEAD names. A prune that hid a tracked path would report it missing and refuse a
+  # good tree; a prune list that is merely asserted would eventually do exactly that, so
+  # it is measured against this HEAD on every run instead.
+  local prune_args="" d
+  for d in $CHECKOUT_PRUNE; do
+    if grep -qE "(^|/)$(printf '%s' "$d" | sed 's/\./\\./g')(/|$)" "$head_list"; then
+      step "prune skipped" "$d — HEAD names paths inside it, so it is walked"
+    else
+      prune_args="$prune_args -name $d -prune -o"
+    fi
+  done
+
+  # shellcheck disable=SC2086
+  ( cd "$root" && find . -name .git -prune -o $prune_args \( -type f -o -type l \) -print ) 2>/dev/null \
+    | sed 's|^\./||' | LC_ALL=C sort > "$disk_list"
+
+  LC_ALL=C comm -23 "$head_list" "$disk_list" > "$miss_list"
+
+  local n_head n_disk n_miss n_index
+  n_head="$(wc -l < "$head_list" | tr -d ' ')"
+  n_disk="$(wc -l < "$disk_list" | tr -d ' ')"
+  n_miss="$(wc -l < "$miss_list" | tr -d ' ')"
+  n_index="$(git -C "$root" ls-files | wc -l | tr -d ' ')"
+
+  step "HEAD" "$(git -C "$root" rev-parse --short HEAD)  ($n_head tracked path(s))"
+  step "on disk" "$((n_head - n_miss)) of $n_head present   ($n_disk file(s) walked)"
+  step "index" "$n_index entr(ies)"
+
+  # LINE ENDINGS ARE REPORTED, NEVER REFUSED. They do not change the resource count. They
+  # do change the BYTES of a regenerated plan artefact — `terraform show -json` embeds each
+  # variable `description` verbatim, and `archive_file` re-hashes the guard responder's
+  # source — so a byte-comparison against `evidence/deploy/` fails for a reason that is not
+  # a drift, and whoever regenerates those artefacts has to know which it was.
+  #
+  # THE MEASUREMENT IS `git ls-files --eol` OVER `infra/`, NOT `git config core.autocrlf`.
+  # Measured on TRAPPOINT 2026-08-14: this repository ships no `.gitattributes`, Git for
+  # Windows sets `core.autocrlf=true` at SYSTEM level, and a clone taken with
+  # `core.autocrlf=false` still REPORTS `true` from that system entry while its working
+  # tree is LF throughout. The config value answers a question nobody asked; the working
+  # tree is the thing the plan reads.
+  # Two different things both render as "CRLF in the working tree" and only one of them is
+  # this hazard. `i/crlf w/crlf` is the repository's OWN content — the blob is CRLF and the
+  # checkout is faithful; `infra/modules/demo-api/outputs.tf` is one, measured 2026-08-14.
+  # `i/lf w/crlf` is a CONVERSION the checkout performed, and that is the one that makes a
+  # regenerated artefact differ from a committed one. Only the second is counted.
+  local eol_total eol_converted
+  eol_total="$(git -C "$root" ls-files --eol -- infra 2>/dev/null | wc -l | tr -d ' ')"
+  eol_converted="$(git -C "$root" ls-files --eol -- infra 2>/dev/null | awk '$1=="i/lf" && $2=="w/crlf"' | wc -l | tr -d ' ')"
+  if [ "${eol_converted:-0}" -gt 0 ]; then
+    step "worktree eol" "$eol_converted of $eol_total file(s) under infra/ were converted LF->CRLF on checkout   [the COUNT is unaffected; a BYTE-compare against evidence/ will differ]"
+  else
+    step "worktree eol" "0 of $eol_total file(s) under infra/ converted on checkout   [byte-comparable with evidence/]"
+  fi
+
+  if [ "$n_index" -eq 0 ] && [ "$n_head" -gt 0 ]; then
+    rm -rf "$tmp"
+    die "THE INDEX IS EMPTY AND HEAD NAMES $n_head PATHS.
+
+  That is the signature of a checkout that aborted: the objects arrived, the index was
+  never written, and git printed \"Clone succeeded, but checkout failed\" — a sentence
+  whose first two words are what a human remembers.
+
+  Every index-relative question now lies. Measured on exactly this state:
+      git ls-files --deleted   ->  0        while files were genuinely missing
+      git status --short       ->  7613     while 7575 of 7577 files were present
+
+  Re-clone. On Windows the cause is the 260-character path limit:
+
+      git clone --config core.longpaths=true --config core.autocrlf=false \\
+          https://github.com/Shaugato/mainline.git
+
+  or clone into a shorter parent directory. docs/deploy/RUNBOOK.md § 5.6.0." 11
+  fi
+
+  if [ "$n_miss" -ne 0 ]; then
+    say ""
+    say "  THIS CHECKOUT IS INCOMPLETE. $n_miss of $n_head tracked path(s) are absent:"
+    say ""
+    LC_ALL=C sed -n '1,12p' "$miss_list" | while IFS= read -r p; do say "      $p"; done
+    [ "$n_miss" -gt 12 ] && say "      … and $((n_miss - 12)) more"
+    say ""
+    say "  Missing per top-level directory:"
+    LC_ALL=C sed -E 's|/.*||' "$miss_list" | LC_ALL=C sort | uniq -c \
+      | while read -r c d; do say "      $(printf '%6s' "$c")  $d/"; done
+    say ""
+    # awk rather than `grep -c … || true`: grep exits 1 on a count of zero, which is the
+    # ordinary case here, and a defaulted return code in a REFUSAL path is how a guard
+    # stops guarding. awk exits 0 and prints the number, including when it is zero.
+    #
+    # These four lines are the ones to read. On the truncation measured on 2026-08-14 all
+    # four were ZERO while thousands of files were missing, which is exactly why a check
+    # scoped to the paths Terraform reads would have passed.
+    for d in infra scripts/deploy evidence/deploy docs/deploy; do
+      say "      under $d/: $(awk -v p="$d/" 'index($0,p)==1{n++} END{print n+0}' "$miss_list") missing"
+    done
+    rm -rf "$tmp"
+    die "REFUSING TO PLAN AGAINST AN INCOMPLETE CHECKOUT.
+
+  Read the four lines above before you read anything else. On the truncation measured on
+  2026-08-14 all four of them were ZERO — every path Terraform reads was present — so
+  \`terraform init -backend=false\` and \`terraform validate\` both SUCCEEDED against a
+  tree missing thousands of files. A green validate on this tree means nothing.
+
+  Re-clone. On Windows:
+
+      git clone --config core.longpaths=true --config core.autocrlf=false \\
+          https://github.com/Shaugato/mainline.git
+
+  docs/deploy/RUNBOOK.md § 5.6.0 is the ordered walk from clone to \`Plan: 24 to add\`." 11
+  fi
+
+  rm -rf "$tmp"
+  say ""
+  say "  Every path HEAD names is on disk. This tree IS the repository at the commit above."
+}
+
+prove_truncation_refusal() {
+  local target="$1"
+  say "plan_repro --prove-truncation-refusal — the negative control for stage 0"
+  say ""
+  say "Nothing below touches AWS or Terraform. Stage 0 is run, and ONLY stage 0, against"
+  say "a tree expected to be an INCOMPLETE checkout. It never proceeds to a plan, so it"
+  say "cannot be used to wave the guard through."
+  say ""
+  step "target" "$target"
+  local rc=0
+  ( check_checkout "$target" ) || rc=$?
+  say ""
+  if [ "$rc" -eq 11 ]; then
+    step "verdict" "REFUSED with exit 11   [ok — the truncated-checkout guard fires]"
+    exit 0
+  fi
+  step "verdict" "exit $rc, expected 11   [THE TRUNCATION GUARD IS A DECORATION]"
+  exit 1
+}
+
 # ── Arguments ─────────────────────────────────────────────────────────────────────────
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -188,10 +413,20 @@ while [ $# -gt 0 ]; do
     --prove-refusal)   MODE="prove-refusal"; shift ;;
     --prove-expiry-refusal) MODE="prove-expiry"; FUNCTION_NAME="${2:-}"; shift 2
                        [ -n "$FUNCTION_NAME" ] || { printf 'plan_repro: --prove-expiry-refusal needs a function name that EXISTS.\n' >&2; usage 2; } ;;
+    --prove-truncation-refusal) MODE="prove-truncation"; TRUNCATED_DIR="${2:-}"; shift 2
+                       [ -n "$TRUNCATED_DIR" ] || { printf 'plan_repro: --prove-truncation-refusal needs a directory holding an INCOMPLETE checkout.\n' >&2; usage 2; } ;;
     -h|--help)         usage 0 ;;
     *) printf 'plan_repro: unknown argument %s\n' "$1" >&2; usage 2 ;;
   esac
 done
+
+[ "$MODE" = "prove-truncation" ] && prove_truncation_refusal "$TRUNCATED_DIR"
+
+# STAGE 0 RUNS FOR EVERY OTHER MODE, INCLUDING THE TWO NEGATIVE CONTROLS AND
+# --print-backend-config. A truncated checkout's copy of this script is not a copy of this
+# script that anybody has checked, and its `--prove-refusal` proves nothing about the file
+# in the repository.
+check_checkout "$REPO_ROOT"
 
 [ "$MODE" = "prove-refusal" ] && prove_refusal
 

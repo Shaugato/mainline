@@ -249,10 +249,35 @@ terraform init -backend=false
 terraform validate
 ```
 
-`plan` needs an initialised backend, so the committed plan evidence was produced with a
-throwaway local backend pointed outside the repository. That is recorded in
-[`docs/deploy/terraform-plan.md`](../../../docs/deploy/terraform-plan.md), which also
-carries the SHA-256 of each artefact.
+> **Those two commands pass on a tree that is not this repository, and that is not a
+> hypothetical.** Measured 2026-08-14 on Windows: a `git clone` into a long parent directory
+> without `core.longpaths` prints *"Clone succeeded, but checkout failed"*, exits `128`,
+> leaves the index unwritten — and leaves **all** of `infra/`, `scripts/deploy/`,
+> `evidence/deploy/` and `docs/deploy/` present, so `init -backend=false` and `validate`
+> both succeed and a reviewer gets a confident wrong answer. `git ls-files --deleted` on
+> that tree answers **0**. **A green `validate` is evidence about the configuration, never
+> about the checkout.** `scripts/deploy/plan_repro.sh` stage 0 takes the census from
+> `git ls-tree -r HEAD` instead and refuses with exit 11; `--prove-truncation-refusal`
+> demonstrates it firing in a second.
+
+`plan` needs an initialised backend — `-backend=false` is not enough here, because
+`backend.tf` declares S3 and `plan` then refuses with *"Changes to backend configurations
+require reinitialization"*. So the committed plan evidence was produced with a throwaway
+local backend pointed outside the repository, and that recipe is now one read-only command:
+
+```bash
+scripts/deploy/plan_repro.sh --out-dir <a directory OUTSIDE the repository> --json
+#   fresh plan   Plan: 24 to add, 0 to change, 0 to destroy.
+```
+
+It writes `backend_override.tf` here, removes it in a trap on **any** exit, and measures on
+every run that nothing has been applied — which is the only reason a local empty state is
+equivalent to the real empty remote one. It cannot apply: every Terraform invocation passes
+one allowlist of `init`/`validate`/`plan`/`show`/`version`, and `--prove-refusal` shows the
+seven refusals firing. On a fresh clone the two gitignored build inputs must exist first —
+[`docs/deploy/RUNBOOK.md` §5.6.0](../../../docs/deploy/RUNBOOK.md) is the ordered walk from
+`git clone` to `Plan: 24 to add`, measured end to end. The artefacts and their SHA-256s are
+in [`docs/deploy/terraform-plan.md`](../../../docs/deploy/terraform-plan.md).
 
 ---
 

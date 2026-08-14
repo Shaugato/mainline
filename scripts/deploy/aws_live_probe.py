@@ -44,8 +44,17 @@ THE FIFTH CALL — THE ALARM READER, AND WHY IT LIVES HERE AND NOT IN CI
 ``--alarms`` adds ``cloudwatch:DescribeAlarms`` **at index 4**, and ``--alarms-only`` runs
 identity plus that call and nothing else.
 
-``infra/modules/demo-api`` declares four alarms and plans ``alarm_actions = []``. They
-notify nobody by design, so they are only worth anything if **something reads them**. The
+``infra/modules/demo-api`` declares four alarms and plans ``alarm_actions = []``, and
+``infra/modules/cost-guard`` declares three more — ``-invocations-burst``,
+``-invocations-hourly`` and ``-log-ingestion`` — whose actions ARE wired, to the stop.
+**Seven, and this program derives which seven from the modules rather than carrying a
+list** (:func:`derive_alarm_suffixes`). Until 2026-08-14 it carried the four and reported
+*"All 4 alarms exist and none is in ALARM"* over a deployment with seven, having never
+asked about the three that can stop the demo — ``docs/deploy/PRE-APPLY.md`` §3 recorded
+that as a finding against this file and the finding is now closed here.
+
+The four demo-api alarms notify nobody by design, so they are only worth anything if
+**something reads them**. The
 module's own comment used to say the hourly ``demo-health`` workflow would; it does not,
 and it cannot. ``.github/workflows/demo-health.yml`` runs with ``permissions: contents:
 read``, never calls ``cloudwatch``, and ``aws-evidence.yml`` goes out of its way to *unset*
@@ -110,10 +119,11 @@ Usage::
 
 Exit codes:
 
-* ``0`` — every call attempted succeeded, and under ``--alarms-only`` all four alarms
-  exist and none is in ``ALARM``.
-* ``1`` — at least one call failed, or a response did not carry what it must. The evidence
-  file is still written, and it names the failure. **Publish it.**
+* ``0`` — every call attempted succeeded, and under ``--alarms-only`` every alarm the
+  modules declare exists and none is in ``ALARM``. The count is derived, not asserted here.
+* ``1`` — at least one call failed, or a response did not carry what it must, **or the
+  expected alarm set could not be derived from the tree and nothing was graded**. The
+  evidence file is still written, and it names the failure. **Publish it.**
 * ``2`` — boto3 is not importable, or no region could be determined, or ``--alarms-only``
   was pointed at the Bedrock evidence file.
 * ``3`` — ``--alarms-only`` only: every call succeeded and **what the alarms say is not
@@ -172,11 +182,178 @@ DEFAULT_PROFILE = "mainline-dev"
 #: unapplied stack are indistinguishable, and one of them is a lie.
 DEFAULT_ALARM_REGION = "ap-southeast-1"
 
-#: ``var.name_prefix``-derived function name. The four alarms are ``${function_name}``
-#: followed by these suffixes — see ``infra/modules/demo-api/main.tf``. They are listed here
-#: so that a *missing* alarm is a finding rather than a shorter table nobody counts.
+#: ``var.name_prefix``-derived function name. Every alarm this deployment creates is
+#: ``${function_name}`` followed by a suffix, and the suffixes are **derived from the
+#: Terraform modules at run time** — never listed here. See :func:`derive_alarm_suffixes`
+#: for why that distinction is the whole point of this constant's neighbourhood.
 DEFAULT_ALARM_PREFIX = "mainline-demo-api"
-ALARM_SUFFIXES = ("-errors", "-throttles", "-duration-p99", "-concurrency")
+
+#: The module files that declare an alarm, each with the variable its ``alarm_name`` is
+#: built from. ``infra/envs/demo/main.tf`` passes ``local.api_function_name`` to BOTH —
+#: ``module.api``'s ``function_name`` (line 366) and ``module.guard``'s
+#: ``guarded_function_name`` (line 635) — so both resolve to the same deployed function
+#: name and both families share one prefix. A third module that ever declares an alarm
+#: gets a row here, and until it does :func:`derive_alarm_suffixes` cannot see it; that is
+#: a smaller blindness than a literal because the row is one line beside the resource.
+ALARM_MODULES: tuple[tuple[str, str], ...] = (
+    ("infra/modules/demo-api/main.tf", "function_name"),
+    ("infra/modules/cost-guard/main.tf", "guarded_function_name"),
+)
+
+#: The committed plan, used ONLY as a cross-check on the derivation and never as its
+#: source. A plan artefact is derived from the tree (lead ruling **R7**); the modules are
+#: the tree. When the two disagree the derivation refuses rather than picking a winner.
+ALARM_PLAN_ARTEFACT = "evidence/deploy/terraform-plan-furl.json"
+
+#: ``alarm_name = "${var.<something>}-<suffix>"``, anchored so that an alarm named by any
+#: other construction is NOT silently matched into the set. An alarm this pattern cannot
+#: read makes the derivation raise, which is the correct outcome: the alternative is a set
+#: that is quietly short again, which is the exact defect this replaces.
+_ALARM_NAME_RE = re.compile(
+    r'^\s*alarm_name\s*=\s*"\$\{var\.(?P<var>[A-Za-z0-9_]+)\}(?P<suffix>-[A-Za-z0-9_-]+)"\s*$',
+    re.MULTILINE,
+)
+
+
+class AlarmSetUnderivable(RuntimeError):
+    """The expected alarm set could not be derived from the tree.
+
+    Raised rather than defaulted. A default here is what produced the defect this class
+    exists to prevent: a probe that reported *"All 4 alarms exist and none is in ALARM"*
+    over a deployment that creates **seven**, having never looked at the guard's three —
+    and the guard's three are the ones wired to the stop.
+    """
+
+
+def derive_alarm_suffixes(root: Path) -> tuple[tuple[str, ...], dict[str, Any]]:
+    """Read the alarm-name suffixes out of the Terraform modules. Never a literal.
+
+    WHY THIS IS A FUNCTION AND NOT A TUPLE
+    --------------------------------------
+    ``docs/deploy/PRE-APPLY.md`` §3 recorded the failure this replaces, in the page's own
+    words: a hard-coded four against a plan that creates seven, *"a reader that is
+    complete-looking and is not"*. A literal cannot go stale loudly — it goes stale
+    silently, and its staleness reads as health. A derivation goes stale by **raising**.
+
+    Args:
+        root: the repository root.
+
+    Returns:
+        ``(suffixes, provenance)`` — the suffixes sorted for a stable table, and a record
+        of every file read, what was found in it, and the result of the plan cross-check.
+
+    Raises:
+        AlarmSetUnderivable: a module file is missing, declares no alarm this pattern can
+            read, builds a name from an unexpected variable, or disagrees with the
+            committed plan artefact.
+    """
+    provenance: dict[str, Any] = {"derived_from": [], "cross_check": None}
+    suffixes: list[str] = []
+    for relative, variable in ALARM_MODULES:
+        path = root / relative
+        if not path.is_file():
+            raise AlarmSetUnderivable(
+                f"{relative} does not exist, so the alarm set cannot be derived from the "
+                "tree. This program will not fall back to a literal: a literal is how the "
+                "probe came to report four alarms over a deployment that creates seven."
+            )
+        text = path.read_text(encoding="utf-8")
+        here: list[str] = []
+        for match in _ALARM_NAME_RE.finditer(text):
+            if match.group("var") != variable:
+                raise AlarmSetUnderivable(
+                    f"{relative} builds an alarm_name from ${{var.{match.group('var')}}}, "
+                    f"and this program expects ${{var.{variable}}}. Two different name "
+                    "variables mean two different prefixes, and a single-prefix reader "
+                    "would silently miss one family."
+                )
+            here.append(match.group("suffix"))
+        declared = text.count('resource "aws_cloudwatch_metric_alarm"')
+        if len(here) != declared:
+            raise AlarmSetUnderivable(
+                f"{relative} declares {declared} aws_cloudwatch_metric_alarm resource(s) "
+                f"and this program could read the name of {len(here)}. An alarm whose name "
+                "is built some other way is invisible to a prefix reader, which is the "
+                "defect this derivation exists to refuse."
+            )
+        if not here:
+            raise AlarmSetUnderivable(
+                f"{relative} declares no alarm this program can read. An empty contribution "
+                "is not evidence that the module has no alarms."
+            )
+        provenance["derived_from"].append(
+            {"file": relative, "name_variable": variable, "suffixes": sorted(here)}
+        )
+        suffixes.extend(here)
+
+    duplicates = sorted({s for s in suffixes if suffixes.count(s) > 1})
+    if duplicates:
+        raise AlarmSetUnderivable(
+            f"two modules declare the same alarm suffix(es): {', '.join(duplicates)}. "
+            "Two alarms cannot share a name, so one of them is not the resource this "
+            "derivation thinks it is."
+        )
+    return tuple(sorted(suffixes)), provenance
+
+
+def cross_check_against_plan(
+    root: Path, prefix: str, expected: tuple[str, ...], provenance: dict[str, Any]
+) -> None:
+    """Confirm the derived set equals the alarm set the committed plan would create.
+
+    The modules are authoritative and the plan is derived from them (ruling **R7**), so
+    this is not a tiebreak — it is a **tripwire**. If the plan artefact is absent the
+    cross-check records that and returns; an absent artefact is a missing corroboration,
+    not a contradiction. If the artefact is present and disagrees, this raises, because a
+    disagreement means one of the two is describing a tree that does not exist and a probe
+    cannot tell you which without saying so.
+    """
+    path = root / ALARM_PLAN_ARTEFACT
+    if not path.is_file():
+        provenance["cross_check"] = {
+            "artefact": ALARM_PLAN_ARTEFACT,
+            "read": False,
+            "why": "the artefact is absent; the derivation stands uncorroborated",
+        }
+        return
+    try:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise AlarmSetUnderivable(
+            f"{ALARM_PLAN_ARTEFACT} exists and could not be parsed ({exc}). An unreadable "
+            "cross-check is not a passed one."
+        ) from exc
+    in_plan = sorted(
+        str((change.get("change") or {}).get("after", {}).get("alarm_name"))
+        for change in plan.get("resource_changes", [])
+        if change.get("type") == "aws_cloudwatch_metric_alarm"
+    )
+    derived = sorted(f"{prefix}{suffix}" for suffix in expected)
+    provenance["cross_check"] = {
+        "artefact": ALARM_PLAN_ARTEFACT,
+        "read": True,
+        "alarms_in_plan": in_plan,
+        "alarms_derived": derived,
+        "agree": in_plan == derived,
+    }
+    if in_plan != derived:
+        raise AlarmSetUnderivable(
+            "the alarm set derived from the modules and the alarm set in "
+            f"{ALARM_PLAN_ARTEFACT} disagree.\n"
+            f"  modules: {', '.join(derived)}\n"
+            f"  plan:    {', '.join(in_plan)}\n"
+            "One of the two describes a tree that does not exist. The modules are "
+            "authoritative (R7); regenerate the plan artefact rather than editing either "
+            "list to match the other."
+        )
+
+
+def expected_alarm_names(root: Path, prefix: str) -> tuple[list[str], dict[str, Any]]:
+    """The full expected alarm-name list, derived and cross-checked. Raises, never defaults."""
+    suffixes, provenance = derive_alarm_suffixes(root)
+    cross_check_against_plan(root, prefix, suffixes, provenance)
+    return [f"{prefix}{suffix}" for suffix in suffixes], provenance
+
 
 #: What AWS puts in ``SubscriptionArn`` for a subscription nobody has clicked the
 #: confirmation link for. It is a literal string, not an ARN, and it is the whole tell.
@@ -488,12 +665,44 @@ def probe_alarms(session: Any, region: str, mask: Masker, prefix: str) -> dict[s
     read it. ``call.record["ok"]`` reflects only whether **AWS answered**; whether what AWS
     said is *healthy* is a separate key, so a caller can tell a broken credential from a
     broken demo.
+
+    The expected set is **derived from the Terraform modules** by
+    :func:`expected_alarm_names` and cross-checked against the committed plan. Deriving it
+    is not a refinement: this function used to compare AWS against a hard-coded four while
+    the deployment creates seven, and it would have reported *"All 4 alarms exist and none
+    is in ALARM"* over a stack whose three guard alarms — the ones wired to the stop — it
+    had never asked about.
     """
+    # Derived BEFORE the call, and its failure kept distinct from an AWS failure. "AWS
+    # would not answer me", "AWS answered and the answer is bad news", and "I cannot state
+    # what I expect, so I will not grade the answer" are three incidents with three first
+    # moves, and a program that renders them all as one number sends someone the wrong way.
+    try:
+        expected, alarm_provenance = expected_alarm_names(repo_root(), prefix)
+    except AlarmSetUnderivable as exc:
+        return {
+            "api": "cloudwatch:DescribeAlarms",
+            "ok": False,
+            "latency_ms": 0.0,
+            "alarm_region": region,
+            "alarm_name_prefix": prefix,
+            "expected_alarms_underivable": True,
+            "exception_type": f"{type(exc).__module__}.{type(exc).__qualname__}",
+            "message": mask(str(exc)),
+            "message_transformations": "account id masked; otherwise verbatim",
+            "finding": (
+                "The expected alarm set could not be derived from the tree, so NO CALL WAS "
+                "MADE. Grading AWS against a set this program cannot state would be the "
+                "defect it was rewritten to remove."
+            ),
+        }
+
     with Call("cloudwatch:DescribeAlarms", mask) as call:
         call.record["alarm_region"] = region
         call.record["alarm_name_prefix"] = prefix
-        expected = [f"{prefix}{suffix}" for suffix in ALARM_SUFFIXES]
         call.record["expected_alarms"] = expected
+        call.record["expected_alarms_provenance"] = alarm_provenance
+        call.record["expected_alarms_underivable"] = False
 
         cloudwatch = session.client("cloudwatch", region_name=region)
         found: dict[str, dict[str, Any]] = {}
@@ -698,6 +907,13 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         )
 
     if args.alarms_only:
+        if alarms.get("expected_alarms_underivable"):
+            # Neither "AWS failed" nor "the demo is unhealthy": this program could not say
+            # what it expected, so it graded nothing. Same exit as a failed call, because
+            # both mean "no reading was obtained", and a different verdict string because
+            # the first move is different — fix the tree, not the credential.
+            evidence["verdict"] = "EXPECTED ALARM SET UNDERIVABLE - NO READING TAKEN"
+            return EXIT_CALL_FAILED, evidence
         if failed:
             evidence["verdict"] = "AWS CALL FAILED"
             return EXIT_CALL_FAILED, evidence

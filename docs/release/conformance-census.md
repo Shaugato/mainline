@@ -11,6 +11,30 @@ SPDX-License-Identifier: CC-BY-4.0
 **Database** `postgresql://root@127.0.0.1:26257/prod_w9?sslmode=disable`  
 **Manifest** `spec/conformance/manifest.toml` — 71 cases declared
 
+> **CHECKED AGAINST ITS OWN SOURCE, 2026-08-14 by D3 — it agrees, and it is still a
+> 2026-08-10 reading.** Two different questions, answered separately because they are
+> routinely conflated:
+>
+> **1. Does this document match the artefact it is generated from?** *Yes, exactly.*
+> `qa/conformance-census.json` reads `totals: {passed: 10, failed: 6, cannot_run: 55,
+> skipped: 0, pending: 0, error: 0}`, `selected: 71`, and `completeness.complete: true` with
+> *"every declared case carries a status, nothing is PENDING, nothing ERRORed, and every
+> non-PASSED case carries a reason naming an object"*. Every total below reproduces. **No
+> digit in this document is edited.**
+>
+> **2. Is it a statement about the tree as it stands today?** *No, and it never claimed to
+> be.* It was taken `2026-08-10T07:59:48Z` against database `prod_w9` under run-id
+> `cert-final`. The migration chain, the seeds and the demo world have all moved since —
+> `mainline.defeater_option` alone was seeded into two deployed seed files on 2026-08-14.
+> **A conformance census is only a claim about the schema it was run against**, which is why
+> the header carries the version, the profile and the DSN. Re-derive with the
+> `census_command` recorded in the artefact — `scripts/qa/run_conformance_census.py --build
+> --run-id <id>` — and publish the new run beside this one rather than over it.
+>
+> **10 of 71 is not a good number and this page has always said so** (*"This run is not
+> green, and publishing it is the point"*). Nothing in this note improves it, and nothing in
+> this wave is entitled to.
+
 ```
 D:\CoackroachDBxAWS\mainline\.venv\Scripts\trappoint-conform.exe --dsn postgresql://root@127.0.0.1:26257/prod_w9?sslmode=disable --profile mainline --autodetect-requires --json --run-id cert-final
 ```

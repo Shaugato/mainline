@@ -63,6 +63,22 @@ made its stronger evidence unfalsifiable.
 | 2026-08-09 21:07Z | **244 / 261**, 17 failed — **2 of them unexplained** (`0049z` `42601`, `0149z` `42P01` cascade) | not measured | 2 | **NOT PROVEN** | §2 |
 | 2026-08-09 21:38Z | **246 / 261**, 15 failed, all attributable to five tables with no producer | not measured | 2 | PROVEN | `proof-20260809T213857Z.json` |
 | 2026-08-10 05:44Z | **271 / 271**, **0 failed** | **10 / 10 assertions held** | **0** | PROVEN | `proof-20260810T054407Z.json` |
+| **2026-08-14 03:24:18Z** | **271 / 271**, `failed_count: 0`, 71.797 s | held | **`caveats: []`** | **PROVEN**, `failures: []` | **`proof-20260814T032418Z.json`** |
+
+**The fourth row was added 2026-08-14 by D3 and no earlier row was touched.** It is a
+re-proof rather than a new claim: the same four beats, the same SQLSTATEs — `refusal` `23514`
+`gate_closed_when_issued` (reported), `drift_refusal` `P0001`
+`mainline.fn_permit_merge_gate` (parsed), `admission` `00000` — re-run after the seeds beneath
+it moved. **A proof whose inputs changed and which was not re-run is a proof about a tree that
+no longer exists**, which is why the row exists at all rather than the 08-10 row simply being
+left to stand in for today.
+
+> **The boundary this table must not be read across.** Every row above, including the new
+> one, has `cluster.database = w_qr_gate_refusal_proof` — a **local** single-node CockroachDB
+> CCL v26.2.5. **None of them is a CockroachDB Cloud result.** The repository does now hold
+> two Cloud artefacts (`evidence/deploy/cloud-chain.json`, `evidence/deploy/cloud-seed.json`),
+> and neither is a four-beat gate-run. `docs/CI-STATE.md` §1.0.4 states in full what is
+> carried and what is still OWED, in the wording three documents share.
 
 The middle row is the one this page used to end on. It was an honest green about a
 narrower claim: the chain applied *except for gaps it could name*, and `open_blocking`

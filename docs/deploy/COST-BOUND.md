@@ -11,6 +11,12 @@ SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
 **Status:** decision material. Nothing in this document has been applied. No `terraform apply`
 was run to produce it, and no mutating AWS call was made.
 
+> **§0.3 supersedes every byte figure in this document, including §0.1's and §0.2's.** It
+> records that the artefact all of them are read from describes a build no commit in this
+> repository reproduces, names the reproducible build's figures, and says exactly which
+> published dollar figures move and by how much. **No digit anywhere in this file was
+> retyped to it, and §0.3 says why that would have been the wrong motion.**
+>
 > **§0, §0.1 and §0.2 supersede the arithmetic below them.** §1–§9 are preserved as the
 > **reproduction baseline** — `scripts/deploy/cost_model.py` must re-derive §2.2's
 > $33,251.87 and §1.2's $11,701 / $31,049.79 / $10,949 from the inputs that produced them
@@ -21,11 +27,19 @@ was run to produce it, and no mutating AWS call was made.
 > be checked against.
 >
 > **Where a §1–§9 sentence has since become false, it is struck through or annotated in
-> place, never removed** (**§1**, §3.2, §3.3, §3.6, **§3.7**, §5, §5.1, §6, §9). A claim
+> place, never removed** (**§1**, **§2.1**, **§2.2**, §3.2, §3.3, **§3.4**, §3.6,
+> **§3.7**, §5, §5.1, §6, §9). A claim
 > deleted is not a claim corrected, and the corrections are only checkable against the claims
 > they correct. *(§1 and §3.7 were added to this list on 2026-08-14. §1 was annotated in the
 > same wave; its omission here is exactly why §1 read as current when it is historical, and an
-> enumeration that does not enumerate is the same defect one level up.)*
+> enumeration that does not enumerate is the same defect one level up. **§2.1, §2.2 and §3.4
+> were added on 2026-08-14 in the re-verification pass, for the identical reason:** each
+> carried a `1,554,168 B` or a `2,586,960 B` in running arithmetic and named **neither** of
+> the two trees below, and this list named none of the three. **No digit in any of them moved.
+> Only the tree each one names was added.** The same pass named the tree on §0's ceiling row,
+> §0.1's ceiling bullet, §5.1's ceiling row and §6's L3 recommendation — §0 and §0.1 are the
+> superseding side rather than the preserved baseline, so they are deliberately **not** added
+> to a §1–§9 list, and §6's L3 correction is covered by §6's entry, already here.)*
 >
 > **Every byte figure in this document names its tree, and there are two.** The packer's
 > **input** tree — 75 entries, 3,571,990 B, 18 source maps — is the pre-strip baseline §2.2's
@@ -65,7 +79,7 @@ that is the honest "today" the founder was never given.
 | invocation duration | 100 ms, assumed | **5.66 / 14.11 ms, measured** |
 | source maps in the package | 18 files, 2,586,960 B | **0 — the strip is the default in both builders** |
 | largest servable response | 1,554,168 B | **124,127 B** on the wire (gzip sibling) |
-| response ceiling | 2 MiB, above everything it governed | **139,264 B**, derived from the tree and binding |
+| response ceiling | 2 MiB, above everything it governed | **139,264 B**, derived from the **deployed** tree and binding |
 | the stop | described | **built _and instantiated_** — `infra/modules/cost-guard`, three alarms → SNS → `PutFunctionConcurrency(0)`, wired into the environment root at `infra/envs/demo/main.tf:631` |
 
 The claim that **exactly one real bound exists and it is an AWS account default nobody
@@ -98,7 +112,10 @@ Every figure below is produced by `scripts/deploy/cost_model.py` and re-derivabl
 **THIS IS A MODEL BOUND, NOT A FORECAST.** Every row holds concurrency pinned at the account
 ceiling of 10 and divides by a measured duration, which assumes AWS *sustains* the resulting
 egress. Row L1 assumes **708 rps × 1,554,168 B = 1.10 GB/s out of ten 512 MB execution
-environments**. **Nobody has observed that**, here or anywhere in this repository's evidence.
+environments** — and **that 1,554,168 B is the packer's INPUT tree**, `architectures[].before`,
+the pre-strip baseline L1 exists to price (§1 I4). **It is not a body the deployed origin can
+emit**; L1 is the honest *"before"* and the deployed figures are rows L2 and below.
+**Nobody has observed that**, here or anywhere in this repository's evidence.
 It is what the tariff and the ceiling *permit*, not what AWS would deliver. The `GB/s` column
 is printed so every row can be disbelieved individually.
 
@@ -235,8 +252,10 @@ multiplying**: 60 s **$1.60** · 120 s $3.20 · 180 s $4.81 · 300 s **$8.01** �
 
 ### What this table depends on that could move
 
-* **The response ceiling is a code constant.** `static_site.DEFAULT_MAX_RESPONSE_BYTES` is
-  **139,264 B** today and is read at model time, not copied. Raise it above 433,396 B and the
+* **The response ceiling is a code constant, derived from the DEPLOYED tree.**
+  `static_site.DEFAULT_MAX_RESPONSE_BYTES` is
+  **139,264 B** today and is read at model time, not copied. Raise it above 433,396 B — the
+  **deployed** tree's largest identity object — and the
   reachable residual is **3.5×** larger (R1 → R3′) and the in-window rate moves with it
   ($1.6022 → $5.5364 per minute). Both cases are published for exactly that reason.
 * **The durations are workstation-loopback p50s.** `LATENCY.md` measures the cloud column at
@@ -324,6 +343,207 @@ applied**, so this is written as an open question and not as a result.
 
 ---
 
+## 0.3 · WHICH ARTEFACT EVERY BYTE FIGURE HERE WAS MEASURED FROM, AND WHEN — and the finding that it describes a build nobody can reproduce
+
+**Owner of this section:** W6 (ci-green), 2026-08-14 · **Finding it records:** W1's, commit
+`f68abb7` · **Status:** open, and the action that closes it is **not W6's to take**.
+
+### The artefact, named and dated
+
+Every byte figure in this document — §0's summary table, §0.1's ceiling and residual rows,
+§1's I4–I7, §2's worked arithmetic, §3.2/§3.3/§3.4's block figures — is a lookup into **one**
+artefact:
+
+| | |
+|---|---|
+| **Artefact** | [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json), `architectures[]` where `architecture == "arm64"` |
+| **Measured on** | the project Windows workstation, CPython 3.13.14, zlib 1.3.1 |
+| **Measured at HEAD** | **`2dc5c86`** — *not* the HEAD this document is being read at |
+| **Produced by** | `scripts/deploy/build_lambda.sh --arch arm64`, then `scripts/deploy/bundle_manifest.py <zip> --strict` |
+| **Recorded by** | W2 of the cost-bound wave |
+
+That row — *measured at `2dc5c86`* — is the whole of this section. It was never stated in this
+document before today, and stating it is what makes the next paragraph visible.
+
+### The finding: `package-shape.json` records a `console/dist` that no commit produces
+
+W1 of this wave followed **R1's non-negotiable order** — *prove the build reproduces first,
+re-record the numbers second* — and proved both halves. Reproduced from a clean export:
+
+```
+git archive HEAD verticals/mainline/apps/console   → empty directory
+pnpm install --frozen-lockfile                     (pnpm 11.5.3, the version package.json names)
+pnpm exec vite build --mode demo                   CI=true, MAINLINE_BUILD_ID unset,
+                                                   MAINLINE_ATTESTATION unset
+                                                   — the exact environment
+                                                   .github/actions/build-demo-package
+                                                   establishes
+bash scripts/deploy/build_lambda.sh --arch arm64   over that export
+```
+
+emits `assets/index-DzVoV1YM.js` at **433,564 B byte for byte**, with all 49 `dist/` entries
+matching the CI lane's own build (run `31770005759`) by name and size. **So the build is
+deterministic**, which is R1's second branch and the one that permits re-recording.
+
+And the tree `package-shape.json` describes matches **no commit** — not by name and not by
+size. W1 built three clean historical exports to check: `5ddaa3a` → 432,707 B
+`index-BGqw2TVV.js`; `4d948dd` → 433,564 B `index-BTaIOv1P.js`; `7535670` → 433,564 B
+`index-DzVoV1YM.js`. The artefact declares 433,396 B `index-BjAGxrVJ.js`. It came from a
+`console/dist` dated 2026-08-10 21:04 that no commit emits.
+
+### Old → new, every figure this document quotes
+
+| figure | `package-shape.json` @ `2dc5c86` — **what this document says** | the reproducible build @ HEAD — **what is true** | Δ |
+|---|---:|---:|---:|
+| **deployed** `web/` bytes | 1,274,342 | **1,274,743** | +401 |
+| **deployed** identity | 57 / 985,030 B | 57 / **985,306 B** | +276 |
+| **deployed** `.gz` siblings | 57 / 289,312 B | 57 / **289,437 B** | +125 |
+| **deployed** largest identity | 433,396 B `index-BjAGxrVJ.js` | **433,564 B** `index-DzVoV1YM.js` | +168 |
+| **deployed** largest on the wire | 124,127 B `…js.gz` | **124,177 B** `index-DzVoV1YM.js.gz` | +50 |
+| **deployed** source maps | 0 / 0 B | **0 / 0 B** | — |
+| **input** `web/` bytes over 75 files | 3,571,990 | **3,566,324** | −5,666 |
+| **input** source maps over 18 files | 2,586,960 B (72.4235 %) | **2,581,018 B** (**72.37 %**) | −5,942 |
+| **input** largest object (`…js.map`) | 1,554,168 B `index-BjAGxrVJ.js.map` | **1,551,887 B** `index-DzVoV1YM.js.map` | **−2,281** |
+
+**That last row was printed as a gap, and the gap is now closed.** W1's re-derivation had
+covered every aggregate and both wire figures but not the input tree's largest single object
+— the `.js.map` that §2.1 and §2.2 price from — so `1,554,168 B` stood as the one figure in
+this document that had been neither confirmed nor replaced, and it is the one the
+**$33,251.87** reproduction runs on.
+
+> **RE-DERIVED 2026-08-14 by W5 (plan-truth), at HEAD `d098721`.** Walked the packer's input
+> tree as `build_lambda.sh` composes it — `verticals/mainline/apps/console/dist/` mounted at
+> `web/`, plus `…/console/fixtures/bundles/demo-cloud` at `web/bundle/` (the script's own
+> header, lines 22–23) — and measured every entry with `os.path.getsize`:
+>
+> | input `web/` tree, measured today | value | `package-shape.json` `…before.web` says |
+> |---|---:|---:|
+> | entries | **75** | 75 — **agrees** |
+> | bytes | **3,566,324** | 3,571,990 |
+> | source maps | **18 / 2,581,018 B** | 18 / 2,586,960 B |
+> | **largest object** | **1,551,887 B** `web/assets/index-DzVoV1YM.js.map` | 1,554,168 B `index-BjAGxrVJ.js.map` |
+> | largest non-map | **433,564 B** `web/assets/index-DzVoV1YM.js` | 433,396 B `index-BjAGxrVJ.js` |
+>
+> **The entry count reproduces exactly at 75, and every aggregate reproduces W1's figures to
+> the byte** — which is what makes the new largest-object number trustworthy rather than a
+> fourth opinion: the same walk that re-derived `3,566,324` and `2,581,018` produced
+> `1,551,887`, and those two were already independently confirmed above.
+>
+> **`1,554,168 B` is nevertheless still what this document's cells say, on purpose.** It is
+> the value in `evidence/deploy/cost/package-shape.json`, that artefact is the authority
+> `tests/deploy/test_docs_are_true.py` reads these figures out of rather than typing them,
+> and **`evidence/deploy/cost/` is not W5's to write** — the same boundary that stopped W6.
+> Retyping the prose to a number the artefact does not carry is moving the derived side away
+> from its authority, which is the motion this repository's standing rule forbids, and the
+> checker would catch it. **What changes here is that the figure is no longer *unknown*: it
+> is measured, it is −2,281 B, and it is recorded beside the cell it will eventually
+> replace.**
+>
+> **The action this hands on, unchanged in substance and now fully quantified:** regenerate
+> `package-shape.json` and `cost-model.json` from the reproducible build, then re-read this
+> document's cells from them. Every figure that regeneration must carry is now written down
+> — there is no longer a row anybody has to go and measure first.
+>
+> **Nothing in §2.2's arithmetic moves today**, because the cells did not move. When it does
+> move, it moves by **−2,281 ÷ 1,554,168 = −0.147 %**, and the direction is worth stating in
+> advance so it cannot be presented as a saving later: the headline gets **smaller**, from
+> **$33,251.87** toward **$33,203**, and *~229,805 unbounded* toward *~229,467*. **A bound
+> that shrinks by a seventh of a percent is still the same bound**, and no decision in §3 or
+> §5 turns on it.
+
+> **THE DEPLOYED COLUMN, CONFIRMED AGAINST THE SHIPPED ZIP ITSELF — 2026-08-14, W5.** The
+> table above labels its right-hand column *"the reproducible build @ HEAD"*, which is a
+> **rebuild**. The question that column cannot answer on its own is whether the package the
+> deployment would actually upload is that build. So it was opened directly:
+> `zipfile.ZipFile('out/lambda/mainline-demo-api-arm64.zip')`, every entry under `web/`.
+>
+> | deployed `web/` tree, read out of the zip | measured | the table above |
+> |---|---:|---:|
+> | entries | **114** | 114 |
+> | bytes | **1,274,743** | 1,274,743 |
+> | **source maps** | **0 / 0 B** | 0 / 0 B |
+> | identity | **57 / 985,306 B** | 57 / 985,306 B |
+> | `.gz` siblings | **57 / 289,437 B** | 57 / 289,437 B |
+> | largest identity object | **433,564 B** `web/assets/index-DzVoV1YM.js` | 433,564 B |
+> | **largest object on the wire** | **124,177 B** `web/assets/index-DzVoV1YM.js.gz` | 124,177 B |
+>
+> **Every deployed row reproduces to the byte, so the shipped package IS the reproducible
+> build** — the rebuild and the artefact are the same tree, and the deployed column is no
+> longer resting on an inference.
+>
+> **And the zip is tied to the plan, not merely to this page.** The same 7,703,067-byte file
+> hashes to `base64(sha256(…)) = Evy6etabL/6CQLHsv3Y3RNlEHhIwkQn3+riKxi37zCc=`, which is
+> exactly the `source_code_hash` carried by `aws_lambda_function.this` in
+> `evidence/deploy/terraform-plan-furl.txt`, regenerated the same day
+> (`docs/deploy/terraform-plan.md`, *"Both counts, as measured"*). **The tree this section
+> measures, the package the plan would upload, and the bytes a judge's browser would receive
+> are one artefact, and that chain is now checkable end to end.**
+>
+> **This is the column every cost claim on this page is priced from**, because cost is bytes
+> leaving the origin — `docs/decisions/response-ceiling-authoritative-tree.md` §1, the same
+> reasoning that makes the **139,264 B** response ceiling correct. **The deployed package
+> holds zero source maps**, so `1,554,168 B` — a source map — is not a body this origin can
+> emit at all, and the ceiling still admits the 124,177 B sibling while refusing the 433,564 B
+> identity form. `0 < 124,177 < 139,264 < 433,564` holds, and **exactly one** identity object
+> is refused.
+
+### Why not one digit above was retyped into the prose
+
+The obvious motion — replace every `124,127` with `124,177` and be done — is the wrong one,
+for a reason worth writing down because it is the shape of the rule that outranks every task
+in this repository.
+
+`tests/deploy/test_docs_are_true.py` does not *type* these figures. It **reads them out of
+`package-shape.json`** (`input_tree_byte_figures()`, `deployed_tree_figures()`) and then
+checks how this document labels them. So the artefact is the authority and this document is
+the derived side — which is exactly what this file's own §0.1 already says about
+`cost-model.json`: *"if a cell and the JSON disagree, the JSON is authoritative and the cell
+is the defect."*
+
+Retyping the prose to W1's numbers while the artefact stood would have:
+
+1. made the prose disagree with the artefact this document declares authoritative;
+2. turned this document's own before/after rows into **offences** under
+   `input_tree_figures_sourced_to_the_deployed_package`, because that checker recognises a
+   deployed figure only by matching the artefact's value; and
+3. left every dollar figure in §0.1 — each of which `scripts/deploy/cost_model.py` computed
+   **from 124,127** — sitting beside an input it was not computed from. An arithmetic that no
+   longer closes is a worse defect than an input that is 50 B stale.
+
+**The correct motion is to regenerate `package-shape.json` and `cost-model.json` from the
+reproducible build and then re-read this document's cells from them.** Those two files are
+under `evidence/deploy/cost/` and are not W6's to write. **This is reported to the lead as
+the open action, and named here so the next reader does not mistake the delta for a typo.**
+
+### What moves when that regeneration happens, and what does not
+
+**Does not move.** `static_site.DEFAULT_MAX_RESPONSE_BYTES == 136 * 1024 == 139,264` — W1
+re-derived it and the rounding absorbed the growth: 1.10 × 124,177 = 136,594.7, and the next
+8 KiB boundary is still 17 × 8192 = **139,264**. Had it not absorbed it, the answer would have
+been a smaller artefact and never a larger ceiling. The invariant
+`0 < 124,177 < 139,264 < 433,564` holds, and **exactly one** identity object is still refused.
+
+**Moves, and by how little.** Every deployed-tree dollar figure scales by
+124,177 ÷ 124,127 = **1.000403**, i.e. **+0.040 %**:
+
+| row | published | after regeneration | survives at published precision? |
+|---|---:|---:|---|
+| R1 — paced residual, 24 h | $5.44 | $5.4422 | **yes** |
+| R3 — unattended 30 d | **$564.04** | $564.27 | rounds to **$564**, so the standing "564/30 d" holds |
+| R4 — in-window floor, 60 s | **$1.60** | $1.6006 | **yes** |
+| R6 — per minute of detection lag | **$1.6022 / min** | $1.6028 / min | **yes — the standing USD 1.60/min is unaffected** |
+
+**Untouched entirely.** §0.1 rows **L0–L5**, §1.2's $11,701 / $31,049.79 / $10,949, §2.2's
+**$33,251.87** and L1's **$229,804.98** are priced from the **input** tree's 1,554,168 B, not
+from any deployed figure. The headline *~229,805 unbounded* therefore does not move on this
+finding — it moves only if the input tree's largest object is re-derived to something else,
+which is the gap the table above prints.
+
+**So the standing cost residual is intact and is restated here unchanged: USD 1.60 / min
+in-window, USD 564 / 30 d unattended, against ~229,805 unbounded.**
+
+---
+
 ## 1 · The measured inputs
 
 > **ANNOTATED 2026-08-14 — I4, I6 AND I7 DESCRIBE THE PACKER'S *INPUT* TREE, AND THEY SAID
@@ -379,6 +599,26 @@ is the committed plan artefact and it is the side that decides. The old line cit
 (`:329`) was never re-checked after the plan was regenerated, which is the kind of rot that is
 invisible until a reviewer follows the citation, lands on an unrelated line, and stops trusting
 the rest of the page.
+
+> **I8 AND I9'S CITATIONS RE-CHECKED AFTER THE 2026-08-14 REGENERATION — W5.**
+> `evidence/deploy/terraform-plan-furl.txt` was regenerated at HEAD `d098721` (see
+> `docs/deploy/terraform-plan.md`, *"Both counts, as measured"*), and the paragraph above is
+> precisely the reason not to assume the line numbers survived it. **All six were opened and
+> every one still resolves:** `:351` `authorization_type = "NONE"` (block opens at `:349`),
+> `:290` `memory_size = 256`, `:296` `reserved_concurrent_executions = -1`, `:315`
+> `timeout = 14`, and `:124` `threshold = 13500` for the `-duration-p99` alarm. The file kept
+> its **934** lines through the regeneration, so the numbering did not shift.
+>
+> **I4–I7's figures were re-derived in the same sitting and are NOT retyped here.** §0.3
+> carries them: the input tree measures **75 entries / 3,566,324 B / 18 maps / 2,581,018 B**
+> with a largest object of **1,551,887 B**, and the deployed zip measures **114 entries /
+> 1,274,743 B / 0 maps**, largest identity **433,564 B**, largest on the wire **124,177 B**.
+> The cells above still read `package-shape.json`'s values because that artefact is the
+> authority `tests/deploy/test_docs_are_true.py` reads them out of, and it is not this
+> worker's to regenerate. **The rows are labelled and sourced correctly, which is the defect
+> that was actually open here** — I4 and I6 once claimed the *deployed* tree, sourced to a zip
+> anyone could open and be told the opposite. **They no longer do**, and §0.3 now names the
+> deployed figure for each.
 
 Two facts from I4–I7 that decide most of this document:
 
@@ -450,6 +690,24 @@ either**. So the convention question is recorded and then set aside.
 
 ## 2 · The arithmetic, reproduced from first principles
 
+> **ANNOTATED 2026-08-14 — THIS WHOLE SECTION IS PRICED ON THE PACKER'S *INPUT* TREE, AND IT
+> IS SUPPOSED TO BE.** The `1,554,168 B` in §2.1's model and §2.2's egress line is
+> `architectures[].before.web.largest_identity_object` —
+> [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json) —
+> the **pre-strip** baseline, and it is **load-bearing**: `scripts/deploy/cost_model.py` must
+> re-derive **$33,251.87** from exactly this input before it is allowed to publish anything in
+> §0.1, and `tests/deploy/test_cost_model.py::test_the_model_reproduces_every_published_headline`
+> fails the build if it cannot. **No digit here moved and none may.**
+>
+> **What was missing is the label, and this is the whole of the correction.** Neither line
+> named its tree, and this document's own header says *"a figure that does not name its tree
+> is wrong, whichever tree it came from"* — so a reader could reasonably have taken §2 as an
+> account of what the shipping origin can put on the wire. **It is not.** The deployed
+> package holds **zero** source maps, its largest identity object is **433,396 B** and the
+> largest body it actually emits is the **124,127 B** `.gz` sibling (`architectures[].after`).
+> The corrected ladder that starts from the deployed tree is **§0.1 rows L2–L6**, not this
+> section. §2 is the reproduction baseline and nothing else.
+
 ### 2.1 · The model
 
 The attacker holds concurrency at the ceiling and fetches the largest asset every time.
@@ -459,11 +717,15 @@ No credential, no rate limit, no CAPTCHA — the URL is `authorization_type = NO
 concurrency               10                      (I1, and it is a hard ceiling)
 invocation duration       100 ms … 300 ms         (the span of a static-asset read)
 request rate              10 / 0.100 = 100 rps  …  10 / 0.300 = 33.3 rps
-bytes per request         1,554,168 B             (I4)
+bytes per request         1,554,168 B             (I4 — the packer's INPUT tree, pre-strip)
 window                    30 d = 2,592,000 s
 ```
 
 100 rps × 1,554,168 B × 2,592,000 s = **402.84 TB** (decimal) / **375,174 GiB** (measured tariff)
+
+**That 1,554,168 B is `architectures[].before.web.largest_identity_object`** — the packer's
+**input** tree. The deployed package does not contain that object; see the annotation under
+§2's heading for why the figure stays and what it is for.
 
 ### 2.2 · Tier by tier, the 100 ms case
 
@@ -581,8 +843,14 @@ Already implemented as `--strip-source-maps` in `scripts/deploy/build_lambda.sh`
 header at line 41 explains why, and that reasoning is sound: a judge opening DevTools sees
 real component names.
 
-* Largest emittable response: **1,554,168 → 433,396 B**, a factor of **3.586**.
-* Package: −2,586,960 B (72.4 % of the served tree).
+* ~~Largest emittable response~~ **Largest object, INPUT tree → DEPLOYED package**:
+  **1,554,168 → 433,396 B**, a factor of **3.586** (`architectures[].before` →
+  `…after.web.largest_identity_object`). **433,396 B is still not an emittable response**: the
+  139,264 B ceiling refuses the identity form and the origin puts the **124,127 B** `.gz`
+  sibling on the wire (§3.3).
+* Package: −2,586,960 B — ~~72.4 % of the served tree~~ **72.4 % of that INPUT tree**
+  (2,586,960 ÷ 3,571,990), and **0 % of the served tree, because the maps are stripped before
+  it exists**. Same correction, same reason, as `docs/deploy/lambda-bundle.md` §4.4.
 * Worst case: **$33,250 → ≈ $9,900** (measured tariff: ≈ $9,300).
 
 *Bounds:* bytes per request. *Does **not** bound:* the request rate, the invocation charge, or
@@ -608,14 +876,20 @@ A declared ceiling above which the handler returns 413 instead of a body.
 > deliberate and is stated loudly in `static_site.py` rather than avoided by picking a
 > looser number.
 
-**At 512 KiB = 524,288 B this costs literally nothing**, and I5/I6 are why:
+**At 512 KiB = 524,288 B this costs literally nothing**, and I5/I6 are why — **every count in
+the block below is over the packer's INPUT tree (`architectures[].before.web`, 75 entries),
+which is the only tree that existed when this was written**:
 
 ```
 largest non-map asset           433,396 B
 proposed cap                    524,288 B
 headroom                         90,892 B
-assets in the package >= cap            1   ← and it is a source map
+assets in the INPUT tree >= cap         1   ← and it is a source map
 ```
+
+*(That line read `assets in the package >= cap` until 2026-08-14. The digit is right and the
+tree was unnamed: in the **deployed** package the same cap refuses **zero** of 114 entries,
+which is the finding the blockquote above this block records.)*
 
 So a 512 KiB cap **rejects exactly one file in the entire package**, and that file is the one
 L2 removes anyway. Every legitimate asset passes untouched. Judge friction: **none**.
@@ -627,8 +901,14 @@ that L3 is a guarantee and L2 is a build-time coincidence. **Take both.**
 
 ### 3.4 · L4 — per-IP throttle
 
-A 429 body is ~200 B against 1,554,168 B, a **7,000×** collapse in egress from a single
-source. Worst case ≈ **$230**.
+A 429 body is ~200 B against 1,554,168 B — **the packer's INPUT tree's largest object,
+pre-strip (§1 I4)**, because §3's whole menu is costed against the $33,250 pre-lever headline
+— a **7,000×** collapse in egress from a single source. Worst case ≈ **$230**.
+
+*(The ratio is unchanged and the digit is not retyped. **Against the tree that deploys the
+collapse is smaller and the conclusion is the same**: ~200 B against the 124,127 B body the
+origin actually emits is ~620×, and the $230 floor below is unaffected because it is
+**invocation charges**, which no body-size lever touches.)*
 
 Three honest limits:
 
@@ -825,7 +1105,7 @@ because the reason it survived is the finding.
 | Bound | Real? | In force where | What it bounds |
 |---|---|---|---|
 | Account ceiling of 10 | **YES** | AWS account default, quota `L-B99A9384` | concurrency → request rate → everything |
-| `DEFAULT_MAX_RESPONSE_BYTES = 139,264` | **YES** | `static_site.py`, code default | bytes per response, **and it binds** — derived from the tree, asserted against it |
+| `DEFAULT_MAX_RESPONSE_BYTES = 139,264` | **YES** | `static_site.py`, code default | bytes per response, **and it binds** — derived from the **deployed** tree (`docs/decisions/response-ceiling-authoritative-tree.md` §1), asserted against it |
 | `ratelimit` global/per-IP token buckets | **YES, partially** | `app.py`, first statement of the handler | egress from a paced caller; **not** the invocation charge, and the counter is per execution environment |
 | Source maps stripped | **YES** | both builders, default | the largest object that can exist, not the rate |
 | `-invocations-burst` / `-hourly` / `-log-ingestion` alarms → SNS → `PutFunctionConcurrency(0)` | **BUILT _AND INSTANTIATED_** — *in plan; nothing is applied* | `infra/modules/cost-guard/`, instantiated at `infra/envs/demo/main.tf:631` under `count = var.enable_api ? 1 : 0` | the flood, from the moment the stop lands — worth **$8.01 per 5 min window** it does not land in (§0.1 R4–R6). This row read **BUILT, NOT INSTANTIATED** until 2026-08-14 and was false; §0.2 has the plan evidence |
@@ -850,8 +1130,13 @@ something is.
 ### Layer 1 — take now. Zero friction, zero dollars, no decision required.
 
 * **L1** `reserved_concurrent_executions = -1`. Mandatory; the apply cannot run otherwise.
-* **L3** response cap at **512 KiB**. Rejects exactly one file in the package (§3.3) and
-  makes the bytes/request number a **ratchet** instead of a coincidence.
+* **L3** response cap at ~~**512 KiB**~~ **139,264 B (136 KiB) — SHIPPED at that value**.
+  ~~Rejects exactly one file in the package (§3.3)~~ — that was one file of the packer's
+  **INPUT** tree, and the same 512 KiB line refuses **zero** of the 114 entries the
+  **deployed** package holds. The value in force is **derived from the deployed tree**
+  (§3.3, `docs/decisions/response-ceiling-authoritative-tree.md` §2.1) and it does
+  make the bytes/request number a **ratchet** instead of a coincidence — which is the half of
+  this recommendation that was right.
 * **L2** strip source maps as the build default.
 * Concurrency alarm at **8**, under the real ceiling, with a reader that exists.
 

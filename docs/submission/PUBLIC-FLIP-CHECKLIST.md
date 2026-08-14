@@ -114,6 +114,24 @@ domain in `PUBLIC-READINESS.md` §1.9 and **not one of them is a live credential
 token, no Slack token, no CockroachDB Cloud API key, no private key outside the deliberately
 published `NOT-SECRET` set.
 
+**State as measured 2026-08-14, three days after the flip: 160 undisposed findings and four
+`FAIL` rows.** The trend is the wrong way and it is printed rather than smoothed. `python
+scripts/submission/audit_public_readiness.py` exits **3** and reports
+`160 UNRESOLVED, 81 ALLOWLISTED, 84 DISCLOSED` over 325 findings; the fourth `FAIL` is
+`repo_state`, red only because this documents wave is uncommitted, and it clears with a push.
+**The credential sentence above was re-checked on 2026-08-14 and is still true** — the five
+families the scanner reports are `aws_access_key_id`, `aws_account_id`, `bearer_or_jwt`,
+`high_entropy_secret` and `private_key_block`, and every `private_key_block` hit is inside the
+published `NOT-SECRET` reference-ledger set.
+
+**The one row that went the right way is the one that measures whether this page is honest:**
+`disclosure_register` is **PASS** with **0 stale** — 59 entries granting 84 findings, and
+every grant still names a finding that still exists. A register whose grants outlive their
+findings has started to launder; this one has not.
+
+`PUBLIC-READINESS.md` §1.9 remains an enumeration of the 54, explicitly relabelled there as a
+**partial** list. Enumerating the other 106 is owed by the domains that created them.
+
 The detector fingerprint is **unchanged**, re-verified after the post-flip mode landed:
 `9cdd7b45…`, thirty allowlist entries, eight families, entropy floor `4.2`. **Adding a mode
 that reports differently is exactly when somebody is tempted to change what is detected, so
@@ -381,14 +399,28 @@ for a private repository, so an authenticated check cannot distinguish the two s
 
 ## What is still owed, now that none of it is a gate
 
-1. **The 54 undisposed findings** need a repair, a waiver or a register entry each. They are
-   listed by owning domain in `PUBLIC-READINESS.md` §1.9. None is a credential; all of them
-   are somebody's hygiene.
+1. **The undisposed findings** need a repair, a waiver or a register entry each. **54 on
+   2026-08-12; 160 on 2026-08-14.** The 54 are listed by owning domain in
+   `PUBLIC-READINESS.md` §1.9, which is now labelled a partial list; the other 106 are not yet
+   enumerated anywhere and enumerating them is the work. None is a credential; all of them are
+   somebody's hygiene.
 2. **`qa/public-readiness.json` is stale** — generated `2026-08-11T07:44:29Z`, recording
-   `verdict: READY, 0 unresolved`. Regenerating it is one command and it belongs to the
-   public-readiness domain. `w10-stale-sweep` deliberately did not write it.
+   `verdict: READY, 0 unresolved`, against a live run that finds 160. Regenerating it is one
+   command and it belongs to the public-readiness domain. `w10-stale-sweep` deliberately did
+   not write it, and neither did the 2026-08-14 documents wave.
 3. **Item 6 has never been recorded as run.** It costs one piped command and only the
    credential holder can do it.
+4. **`evidence/provenance/commit-window.json` and `third-party.json` are stale**, and
+   `scripts/submission/provenance_census.py --check` exits **1** saying so —
+   `DRIFT … 12934 bytes on disk, 56903 generated`. They are anchored to `bb21962`; `HEAD` is
+   70 commits later. The window verdict over all 86 commits is still `ALL INSIDE`, so the
+   claim is unharmed; only the artefacts behind the `[src: …]` pointers in `DISCLOSURE.md`
+   are old. Regenerating is one command and belongs to the provenance domain.
+5. **`provenance_census.py` reports `bundles_third_party_code: true` on a false positive.**
+   `docs/submission/LICENCE-CENSUS.md` is classified as a foreign licence file because its
+   *filename* matches the scanner's licence-file pattern; its SPDX holder — which the scanner
+   reads and never tests — is this project. Do not fix it by renaming the document.
+   `DISCLOSURE.md` §4 carries the line numbers and the one honest repair.
 
 ---
 

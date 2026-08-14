@@ -78,6 +78,22 @@ beats against the same seeded history, because none of them changed it. The payl
 ``persisted: false`` and then **proves it**: a fingerprint of the affected tables is taken
 before the transaction opens and again after it closes, and both are in the response.
 
+That fingerprint is TEN UNSCOPED WHOLE-TABLE COUNTS, on purpose, and it stays that way —
+``contracts/gate-run.schema.json`` asks for the broad check and gives the reason. What it
+cannot do on its own is tell *"I persisted something"* from *"somebody else did"*, and
+until 2026-08-14 the difference was reported as this endpoint's own failure: one row
+committed by any other caller into any of those ten tables, between the two readings, made
+the run answer ``NOT PROVEN`` carrying the sentence *"the transaction was supposed to
+persist nothing"* — about a transaction that had persisted nothing. So the run now also
+asks a question only IT can answer: the ``uuid4`` beat 4 minted for its disposition is a
+value no other writer holds, and after the rollback it is gone, and this subject's own row
+counts and permit row are unchanged. ``identical`` still reports the ten counts; the
+VERDICT keys on the run-scoped evidence. Neither reading was narrowed and no table left
+the list — see ``docs/diagnosis/gate-run-fingerprint.md`` for the reproduction that
+identified the writer, and ``docs/deploy/gate-run-contract.md`` §3 for the argument, made
+under ``docs/leads/cloud-hardening-final.md`` ruling **R2**, which is what permits the
+contract to move at all.
+
 The claim that the four beats really did share one transaction is also proved rather than
 asserted. ``cluster_logical_timestamp()`` is constant within a CockroachDB transaction and
 moves between them, so it is captured at the first beat and after the last; equal values
@@ -242,6 +258,44 @@ _FINGERPRINT_TABLES: Final[tuple[str, ...]] = (
     "mainline_ops.outbox",
 )
 
+#: THE SAME QUESTION, ASKED OF THE SUBJECT THIS RUN DROVE — added BESIDE the ten unscoped
+#: counts above and never in place of them.
+#:
+#: The ten counts prove something about the DATABASE. This statement proves something about
+#: the RUN, and the two are different claims that were being read as one. A whole-table
+#: count cannot distinguish *"I persisted something"* from *"somebody else did"*, so any
+#: caller committing a row into any of those ten tables between the two readings made this
+#: endpoint answer ``NOT PROVEN`` and accuse itself, in the payload, of a write it had not
+#: made. Measured, and reproduced deliberately, in ``docs/diagnosis/gate-run-fingerprint.md``.
+#:
+#: These three tables are the only ones the four beats can write a row into *and have it
+#: survive*: beat 4 inserts one ``mainline.disposition`` and then calls
+#: ``mainline.merge_permit``, which writes ``merge_record`` and ``permit_event`` for this
+#: permit. Beats 2 and 3 were REFUSED — the database wrote nothing to refuse — and beat 3's
+#: out-of-band ``UPDATE`` shows up in ``_PERMIT_ROW_SQL``'s column values below, which is
+#: the reading the schema keeps for exactly that reason.
+_SUBJECT_COUNTS_SQL: Final = """
+SELECT (SELECT count(*) FROM mainline.merge_record WHERE permit_id = %s),
+       (SELECT count(*) FROM mainline.permit_event WHERE permit_id = %s),
+       (SELECT count(*) FROM mainline.disposition  WHERE permit_id = %s)
+"""
+
+_SUBJECT_COUNT_TABLES: Final[tuple[str, ...]] = (
+    "mainline.merge_record",
+    "mainline.permit_event",
+    "mainline.disposition",
+)
+
+#: The sharpest evidence this run can offer, because it is the only identifier in the whole
+#: transaction that NOBODY ELSE COULD HAVE PRODUCED: the ``uuid4`` beat 4 minted for its
+#: disposition. Beat 4 is the one beat the database ACCEPTED, and every other row it causes
+#: is written by ``mainline.merge_permit`` in the same transaction as that disposition — so
+#: if this row is gone, that transaction did not commit and none of its other rows are here
+#: either. One statement, and it settles the whole claim.
+_MINTED_DISPOSITION_SQL: Final = (
+    "SELECT count(*) FROM mainline.disposition WHERE disposition_id = %s"
+)
+
 _PERMIT_ROW_SQL: Final = """
 SELECT state::STRING, head_seq, gate_epoch, open_blocking, unmet_floor_count,
        countersigned_count, encode(merged_commit, 'hex')
@@ -335,6 +389,9 @@ def _fingerprint(conn: psycopg.Connection[Any], permit_id: uuid.UUID) -> dict[st
     counts = positional(conn, _FINGERPRINT_SQL).fetchone()
     if counts is None:  # pragma: no cover - ten scalar subqueries always return one row
         raise RuntimeError("the fingerprint statement returned no row")
+    subject = positional(conn, _SUBJECT_COUNTS_SQL, (permit_id, permit_id, permit_id)).fetchone()
+    if subject is None:  # pragma: no cover - three scalar subqueries always return one row
+        raise RuntimeError("the subject-scoped statement returned no row")
     row = positional(conn, _PERMIT_ROW_SQL, (permit_id,)).fetchone()
     return {
         # strict=True: `_FINGERPRINT_TABLES` and the statement's ten subqueries are one
@@ -343,6 +400,12 @@ def _fingerprint(conn: psycopg.Connection[Any], permit_id: uuid.UUID) -> dict[st
         # those columns `count`, so a dict row collapses them to one — measured, and the
         # reason this pair is now guarded rather than merely converted.
         "row_counts": {name: int(n) for name, n in zip(_FINGERPRINT_TABLES, counts, strict=True)},
+        # strict=True for the same reason as above, and this reading is what makes the one
+        # above answerable: it counts the SAME tables for THIS permit only, so a delta here
+        # is this run's and a delta only up there is somebody else's.
+        "subject_row_counts": {
+            name: int(n) for name, n in zip(_SUBJECT_COUNT_TABLES, subject, strict=True)
+        },
         "permit_row": (
             None
             if row is None
@@ -576,6 +639,9 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
     ]
     undecided: Diagnosis | None = None
     canon_impl = "not reached"
+    #: The identifier beat 4 mints, hoisted so the persistence check below can ask the
+    #: database for it after the rollback. Stays ``None`` when beat 4 never ran.
+    minted_disposition_id: uuid.UUID | None = None
 
     try:
         # ── BEAT 1 · THE PERMIT ─────────────────────────────────────────────────────
@@ -693,6 +759,7 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
         else:
             conn.execute("SAVEPOINT gate_run_beat_4")
             disposition_id = uuid.uuid4()
+            minted_disposition_id = disposition_id
             try:
                 conn.execute(
                     _DISPOSITION_SQL,
@@ -784,9 +851,56 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
         conn.rollback()
 
     after = _fingerprint(conn, resolved.permit_id)
+    minted_survived = 0
+    if minted_disposition_id is not None:
+        found = positional(conn, _MINTED_DISPOSITION_SQL, (minted_disposition_id,)).fetchone()
+        minted_survived = int(found[0]) if found else 0
     conn.rollback()
 
+    # ── WHAT THE TWO READINGS EACH PROVE, AND WHY THEY ARE NO LONGER ONE SENTENCE ──────
+    #
+    # `identical` is the ten unscoped counts and the permit row, unchanged and still taken
+    # over every table the four beats can write. It answers "did the database move".
+    #
+    # `self_persisted` answers the question the payload actually makes a claim about: "did
+    # anything THIS RUN wrote survive". The two were the same sentence until 2026-08-14,
+    # and the difference between them is a defect a judge could meet: any other caller
+    # committing one row into any of those ten tables between the two readings made this
+    # endpoint answer NOT PROVEN and print "the transaction was supposed to persist
+    # nothing" — about a transaction that had persisted nothing. Measured, reproduced and
+    # ruled on in `docs/diagnosis/gate-run-fingerprint.md`; the contract change is argued
+    # in `docs/deploy/gate-run-contract.md` §3 under `docs/leads/cloud-hardening-final.md`
+    # ruling R2, which forbids narrowing the ten counts and this does not narrow them.
+    #
+    # Three things are asked, and each is something only this run could have caused:
+    #   * the disposition beat 4 MINTED is present — a uuid4 no other writer holds;
+    #   * this permit's own merge_record / permit_event / disposition counts moved;
+    #   * this permit's row itself moved — where beat 3's out-of-band UPDATE would show.
     identical = before == after
+    self_evidence = {
+        "minted_disposition_id": (
+            None if minted_disposition_id is None else str(minted_disposition_id)
+        ),
+        "minted_disposition_rows_after_rollback": minted_survived,
+        "subject_row_counts_before": before["subject_row_counts"],
+        "subject_row_counts_after": after["subject_row_counts"],
+        "permit_row_identical": before["permit_row"] == after["permit_row"],
+    }
+    self_persisted = (
+        minted_survived > 0
+        or before["subject_row_counts"] != after["subject_row_counts"]
+        or before["permit_row"] != after["permit_row"]
+    )
+    concurrent_writes = (
+        None
+        if identical
+        else {
+            table: [before["row_counts"][table], after["row_counts"][table]]
+            for table in _FINGERPRINT_TABLES
+            if before["row_counts"][table] != after["row_counts"][table]
+        }
+    )
+
     failures: list[str] = []
     if undecided is not None:
         failures.append(
@@ -804,10 +918,14 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
                 f"sqlstate={beat['sqlstate']!r} constraint={beat['constraint']!r} "
                 f"constraint_source={beat['constraint_source']!r}"
             )
-    if not identical:
+    if self_persisted:
         failures.append(
-            "the affected tables are NOT byte-identical before and after the run; the "
-            "transaction was supposed to persist nothing"
+            "this run PERSISTED something and the transaction was supposed to persist "
+            f"nothing: the disposition it minted ({minted_disposition_id}) is present in "
+            f"{minted_survived} row(s) after the rollback, the subject's own row counts "
+            f"went {before['subject_row_counts']} → {after['subject_row_counts']}, and its "
+            f"permit row "
+            f"{'is unchanged' if before['permit_row'] == after['permit_row'] else 'MOVED'}"
         )
 
     return {
@@ -838,12 +956,21 @@ def gate_run(  # noqa: PLR0912, PLR0915 — one straight line of four beats; spl
             "before": before,
             "after": after,
             "identical": identical,
+            "self_persisted": self_persisted,
+            "self_evidence": self_evidence,
+            "concurrent_writes": concurrent_writes,
             "tables": list(_FINGERPRINT_TABLES),
             "note": (
                 "Row counts over every table the four beats can write, taken before the "
                 "transaction opened and after it was rolled back, plus mainline.permit's "
                 "own columns — because the attack beat mutates a column without changing "
-                "a count."
+                "a count. `identical` is that reading and it is about the DATABASE. "
+                "`self_persisted` is about THIS RUN: the disposition beat 4 minted is a "
+                "uuid4 no other writer holds, and it is gone, and this subject's own row "
+                "counts and permit row are unchanged. The verdict keys on the second, "
+                "because a whole-table count cannot tell 'I persisted something' from "
+                "'somebody else did' and this endpoint used to report the difference as "
+                "its own failure."
             ),
         },
     }

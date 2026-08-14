@@ -714,6 +714,32 @@ attribute to `R1_DEONTIC`.
   for a plant. The measurement above used a clean export of `9221d0c` carrying the
   scanner fix; it is not a claim about a CI run until that fix is committed, and the
   blast-radius step has therefore **never executed on a runner**.
+
+  > **UPDATED TWICE, 2026-08-14 by D3, and the second update undoes the first.** This
+  > bullet was discharged on 2026-08-13: run
+  > [31699560021](https://github.com/Shaugato/mainline/actions/runs/31699560021) at
+  > `2dc5c86` executed the family on a runner and reported *"every plant fired exactly the
+  > invariants it declares"* — `docs/CI-STATE.md` §4.1 and §5.3 record it.
+  >
+  > **It has since regressed.** At the public tip `7535670`, run
+  > [31770005783](https://github.com/Shaugato/mainline/actions/runs/31770005783) is red on
+  > all three jobs, and the third aborts with the identical sentence this bullet was
+  > written about:
+  >
+  > ```
+  > FAMILY red-for-the-wrong-reason: an unmutated copy of evidence/ already fails, so every
+  > plant below would be red for a reason that is not its plant
+  > ```
+  >
+  > The proximate cause is different — two `[CEN-ANCHORS]` citations in
+  > `evidence/tool-usage/aws-services.json` that silently retargeted when
+  > `infra/modules/demo-api/main.tf` moved (`docs/CI-STATE.md` §1.0.2 quotes both) — and the
+  > **structural** lesson is the one this bullet made first and is worth restating because
+  > one run made it look closed: **a mutation family gated on an unmutated control being
+  > green is only as strong as the weakest assertion anywhere in that control.** One
+  > unrelated citation drifting by eighteen lines switched off twenty-six plants. The
+  > repair belongs to whoever owns `evidence/` — **the tree is authoritative and the
+  > citation is derived** — and no worker in the DOCS-TRUE wave owns either path.
 * **Sixteen `aws-evidence` invariants have no plant** and are carried on a written
   exemption list in `self_test`. That list is named rather than hidden, which is the right
   shape, but a named exemption is still an unexercised check.

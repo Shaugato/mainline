@@ -145,6 +145,78 @@ further and counts **every base table** in `mainline`, `mainline_meas`, `mainlin
 be unchanged. A claim that nothing persisted should be checked against everything, not
 against the list the code under test happened to choose.
 
+### The amendment of 2026-08-14 — two claims that were one sentence
+
+**Everything above still stands and none of those counts was narrowed.** What changed is
+which of two different claims the *verdict* is read off, and the change is made here, on the
+record, under `docs/leads/cloud-hardening-final.md` ruling **R2**, which permits this
+contract to move only by argument and never by a silent edit.
+
+The ten counts are **unscoped whole-table `count(*)`s**. They therefore answer *"did the
+database move"*. The payload was reading them as an answer to *"did THIS RUN persist
+anything"*, and those are different questions the moment anybody else is connected. One row
+committed by any other caller into any of those ten tables, between the two readings, made
+this endpoint answer
+
+```
+verdict: NOT PROVEN
+failures: ["the affected tables are NOT byte-identical before and after the run;
+            the transaction was supposed to persist nothing"]
+```
+
+— about a transaction that had persisted nothing, with its own subject's row demonstrably
+untouched. Constructed, reproduced and attributed row by row in
+[`docs/diagnosis/gate-run-fingerprint.md`](../diagnosis/gate-run-fingerprint.md).
+
+**This is not a laboratory condition.** The demo URL is bounded-but-open by the founder's
+choice and the console exposes four *committing* transitions — `merge_permit`,
+`sign_disposition`, `materialise_checks`, `suspend_permit`. One judge signing a disposition
+while another presses gate-run moves `mainline.disposition`, and the second judge is told
+the demo persisted something. (What does **not** cause it, measured and now asserted, is two
+judges pressing *gate-run* at once: neither run persists anything, so neither can move the
+other's counts.)
+
+**Why the fix is not to scope the counts down.** R2: the broad check is asked for on
+purpose, and it gives its own reason — a check that only looked where the run was *expected*
+to write could not see a write nobody expected, and beat 3 mutates a column without changing
+any count at all. Narrowing it would delete the demo's only evidence for its central claim
+while leaving the claim in the payload. So nothing was narrowed: `_FINGERPRINT_SQL` is
+byte-for-byte the same ten statements, `_FINGERPRINT_TABLES` still names all ten, `identical`
+is still computed over all of them and is still in the response.
+
+**What was added instead** is a reading the run can be held to, built from the one identifier
+in the whole transaction that no other writer could have produced:
+
+```json
+"persistence_check": {
+  "identical": false,                         // the DATABASE moved — somebody wrote
+  "concurrent_writes": { "mainline.permit": [780, 781] },
+  "self_persisted": false,                    // THIS RUN did not — and here is why
+  "self_evidence": {
+    "minted_disposition_id": "…the uuid4 beat 4 minted…",
+    "minted_disposition_rows_after_rollback": 0,
+    "subject_row_counts_before": { "mainline.merge_record": 0, "mainline.permit_event": 2, … },
+    "subject_row_counts_after":  { "mainline.merge_record": 0, "mainline.permit_event": 2, … },
+    "permit_row_identical": true
+  }
+}
+```
+
+Beat 4 is the only beat the database *accepts*, and every other row it causes is written by
+`mainline.merge_permit` inside the same transaction as that disposition — so if the minted
+`disposition_id` is gone after the rollback, that transaction did not commit and none of its
+rows are here either. Beats 2 and 3 were refused, so the database wrote nothing to refuse,
+and beat 3's out-of-band `UPDATE` is caught by `permit_row`, exactly as before.
+
+`verdict` now keys on `self_persisted`. A delta that is nobody's doing is reported as
+`concurrent_writes` — a fact about a shared database — rather than as this run's failure.
+
+**And it can still fail.** `test_transitions.py::test_a_run_that_really_persists_is_caught`
+plants a run that keeps beat 4's admission and commits it, and requires `self_persisted` to
+come back `true` with the minted disposition present and the verdict `NOT PROVEN`. A check
+that had quietly stopped being able to fail would be a worse outcome than the red it
+replaced.
+
 ---
 
 ## 4. The refusal payload comes from the database, not from this API

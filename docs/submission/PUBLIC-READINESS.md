@@ -14,6 +14,46 @@ the same findings, not a shorter list.
 live remote `https://github.com/Shaugato/mainline.git`.** Every row carries the command that
 produced it and what that command printed.
 
+> ## ⚠ RE-RUN ON 2026-08-14, AND EVERY NUMBER BELOW HAS MOVED IN THE WRONG DIRECTION
+>
+> The 2026-08-12 reading is kept in place, unedited, because it is a dated record. **It is no
+> longer the current state.** `python scripts/submission/audit_public_readiness.py`, run on
+> **2026-08-14** against `HEAD = d098721` plus this wave's uncommitted working tree, exits
+> **3** and prints:
+>
+> ```
+> findings: 160 UNRESOLVED, 81 ALLOWLISTED, 84 DISCLOSED
+> REGISTER: INCOMPLETE - 160 finding(s) are undisposed.
+> ```
+>
+> | disposition | 2026-08-12 | **2026-08-14** | direction |
+> |---|---:|---:|---|
+> | `repaired` | 23 findings / 20 paths | **25 / 20** | + |
+> | `recorded-not-repaired` | 57 / 35 | **59 / 35** | + |
+> | `waived-with-reason` | 80 / 23 | **81 / 23** | + |
+> | **`undisposed`** | **54 / 28** | **160 / 90** | **× 3, and this is the red one** |
+> | total findings | 214 | **325** | + |
+>
+> **106 new undisposed findings landed in two days**, and §1.9's table of 54 now describes a
+> minority of them. It was not re-typed to 160 — a table that enumerates 54 rows cannot be
+> made true by changing the number above it, and enumerating 160 is the owning domain's work,
+> not this revision's. **§1.9 is now explicitly a partial list and says so at its head.**
+>
+> The eight checks read, on 2026-08-14: `secrets_tracked` **FAIL** (7576 tracked paths, 103
+> hits, 43 unresolved), `secrets_history` **FAIL** (155 commits, 1,185,981 added lines, 96
+> distinct hits, 41 unresolved), `ignored_and_untracked` **PASS**, `tracked_size` **PASS**
+> (7576 blobs, 63.1 MiB, 0 over the limit), `committer_census` **INFO**, `absolute_paths`
+> **FAIL** (113 files, 749 hits, 76 unresolved), `repo_state` **FAIL** (4 ahead, 72
+> uncommitted paths — this wave), `disclosure_register` **PASS** (59 entries granting 84
+> findings, **0 stale**).
+>
+> **The one row that improved is the one that matters most for honesty:** `disclosure_register`
+> holds `0 stale` — every grant still names a finding that still exists. A register with stale
+> grants is a register that has started lying, and it has not.
+>
+> `repo_state` is red because this documents wave has not been pushed. It is not a disclosure
+> finding and it clears with a push.
+
 ```
 python scripts/submission/audit_public_readiness.py                       # the register
 python scripts/submission/audit_public_readiness.py --pre-flip            # the old gate
@@ -390,12 +430,23 @@ findings on `2026-08-11` and 80 today; twelve findings it used to cover have bee
 at the source, which is the mechanism cleaning up after itself exactly as §2.2 item 3
 describes. This check exists so that the mechanism §2 introduces cannot rot.
 
-### 1.9 The 54 undisposed findings, named, by the domain that owns each
+### 1.9 The 54 undisposed findings of 2026-08-12, named — **now a PARTIAL list of 160**
+
+> **This table enumerates the 54 findings that were undisposed on 2026-08-12. On 2026-08-14
+> the program reports 160 over 90 paths.** The table is kept as written and is **not** a
+> current inventory. Enumerating the other 106 belongs to the domains that created them, in
+> the same shape as the rows below; the honest label for this heading today is *partial*, and
+> re-typing "54" to "160" above an unchanged list of 54 rows would be the exact move this
+> document exists to refuse. Run the program for the live list:
+> `python scripts/submission/audit_public_readiness.py`.
 
 **They are listed rather than summarised, because a count is not a disclosure register.**
 None is a live credential: the family scan finds no GitHub token, no Slack token, no
 CockroachDB Cloud API key, and no private key outside the deliberately-published
-`NOT-SECRET` set anywhere in the tree or in history.
+`NOT-SECRET` set anywhere in the tree or in history. **Re-checked 2026-08-14 and still
+true**: the five families the scanner reports are `aws_access_key_id`, `aws_account_id`,
+`bearer_or_jwt`, `high_entropy_secret` and `private_key_block`, and every `private_key_block`
+hit is inside the published `NOT-SECRET` reference-ledger set.
 
 | what | count | where | owner |
 |---|---|---|---|
@@ -732,6 +783,37 @@ GitHub handle `Shaugato`, which is already in the repository URL, in `REUSE.toml
 `master`. What is newly disclosed is that the *local Windows account* is `shaug` rather than
 something else. Small, not zero, and enumerated to nine files rather than gestured at.
 
+> **RE-COUNTED 2026-08-14: it is eleven files, not nine, and `master` is 86 commits, not 47.**
+> The `absolute_paths` check names the username class explicitly, so the list is not a
+> judgement call. Run on 2026-08-14 it prints:
+>
+> ```
+> 11 file(s) disclose a Windows account name (abs-path-username):
+>   docs/leads/suite-green-plan.md
+>   docs/submission/DISCLOSURE-DECISIONS.yaml
+>   docs/submission/PUBLIC-READINESS.md
+>   evidence/deploy/cost/latency-baseline.json
+>   evidence/qa/transitions-stability.json
+>   qa/judge-dry-run.json
+>   qa/public-readiness.json
+>   qa/test-state.json
+>   scripts/deploy/deploy.sh
+>   scripts/deploy/teardown.sh
+>   scripts/submission/audit_public_readiness.py
+> ```
+>
+> **Two of those eleven are this register and its YAML** — `PUBLIC-READINESS.md` and
+> `DISCLOSURE-DECISIONS.yaml` — and they carry the name *because they are the documents that
+> disclose it. That is the intended state, not a leak*, and it is the reason the scanner's own
+> source file is on the list too: the detector's test corpus contains what the detector
+> detects. Removing the name from a disclosure register to make a disclosure scanner quieter
+> would be the purest possible version of the mistake this page is about.
+>
+> The marginal-cost argument is unchanged and the arithmetic behind it got stronger, not
+> weaker: `Shaugato` now appears in the author line of **86** commits on `master`
+> (`git rev-list --count HEAD` = 86, `git log --format='%an <%ae>' | sort | uniq -c`
+> = 79 `Shaugato Paroi` + 7 `MAINLINE certification`, one email between them).
+
 **Post-flip these two classes get a third column: what is still worth doing.** The layout
 class is now published on 47 commits and cannot be retracted, so repairing a producer stops
 being risk reduction and becomes hygiene — worth doing because a relative path is a better
@@ -823,6 +905,74 @@ matters and the one this worker cannot complete alone.
 
 ---
 
+## 5A · The three ABSENT scan surfaces — registered, not manufactured
+
+**Added 2026-08-14.** `python scripts/submission/check_submission_prose.py` delegates to
+`scripts/demo/claim_hygiene.py`, which scans a *declared list of globs* and then prints, on
+every run, the globs that matched nothing. Verbatim, RAN 2026-08-14:
+
+```
+== claim_hygiene, over its own published surface (delegated, not reimplemented)
+  scanned 16 file(s) against 21 rules
+  ABSENT  docs/MECHANISMS.md matched no file — not scanned, and therefore not passed
+  ABSENT  verticals/mainline/demo/operator/*.md matched no file — not scanned, and therefore not passed
+  ABSENT  docs/deck/**/*.md matched no file — not scanned, and therefore not passed
+  ABSENT  docs/deck/**/*.html matched no file — not scanned, and therefore not passed
+  ABSENT  docs/deck/**/*.txt matched no file — not scanned, and therefore not passed
+  claim hygiene OK
+```
+
+**Five rows, three surfaces.** The `docs/deck/**` entry is one surface declared as three
+globs, one per extension.
+
+### Why this is a register entry and not five new files
+
+`ABSENT` is not `PASS` and the scanner says so in the same breath, which is the whole design.
+There is an obvious way to turn five yellow rows green: create `docs/MECHANISMS.md`,
+`verticals/mainline/demo/operator/README.md` and something under `docs/deck/`, each empty or
+near-empty, and every glob then matches, every file "scans", and the output reads clean.
+
+**That is forbidden here, and the repository already argues the case at length.** A file
+created so that a scanner prints `scanned` instead of `ABSENT` has been scanned for
+prohibited claims it does not contain, by a rule that was written for a document that does
+not exist. It is a **vacuous green** — the same class of result as a test that passes because
+it asserts nothing, and this repository runs an entire CI lane (`cluster-lane-bites`, the
+2×2 plant/no-plant control) whose only purpose is to prove that its green means something.
+Buying a green with an empty file in the same tree as that lane would be self-refuting.
+
+**`git status` after this revision shows no new file matching any of those globs.** That is
+checkable and it is the point:
+
+```bash
+git status --porcelain docs/MECHANISMS.md 'verticals/mainline/demo/operator/' 'docs/deck/'
+# expect: no output
+ls docs/MECHANISMS.md verticals/mainline/demo/operator docs/deck
+# expect: three "No such file or directory"
+```
+
+### The register
+
+| # | glob | why no file exists | disposition | who could change it |
+|---|---|---|---|---|
+| A1 | `docs/MECHANISMS.md` | **This project never wrote a single mechanisms overview.** The material it would hold is distributed and each piece has an owner and a ratchet: `ARCHITECTURE.md` §11.7 carries the must-not-claim table the scanner is really looking for; `docs/HONESTY.md` carries what is broken, with `test_honesty_is_checkable.py` failing the build when a number and its source disagree; `verticals/mainline/demo/REFUSAL-STRINGS.yaml` carries the refusal mechanisms as data the camera reads from. A `MECHANISMS.md` written now would be a fourth copy of three governed documents, and the copy would be the one with no ratchet on it. | **ABSENT, and ABSENT is the honest output.** Not planned before the deadline. | the architecture domain, if it ever wants one document instead of three |
+| A2 | `verticals/mainline/demo/operator/*.md` | **There is no operator runbook because there is no operator.** Every operator, site, permit and incident in this project is authored — `MUST-NOT-CLAIM.md` family 3 is the register entry for exactly that, and the film carries the watermark `SYNTHETIC CORPUS · KESTREL RESOURCES IS FICTIONAL` on every frame. An operator-facing runbook would be the first document in the tree written *as if* Kestrel Resources existed, which is the one voice this submission has spent its whole length refusing. The founder-facing runbooks that do exist are `docs/submission/RUNBOOK.md` and `docs/deploy/RUNBOOK.md`, and both are scanned. | **ABSENT, and it should stay absent.** | nobody, until there is a real operator |
+| A3 | `docs/deck/**/*.{md,html,txt}` | **There is no slide deck.** The submission is a Devpost form, a repository and a three-minute film; no deck was ever written, and none is planned before `2026-08-18`. The rule the glob exists to enforce — `HYG-sha-literal`, *"the film shows whatever the DAG produced; no SHA is ever spoken or written"* — is aimed at the **film and the deck** by name, and the film half is enforced elsewhere and harder: `validate_shotlist.py` fails the build on a seven-hex literal anywhere in a `vo` or `on_screen` field, and `.github/workflows/claims.yml` runs it. | **ABSENT.** If a deck is ever authored it lands under `docs/deck/` and the glob starts enforcing with no change to any scanner. | whoever authors a deck; the glob is already waiting for it |
+
+### What would make this register wrong
+
+Two things, and both are checkable:
+
+1. **A file appears under one of those globs and this table still says ABSENT.** The scanner
+   prints the change on its next run — an `ABSENT` row simply stops being printed — so the
+   divergence is one command away, not a matter of remembering to update this page.
+2. **The globs are deleted from `claim_hygiene.py` to stop the rows printing.** That is
+   switching a rule off to obtain a green, it is forbidden outright, and it would be visible
+   in the diff. **The `ABSENT` rows are load-bearing and must keep printing.** A scanner that
+   silently declines to mention the surfaces it could not reach is worse than one that shouts
+   about three files nobody wrote.
+
+---
+
 ## 6 · Reproducing this document
 
 ```
@@ -834,6 +984,13 @@ $ echo $?
 $ python -I -S scripts/submission/audit_public_readiness.py          # the register
 ...
 REGISTER: INCOMPLETE - 54 finding(s) are undisposed. Nothing was deleted to reach
+this number; each one is listed above with its path, and each needs a repair, a
+Waiver, or a register entry.
+$ echo $?
+3
+
+# RE-RUN 2026-08-14 — the same command, the same exit code, a much worse number:
+REGISTER: INCOMPLETE - 160 finding(s) are undisposed. Nothing was deleted to reach
 this number; each one is listed above with its path, and each needs a repair, a
 Waiver, or a register entry.
 $ echo $?

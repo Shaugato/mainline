@@ -14,6 +14,45 @@ and where a lane asserts nothing today it says so in the row rather than in a fo
 
 Last measured: **2026-08-10**, against CockroachDB v26.2.5 and the checkout at that date.
 
+> ## ⚠ STALE ON ITS OWN HEADLINE — annotated 2026-08-14 by D3, not re-typed
+>
+> **There are now TWENTY workflows, not fifteen.** Measured at the public tip `7535670`:
+>
+> ```
+> $ ls .github/workflows/*.yml | wc -l
+> 20
+> ```
+>
+> **The headline and the row count are left exactly as they were written**, because the rows
+> below are still true of the lanes they describe and a page that re-types its own totals
+> loses the only evidence that it fell behind. The five lanes this map has never carried are
+> named immediately below, each with what it proves and what it does not, in the same shape
+> as every other row.
+>
+> **This map is a map, not a board.** It says what each lane *would* prove; it does not say
+> what any of them concluded. For conclusions — with live run ids, fetched today, and a
+> column saying whether each run predates the tip — read
+> [`docs/CI-STATE.md` §1.0](../CI-STATE.md). **Seven of the twenty newest runs describe a
+> tree that is no longer the tip**, which is a fact about the board and not about this map.
+
+### The five lanes added since 2026-08-10 — added 2026-08-14, not measured for budget
+
+| Workflow | Trigger | What it proves | What it does **not** prove | first run on `master` |
+|---|---|---|---|---|
+| **`cluster-tests`** | push, dispatch | The **demo-api suite against a real CockroachDB** — the lane that did not exist when this map was written and whose absence was this repository's largest hole. Builds the deployment package in-lane, then asserts a collection floor (`COLLECTED_FLOOR: 445`), an executed floor and a **skip ceiling of 1**. | One **single-node** pinned container. Nothing about CockroachDB Cloud, nothing multi-node, nothing about the `40001` retry path. | [31720235677](https://github.com/Shaugato/mainline/actions/runs/31720235677) |
+| **`cluster-lane-bites`** | push, dispatch | That the lane above **could not have been passed by the hermetic lane** — a four-cell falsifiability 2×2 with a planted defect only a database can see. The load-bearing cell is *plant-present / hermetic passing the SAME count as plant-absent*. | It proves the hermetic lane cannot see **this** plant. It is not a claim about every seed-shaped defect. | [31720234309](https://github.com/Shaugato/mainline/actions/runs/31720234309) |
+| **`aws-evidence`** | push, dispatch | That `evidence/aws` is internally coherent, imports no third party, carries no credential and reads no `~/.aws`; and that its **mutation family** fires exactly the invariants each plant declares. | It reads committed evidence. It makes no live AWS call and asserts nothing about a deployed account. | [31699560021](https://github.com/Shaugato/mainline/actions/runs/31699560021) |
+| **`submission`** | push, dispatch | That the submission gate **can say no**; that a stranger can clone the repository and every file names a licence; and a report-only readiness census. | Readiness is report-only until D-3. It does not assert the submission is complete. | [31699563085](https://github.com/Shaugato/mainline/actions/runs/31699563085) |
+| **`demo-health`** | schedule, dispatch | Console + health + the four beats, against a deployed demo. | **It is red because no demo is deployed**, and that red is by design. It asserts nothing about a demo that does not exist. | [31699577433](https://github.com/Shaugato/mainline/actions/runs/31699577433) |
+
+**Two rows in the original table below need a pointer rather than a correction.** `ci`'s row
+says cluster-backed tests are *"skipped, not run — the run log prints the reason for each"*,
+and that is **still exactly true of `ci`**; what changed is that a *different* lane now runs
+them. And `cloud-verify`'s row says it asserts *"nothing at all when `CRDB_CLOUD_DSN` is
+unset"* — **re-verified live on 2026-08-14 and still the case**: the newest run's Cloud job is
+the declared complement *"SKIPPED — no Cloud cluster secret"*, and no lane in this repository
+has ever touched CockroachDB Cloud. See `docs/CI-STATE.md` §4.3.1.
+
 ---
 
 ## The five-minute read, in order

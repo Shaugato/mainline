@@ -425,6 +425,14 @@ jobs:
           rc=$?
           set -e
           echo "pytest exited ${rc}"
+          # PUBLISHED, NOT RE-DERIVED. The VERDICT step at the end of this job needs
+          # pytest's real status and runs in a different shell; deriving it from the XML
+          # there would be a second opinion about a fact this line already holds. This is
+          # additive and changes nothing about the verdict: `--pytest-rc` below is still
+          # handed `${rc}` directly, the report is still the LAST command of this step,
+          # and `rc=$?` — the literal `tests/ci/test_cluster_lane_report.py` reads out of
+          # this file as the wiring its controls rest on — is untouched above.
+          echo "PYTEST_RC=${rc}" >> "$GITHUB_ENV"
           uv run --frozen --all-packages python scripts/ci/cluster_lane_report.py \
             --junit "${report}" \
             --known qa/cluster-known-red.json \
@@ -502,9 +510,89 @@ jobs:
         # event log that is furthest from the failure and usually the part that explains
         # it, and a `--log` filter on the container would silence exactly the case this
         # step exists for.
+        #
+        # 2026-08-14, RULING R8 — THE ENGINE LOG NOW GOES TO ITS OWN FILE AS WELL AS TO
+        # THE GROUP, AND NOTHING IS SHORTENED TO ACHIEVE IT. The `tail -60` in the log is
+        # unchanged; what is new is that the WHOLE log is written to `crdb-engine.log`
+        # first and uploaded by the step below, so the two readers get what each needs:
+        # a reader scrolling the run gets 60 collapsed lines, and a reader debugging a
+        # database problem gets every line as a file, without either one being the wall
+        # the other has to scroll past. The tail is now taken FROM the file rather than
+        # from a second `docker logs`, so the group and the artefact cannot disagree
+        # about what the engine said.
         if: failure()
         run: |
           set -euo pipefail
-          echo "::group::docker logs ${CRDB_CONTAINER} | tail -60"
-          docker logs "${CRDB_CONTAINER}" 2>&1 | tail -60
+          docker logs "${CRDB_CONTAINER}" > crdb-engine.log 2>&1
+          total="$(wc -l < crdb-engine.log | tr -d ' ')"
+          echo "::group::docker logs ${CRDB_CONTAINER} | tail -60 (of ${total} line(s); all of them are in the crdb-engine.log artefact)"
+          tail -60 crdb-engine.log
           echo "::endgroup::"
+
+      - name: The engine's own account, as a file
+        # The other half of the separation above. `if-no-files-found: warn` and not
+        # `error`: the step that writes this file runs only on failure and only after
+        # `docker run` succeeded, so a job that died on the image pin legitimately has no
+        # engine log, and a second red for one cause teaches a reader that the lane fails
+        # twice for one problem. It is a separate artefact from `cluster-lane-…` on
+        # purpose — that one is what pytest said, this one is what CockroachDB said, and
+        # the whole point of R8 is that those two are not the same document.
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cluster-engine-${{ github.run_id }}-${{ github.run_attempt }}
+          path: crdb-engine.log
+          if-no-files-found: warn
+          retention-days: 30
+
+      # ── THE LAST THING A FAILING RUN SAYS ───────────────────────────────────────────
+      #
+      # RULING R8 of `docs/leads/ci-green-final.md`: *a lane whose diagnosis needs `grep`
+      # will not be read.* Measured on this lane rather than assumed:
+      #
+      #   * run 31735341117 was 1,023 log lines; the one failing assertion was line 830
+      #     and CockroachDB's event log was 943-1003, so the bottom of the run — where a
+      #     reader's eye lands — was the engine, not the defect;
+      #   * run 31770005759 had EIGHT failing node ids and the `::error` annotation the
+      #     report emits lists FIVE of them and then `; …`, so the count and the list
+      #     disagree and three ids appear nowhere a reader can see them.
+      #
+      # This step answers both, and it is STRICTLY ADDITIVE — it removes no assertion,
+      # shortens no output, and touches neither `COLLECTED_FLOOR` (445, a floor that may
+      # rise and may not fall) nor the skip ceiling of 1 (which lives in
+      # `qa/cluster-known-red.json` under `floor.max_skipped` and is not this lane's to
+      # move). It runs LAST so that the block is the final text in the log, and AFTER the
+      # engine steps so that nothing engine-shaped comes between the reader and it.
+      #
+      # IT DECIDES NOTHING, AND THAT IS DELIBERATE. `scripts/ci/lane_verdict.py` exits 0
+      # on every input by construction and emits no `::error`, `::warning` or `::notice`
+      # — the same contract `lane_log_digest.py` states, for the same reason: a lane that
+      # can go red in two places has two places a verdict can hide. The verdict is
+      # pytest's own exit status, handed to `cluster_lane_report.py` through
+      # `--pytest-rc` several steps above, and deleting this step cannot turn a red run
+      # green. `if: failure()` and not `always()`: on a green run there is no failing
+      # node id to list and the digest above already publishes the skip census.
+      #
+      # `python3`, NOT `uv run`, AND THAT IS THE POINT. Every other Python step in this
+      # job goes through `uv run --frozen`, which needs `setup-workspace` to have
+      # succeeded. The runs where this block matters most are precisely the ones where
+      # something upstream did not succeed, so a diagnosis that inherits the workspace's
+      # preconditions is a diagnosis that is absent exactly when it is needed.
+      # `scripts/ci/lane_verdict.py` imports nothing outside the standard library for
+      # this reason, and `ubuntu-24.04` ships `python3`.
+      #
+      # `PYTEST_RC` is exported by the suite step above and defaults to 1 here. The
+      # default is not a guess about pytest: this step runs only under `if: failure()`,
+      # so if the variable is absent the job failed BEFORE pytest was reached, and the
+      # block says so from the missing JUnit rather than from this number.
+      - name: VERDICT — the failing ids, the counts, the owner, and what turns it green
+        if: failure()
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/lane_verdict.py \
+            --junit junit-cluster.xml \
+            --known qa/cluster-known-red.json \
+            --suite-root "${SUITE}" \
+            --pytest-rc "${PYTEST_RC:-1}" \
+            --lane "cluster-tests / the demo-api suite against a real CockroachDB" \
+            --lane-owner "the CI-BOARD lead, docs/leads/ci-green-final.md"

@@ -22,10 +22,27 @@ SPDX-License-Identifier: CC-BY-4.0
 > `asset_map` local p50, and that row carries the largest honesty finding in the cost
 > documentation.
 >
-> **Annotated sections: §0.1 (new), §0, §1.1, §1.2, §5.1, §5.2, §6.1, §6.2, §6.3, §7.**
+> **Annotated sections: §0.1 (new), §0, §1.1, §1.2, §5.1, §5.2, §6.1, §6.2, §6.3, §7,
+> §8, §9.**
+>
+> **SECOND PASS, 2026-08-14, W6 `post-apply`: §0.2 (new).** The harness itself was corrected —
+> it derives both asset paths from the tree it serves and refuses to serve a tree that
+> disagrees with the deployed package — and §0.1's UNRESOLVED gzip duration is now an
+> observation. §0.2 also records that §0.1's surviving beat, `asset_js`, has since gone stale
+> for the same reason `asset_map` did. **No digit above was changed and no row was deleted.**
 > One statement was **corrected** rather than annotated — the fourth sentence of headline 2,
 > which was false against `evidence/deploy/terraform-plan-furl.txt:315`. It is struck through
 > with the artefact quoted beside it.
+>
+> **§8 and §9 were added to that list on 2026-08-14, in the re-verification pass, and the
+> omission is worth naming rather than quietly fixing.** Both had carried a dated
+> `ANNOTATED 2026-08-14` block since the correction wave — §8's records that the `autocommit`
+> defect's code has been replaced and the finding is therefore **UNRESOLVED** rather than
+> confirmed or withdrawn; §9's records that the reproduction command re-measures the packer's
+> **input** tree unless `--web-root` is passed. Neither was enumerated here. **An enumeration
+> that does not enumerate is the same defect one level up** — it is the exact wording
+> `docs/deploy/COST-BOUND.md`'s header uses about its own §1, and this list had it too.
+> **No annotation was added, moved or reworded to close this; only the list was completed.**
 
 Nothing here was applied. No `terraform` command was run to produce it and no mutating AWS
 call was made. The only writes anywhere near this page are the gate run's own, and the gate
@@ -89,8 +106,8 @@ Five beats, against two database targets:
 | Beat | Request | Why this one |
 |---|---|---|
 | `index` | `GET /` | the document a judge's browser asks for first |
-| `asset_js` | `GET /assets/index-BjAGxrVJ.js` | largest **non-map** object in the served tree — M5, 433,396 B. **This is the beat that still names a URL the deployed origin answers** — §0.1 |
-| `asset_map` † | `GET /assets/index-BjAGxrVJ.js.map` | largest **emittable** object — M4, 1,554,168 B. **† ANNOTATED: emittable by the tree this harness served, which is the packer's INPUT tree. The DEPLOYED origin answers 404 to this path** — §0.1 |
+| `asset_js` | `GET /assets/index-BjAGxrVJ.js` | largest **non-map** object in the served tree — M5, 433,396 B. **† ANNOTATED: this beat's path is now DERIVED from the served tree, and the committed filename has itself gone stale — the deployed origin answers 404 to it since the 2026-08-14 rebuild** — §0.1, §0.2 |
+| `asset_map` † | `GET /assets/index-BjAGxrVJ.js.map` | largest **emittable** object — M4, 1,554,168 B. **† ANNOTATED: emittable by the tree this harness served, which is the packer's INPUT tree. The DEPLOYED origin answers 404 to this path** — §0.1. **CORRECTED 2026-08-14: the harness no longer requests this path; it derives the largest object the deployed origin actually serves, measured at 124,177 B** — §0.2 |
 | `health` | `GET /v1/health` | the cheapest database beat |
 | `gate_run` | `POST /v1/demo/gate-run` | the headline four-beat gate run — the beat that decides the timeout |
 
@@ -217,6 +234,133 @@ N = 5.
 `verdict_counts`, `outcome_counts` and per-beat `sqlstate` counts over all 100 samples, plus an
 `one_regime` flag. That is not decoration: an earlier run of this harness recorded one sample's
 verdict and reported `PROVEN` for a set of samples that had straddled the BLOCKER 1 fix.
+
+---
+
+### 0.2 · CORRECTED 2026-08-14 (second pass, W6 `post-apply`) · the harness no longer measures a path the origin 404s, and §0.1's surviving beat has gone stale too
+
+**Nothing in §0.1 is retracted and no digit above moved.** §0.1 diagnosed the defect exactly
+and named the fix in its own words — *"re-run §9 with a sixth beat … against a web root
+extracted from `out/lambda/mainline-demo-api-arm64.zip` rather than `console/dist`"*. This
+section records that the fix has been **made in the harness** rather than left as an
+instruction, and reports what the fixed harness measures. It also reports one thing §0.1 could
+not have known.
+
+#### 0.2.1 · The thing §0.1 could not have known: `asset_js` has gone stale as well
+
+§0.1 says of `asset_js`: *"This is the beat that still names a URL the deployed origin
+answers."* **That sentence was true when it was written and is false now.** The console build
+was re-run on 2026-08-14 (`f68abb7`, *"re-record the deployed-tree constants from a build that
+reproduces"*) and the content hash moved: the bundle is now `index-DzVoV1YM.js`. Measured
+in-process against the `web/` tree extracted from the current
+`out/lambda/mainline-demo-api-arm64.zip`, with the ceiling in force:
+
+| Request | `Accept-Encoding` | Status | Bytes on the wire |
+|---|---|---:|---:|
+| `GET /assets/index-BjAGxrVJ.js` | `gzip` | **404** `asset_not_found` | 280 (the refusal) |
+| `GET /assets/index-DzVoV1YM.js` | `gzip` | **200**, `content-encoding: gzip` | **124,177** |
+| `GET /assets/index-DzVoV1YM.js` | — | **413** `response_too_large` | 693 (the refusal) |
+| `GET /assets/index-DzVoV1YM.js.map` | `gzip` or — | **404** `asset_not_found` | 288 (the refusal) |
+| `GET /assets/surface-BcxWkbKu.js` | — | **200** | **51,266** |
+
+So **both** committed beat paths named URLs the deployed origin answers 404 to — `asset_map`
+because the package holds **0 source maps**, and `asset_js` because the hash moved. A harness
+that carries filenames will always end up here; the only question is how long it takes.
+
+#### 0.2.2 · What was changed in `measure_beats.py`: derived, not re-typed
+
+The two asset paths are no longer written in the file. `resolve_served_assets()` walks the tree
+that will actually be served and applies `static_site`'s own rules — a `.gz` path has no URL of
+its own, an object with a `.gz` sibling costs the **sibling's** bytes on the wire, and anything
+above the per-response ceiling is a `413` on the path that exceeded it. The ceiling is read from
+`mainline_demo_api.static_site.max_response_bytes()` rather than repeated, so the harness and
+the origin cannot disagree about what "emittable" means. Re-typing the new hash would have
+bought exactly one build's worth of correctness.
+
+Two further refusals were added, because a derivation alone would still have measured the wrong
+tree:
+
+* **`--from-package`** extracts `web/` from the deployed artefact and serves *that*. This is the
+  tree the origin has.
+* **The harness now refuses to run when the tree it is serving disagrees with the deployed
+  package** — different largest object, or source maps present where the package has none —
+  naming every difference, and proceeding only under an explicit `--serve-input-tree`, which is
+  recorded in the evidence. Pointed at `console/dist` today it refuses with three
+  disagreements. **This is the guard §0.1 did not have**: §0.1 had to be written by hand, after
+  the fact, about a number that had already been published.
+
+#### 0.2.3 · The deployed tree, measured today
+
+Read from the current `out/lambda/mainline-demo-api-arm64.zip` central directory, and
+independently confirmed by that build's own sidecar manifest
+`out/lambda/mainline-demo-api-arm64.zip.json`:
+
+| | `web/` entries | bytes | source maps | largest identity | largest `.gz` |
+|---|---:|---:|---:|---:|---:|
+| the **deployed** package, as built 2026-08-14 | 114 | **1,274,743** | **0 / 0 B** | **433,564 B** `assets/index-DzVoV1YM.js` | **124,177 B** `assets/index-DzVoV1YM.js.gz` |
+
+> **This disagrees with `evidence/deploy/cost/package-shape.json`, which records 1,274,342 B /
+> 433,396 B / 124,127 B for the same architecture.** The two describe **different builds**, not
+> a contradiction in the tree: that artefact was recorded before the 2026-08-14 console rebuild
+> moved the content hash. **The artefact on disk and its own manifest are authoritative for what
+> the origin will serve** — cost and latency are bytes leaving the origin — and
+> `package-shape.json` is derived from a build. **It is not edited here: it is not this
+> worker's file, and regenerating it moves the `deployed_tree_figures()` exemption set that
+> `tests/deploy/test_docs_are_true.py` reads.** Recorded as a finding for whoever owns it. The
+> 401-byte and 50-byte deltas are small; the point is that one of the two numbers is describing
+> a build nobody can rebuild, and which one that is should be decided rather than absorbed.
+>
+> **DECIDED, 2026-08-14, W6 (ci-green).** It is `package-shape.json` that describes the
+> unbuildable side, and this is now proven rather than suspected. W1 (commit `f68abb7`)
+> reproduced the console build byte for byte from `git archive HEAD` under the CI action's
+> exact environment, and built three clean historical exports to check the artefact against:
+> the tree `package-shape.json` records matches **no commit in this repository**, by name or
+> by size. The figures in the table above are the correct ones. The full record — the artefact's
+> own head (`2dc5c86`), every old → new delta, which published dollar figures move (+0.040 %,
+> and the standing **USD 1.60/min** and **564/30 d** both survive at their published
+> precision), and why no digit was retyped into the prose — is
+> [`COST-BOUND.md` §0.3](COST-BOUND.md). The open action is unchanged and is reported to the
+> lead: regenerate `package-shape.json` and `cost-model.json` from the reproducible build, then
+> re-read both documents' cells from them.
+
+#### 0.2.4 · The measured value — and what it is NOT
+
+`measure_beats.py --targets local --from-package --skip-cpu-probe --samples-static 12
+--samples-health 5 --samples-gate-local 3 --warmup 2 --cold-samples 1 --rtt-samples 3
+--no-write`, on this workstation, 2026-08-14:
+
+| Beat | Request | Status | Response bytes | p50 |
+|---|---|---:|---:|---:|
+| `index` | `GET /` | **200** | 4,655 | **1.65 ms** |
+| `asset_js` | `GET /assets/surface-BcxWkbKu.js` (identity) | **200** | **51,266** | **2.00 ms** |
+| `asset_map` | `GET /assets/index-DzVoV1YM.js`, `Accept-Encoding: gzip` | **200** | **124,177** | **3.12 ms** |
+
+**§0.1's UNRESOLVED item is closed on the duration and only on the duration.** It asked for a
+beat that sends `Accept-Encoding: gzip` against a web root extracted from the artefact,
+asserting `content-encoding: gzip` and the sibling's byte count. That beat now exists, it is
+derived rather than named, and the object the origin actually ships has an **observed** p50 for
+the first time — where §6.2 previously carried a least-squares extrapolation of **2.60 ms** off
+three identity beats. The observation is **3.12 ms**, above the fit.
+
+**What this reading is NOT, said before anyone cites it:**
+
+* **It is not a new baseline.** N = 12 static samples, one target, two warm-ups, single run.
+  A second invocation minutes later put the same three beats at **1.15 / 1.45 / 2.23 ms** — the
+  spread between two 12-sample runs is larger than several of the differences §6 reasons about,
+  which is exactly why N = 200 exists and why these figures are not substituted into it.
+  §1.1's figures are N = 200 across two targets. Nothing in §1, §5 or §6 is restated from it and
+  `evidence/deploy/cost/latency-baseline.json` **was not regenerated** — that artefact and
+  `scripts/deploy/cost_model.py`'s `asset_map_p50_ms` / `asset_js_p50_ms` input keys belong to
+  the cost-model owner, and they must move together or not at all. **A 12-sample p50 must not be
+  substituted into the cost model.**
+* **It is not a clean run.** In the same invocation `health` answered `503` and `gate_run`
+  answered `500` against this workstation's local cluster, and the harness **failed the run and
+  named both** rather than publishing three green static beats. That is the status assertion
+  doing its job, and it is reported here rather than cropped out.
+* **The beat KEY `asset_map` is historical.** It once named a source map; the deployed package
+  holds zero. It is kept because `cost_model.py` reads it by that name and renaming it in this
+  wave would break a file this worker does not own. The `why` string the harness emits now says
+  what the beat actually measures, and says the key is historical.
 
 ---
 
@@ -812,6 +956,31 @@ finding is gone and the evidence will say so on its own.
 > `[200, 200, 200]` there retires this finding on the evidence's own terms, as the paragraph
 > above already provides for. **The paragraph is left standing until that happens** — it names
 > the defect, the fix that appears to answer it, and the reason nobody can yet say so.
+>
+> > **RE-MEASURED 2026-08-14 — THE FIRST HALF OF THAT CONDITION IS NOW MET, AND THE SECOND
+> > HALF IS NOT. The finding stays UNRESOLVED, on the criterion this annotation set itself.**
+> >
+> > `mainline.defeater_option` **is** seeded now: `demo_world.sql:932` carries an
+> > `INSERT INTO mainline.defeater_option (check_id, defeater_code, prompt, vocab_sha256)`.
+> > So the two tests named above no longer stop at `422 demo_history_not_seeded` — **both
+> > execute and both pass**, read from a `--junitxml` `testcase` element on this machine
+> > today, not from a terminal scroll:
+> >
+> > | test | verdict |
+> > |---|---|
+> > | `test_a_gate_run_hands_the_shared_connection_back_in_autocommit` | **passed** |
+> > | `test_the_request_after_a_gate_run_is_not_a_503` | **passed** |
+> >
+> > **That is a green watching the fix execute, and it is still not what this finding asked
+> > for.** The settlement criterion written above is §9's *connection-state probe* returning
+> > `[200, 200, 200]` on the `local` target — a probe that issues `gate-run`, `health`,
+> > `gate-run` **in one emulator process over a real socket**. The two tests are in-suite
+> > assertions, not that probe, and this document's own §0 rule is that a measurement of one
+> > thing is not a measurement of another. **The probe has not been re-run and no
+> > `[200, 200, 200]` is reported here.** What has moved is that the blocker which prevented
+> > the assertion from being evaluated at all is gone — so the finding is no longer *"cannot
+> > be checked"*, it is *"checkable and unchecked"*, which is a different and better state and
+> > is the only claim made here.
 
 **2 · BLOCKER 1 reproduced through the Function URL path, and then stopped reproducing.** At
 05:55 UTC, four consecutive cloud gate runs returned HTTP 200 with `verdict: NOT PROVEN` and

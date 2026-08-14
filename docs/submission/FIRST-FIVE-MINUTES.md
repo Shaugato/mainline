@@ -40,7 +40,7 @@ login — reading our live CockroachDB Cloud ledger — is stop 5 of `JUDGE-STAR
 optional.
 
 **⚠ This recording was taken at `HEAD` = `bb21962` on 2026-08-10 and has NOT been retaken.**
-Four of the seven gaps in §4 have since closed; each is marked with the command that
+Five of the eight gaps in §4 have since closed; each is marked with the command that
 re-derives it. §6 explains how to retake the whole recording, and until somebody does,
 §§1–3 describe the tree as it was on 2026-08-10.
 
@@ -51,19 +51,31 @@ re-derives it. §6 explains how to retake the whole recording, and until somebod
 with the rest of the build fleet while this ran — so **every duration is an upper bound,
 not a benchmark**. Source: `HEAD` = `bb21962`, branch `master`.
 
+> **Two things about that paragraph, checked on 2026-08-14.** `just` and `uv` are still not on
+> `PATH` — `python scripts/qa/doctor.py` reports both, exits `NOT READY - 2 blocking checks`,
+> and neither blocks the proof. **But the container is no longer called `mainline-crdb`.**
+> `docker ps` today lists one container, `trappoint-crdb`, on the same pinned image
+> `cockroachdb/cockroach:v26.2.5`, answering on the same port. The name above is part of a
+> 2026-08-10 recording and is left as recorded; **match on the image tag, not the name**, and
+> let `doctor.py` tell you which socket answered.
+
 ---
 
 ## 0 · The result in five lines
 
 1. On Windows, **a plain `git clone` fails outright** if the destination path is longer
-   than **44 characters**. Measured, not calculated: 44 works, 45 does not.
+   than **44 characters**. Measured, not calculated: 44 works, 45 does not. **RE-MEASURED
+   2026-08-14: the cliff is now at 117 characters** — the 214-character console fixture paths
+   that caused it are gone from the tree. §1 carries the new budget.
 2. `git clone -c core.longpaths=true` fixes the clone, and **does not fix the tree** —
-   two fixture files then exist that no ordinary program on the machine can open.
+   two fixture files then exist that no ordinary program on the machine can open. **CLOSED
+   2026-08-14: that count is now zero.** `check_path_lengths.py` reports
+   `paths a 60-char destination cannot check out: 0`.
 3. Inside a good clone the **central claim reproduces**: `VERDICT PROVEN`, in **70.4
    seconds**, against the pinned local node — with the caveat the proof printed itself on
-   that day, `246/261 applied, 15 failed`. **That caveat is gone.** Re-run on this tree at
-   `HEAD` on 2026-08-12: `271/271 applied, 0 failed`, `caveats (none)`, `VERDICT PROVEN`
-   — §3 carries both transcripts.
+   that day, `246/261 applied, 15 failed`. **That caveat is gone.** The newest committed
+   proof, `evidence/gate-refusal/proof-20260814T032418Z.json`: `271/271 applied, 0 failed`,
+   `caveats []`, `VERDICT PROVEN` — §3 carries both transcripts.
 4. `just` and `uv` are **not installed on the machine this was measured on**, so three of
    the four documented commands were run through their fallbacks and the fourth,
    `just setup`, could not be run at all. `python scripts/qa/doctor.py` says exactly that,
@@ -167,6 +179,32 @@ policy                     falling-only
 budget_status                        OK
 ```
 
+> **RE-MEASURED 2026-08-14, and both numbers fell — which is the only direction this budget
+> permits without a named exception.** `python scripts/submission/check_path_lengths.py`,
+> exit **0**:
+>
+> ```
+> MAINLINE path-length budget — 2026-08-14T09:41:06Z
+>   tracked files                     7576
+>   longest tracked path              141 chars
+>   longest single name component     69 chars
+>   Windows usable path               259 chars
+>   MAX SAFE CLONE DESTINATION        117 chars
+>   paths a 60-char destination cannot check out   0
+>   budget: max_tracked_path_chars=141 files_unclonable_at_typical_prefix=0  (falling-only)
+>   STATUS: OK
+> ```
+>
+> The three longest paths are now `skills/upstream/…/verify_restore_merkle_root.py.license`
+> (141), the script beside it (133), and a recall-agent provider fixture (123). **The
+> `blk-07` bundle frames that produced the 214-character path are no longer in the tree.**
+>
+> `259 − 1 − 141 = 117`, so the arithmetic and the budget agree, as they did at 44. **This
+> was NOT written back into the baseline by this revision** — `--update` is the command that
+> lowers a number that fell, and running it is the owning domain's call, not a documents
+> wave's. Until it is run, the committed baseline reads 214/2 and the live measurement reads
+> 141/0, and `STATUS: OK` because a fall is always permitted.
+
 ```
 python scripts/submission/check_path_lengths.py            # measure and enforce
 python scripts/submission/check_path_lengths.py --update   # lower a number that fell
@@ -269,7 +307,7 @@ proof writes. The verdict was `PROVEN`; the chain was not clean; the proof said 
 is why `qa/judge-dry-run.json` records `verdict: "PROVEN_WITH_CAVEATS"` — `PROVEN` is
 reserved for a run whose chain reports `0 failed`.
 
-### Re-run by hand on this tree at `HEAD`, 2026-08-12
+### Re-run by hand on this tree at `HEAD`, 2026-08-14
 
 The producers landed. Re-derived on the same pinned container, **not** by
 `judge_dry_run.py` — so `qa/judge-dry-run.json` still carries the 2026-08-10 recording and
@@ -278,7 +316,7 @@ its `PROVEN_WITH_CAVEATS` verdict until somebody retakes it:
 ```console
 $ python scripts/proof/gate_refusal.py \
       --dsn "postgresql://root@localhost:26257/defaultdb?sslmode=disable"
-chain         271/271 applied, 0 failed, 51.336s
+chain         271/271 applied, 0 failed, 71.797s
 reached 0115  True
 unproduced    (none) — every relation this tree references has a producer
 PROJECTION    10/10 held · open_blocking 0->1 · gate_epoch 0->1 · outbox 'check_opened' severity 4 (client supplied 0)
@@ -290,17 +328,28 @@ VERDICT       PROVEN
                                                     # exit 0
 ```
 
-Written to `evidence/gate-refusal/proof-20260812T163857Z.json`. The chain figure moves
-every time a migration lands, in both directions, which is exactly why this repository's
-own prose gate refuses a remembered migration count and requires the number to be
-re-derived from the run in front of you.
+Written to `evidence/gate-refusal/proof-20260814T032418Z.json`, whose `caveats` and
+`failures` blocks are both `[]` and whose `disposition` block records `signed: true` and
+`countersigned_count_after: 1`. The chain figure moves every time a migration lands, and the
+*seconds* move with the machine — 51.336 s on 2026-08-12, 71.797 s on 2026-08-14, same 271
+files. Which is exactly why this repository's own prose gate refuses a remembered migration
+count and requires the number to be re-derived from the run in front of you.
+
+**The fourth beat is newly load-bearing.** Until 2026-08-14 the admission could be reached
+with a signature whose defeater-vocabulary digest was `sha256(b"defeater-vocab")` — a
+constant. `mainline.defeater_option` is now seeded, `mainline_demo_api.defeaters` resolves the
+digest from it and raises rather than falling back, and the signing credentials are resolved
+from `mainline.signing_credential` instead of derived.
+[`MUST-NOT-CLAIM.md`](MUST-NOT-CLAIM.md) families 13 and 14 record what that does and does
+not license anyone to say.
 
 ---
 
 ## 4 · The gaps, in the order they will hurt
 
-Seven were recorded on 2026-08-10. **Four have closed**, and each closure below carries the
-command that re-derives it — none of them is closed on the strength of a sentence.
+Eight were recorded on 2026-08-10. **Five have closed** — the fifth on 2026-08-14 — and each
+closure below carries the command that re-derives it. None of them is closed on the strength
+of a sentence.
 
 **4.1 — CLOSED · the remote was behind this disk.** The recording says `HEAD` was 2 commits
 ahead of `origin/master` with **98 tracked files differing**, and that everything on this
@@ -352,9 +401,25 @@ command collects **8,849** tests and exits 0. The remedy is `just setup`, which 
 has never been executed there and cannot be reported on. The four documented commands were
 all run through fallbacks. `python scripts/qa/doctor.py` reports exactly this and exits 1.
 
-**4.7 — OPEN · the clone flag does not make the tree readable.** Two fixtures are
-unreachable by any non-long-path-aware program at any destination over 44 characters.
-`pytest` and the proof do not touch them; the console's replay loader does.
+**4.7 — CLOSED 2026-08-14 · the clone flag does not make the tree readable.** On 2026-08-10
+two fixtures were unreachable by any non-long-path-aware program at any destination over 44
+characters. Those paths are gone:
+
+```console
+$ python scripts/submission/check_path_lengths.py
+  longest tracked path              141 chars
+  MAX SAFE CLONE DESTINATION        117 chars
+  paths a 60-char destination cannot check out   0
+  STATUS: OK
+$ echo $?
+0
+```
+
+**Zero files, and the safe destination went from 44 characters to 117.** The committed
+baseline in `qa/judge-dry-run.json` still records `214` and `2`; it is a recording and was
+not hand-edited, and lowering the `check_path_lengths.py` baseline with `--update` belongs
+to that budget's owner. A fall needs no exception — `STATUS: OK` — so nothing is blocked
+while it waits.
 
 **4.8 — OPEN · the dry run's interpreters import workspace code from outside the clone.**
 The venv is an editable install pointing at `D:\CoackroachDBxAWS\mainline\packages\…`, so
@@ -376,7 +441,9 @@ Naming these is the point of the instrument.
 
 * **`just setup` / `uv sync --all-packages`** — never executed; `uv` is absent.
 * **`just up`** — the compose file was parsed (`docker compose config`, exit 0), not
-  started. The node used was the already-running pinned container `mainline-crdb`.
+  started. The node used was the already-running pinned container `mainline-crdb`. *(That
+  container name is a 2026-08-10 fact. On 2026-08-14 the one running container is
+  `trappoint-crdb`, same image tag, same port.)*
 * **The conformance suite** (`just conform`) — out of scope for the four commands, and
   `docs/HONESTY.md` already records that it has never been demonstrated end to end.
 * **The TypeScript console** — 278 files, zero CI coverage, and its fixtures are the very
@@ -386,8 +453,13 @@ Naming these is the point of the instrument.
   not something this run performed.
 * **Any cloud service.** No AWS call, no CockroachDB Cloud call, no network beyond the
   local clone and a local DSN. Bedrock *has* executed for this project and CockroachDB Cloud
-  *has* been driven by hand — `evidence/deploy/aws-live.json` and
-  `evidence/deploy/cloud-chain.json` — but not by this program.
+  *has* been driven by hand — `evidence/deploy/aws-live.json`,
+  `evidence/deploy/cloud-chain.json` (`APPLIED`) and `evidence/deploy/cloud-seed.json`
+  (`SEEDED AND REFUSABLE`) — but not by this program, and **not by any CI lane**.
+* **Any deployed origin.** There is none. The two acceptance artefacts that read `PROVEN`
+  were taken through `scripts/deploy/local_furl.py`, an emulator of a Lambda Function URL, on
+  `127.0.0.1`; both carry `target_is_local_emulator: true`. `demo_url` is `UNRESOLVED` and
+  `JUDGE-START.md` stop 6 carries the table.
 
 Durations were recorded on the founder's Windows 11 workstation **while other build
 workers were running their own jobs against the same single-node container**. They are

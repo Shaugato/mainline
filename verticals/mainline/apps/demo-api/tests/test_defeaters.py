@@ -1278,13 +1278,36 @@ def test_the_local_retry_names_its_specification() -> None:
     assert "trappoint_core.retry" in doc
 
 
-def test_the_gate_run_endpoint_is_the_only_transition_wrapped_in_the_retry() -> None:
-    """``run_transaction`` guards the run that persists nothing, and no committing path.
+def test_every_call_site_of_the_retry_is_named_and_re_attemptable() -> None:
+    """``run_transaction`` is called from exactly two places, and both are declared here.
 
-    A retry around ``merge_permit`` would re-send a merge on a caller's behalf, which is
-    how a permit gets issued twice — the sentence ``transitions``' module docstring has
-    carried since it was written. The demo gate run is the exception because it rolls
-    everything back and proves it did, not because retrying is convenient there.
+    THIS ASSERTION'S EXPECTED VALUE MOVED ON 2026-08-14 UNDER ``docs/leads/ci-green-final``
+    RULING R3, AND THE REASON IS THE ONE THING WORTH READING IN THIS FILE TODAY.
+
+    It used to be ``{"_demo_gate_run"}``, justified as: *"a retry around merge_permit would
+    re-send a merge on a caller's behalf, which is how a permit gets issued twice — the
+    sentence transitions' module docstring has carried since it was written."* The
+    justification was quoted from that docstring, so this test was DERIVED from prose in the
+    module it tests, and the prose was wrong. ``40001`` is a transaction the database
+    **aborted** — nothing written, nothing decided — so re-attempting it cannot issue
+    anything twice. The outcome that is genuinely ambiguous is ``40003``, which
+    ``spec/errors.md`` §1.1 lists as a defect a conformant client MUST NOT treat as a
+    serialization failure and which ``retry.classify_for_retry`` never retries.
+
+    ``spec/errors.md`` §2.1 is normative and carves nothing out: *"retry the whole
+    transaction, from BEGIN"*. What the old carve-out actually bought was measured at
+    ``7535670``: a ``40001`` from any statement outside a transition's own
+    ``except psycopg.Error`` — most often ``conn.commit()`` — reached
+    ``handle_transition``'s ``except psycopg.OperationalError``, which
+    ``psycopg.errors.SerializationFailure`` satisfies, and the caller was told
+    ``503 database_unreachable``. Two whole-suite tests failed on it in one run.
+
+    So the list of call sites is still CLOSED — a third one still fails here, which is the
+    property this test was written for — and the second assertion is new: it checks the
+    thing that actually makes a re-attempt safe, rather than trusting a sentence about it.
+    Every identifier a second attempt could collide with is minted INSIDE the transition,
+    so a retry cannot meet its own first attempt's key and turn a serialization restart into
+    a ``23505`` no client may retry.
     """
     tree = ast.parse((PACKAGE_SOURCE / "transitions.py").read_text(encoding="utf-8"))
     enclosing = {
@@ -1298,7 +1321,29 @@ def test_the_gate_run_endpoint_is_the_only_transition_wrapped_in_the_retry() -> 
             for inner in ast.walk(node)
         )
     }
-    assert enclosing == {"_demo_gate_run"}, (
-        f"run_transaction is called from {sorted(enclosing)}. Only the demo gate run may be "
-        "retried: it is the one transaction in this module that persists nothing."
+    assert enclosing == {"_demo_gate_run", "handle_transition"}, (
+        f"run_transaction is called from {sorted(enclosing)}. The retried unit must be a "
+        "WHOLE transaction from BEGIN (spec/errors.md §2.1): `_demo_gate_run` wraps one "
+        "call to gate_run, and `handle_transition` wraps one whole committing transition. "
+        "A third call site is either a statement being retried inside somebody else's "
+        "transaction — which §2.1 forbids — or a second loop with a second taxonomy."
+    )
+
+    minted = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef)
+        and any(
+            isinstance(inner, ast.Call)
+            and isinstance(inner.func, ast.Attribute)
+            and inner.func.attr == "uuid4"
+            for inner in ast.walk(node)
+        )
+    }
+    assert {"_materialise_checks", "_sign_disposition"} <= minted, (
+        f"uuid4 is called inside {sorted(minted)}. `_materialise_checks`' receipt_id and "
+        "`_sign_disposition`' disposition_id must be minted INSIDE the transaction that "
+        "writes them: a retry runs the body again from the top, so an identifier hoisted "
+        "out of it would be replayed and the second attempt would meet its own first "
+        "attempt's key — a 23505, which spec/errors.md §4 attempts exactly once, ever."
     )

@@ -1,0 +1,4139 @@
+{
+  "artefact": "MAINLINE cloud-vs-local contention census",
+  "generated_at_utc": "2026-08-14T09:44:00Z",
+  "generated_by": "scripts/deploy/cloud_contention.py",
+  "worker": "W1 \u00b7 cloud-contention",
+  "question": "Does CockroachDB Cloud produce 40001 under a race this repository constructs, which restart REASONS does it name, and what differs from the single local node when the same code runs against both in one sitting?",
+  "method": {
+    "retry_loop": "trappoint_core.retry.run_gate, reached through trappoint_testkit.txn.run_txn. No retry primitive is defined in this program: run_gate retries 40001 and only 40001, attempts each refusal code exactly once ever, and tests/concurrency/test_retry_taxonomy_spy.py watches it do so.",
+    "spy": "trappoint_core.retry.RecordingObserver. Every caller records whether the loop ACTUALLY retried rather than assuming it was reached.",
+    "policy": {
+      "max_attempts": 5,
+      "base_delay_s": 0.01,
+      "cap_delay_s": 0.1,
+      "note": "max_attempts is DEFAULT_POLICY's five \u2014 this program measures the platform and does not re-argue the budget. Only the sleep ladder is shortened."
+    },
+    "restart_reason_provenance": "PARSED from the server's message and recorded beside the verbatim first line. Nothing branches on it: 40001 is the code, three reasons share it, and a client discriminating on the message would get one of the three wrong.",
+    "topology": "Never read. crdb_internal and system are restricted for this role on Cloud Basic (42501). Contention is INDUCED and the SQLSTATE is observed.",
+    "database_selection": "Every connection names its database explicitly and confirms it with SELECT current_database(). The committed DSN's path segment is 'defaultdb' and is never trusted."
+  },
+  "environment": {
+    "python": "3.13.14",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "psycopg": "3.3.4"
+  },
+  "rounds_requested": 12,
+  "arms_requested": [
+    "constructed",
+    "gate-run"
+  ],
+  "targets": [
+    {
+      "target": "cloud",
+      "fingerprint": {
+        "cluster": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb",
+        "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+        "connected_as": "mainline-sql",
+        "default_transaction_isolation": "serializable",
+        "database_selection": {
+          "requested": "mainline_demo",
+          "confirmed_by_server": "mainline_demo",
+          "matches": true,
+          "dsn_path_segment": "defaultdb",
+          "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+        },
+        "first_query_seconds": 0.225,
+        "node_topology": "NOT READ, ON PURPOSE. crdb_internal and system are restricted for this role on CockroachDB Cloud Basic (42501 InsufficientPrivilege), and a probe that proved 'multi-node' by counting gossip nodes would be reporting a privilege refusal as a topology. The observable is the SQLSTATE and the restart reason, produced by a race this program constructed."
+      },
+      "arm_constructed": {
+        "lifecycle": {
+          "scratch_database": "w_w1",
+          "create_seconds": 7.383,
+          "create_refused": null,
+          "confirmed_by_server": "w_w1",
+          "drop_seconds": 1.565,
+          "survivors_after_drop": 0,
+          "scratch_is_gone": true
+        },
+        "rounds": [
+          {
+            "round": 1,
+            "seconds": 5.5135,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 0,
+                    "seconds": 0.4492
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7404,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=83758f02 key=/Tenant/31219/Table/1526/1/2/0 iso=Serializable pri=0.00087610 epo=0 ts=1786700657.242688022,1 min=1786700657.242454960,0 seq=2} lock=true stat=PENDING rts=1786700657.242454960,0 gul=1786700657.492454960,0 obs={n6@1786700657.684826263,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 0,
+                    "seconds": 0.6781
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 1,
+                    "seconds": 0.463
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.5127,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.009
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 5.5716,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 1,
+                    "seconds": 0.4619
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.8274,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=78fa0d73 key=/Tenant/31219/Table/1526/1/1/0 iso=Serializable pri=0.02561235 epo=0 ts=1786700662.824150352,1 min=1786700662.807274294,0 seq=2} lock=true stat=PENDING rts=1786700662.807274294,0 gul=1786700663.057274294,0 obs={n6@1786700663.277351499,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 1,
+                    "seconds": 0.7222
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 2,
+                    "seconds": 0.45
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.5703,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0044
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 3,
+            "seconds": 5.5497,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 2,
+                    "seconds": 0.4455
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7084,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=a0e3df17 key=/Tenant/31219/Table/1526/1/1/0 iso=Serializable pri=0.04186779 epo=0 ts=1786700668.304137275,1 min=1786700668.298583467,0 seq=2} lock=true stat=PENDING rts=1786700668.298583467,0 gul=1786700668.548583467,0 obs={n6@1786700668.739223948,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 2,
+                    "seconds": 0.6851
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 3,
+                    "seconds": 0.5331
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.5484,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0034
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 4,
+            "seconds": 5.5674,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 3,
+                    "seconds": 0.4561
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7672,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=3d436572 key=/Tenant/31219/Table/1526/1/1/0 iso=Serializable pri=0.00451058 epo=0 ts=1786700673.888139595,1 min=1786700673.887814182,0 seq=2} lock=true stat=PENDING rts=1786700673.887814182,0 gul=1786700674.137814182,0 obs={n6@1786700674.341075588,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 3,
+                    "seconds": 0.6782
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 4,
+                    "seconds": 0.4508
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.5665,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0045
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 5,
+            "seconds": 5.4872,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 4,
+                    "seconds": 0.4465
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7743,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=1db4eadd key=/Tenant/31219/Table/1526/1/1/0 iso=Serializable pri=0.02942653 epo=0 ts=1786700679.444548087,1 min=1786700679.421598740,0 seq=2} lock=true stat=PENDING rts=1786700679.421598740,0 gul=1786700679.671598740,0 obs={n6@1786700679.924001629,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 4,
+                    "seconds": 0.6736
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 5,
+                    "seconds": 0.4497
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.4862,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0095
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 6,
+            "seconds": 5.4232,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 5,
+                    "seconds": 0.4493
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7008,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=35b48527 key=/Tenant/31219/Table/1526/1/2/0 iso=Serializable pri=0.03413828 epo=0 ts=1786700684.898596434,1 min=1786700684.898551672,0 seq=2} lock=true stat=PENDING rts=1786700684.898551672,0 gul=1786700685.148551672,0 obs={n6@1786700685.341521278,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 5,
+                    "seconds": 0.6733
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 6,
+                    "seconds": 0.4473
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.4227,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0053
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 7,
+            "seconds": 5.483,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 6,
+                    "seconds": 0.4542
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7796,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=5ea32153 key=/Tenant/31219/Table/1526/1/2/0 iso=Serializable pri=0.00269366 epo=0 ts=1786700690.390262363,1 min=1786700690.331599641,0 seq=2} lock=true stat=PENDING rts=1786700690.331599641,0 gul=1786700690.581599641,0 obs={n6@1786700690.774258801,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 6,
+                    "seconds": 0.7351
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 7,
+                    "seconds": 0.4459
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.4826,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0022
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 8,
+            "seconds": 5.4837,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 7,
+                    "seconds": 0.4462
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7389,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=e284ca12 key=/Tenant/31219/Table/1526/1/2/0 iso=Serializable pri=0.00505471 epo=0 ts=1786700695.842389916,1 min=1786700695.819266142,0 seq=2} lock=true stat=PENDING rts=1786700695.819266142,0 gul=1786700696.069266142,0 obs={n6@1786700696.264147072,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 7,
+                    "seconds": 0.6992
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 8,
+                    "seconds": 0.4493
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.4832,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.004
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 9,
+            "seconds": 5.5216,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 8,
+                    "seconds": 0.4484
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7365,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=b21f05c8 key=/Tenant/31219/Table/1526/1/1/0 iso=Serializable pri=0.00345465 epo=0 ts=1786700701.305156107,1 min=1786700701.295037160,0 seq=2} lock=true stat=PENDING rts=1786700701.295037160,0 gul=1786700701.545037160,0 obs={n6@1786700701.738079078,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 8,
+                    "seconds": 0.7011
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 9,
+                    "seconds": 0.4448
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.5206,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0071
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 10,
+            "seconds": 5.4886,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 9,
+                    "seconds": 0.4473
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.72,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=236a58d3 key=/Tenant/31219/Table/1526/1/2/0 iso=Serializable pri=0.04154472 epo=0 ts=1786700706.826834557,1 min=1786700706.815695713,0 seq=2} lock=true stat=PENDING rts=1786700706.815695713,0 gul=1786700707.065695713,0 obs={n6@1786700707.261542548,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 9,
+                    "seconds": 0.6854
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 10,
+                    "seconds": 0.448
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.4881,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0052
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 11,
+            "seconds": 5.5159,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 10,
+                    "seconds": 0.4494
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.732,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=b5f8d6b4 key=/Tenant/31219/Table/1526/1/1/0 iso=Serializable pri=0.02133381 epo=0 ts=1786700712.325544406,1 min=1786700712.312497745,0 seq=2} lock=true stat=PENDING rts=1786700712.312497745,0 gul=1786700712.562497745,0 obs={n6@1786700712.755716175,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 10,
+                    "seconds": 0.6888
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 11,
+                    "seconds": 0.4455
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.5149,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0066
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 12,
+            "seconds": 5.5061,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 11,
+                    "seconds": 0.4475
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 2.7538,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=e4898763 key=/Tenant/31219/Table/1526/1/1/0 iso=Serializable pri=0.00354778 epo=0 ts=1786700717.863929389,1 min=1786700717.862927365,0 seq=2} lock=true stat=PENDING rts=1786700717.862927365,0 gul=1786700718.112927365,0 obs={n6@1786700718.306867258,0} HINT: See: https://www.cockroachlab",
+                    "raised_at": "commit",
+                    "read": 11,
+                    "seconds": 0.6736
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 12,
+                    "seconds": 0.4531
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 5.5051,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.001
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          }
+        ]
+      },
+      "census_constructed": {
+        "rounds": 12,
+        "callers": 24,
+        "sqlstates": {
+          "00000": 24,
+          "40001": 12
+        },
+        "restart_reasons_for_40001": {
+          "RETRY_SERIALIZABLE": 12
+        },
+        "where_the_40001_surfaced": {
+          "commit": 12
+        },
+        "rounds_with_40001": 12,
+        "rounds_where_both_callers_committed": 12,
+        "callers_run_gate_actually_retried": 12,
+        "callers_undecided_retry_budget_exhausted": 0,
+        "callers_where_record_and_spy_disagree": 0,
+        "attempt_latency_seconds": {
+          "n": 36,
+          "min": 0.4448,
+          "median": 0.4519,
+          "max": 0.7351
+        }
+      },
+      "arm_gate_run": {
+        "database": "mainline_demo",
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "database_provenance": "the LIVE demo database on CockroachDB Cloud. NOT built by this program and never written to by it: Arm B is allowed here only because POST /v1/demo/gate-run is savepoint-fenced and rolls back, and the row counts before and after are the proof. It was seeded by scripts/deploy/seed_demo.py \u2014 see evidence/deploy/cloud-seed.json.",
+        "rounds": [
+          {
+            "round": 1,
+            "seconds": 17.9991,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.5365,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.9982,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 18.2575,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.803,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 18.2565,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 3,
+            "seconds": 18.1287,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.6867,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 18.1278,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 4,
+            "seconds": 18.2916,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.8393,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 18.2906,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 5,
+            "seconds": 18.1741,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.7153,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 18.1732,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 6,
+            "seconds": 18.1976,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.7445,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 18.1967,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 7,
+            "seconds": 18.165,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.6978,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 18.1642,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 8,
+            "seconds": 17.842,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.3774,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.8412,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 9,
+            "seconds": 17.9412,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.4841,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.9405,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 10,
+            "seconds": 17.8935,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.4378,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.8928,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 11,
+            "seconds": 18.0815,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.6198,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 18.0808,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 12,
+            "seconds": 17.8569,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.3955,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 17.8562,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          }
+        ],
+        "database_selection": {
+          "requested": "mainline_demo",
+          "confirmed_by_server": "mainline_demo",
+          "matches": true,
+          "dsn_path_segment": "defaultdb",
+          "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+        },
+        "row_counts_before": {
+          "mainline.permit": 1,
+          "mainline.permit_event": 2,
+          "mainline.merge_record": 0,
+          "mainline.disposition": 0,
+          "mainline.ledger_intake": 5,
+          "mainline.refusal_ledger": 0,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline_ops.outbox": 2
+        },
+        "containers": [
+          {
+            "index": 1,
+            "base": "http://127.0.0.1:55784",
+            "process": "scripts/deploy/local_furl.py"
+          },
+          {
+            "index": 2,
+            "base": "http://127.0.0.1:55785",
+            "process": "scripts/deploy/local_furl.py"
+          }
+        ],
+        "warmup": [
+          {
+            "index": 1,
+            "url": "http://127.0.0.1:55784/v1/demo/gate-run",
+            "status": 200,
+            "seconds": 13.582,
+            "verdict": "PROVEN",
+            "persisted": false,
+            "outcome": "completed",
+            "persistence_identical": true,
+            "self_persisted": false,
+            "concurrent_writes": null,
+            "failures": [],
+            "beats": [
+              {
+                "ordinal": 1,
+                "name": "read",
+                "sqlstate": "00000"
+              },
+              {
+                "ordinal": 2,
+                "name": "merge",
+                "sqlstate": "23514"
+              },
+              {
+                "ordinal": 3,
+                "name": "projection_drift_attack",
+                "sqlstate": "P0001"
+              },
+              {
+                "ordinal": 4,
+                "name": "admit",
+                "sqlstate": "00000"
+              }
+            ],
+            "undecided_40001": false
+          },
+          {
+            "index": 2,
+            "url": "http://127.0.0.1:55785/v1/demo/gate-run",
+            "status": 200,
+            "seconds": 13.4772,
+            "verdict": "PROVEN",
+            "persisted": false,
+            "outcome": "completed",
+            "persistence_identical": true,
+            "self_persisted": false,
+            "concurrent_writes": null,
+            "failures": [],
+            "beats": [
+              {
+                "ordinal": 1,
+                "name": "read",
+                "sqlstate": "00000"
+              },
+              {
+                "ordinal": 2,
+                "name": "merge",
+                "sqlstate": "23514"
+              },
+              {
+                "ordinal": 3,
+                "name": "projection_drift_attack",
+                "sqlstate": "P0001"
+              },
+              {
+                "ordinal": 4,
+                "name": "admit",
+                "sqlstate": "00000"
+              }
+            ],
+            "undecided_40001": false
+          }
+        ],
+        "row_counts_after": {
+          "mainline.permit": 1,
+          "mainline.permit_event": 2,
+          "mainline.merge_record": 0,
+          "mainline.disposition": 0,
+          "mainline.ledger_intake": 5,
+          "mainline.refusal_ledger": 0,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline_ops.outbox": 2
+        },
+        "row_counts_moved": {},
+        "nothing_persisted": true
+      },
+      "census_gate_run": {
+        "rounds": 12,
+        "requests": 24,
+        "http_statuses": {
+          "200": 24
+        },
+        "verdicts": {
+          "PROVEN": 24
+        },
+        "rounds_where_both_were_proven": 12,
+        "rounds_with_at_least_one_not_proven": 0,
+        "persistence_check_identical_true": 24,
+        "persistence_check_identical_false": 0,
+        "requests_claiming_self_persisted": 0,
+        "requests_that_saw_a_concurrent_write": 0,
+        "requests_that_saw_a_foreign_write_and_did_not_blame_themselves": 0,
+        "requests_undecided_40001": 0,
+        "request_latency_seconds": {
+          "n": 24,
+          "min": 17.3774,
+          "median": 17.8403,
+          "max": 18.2906
+        },
+        "nothing_persisted": true,
+        "row_counts_moved": {}
+      }
+    },
+    {
+      "target": "local",
+      "fingerprint": {
+        "cluster": "127.0.0.1:26257/defaultdb",
+        "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+        "connected_as": "root",
+        "default_transaction_isolation": "serializable",
+        "database_selection": {
+          "requested": "w_w1_demo",
+          "confirmed_by_server": "w_w1_demo",
+          "matches": true,
+          "dsn_path_segment": "defaultdb",
+          "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+        },
+        "first_query_seconds": 0.001,
+        "node_topology": "NOT READ, ON PURPOSE. crdb_internal and system are restricted for this role on CockroachDB Cloud Basic (42501 InsufficientPrivilege), and a probe that proved 'multi-node' by counting gossip nodes would be reporting a privilege refusal as a topology. The observable is the SQLSTATE and the restart reason, produced by a race this program constructed."
+      },
+      "arm_constructed": {
+        "lifecycle": {
+          "scratch_database": "w_w1",
+          "create_seconds": 0.027,
+          "create_refused": null,
+          "confirmed_by_server": "w_w1",
+          "drop_seconds": 0.296,
+          "survivors_after_drop": 0,
+          "scratch_is_gone": true
+        },
+        "rounds": [
+          {
+            "round": 1,
+            "seconds": 0.0379,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 0,
+                    "seconds": 0.0027
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0143,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=2835eb44 key=/Table/57501/1/2/0 iso=Serializable pri=0.02075764 epo=0 ts=1786700977.361204723,1 min=1786700977.360227827,0 seq=2} lock=true stat=PENDING rts=1786700977.360227827,0 gul=1786700977.860227827,0 obs={n1@1786700977.360227827,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 0,
+                    "seconds": 0.0121
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 1,
+                    "seconds": 0.0023
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0374,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0096
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 0.0319,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 1,
+                    "seconds": 0.0025
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.011,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=0cceeaed key=/Table/57501/1/2/0 iso=Serializable pri=0.00918983 epo=0 ts=1786700977.398759131,1 min=1786700977.397931631,0 seq=2} lock=true stat=PENDING rts=1786700977.397931631,0 gul=1786700977.897931631,0 obs={n1@1786700977.397931631,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 1,
+                    "seconds": 0.0086
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 2,
+                    "seconds": 0.0024
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0314,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0073
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 3,
+            "seconds": 0.0252,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 2,
+                    "seconds": 0.0023
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0113,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=baebe5eb key=/Table/57501/1/2/0 iso=Serializable pri=0.03351341 epo=0 ts=1786700977.430929414,1 min=1786700977.429834474,0 seq=2} lock=true stat=PENDING rts=1786700977.429834474,0 gul=1786700977.929834474,0 obs={n1@1786700977.429834474,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 2,
+                    "seconds": 0.0091
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 3,
+                    "seconds": 0.0024
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0247,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0003
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 4,
+            "seconds": 0.0327,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 3,
+                    "seconds": 0.0024
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0113,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=cda3a3f4 key=/Table/57501/1/2/0 iso=Serializable pri=0.00953861 epo=0 ts=1786700977.456016878,1 min=1786700977.455084572,0 seq=2} lock=true stat=PENDING rts=1786700977.455084572,0 gul=1786700977.955084572,0 obs={n1@1786700977.455084572,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 3,
+                    "seconds": 0.009
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 4,
+                    "seconds": 0.0027
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0322,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0061
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 5,
+            "seconds": 0.0295,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 4,
+                    "seconds": 0.0023
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0107,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=48d855af key=/Table/57501/1/2/0 iso=Serializable pri=0.00358978 epo=0 ts=1786700977.488181388,1 min=1786700977.487821783,0 seq=2} lock=true stat=PENDING rts=1786700977.487821783,0 gul=1786700977.987821783,0 obs={n1@1786700977.487821783,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 4,
+                    "seconds": 0.008
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 5,
+                    "seconds": 0.0023
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.029,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0058
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 6,
+            "seconds": 0.03,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 5,
+                    "seconds": 0.0022
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0106,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=dd197866 key=/Table/57501/1/2/0 iso=Serializable pri=0.06815065 epo=0 ts=1786700977.517291991,1 min=1786700977.517271189,0 seq=2} lock=true stat=PENDING rts=1786700977.517271189,0 gul=1786700978.017271189,0 obs={n1@1786700977.517271189,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 5,
+                    "seconds": 0.0077
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 6,
+                    "seconds": 0.0025
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0295,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0061
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 7,
+            "seconds": 0.0264,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 6,
+                    "seconds": 0.0021
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.01,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=e80aaea5 key=/Table/57501/1/2/0 iso=Serializable pri=0.01648273 epo=0 ts=1786700977.547108468,1 min=1786700977.546853071,0 seq=2} lock=true stat=PENDING rts=1786700977.546853071,0 gul=1786700978.046853071,0 obs={n1@1786700977.546853071,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 6,
+                    "seconds": 0.0077
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 7,
+                    "seconds": 0.0022
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.026,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0038
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 8,
+            "seconds": 0.0261,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 7,
+                    "seconds": 0.0022
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0106,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=b27203d7 key=/Table/57501/1/2/0 iso=Serializable pri=0.00428413 epo=0 ts=1786700977.573842173,1 min=1786700977.572996061,0 seq=2} lock=true stat=PENDING rts=1786700977.572996061,0 gul=1786700978.072996061,0 obs={n1@1786700977.572996061,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 7,
+                    "seconds": 0.0085
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 8,
+                    "seconds": 0.0024
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0257,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0019
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 9,
+            "seconds": 0.0329,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 8,
+                    "seconds": 0.0023
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0111,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=ca8962d4 key=/Table/57501/1/2/0 iso=Serializable pri=0.02094354 epo=0 ts=1786700977.600057720,1 min=1786700977.599696821,0 seq=2} lock=true stat=PENDING rts=1786700977.599696821,0 gul=1786700978.099696821,0 obs={n1@1786700977.599696821,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 8,
+                    "seconds": 0.0081
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 9,
+                    "seconds": 0.0022
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0325,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0088
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 10,
+            "seconds": 0.0303,
+            "rendezvous_broken": false,
+            "callers": {
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 9,
+                    "seconds": 0.0026
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0128,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=b672ba78 key=/Table/57501/1/2/0 iso=Serializable pri=0.05990723 epo=0 ts=1786700977.632921933,1 min=1786700977.632653299,0 seq=2} lock=true stat=PENDING rts=1786700977.632653299,0 gul=1786700978.132653299,0 obs={n1@1786700977.632653299,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 9,
+                    "seconds": 0.0099
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 10,
+                    "seconds": 0.0024
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0299,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0046
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 11,
+            "seconds": 0.0257,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 10,
+                    "seconds": 0.0025
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0122,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=5fe763a6 key=/Table/57501/1/1/0 iso=Serializable pri=0.04715184 epo=0 ts=1786700977.663322158,1 min=1786700977.663234670,0 seq=2} lock=true stat=PENDING rts=1786700977.663234670,0 gul=1786700978.163234670,0 obs={n1@1786700977.663234670,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 10,
+                    "seconds": 0.0077
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 11,
+                    "seconds": 0.002
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0241,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0019
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          },
+          {
+            "round": 12,
+            "seconds": 0.027,
+            "rendezvous_broken": false,
+            "callers": {
+              "A": {
+                "outcome": "committed",
+                "read_key": 1,
+                "write_key": 2,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 11,
+                    "seconds": 0.0021
+                  }
+                ],
+                "attempt_count": 1,
+                "recorded_40001": 0,
+                "seconds": 0.0114,
+                "spy_retries": [],
+                "spy_retried": false,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 0,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 0
+              },
+              "B": {
+                "outcome": "committed",
+                "read_key": 2,
+                "write_key": 1,
+                "attempts": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "restart_reason": "RETRY_SERIALIZABLE",
+                    "message_verbatim": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=8edd00d3 key=/Table/57501/1/1/0 iso=Serializable pri=0.04454916 epo=0 ts=1786700977.688496712,1 min=1786700977.688396982,0 seq=2} lock=true stat=PENDING rts=1786700977.688396982,0 gul=1786700978.188396982,0 obs={n1@1786700977.688396982,0} HINT: See: https://www.cockroachlabs.com/docs/v",
+                    "raised_at": "commit",
+                    "read": 11,
+                    "seconds": 0.0079
+                  },
+                  {
+                    "attempt": 1,
+                    "sqlstate": "00000",
+                    "restart_reason": null,
+                    "message_verbatim": null,
+                    "raised_at": null,
+                    "read": 12,
+                    "seconds": 0.0023
+                  }
+                ],
+                "attempt_count": 2,
+                "recorded_40001": 1,
+                "seconds": 0.0256,
+                "spy_retries": [
+                  {
+                    "attempt": 0,
+                    "sqlstate": "40001",
+                    "delay_s": 0.0033
+                  }
+                ],
+                "spy_retried": true,
+                "spy_refusals": [],
+                "spy_attempts_for_40001": 1,
+                "record_agrees_with_spy": true,
+                "commit_attempt": 1
+              }
+            }
+          }
+        ]
+      },
+      "census_constructed": {
+        "rounds": 12,
+        "callers": 24,
+        "sqlstates": {
+          "00000": 24,
+          "40001": 12
+        },
+        "restart_reasons_for_40001": {
+          "RETRY_SERIALIZABLE": 12
+        },
+        "where_the_40001_surfaced": {
+          "commit": 12
+        },
+        "rounds_with_40001": 12,
+        "rounds_where_both_callers_committed": 12,
+        "callers_run_gate_actually_retried": 12,
+        "callers_undecided_retry_budget_exhausted": 0,
+        "callers_where_record_and_spy_disagree": 0,
+        "attempt_latency_seconds": {
+          "n": 36,
+          "min": 0.002,
+          "median": 0.0024,
+          "max": 0.0121
+        }
+      },
+      "arm_gate_run": {
+        "database": "w_w1_demo",
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "database_provenance": "a local demo world this worker built for the comparison, so that both columns run the SAME code against the SAME shape. Reproduce it with:\n  python -m scripts.deploy.cloud_chain --dsn <local> --database w_w1_demo --recreate\n  python -m scripts.deploy.seed_demo  --dsn <local> --database w_w1_demo\nMeasured on this workstation: 271/271 migrations in 123.4 s, then both seed files in 0.56 s, verdict SEEDED AND REFUSABLE.",
+        "rounds": [
+          {
+            "round": 1,
+            "seconds": 1.8346,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.26,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.8338,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 2,
+            "seconds": 1.8978,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.319,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.8968,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 3,
+            "seconds": 1.7902,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.2126,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.7892,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 4,
+            "seconds": 1.8369,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.2227,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.8361,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 5,
+            "seconds": 2.0722,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.488,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 2.0713,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 6,
+            "seconds": 2.0714,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.4579,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 2.0704,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 7,
+            "seconds": 1.7847,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.2025,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.7838,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 8,
+            "seconds": 1.8707,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.2909,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.87,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 9,
+            "seconds": 1.8014,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.2313,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.8005,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 10,
+            "seconds": 1.9943,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.2027,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.9932,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 11,
+            "seconds": 2.0306,
+            "rendezvous_broken": false,
+            "callers": {
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.4448,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 2.0296,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          },
+          {
+            "round": 12,
+            "seconds": 1.7915,
+            "rendezvous_broken": false,
+            "callers": {
+              "c1": {
+                "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.1881,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              },
+              "c2": {
+                "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+                "status": 200,
+                "seconds": 1.7907,
+                "verdict": "PROVEN",
+                "persisted": false,
+                "outcome": "completed",
+                "persistence_identical": true,
+                "self_persisted": false,
+                "concurrent_writes": null,
+                "failures": [],
+                "beats": [
+                  {
+                    "ordinal": 1,
+                    "name": "read",
+                    "sqlstate": "00000"
+                  },
+                  {
+                    "ordinal": 2,
+                    "name": "merge",
+                    "sqlstate": "23514"
+                  },
+                  {
+                    "ordinal": 3,
+                    "name": "projection_drift_attack",
+                    "sqlstate": "P0001"
+                  },
+                  {
+                    "ordinal": 4,
+                    "name": "admit",
+                    "sqlstate": "00000"
+                  }
+                ],
+                "undecided_40001": false
+              }
+            }
+          }
+        ],
+        "database_selection": {
+          "requested": "w_w1_demo",
+          "confirmed_by_server": "w_w1_demo",
+          "matches": true,
+          "dsn_path_segment": "defaultdb",
+          "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+        },
+        "row_counts_before": {
+          "mainline.permit": 1,
+          "mainline.permit_event": 2,
+          "mainline.merge_record": 0,
+          "mainline.disposition": 0,
+          "mainline.ledger_intake": 5,
+          "mainline.refusal_ledger": 0,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline_ops.outbox": 2
+        },
+        "containers": [
+          {
+            "index": 1,
+            "base": "http://127.0.0.1:64962",
+            "process": "scripts/deploy/local_furl.py"
+          },
+          {
+            "index": 2,
+            "base": "http://127.0.0.1:64963",
+            "process": "scripts/deploy/local_furl.py"
+          }
+        ],
+        "warmup": [
+          {
+            "index": 1,
+            "url": "http://127.0.0.1:64962/v1/demo/gate-run",
+            "status": 200,
+            "seconds": 1.1805,
+            "verdict": "PROVEN",
+            "persisted": false,
+            "outcome": "completed",
+            "persistence_identical": true,
+            "self_persisted": false,
+            "concurrent_writes": null,
+            "failures": [],
+            "beats": [
+              {
+                "ordinal": 1,
+                "name": "read",
+                "sqlstate": "00000"
+              },
+              {
+                "ordinal": 2,
+                "name": "merge",
+                "sqlstate": "23514"
+              },
+              {
+                "ordinal": 3,
+                "name": "projection_drift_attack",
+                "sqlstate": "P0001"
+              },
+              {
+                "ordinal": 4,
+                "name": "admit",
+                "sqlstate": "00000"
+              }
+            ],
+            "undecided_40001": false
+          },
+          {
+            "index": 2,
+            "url": "http://127.0.0.1:64963/v1/demo/gate-run",
+            "status": 200,
+            "seconds": 1.2887,
+            "verdict": "PROVEN",
+            "persisted": false,
+            "outcome": "completed",
+            "persistence_identical": true,
+            "self_persisted": false,
+            "concurrent_writes": null,
+            "failures": [],
+            "beats": [
+              {
+                "ordinal": 1,
+                "name": "read",
+                "sqlstate": "00000"
+              },
+              {
+                "ordinal": 2,
+                "name": "merge",
+                "sqlstate": "23514"
+              },
+              {
+                "ordinal": 3,
+                "name": "projection_drift_attack",
+                "sqlstate": "P0001"
+              },
+              {
+                "ordinal": 4,
+                "name": "admit",
+                "sqlstate": "00000"
+              }
+            ],
+            "undecided_40001": false
+          }
+        ],
+        "row_counts_after": {
+          "mainline.permit": 1,
+          "mainline.permit_event": 2,
+          "mainline.merge_record": 0,
+          "mainline.disposition": 0,
+          "mainline.ledger_intake": 5,
+          "mainline.refusal_ledger": 0,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline_ops.outbox": 2
+        },
+        "row_counts_moved": {},
+        "nothing_persisted": true
+      },
+      "census_gate_run": {
+        "rounds": 12,
+        "requests": 24,
+        "http_statuses": {
+          "200": 24
+        },
+        "verdicts": {
+          "PROVEN": 24
+        },
+        "rounds_where_both_were_proven": 12,
+        "rounds_with_at_least_one_not_proven": 0,
+        "persistence_check_identical_true": 24,
+        "persistence_check_identical_false": 0,
+        "requests_claiming_self_persisted": 0,
+        "requests_that_saw_a_concurrent_write": 0,
+        "requests_that_saw_a_foreign_write_and_did_not_blame_themselves": 0,
+        "requests_undecided_40001": 0,
+        "request_latency_seconds": {
+          "n": 24,
+          "min": 1.1881,
+          "median": 1.6359,
+          "max": 2.0713
+        },
+        "nothing_persisted": true,
+        "row_counts_moved": {}
+      }
+    }
+  ],
+  "comparison": {
+    "arms": {
+      "constructed": {
+        "cloud": {
+          "rounds": 12,
+          "callers": 24,
+          "sqlstates": {
+            "00000": 24,
+            "40001": 12
+          },
+          "restart_reasons_for_40001": {
+            "RETRY_SERIALIZABLE": 12
+          },
+          "where_the_40001_surfaced": {
+            "commit": 12
+          },
+          "rounds_with_40001": 12,
+          "rounds_where_both_callers_committed": 12,
+          "callers_run_gate_actually_retried": 12,
+          "callers_undecided_retry_budget_exhausted": 0,
+          "callers_where_record_and_spy_disagree": 0,
+          "attempt_latency_seconds": {
+            "n": 36,
+            "min": 0.4448,
+            "median": 0.4519,
+            "max": 0.7351
+          }
+        },
+        "local": {
+          "rounds": 12,
+          "callers": 24,
+          "sqlstates": {
+            "00000": 24,
+            "40001": 12
+          },
+          "restart_reasons_for_40001": {
+            "RETRY_SERIALIZABLE": 12
+          },
+          "where_the_40001_surfaced": {
+            "commit": 12
+          },
+          "rounds_with_40001": 12,
+          "rounds_where_both_callers_committed": 12,
+          "callers_run_gate_actually_retried": 12,
+          "callers_undecided_retry_budget_exhausted": 0,
+          "callers_where_record_and_spy_disagree": 0,
+          "attempt_latency_seconds": {
+            "n": 36,
+            "min": 0.002,
+            "median": 0.0024,
+            "max": 0.0121
+          }
+        }
+      },
+      "gate-run": {
+        "cloud": {
+          "rounds": 12,
+          "requests": 24,
+          "http_statuses": {
+            "200": 24
+          },
+          "verdicts": {
+            "PROVEN": 24
+          },
+          "rounds_where_both_were_proven": 12,
+          "rounds_with_at_least_one_not_proven": 0,
+          "persistence_check_identical_true": 24,
+          "persistence_check_identical_false": 0,
+          "requests_claiming_self_persisted": 0,
+          "requests_that_saw_a_concurrent_write": 0,
+          "requests_that_saw_a_foreign_write_and_did_not_blame_themselves": 0,
+          "requests_undecided_40001": 0,
+          "request_latency_seconds": {
+            "n": 24,
+            "min": 17.3774,
+            "median": 17.8403,
+            "max": 18.2906
+          },
+          "nothing_persisted": true,
+          "row_counts_moved": {}
+        },
+        "local": {
+          "rounds": 12,
+          "requests": 24,
+          "http_statuses": {
+            "200": 24
+          },
+          "verdicts": {
+            "PROVEN": 24
+          },
+          "rounds_where_both_were_proven": 12,
+          "rounds_with_at_least_one_not_proven": 0,
+          "persistence_check_identical_true": 24,
+          "persistence_check_identical_false": 0,
+          "requests_claiming_self_persisted": 0,
+          "requests_that_saw_a_concurrent_write": 0,
+          "requests_that_saw_a_foreign_write_and_did_not_blame_themselves": 0,
+          "requests_undecided_40001": 0,
+          "request_latency_seconds": {
+            "n": 24,
+            "min": 1.1881,
+            "median": 1.6359,
+            "max": 2.0713
+          },
+          "nothing_persisted": true,
+          "row_counts_moved": {}
+        }
+      }
+    },
+    "how_to_read_this": "Cloud is authoritative for what the DEMO will meet; local is authoritative for what a stranger can reproduce. Neither column is edited to match the other and neither is deleted when it disagrees (docs/leads/cloud-hardening-final.md R4).",
+    "what_a_zero_would_not_license": "If a column shows zero 40001, that is a fact about how contended THAT run was. It is not evidence that the retry guards are unnecessary \u2014 docs/deploy/CLOUD-40001.md \u00a77 fixes that reading in advance, and this program does not get to revise it after seeing its own numbers."
+  },
+  "total_seconds": 364.0,
+  "failures": [],
+  "verdict": "CENSUS TAKEN"
+}

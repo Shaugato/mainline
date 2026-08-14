@@ -19,6 +19,49 @@ terminal is right and this page is stale.
 Numbers carry a `[src: …]` reference in the style of [`docs/HONESTY.md`](../HONESTY.md).
 Digits inside `code spans` are names, not measurements.
 
+> ## ⚠ RE-DERIVED 2026-08-14 · THE COUNTS BELOW ARE FROM 2026-08-10 AND THE TREE HAS MOVED
+>
+> Every command in §§1, 3 and 4 was re-run on **2026-08-14** against `HEAD =
+> `d098721fd70a3ea0833150f2af43e911ee4984de`. **The commands still produce the answers this
+> page's arguments depend on. Four of its counts are stale, and two of its sentences are now
+> false.** They are corrected in place, beside the 2026-08-10 reading, rather than overwritten
+> — the older reading is a dated record and re-typing it would falsify history.
+>
+> | what | 2026-08-10 | **2026-08-14** | does the argument survive? |
+> |---|---:|---:|---|
+> | commits on `HEAD` | 16 | **86** | yes — all 86 inside the window |
+> | distinct author identities | 1 | **2** | **the sentence "one author and one committer" is now FALSE** — §1 |
+> | commits carrying `Co-Authored-By` | 0 | **67** | **the "one honest gap" has closed** — §3 |
+> | manifests (`pyproject.toml` + `package.json`) | 32 | **33** | yes |
+> | first-party distributions | 30 | **31** | yes |
+> | Python development dependencies | 9 | **10** | yes |
+> | tracked files under `research/` | 0 | **0** | yes — the gate that matters is unmoved |
+>
+> **And the census artefacts are stale, which the census itself refuses to be quiet about:**
+>
+> ```
+> $ .venv/Scripts/python.exe scripts/submission/provenance_census.py --check
+> ...
+> window verdict    ALL INSIDE
+> DRIFT  evidence/provenance/commit-window.json — differs (12934 bytes on disk, 56903 generated)
+> DRIFT  evidence/provenance/third-party.json — differs (26962 bytes on disk, 27797 generated)
+> CHECK FAILED — regenerate with: python scripts/submission/provenance_census.py
+> $ echo $?
+> 1
+> ```
+>
+> **`--check` is RED.** The committed JSON is anchored to `bb21962` and `HEAD` is seventy
+> commits later, exactly as §7's third bullet predicted it would be. Regenerating those two
+> artefacts is one command and it is **owed**; it was not run in this revision because a
+> documents wave does not write into `evidence/`. Until it is run, **every `[src: evidence/
+> provenance/…]` reference on this page points at the 2026-08-10 snapshot**, and the live
+> answer is the command, not the file.
+>
+> The one thing `--check` does *not* say is that anything is wrong with the claim. It prints
+> `window verdict ALL INSIDE` over all 86 commits before it reports the drift, and
+> `check_submission_ready.py` agrees independently: `provenance disclosure … 86 commits, all
+> inside the window` — **PASS**.
+
 ---
 
 ## 0 · The one command
@@ -97,7 +140,7 @@ $ echo $?
 
 ### Who wrote it
 
-One author and one committer, on all 16 commits
+**As measured on 2026-08-10** — one author and one committer, on all 16 commits
 [src: evidence/provenance/commit-window.json#identity_census.distinct_authors]:
 
 | name | email | commits |
@@ -111,10 +154,37 @@ $ git log --format='%cn <%ce>' | sort | uniq -c
      16 Shaugato Paroi <shaugato2003@gmail.com>
 ```
 
-Author and committer are identical on every commit
-[src: evidence/provenance/commit-window.json#identity_census.author_equals_committer_on_every_commit],
-so no commit was applied on somebody else's behalf and no history was rewritten under a
-second identity. There is no second contributor to disclose.
+> **CORRECTED 2026-08-14. "One author and one committer" is no longer true, and the correction
+> is smaller than the sentence makes it sound.** There are now **two identity strings behind
+> one email address**:
+>
+> ```console
+> $ git log --format='%an <%ae>' | sort | uniq -c
+>      79 Shaugato Paroi <shaugato2003@gmail.com>
+>       7 MAINLINE certification <shaugato2003@gmail.com>
+> $ git log --format='%cn <%ce>' | sort | uniq -c
+>      79 Shaugato Paroi <shaugato2003@gmail.com>
+>       7 MAINLINE certification <shaugato2003@gmail.com>
+> ```
+>
+> **One human, one mailbox, two `user.name` values** — seven commits were made with the git
+> identity set to `MAINLINE certification`, which is a label rather than a person. There is
+> still **no second contributor to disclose**: the email is identical on all 86 commits, and
+> nobody else's work is in this repository.
+>
+> The structural claim the section actually rests on is unchanged and was re-checked directly
+> rather than read off the stale artefact — **author and committer are identical on every one
+> of the 86 commits**, `0` mismatches, so no commit was applied on somebody else's behalf and
+> no history was rewritten under a second identity:
+>
+> ```console
+> $ git log --format='%an|%ae|%cn|%ce' | awk -F'|' '$1!=$3 || $2!=$4' | wc -l
+> 0
+> ```
+>
+> `docs/submission/PUBLIC-READINESS.md` §0.2 records the same two strings from the other
+> direction, over the *published* refs, and has done since 2026-08-12. This page had not
+> caught up.
 
 ---
 
@@ -222,6 +292,23 @@ That was not a decision; it was an omission, and it is disclosed rather than bac
 trailer added today to 16 commits written over five days would be a tidier record and a
 less true one.
 
+> **CLOSED, 2026-08-14 — and closed the right way, forwards.** The gap above is a true record
+> of the first 16 commits and stays. From roughly the second wave onward the trailer has been
+> present:
+>
+> ```console
+> $ git log --format='%b' | grep -c 'Co-Authored-By:'
+> 67
+> $ git log --format='%b' | grep '^Co-Authored-By:' | sort -u
+> Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+> ```
+>
+> **67 of 86 commits** now carry a machine-readable AI-authorship trailer, and there is
+> exactly **one** distinct co-author string. The remaining 19 are the early ones this
+> paragraph describes, and **they were not backfilled** — which is the same decision, held.
+> A repository that fixed its history to match its disclosure would have destroyed the thing
+> the disclosure was about.
+
 **What AI assistance does not change.** Every claim this repository makes is checked by a
 program that a stranger can run, and the checks were the point of the exercise rather than
 a garnish on it. `python scripts/proof/gate_refusal.py` either prints `PROVEN` on your
@@ -247,6 +334,21 @@ declaring 30 [src: evidence/provenance/third-party.json#first_party_distribution
 first-party distributions of our own. First-party is *computed*, not asserted: a
 requirement naming any `project.name` found in the tree is ours, everything else is
 somebody else's.
+
+> **RE-DERIVED 2026-08-14: 32 `pyproject.toml` + 1 `package.json` = 33 manifests, declaring
+> 31 first-party distributions.** One package was added since 2026-08-10. The live census
+> line reads:
+>
+> ```
+> manifests         32 pyproject.toml, 1 package.json
+> first-party dists 31
+> third-party       python runtime 17, python dev 10, npm runtime 6, npm dev 22
+> ```
+>
+> **Python development dependencies are 10, not 9.** The runtime figure (17) and both npm
+> figures (6 and 22) are unchanged, so the tables below are current except for the
+> development count. The `[src: …]` pointers in this paragraph resolve into the **stale**
+> committed artefact — see the box at the head of this page.
 
 ### Python
 
@@ -349,6 +451,48 @@ foreign-licence-file list at
 [src: evidence/provenance/third-party.json#vendored_scan.foreign_licence_files] is empty,
 and `bundles_third_party_code` is therefore `false`
 [src: evidence/provenance/third-party.json#vendored_scan.bundles_third_party_code].
+
+> **⚠ RE-RUN 2026-08-14: the LIVE scan now says `bundles_third_party_code: true`, and it is a
+> FALSE POSITIVE caused by a filename in this very directory.** This is disclosed rather than
+> fixed, because fixing it means changing something and the honest options are not this
+> document's to take.
+>
+> `third_party_directory_count` is still **0** and `vendored_directories` still holds exactly
+> the one internal copy above. What flipped the flag is the *foreign licence file* list, which
+> now holds one entry:
+>
+> ```json
+> "foreign_licence_files": [
+>   { "path": "docs/submission/LICENCE-CENSUS.md",
+>     "copyright": "2026 MAINLINE contributors",
+>     "licence": "CC-BY-4.0" }
+> ]
+> ```
+>
+> **`docs/submission/LICENCE-CENSUS.md` is ours.** `provenance_census.py:120` matches
+> licence-shaped filenames with `^(LICEN[CS]E|COPYING|COPYRIGHT|NOTICE)([._-][A-Za-z0-9._+-]+)?$`,
+> which `LICENCE-CENSUS.md` satisfies as `LICENCE` + `-CENSUS.md`. The scanner then *reads* the
+> SPDX holder at line 832 — and never tests it — before appending the file to
+> `foreign_licence_files` at line 833. The holder it read is `2026 MAINLINE contributors`.
+> `bundles_third_party_code` is `bool(foreign_licence_files)`, so one of our own documents
+> makes the repository report that it bundles somebody else's code.
+>
+> **Three ways to make it green, and only one of them is honest.**
+>
+> * ❌ **Rename `LICENCE-CENSUS.md`.** Moving a document so a scanner stops matching it is
+>   moving the derived side to satisfy the deriving side. The file's name is correct for what
+>   it holds.
+> * ❌ **Add the path to `OWN_LICENCE_PATHS`.** That is a one-path exemption, and a one-path
+>   exemption is how a scanner learns to be quiet about the next file too.
+> * ✅ **Test the holder the scanner already read.** `_spdx_of` returns it two lines above;
+>   a file whose SPDX copyright names this project is by definition not a foreign licence
+>   file. That is a change to `scripts/submission/provenance_census.py`, which this document
+>   does not own. **Raised as a cross-domain finding, with the line numbers.**
+>
+> Until it is taken, the honest reading is: **the committed artefact says `false`, the live
+> scan says `true`, and the live scan is wrong for a reason that is written down.** The root
+> `NOTICE`'s sentence — *"MAINLINE bundles no third-party code at this time"* — remains true,
+> and §4's own list of what is depended on is the statement about the dependency closure.
 
 The self-test proves that scan can go red: it plants a `libs/third_party/zlib/` tree
 carrying somebody else's copyright and a bare `LICENSE`, and requires the scanner to

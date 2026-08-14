@@ -20,6 +20,79 @@ read-only AWS calls only.
 Every row below is a command I ran today on this workstation, not a figure inherited from
 `docs/deploy/COST-BOUND.md` or from a board.
 
+> **ANNOTATED 2026-08-14 by W6 (ci-green) — WHICH ARTEFACT M1–M7 WERE MEASURED FROM, AND
+> WHEN; AND THE FINDING THAT IT DESCRIBES A BUILD NO COMMIT REPRODUCES.**
+>
+> **Artefact:** [`evidence/deploy/cost/package-shape.json`](../../evidence/deploy/cost/package-shape.json),
+> `architectures[]` where `architecture == "arm64"`. **Measured on** the project Windows
+> workstation, CPython 3.13.14, zlib 1.3.1, **at HEAD `2dc5c86`** — which is *not* the HEAD
+> this plan is being read at. Rows **M1, M2, M3 and M4** describe the packer's **INPUT** tree
+> (`architectures[].before.web`), pre-strip; **M5, M6 and M7** describe the **DEPLOYED**
+> package (`…after.web`). Every row already names its side; what was missing until today is
+> the artefact's own date and head, and a figure whose provenance is unstated cannot be
+> checked for staleness — which is precisely what had happened here.
+>
+> **The finding.** W1 of the ci-green wave (commit `f68abb7`) proved under Ruling R1 that the
+> console build **is** deterministic — `git archive HEAD`, `pnpm install --frozen-lockfile`
+> (pnpm 11.5.3), `pnpm exec vite build --mode demo` with `MAINLINE_BUILD_ID` and
+> `MAINLINE_ATTESTATION` unset reproduces the CI lane's build byte for byte — and that the
+> tree `package-shape.json` records matches **no commit in this repository**, by name or by
+> size. It came from a `console/dist` dated 2026-08-10 21:04.
+>
+> | row | **stated below**, from the artefact @ `2dc5c86` | the reproducible build @ HEAD |
+> |---|---:|---:|
+> | **M1** — INPUT `web/` tree | **75 files, 3,571,990 B** | 75 files, **3,566,324 B** |
+> | **M2** — …of which source maps | **18 files, 2,586,960 B** (72.42 %) | 18 files, **2,581,018 B** (**72.37 %**) |
+> | **M3** — …non-map | **57 files, 985,030 B** | 57 files, **985,306 B** |
+> | **M4** — INPUT tree's largest object | **1,554,168 B** `index-BjAGxrVJ.js.map` | **1,551,887 B** `index-DzVoV1YM.js.map` — **re-derived 2026-08-14 by W5**, see below |
+> | **M5** — largest non-map object | **433,396 B** `index-BjAGxrVJ.js` | **433,564 B** `index-DzVoV1YM.js` |
+> | **M6** — gzip −9 of the non-map tree | **289,312 B** | **289,437 B** |
+> | **M7** — largest gzipped object | **124,127 B** | **124,177 B** |
+>
+> **No digit in the table below was retyped**, and `docs/deploy/COST-BOUND.md` **§0.3** is the
+> full record of why: `tests/deploy/test_docs_are_true.py` *reads* these figures out of
+> `package-shape.json` rather than typing them, so the artefact is the authority and this plan
+> is derived. Moving the derived side to match a measurement the authoritative side has not
+> recorded is the motion this repository's standing rule forbids. **The action that closes it
+> is to regenerate `package-shape.json` from the reproducible build and re-read these rows
+> from it** — `evidence/deploy/cost/` is not W6's to write, and this is reported to the lead
+> as the open action.
+>
+> **M8 and M11 are separately historical and were already false when this annotation was
+> written:** M8's ceiling is now `DEFAULT_MAX_RESPONSE_BYTES = 136 * 1024 = 139,264` and it
+> **refuses** the largest identity object rather than 0 of 75; M11's `var.alarm_actions` is no
+> longer the constant `[]` — `module "guard"` is instantiated at `infra/envs/demo/main.tf:631`
+> and the plan moved 11 → 24. Both corrections are carried in `COST-BOUND.md` §3.3 and §0.2.
+>
+> ---
+>
+> > **M4 CLOSED, AND M12 SUPERSEDED — 2026-08-14, W5 (plan-truth), at HEAD `d098721`.**
+> >
+> > **M4 was the one row above with no right-hand value**, and it is the row M1–M3 could not
+> > substitute for: it is the single object §2.2's **$33,251.87** is priced from. It has now
+> > been measured. Walking the packer's input tree as `build_lambda.sh` composes it —
+> > `console/dist/` at `web/` plus `…/fixtures/bundles/demo-cloud` at `web/bundle/` — returns
+> > **75 entries / 3,566,324 B / 18 maps / 2,581,018 B**, reproducing M1–M3's right-hand
+> > column **to the byte**, and a largest object of **1,551,887 B**
+> > `web/assets/index-DzVoV1YM.js.map`. **Δ = −2,281 B, or −0.147 %.** Because the same walk
+> > reproduced three already-confirmed aggregates exactly, the new figure is a re-derivation
+> > rather than a fourth opinion.
+> >
+> > **The cells below are still NOT retyped, for exactly the reason stated above.**
+> > `package-shape.json` remains the authority and `evidence/deploy/cost/` is no more W5's to
+> > write than it was W6's. What has changed is that **the open action is now fully specified**
+> > — every figure the regeneration must carry is written down, and no row is left for somebody
+> > to go and measure first.
+> >
+> > **M12 is superseded and is not overwritten.** It reads `Plan: 11 to add`. Re-measured today
+> > through `scripts/deploy/plan_repro.sh` (exit **0**), the shipping shape is
+> > **`Plan: 24 to add, 0 to change, 0 to destroy.`** and the CloudFront shape is
+> > **`Plan: 35 to add`**. `11 + 13 = 24` and `22 + 13 = 35` — **the same thirteen guard
+> > resources in both**, which is what makes the two old numbers worth keeping: each one is the
+> > non-guard part of a shape measured today, so the pair is a check on the delta rather than a
+> > pair of stale digits. `docs/deploy/terraform-plan.md` carries both counts with the date, the
+> > command and the exit code.
+
 | # | Measurement | Value | How |
 |---|---|---|---|
 | M1 | ~~Served tree in the deployed package~~ **Served tree in what is now the packer's INPUT tree** | **75 files, 3,571,990 B** under `web/` | ~~`zipfile` over `out/lambda/mainline-demo-api-arm64.zip`~~ → `evidence/deploy/cost/package-shape.json` `architectures[].before.web` |
@@ -78,6 +151,31 @@ Every row below is a command I ran today on this workstation, not a figure inher
 > statements of all three are in `docs/deploy/COST-BOUND.md` §0.2 and §5.1, which is where a
 > reader should take a current number from. **Nothing in this dated table should be quoted as
 > current.**
+>
+> ---
+>
+> **THE ENUMERATION ABOVE WAS INCOMPLETE, AND THE OMISSION IS THE SAME DEFECT ONE LEVEL UP.**
+> Added 2026-08-14 in the re-verification pass. The block above enumerated M1–M8, M11 and M12
+> and stopped, which reads as *"everything else in this table is still true."* **Two more rows
+> are false against this tree, and they are the two that record an absence** — the hardest
+> kind of row to notice going stale, because nothing about them changes on the page when the
+> thing they say is missing gets built. **No digit and no cell in the table is retyped; this
+> is the same superseded-by-date treatment M8/M11/M12 get, extended to the rows it skipped.**
+>
+> | Row | What it recorded on 2026-08-13 | What this tree says today | Read from |
+> |---|---|---|---|
+> | **M9** | *"Compression in the handler: **none.** No `gzip`, no `Content-Encoding`, no `accept-encoding` anywhere"* | **False.** `static_site.py` declares `GZIP_CODING` (`:318`) and `VARY_ACCEPT_ENCODING` (`:323`), selects a `<name>.gz` sibling in `_sibling()` (`:526`) when `Accept-Encoding` permits it, and sets `content-encoding: gzip` (`:857`). This is W3's content negotiation, which this very plan commissioned | `static_site.py`, read |
+> | **M10** | *"Budget resources in `infra/`: **zero.** … two prose comments and no resource"* | **False.** `resource "aws_budgets_budget" "guard"` is declared at `infra/modules/cost-guard/main.tf:553` and is one of the **13** `module.guard[0].*` resources the shipping plan creates | `infra/modules/cost-guard/main.tf`; `evidence/deploy/terraform-plan-furl.txt:843` |
+>
+> **M13–M17 were re-checked in the same pass and none of them is stale.** M13 (`v1.14.8`)
+> still matches `docs/deploy/terraform-plan.md` §1; M17's `testpaths` line is still in
+> `pyproject.toml`. **M14 and M15 need the same tree named that M1–M7 do**: their
+> *"largest map"* and *"(map)"* columns time `static_site.serve` over
+> `index-BjAGxrVJ.js.map`, which is an object of the packer's **input** tree and is not in the
+> deployed package. The timings are true measurements of that tree; they are not durations of
+> anything the shipping origin emits, and `docs/deploy/LATENCY.md` §0.1 records the same
+> distinction for the same object. M16 timed request-time gzip of the 433,396 B asset — that
+> object is in **both** trees, so M16 needs no tree named.
 
 ### 0.1 · The one number the existing model never measured, and it is the load-bearing one
 

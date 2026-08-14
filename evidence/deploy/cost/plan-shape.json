@@ -3,22 +3,58 @@
   "generated_from": {
     "plan_txt": {
       "path": "evidence/deploy/terraform-plan-furl.txt",
-      "bytes": 44743,
-      "lines": 936,
-      "sha256": "0517a05de8519e3411c39eadcbab8e9449b4eacbdc55cc50daa9a45231fc7f69"
+      "bytes": 44742,
+      "lines": 934,
+      "sha256": "c096bfed3a7e469e01078c2321be0606e4ec5027e23526ddcfe6faddd1e7bd57"
     },
     "plan_json": {
       "path": "evidence/deploy/terraform-plan-furl.json",
       "bytes": 336459,
-      "sha256": "a376623df9b96031b0a6e16db8d2400744732977afa3c473da3127236f50a587"
+      "sha256": "5436f266b34a556bc43b01624c38ccae015d086df406da01999cbd3e2ec801fe"
     },
     "terraform_version": "1.14.8",
     "format_version": "1.2",
-    "plan_timestamp": "2026-08-13T15:57:11Z",
+    "plan_timestamp": "2026-08-14T10:35:40Z",
     "applyable": true,
     "errored": false,
-    "command": "cd infra/envs/demo && AWS_PROFILE=mainline-dev terraform plan -no-color -input=false -var enable_cloudfront=false -out=tfplan-furl.binary  (then `terraform show -no-color -json`). NO APPLY WAS RUN, and no mutating AWS call of any kind was made in producing this file.",
-    "account_id_masking": "The twelve-digit AWS account id is replaced by <first4>REDACTED<last4> in both artefacts above - 12 occurrences in the .txt, 37 in the .json - which is the repository-wide convention from commit 1d41442. Two properties are asserted over the result and both are re-checkable: zero occurrences of the real twelve digits, and zero occurrences of the all-zero mask. Twelve identical digits is the one mask two checkers read two different ways - one as a redaction, one as a value - and docs/CI-STATE.md's recorded resolution is to REMOVE the digits rather than relax either checker, which is why this sentence describes that mask instead of spelling it."
+    "command": "bash scripts/deploy/plan_repro.sh --json --out-dir <scratch outside the repo>   (the wrapper allowlists init/validate/plan/show/version and REFUSES apply, destroy, import, state, taint, force-unlock and `plan -destroy` by name, before terraform is executed). It runs `terraform init -reconfigure`, `validate`, `plan -var enable_cloudfront=false`, then `plan -out` + `show -json`. Add --cloudfront for the second shape. NO APPLY WAS RUN and no mutating AWS call of any kind was made.",
+    "account_id_masking": "The twelve-digit AWS account id is replaced by <first4>REDACTED<last4> in both artefacts above - 12 occurrences in the .txt, 37 in the .json - which is the repository-wide convention from commit 1d41442. Two properties are asserted over the result and both are re-checkable: zero occurrences of the real twelve digits, and zero occurrences of the all-zero mask. Twelve identical digits is the one mask two checkers read two different ways - one as a redaction, one as a value - and docs/CI-STATE.md's recorded resolution is to REMOVE the digits rather than relax either checker, which is why this sentence describes that mask instead of spelling it.",
+    "regenerated": {
+      "date": "2026-08-14",
+      "by": "W5 (plan-truth), cloud-hardening wave",
+      "repository_head_at_regeneration": "d098721",
+      "path_used": "scripts/deploy/plan_repro.sh -- W4's proven read-only reproduction path, not a second one invented here",
+      "plan_repro_exit_code": 0,
+      "counts_measured": {
+        "enable_cloudfront=false": "Plan: 24 to add, 0 to change, 0 to destroy.",
+        "enable_cloudfront=true": "Plan: 35 to add, 0 to change, 0 to destroy."
+      },
+      "the_only_substantive_line_that_moved_in_either_artefact": {
+        "line": "aws_lambda_function.this  source_code_hash",
+        "was": "Ca9YnPO3PhcIsuMgmkGsPiB42z35FuOYJ7LP6TD0WRQ=",
+        "now": "Evy6etabL/6CQLHsv3Y3RNlEHhIwkQn3+riKxi37zCc=",
+        "why": "out/lambda/mainline-demo-api-arm64.zip was rebuilt from the reproducible console build re-recorded at commit f68abb7. The new value was verified independently: base64(sha256(zip)) over the 7,703,067-byte file equals the hash the plan carries. Terraform evaluates filebase64sha256 at PLAN time, so the package's bytes reach the plan as this one value. It does not change the count.",
+        "everything_else": "Identical below the provider-read preamble, in BOTH shapes. The preamble's own line ORDER differs run to run because Terraform reads data sources concurrently and logs them as they complete; that is log noise, not drift."
+      },
+      "previous_values_here_described_an_artefact_that_was_not_in_the_tree": {
+        "plan_txt_was_recorded_as": {
+          "bytes": 44743,
+          "lines": 936,
+          "sha256": "0517a05de8519e3411c39eadcbab8e9449b4eacbdc55cc50daa9a45231fc7f69"
+        },
+        "but_the_artefact_committed_at_HEAD_measured": {
+          "bytes": 44742,
+          "lines": 934,
+          "sha256": "c6acbdde6a15cec6650c3771a20f2714299988ebd9bf31e8940b50f053959b10"
+        },
+        "finding": "This file's recorded byte count and line count matched NEITHER the artefact committed in the tree nor the one it now describes. It was derived from a still earlier plan and never re-read. The artefact is authoritative and this file is derived, so this file is the side that moved.",
+        "plan_json_was_recorded_as": {
+          "bytes": 336459,
+          "sha256": "a376623df9b96031b0a6e16db8d2400744732977afa3c473da3127236f50a587"
+        },
+        "plan_timestamp_was": "2026-08-13T15:57:11Z"
+      }
+    }
   },
   "plan_shape": {
     "summary_line": "Plan: 24 to add, 0 to change, 0 to destroy.",
@@ -38,7 +74,8 @@
       "enable_cloudfront=true  enable_api=true": "Plan: 35 to add, 0 to change, 0 to destroy.",
       "enable_cloudfront=true  enable_api=false": "Plan: 9 to add, 0 to change, 0 to destroy.",
       "enable_cloudfront=false enable_api=false": "Error: Module output value precondition failed",
-      "$comment": "The two enable_api=true rows each moved by exactly +13. The enable_api=false row did NOT move, because module \"guard\" is count = var.enable_api ? 1 : 0 - a guard scoped to a function that does not exist would be a stop whose alarms never leave INSUFFICIENT_DATA."
+      "$comment": "The two enable_api=true rows each moved by exactly +13. The enable_api=false row did NOT move, because module \"guard\" is count = var.enable_api ? 1 : 0 - a guard scoped to a function that does not exist would be a stop whose alarms never leave INSUFFICIENT_DATA.",
+      "$measured_2026_08_14": "The two enable_api=true rows were RE-MEASURED on 2026-08-14 through scripts/deploy/plan_repro.sh and both reproduced exactly: 24 and 35. The two enable_api=false rows are carried forward from the original sitting and were NOT re-run today; they are not claimed as today's measurements."
     }
   },
   "resources": {
@@ -172,7 +209,7 @@
     "objects_total": 85,
     "previous_committed_total": 44,
     "status_counts": {
-      "pass": 85
+      "pass": 71
     },
     "kind_counts": {
       "resource": 10,
@@ -212,6 +249,17 @@
     "new_this_wave": {
       "module.api.aws_cloudwatch_metric_alarm.duration_p99": "gains a SECOND, UNCONDITIONAL precondition - a FLOOR: duration_p99_threshold_ms must be strictly ABOVE modelled_worst_legitimate_duration_ms (13022 ms, docs/deploy/LATENCY.md 5.1's binding case: a cold start at 256 MB with a 2x worse tail). Terraform groups a resource's conditions under one check object, so this adds no object - the pass is visible as the object still passing with the threshold raised from 12000 to 13500. It is FALSIFIED, not asserted: see falsification below.",
       "module.guard.*": "four resource preconditions appear for the first time: reachability on each of the three cost alarms, and the three-timescale property on invocations_hourly (threshold < burst x 60)."
+    },
+    "instances_total": 71,
+    "status_counts_correction": {
+      "was": {
+        "pass": 85
+      },
+      "now": {
+        "pass": 71
+      },
+      "why": "This file's own zero_instance_note says a zero-instance check object is 'listed separately rather than folded into the pass count, because \"nothing was checked\" is not \"the check passed\"'. The status_counts it published folded all 14 of them in anyway: 85 objects were reported as 85 passes while only 71 check INSTANCES exist to evaluate. The note was right and the number was wrong, so the number moved. objects_total stays 85; instances_total is 71.",
+      "this_is_a_count_corrected_DOWNWARD": "No floor was lowered and no ceiling raised. An inflated pass count is a vacuous green: it credited 14 conditions that were never evaluated. Correcting it removes the credit rather than granting one."
     }
   },
   "stop_path": {
@@ -535,6 +583,41 @@
       "band_width_ratio": 1.0751,
       "why_the_floor_exists": "The alarm now has an ACTION. Below the floor a COLD START - a judge's first click, not abuse and not an incident - would stop the demo until a human runs scripts/deploy/kill_switch.sh --restore.",
       "why_the_floor_is_unconditional": "It was FIRST WRITTEN conditional - `length(var.alarm_actions) == 0 || <the comparison>` - on the reasoning that an alarm which only REPORTS has no reason to carry a floor. THAT VERSION DID NOT FIRE, and it was caught by planting the violation rather than by reading the code. infra/envs/demo reaches the stop topic through try([module.guard[0].sns_topic_arn], []); try() returns a WHOLLY UNKNOWN value when its argument contains an unknown; so length(var.alarm_actions) is unknown at plan time, the whole || is unknown, and Terraform DEFERS an unknown precondition to apply instead of failing the plan. The plan says so in the open - all four demo-api alarms show alarm_actions = (known after apply). A precondition that cannot be evaluated at plan time is a control that looks present and is not, which is the exact defect this wave exists to close, so the guard clause was DELETED rather than repaired. The unconditional form reads two plain variables and is strictly TIGHTER than the one it replaces."
+    }
+  },
+  "cloudfront_shape": {
+    "$comment": "The SECOND shape (enable_cloudfront = true). Read out of evidence/deploy/terraform-plan-cloudfront.json, regenerated in the same sitting as the furl shape above.",
+    "artefacts": {
+      "plan_txt": {
+        "path": "evidence/deploy/terraform-plan-cloudfront.txt",
+        "bytes": 59308,
+        "lines": 1314,
+        "sha256": "7e278dfd4d1cc7090c0e335aa391431c0bffb91b9ae23ebee3f6055bfc6cf077"
+      },
+      "plan_json": {
+        "path": "evidence/deploy/terraform-plan-cloudfront.json",
+        "bytes": 366494,
+        "sha256": "a82b3ac9b5a11901b8e37b43df1bae08cae1eb0bc99088db2b54b92a5b9c4be3"
+      },
+      "plan_timestamp": "2026-08-14T10:37:05Z"
+    },
+    "summary_line": "Plan: 35 to add, 0 to change, 0 to destroy.",
+    "to_add": 35,
+    "to_change": 0,
+    "to_destroy": 0,
+    "resource_changes_total": 37,
+    "data_sources_read": 2,
+    "by_module": {
+      "module.api[0]": 12,
+      "module.guard[0]": 13,
+      "module.site[0]": 10
+    },
+    "superseded_count": {
+      "value": 22,
+      "status": "SUPERSEDED, not corrected",
+      "what_22_described": "the enable_cloudfront=true shape BEFORE module \"guard\" was instantiated: module.api[0] 12 + module.site[0] 10 = 22, with no cost-guard at all.",
+      "why_it_is_recorded_rather_than_overwritten": "22 is still the true count of the tree that existed when it was measured, and the arithmetic that carries it forward is itself the evidence: 22 + 13 guard resources = 35, and the regenerated plan says 35. Today's measured breakdown reproduces both halves of that sum independently -- module.api[0] 12 + module.site[0] 10 is exactly the 22, and module.guard[0] 13 is exactly the delta. A count replaced in place would have destroyed that check.",
+      "the_forbidden_alternative": "Changing the configuration so the old count came back. The tree is authoritative and a committed plan artefact is derived from it, so the artefact was regenerated (ruling R7)."
     }
   }
 }

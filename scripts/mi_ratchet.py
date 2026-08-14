@@ -2180,6 +2180,93 @@ def _locate_for_report(
     return objects, load_bands(paths.allocation), None
 
 
+#: The heading the exit-status note opens with. A constant because `db-schema.yml` may
+#: slice the transcript on it, exactly as it already slices on `PENDING_LEDGER_HEADING`.
+EXIT_NOTE_HEADING: Final[str] = "WHY THIS EXIT STATUS IS WHAT IT IS, AND WHY IT IS NOT PYTEST'S"
+
+
+def exit_status_note(
+    collector: OutcomeCollector, targets: Iterable[str], refusals: int
+) -> list[str]:
+    """Say which population produced this exit status. Printed; never consulted.
+
+    THE CONTRADICTION THIS ENDS, measured on GitHub Actions run 31770240275 (`db-schema`,
+    job `mi-red`). The log said `7 failed, 460 passed`, every one of the seven captioned
+    *"PL-2 RED, as intended"* — and then `scripts/mi_ratchet.py red exited 1`, which the
+    workflow's own echo glossed as *"law broken"*. Read together those two sentences say
+    that seven deliberately-red tests broke the law they exist to satisfy, which is false.
+
+    Three DISJOINT populations sit behind those two numbers, and nothing named them:
+
+      1. the node ids that OWN a pending invariant — the only ones the law is evaluated
+         over. A failure here is the red law HOLDING: a pending invariant is *required* to
+         have a failing owning test.
+      2. the tests pytest actually ran. `_gather_outcomes` resolves node ids and then hands
+         pytest their FILES, so every sibling in those files runs too. Measured at HEAD
+         `7535670`: 26 owning node ids, 7 files, 229 tests. Five of run 31770240275's seven
+         failures own NO invariant at all and cannot move this status in either direction.
+      3. the pending invariants whose owning tests ALL PASSED. This, and only this, is what
+         a non-zero status from the pending law means.
+
+    Falsified rather than argued, hermetically, with `--junit` and no cluster: a report
+    recording 26 failures over the owning set exits **0** (`pending law holds`), and the
+    same report with ONE invariant's owning tests flipped to passing exits **1** naming it.
+    Failing tests do not produce this 1; a passing pending invariant does.
+    """
+    owning = set(targets)
+    observed = collector.outcomes
+    owning_bad = sum(1 for nodeid in owning if observed.get(nodeid, MISSING) not in GREEN_OUTCOMES)
+    stranger_bad = sum(
+        1
+        for nodeid, outcome in observed.items()
+        if nodeid not in owning and outcome in {FAILED, ERROR}
+    )
+    verdict = (
+        f"{refusals} pending invariant(s) had ALL owning tests passing"
+        if refusals
+        else "no pending invariant had all its owning tests passing"
+    )
+    return [
+        "",
+        EXIT_NOTE_HEADING,
+        (
+            f"  this status  : {verdict}. That is the ONLY thing a non-zero status from "
+            f"the pending law means."
+        ),
+        (
+            f"  owning set   : {len(owning)} node id(s) own a pending invariant; "
+            f"{owning_bad} of them are not passing, and every one of those is the law "
+            f"HOLDING, not breaking."
+        ),
+        (
+            f"  pytest ran   : {len(observed)} test(s), because the law is evaluated over "
+            f"node ids and pytest is handed their FILES. {stranger_bad} failing test(s) in "
+            f"that run own no pending invariant and cannot move this status."
+        ),
+        (
+            "  pytest's own : consumed above and NEVER relayed. Exiting 1 because tests "
+            "failed is a MEASUREMENT here (see MEASURABLE_PYTEST_EXITS); only 2, 3 and 4 "
+            "mean the colour could not be read, and those return 2, not 1."
+        ),
+        "",
+    ]
+
+
+def print_exit_status_note(
+    collector: OutcomeCollector, targets: Iterable[str], refusals: int, status: str
+) -> None:
+    """Print :func:`exit_status_note`, for the pending law only.
+
+    A function rather than an `if` at the call site: `_law_command` is already at ruff's
+    branch ceiling, and a diagnosis has no business pushing a law's control flow past a
+    limit that exists to keep the law readable.
+    """
+    if status != "pending":
+        return
+    for line in exit_status_note(collector, targets, refusals):
+        print(line)
+
+
 def _law_command(args: argparse.Namespace, status: str) -> int:
     paths = _paths_from_args(args)
     catalogue = load_catalogue(paths.catalogue)
@@ -2229,6 +2316,7 @@ def _law_command(args: argparse.Namespace, status: str) -> int:
             violations.extend(f"{mi_id} is pending and no test witnesses it" for mi_id in silent)
     for violation in violations:
         print(f"REFUSED: {violation}")
+    print_exit_status_note(collector, targets, len(violations), status)
     if violations:
         return EXIT_VIOLATION
     print(f"{status} law holds over {len(targets)} node ids — {summary_line(catalogue)}")

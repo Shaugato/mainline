@@ -65,7 +65,9 @@ import pytest
 from mainline_demo_api import db as db_mod
 from mainline_demo_api import transitions as transitions_mod
 from mainline_demo_api.gate_run import GATE_RUN_SCHEMA_ID
+from mainline_demo_api.gate_run import gate_run as gate_run_fn
 from mainline_demo_api.health import health
+from mainline_demo_api.retry import DEFAULT_POLICY
 from mainline_demo_api.transitions import (
     INVOKE_SCHEMA_ID,
     TRANSITION_RESOURCES,
@@ -880,6 +882,272 @@ def test_materialise_without_a_silence_receipt_is_422_and_fabricates_nothing(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
+# 40001, INDUCED — answered as an UNDECIDED transaction, never as an absent database
+#
+# THE CONFLICT BELOW IS THE DATABASE'S, NOT A DOUBLE'S. Nothing here plants an exception. A
+# SECOND session commits a write to the row the transition has just read, in the window
+# between that read and the transition's own write, and CockroachDB v26.2.5 — SERIALIZABLE
+# by default — aborts the transition with 40001 RETRY_SERIALIZABLE. The monkeypatch decides
+# only WHEN the second session runs; the conflict, the SQLSTATE, the abort and the retry
+# are all the cluster's.
+#
+# "UNTESTABLE WITHOUT A MANAGED CLUSTER" IS FALSE AND MAY NOT BE CLAIMED. `db.py:33` says a
+# single-node local cluster "never produces RETRY_SERIALIZABLE"; this repository has now
+# refuted that three times on 127.0.0.1:26257 — a prior lead raced two connections over two
+# rows and measured 40001 six times out of six; `qa/cluster-known-red.json` records twelve
+# SerializationFailures over six node ids from one deliberately-shared scratch database;
+# and the defect these two tests close was reproduced by the whole suite twice in a row
+# with no contention arranged at all. `crdb_internal` and `system` are RESTRICTED on
+# CockroachDB Cloud's Basic tier, so contention must be INDUCED and the SQLSTATE OBSERVED,
+# which is what these do.
+#
+# WHAT WAS MEASURED HERE BEFORE THE REPAIR, at 7535670, from a whole-suite --junitxml:
+# `test_sign_disposition_then_merge_commits` and `test_suspending_a_merged_permit_commits`
+# both `assert 503 == 200`, body `{'error': 'database_unreachable', 'detail': 'restart
+# transaction: TransactionRetryWithProtoRefreshError…'}`. The node id moved between runs;
+# the shape never did. These two tests are the shape, held still.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class _ConflictingWriter:
+    """A second session that commits a write to one permit row, on cue and up to *budget*.
+
+    ``horizon_at`` is the column, deliberately: it is on the row every transition reads for
+    its ``gate_epoch``/``head_seq``/``state`` anchor, and it is read by no assertion in this
+    file, so the conflict lands on the key that matters without changing a value any test
+    is about. The write commits — ``autocommit=True`` — because an UNCOMMITTED write would
+    make the transition BLOCK on an intent rather than meet a serialization failure, and a
+    test that hangs is not a test that measured anything.
+    """
+
+    def __init__(self, dsn: str, permit_id: uuid.UUID, budget: int) -> None:
+        self.dsn = dsn
+        self.permit_id = permit_id
+        self.budget = budget
+        self.fired = 0
+
+    def write(self) -> None:
+        """Commit one conflicting write, while the budget lasts."""
+        if self.fired >= self.budget:
+            return
+        self.fired += 1
+        with psycopg.connect(self.dsn, autocommit=True) as other:
+            other.execute(
+                "UPDATE mainline.permit SET horizon_at = horizon_at + INTERVAL '1 second' "
+                "WHERE permit_id = %s",
+                (self.permit_id,),
+            )
+
+
+def _contend_after_the_permit_read(
+    monkeypatch: pytest.MonkeyPatch, writer: _ConflictingWriter
+) -> None:
+    """Fire *writer* immediately after every ``transitions._permit_epoch``.
+
+    That call is the transition's anchor read and it happens BEFORE the transition has
+    written anything, so the conflicting session finds no intent to block on. Installing it
+    at any later point would deadlock the two sessions instead of racing them, which is a
+    different experiment and a worse one.
+    """
+    real = transitions_mod._permit_epoch
+
+    def instrumented(conn: psycopg.Connection[Any], permit_id: uuid.UUID) -> Any:
+        anchor = real(conn, permit_id)
+        writer.write()
+        return anchor
+
+    monkeypatch.setattr(transitions_mod, "_permit_epoch", instrumented)
+
+
+def _sign(w4_conn: psycopg.Connection[Any], check_id: uuid.UUID) -> None:
+    """Close the obligation so the merge that follows is admitted rather than refused."""
+    status, payload = handle_transition(
+        "sign_disposition",
+        {"check_id": str(check_id)},
+        {"kind": "applied", "rationale": _GUARD_RATIONALE},
+        w4_conn,
+    )
+    assert status == 200, payload
+
+
+def test_this_single_local_node_really_does_produce_40001_and_it_is_an_operational_error(
+    w4_database: str,  # noqa: F811
+    fresh_history: Any,
+) -> None:
+    """The premise of the two tests below, observed as a SQLSTATE rather than as a status.
+
+    NO APPLICATION CODE RUNS HERE. Two plain psycopg connections, one row, and the classic
+    read-then-conflicting-write order that ``SERIALIZABLE`` is defined to refuse. What is
+    asserted is the driver's own exception: its SQLSTATE, and — the second assertion, which
+    is the whole of finding F-2 — the class it inherits from.
+
+    ``db.py:33`` states that a single-node local cluster "never produces
+    RETRY_SERIALIZABLE", and ``test_gate_run.py:389`` restates it. This is the third
+    independent refutation of that sentence on 127.0.0.1:26257 and the cheapest one to
+    re-run. It matters because the claim was load-bearing: while it stood, the 40001 path
+    was believed untestable here, so it was never tested, so the misdiagnosis below it
+    survived two waves.
+
+    ``psycopg.errors.SerializationFailure`` being a ``psycopg.OperationalError`` is the
+    entire mechanism by which ``handle_transition``'s "no cluster is not a refusal" handler
+    used to swallow 40001 and answer ``database_unreachable``. Pinning it here means the day
+    psycopg reparents that class is the day this test says so, rather than the day the
+    handler silently stops catching what it was written to catch.
+    """
+    permit_id = fresh_history.permit_id
+    with psycopg.connect(w4_database, autocommit=False) as first:
+        first.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        anchor = first.execute(
+            "SELECT state::STRING FROM mainline.permit WHERE permit_id = %s", (permit_id,)
+        ).fetchone()
+        assert anchor is not None
+
+        with psycopg.connect(w4_database, autocommit=True) as second:
+            second.execute(
+                "UPDATE mainline.permit SET horizon_at = horizon_at + INTERVAL '1 second' "
+                "WHERE permit_id = %s",
+                (permit_id,),
+            )
+
+        def write_then_commit() -> None:
+            """The conflicting half. CockroachDB may refuse at either statement.
+
+            Whether the restart surfaces on the UPDATE (``RETRY_WRITE_TOO_OLD``) or on the
+            COMMIT (``RETRY_SERIALIZABLE — failed preemptive refresh``) is the cluster's
+            choice and is exactly what this test must not pin: both are ``40001``, and a
+            test that demanded one of them would fail on a version that chose the other.
+            """
+            first.execute(
+                "UPDATE mainline.permit SET horizon_at = horizon_at + INTERVAL '2 seconds' "
+                "WHERE permit_id = %s",
+                (permit_id,),
+            )
+            first.commit()
+
+        with pytest.raises(psycopg.errors.SerializationFailure) as caught:
+            write_then_commit()
+        first.rollback()
+
+    assert caught.value.sqlstate == "40001", caught.value.sqlstate
+    assert isinstance(caught.value, psycopg.OperationalError), (
+        "SerializationFailure is not an OperationalError in this psycopg, so "
+        "handle_transition's `except psycopg.OperationalError` no longer sees 40001 at "
+        "all and the branch that classifies it there is now unreachable — read it before "
+        "trusting anything else in this section"
+    )
+
+
+def test_a_40001_induced_on_the_merge_path_is_retried_and_the_merge_commits(
+    w4_conn: psycopg.Connection[Any],
+    w4_database: str,  # noqa: F811
+    fresh_history: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """One real serialization failure, and the caller never learns it happened.
+
+    ``spec/errors.md`` §2.1: the retried unit is the WHOLE transaction, from ``BEGIN``. The
+    conflicting session commits once, the first attempt is aborted by the database, the
+    second attempt reads at a later timestamp and commits — and the answer is the 200 the
+    endpoint owes, not a 503 about a database that was never unreachable.
+
+    The assertion that the writer fired is not decoration. Without it a run in which the
+    race simply did not happen would pass this test for the wrong reason, and a test that
+    can pass without its own premise is the failure mode this file exists to refuse.
+    """
+    _sign(w4_conn, fresh_history.check_id)
+
+    writer = _ConflictingWriter(w4_database, fresh_history.permit_id, budget=1)
+    _contend_after_the_permit_read(monkeypatch, writer)
+
+    status, payload = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+
+    assert writer.fired == 1, "the conflicting write never ran, so nothing was contended"
+    assert status == 200, payload
+    data = _assert_envelope(payload, "merge_permit", INVOKE_SCHEMA_ID)
+    _assert_invoke(data, "trappoint.merge_permit", "committed", 200)
+
+    state = w4_conn.execute(
+        "SELECT state::STRING FROM mainline.permit WHERE permit_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    merges = w4_conn.execute(
+        "SELECT count(*) FROM mainline.merge_record WHERE subject_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert state[0] == "merged"
+    assert merges[0] == 1, (
+        "the retry must be a fresh ATTEMPT, not a replay: a 40001 aborts the transaction, "
+        "so re-running it can leave exactly one merge_record and never two"
+    )
+
+
+def test_a_40001_on_every_attempt_is_undecided_and_is_never_database_unreachable(
+    w4_conn: psycopg.Connection[Any],
+    w4_database: str,  # noqa: F811
+    fresh_history: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Contend on EVERY attempt, spend the budget, and read what the caller is told.
+
+    This is the assertion the repair is for. ``spec/errors.md`` §5 requires an exhausted
+    budget to be surfaced as a distinct condition and NOT as a refusal; what it was
+    surfaced as until 2026-08-14 was ``database_unreachable``, which is neither — it is a
+    false statement about the cluster.
+
+    Both shapes of the honest answer are accepted, because which one arrives is decided by
+    WHICH STATEMENT met the 40001 and that is the database's business, not this test's: a
+    transition that caught it returns the ``503``/``outcome: retry`` envelope
+    ``contracts/invoke.schema.json`` declares, and one that met it at ``commit()`` — where
+    no ``except psycopg.Error`` stands — arrives as an exception and is answered
+    ``transaction_undecided`` with the SQLSTATE on it. What is asserted unconditionally is
+    the part that was wrong: it is a 503, it is undecided, and it is NOT
+    ``database_unreachable``.
+    """
+    _sign(w4_conn, fresh_history.check_id)
+
+    writer = _ConflictingWriter(w4_database, fresh_history.permit_id, budget=1_000)
+    _contend_after_the_permit_read(monkeypatch, writer)
+
+    status, payload = handle_transition(
+        "merge_permit", {"permit_id": str(fresh_history.permit_id)}, {}, w4_conn
+    )
+
+    assert status == 503, payload
+    assert payload.get("error") != "database_unreachable", (
+        "40001 is not an unreachable database. The cluster answered, and it answered with "
+        "a decision to abort; saying otherwise sends whoever is triaging to Terraform."
+    )
+    assert writer.fired >= DEFAULT_POLICY.max_attempts, (
+        f"the conflicting write fired {writer.fired} time(s); the whole transaction is "
+        f"bounded at {DEFAULT_POLICY.max_attempts} attempts and each one takes the anchor "
+        "read, so fewer than that means the retry loop never ran"
+    )
+
+    if "envelope_version" in payload:
+        data = _assert_envelope(payload, "merge_permit", INVOKE_SCHEMA_ID)
+        _assert_invoke(data, "trappoint.merge_permit", "retry", 503)
+        assert data["refusal"] is None, "an undecided transaction has no reason set (§5)"
+        assert data["committed"] is None
+    else:
+        assert payload["error"] == "transaction_undecided", payload
+        assert payload["sqlstate"] == "40001", payload
+        assert payload["attempts"] == DEFAULT_POLICY.max_attempts, payload
+
+    merges = w4_conn.execute(
+        "SELECT count(*) FROM mainline.merge_record WHERE subject_id = %s",
+        (fresh_history.permit_id,),
+    ).fetchone()
+    w4_conn.rollback()
+    assert merges[0] == 0, (
+        "an undecided transaction wrote nothing, on every one of its attempts. A row here "
+        "would mean the budget was spent over a merge that had already landed."
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
 # the demo driver, through the same entry point
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
@@ -1104,20 +1372,28 @@ def test_every_outcome_hands_the_connection_back(
 
 def _plant_in_gate_run(
     monkeypatch: pytest.MonkeyPatch, planted: Exception, *, after_a_statement: bool = True
-) -> None:
+) -> list[int]:
     """Make ``gate_run`` issue one statement and then raise *planted*.
 
     The statement matters: it leaves the connection ``INTRANS`` exactly as a real beat
     would, so the assertion that follows is about a restore that had to roll a live
     transaction back first, not about a flag on an idle socket.
+
+    Returns a one-element list holding the number of times the plant fired. That IS the
+    attempt count — ``gate_run`` is called once per attempt and nowhere else — so a test
+    can assert how many whole transactions the retry loop ran without reaching inside it
+    for a spy the deployment package does not ship.
     """
+    fired = [0]
 
     def boom(conn: psycopg.Connection[Any], *_args: Any, **_kwargs: Any) -> None:
+        fired[0] += 1
         if after_a_statement:
             conn.execute("SELECT 1")
         raise planted
 
     monkeypatch.setattr(transitions_mod, "gate_run", boom)
+    return fired
 
 
 def test_a_defect_escaping_the_handler_does_not_leak_the_flag(
@@ -1142,25 +1418,44 @@ def test_a_40001_escaping_the_beats_does_not_leak_the_flag(
 ) -> None:
     """A serialization failure that no ``except psycopg.Error`` inside a transition caught.
 
+    THIS EXPECTED VALUE MOVED ON 2026-08-14, AND HERE IS THE RULING THAT MOVED IT.
     ``psycopg.errors.SerializationFailure`` inherits from ``psycopg.OperationalError``
     (measured: ``SerializationFailure -> OperationalError -> DatabaseError -> Error``), so
-    ``handle_transition``'s last handler claims it and answers ``503
-    database_unreachable`` rather than re-raising. That is asserted here as the behaviour
-    it IS, not as the behaviour it should be — this test is about the connection, and a
-    test that quietly asserted a nicer taxonomy than the code has would be the same lie
-    this section was written to close.
+    ``handle_transition``'s last handler claimed it and answered ``503
+    database_unreachable``. This test asserted that **on purpose**, and said so: *"asserted
+    here as the behaviour it IS, not as the behaviour it should be — this test is about the
+    connection, and a test that quietly asserted a nicer taxonomy than the code has would
+    be the same lie this section was written to close."* It was right to, and
+    ``docs/diagnosis/refusal-that-writes.md`` §7 recorded the defect and asked a lead to
+    rule rather than editing the expectation itself.
 
-    What matters for the flag is that this is a third distinct door out — not a return
-    from a transition, not a raise through the caller — and it too gives the connection
-    back. The managed cluster is where 40001 actually happens; the demo runs on one.
+    ``docs/leads/ci-green-final.md`` R3 is that ruling. The code moved and the expectation
+    followed it: the sentence ``database_unreachable`` is FALSE for ``40001`` — the
+    database answered, and answered with a decision to abort — and ``spec/errors.md`` §5
+    requires an exhausted retry budget to be surfaced as a distinct condition that is not a
+    refusal. So the answer is now ``transaction_undecided``, carrying the SQLSTATE, after
+    the whole transaction has been re-attempted ``retry.DEFAULT_POLICY.max_attempts``
+    times. Nothing here was weakened: this test gained two assertions and lost none, and
+    the one value that changed is the one a lead ruled on.
+
+    What matters for the flag is unchanged and is still asserted last: this is a third
+    distinct door out — not a return from a transition, not a raise through the caller —
+    and it too gives the connection back.
     """
-    _plant_in_gate_run(
+    fired = _plant_in_gate_run(
         monkeypatch, psycopg.errors.SerializationFailure("a planted 40001 escaping the beats")
     )
     status, payload = handle_transition("demo_gate_run", {}, {}, shared_conn)
 
     assert status == 503, payload
-    assert payload["error"] == "database_unreachable"
+    assert payload["error"] == "transaction_undecided", payload
+    assert payload["sqlstate"] == "40001", payload
+    assert payload["error"] != "database_unreachable"
+    assert fired[0] == DEFAULT_POLICY.max_attempts, (
+        f"the whole transaction was attempted {fired[0]} time(s); spec/errors.md §2.1 "
+        f"requires a bounded retry of the WHOLE transaction and the policy bounds it at "
+        f"{DEFAULT_POLICY.max_attempts}. One attempt would mean the loop never ran."
+    )
     assert shared_conn.autocommit is True
     assert _idle(shared_conn), shared_conn.info.transaction_status
 
@@ -1208,3 +1503,94 @@ def test_only_the_borrow_context_manager_assigns_autocommit() -> None:
         "The flag belongs to db.connection() and is borrowed for one request; a clear "
         "written anywhere but beside its own restore is how this defect survived two waves"
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# the persistence check, made to FAIL — R8's control
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class _KeepsBeatFourAndCommits:
+    """A connection that swallows beat 4's savepoint rollback and then commits.
+
+    THE PLANT, shaped by what was measured rather than by what looked plausible. Turning
+    ``gate_run``'s final ``rollback()`` into a ``commit()`` **on its own persists nothing** —
+    measured on 2026-08-14, ``self_persisted`` stayed ``False`` — because every beat has
+    already been undone by its own ``ROLLBACK TO SAVEPOINT`` and the outer transaction has
+    nothing left to commit. That is a real and welcome property of the design, and it is why
+    a control that only swapped the last rollback would have been a control that could never
+    fire. Both halves together are the defect the persistence check exists to catch: the
+    demo keeping the admission it just demonstrated.
+
+    Everything else is delegated, so what runs is ``gate_run`` against a real connection.
+    """
+
+    def __init__(self, inner: psycopg.Connection[Any]) -> None:
+        self._inner = inner
+        self.swallowed = 0
+        self.rollbacks = 0
+
+    def execute(self, query: Any, params: Any = None, **kwargs: Any) -> Any:
+        if isinstance(query, str) and query == "ROLLBACK TO SAVEPOINT gate_run_beat_4":
+            self.swallowed += 1
+            return None
+        return self._inner.execute(query, params, **kwargs)
+
+    def rollback(self) -> None:
+        # `gate_run` rolls back four times: a clean slate, after the opening reads, in the
+        # `finally` that closes the beats, and after the `after` reading. The third is the
+        # one whose whole job is to undo the run, and it is the one replaced here.
+        self.rollbacks += 1
+        if self.rollbacks == 3:
+            self._inner.commit()
+        else:
+            self._inner.rollback()
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._inner, name)
+
+
+def test_a_run_that_really_persists_is_caught(
+    w4_database: str,  # noqa: F811
+    fresh_history: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R8: a verifier that has never failed has never discriminated. This one fails on cue.
+
+    ``gate_run``'s persistence check was rebuilt on 2026-08-14 so that the VERDICT keys on
+    ``self_persisted`` — what THIS run left behind — instead of on ``identical``, the ten
+    unscoped whole-table counts, which any other caller could move (see
+    ``docs/diagnosis/gate-run-fingerprint.md``). A check that stopped being able to fail
+    would be a worse outcome than the red it replaced, so it is made to fail here.
+
+    Driven against ``fresh_history`` — a permit minted for this test alone — and never
+    against the demo subject: the plant genuinely commits an admission, the transitions are
+    irreversible, and a plant pointed at ``PTW-PROOF-1`` would consume the subject every
+    other test in this suite drives.
+    """
+    monkeypatch.setenv("MAINLINE_DEMO_PERMIT_ID", str(fresh_history.permit_id))
+    monkeypatch.setenv("MAINLINE_DEMO_SITE_ID", str(fresh_history.site_id))
+
+    connection = psycopg.connect(w4_database, autocommit=False)
+    plant = _KeepsBeatFourAndCommits(connection)
+    try:
+        payload = gate_run_fn(plant)  # type: ignore[arg-type]
+    finally:
+        connection.close()
+
+    assert plant.swallowed == 1, (
+        "beat 4's ROLLBACK TO SAVEPOINT was never issued, so the plant removed nothing and "
+        "this control ran against a transaction that was always going to be clean"
+    )
+    check = payload["persistence_check"]
+    assert check["self_persisted"] is True, check["self_evidence"]
+    assert check["self_evidence"]["minted_disposition_rows_after_rollback"] == 1, (
+        "the disposition beat 4 minted did not survive a committed transaction, so the one "
+        "identifier no other writer could have produced is not being read back at all"
+    )
+    assert (
+        check["self_evidence"]["subject_row_counts_before"]
+        != (check["self_evidence"]["subject_row_counts_after"])
+    )
+    assert payload["verdict"] == "NOT PROVEN"
+    assert any("PERSISTED something" in line for line in payload["failures"]), payload["failures"]

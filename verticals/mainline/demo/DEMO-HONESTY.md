@@ -120,6 +120,28 @@ Real components, arranged for a three-minute film. Nothing here is faked; things
 - **Permit `WO-88213` is pre-seeded**, so the take begins at the moment the supervisor clicks
   merge instead of at the moment somebody opens a permit. The gate evaluation is live; the
   permit's existence is not news.
+- **The judge-path exposure receipt is seeded with a long expiry — `2027-01-01` — and that is a
+  demonstration convenience rather than the product's default.** `demo_permit.sql` says so in its
+  own comment: the window was chosen so the admission beat keeps working for every judge for the
+  whole judging period, rather than for a couple of hours after somebody ran the deploy. In the
+  product a receipt's TTL is hours; the schema constrains only that a receipt expire after it was
+  issued, and the application picks the window. **The mechanism is not staged.** The disposition
+  still takes a composite foreign key onto the exact rows the same serializable transaction
+  returned — §5 below — so a long expiry keeps the admission beat *available* and does nothing
+  whatever to make it *pass*.
+- **The film's own database uses a different receipt, and that one expires two hours after it is
+  issued.** `scripts/proof/gate_refusal.py::seed_history` issues it; `seed_demo_state.py`, which
+  calls that function, prints the resulting deadline on every run, in both modes. It prints it
+  because with no live receipt the admission beat is **skipped** and the run reports
+  `NOT PROVEN` — a gate that only ever refuses. Every refusal on camera still refuses, so this is
+  the take nobody notices until the edit, which is exactly why the deadline is printed.
+- **Two receipts, two expiries, two databases, on purpose.** The proof world and the demo world
+  cannot share a database — that was measured rather than assumed, and it is recorded in
+  `docs/submission/VIDEO-KIT.md` §B.9. The same split is why the two worlds name their permits
+  differently: `WO-88213` is the console and corpus world's, the one the bullet above is about;
+  `DEMO-PTW-0001` in `demo_permit.sql` is the demo-api world's. Neither expiry is changed to make
+  this page tidier: the seeds are authoritative for their own database and this page is checked
+  against them, never the other way round.
 - **The ingestion of the 2013 report ran earlier** and is shown as a sped-up inset. It is a real
   run, replayed; it is not re-executed during the take.
 - **Commit dates are corpus data, not time travel.** Every date on screen is a column value in

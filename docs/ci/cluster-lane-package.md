@@ -531,3 +531,144 @@ change adds beside it, `junit-cluster.xml` and `pytest-cluster.txt`. Left as it 
 person who runs the lane locally and commits with `-A` repeats the same mistake with two
 more files. `.gitignore` is not W1's to edit in this wave, so it is reported here rather
 than fixed.
+
+---
+
+## 8. IT LANDED — the run, and every prediction in §§5–7 checked against it
+
+**Worker:** D3, DOCS-TRUE wave, 2026-08-14. **Run:**
+[31770005759](https://github.com/Shaugato/mainline/actions/runs/31770005759) — `cluster-tests`,
+push, HEAD **`7535670`**, the public tip. Read from the job log, job `94673769475`.
+
+§§1–7 were written before this change had a run id. **They are not edited.** This section
+checks each prediction against the run, in the order they were made, and it is written to be
+read *beside* them rather than instead of them: a page that quietly re-typed its predictions
+after the outcome would be worth nothing.
+
+### 8.1 THE SKIP CEILING — the cure was the build, and the ceiling never moved
+
+The lane's own verdict line, quoted:
+
+```
+cluster lane: 570 collected, 569 executed, 1 skipped, 8 failed, 0 errored
+8 failed, 561 passed, 1 skipped in 224.11s (0:03:44)
+```
+
+| | run 31735341117, `eefae1c` | run 31770005759, `7535670` |
+|---|---:|---:|
+| collected | 528 | **570** |
+| executed | 518 | **569** |
+| **skipped** | **10** | **1** |
+| `floor.max_skipped` in `qa/cluster-known-red.json` | **1** | **1 — UNCHANGED** |
+| lane's verdict on the skip count | **errored: `10 test(s) skipped, ceiling 1`** | **satisfied, exactly** |
+
+**Ten skips became one because the lane started building what it tests. The ceiling was never
+touched.** It reads `1` in `git show eefae1c:qa/cluster-known-red.json` and `1` in
+`git show 7535670:qa/cluster-known-red.json`. The surviving skip is `test_gate_run.py`'s
+*"jsonschema is not a workspace dependency"* — §7 named it in advance as the one the ceiling of
+1 exists for, and it is the one that survived.
+
+**This is the sentence that must not be paraphrased into its opposite by any later reader:**
+
+> **The cure for ten skips against a ceiling of one was to BUILD THE PACKAGE IN THE LANE. It
+> was never to raise the ceiling, and no document in this repository may present raising it as
+> an option that was weighed.** The lane's own comment settles it in the tree:
+> *"THIS STEP DOES NOT WEAKEN THE SKIP CEILING; IT REMOVES THE REASON FOR THE SKIPS."*
+> (`.github/workflows/cluster-tests.yml:275`)
+
+A ceiling raised to admit ten skips would have converted *"nine assertions did not run"* into
+*"nine assertions are fine"*, and on a dashboard those are the same colour. **The lane was
+right to error.** The repair paid for itself in a single run: eight defects that had never
+been visible in CI became visible in CI, which is §8.2.
+
+### 8.2 THE NINE — §5's prediction was "RED on its first run", and it was right
+
+§5 closed with: *"The lane will therefore be RED on its first run, on nine failing assertions
+and one that was passing vacuously — all with a single named cause."*
+
+**Measured: eight failing assertions, one named cause.** The eight, by node id:
+
+```
+test_response_contract.py::test_every_identity_object_in_the_deployed_tree_serves_or_is_a_declared_refusal
+test_response_contract.py::test_the_built_web_tree_has_not_outgrown_its_declaration
+test_response_contract.py::test_the_built_web_tree_matches_the_shape_the_flood_arithmetic_assumed
+test_response_contract.py::test_the_ceiling_refuses_something_it_governs
+test_response_contract.py::test_the_compressed_sibling_has_no_url_of_its_own_and_is_not_a_ceiling_refusal
+test_response_contract.py::test_the_largest_file_in_the_built_web_tree_is_the_one_the_ceiling_refuses
+test_static_site.py::test_serving_the_deployed_package_derives_the_ceiling_end_to_end
+test_static_site.py::test_the_deployed_package_is_the_tree_the_ceiling_was_derived_from
+```
+
+**Eight and not nine, and the difference is not a rounding.** §3.2 counted nine
+package-dependent assertions plus one passing vacuously; at `7535670` the suite has grown from
+528 to 570 collected and the set is not the same set. The number to trust is the one the
+runner printed, and it is 8. **A prediction that is nearly right is reported as nearly right.**
+
+The single cause, from the runner:
+
+```
+AssertionError: the deployed package refuses ['assets/index-DzVoV1YM.js [identity]'] …
+    - 'assets/index-BjAGxrVJ.js [identity]': 413      ← declared in the test
+    + 'assets/index-DzVoV1YM.js [identity]': 413      ← built by the lane
+AssertionError: assets/index-DzVoV1YM.js is 433564 B … at or above the 139264 B ceiling
+AssertionError: the largest object … is now assets/index-DzVoV1YM.js at 433564 B, above the
+   declared assets/index-BjAGxrVJ.js at 433396 B.
+AssertionError: assert 124177 == 124127     ← _LARGEST_SERVED_WIRE_BYTES
+```
+
+**Read what did NOT move: `139264`.** That is `136 * 1024`, it is identical in the test and in
+the run, and the ceiling is not the thing that broke. What broke is that the content-hashed
+**filename** and the **byte counts** recorded in the two test files describe a different build
+of the console than the runner produced — 433,564 B against a declared 433,396 B, and a
+largest gzipped sibling of **124,177** B against a declared **124,127** B.
+
+### 8.3 §5's four-step sequence, checked — and step 4's boundary, which held
+
+§5 wrote the honest sequence as four numbered steps. Steps 1 and 2 are now done:
+
+1. ✅ **the change landed** and the lane built the package — the failures reference
+   `/home/runner/work/mainline/mainline/out/lambda/mainline-demo-api-arm64.zip`, so the zip
+   existed on the runner;
+2. ✅ **the runner's figures are published** — in the step summary via `lane_log_digest.py`,
+   and in the uploaded artifact `cluster-lane-31770005759-1` (JUnit XML plus raw pytest
+   stdout, `sha256 8a49ff2f8141210464264f36b08ea3221c86a101717055c5807a1c424fc81df4`,
+   25,282 B, artifact id `9207831953`);
+3. ⏳ **the re-record is owed**, from *those* figures, in one commit naming the run id;
+4. ✅ **step 4's boundary held, and this is the load-bearing check.**
+
+§5 step 4 wrote the tripwire: *"if the runner's `largest gzipped sibling` lands outside
+`(119,157 … 126,603)` B, the derivation moves the ceiling and **that is a decision, not a
+re-record** — the answer to an object above 139,264 B is a smaller artefact, never a bigger
+ceiling."*
+
+**The runner reported 124,177 B. That is inside `(119,157 … 126,603)`.** So the ceiling's
+derivation is untouched, `139264` stands, and the outstanding work is a **re-record** and not
+a **decision**. Had it landed outside, this section would be saying the opposite and the
+correct answer would have been a smaller artefact.
+
+**§5's residual doubt was also answered.** Reason 1 for not re-recording was that
+`actions/setup-python`'s CPython on `ubuntu-24.04` links zlib 1.3 against 1.3.1 locally, and
+`_LARGEST_SERVED_WIRE_BYTES` is the one number that would be sensitive to it. The runner's
+124,177 against the workstation's 124,127 is a **50-byte** difference on a ~124 kB object —
+consistent with a different `vite` content hash inside the asset, not with a deflate change of
+that magnitude. **It is not decomposed here, and it must be before the constant is
+re-recorded**: the honest re-record names the run id and the artefact `sha256` beside each
+number, which is exactly what step 3 already says.
+
+### 8.4 The `.gitignore` finding was right, and it is now a red lane
+
+The note above — *"`collected.txt` … is the single file failing `scripts/qa/check_reuse.py`,
+against two ratchets whose baseline is a hard-gated 0"* — **was a prediction and it has come
+true on the board.** `submission` run
+[31770005810](https://github.com/Shaugato/mainline/actions/runs/31770005810) at `7535670` is
+**red**, on one job, on exactly that file:
+
+```
+UNCOVERED — resolve a licence or annotate (1):
+    collected.txt
+REFUSED [RATCHET] metric=uncovered_total baseline=0 measured=1 [HARD GATE: baseline is 0]
+```
+
+Recorded here because this page called it first, and because the cure is the one this page
+already named — **delete it or licence it, in the tree** — and not a scope list, not an
+exemption, and not a baseline of 1. `docs/CI-STATE.md` §1.0.2 carries the board row.

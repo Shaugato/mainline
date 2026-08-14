@@ -19,6 +19,14 @@ SPDX-License-Identifier: CC-BY-4.0
 > disagreed with each other by three. **The measurement wins**; the filename is kept
 > because other documents already point at it.
 
+> **RE-CONFIRMED 2026-08-14 by D3, and the number did not move.** Four days and roughly
+> thirty commits later, `evidence/gate-refusal/proof-20260814T032418Z.json` reports
+> `chain.files: 271`, `chain.applied_count: 271`, `chain.failed_count: 0`,
+> `chain.seconds: 71.797`. **271 of 271, still, through a driver that stops on a failure
+> rather than logging past it.** No digit in this document is edited: it was right when
+> written and it is right now, and this note exists so that a reader who wonders whether a
+> 2026-08-10 chain count still describes the tree does not have to guess.
+
 ---
 
 ## 0 · The number, and the two numbers it replaces

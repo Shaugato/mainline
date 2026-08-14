@@ -73,17 +73,40 @@ That is the one intended difference from ``trappoint_core.retry``, which raises
 downstream. The *classification* is identical; only what is done with a decided outcome
 differs, and the agreement test asserts the first and states the second.
 
-WHERE IT IS APPLIED
--------------------
-``POST /v1/demo/gate-run`` — see :func:`mainline_demo_api.transitions._demo_gate_run`. It
-is what two judges press at the same moment, it is the one transaction in this package that
-**persists nothing** (every beat is rolled back, proved by a fingerprint taken before and
-after), and re-running it is therefore re-running the same read-only question. The
-committing transitions — ``merge_permit``, ``sign_disposition``, ``materialise_checks``,
-``suspend_permit`` — are deliberately NOT wrapped here: re-sending a merge on a caller's
-behalf is how a permit gets issued twice, and ``transitions``' published contract is that
-``40001`` on those paths is surfaced as ``503``/``outcome: retry`` and the decision keeps
-an author.
+WHERE IT IS APPLIED — ALL FIVE POSTS, WHICH IS A CORRECTION
+------------------------------------------------------------
+``POST /v1/demo/gate-run`` — :func:`mainline_demo_api.transitions._demo_gate_run` — and the
+four committing transitions ``merge_permit``, ``sign_disposition``, ``materialise_checks``
+and ``suspend_permit``, wrapped in :func:`mainline_demo_api.transitions.handle_transition`.
+
+**This section used to say the four were deliberately NOT wrapped**, *"re-sending a merge
+on a caller's behalf is how a permit gets issued twice"*. That sentence describes an
+AMBIGUOUS outcome, and ``40001`` is not one. ``40001`` is a transaction the database
+**aborted**: no row was written and no decision was taken, so a re-attempt is a first
+attempt against the same rows and cannot issue anything twice. The code that genuinely
+means *"the commit may or may not have landed"* is ``40003``, which ``spec/errors.md`` §1.1
+lists as a defect a conformant client MUST NOT treat as a serialization failure — and
+:func:`classify_for_retry` calls it ``unmodelled``, so it propagates unretried, as itself.
+The old carve-out therefore denied the four paths the behaviour §2.1 requires of them while
+protecting them from a hazard they never had.
+
+What the carve-out cost, measured at ``7535670``: a ``40001`` raised outside a transition's
+own ``except psycopg.Error`` — most often ``conn.commit()`` — reached
+``handle_transition``'s ``except psycopg.OperationalError``, which
+``psycopg.errors.SerializationFailure`` satisfies, and the caller was told
+``503 database_unreachable``. Two whole-suite tests failed on that in one run.
+
+Re-running a committing transition is a fresh attempt rather than a replay, and that is a
+property of those functions: every identifier a second attempt could collide with is minted
+INSIDE the transaction, so it cannot meet its own first attempt's key and convert a
+serialization restart into a ``23505`` this loop must never retry.
+
+The **surfaced** answer when the budget is spent is unchanged and is still what
+``contracts/invoke.schema.json`` declares: ``503``/``outcome: retry``, or a plain
+``503 transaction_undecided`` carrying ``sqlstate: "40001"`` when the code arrived as an
+exception no transition had turned into an envelope. ``spec/errors.md`` §5 requires exactly
+that — a distinct condition, never a refusal — and the decision still keeps an author,
+because nothing was decided.
 
 40001 IS REPRODUCIBLE ON A SINGLE NODE, so this is not an untested guard dressed as a fix.
 CockroachDB v26.2.5 runs ``SERIALIZABLE`` by default and the judge-can-sign lead measured
@@ -295,9 +318,16 @@ def run_transaction[T](
 
     *operation* must be the WHOLE transaction, from ``BEGIN``: ``spec/errors.md`` §2.1
     forbids retrying a statement, because a statement replayed into a poisoned transaction
-    is not a retry of anything. It must also be safe to run more than once — in this
-    package that means ``gate_run``, which rolls everything back, and not a committing
-    transition.
+    is not a retry of anything. It must also be safe to run more than once, and in this
+    package **all five POSTs are** — ``gate_run``, which rolls everything back, and the four
+    committing transitions, whose second attempt follows a transaction the database ABORTED
+    and which mint every identifier they could collide on INSIDE that transaction.
+
+    *This paragraph used to end "and not a committing transition."* It was removed on
+    2026-08-14 under ``docs/leads/ci-green-final.md`` R3, in the same commit that wrapped
+    those four: it was the last sentence in this module still asserting the carve-out the
+    section above now spends a page correcting, and a docstring that contradicts its own
+    module is how the next reader re-derives the defect.
 
     Args:
         operation: a callable that opens a transaction, does the work, and commits or

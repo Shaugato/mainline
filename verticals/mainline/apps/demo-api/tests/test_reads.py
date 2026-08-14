@@ -22,6 +22,7 @@ Every test in this module needs a cluster and skips with the reason there is non
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import importlib.util
 import json
@@ -1115,6 +1116,58 @@ def test_health_is_200_with_a_real_schema_fingerprint(
         demo_db.reset_dsn_cache()
 
 
+#: Every database this one test builds. A PREFIX rather than a name, because the name now
+#: carries a per-run suffix and a sweep needs something stable to recognise.
+_MARKER_DB_PREFIX = "w5_deploy_chain_marker"
+
+
+def _marker_database_name() -> str:
+    """A name no earlier run — or earlier moment of this run — can still be holding.
+
+    THIS TEST USED A FIXED NAME AND DROPPED IT BEFORE CREATING IT, AND THAT IS AN ORDERING
+    HAZARD RATHER THAN A NAMING PREFERENCE. ``docs/leads/ci-green-final.md`` §1.1 measured
+    it: in a whole-suite run at ``7535670`` this test failed with ``psycopg.errors.
+    InvalidCatalogName: database "w5_deploy_chain_marker" does not exist``, and passed in an
+    isolated re-run of the same two modules minutes later. A test whose verdict depends on
+    what else is running is a test that reports the composition of the run, not the code.
+
+    The mechanism is measured elsewhere in this suite and is not a guess:
+    ``test_judge_can_sign._walk_database_name`` records that CockroachDB's ``DROP DATABASE …
+    CASCADE`` *"frees the name long before it has finished with the data"* — the drop
+    enqueues a ``SCHEMA CHANGE GC`` job — and that building into a just-dropped name under
+    load produced ``184/271`` and ``42/271`` applied, and ``3F000 … the target database or
+    schema does not exist``, against a chain that applied ``271/271`` twice into a name
+    nothing had just dropped. A fresh name has nothing to race with.
+
+    NOT WHAT RULING R8 FORBIDS. R8 refuses a random name where a database is ADOPTED,
+    because it fixes a collision at the cost of noticing a stale build. Nothing is adopted
+    here: this database is created, read once and dropped inside one test, so there is no
+    adoption to protect. Nor is it a skip — the brief's other option — because the test can
+    simply build a world of its own, which is what it was already trying to do.
+    """
+    return f"{_MARKER_DB_PREFIX}_{uuid.uuid4().hex[:8]}"
+
+
+def _sweep_marker_databases(admin: psycopg.Connection[Any]) -> None:
+    """Drop every database this test has ever built, including a killed run's orphan.
+
+    Read by POSITION and filtered in Python for the reason ``test_judge_can_sign._sweep``
+    records: CockroachDB calls that column ``database_name`` and PostgreSQL's equivalent
+    view calls it ``datname``, so a ``WHERE name LIKE …`` is a sweep that raises instead of
+    sweeping. Best effort throughout — a teardown that raised because a GC job was still
+    holding a sibling would replace this test's result with a cleanup error.
+    """
+    with contextlib.suppress(psycopg.Error):
+        stale = [
+            str(row[0])
+            for row in admin.execute("SHOW DATABASES").fetchall()
+            if str(row[0]).startswith(_MARKER_DB_PREFIX)
+        ]
+        for name in stale:
+            with contextlib.suppress(psycopg.Error):
+                admin.execute(f"DROP DATABASE IF EXISTS {name} CASCADE")
+
+
 def test_health_reads_the_deploy_chain_marker_when_the_database_has_one(
     admin_dsn: str,
 ) -> None:
@@ -1152,9 +1205,9 @@ def test_health_reads_the_deploy_chain_marker_when_the_database_has_one(
     applied_by = "scripts/deploy/cloud_chain.py"
     assert applied_by in CLOUD_CHAIN_PY.read_text(encoding="utf-8")
 
-    database = "w5_deploy_chain_marker"
+    database = _marker_database_name()
     with psycopg.connect(admin_dsn, autocommit=True) as admin:
-        admin.execute(f"DROP DATABASE IF EXISTS {database} CASCADE")
+        _sweep_marker_databases(admin)
         admin.execute(f"CREATE DATABASE {database}")
     dsn = _dsn_for(admin_dsn, database)
     try:

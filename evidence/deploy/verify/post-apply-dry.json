@@ -1,0 +1,189 @@
+{
+  "schema": "mainline.deploy.post-apply-verify/1",
+  "generated_at": "2026-08-14T09:09:58.242241+00:00",
+  "program": "scripts/deploy/post_apply_verify.py",
+  "region": "ap-southeast-1",
+  "profile": "mainline-dev",
+  "function_name": "mainline-demo-api",
+  "account_masking": "every twelve-digit run is replaced with <account> before writing",
+  "context": {
+    "function_url_resolved": false,
+    "alarm_prefix": "mainline-demo-api",
+    "alarm_set_provenance": {
+      "derived_from": [
+        {
+          "file": "infra/modules/demo-api/main.tf",
+          "name_variable": "function_name",
+          "suffixes": [
+            "-concurrency",
+            "-duration-p99",
+            "-errors",
+            "-throttles"
+          ]
+        },
+        {
+          "file": "infra/modules/cost-guard/main.tf",
+          "name_variable": "guarded_function_name",
+          "suffixes": [
+            "-invocations-burst",
+            "-invocations-hourly",
+            "-log-ingestion"
+          ]
+        }
+      ],
+      "cross_check": {
+        "artefact": "evidence/deploy/terraform-plan-furl.json",
+        "read": true,
+        "alarms_in_plan": [
+          "mainline-demo-api-concurrency",
+          "mainline-demo-api-duration-p99",
+          "mainline-demo-api-errors",
+          "mainline-demo-api-invocations-burst",
+          "mainline-demo-api-invocations-hourly",
+          "mainline-demo-api-log-ingestion",
+          "mainline-demo-api-throttles"
+        ],
+        "alarms_derived": [
+          "mainline-demo-api-concurrency",
+          "mainline-demo-api-duration-p99",
+          "mainline-demo-api-errors",
+          "mainline-demo-api-invocations-burst",
+          "mainline-demo-api-invocations-hourly",
+          "mainline-demo-api-log-ingestion",
+          "mainline-demo-api-throttles"
+        ],
+        "agree": true
+      }
+    },
+    "kill_switch_mode": "dry",
+    "window_start": "2026-08-14T09:09:44.591999+00:00",
+    "window_end": "2026-08-14T09:14:47.416441+00:00"
+  },
+  "checks_total": 9,
+  "checks_satisfied": 0,
+  "checks_unsatisfied": 9,
+  "unsatisfied_ids": [
+    "function_url",
+    "tls",
+    "health",
+    "beats",
+    "clearance_digest",
+    "alarm_inventory",
+    "alarm_visibility",
+    "kill_switch_stop",
+    "kill_switch_restore"
+  ],
+  "verdict": "NOT SATISFIED",
+  "checks": [
+    {
+      "id": "function_url",
+      "title": "Function URL resolved from terraform output",
+      "satisfied": false,
+      "why": "terraform output exited 1: Error: Backend initialization required, please run \"terraform init\"\nReason: Initial configuration of the requested backend \"s3\"\nThe \"backend\" is the interface that Terraform uses to store state,\nperform operations, etc. If this message is showing up, it means that the\nTerraform configuration you're using is using a custom configuration for\nthe Terraform backend.\nChanges to backend configurations r",
+      "source": "live",
+      "detail": {
+        "output_name": "api_function_url"
+      }
+    },
+    {
+      "id": "tls",
+      "title": "HTTPS reached and the certificate verifies",
+      "satisfied": false,
+      "why": "no Function URL was resolved, so no certificate could be verified.",
+      "source": "live",
+      "detail": {}
+    },
+    {
+      "id": "health",
+      "title": "GET /v1/health answers 200",
+      "satisfied": false,
+      "why": "no Function URL was resolved.",
+      "source": "live",
+      "detail": {}
+    },
+    {
+      "id": "beats",
+      "title": "The four beats produce 00000 / 23514 / P0001 / 00000",
+      "satisfied": false,
+      "why": "no Function URL was resolved.",
+      "source": "live",
+      "detail": {}
+    },
+    {
+      "id": "clearance_digest",
+      "title": "The admission beat carries a server-computed clearance_digest",
+      "satisfied": false,
+      "why": "no gate-run payload was obtained, so there is no admission beat to read.",
+      "source": "live",
+      "detail": {}
+    },
+    {
+      "id": "alarm_inventory",
+      "title": "Every alarm the modules declare exists",
+      "satisfied": false,
+      "why": "7 of 7 declared alarms do not exist: mainline-demo-api-concurrency, mainline-demo-api-duration-p99, mainline-demo-api-errors, mainline-demo-api-invocations-burst, mainline-demo-api-invocations-hourly, mainline-demo-api-log-ingestion, mainline-demo-api-throttles. An empty or short table is not a green one.",
+      "source": "live",
+      "detail": {
+        "expected": [
+          "mainline-demo-api-concurrency",
+          "mainline-demo-api-duration-p99",
+          "mainline-demo-api-errors",
+          "mainline-demo-api-invocations-burst",
+          "mainline-demo-api-invocations-hourly",
+          "mainline-demo-api-log-ingestion",
+          "mainline-demo-api-throttles"
+        ],
+        "expected_count": 7,
+        "found": [],
+        "found_count": 0,
+        "missing": [
+          "mainline-demo-api-concurrency",
+          "mainline-demo-api-duration-p99",
+          "mainline-demo-api-errors",
+          "mainline-demo-api-invocations-burst",
+          "mainline-demo-api-invocations-hourly",
+          "mainline-demo-api-log-ingestion",
+          "mainline-demo-api-throttles"
+        ]
+      }
+    },
+    {
+      "id": "alarm_visibility",
+      "title": "The alarms can see the invocations this program just made",
+      "satisfied": false,
+      "why": "no alarm was read, so no metric could be asked whether it saw anything. An empty alarm table is the reason, and it is not a reassuring one.",
+      "source": "live",
+      "detail": {}
+    },
+    {
+      "id": "kill_switch_stop",
+      "title": "kill switch --stop produces HTTP 429 with no body",
+      "satisfied": false,
+      "why": "--kill-switch dry drives --status and --dry-run only. --status exited 4 (4 means the function does not exist). The stop was NOT performed and the 429 was NOT observed, so this is unsatisfied. Re-run with --kill-switch live --yes against an applied stack to satisfy it.",
+      "source": "live",
+      "detail": {
+        "mode": "dry",
+        "status_exit": 4,
+        "status_stdout_tail": "MAINLINE demo kill switch   account=<account>  region=ap-southeast-1  function=mainline-demo-api\n== current state\nthe function does not exist in this account/region",
+        "dry_run_exit": 0,
+        "dry_run_names_put": true,
+        "dry_run_names_delete": true
+      }
+    },
+    {
+      "id": "kill_switch_restore",
+      "title": "kill switch --restore returns the service",
+      "satisfied": false,
+      "why": "--kill-switch dry drives --status and --dry-run only. --status exited 4 (4 means the function does not exist). The stop was NOT performed and the 429 was NOT observed, so this is unsatisfied. Re-run with --kill-switch live --yes against an applied stack to satisfy it.",
+      "source": "live",
+      "detail": {
+        "mode": "dry",
+        "status_exit": 4,
+        "status_stdout_tail": "MAINLINE demo kill switch   account=<account>  region=ap-southeast-1  function=mainline-demo-api\n== current state\nthe function does not exist in this account/region",
+        "dry_run_exit": 0,
+        "dry_run_names_put": true,
+        "dry_run_names_delete": true
+      }
+    }
+  ]
+}

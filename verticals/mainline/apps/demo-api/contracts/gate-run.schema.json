@@ -41,7 +41,7 @@
           "enum": ["completed", "retry"]
         },
         "verdict": {
-          "description": "PROVEN only when every beat matched the expectation it was written against AND the persistence check came back identical. A run that observed something else still returns 200 and still says NOT PROVEN — a truthful red beats a fabricated green.",
+          "description": "PROVEN only when every beat matched the expectation it was written against AND the persistence check proves this run persisted nothing (`persistence_check.self_persisted` is false). It used to key on `persistence_check.identical`, which is a statement about the whole database and therefore false whenever any other caller committed a row — see that field. A run that observed something else still returns 200 and still says NOT PROVEN — a truthful red beats a fabricated green.",
           "enum": ["PROVEN", "NOT PROVEN"]
         },
         "failures": {
@@ -337,33 +337,98 @@
     },
 
     "persistence_check": {
-      "description": "The evidence for `persisted: false`. Row counts over every table the four beats can write, taken before the transaction opened and after it was rolled back, plus mainline.permit's own columns — because the attack beat mutates a column without changing a count.",
+      "description": "The evidence for `persisted: false`. Row counts over every table the four beats can write, taken before the transaction opened and after it was rolled back, plus mainline.permit's own columns — because the attack beat mutates a column without changing a count. That reading is `identical` and it is a statement about the DATABASE. `self_persisted` is the statement about THIS RUN, and it is what the verdict keys on: a whole-table count cannot distinguish 'I persisted something' from 'somebody else did', and this endpoint used to report the difference as its own failure. Amended 2026-08-14 under docs/leads/cloud-hardening-final.md ruling R2, which permits the contract to move only by argument on the record; the argument is docs/deploy/gate-run-contract.md §3 and the reproduction that identified the writer is docs/diagnosis/gate-run-fingerprint.md. NOTHING WAS NARROWED: the ten counts are unchanged, no table left the list, and the run-scoped evidence was ADDED beside them.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["before", "after", "identical", "tables", "note"],
+      "required": [
+        "before",
+        "after",
+        "identical",
+        "self_persisted",
+        "self_evidence",
+        "concurrent_writes",
+        "tables",
+        "note"
+      ],
       "properties": {
         "before": { "$ref": "#/$defs/fingerprint" },
         "after": { "$ref": "#/$defs/fingerprint" },
-        "identical": { "type": "boolean" },
+        "identical": {
+          "description": "The ten unscoped counts and the permit row are byte-identical before and after. False means SOMETHING in those tables moved — not necessarily this run; read `self_persisted` and `concurrent_writes` for which.",
+          "type": "boolean"
+        },
+        "self_persisted": {
+          "description": "Did anything THIS RUN wrote survive the rollback? False is the claim `persisted: false` makes, and it is proven rather than asserted: the disposition beat 4 minted is a uuid4 no other writer holds and it is absent; this subject's own merge_record / permit_event / disposition counts are unchanged; and its permit row is unchanged, which is where beat 3's out-of-band UPDATE would show. True is a defect in the gate and makes the verdict NOT PROVEN.",
+          "type": "boolean"
+        },
+        "self_evidence": { "$ref": "#/$defs/self_evidence" },
+        "concurrent_writes": {
+          "description": "Null when `identical` is true. Otherwise the tables whose unscoped count moved while this run was open, each as [before, after]. These are ANOTHER caller's rows — a fact about the database this demo shares, reported rather than blamed on the run, and never a reason to narrow the counts above.",
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "type": "integer", "minimum": 0 }
+          }
+        },
         "tables": {
           "type": "array",
           "minItems": 1,
           "maxItems": 64,
           "items": { "type": "string", "minLength": 1, "maxLength": 128 }
         },
-        "note": { "type": "string", "minLength": 1, "maxLength": 1024 }
+        "note": { "type": "string", "minLength": 1, "maxLength": 2048 }
       }
+    },
+
+    "self_evidence": {
+      "description": "The run-scoped readings `self_persisted` is computed from, in the payload so that a reader can recompute the verdict rather than take it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minted_disposition_id",
+        "minted_disposition_rows_after_rollback",
+        "subject_row_counts_before",
+        "subject_row_counts_after",
+        "permit_row_identical"
+      ],
+      "properties": {
+        "minted_disposition_id": {
+          "description": "The uuid4 beat 4 minted for its disposition. Null when beat 4 was skipped, in which case the run wrote nothing the database accepted at all.",
+          "type": ["string", "null"],
+          "maxLength": 64
+        },
+        "minted_disposition_rows_after_rollback": {
+          "description": "How many rows carry that identifier once the transaction is rolled back. Zero is the proof; anything else means the transaction committed.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "subject_row_counts_before": { "$ref": "#/$defs/subject_row_counts" },
+        "subject_row_counts_after": { "$ref": "#/$defs/subject_row_counts" },
+        "permit_row_identical": { "type": "boolean" }
+      }
+    },
+
+    "subject_row_counts": {
+      "description": "The three tables a successful beat 4 writes a surviving row into, counted for THIS permit only. Added beside the ten unscoped counts, never in place of them.",
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 },
+      "minProperties": 3,
+      "maxProperties": 3
     },
 
     "fingerprint": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["row_counts", "permit_row"],
+      "required": ["row_counts", "subject_row_counts", "permit_row"],
       "properties": {
         "row_counts": {
+          "description": "Every table the four beats can write, counted WHOLE. Unscoped on purpose and it stays unscoped: the attack beat mutates a column without changing a count, and a check that only looked where this run was expected to write could not see a write it was not expecting.",
           "type": "object",
           "additionalProperties": { "type": "integer", "minimum": 0 }
         },
+        "subject_row_counts": { "$ref": "#/$defs/subject_row_counts" },
         "permit_row": {
           "oneOf": [
             {

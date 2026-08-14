@@ -302,11 +302,12 @@
       "verdict": "DESIGNED",
       "verdict_basis": "the module is complete (python3.13, arm64, 512 MB, 15 s, four alarms, one dashboard) and NOTHING IS DEPLOYED. A plan exists and a plan is not an apply: evidence/deploy/terraform-plan-furl.txt reads '11 to add, 0 to change, 0 to destroy' and terraform apply has not been run against it, so there is no function, no role, no log group and no demo URL as of this census. This row stays DESIGNED until an apply has happened — promoting it because an apply is planned and authorised is exactly the arithmetic the verdict column exists to refuse",
       "how": "One python3.13 arm64 function in ap-southeast-1, beside the Cloud cluster, because the same call from ap-southeast-2 pays about 90 ms each way and the gate screen makes six of them. Its execution role's entire non-managed grant is ssm:GetParameter on ONE parameter ARN plus a conditioned kms:Decrypt. MEASURED CORRECTION, and it is the kind that matters: an earlier census said this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT WHAT THE COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and evidence/deploy/terraform-plan-furl.txt:329 plans authorization_type = \"NONE\", because AWS_IAM is only a hardening if a CloudFront distribution exists to be granted lambda:InvokeFunctionUrl — and this account cannot create one (see the aws_cloudfront row). An AWS_IAM URL with no principal behind it is not a hardened demo, it is a demo nobody can reach. So the URL is public and the module says so. MEASURED CORRECTION, 2026-08-13: this sentence used to continue 'reserved_concurrent_executions caps the bill rather than reporting it', and that was false. The committed plan sets reserved_concurrent_executions = -1 — no reservation at all — because this account's Lambda concurrency ceiling is 10 and AWS refuses every positive reservation against it; the module's own comment at infra/modules/demo-api/main.tf says so. Nothing named in this row bounds the bill. The handler's write surface is one transaction that ends in ROLLBACK and the Basic cluster carries its own $25 spend limit, but neither is under attack in a flood: the target is the static tree. The concurrency alarm REPORTS and does not stop. The only thing bounding spend today is the account's measured concurrency ceiling of 10, which is Adjustable: true and which nobody in this repository chose — worst case USD 33,250 for thirty days, computed in docs/deploy/COST-BOUND.md. That is a smaller claim than 'invocable by one distribution and nothing else' and it is the true one for this account.",
-      "anchor": "infra/modules/demo-api/main.tf:333",
+      "anchor": "infra/modules/demo-api/main.tf:432",
       "anchor_resolved": {
         "path": "infra/modules/demo-api/main.tf",
-        "line": 333,
+        "line": 432,
         "resolves": true,
+        "re_anchored": "2026-08-14: was :333, which CEN-ANCHORS caught reading 'handler = \"mainline_demo_api.app.handler\"'. The infra wave inserted lines above the aws_lambda_function_url block and the citation retargeted silently onto an unrelated attribute. THE CODE IS AUTHORITATIVE AND THE CITATION MOVED TO MATCH IT: main.tf was not edited, the quoted text was located by search rather than by offset, and :432 is the one line in the file that carries it verbatim (the other six occurrences of `url_authorization_type` are a comment, a local, a precondition and an output, none of them the attribute this row cites).",
         "line_text": "authorization_type = var.url_authorization_type",
         "must_contain": "authorization_type",
         "subject_holds": true
@@ -440,11 +441,12 @@
       "verdict": "DESIGNED",
       "verdict_basis": "granted in the Lambda execution role and NOTHING DEPLOYED — no parameter has been written and no role exists. The grant is in the committed plan (aws_iam_role_policy.dsn_access, one of the 11 additions in evidence/deploy/terraform-plan-furl.txt) and a plan is not an apply, so this row stays DESIGNED",
       "how": "The CockroachDB Cloud DSN is a SecureString parameter, not a Lambda environment variable, so the connection string never appears in the function configuration that anyone with lambda:GetFunction can read. The role's grant is scoped to exactly one parameter ARN.",
-      "anchor": "infra/modules/demo-api/main.tf:215",
+      "anchor": "infra/modules/demo-api/main.tf:280",
       "anchor_resolved": {
         "path": "infra/modules/demo-api/main.tf",
-        "line": 215,
+        "line": 280,
         "resolves": true,
+        "re_anchored": "2026-08-14: was :215, which CEN-ANCHORS caught reading '#' — a bare comment marker inside the environment-block prose. That is the worst form of drift: the anchor still resolved to a real line in a real file, so only the quoted-text check could see it. THE CODE IS AUTHORITATIVE AND THE CITATION MOVED TO MATCH IT: main.tf was not edited, and `actions = [\"ssm:GetParameter\"]` occurs exactly once in the file, at :280.",
         "line_text": "actions = [\"ssm:GetParameter\"]",
         "must_contain": "ssm:GetParameter",
         "subject_holds": true

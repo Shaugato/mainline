@@ -518,6 +518,40 @@ is a claim about a real operator's data, and none of it should be read as one.
   of the bundle carries object-lock modes and retention dates; the check that would
   compare them against live object versions is one of the seven that did not run.
 
+### Staged, which is a third thing — and the element nobody had written down
+
+Synthetic means *manufactured input*. **Staged** means a real component **pre-positioned** for a
+demonstration. `verticals/mainline/demo/DEMO-HONESTY.md` carries the film's staged column and is
+the primary register; this subsection exists because two staged elements live in the **seeds**,
+and until now neither honesty document named either of them. An undeclared staged element in the
+pair of documents whose entire job is declaring staged elements is the exact failure this project
+sells against, so it is written down here in full rather than summarised.
+
+* **The judge-path exposure receipt expires on `2027-01-01`, and that date is a demonstration
+  convenience.** `verticals/mainline/db/seeds/demo/demo_permit.sql` seeds
+  `mainline.exposure_receipt.expires_at` at that instant and says so in its own comment: the
+  window was chosen *"so that the admission beat keeps working for every judge for the whole
+  judging period, rather than for two hours after somebody ran the deploy."* **In the product a
+  receipt's TTL is hours.** The schema constrains only `expires_at > issued_at`; the application
+  picks the window, and nobody should read this one as the product's default. What is **not**
+  staged is the mechanism: the disposition still takes a composite foreign key onto the exact
+  rows the same serializable transaction returned, and that is what makes the admission beat mean
+  anything. A long expiry keeps the beat *available*; it does not make the beat *pass*.
+* **The film path uses a different receipt, and that one expires in two hours.**
+  `scripts/proof/gate_refusal.py::seed_history` issues it at `now() + INTERVAL '2 hours'`, and
+  `scripts/submission/seed_demo_state.py` — which calls that function — prints the resulting
+  deadline on **every** run, in both modes. It prints it because with no live receipt the
+  admission beat is *skipped* and the verdict falls to `NOT PROVEN` — a gate that only ever
+  refuses, which is the failure every refusal on camera hides.
+* **The two expiries are not a contradiction, and neither is being reconciled.** They belong to
+  two different databases, on purpose: `docs/submission/VIDEO-KIT.md` §B.9 records the
+  measurement that the proof world and the demo world **cannot** share one. The two worlds carry
+  different pre-seeded permits for the same reason — the console and corpus world's is
+  `WO-88213`, the demo-api world's is `DEMO-PTW-0001` in `demo_permit.sql` — so a reader who
+  finds only one of those identifiers has found the other database, not a missing row. Both
+  seeds are authoritative for their own database, and this page is checked against them, not the
+  other way round. Neither expiry was changed to make a document tidier.
+
 ---
 
 ## NOT YET BUILT
@@ -721,7 +755,7 @@ have handed the console's vitest tree to pytest.
 
 The repair is real and it is visible from the runner rather than inferred from the file. The
 `ci` lane's `pytest --crdb=none` job on run `31699545661`, dispatched by this worker at
-`12:20:17Z` against `2dc5c86` and read warm, prints:
+`12:20:17Z` against `2dc5c86` and read warm, prints: <!-- claim-hygiene: quoting -->
 
 ```
 8 failed, 8629 passed, 1003 skipped, 13 deselected, 2 warnings in 339.20s (0:05:39)
@@ -743,12 +777,25 @@ $ pytest verticals/mainline/apps/demo-api/tests --crdb=none  -q
 $ pytest verticals/mainline/apps/demo-api/tests --crdb=reuse -q
 4 failed, 376 passed, 1 skipped, 64 errors in 52.15s
 
-$ git grep -n "demo-api" 2dc5c86 -- .github/workflows/ ; echo "exit=$?"
+$ git grep -n "demo-api" 2dc5c86 -- .github/workflows/ ; echo "exit=$?"   # claim-hygiene: quoting
 exit=1                        # no match, in any of the eighteen workflow files
 
-$ git grep -c 'docker run -d' 2dc5c86 -- .github/workflows/
+$ git grep -c 'docker run -d' 2dc5c86 -- .github/workflows/   # claim-hygiene: quoting
 8 files, 13 stand-ups         # and not one of them names that directory
 ```
+
+**Three lines of this page carry a `claim-hygiene: quoting` marker, and this paragraph is the
+reason.** `scripts/demo/claim_hygiene.py` bans a seven-character commit SHA from every
+published surface, because `commit_id` in this system is a `sha256` over the JCS envelope and
+cannot be chosen in advance — a SHA written into a deck, or spoken in the film, is a SHA that
+will be wrong on the day. But the three lines it caught here are a paragraph opener naming the
+run that was read, and two `git grep` invocations whose entire value is that a stranger can
+re-run them; a `git grep` at a commit is not reproducible without the commit. So the SHA
+stays, and the rule's **own** visible escape hatch is used instead — one marker per line, on
+those three lines and nowhere else, written as a shell comment inside the block so the commands
+still paste and run unchanged. `docs/HONESTY.md` is **not** added to any scope list and no rule
+was edited: switching a scanner off is a green with nothing behind it, whereas a marker survives
+in the diff where a reviewer can see it and argue with it.
 
 `test_row_factory_contract.py` — the file the paragraphs above are about — is inside the
 `258 passed` and inside the `--crdb=reuse` column, so the sentence *"it has never executed,
@@ -886,7 +933,15 @@ publish colours — several of them red, several green. This page prints no tall
 because the tally lives in [`docs/CI-STATE.md`](CI-STATE.md), a prose document and not a
 source a number may be drawn from here.
 
-### The demo has been driven end to end, twice, and the verdict is NOT PROVEN both times
+### The HTTP surface has been driven end to end, twice, and `acceptance.json` reads NOT PROVEN both times
+
+**This heading used to say "the demo … and the verdict is NOT PROVEN both times", full stop.**
+That was a sentence about the build, and it was never entitled to be one: `NOT PROVEN` is the
+verdict of **one artefact about one surface**, and this page now says which. The verdict has not
+moved, the artefact has not been touched, and neither transcript below has been edited. What is
+added is a third, dated block naming what has since landed elsewhere, and the surface each of
+these artefacts is entitled to speak about. That is the only correction a document with this
+document's rules is allowed to make here.
 
 `evidence/deploy/acceptance.json` is the acceptance prover's transcript: the committed tree,
 unmodified, serving the real `mainline_demo_api.app.handler` against a demo-seeded database.
@@ -931,6 +986,35 @@ demo that refuses all four beats would look impressive and prove nothing. So a `
 whose only remaining failure is the admission is **not** a smaller result than the previous
 one — it is the same verdict resting on the more important beat.
 
+**Third, and dated `2026-08-14`: what has since landed, and what surface it is about.** Nothing
+above is retracted and nothing above is edited. `evidence/gate-refusal/proof-20260814T032418Z.json`
+was written at `2026-08-14T03:24:18Z` by `scripts/proof/gate_refusal.py`, against a **local**
+CockroachDB node, into a throwaway database the prover builds and drops for itself —
+`cluster.database` reads `w_qr_gate_refusal_proof` — on `CockroachDB CCL v26.2.5`.
+
+| What that run recorded | Value |
+|---|---|
+| Verdict | `PROVEN` |
+| First refusal | SQLSTATE `23514`, constraint `gate_closed_when_issued` |
+| Second refusal, same permit, under a forced projection | SQLSTATE `P0001`, `mainline.fn_permit_merge_gate` |
+| Then, after one signed disposition | `ADMITTED`, SQLSTATE `00000` |
+| Migration files the run applied first | 271 [src: evidence/gate-refusal/proof-20260814T032418Z.json#chain.applied_count] |
+| Migration files that failed | 0 [src: evidence/gate-refusal/proof-20260814T032418Z.json#chain.failed_count] |
+
+Caveats that artefact carries: 0 [src: evidence/gate-refusal/proof-20260814T032418Z.json#caveats|len].
+Failures it carries: 0 [src: evidence/gate-refusal/proof-20260814T032418Z.json#failures|len].
+Assertions in its projection block, every one of them holding:
+10 [src: evidence/gate-refusal/proof-20260814T032418Z.json#projection.assertions|len].
+
+**Read the surfaces, not the verdicts.** These artefacts answer different questions and none of
+them may be substituted for another. `acceptance.json` speaks about **HTTP** — the real handler
+behind a URL, which is the surface a judge presses. `proof-20260814T032418Z.json` speaks about
+the **database**, over a psycopg connection, on a local node. `cloud-chain.json` and
+`cloud-seed.json`, below, speak about **CockroachDB Cloud**, and about the migration chain and
+the seeded world rather than about the handler. A `PROVEN` on one of those surfaces is not a
+`PROVEN` on the others, and the whole reason this section is kept rather than replaced is that
+averaging them is the move it exists to refuse.
+
 **The SQL-level proof and the HTTP-level proof now disagree, and this page will not average
 them.** `evidence/gate-refusal/proof-20260810T054407Z.json` records an `ADMITTED` at `00000`
 with a server-computed clearance digest, and nothing here retracts it: it was taken against
@@ -939,17 +1023,59 @@ demo's HTTP path does not currently reproduce it — a different statement about
 surface, and the surface a judge will actually press. **Until the two agree, only the first
 may be cited as proven, and only about the database.**
 
+**The pointer moved on `2026-08-14`; the rule did not.** "The first" in that rule is the
+SQL-level proof, and the SQL-level proof this page now points at is
+`evidence/gate-refusal/proof-20260814T032418Z.json` — same prover, same three beats, later run,
+and caveat-free. The earlier `2026-08-10` artefact is left named above rather than swapped out,
+because a pointer that is silently re-aimed leaves a reader unable to tell whether the older run
+was superseded or was never there at all. Both files are on disk; either can be re-read.
+
 **Two things about how this section may change.** The transcript moves by **re-running the
 prover**, never by editing the file: a recorded transcript edited to agree with a document has
 stopped being evidence and started being a forgery. And `target_is_local_emulator: true` is a
 field in the artefact rather than a footnote here — nothing in this repository has yet proved
 any of this against a deployed Lambda, because `terraform apply` has never been run.
 
+#### And the third surface: CockroachDB Cloud, and the one Cloud claim this page will not print
+
+The paragraph that follows is carried **verbatim**, and is worded identically in
+[`docs/STATE-OF-THE-BUILD.md`](STATE-OF-THE-BUILD.md) and [`docs/CI-STATE.md`](CI-STATE.md), so
+that three documents cannot drift into three different accounts of the same gap. A commit
+message is a statement about a measurement, and a measurement always outranks one.
+
+> **CockroachDB Cloud carries the demo world, and the gate refuses there.** The migration chain
+> is `APPLIED` and the seeded world is `SEEDED AND REFUSABLE` against
+> `mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud`, database `mainline_demo`,
+> CockroachDB CCL v26.2.5 — the refusal observed on Cloud is `23514`
+> `gate_closed_when_issued`, with `nothing_persisted: true`
+> [src: `evidence/deploy/cloud-chain.json#outcome`, `evidence/deploy/cloud-seed.json#verdict`,
+> `#verification`].
+>
+> **The four-beat run through the HTTP handler has NOT been recorded against Cloud.** The
+> operator reports it in the body of commit `7535670`; that commit's diff carries no such
+> artefact, and `evidence/` holds none. **OWED:** re-run `scripts/deploy/…` against Cloud with
+> `--out evidence/deploy/cloud-gate-run.json`, and only then may a Cloud `PROVEN` appear on
+> this page. Until it exists, the only `PROVEN` this repository holds is
+> `evidence/gate-refusal/proof-20260814T032418Z.json`, and it is **local**
+> (`cluster.database = w_qr_gate_refusal_proof`).
+
+The citation inside that quotation is written as prose rather than as a machine reference on
+purpose: `evidence/deploy/cloud-seed.json` is not a declared reference family in
+`tests/release/test_honesty_is_checkable.py`, and this page does not smuggle an undeclared
+artefact past its own registry to make a paragraph look better cited than it is. Declaring the
+family is the seed artefact's owner's job, not this paragraph's.
+
 ### Other things this document will not pretend about
 
-* **Nothing has ever run against CockroachDB Cloud in CI.** The nightly truth check is
+* **Nothing has ever run against CockroachDB Cloud in CI.** That sentence is still true, and
+  it is a sentence about **CI**, so it stays exactly as it is. The nightly truth check is
   designed, not scheduled. The migration chain *has* now been applied to the Cloud cluster
-  by hand — the table in PROVEN is that run — and a hand-run is not a lane.
+  by hand — the table in PROVEN is that run — and a hand-run is not a lane. **Two Cloud
+  artefacts now exist and are named here so nobody reads this bullet as "nothing has touched
+  Cloud":** `evidence/deploy/cloud-chain.json`, the chain applied to the Singapore cluster,
+  and `evidence/deploy/cloud-seed.json`, the seeded world and its observed refusal. Both were
+  produced by hand, from a workstation, by an operator holding a credential no lane holds.
+  A hand-run is corroboration; it is not a lane, and it never becomes one by being repeated.
 * **The console lane exists and has not been observed running.** A workflow for
   `verticals/mainline/apps/console` was added on `2026-08-10`. Before that date a console
   of several hundred TypeScript files carried a complete `pnpm run ci` — eslint at

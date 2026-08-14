@@ -1,0 +1,799 @@
+{
+  "generated_at": "2026-08-14T08:13:20Z",
+  "mode": "phase2",
+  "mode_description": "the live stack: console, /v1/health, and two /v1/demo/gate-run calls against CockroachDB Cloud",
+  "url": "http://127.0.0.1:8791",
+  "invocation": {
+    "program": "scripts/deploy/demo_acceptance.py",
+    "argv": [
+      "--url",
+      "http://127.0.0.1:8791",
+      "--permit-id",
+      "dec0de00-0006-4000-8000-000000000001",
+      "--phase2",
+      "--signature-path",
+      "--vocabulary-check",
+      "dec0de00-0007-4000-8000-000000000001",
+      "--vocabulary-check",
+      "dec0de00-000d-4000-8000-000000000001",
+      "--row-census",
+      "evidence/deploy/cloud-seed.json",
+      "--database",
+      "mainline_demo",
+      "--census-extra",
+      "mainline.defeater_option=6",
+      "--census-extra",
+      "mainline.ledger_leaf=4",
+      "--census-extra",
+      "mainline.ledger_node=3",
+      "--census-extra-authority",
+      "commit 7535670 'evidence(cloud): re-seed CockroachDB Cloud and prove the demo there, not only locally' publishes these three counts in its own message; evidence/deploy/cloud-seed.json's row_counts object does not carry them, which is a gap in that artefact rather than a licence to omit them here",
+      "--out",
+      "evidence/deploy/cloud-acceptance.json",
+      "--note",
+      "<elided; see the key it names>"
+    ],
+    "cwd": "D:\\CoackroachDBxAWS\\mainline",
+    "python": "3.13.14",
+    "elided": [
+      "--corroborate",
+      "--note"
+    ],
+    "home_masked_as": "<home>",
+    "credentials_on_this_command_line": "none. The DSN is read from the file named by --env-file and is never an argument; the only form of it recorded anywhere in this file has its password replaced."
+  },
+  "tls_verified": true,
+  "verdict": "PROVEN",
+  "failures": [],
+  "total_ms": 43373.1,
+  "reachable": true,
+  "target_is_local_emulator": true,
+  "volatile_fields": [
+    "run_id",
+    "generated_at",
+    "observed_at",
+    "refusal_id",
+    "elapsed_ms",
+    "ms",
+    "seconds",
+    "opened_logical_timestamp",
+    "closed_logical_timestamp",
+    "disposition_id",
+    "clearance_digest",
+    "message"
+  ],
+  "permit_invariant_fields": [
+    "open_blocking",
+    "state",
+    "gate_epoch",
+    "head_seq"
+  ],
+  "expected_beats": [
+    {
+      "ordinal": 1,
+      "name": "read",
+      "outcome": "read",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null,
+      "why": "the permit and its open obligation, read from the cluster"
+    },
+    {
+      "ordinal": 2,
+      "name": "merge",
+      "outcome": "refused",
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued",
+      "constraint_source": "reported",
+      "why": "a plain CHECK refuses the merge while an obligation is open"
+    },
+    {
+      "ordinal": 3,
+      "name": "projection_drift_attack",
+      "outcome": "refused",
+      "sqlstate": "P0001",
+      "constraint": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed",
+      "why": "the counter is forged to zero and the gate refuses anyway, by re-deriving it"
+    },
+    {
+      "ordinal": 4,
+      "name": "admit",
+      "outcome": "admitted",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null,
+      "why": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken"
+    }
+  ],
+  "checks": {
+    "console": {
+      "url": "http://127.0.0.1:8791/",
+      "status": 200,
+      "ms": 6.5,
+      "bytes": 4655,
+      "content_type": "text/html; charset=utf-8",
+      "x_mainline_headers": {
+        "x-mainline-api": "demo-static",
+        "x-mainline-emulator": "local_furl",
+        "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+        "x-mainline-static": "index.html"
+      },
+      "x-mainline-emulator": "local_furl",
+      "html_markers": [
+        "<html",
+        "<!doctype html",
+        "<div id=\"root\"",
+        "<script"
+      ]
+    },
+    "health": {
+      "url": "http://127.0.0.1:8791/v1/health",
+      "status": 200,
+      "ms": 2083.1,
+      "bytes": 410,
+      "content_type": "application/json; charset=utf-8",
+      "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "database": "mainline_demo",
+      "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+      "migrations_applied": 0,
+      "server_date": "2026-08-14T08:12:42.873440Z",
+      "ok": true
+    },
+    "gate_runs": [
+      {
+        "run": 1,
+        "url": "http://127.0.0.1:8791/v1/demo/gate-run",
+        "status": 200,
+        "ms": 12014.7,
+        "bytes": 10449,
+        "content_type": "application/json; charset=utf-8",
+        "envelope_version": 1,
+        "staged": false,
+        "verdict": "PROVEN",
+        "persisted": false,
+        "outcome": "completed",
+        "beats": [
+          {
+            "ordinal": 1,
+            "name": "read",
+            "label": "The permit, and the obligation that is still open on it.",
+            "outcome": "read",
+            "sqlstate": "00000",
+            "constraint": null,
+            "constraint_source": null,
+            "matched_expectation": true,
+            "message": null,
+            "ms": 0.013,
+            "expected": {
+              "outcome": "read",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null
+            },
+            "why_it_matters": "the permit and its open obligation, read from the cluster",
+            "present": true
+          },
+          {
+            "ordinal": 2,
+            "name": "merge",
+            "label": "MERGE the permit. One open obligation, no signed disposition.",
+            "outcome": "refused",
+            "sqlstate": "23514",
+            "constraint": "gate_closed_when_issued",
+            "constraint_source": "reported",
+            "matched_expectation": true,
+            "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+            "ms": 2041.449,
+            "expected": {
+              "outcome": "refused",
+              "sqlstate": "23514",
+              "constraint": "gate_closed_when_issued",
+              "constraint_source": "reported"
+            },
+            "why_it_matters": "a plain CHECK refuses the merge while an obligation is open",
+            "present": true
+          },
+          {
+            "ordinal": 3,
+            "name": "projection_drift_attack",
+            "label": "THE ATTACK: force the projected counter to zero out of band, then merge again.",
+            "outcome": "refused",
+            "sqlstate": "P0001",
+            "constraint": "mainline.fn_permit_merge_gate",
+            "constraint_source": "parsed",
+            "matched_expectation": true,
+            "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+            "ms": 2444.54,
+            "expected": {
+              "outcome": "refused",
+              "sqlstate": "P0001",
+              "constraint": "mainline.fn_permit_merge_gate",
+              "constraint_source": "parsed"
+            },
+            "why_it_matters": "the counter is forged to zero and the gate refuses anyway, by re-deriving it",
+            "present": true
+          },
+          {
+            "ordinal": 4,
+            "name": "admit",
+            "label": "Sign one disposition against the obligation, then merge again.",
+            "outcome": "admitted",
+            "sqlstate": "00000",
+            "constraint": null,
+            "constraint_source": null,
+            "matched_expectation": true,
+            "message": null,
+            "ms": 1991.049,
+            "expected": {
+              "outcome": "admitted",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null
+            },
+            "why_it_matters": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken",
+            "present": true
+          }
+        ],
+        "persistence_identical": true,
+        "persistence_tables": 10,
+        "single_transaction": true,
+        "admission_exhibit": {
+          "disposition_id_minted": true,
+          "open_blocking_after_signature": 0,
+          "clearance_digest": "a5b42a5271333d89e7e4dce0741a40b87249daafb479de2dca24f9033707c65e",
+          "merge_record_permit_state": "merged"
+        },
+        "permit_reread_status": 200
+      },
+      {
+        "run": 2,
+        "url": "http://127.0.0.1:8791/v1/demo/gate-run",
+        "status": 200,
+        "ms": 11730.8,
+        "bytes": 10449,
+        "content_type": "application/json; charset=utf-8",
+        "envelope_version": 1,
+        "staged": false,
+        "verdict": "PROVEN",
+        "persisted": false,
+        "outcome": "completed",
+        "beats": [
+          {
+            "ordinal": 1,
+            "name": "read",
+            "label": "The permit, and the obligation that is still open on it.",
+            "outcome": "read",
+            "sqlstate": "00000",
+            "constraint": null,
+            "constraint_source": null,
+            "matched_expectation": true,
+            "message": null,
+            "ms": 0.01,
+            "expected": {
+              "outcome": "read",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null
+            },
+            "why_it_matters": "the permit and its open obligation, read from the cluster",
+            "present": true
+          },
+          {
+            "ordinal": 2,
+            "name": "merge",
+            "label": "MERGE the permit. One open obligation, no signed disposition.",
+            "outcome": "refused",
+            "sqlstate": "23514",
+            "constraint": "gate_closed_when_issued",
+            "constraint_source": "reported",
+            "matched_expectation": true,
+            "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+            "ms": 1941.547,
+            "expected": {
+              "outcome": "refused",
+              "sqlstate": "23514",
+              "constraint": "gate_closed_when_issued",
+              "constraint_source": "reported"
+            },
+            "why_it_matters": "a plain CHECK refuses the merge while an obligation is open",
+            "present": true
+          },
+          {
+            "ordinal": 3,
+            "name": "projection_drift_attack",
+            "label": "THE ATTACK: force the projected counter to zero out of band, then merge again.",
+            "outcome": "refused",
+            "sqlstate": "P0001",
+            "constraint": "mainline.fn_permit_merge_gate",
+            "constraint_source": "parsed",
+            "matched_expectation": true,
+            "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+            "ms": 2441.556,
+            "expected": {
+              "outcome": "refused",
+              "sqlstate": "P0001",
+              "constraint": "mainline.fn_permit_merge_gate",
+              "constraint_source": "parsed"
+            },
+            "why_it_matters": "the counter is forged to zero and the gate refuses anyway, by re-deriving it",
+            "present": true
+          },
+          {
+            "ordinal": 4,
+            "name": "admit",
+            "label": "Sign one disposition against the obligation, then merge again.",
+            "outcome": "admitted",
+            "sqlstate": "00000",
+            "constraint": null,
+            "constraint_source": null,
+            "matched_expectation": true,
+            "message": null,
+            "ms": 1920.858,
+            "expected": {
+              "outcome": "admitted",
+              "sqlstate": "00000",
+              "constraint": null,
+              "constraint_source": null
+            },
+            "why_it_matters": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken",
+            "present": true
+          }
+        ],
+        "persistence_identical": true,
+        "persistence_tables": 10,
+        "single_transaction": true,
+        "admission_exhibit": {
+          "disposition_id_minted": true,
+          "open_blocking_after_signature": 0,
+          "clearance_digest": "69a8f3fa7a95455ecbdb134f289dec8c79d171799527e16f3ac87bccaf2ae3f0",
+          "merge_record_permit_state": "merged"
+        },
+        "permit_reread_status": 200
+      }
+    ],
+    "repeatability": {
+      "compared": "stable projection of the two runs",
+      "identical": true,
+      "volatile_fields_excluded": [
+        "run_id",
+        "generated_at",
+        "observed_at",
+        "refusal_id",
+        "elapsed_ms",
+        "ms",
+        "seconds",
+        "opened_logical_timestamp",
+        "closed_logical_timestamp",
+        "disposition_id",
+        "clearance_digest",
+        "message"
+      ],
+      "clearance_digest_run_1": "a5b42a5271333d89e7e4dce0741a40b87249daafb479de2dca24f9033707c65e",
+      "clearance_digest_run_2": "69a8f3fa7a95455ecbdb134f289dec8c79d171799527e16f3ac87bccaf2ae3f0",
+      "clearance_digest_stable": false,
+      "note": "The digest is OBSERVED, not asserted: it is computed over the sorted (check_id, disposition_id) set and the disposition is inserted fresh inside each run, so two runs may legitimately differ. A difference here is not a failure; a difference in the stable projection is."
+    },
+    "permit_invariant": {
+      "fields": [
+        "open_blocking",
+        "state",
+        "gate_epoch",
+        "head_seq"
+      ],
+      "permit_id": "dec0de00-0006-4000-8000-000000000001",
+      "snapshots": [
+        {
+          "when": "before_run_1",
+          "source": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+          "permit_id": "dec0de00-0006-4000-8000-000000000001",
+          "open_blocking": 1,
+          "state": "dispositioned",
+          "gate_epoch": 1,
+          "head_seq": 2
+        },
+        {
+          "when": "after_run_1",
+          "source": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+          "taken_after": "a gate run that answered 200",
+          "permit_id": "dec0de00-0006-4000-8000-000000000001",
+          "open_blocking": 1,
+          "state": "dispositioned",
+          "gate_epoch": 1,
+          "head_seq": 2
+        },
+        {
+          "when": "after_run_2",
+          "source": "GET /v1/permits/dec0de00-0006-4000-8000-000000000001",
+          "taken_after": "a gate run that answered 200",
+          "permit_id": "dec0de00-0006-4000-8000-000000000001",
+          "open_blocking": 1,
+          "state": "dispositioned",
+          "gate_epoch": 1,
+          "head_seq": 2
+        }
+      ],
+      "why": "the four beats run inside ONE transaction that is rolled back. If that is true, the committed permit is unchanged afterwards, and open_blocking in particular is still 1 rather than the 0 the signed disposition would leave behind.",
+      "required_snapshots": [
+        "before_run_1",
+        "after_run_2"
+      ],
+      "snapshots_taken": [
+        "before_run_1",
+        "after_run_1",
+        "after_run_2"
+      ],
+      "bracketed": true,
+      "compared": "before_run_1 vs after_run_2",
+      "comparisons": [
+        {
+          "against": "before_run_1",
+          "reading": "after_run_1",
+          "moved_fields": [],
+          "identical": true
+        },
+        {
+          "against": "before_run_1",
+          "reading": "after_run_2",
+          "moved_fields": [],
+          "identical": true
+        }
+      ],
+      "moved_fields": [],
+      "unchanged": true,
+      "subjects_read": [
+        "dec0de00-0006-4000-8000-000000000001"
+      ]
+    },
+    "signature_path": {
+      "route": "/v1/checks/{check_id}/disposition",
+      "checks_requested": [
+        "dec0de00-0007-4000-8000-000000000001",
+        "dec0de00-000d-4000-8000-000000000001"
+      ],
+      "checks": [
+        {
+          "check_id": "dec0de00-0007-4000-8000-000000000001",
+          "url": "http://127.0.0.1:8791/v1/checks/dec0de00-0007-4000-8000-000000000001/disposition",
+          "status": 200,
+          "ms": 2011.5,
+          "bytes": 3805,
+          "content_type": "application/json; charset=utf-8",
+          "options": 3,
+          "codes": [
+            "ENERGY_SOURCE_ABSENT",
+            "MECHANISM_PRESENT_AND_VERIFIED",
+            "WORK_NOT_INTRUSIVE"
+          ],
+          "prompts_present": 3,
+          "generations": 1,
+          "vocab_sha256": "2ccb08a3d9d1f89e66267c00101fc1de18d2dda95b669eef9d71ab69c548b579",
+          "signed_present": false,
+          "source": "mainline.defeater_option, served by GET /v1/checks/{check_id}/disposition"
+        },
+        {
+          "check_id": "dec0de00-000d-4000-8000-000000000001",
+          "url": "http://127.0.0.1:8791/v1/checks/dec0de00-000d-4000-8000-000000000001/disposition",
+          "status": 200,
+          "ms": 2013.7,
+          "bytes": 3850,
+          "content_type": "application/json; charset=utf-8",
+          "options": 3,
+          "codes": [
+            "CONTROL_PRESERVED_BY_EDIT",
+            "EDIT_OUTSIDE_BLAMED_ANCHOR",
+            "PRECURSOR_ANSWERED_ELSEWHERE"
+          ],
+          "prompts_present": 3,
+          "generations": 1,
+          "vocab_sha256": "d9c837c25bb174d1afd6b22f9496dcb197ffa6c69e5562b8fe76e3300fea3bbe",
+          "signed_present": false,
+          "source": "mainline.defeater_option, served by GET /v1/checks/{check_id}/disposition"
+        }
+      ],
+      "defeater_vocab_literal": {
+        "value": "7ad8d49c2edd93f0a8fd3cd6b2a5d6cd225810805527a1a3f2f497aec819db3f",
+        "recomputed_from": "sha256(b'defeater-vocab')",
+        "why": "the constant both signing paths bound until 2026-08-14, and the value the deployed Cloud recorded on its one signed disposition. Recomputed here rather than quoted so the comparison is reproducible."
+      },
+      "mutating_requests_issued": 0,
+      "why_no_mutating_request": "POST /v1/checks/{check_id}/disposition commits irreversibly and is refused 423 demo_subject_write_protected on the seeded demo subject; evidence/deploy/demo-guard-armed.json measured that guard firing. A probe whose safety depends on a guard holding is a probe that writes on the day it does not, and the row it would write closes the demo's one obligation for every judge after it. The signature is observed at beat 4 instead, where it is rolled back.",
+      "negative_control": {
+        "claim": "a digest read from each check's own rows differs between checks; a constant cannot",
+        "vocabularies_read": 2,
+        "distinct_digests": 2,
+        "digests": {
+          "dec0de00-0007-4000-8000-000000000001": "2ccb08a3d9d1f89e66267c00101fc1de18d2dda95b669eef9d71ab69c548b579",
+          "dec0de00-000d-4000-8000-000000000001": "d9c837c25bb174d1afd6b22f9496dcb197ffa6c69e5562b8fe76e3300fea3bbe"
+        },
+        "holds": true
+      },
+      "signed_check_id": "dec0de00-0007-4000-8000-000000000001",
+      "signed_check_vocabulary_was_read": true,
+      "not_established_here": "the gate-run payload does not publish beat 4's defeater_code or its bound defeater_vocab_sha256, so 'the digest the signature pinned equals the digest these rows carry' is NOT established by this credential-free caller. It is asserted in-process by verticals/mainline/apps/demo-api/tests/test_judge_can_sign.py. What beat 4 answering 'admitted' DOES establish is that the vocabulary resolved at all: an absent one raises DefeaterVocabularyAbsent and the request is 422 demo_history_not_seeded, never a 200."
+    },
+    "row_census": {
+      "before": {
+        "when": "before",
+        "read_only": true,
+        "expected_from": "evidence\\deploy\\cloud-seed.json",
+        "expected_authority": {
+          "row_counts": "evidence\\deploy\\cloud-seed.json's own row_counts object \u2014 committed evidence, and the authoritative expected value this run is checked against",
+          "census_extra": "commit 7535670 'evidence(cloud): re-seed CockroachDB Cloud and prove the demo there, not only locally' publishes these three counts in its own message; evidence/deploy/cloud-seed.json's row_counts object does not carry them, which is a gap in that artefact rather than a licence to omit them here"
+        },
+        "dsn": "postgresql://mainline-sql:***@mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/mainline_demo?sslmode=verify-full",
+        "statement": "SELECT (SELECT count(*) FROM mainline.site), (SELECT count(*) FROM mainline.person), (SELECT count(*) FROM mainline.signing_credential), (SELECT count(*) FROM mainline.commit_obj), (SELECT count(*) FROM mainline.commit_edge), (SELECT count(*) FROM mainline.doc), (SELECT count(*) FROM mainline.clause), (SELECT count(*) FROM mainline.clause_version), (SELECT count(*) FROM mainline.event), (SELECT count(*) FROM mainline.blame_edge), (SELECT count(*) FROM mainline.clause_blame_closure), (SELECT count(*) FROM mainline.cbm_account), (SELECT count(*) FROM mainline.ledger_checkpoint), (SELECT count(*) FROM mainline.cosignature), (SELECT count(*) FROM mainline_meas.recall_policy), (SELECT count(*) FROM mainline_meas.recall_run), (SELECT count(*) FROM mainline_meas.silence_receipt), (SELECT count(*) FROM mainline.permit), (SELECT count(*) FROM mainline.permit_clause), (SELECT count(*) FROM mainline.permit_event), (SELECT count(*) FROM mainline.boundary_certificate), (SELECT count(*) FROM mainline.blocking_check), (SELECT count(*) FROM mainline.exposure_receipt), (SELECT count(*) FROM mainline.exposure_line), (SELECT count(*) FROM mainline.disposition), (SELECT count(*) FROM mainline.merge_record), (SELECT count(*) FROM mainline_ops.outbox), (SELECT count(*) FROM mainline.defeater_option), (SELECT count(*) FROM mainline.ledger_leaf), (SELECT count(*) FROM mainline.ledger_node)",
+        "database_selection": {
+          "requested": "mainline_demo",
+          "confirmed_by_server": "mainline_demo",
+          "matches": true,
+          "dsn_path_segment": "defaultdb",
+          "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+        },
+        "connected_as": "mainline-sql",
+        "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+        "tables": 30,
+        "row_counts": {
+          "mainline.site": 1,
+          "mainline.person": 2,
+          "mainline.signing_credential": 2,
+          "mainline.commit_obj": 2,
+          "mainline.commit_edge": 1,
+          "mainline.doc": 1,
+          "mainline.clause": 1,
+          "mainline.clause_version": 1,
+          "mainline.event": 1,
+          "mainline.blame_edge": 1,
+          "mainline.clause_blame_closure": 1,
+          "mainline.cbm_account": 1,
+          "mainline.ledger_checkpoint": 3,
+          "mainline.cosignature": 3,
+          "mainline_meas.recall_policy": 1,
+          "mainline_meas.recall_run": 1,
+          "mainline_meas.silence_receipt": 1,
+          "mainline.permit": 1,
+          "mainline.permit_clause": 1,
+          "mainline.permit_event": 2,
+          "mainline.boundary_certificate": 1,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline.disposition": 0,
+          "mainline.merge_record": 0,
+          "mainline_ops.outbox": 2,
+          "mainline.defeater_option": 6,
+          "mainline.ledger_leaf": 4,
+          "mainline.ledger_node": 3
+        },
+        "expected_row_counts": {
+          "mainline.site": 1,
+          "mainline.person": 2,
+          "mainline.signing_credential": 2,
+          "mainline.commit_obj": 2,
+          "mainline.commit_edge": 1,
+          "mainline.doc": 1,
+          "mainline.clause": 1,
+          "mainline.clause_version": 1,
+          "mainline.event": 1,
+          "mainline.blame_edge": 1,
+          "mainline.clause_blame_closure": 1,
+          "mainline.cbm_account": 1,
+          "mainline.ledger_checkpoint": 3,
+          "mainline.cosignature": 3,
+          "mainline_meas.recall_policy": 1,
+          "mainline_meas.recall_run": 1,
+          "mainline_meas.silence_receipt": 1,
+          "mainline.permit": 1,
+          "mainline.permit_clause": 1,
+          "mainline.permit_event": 2,
+          "mainline.boundary_certificate": 1,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline.disposition": 0,
+          "mainline.merge_record": 0,
+          "mainline_ops.outbox": 2,
+          "mainline.defeater_option": 6,
+          "mainline.ledger_leaf": 4,
+          "mainline.ledger_node": 3
+        },
+        "drift": {},
+        "identical_to_committed_evidence": true
+      },
+      "after": {
+        "when": "after",
+        "read_only": true,
+        "expected_from": "evidence\\deploy\\cloud-seed.json",
+        "expected_authority": {
+          "row_counts": "evidence\\deploy\\cloud-seed.json's own row_counts object \u2014 committed evidence, and the authoritative expected value this run is checked against",
+          "census_extra": "commit 7535670 'evidence(cloud): re-seed CockroachDB Cloud and prove the demo there, not only locally' publishes these three counts in its own message; evidence/deploy/cloud-seed.json's row_counts object does not carry them, which is a gap in that artefact rather than a licence to omit them here"
+        },
+        "dsn": "postgresql://mainline-sql:***@mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/mainline_demo?sslmode=verify-full",
+        "statement": "SELECT (SELECT count(*) FROM mainline.site), (SELECT count(*) FROM mainline.person), (SELECT count(*) FROM mainline.signing_credential), (SELECT count(*) FROM mainline.commit_obj), (SELECT count(*) FROM mainline.commit_edge), (SELECT count(*) FROM mainline.doc), (SELECT count(*) FROM mainline.clause), (SELECT count(*) FROM mainline.clause_version), (SELECT count(*) FROM mainline.event), (SELECT count(*) FROM mainline.blame_edge), (SELECT count(*) FROM mainline.clause_blame_closure), (SELECT count(*) FROM mainline.cbm_account), (SELECT count(*) FROM mainline.ledger_checkpoint), (SELECT count(*) FROM mainline.cosignature), (SELECT count(*) FROM mainline_meas.recall_policy), (SELECT count(*) FROM mainline_meas.recall_run), (SELECT count(*) FROM mainline_meas.silence_receipt), (SELECT count(*) FROM mainline.permit), (SELECT count(*) FROM mainline.permit_clause), (SELECT count(*) FROM mainline.permit_event), (SELECT count(*) FROM mainline.boundary_certificate), (SELECT count(*) FROM mainline.blocking_check), (SELECT count(*) FROM mainline.exposure_receipt), (SELECT count(*) FROM mainline.exposure_line), (SELECT count(*) FROM mainline.disposition), (SELECT count(*) FROM mainline.merge_record), (SELECT count(*) FROM mainline_ops.outbox), (SELECT count(*) FROM mainline.defeater_option), (SELECT count(*) FROM mainline.ledger_leaf), (SELECT count(*) FROM mainline.ledger_node)",
+        "database_selection": {
+          "requested": "mainline_demo",
+          "confirmed_by_server": "mainline_demo",
+          "matches": true,
+          "dsn_path_segment": "defaultdb",
+          "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
+        },
+        "connected_as": "mainline-sql",
+        "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+        "tables": 30,
+        "row_counts": {
+          "mainline.site": 1,
+          "mainline.person": 2,
+          "mainline.signing_credential": 2,
+          "mainline.commit_obj": 2,
+          "mainline.commit_edge": 1,
+          "mainline.doc": 1,
+          "mainline.clause": 1,
+          "mainline.clause_version": 1,
+          "mainline.event": 1,
+          "mainline.blame_edge": 1,
+          "mainline.clause_blame_closure": 1,
+          "mainline.cbm_account": 1,
+          "mainline.ledger_checkpoint": 3,
+          "mainline.cosignature": 3,
+          "mainline_meas.recall_policy": 1,
+          "mainline_meas.recall_run": 1,
+          "mainline_meas.silence_receipt": 1,
+          "mainline.permit": 1,
+          "mainline.permit_clause": 1,
+          "mainline.permit_event": 2,
+          "mainline.boundary_certificate": 1,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline.disposition": 0,
+          "mainline.merge_record": 0,
+          "mainline_ops.outbox": 2,
+          "mainline.defeater_option": 6,
+          "mainline.ledger_leaf": 4,
+          "mainline.ledger_node": 3
+        },
+        "expected_row_counts": {
+          "mainline.site": 1,
+          "mainline.person": 2,
+          "mainline.signing_credential": 2,
+          "mainline.commit_obj": 2,
+          "mainline.commit_edge": 1,
+          "mainline.doc": 1,
+          "mainline.clause": 1,
+          "mainline.clause_version": 1,
+          "mainline.event": 1,
+          "mainline.blame_edge": 1,
+          "mainline.clause_blame_closure": 1,
+          "mainline.cbm_account": 1,
+          "mainline.ledger_checkpoint": 3,
+          "mainline.cosignature": 3,
+          "mainline_meas.recall_policy": 1,
+          "mainline_meas.recall_run": 1,
+          "mainline_meas.silence_receipt": 1,
+          "mainline.permit": 1,
+          "mainline.permit_clause": 1,
+          "mainline.permit_event": 2,
+          "mainline.boundary_certificate": 1,
+          "mainline.blocking_check": 2,
+          "mainline.exposure_receipt": 1,
+          "mainline.exposure_line": 1,
+          "mainline.disposition": 0,
+          "mainline.merge_record": 0,
+          "mainline_ops.outbox": 2,
+          "mainline.defeater_option": 6,
+          "mainline.ledger_leaf": 4,
+          "mainline.ledger_node": 3
+        },
+        "drift": {},
+        "identical_to_committed_evidence": true
+      },
+      "moved_across_this_run": {},
+      "unchanged_across_this_run": true,
+      "why": "POST /v1/demo/gate-run is allowed to be driven against a shared live database BECAUSE it is savepoint-fenced and rolls back, and that permission is conditional on this reading. A run that moved these counts has broken the demo for the next judge and says so here rather than being re-seeded over."
+    }
+  },
+  "advisories": [
+    "the target answered with x-mainline-emulator: local_furl. This run was taken against scripts/deploy/local_furl.py \u2014 the REAL demo-api handler and the REAL console bundle, over a local socket, against the database named under /v1/health. It proves the handler, the site and the gate. It does NOT prove that a public demo URL exists; docs/submission/SUBMISSION.json holds UNRESOLVED until one does.",
+    "/v1/health reports migrations_applied=0, and that is a true count of the wrong ledger rather than a broken deployment. health.py's statement counts trappoint.schema_migration WHERE state='applied'; the only writer of that table in the tree is trappoint_migrate/runner.py:295, i.e. `trappoint migrate up`. This database was built by scripts/deploy/cloud_chain.py, which bootstraps the attestation ledger (hence the non-null schema_fingerprint above) and then applies the 271 files itself, recording its count in trappoint.deploy_chain instead. So schema_migration is empty by construction, 0 is honest about it, and the chain really is applied \u2014 the schema_fingerprint above is the identifier that moves when the schema does. Two appliers, two ledgers, and /v1/health reads only one of them."
+  ],
+  "emulator": "local_furl",
+  "observed_sqlstates": [
+    {
+      "run": 1,
+      "ordinal": 1,
+      "name": "read",
+      "outcome": "read",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null
+    },
+    {
+      "run": 1,
+      "ordinal": 2,
+      "name": "merge",
+      "outcome": "refused",
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued",
+      "constraint_source": "reported"
+    },
+    {
+      "run": 1,
+      "ordinal": 3,
+      "name": "projection_drift_attack",
+      "outcome": "refused",
+      "sqlstate": "P0001",
+      "constraint": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed"
+    },
+    {
+      "run": 1,
+      "ordinal": 4,
+      "name": "admit",
+      "outcome": "admitted",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null
+    },
+    {
+      "run": 2,
+      "ordinal": 1,
+      "name": "read",
+      "outcome": "read",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null
+    },
+    {
+      "run": 2,
+      "ordinal": 2,
+      "name": "merge",
+      "outcome": "refused",
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued",
+      "constraint_source": "reported"
+    },
+    {
+      "run": 2,
+      "ordinal": 3,
+      "name": "projection_drift_attack",
+      "outcome": "refused",
+      "sqlstate": "P0001",
+      "constraint": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed"
+    },
+    {
+      "run": 2,
+      "ordinal": 4,
+      "name": "admit",
+      "outcome": "admitted",
+      "sqlstate": "00000",
+      "constraint": null,
+      "constraint_source": null
+    }
+  ],
+  "target_provenance": {
+    "http_hop": {
+      "emulated": true,
+      "emulator": "local_furl",
+      "x_mainline_headers": {
+        "x-mainline-api": "demo-static",
+        "x-mainline-emulator": "local_furl",
+        "x-mainline-not-the-demo-url": "scripts/deploy/local_furl.py - a local emulator of a Lambda Function URL. It is not the deployed demo and must not be published as one.",
+        "x-mainline-static": "index.html"
+      },
+      "what_that_means": "the flag `target_is_local_emulator` is read from a header the target sent and describes the SOCKET only. A true value means no public demo URL was reached; it says nothing about which database answered underneath."
+    },
+    "database_under_test": {
+      "reported_by_health": "mainline_demo",
+      "confirmed_by_census": "mainline_demo",
+      "host": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257",
+      "is_cockroachdb_cloud": true,
+      "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+      "agree": true,
+      "how": "GET /v1/health names the database the handler is connected to, with no credential involved. The census names the database it selected BY NAME and confirmed with SELECT current_database(). Two independent readings, and the field above records whether they agree."
+    },
+    "not_established_by_this_run": "that a public demo URL exists. The stack is unapplied \u2014 `aws lambda get-function --function-name mainline-demo-api` answers ResourceNotFoundException \u2014 and no acceptance run can conjure one. docs/submission/SUBMISSION.json holds UNRESOLVED until it does."
+  },
+  "note": "THE WHOLE JUDGE PATH AGAINST COCKROACHDB CLOUD, ON 2026-08-14 (TRAPPOINT), AT TREE d098721 (master) PLUS THIS WAVE'S UNCOMMITTED WORKING TREE. Measured with git status at the moment of this run, three files under the handler's own distribution were modified and not yet committed: mainline_demo_api/gate_run.py, retry.py and transitions.py. THAT IS NOT A FOOTNOTE - gate_run.py is the module the four beats live in, so this transcript is a measurement of the wave's working tree and not of HEAD. It is stated here because an evidence file that names a commit and was taken against something else is the class of claim this repository exists to refuse; the same run against a clean checkout of d098721 has not been taken and is not claimed. This is the acceptance evidence the submission may cite for the gate. It supersedes nothing in evidence/deploy/acceptance.json - that file records the LOCAL reproduction and the two are kept apart on purpose (R4: Cloud is authoritative for what the DEMO will meet, local is authoritative for what a stranger can reproduce; neither is edited to match the other).\n\nWHAT ANSWERED. The REAL handler: mainline_demo_api.app.handler, imported unmodified from verticals/mainline/apps/demo-api/src (banner: app.py), served over an emulated Lambda Function URL payload-2.0 event by scripts/deploy/local_furl.py, with the real console dist and the demo-cloud EvidenceBundle staged under /bundle/. NO MONKEYPATCHING: this run imports nothing of its own into the handler's process, which is the correction the 2026-08-13 artefact needed a scratchpad wrapper to make and this one does not. The DATABASE is CockroachDB Cloud mainline_demo - the live one the deployed Lambda is configured to read - selected BY NAME and confirmed twice, by GET /v1/health and by the census's own SELECT current_database(). The environment carried MAINLINE_DEMO_PERMIT_ID and nothing else under the MAINLINE_DEMO_ prefix that scenario.from_env scans, exactly as infra/modules/demo-api/main.tf:131-132 publishes it, so a judge meets the same defaults; MAINLINE_DEMO_ALLOW_MUTATION was unset, so transitions._demo_guard was armed throughout.\n\ntarget_is_local_emulator IS TRUE IN THIS FILE AND THAT IS THE HONEST VALUE. The brief for this capture asked for false. It cannot be false today, and writing false would be the exact falsification this repository exists to refuse: the flag is READ from the X-Mainline-Emulator header the target volunteered, and local_furl.py stamps that header precisely so a transcript taken against it can never be mistaken for one taken against the deployment. There is no deployed Function URL to reach - the stack is unapplied, \"aws lambda get-function --function-name mainline-demo-api\" answers ResourceNotFoundException, and no terraform apply was run by this worker. What the criterion was actually asking for is that the run met the DEPLOYED CLUSTER rather than a local imitation of it, and that claim is true and is carried by target_provenance below, which separates the three things the one boolean folds together: the HTTP hop is emulated; the handler and the console are the shipping ones; the database is CockroachDB Cloud mainline_demo, agreed by two independent readings. When a Function URL exists, this same program pointed at it records the flag as false with no code change.\n\nTHE FOUR BEATS, EACH WITH ITS SQLSTATE, ITS CONSTRAINT AND HOW THE NAME WAS OBTAINED. 00000 read -> REFUSED 23514 gate_closed_when_issued (REPORTED by the driver) -> REFUSED P0001 mainline.fn_permit_merge_gate (PARSED out of the kernel's message, because CockroachDB populates no PL/pgSQL context stack, and a run whose exhibits were inferred must never look like one whose exhibits were reported) -> ADMITTED 00000 carrying a server-computed clearance_digest. Twice, with identical stable projections. The admission beat also carries open_blocking_after_signature=0, read INSIDE the transaction after the disposition landed, beside GET /v1/permits/{id} still reporting open_blocking=1 after both runs - that pair IS the rollback, measured from two different endpoints in two different transactions.\n\nTHE ROW CENSUS - WHY DRIVING THE GATE AT A SHARED LIVE DATABASE WAS PERMITTED AT ALL. Thirty tables counted read-only BEFORE the first request and again AFTER the last one. Twenty-seven expected counts come from evidence/deploy/cloud-seed.json's own row_counts object - committed evidence, the authoritative value, never typed into the prover. Three more - defeater_option 6, ledger_leaf 4, ledger_node 3 - come from commit 7535670's own message and are supplied on the command line with their authority stated, because cloud-seed.json's row_counts does not carry those three tables. THAT IS A GAP IN cloud-seed.json AND IT IS RECORDED HERE RATHER THAN CLOSED BY GUESSING: the three tables the re-seed commit is named for are the three its own seed transcript does not count. Both readings matched the committed evidence exactly and matched each other exactly, so this run moved nothing and mainline.disposition and mainline.merge_record are still 0. The census never reads crdb_internal or system - both are restricted to this role - and it never trusts the DSN's path segment, which is /defaultdb while the demo lives in mainline_demo.\n\nTHE SIGNATURE PATH, WALKED READ-ONLY. Both demo obligations offer three defeater options each, every one carrying a prompt, and each check's rows carry exactly ONE distinct vocab_sha256 - which is what 0064_defeater_option.sql says a generation is. The two checks carry TWO DIFFERENT digests, and that is the negative control: a digest computed from a literal is the same value for every check, so it cannot tell one obligation's option set from another's and would go on describing three options after somebody added a fourth. Neither digest is sha256(b'defeater-vocab') = 7ad8d49c2edd93f0a8fd3cd6b2a5d6cd225810805527a1a3f2f497aec819db3f, the constant both signing paths bound until 2026-08-14 and the value the deployed Cloud recorded on its one signed disposition. NO MUTATING REQUEST WAS ISSUED. POST /v1/checks/{check_id}/disposition is the endpoint a judge signs with and it commits irreversibly; on the demo subject transitions._demo_guard refuses it 423 demo_subject_write_protected, and evidence/deploy/demo-guard-armed.json is the artefact that measured that guard firing. A probe whose safety depends on a guard holding is a probe that WRITES on the day the guard does not, and the row it would write closes the demo's one obligation for every judge after it. The signature is therefore observed where it is reversible - at beat 4, inside the rolled-back transaction.\n\nONE THING THIS RUN DOES NOT ESTABLISH, STATED RATHER THAN GLOSSED. The gate-run payload does not publish the defeater_code or the defeater_vocab_sha256 that beat 4 actually bound, so \"the digest the signature pinned is the digest these rows carry\" is asserted in-process by verticals/mainline/apps/demo-api/tests/test_judge_can_sign.py and NOT by this credential-free caller. What beat 4 answering \"admitted\" does establish is that the vocabulary RESOLVED at all: an absent one raises DefeaterVocabularyAbsent and the request is 422 demo_history_not_seeded, never a 200. Publishing those two fields on beat 4's observed block would close the gap over the wire; gate_run.py is not this worker's file, so the finding is handed on rather than reached across for.\n\nA FINDING THE CENSUS TURNED UP ON ITS FIRST USE, AND IT IS ABOUT THE DEPLOYED DATABASE. The census passes here because 3 checkpoints and 3 cosignatures is what Cloud mainline_demo actually holds and what cloud-seed.json committed. It is NOT what the two seed files produce. demo_world.sql inserts exactly two checkpoints, tree_size 2 and tree_size 4, each guarded by NOT EXISTS, and two matching cosignatures; a clean database seeded from these files today carries 2 and 2, which is what the local reproduction in evidence/deploy/acceptance.json measured. The third row on Cloud is a LEGACY one that no current seed writes and that the re-seed did not remove, and demo_world.sql:391 names it in its own words: \"Until 2026-08-14 this section seeded ONE checkpoint, tree_size = 1, with a root_hash of digest('mainline-demo/ledger/root/1','sha256') - a hash of a STRING NAMING ITSELF - over a mainline.ledger_leaf that held zero rows.\" MEASURED ON CLOUD TODAY, read-only: the checkpoints are tree_size 1, 2 and 4; ledger_leaf holds 4 rows; and for tree_size 1, encode(root_hash,'hex') = encode(digest('mainline-demo/ledger/root/1','sha256'),'hex') is TRUE, while it is false for 2 and 4. So the row whose root is a hash of its own name is STILL IN THE DEPLOYED DATABASE and is still served by GET /v1/ledger. Commit 7535670 says the checkpoint is \"now consistent with the leaves it commits to\" - true of the checkpoint it ADDED, and the inconsistent one beside it was never deleted. TWO CONSEQUENCES, neither of them this worker's file to fix. First, evidence/deploy/cloud-seed.json's ledger_checkpoint 3 and cosignature 3 describe a database with legacy rows rather than the output of the seeds, so a fresh Cloud database re-seeded from these files would carry 2 and 2 and that committed count would be wrong about it. Second, the transparency-log surface a judge can click still holds one checkpoint that commits to a tree the log does not hold. Handed on rather than reached across for; nothing here was edited to make either number agree with the other.\n\nTIMING, RECORDED BECAUSE IT IS A PROPERTY OF THE PLATFORM AND NOT OF THE GATE. Each gate run took about 11.3 seconds against Cloud from this workstation, against about 1.0 second against a local single node - roughly eleven times slower, on a link whose connect time alone is about 3 seconds. That is the round-trip to ap-southeast-1 multiplied by the beats' statements, not a regression, and it is what a judge in Australia will feel.\n\nNOTHING WAS RELAXED TO REACH THIS GREEN AND NO FIELD OF THIS FILE WAS HAND-EDITED. It is the output of scripts/deploy/demo_acceptance.py, written by the program at the end of the run whose command is recorded under invocation. No floor was lowered, no ceiling raised, no assertion weakened, no entry added to qa/cluster-known-red.json, no seed or fixture moved. No credential was printed to a terminal, a log or this file - the only DSN recorded anywhere here has its password replaced. No terraform apply was run and no AWS call was made by this program at all."
+}

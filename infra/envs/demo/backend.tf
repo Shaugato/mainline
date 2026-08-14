@@ -32,6 +32,43 @@
 # That is the whole of the chicken-and-egg, resolved without committing a state file and
 # without a second Terraform root.
 #
+# ── HOW TO GET THE `-backend-config` LINE WITHOUT TYPING TWELVE DIGITS ────────────────
+#
+# Two ways, both read-only, neither of which puts an account id in a tracked file:
+#
+#     scripts/deploy/plan_repro.sh --print-backend-config
+#     scripts/deploy/bootstrap_state.sh --print-backend-config --bucket <name> --region <r>
+#
+# The first derives the bucket name from `sts get-caller-identity` and hands it to the
+# second; the second is documented at its own line 92 as making ZERO AWS calls in this
+# mode and writing nothing. Both print the finished `terraform init …` line to copy.
+# `bootstrap_state.sh` WITHOUT `--print-backend-config` is a different program: it CREATES
+# the bucket, and that is the first mutating action of the whole deploy
+# (`docs/deploy/RUNBOOK.md` § 5.1). No worker runs it.
+#
+# ── AND HOW TO READ A PLAN WITH NO BUCKET AT ALL ──────────────────────────────────────
+#
+# `terraform init -backend=false` completes on this root, and `terraform validate` then
+# passes — but `terraform plan` does NOT run, because this file declares an S3 backend and
+# `plan` answers *"Changes to backend configurations require reinitialization"*. Reading
+# the plan therefore used to require creating a bucket first, which is backwards: a
+# reviewer should not have to write to the account to read what an apply would do.
+#
+# `scripts/deploy/plan_repro.sh` closes that: it writes a throwaway `backend_override.tf`
+# pointing at a LOCAL state file OUTSIDE the repository, removes it in a trap on any exit,
+# and reaches `Plan: 24 to add, 0 to change, 0 to destroy.` with no mutating AWS call.
+# **That is only equivalent to the real backend because nothing has been applied** — an
+# empty local state and an empty remote state hold the same zero resources — so the script
+# MEASURES that precondition on every run and exits 5 when it stops holding. It is a way
+# to READ the plan before there is a backend; it is not a substitute for the real one.
+# `docs/deploy/RUNBOOK.md` § 5.6.0 walks it from a fresh `git clone`; § 5.6.2 is the real
+# backend, which is the only correct path once anything has been applied.
+#
+# THE PARTIALITY IS THE DESIGN AND IT STAYS. Do not complete this block by committing a
+# bucket name to make `init` one command shorter: the name must be globally unique across
+# every AWS customer, so a committed one is wrong on every account but one, and
+# `scripts/submission/audit_public_readiness.py` fails the build on a literal account id.
+#
 # `terraform init -backend=false` needs none of this and is what the committed plan
 # evidence in `evidence/deploy/` was produced with: no state, no bucket, no lock, and
 # therefore nothing an unreviewed plan run could disturb.

@@ -5,6 +5,46 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # CI state — what GitHub actually says
 
+> ## THE MEASURED BOARD — 2026-08-14, public tip `7535670`
+>
+> **Re-measured live by W6 (ci-green) on 2026-08-14 and confirmed row for row against §1.0.
+> Read §1.0 first; everything below §1.A is the preserved record of earlier boards.**
+>
+> ```
+> 20 workflows        8 GREEN        12 RED        0 never-run
+>
+> decomposed by JOB, which is the unit a lane-level bit hides:
+>                     17 green jobs  ·  20 red jobs
+>
+> 12 RED ├─ 4 RED ON PURPOSE, and turning them green is FORBIDDEN   §1.0.6
+>        │    schema · db · custody-chain · demo-health   (+ ci's PL-2 job)
+>        └─ 8 red on a defect, of which FIVE are already repaired in
+>             this working directory and NONE has a run id
+>
+> SKIPS, counted and named — never summed into passes:              §1.0.5
+>        cluster-tests    1 skip   against a ceiling of 1   (10 → 1; the ceiling
+>                                  was never touched, and nine former skips now
+>                                  EXECUTE — eight of them fail, visibly)
+>        ci (hermetic)    1,104 skips of 10,250 collected = 10.8 %
+>
+> demo-api suite, --crdb=reuse, from --junitxml:                     §1.0.7
+>        at 7535670   570 / 567 passed / 2 failed / 1 skipped / 0 errors
+>                     — NOT the circulated 570/569/0/0, which was never
+>                       reproducible. NOTHING closed that gap.
+>        at d098721   576 / 573 passed / 2 failed / 1 skipped / 0 errors
+>                     then 576 / 575 passed / 0 failed / 1 skipped / 0 errors
+>                     on the SAME tree an hour later. The 40001 -> 503 defect
+>                     is INTERMITTENT, not fixed. Hold to the run that SHOWS
+>                     it; a green run of an intermittent defect is not a
+>                     green tree.
+> ```
+>
+> **THE LOAD-BEARING CAVEAT: no lane in this repository has ever run at local HEAD.** The
+> public tip is `7535670`; `5e6932e`, `f68abb7`, `c9a7253` and `d098721` exist only in this
+> working directory, alongside 40 modified and 14 untracked paths. **Every fix this wave made
+> — W1's, W2's, W5's and W6's own — is a PLAN on this board, and is counted red.** *A repair
+> without a run id is a plan.*
+
 **Measured 2026-08-13 by W5 of the CI-RUNS-THE-CLUSTER wave, at commit `2dc5c86` on
 `master`, on a repository that is PUBLIC.** All eighteen workflows were **dispatched in this
 sitting**, between `12:20:13Z` and `12:20:52Z`, against the public tip, and every log below
@@ -157,6 +197,389 @@ and §9 here, because §6 is new.
 
 ## 1. Every workflow, with its real conclusion
 
+### 1.0 RE-MEASURED LIVE, 2026-08-14 — the board as GitHub answers it today
+
+**Measured by D3 of the DOCS-TRUE wave on 2026-08-14, from the public repository, with
+§0.1's own first command and nothing else.** Not one conclusion below is inherited from the
+`2dc5c86` table that follows it, from the orchestrator's board, or from a commit message.
+Where a row's newest run predates the public tip, the row says so in its own cells rather
+than in a footnote, because *a green taken at `eefae1c` is not a statement about `7535670`*.
+
+```bash
+$ gh run list --branch master --limit 200 \
+    --json databaseId,workflowName,conclusion,createdAt,event,headSha \
+    --jq 'group_by(.workflowName)[] | max_by(.createdAt)
+          | "\(.workflowName)|\(.conclusion)|\(.databaseId)|\(.headSha[0:7])|\(.createdAt)|\(.event)"'
+
+$ git ls-remote --heads origin | grep refs/heads/master
+7535670bf5b71808a74e11a1d550051ede8e5203   refs/heads/master
+```
+
+**The public tip is `7535670`.** Four further commits — `5e6932e`, `f68abb7`, `c9a7253`,
+`d098721` — exist only in this working directory, are absent from the remote, and **have
+produced no run id**. §0.2's rule applies to them without exception: *a repair without a run
+id is a plan, and this page counts plans as red.* Nothing below credits any of them.
+
+| workflow | conclusion | run | head | created (UTC) | event | at the tip? | § |
+|---|---|---|---|---|---|---|---|
+| `aws-evidence` | **failure** | [31770005783](https://github.com/Shaugato/mainline/actions/runs/31770005783) | `7535670` | 2026-08-14T04:29:07Z | push | **yes** | §1.0.2 |
+| `boundary` | success | [31770242329](https://github.com/Shaugato/mainline/actions/runs/31770242329) | `7535670` | 2026-08-14T04:33:40Z | dispatch | **yes** | §4 |
+| `ci` | failure | [31770005791](https://github.com/Shaugato/mainline/actions/runs/31770005791) | `7535670` | 2026-08-14T04:29:07Z | push | **yes** | §1.0.2 |
+| `claims` | **failure** | [31735341024](https://github.com/Shaugato/mainline/actions/runs/31735341024) | `eefae1c` | 2026-08-13T19:20:30Z | push | **NO — two commits behind the tip** | §1.0.2 |
+| `cloud-verify` | success | [31728207470](https://github.com/Shaugato/mainline/actions/runs/31728207470) | `1a6e10a` | 2026-08-13T17:56:15Z | schedule | **NO — predates `eefae1c`** | §4.3 |
+| `cluster-lane-bites` | failure | [31770005766](https://github.com/Shaugato/mainline/actions/runs/31770005766) | `7535670` | 2026-08-14T04:29:07Z | push | **yes** | §1.0.3 |
+| `cluster-tests` | failure | [31770005759](https://github.com/Shaugato/mainline/actions/runs/31770005759) | `7535670` | 2026-08-14T04:29:07Z | push | **yes** | §6.8 |
+| `console` | success | [31699574592](https://github.com/Shaugato/mainline/actions/runs/31699574592) | `2dc5c86` | 2026-08-13T12:20:40Z | dispatch | **NO — five commits behind** | §4 |
+| `custody-chain` | failure | [31770245613](https://github.com/Shaugato/mainline/actions/runs/31770245613) | `7535670` | 2026-08-14T04:33:44Z | dispatch | **yes** | §2.4 |
+| `db` | failure | [31770238265](https://github.com/Shaugato/mainline/actions/runs/31770238265) | `7535670` | 2026-08-14T04:33:35Z | dispatch | **yes** | §2.2 |
+| `db-schema` | failure | [31770240275](https://github.com/Shaugato/mainline/actions/runs/31770240275) | `7535670` | 2026-08-14T04:33:37Z | dispatch | **yes** | §2.5 |
+| `demo-health` | failure | [31785827676](https://github.com/Shaugato/mainline/actions/runs/31785827676) | `7535670` | 2026-08-14T08:54:06Z | schedule | **yes** | §2.3 |
+| `judge-pack` | success | [31699580021](https://github.com/Shaugato/mainline/actions/runs/31699580021) | `2dc5c86` | 2026-08-13T12:20:44Z | dispatch | **NO — five commits behind** | §5.2 |
+| `mutation-ratchet` | success | [31729443279](https://github.com/Shaugato/mainline/actions/runs/31729443279) | `1a6e10a` | 2026-08-13T18:10:51Z | schedule | **NO** | §4 |
+| `nightly-differential` | failure | [31720904696](https://github.com/Shaugato/mainline/actions/runs/31720904696) | `e944407` | 2026-08-13T16:29:08Z | schedule | **NO** | §3.2 |
+| `release-proof` | success | [31770243984](https://github.com/Shaugato/mainline/actions/runs/31770243984) | `7535670` | 2026-08-14T04:33:42Z | dispatch | **yes** | §4 |
+| `schema` | failure | [31770005764](https://github.com/Shaugato/mainline/actions/runs/31770005764) | `7535670` | 2026-08-14T04:29:07Z | push | **yes** | §2.1 |
+| `skills` | success | [31699588327](https://github.com/Shaugato/mainline/actions/runs/31699588327) | `2dc5c86` | 2026-08-13T12:20:50Z | dispatch | **NO — five commits behind** | §4 |
+| `submission` | **failure** | [31770005810](https://github.com/Shaugato/mainline/actions/runs/31770005810) | `7535670` | 2026-08-14T04:29:07Z | push | **yes** | §1.0.2 |
+| `supply-chain` | success | [31735341020](https://github.com/Shaugato/mainline/actions/runs/31735341020) | `eefae1c` | 2026-08-13T19:20:30Z | push | **NO — two commits behind** | §4 |
+
+**Score at 2026-08-14: 20 workflows · 8 green · 12 red · 0 never-run.** The `2dc5c86` board
+below counted eighteen; the two new lanes are `cluster-tests` and `cluster-lane-bites`, which
+that board could not count because neither existed on the remote (§0.2, §6.4).
+
+**EIGHT of the twenty greens and reds describe a tree that is no longer the tip**, and twelve
+are at it. `console`, `judge-pack` and `skills` are still reporting `2dc5c86`; `cloud-verify`
+and `mutation-ratchet` report `1a6e10a`; `claims` and `supply-chain` report `eefae1c`;
+`nightly-differential` reports `e944407`. **A green whose head is five commits old is a claim
+about a tree nobody is running.** This is §10.4's finding, unrepaired: it has re-formed around
+a different set rather than closing. The cure is a dispatch, not a sentence on this page.
+
+> **This sentence said "seven" in its first draft, and the list under it named eight.** The
+> error was caught by counting the rows of the table above with a script instead of by eye,
+> and it is recorded rather than silently fixed, because the whole argument of this page is
+> that a number nobody re-derived is a number nobody checked — and that applies hardest to
+> the numbers this page writes about itself. The count is **8 not at the tip, 12 at it**;
+> `8 + 12 = 20`, which is the row count of the table and of `ls .github/workflows/*.yml`.
+
+#### 1.0.1 What moved since the `2dc5c86` board, in the direction nobody wanted
+
+Three lanes that the table below records as **green** are now **red**, each at a head this
+page can name:
+
+| workflow | `2dc5c86` | now | the failing job, from `gh run view <id> --json jobs` |
+|---|---|---|---|
+| `aws-evidence` | success (§4.1) | **failure** at `7535670` | all three jobs red |
+| `claims` | success | **failure** at `eefae1c` | *claim hygiene (red half, then green half)* — the other four jobs green |
+| `submission` | success (§4.2) | **failure** at `7535670` | *a stranger can clone it, and every file names a licence* — the other two jobs green |
+
+**§4.1 and §4.2 are NOT rewritten to match.** They are true of run `31699560021` and run
+`31699563085`, they name those runs in their first line, and a page that re-types a dated
+reading to agree with today has stopped being a board. §1.0.2 carries the new causes; §7.9
+and §7.10 record which sentences did not survive.
+
+#### 1.0.2 The three new reds, each with the cause read out of its own log
+
+**`aws-evidence` [31770005783](https://github.com/Shaugato/mainline/actions/runs/31770005783),
+`7535670` — a citation retargeted, and it took the mutation family down with it.** Two
+`[CEN-ANCHORS]` errors, quoted from the runner:
+
+```
+[CEN-ANCHORS] evidence/tool-usage/aws-services.json#rows.aws_lambda: anchor
+infra/modules/demo-api/main.tf:333 quotes 'authorization_type = var.url_authorization_type'
+but that line now reads 'handler       = "mainline_demo_api.app.handler"'; the citation has
+silently retargeted
+[CEN-ANCHORS] … #rows.aws_ssm_parameter_store: anchor infra/modules/demo-api/main.tf:215
+quotes 'actions = ["ssm:GetParameter"]' but that line now reads '#'; the citation has
+silently retargeted
+```
+
+And then the expensive consequence, which §4.1 recorded as **repaired** and is now back:
+
+```
+FAMILY red-for-the-wrong-reason: an unmutated copy of evidence/ already fails, so every
+plant below would be red for a reason that is not its plant
+```
+
+**§5.3 called this family *"the strongest anti-vacuity statement on this board"*. At `7535670`
+it asserts nothing again**, for the same structural reason as before and a different proximate
+one. The cure is to re-anchor the two citations in `evidence/tool-usage/aws-services.json`
+against `infra/modules/demo-api/main.tf` as it now stands — **the tree is authoritative and the
+citation is derived** — and it is nobody's in this documents wave: no worker here owns
+`evidence/` or `infra/`. Recorded, owned by the AWS-evidence lead, not fixed.
+
+**`claims` [31735341024](https://github.com/Shaugato/mainline/actions/runs/31735341024),
+`eefae1c` — three `HYG-sha-literal` reds in `docs/HONESTY.md`, and the red half is healthy.**
+The job's red half passed in full (`self-test OK — the scanner goes red on every planted
+family`, then `21 claim-hygiene violation(s)` against the deliberate fixture, then
+`fixture refused with status 1, as required`). The green half is what failed:
+
+```
+scanned 16 file(s) against 21 rules
+ABSENT  docs/MECHANISMS.md matched no file — not scanned, and therefore not passed
+ABSENT  verticals/mainline/demo/operator/*.md   … not scanned, and therefore not passed
+ABSENT  docs/deck/**/*.md    · docs/deck/**/*.html · docs/deck/**/*.txt   … not passed
+FAIL  docs/HONESTY.md:724: [HYG-sha-literal] 2dc5c86
+FAIL  docs/HONESTY.md:746: [HYG-sha-literal] 2dc5c86
+FAIL  docs/HONESTY.md:749: [HYG-sha-literal] 2dc5c86
+3 claim-hygiene violation(s)
+```
+
+**Note the ABSENT count, because a summary of it has been wrong in this wave.** The checker
+prints **five** ABSENT lines, not three: `docs/deck/**/*.{md,html,txt}` is one glob in the
+scope list and three globs in the output. The three-versus-five distinction changes nothing
+about the finding and everything about whether a reader trusts the person quoting it.
+`docs/HONESTY.md` is D2's under this wave's RULING 5 and is not touched here.
+
+**`submission` [31770005810](https://github.com/Shaugato/mainline/actions/runs/31770005810),
+`7535670` — one untracked file with no licence, and a hard gate whose baseline is zero.**
+Two of three jobs green. The licence job:
+
+```
+UNCOVERED — resolve a licence or annotate (1):
+    collected.txt
+REFUSED [UNCOVERED] 1 tracked file(s) resolve no licence by header, by sidecar or by REUSE.toml
+REFUSED [RATCHET] metric=uncovered_by_top_level_directory.<root> baseline=0 measured=1 [HARD GATE: baseline is 0]
+REFUSED [RATCHET] metric=uncovered_total baseline=0 measured=1 [HARD GATE: baseline is 0]
+```
+
+A stray `collected.txt` at the repository root was committed without a licence. **The lane is
+right and its baseline of 0 does not move**; the same run reports one metric *improved*
+(`reuse_toml_patterns_matching_nothing` 5 → 1), so the ratchet is working in both directions.
+The cure is to delete or licence that file, in the tree, by whoever put it there. **Not by
+adding a path to a scope list.** This page has no opinion on which, and no authority to do
+either.
+
+#### 1.0.3 `cluster-lane-bites` is red, and every cell of its 2×2 passed
+
+Run [31770005766](https://github.com/Shaugato/mainline/actions/runs/31770005766), `7535670`,
+push. Read with `gh run view 31770005766 --json jobs --jq '.jobs[].steps[]'`, which numbers
+the steps itself rather than leaving the count to whoever is describing them: **steps 1–18
+all passed — including all four cells of the falsifiability 2×2 and the
+inventory-cannot-suppress control. Step 19 failed. Step 20 was skipped. Step 21 passed.**
+
+The single failing step is **19, *The frozen-seed guard is GREEN again***, which runs **after**
+the plant has been reverted and the tree proved byte-for-byte clean — so it discriminates
+nothing about the plant, and its cause is a stale freeze baseline left by commit `898ad55`.
+
+Because the summary step carries no `if: always()`, *The 2×2, as one table* was **skipped**, so
+the lane's own table has still never been published by a run. The four cells were read out of
+the job log step by step instead. **The full account, with the load-bearing comparison stated
+so it cannot be misread, is [`docs/ci/cluster-lane-falsifiability.md`](ci/cluster-lane-falsifiability.md) §Z.**
+
+#### 1.0.4 The Cloud gate-run, recorded as OWED
+
+> **CockroachDB Cloud carries the demo world, and the gate refuses there.** The migration chain
+> is `APPLIED` and the seeded world is `SEEDED AND REFUSABLE` against
+> `mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud`, database `mainline_demo`,
+> CockroachDB CCL v26.2.5 — the refusal observed on Cloud is `23514`
+> `gate_closed_when_issued`, with `nothing_persisted: true`
+> [src: `evidence/deploy/cloud-chain.json#outcome`, `evidence/deploy/cloud-seed.json#verdict`,
+> `#verification`].
+>
+> **The four-beat run through the HTTP handler has NOT been recorded against Cloud.** The
+> operator reports it in the body of commit `7535670`; that commit's diff carries no such
+> artefact, and `evidence/` holds none. **OWED:** re-run `scripts/deploy/…` against Cloud with
+> `--out evidence/deploy/cloud-gate-run.json`, and only then may a Cloud `PROVEN` appear on
+> this page. Until it exists, the only `PROVEN` this repository holds is
+> `evidence/gate-refusal/proof-20260814T032418Z.json`, and it is **local**
+> (`cluster.database = w_qr_gate_refusal_proof`).
+
+That paragraph is this wave's RULING 1, reproduced verbatim and worded identically in
+`docs/STATE-OF-THE-BUILD.md` and `docs/HONESTY.md`, so that three documents cannot drift into
+three different accounts of the same absent artefact. **It belongs on the CI board for a
+reason that is specific to this page: no lane produced either Cloud artefact.** Both were made
+by hand on a workstation. §4.3's sentence therefore survives untouched — see §4.3.
+
+#### 1.0.5 INDEPENDENTLY RE-MEASURED, 2026-08-14 by W6 (ci-green) — §1.0 confirmed row for row, and the job-level split it did not carry
+
+**§1.0's table was re-created, not re-read.** The same `gh run list` query was run again from
+this workstation and returned **the same twenty rows, the same twenty run ids, the same twenty
+conclusions and the same twenty heads.** `git ls-remote` still answers `7535670`. Nothing in
+§1.0 was corrected, because nothing in it was wrong.
+
+**The four unpushed commits are still unpushed, and the count has not changed.** `5e6932e`,
+`f68abb7`, `c9a7253`, `d098721` — the whole of W1–W5's work in this wave — remain absent from
+the remote, alongside **40 modified tracked files and 14 untracked paths**. *A repair without a
+run id is a plan, and this page counts plans as red.* **Every fix this wave made is therefore
+a plan on this board, including W6's own** (§1.0.6, `aws-evidence`).
+
+##### The job-level split, which a lane-level conclusion hides
+
+A workflow's conclusion is one bit. It is the wrong unit for a board, because a lane with
+seven green jobs and two red ones renders identically to a lane with two green and seven red.
+Read from `gh run view <id> --json jobs`, at `7535670`:
+
+| lane | run | jobs | **green** | **red** | the red jobs, named |
+|---|---|---:|---:|---:|---|
+| `ci` | 31770005791 | 12 | **7** | **5** | `PL-2` · `pytest --crdb=none` · `REUSE` · `ruff format · the counted lint ratchet` · `CI summary` (aggregate) |
+| `custody-chain` | 31770245613 | 7 | **5** | **2** | *a stranger verifies the bundle…* · *fifteen attacks · the matrix is generated from the run* |
+| `schema` | 31770005764 | 4 | **0** | **4** | all four — two of them **COLLATERAL**, having never reached their own subject (§2.1) |
+| `aws-evidence` | 31770005783 | 3 | **0** | **3** | all three — **one root cause**, and the third says so itself (§1.0.6) |
+| `submission` | 31770005810 | 3 | **2** | **1** | *a stranger can clone it, and every file names a licence* |
+| `db-schema` | 31770240275 | 3 | **2** | **1** | `mi-red and mi-green` |
+| `db` | 31770238265 | 2 | **1** | **1** | *migrate + conform…* |
+| `cluster-tests` | 31770005759 | 1 | **0** | **1** | the lane's single job |
+| `cluster-lane-bites` | 31770005766 | 1 | **0** | **1** | *…and every cell of its 2×2 passed* (§1.0.3) |
+| `demo-health` | 31785827676 | 1 | **0** | **1** | no URL exists (§2.3) |
+| `boundary` | 31770242329 | — | **all** | 0 | — |
+| `release-proof` | 31770243984 | — | **all** | 0 | — |
+
+**Twelve red lanes decompose into 20 red jobs against 17 green ones.** That is a materially
+different picture from "12 of 20 lanes are red", and it is the one a reader needs.
+
+##### The pass/skip split — skips are COUNTED AND NAMED, never summed into passes
+
+**A skip is indistinguishable from a green tick on a dashboard.** These are read out of the
+run's own pytest summary line at `7535670`, one commit fresher than §10.15's `eefae1c` census:
+
+| lane | run | failed | **passed** | **skipped** | deselected | collected |
+|---|---|---:|---:|---:|---:|---:|
+| `cluster-tests` | 31770005759 | **8** | 561 | **1** | 0 | **570** |
+| `ci` — hermetic `pytest --crdb=none` | 31770005791 | **7** | 9,124 | **1,104** | 15 | **10,250** |
+
+**`cluster-tests`: 1 skip against a ceiling of 1, and the ceiling was never touched.** This is
+the single largest improvement on the board and it must not be undone. The lane now runs
+`./.github/actions/build-demo-package` before the suite, so the deployed zip exists in the lane
+and the nine tree-reading assertions that used to **skip** now **execute**. Eight of them fail.
+**The lane converted nine invisible skips into eight visible defects**, which is a lane working
+exactly as designed. `COLLECTED_FLOOR: 445` held against 570 collected.
+
+The one surviving skip is **named**, not summed: `test_gate_run.py::
+test_payload_validates_against_the_json_schema` — *"jsonschema is not a workspace dependency;
+the structural check above is what runs today and this turns green the day it is added."*
+
+**`ci`'s 1,104 skips are the largest unexamined quantity on this board.** They are `1,104` of
+`10,250` — **10.8 % of the suite** — and the lane is `--crdb=none` **on purpose**, so most of
+them are cluster tests skipping with a written reason rather than dialling a node the session
+declined to obtain. That is correct behaviour and it is still 1,104 assertions this lane does
+not make. §6 and §10.17 are about exactly which ones. **They are recorded here as skips, on the
+same line as the passes and in a different column, because adding them together is the one
+arithmetic this page exists to refuse.**
+
+#### 1.0.6 FIXED versus RED ON PURPOSE at this HEAD — and for each deliberate red, what turns it green and what does NOT
+
+**These are two different kinds of red and a board that does not separate them is useless.**
+Per RULING R7 of [`docs/leads/ci-green-final.md`](leads/ci-green-final.md).
+
+##### RED ON PURPOSE — turning these green is FORBIDDEN; sharpening them is required
+
+| lane / job | owner | what turns it green | what does **NOT** |
+|---|---|---|---|
+| **`schema`** and **`db`** | **KERNEL domain**, [`docs/leads/kernel.md`](leads/kernel.md) 1.1 | a `CREATE TABLE` migration for **`trappoint_ref.clause`** and one for **`trappoint_ref.event`**, at `packages/trappoint-sql/refvertical/sql/<nnnn>_<table>.sql`. Both are referenced by that vertical and created by no file in it; `trappoint migrate` refuses at `0058_blocking_check` with `42P01` | narrowing the matrix · skipping a job · dropping the foreign key. **Each closes the lane by deleting the question** |
+| **`ci` / `PL-2`** | the `ci` lane | **nothing available today.** It asks for the URL of a `db` run in which **`CONFORMANCE` itself** went red. `CONFORMANCE` has **never executed**, because `db` stops one step earlier on the same missing producers. The field stays **`UNRECORDED`** | recording **any other** red `db` run. That is the laundering the field exists to prevent — a URL in a field that asks for a different observation |
+| **`custody-chain`** | **`verify-crypto`** | the seven missing runners under `packages/trappoint-verify/src/trappoint_verify/checks/` — checks **4, 5, 6, 7, 8, 11, 12** have no runner bound. The lane's own census: **`16 checks │ 9 passed │ 0 failed │ 7 not checked`** | marking a not-checked check as passed. **`0 failed` and `7 not checked` are different findings and the census keeps them apart** |
+| **`demo-health`** | the founder / the orchestrator | `docs/submission/SUBMISSION.json` → `demo_url` holding an `https` URL. **No URL exists**; `terraform apply` has not been run and the founder re-authorises before any apply | any workflow edit. The lane can already be proved sound with `gh workflow run demo-health -f url=…` (§2.3) |
+
+**`0 failed │ 7 not checked` deserves its own sentence.** Nine of sixteen custody checks pass
+and **none fails** — which reads like a clean bill of health and is not one. Seven checks have
+no implementation to run. A dashboard showing `custody-chain` as one red bit loses that
+distinction entirely; so would a summary that reported "9 of 9 passing".
+
+##### FIXED IN THE TREE — and every one of them is a PLAN on this board, because none has a run id
+
+| what | who | status |
+|---|---|---|
+| `cluster-tests` builds the package in-lane; skips **10 → 1** against a ceiling of 1 | landed before `7535670` | **the only fix on this page with a run id.** Measured green in run 31770005759's own numbers |
+| the eight `cluster-tests` byte-constant failures — re-recorded from a build **proven to reproduce byte for byte** | W1, `f68abb7` | **unpushed. No run id. Counted red here** |
+| the two frozen-seed baselines, re-measured after the four-part negative control | W2, `5e6932e` | **unpushed. No run id. Counted red here** |
+| `collected.txt` deleted (clears `submission`'s licence job **and** `ci`'s REUSE job — one file, two lanes); 11 lint regressions cleared; the wave's files formatted | W5, `c9a7253` + `d098721` | **unpushed. No run id. Counted red here** |
+| **`aws-evidence`'s two `CEN-ANCHORS` citations re-anchored** — `main.tf:333 → :432` and `:215 → :280`, to the lines that genuinely carry the quoted text, with `infra/modules/demo-api/main.tf` **unedited** | **W6, this wave** | **uncommitted. No run id. Counted red here** — see below |
+
+**W6's own fix is held to the same rule, and this is the row that proves the rule is not
+ceremonial.** All three `aws-evidence` jobs were run locally against the repaired file — the
+verifier passes `1016 assertions across 40 of 40 declared invariants`, `--self-test` reports
+*"the red half is red, and red for the reason it claims"*, and the anti-vacuity **control**
+returns `0 failure(s)`, which is the specific thing that was broken (the third job's own
+message was *"an unmutated copy of `evidence/` already fails, so every plant below would be
+red for a reason that is not its plant"* — one root cause, three red jobs, and the collateral
+job says so itself). **A local pass is not a run id.** This row stays red until a push produces
+one, exactly like the four above it. Recorded, not credited.
+
+#### 1.0.7 The demo-api suite's baseline was 570 / 567 / 2 / 1 / 0 — NOT the circulated 570 / 569 / 0 / 0 — and nothing "closed the gap", because the gap was never real
+
+**The handover circulated `570 tests / 569 passed / 0 failed / 1 skipped / 0 errors`, in
+DEFAULT and RANDOMISED order.** Measured at `7535670` by the CI-BOARD lead with the same
+command, `--crdb=reuse`, from `--junitxml`:
+
+| | tests | passed | failed | skipped | errors |
+|---|---:|---:|---:|---:|---:|
+| handover claimed | 570 | 569 | 0 | 1 | 0 |
+| **MEASURED at `7535670`** | **570** | **567** | **2** | **1** | **0** |
+
+**What closed the gap: nothing. The 569 was never reproducible, and saying "a fix closed it"
+would be the false green this page exists to refuse.** The two failures are not new work
+arriving; they are two pre-existing conditions that a lucky run composition had hidden:
+
+1. **`test_reads.py::test_health_reads_the_deploy_chain_marker_when_the_database_has_one`** —
+   `psycopg.errors.InvalidCatalogName: database "w5_deploy_chain_marker…" does not exist`. It
+   is **state-ordered**: it needs a database some *earlier* test creates, so it passes or fails
+   on **the composition of the run**, not on the code. A suite that reorders — which the
+   RANDOMISED order does by design — moves it.
+2. **`test_transitions.py`** — a CockroachDB **`40001`
+   `TransactionRetryWithProtoRefreshError`** escaping the retry wrapper and being rendered to
+   the caller as **`503 database_unreachable`**. **The node id moves; the defect does not.**
+
+**Re-measured again by W6 at local HEAD `d098721`** (four commits past `7535670`, working tree
+dirty), `--crdb=reuse`, from `--junitxml`:
+
+```
+576 tests · 573 passed · 2 failed · 1 skipped · 0 errors · 269.743s
+```
+
+**The suite grew from 570 to 576** — W1–W5 added six tests, all passing. **Both failure shapes
+survive**, and the second one moved node id again exactly as predicted: it is now
+`test_transitions.py::test_a_run_that_really_persists_is_caught`, `SerializationFailure`,
+`restart transaction: TransactionRetryWithProtoRefreshError` — a **different** node id from the
+lead's `test_sign_disposition_then_merge_commits`, same shape.
+
+**That is the confirmation, not a coincidence.** Three measurements, three different node ids,
+one defect. It is neither a flake nor a deterministic per-node-id failure, and it may not be
+filed under `unstable` where no ceiling polices it (RULING R3). **The 40001 → 503 gap is OPEN
+at this HEAD.** Owner: the retry wrapper, `verticals/mainline/apps/demo-api/src/
+mainline_demo_api/retry.py`. A prior lead measured **40001 six times out of six** by racing two
+connections against the LOCAL single node, so *"untestable without Cloud"* is false and may not
+be claimed.
+
+##### A FOURTH measurement, in which BOTH failures vanished — and why that is evidence FOR the defect, not against it
+
+W6 re-ran the identical command after making its documentation edits:
+
+```
+576 tests · 575 passed · 0 failed · 1 skipped · 0 errors · 144.637s
+```
+
+**This is not a fix and must never be quoted as one.** W6 changed **five files: four Markdown
+documents and one JSON citation.** No Python, no SQL, no product code, no test — the diff
+cannot reach the suite. Between the 573-passing run and the 575-passing run **nothing the suite
+executes was different.**
+
+So the honest reading is the opposite of the flattering one: **the same tree produced 573 and
+then 575 passes an hour apart**, which is the sharpest available demonstration that
+
+* `test_health_reads_the_deploy_chain_marker_when_the_database_has_one` is **state-ordered**,
+  and passes or fails on run composition; and
+* the `test_transitions.py` **40001 → 503** is a **real, intermittent product defect** that
+  neither reproduces on demand nor stays fixed.
+
+**A green run of an intermittent defect is not a green tree.** Four measurements now exist —
+567, 567, 573, 575 passed — and the correct baseline to hold a worker to is the one that
+**shows** the defect, not the one that happened to miss it. **`570 / 567 / 2 / 1 / 0` at
+`7535670` stands as the recorded baseline, and `576 / 575 / 0 / 1 / 0` is recorded beside it as
+the run in which the defect did not fire.** Quoting only the second would recreate the exact
+error the circulated `570/569/0/0` made.
+
+The single skip is the same one in every run and is **named**: `test_gate_run.py::
+test_payload_validates_against_the_json_schema`, *"jsonschema is not a workspace dependency"*.
+
+---
+
+### 1.A The `2dc5c86` board — *kept as the BEFORE, and not corrected in place*
+
+The table below was measured on 2026-08-13 against the then-public tip. **Its conclusions are
+true of the run ids in its own cells and of nothing else**, and it is kept whole rather than
+edited because a board edited after the fact is not a board — the same rule §6.0 applies to
+its own superseded heading. Where a row moved, §1.0.1 says so and §7 records the sentence.
+
 | workflow | conclusion | run | kind | § |
 |---|---|---|---|---|
 | `aws-evidence` | success | [31699560021](https://github.com/Shaugato/mainline/actions/runs/31699560021) | — **was red; the mutation family now executes** | §4.1 |
@@ -180,6 +603,11 @@ and §9 here, because §6 is new.
 
 **Score: 11 green, 7 red, 0 never-run.** (A nineteenth entry, `Dependabot Updates`, is
 GitHub's own managed workflow, not this repository's lane.)
+
+> **That score is `2dc5c86`'s and is superseded by §1.0, which reads 20 workflows · 8 green ·
+> 12 red on 2026-08-14.** The digits above are not re-typed: they were correct when measured,
+> the run ids beside them still open, and re-typing them would destroy the only evidence that
+> the board moved.
 
 **One row on this page was written green before it was observed, and then corrected.**
 `nightly-differential` was still `in_progress` when the rest of the board was drafted; its two
@@ -629,6 +1057,39 @@ against CockroachDB Cloud in CI.** The lane verifies the artefacts and configura
 run would need, against the local pinned node. A useful claim, and a smaller one than the name
 suggests.
 
+#### 4.3.1 RE-VERIFIED 2026-08-14, because two Cloud artefacts now exist and the sentence above still holds
+
+This is the sentence on this page most likely to have been overtaken by the last two days'
+work, so D3 re-measured it rather than carrying it forward. **It survives, and the reason it
+survives is exact: the two Cloud artefacts were produced by hand, and a hand-run is not a
+lane.**
+
+The newest `cloud-verify` on `master` is
+[31728207470](https://github.com/Shaugato/mainline/actions/runs/31728207470), head `1a6e10a`,
+`schedule`, 2026-08-13T17:56:15Z — **which predates the public tip `7535670`**. Its four jobs,
+read with `gh run view 31728207470 --json jobs`:
+
+| conclusion | job |
+|---|---|
+| success | the version comparison bites — a neighbouring tag must fail it |
+| success | is there a Cloud cluster to verify against? (and can it say no?) |
+| success | a real 40001 `RETRY_SERIALIZABLE`, and the loop that must not swallow it |
+| success | **SKIPPED — no Cloud cluster secret** |
+
+**The fourth job's name is the finding.** There is no *verify against Cloud* job in the run at
+all; what ran is the declared complement — the step *Say what was not verified, and name the
+thing that is missing*. The gate is `secrets.CRDB_CLOUD_DSN`, which is not set on this
+repository, and the third job's `40001` was constructed against **the local pinned single-node
+container**, not against Cloud.
+
+`evidence/deploy/cloud-chain.json` and `evidence/deploy/cloud-seed.json` are real and are
+cited in §1.0.4. Neither has a run id. **A lane is a thing a stranger can re-run from the
+Actions tab; a workstation transcript is a thing a stranger must take on trust.** The two are
+not interchangeable and this page will not average them. What would end this section is one
+`cloud-verify` run in which the Cloud job's conclusion is `success` rather than absent — and
+that requires a repository secret, which is a decision for the founder and not a documentation
+task.
+
 ---
 
 ## 5. Anti-vacuity — which greens are load-bearing, which are not
@@ -1033,6 +1494,129 @@ name**, and a floor that fires for the wrong reason teaches a reader to disable 
   19/1, 19/1 — precisely because three consecutive passes do not refute a flake. A single
   green run of this lane would not either.
 
+### 6.8 §6.6 ANSWERED — the three in-flight repairs landed, and the lane is red on something else
+
+**Measured 2026-08-14 by D3, from run
+[31770005759](https://github.com/Shaugato/mainline/actions/runs/31770005759)** — `cluster-tests`,
+push, head `7535670`, the public tip. §6.6 named three repairs that had no run id and wrote the
+number to check for each. All three now have one. **§6.6 is answered here and left standing
+above rather than deleted, because a prediction that is edited after the outcome is not a
+prediction.**
+
+The lane's own verdict line, quoted from the runner:
+
+```
+cluster lane: 570 collected, 569 executed, 1 skipped, 8 failed, 0 errored
+8 failed, 561 passed, 1 skipped in 224.11s (0:03:44)
+```
+
+| §6.6 said to check | measured at `7535670` | verdict |
+|---|---|---|
+| *"the lane's JUnit reports **≤ 1 skipped** against the unchanged ceiling of 1"* | **1 skipped** | **MET, exactly** |
+| *"and **executed rises 518 → 527**"* | **569 executed**, from **570 collected** | **exceeded, and for a reason §6.6 could not have known: the suite itself grew from 528 to 570 collected between `eefae1c` and `7535670`. 527 was the right prediction for a 528-case suite and is the wrong number to check against a 570-case one. The floor that matters is unchanged and is met.** |
+| *"the **nine** package-dependent assertions that have never run in CI get an outcome, pass or fail, named"* | **they got one, and eight of them are RED** — named in §6.8.2 | **MET, and the outcome is bad news, which is what an outcome is for** |
+| *"`qa/cluster-known-red.json` falls to **one** group of **one** id"* | it did; and that one id **PASSED** — the lane printed `FIXED [disposition-defeater-vocabulary-is-not-seeded]` | **MET; the inventory is now stale in the other direction (§6.8.3)** |
+| *"`cluster-lane-bites`'s 2×2 … all four cells and all six assertions green end to end"* | **all four cells green; the run is still red on a later step** | **partially met — see §1.0.3** |
+
+#### 6.8.1 The skip ceiling was satisfied by building the package, and it was never raised
+
+This is the finding on this page most at risk of being read backwards, so it is stated in the
+direction the evidence runs.
+
+**At `eefae1c`, run 31735341117: 10 skipped against a ceiling of 1, and the lane errored on
+it.** Nine of the ten had one cause — `out/lambda/mainline-demo-api-arm64.zip` is a
+`.gitignore`'d build output and CI never built it. §6.5 records all ten by line number.
+
+**At `7535670`, run 31770005759: 1 skipped against the same ceiling of 1.** The lane now
+builds the package before the suite, via `./.github/actions/build-demo-package`
+(`cluster-tests.yml:281`), and the surviving skip is the `jsonschema` one — the skip the
+ceiling of 1 was sized for.
+
+**The ceiling did not move.** It lives in `qa/cluster-known-red.json` under `floor.max_skipped`
+and reads `1` at `eefae1c` and `1` at `7535670`. The lane's own comment says why, and it is
+quoted rather than paraphrased because the temptation it refuses is the one this whole
+repository is about:
+
+> *"THIS STEP DOES NOT WEAKEN THE SKIP CEILING; IT REMOVES THE REASON FOR THE SKIPS."*
+> — `.github/workflows/cluster-tests.yml:275`
+
+**The cure was to build the package in the lane. It was never to raise the ceiling, and no
+document in this repository may suggest otherwise.** A ceiling raised to admit ten skips would
+have converted *"nine assertions did not run"* into *"nine assertions are fine"*, and the two
+are the same colour on a dashboard. The lane was right to error and the repair paid for
+itself in one run: eight defects that had never been visible in CI became visible in CI.
+
+#### 6.8.2 The nine got their outcome, and eight of them are red on a build that reproduces differently
+
+Eight `NEW` failures, all in the package-dependent set, all one family. Named individually
+because §6.6 asked for them to be:
+
+```
+test_response_contract.py::test_every_identity_object_in_the_deployed_tree_serves_or_is_a_declared_refusal
+test_response_contract.py::test_the_built_web_tree_has_not_outgrown_its_declaration
+test_response_contract.py::test_the_built_web_tree_matches_the_shape_the_flood_arithmetic_assumed
+test_response_contract.py::test_the_ceiling_refuses_something_it_governs
+test_response_contract.py::test_the_compressed_sibling_has_no_url_of_its_own_and_is_not_a_ceiling_refusal
+test_response_contract.py::test_the_largest_file_in_the_built_web_tree_is_the_one_the_ceiling_refuses
+test_static_site.py::test_serving_the_deployed_package_derives_the_ceiling_end_to_end
+test_static_site.py::test_the_deployed_package_is_the_tree_the_ceiling_was_derived_from
+```
+
+One cause, quoted from the runner:
+
+```
+AssertionError: the deployed package refuses ['assets/index-DzVoV1YM.js [identity]'].
+  Exactly one object, on the identity path, is the declared consequence of the derived
+  ceiling; anything else is an asset nobody decided to stop serving, or a ceiling that
+  stopped biting.
+    - 'assets/index-BjAGxrVJ.js [identity]': 413      ← what the test declares
+    + 'assets/index-DzVoV1YM.js [identity]': 413      ← what CI built
+```
+
+```
+AssertionError: assets/index-DzVoV1YM.js is 433564 B … at or above the 139264 B ceiling,
+  and this file does not name it as refused. … Strip it, declare it in
+  _REFUSED_BY_THE_CEILING, or raise the ceiling deliberately — do not raise it to make
+  this pass.
+```
+
+**Read what did NOT move.** The ceiling is `139264` B in both the test and the run — that is
+`136 * 1024`, and it is unchanged. The failure is not that the bound slipped; it is that the
+**content-hashed filename and byte count recorded in the test describe a different build of
+the console** than the one the lane produced (`index-BjAGxrVJ.js` at 433,396 B declared,
+`index-DzVoV1YM.js` at 433,564 B built). Exactly one object is over the ceiling in both, and
+it is the same object under two names.
+
+**Which side is authoritative is a question this page does not get to answer by preference.**
+The deployed tree is authoritative for what the origin emits — that is
+`docs/decisions/response-ceiling-authoritative-tree.md` §1, and it is why the assertion is
+written against a built artefact at all. So the constants are the derived side and they are
+what must move, **but only after a build that reproduces has been shown to produce them**, and
+the assertion's own message forbids the shortcut in writing: *"do not raise it to make this
+pass"*. That work is not this documents wave's; `docs/ci/cluster-lane-package.md` §5 records
+why W1 deliberately did **not** re-record them, and that reasoning is what a reader should
+check before anybody re-records them now.
+
+#### 6.8.3 The inventory is now stale in the direction nobody polices
+
+The same run printed:
+
+```
+inventory: 1 known, 0 still failing, 1 now passing, 4 declared unstable, 8 NEW
+FIXED  [disposition-defeater-vocabulary-is-not-seeded]
+       test_reads.py::test_the_disposition_carries_the_lattice_and_the_projected_requirements
+##[notice] 4 declared-unstable test(s) passed this run. If the cross-test contamination
+           behind them has been fixed, delete them from qa/cluster-known-red.json — an
+           exemption nobody is reminded of becomes permanent.
+```
+
+**The one `groups` entry names a cause that is fixed, and all four `unstable` entries passed.**
+`qa/cluster-known-red.json` is not this page's file and is not edited by this wave. What this
+wave owes is saying so precisely enough that its owner cannot claim nobody said it, and that
+is [`docs/ci/cluster-known-red-staleness.md`](ci/cluster-known-red-staleness.md) — four entries
+by node id, the contradiction quoted from the file's own `policy` block, and the one category
+no ceiling polices named as such.
+
 ---
 
 ## 7. Claims on earlier boards that did not survive re-measurement
@@ -1109,6 +1693,46 @@ repository. This one was too harsh: the hole was real, somebody filled it, and t
 edited to stop understating the tree. **Both directions belong in this section**, and a list that
 only ever collected the flattering corrections would be the more comfortable document and the less
 useful one.
+
+### 7.9 "`aws-evidence` is green … a whole anti-vacuity family came back on" (§4.1) → **red again at `7535670`, and the family is off again**
+
+**Added 2026-08-14 by D3.** §4.1 is true of run `31699560021` at `2dc5c86` and it names that
+run in its first line, so it is not corrected in place. It is false as a statement about the
+tip: run [31770005783](https://github.com/Shaugato/mainline/actions/runs/31770005783) at
+`7535670` is red on all three jobs, and the third aborts with the same
+`FAMILY red-for-the-wrong-reason` §4.1 celebrated the end of. The proximate cause is different
+(two `[CEN-ANCHORS]` citations that silently retargeted, §1.0.2) and the structural lesson is
+the one §5.3 already drew: **an anti-vacuity family that depends on an unmutated control being
+green is only as strong as the weakest assertion anywhere in that control.**
+
+### 7.10 "`submission` is green" (§4.2) and "`claims` — success" (§1) → **both red**
+
+**Added 2026-08-14 by D3.** `submission` at `7535670` is red on one unlicensed file
+(`collected.txt`) against a hard gate whose baseline is 0; `claims` at `eefae1c` is red on the
+three `HYG-sha-literal` lines in `docs/HONESTY.md`. Neither is a lane defect and neither is
+answered by a scope list. Causes and quoted logs in §1.0.2.
+
+### 7.11 "the demo API's 187 cluster-backed tests — collected, counted, never executed" → superseded twice, and the SECOND correction is the one that matters
+
+**Added 2026-08-14 by D3.** The board's opening block was already annotated once, on
+2026-08-13, when run 31735341117 executed 518. **It has now been overtaken again**: at
+`7535670` the lane executes **569 of 570** with **one** skip, because the deployment package
+is built in the lane (§6.8.1). The figure `187` was never wrong about the tree it described,
+and the two corrections are stacked rather than merged so that the rate of change is legible.
+**A claim corrected twice in twenty-four hours is a claim about a moving tree, and the right
+response is to date every reading, not to stop publishing them.**
+
+### 7.12 A claim this page could not check, and says so
+
+`cluster-tests`'s failure output was reported by an orchestrator as *drowned by CockroachDB's
+own event log*, such that the single failing assertion had to be found with `grep`. **That was
+measured at run 31735341117 and it was true there** —
+[`docs/ci/cluster-lane-diagnosis.md`](ci/cluster-lane-diagnosis.md) §1 carries the line
+geometry. At `7535670` the four-part fix has landed and a one-screen digest is printed. **It
+is a mitigation and not a closure**, and the residual is measured rather than assumed:
+`docs/ci/cluster-lane-diagnosis.md` §8, added today, gives the current run's geometry line by
+line. What this page cannot check is whether a reader lands on the rendered step summary or on
+the raw log, because GitHub's API does not expose which one an account opened.
 
 ---
 
@@ -1189,6 +1813,32 @@ and that reason is by design. It does not change §1: `ci` is red either way.
   byte counts and left to the owning package, because the fix is a re-commit of a generated
   file and a repository-wide line-ending policy, neither of which is a documentation change.
 * **Eight greens were not audited for vacuity** (§5.6).
+* **ADDED 2026-08-14 by D3 — eight of twenty rows describe a tree that is not the tip, and
+  this page did not fix it.** `console`, `judge-pack` and `skills` are still reporting
+  `2dc5c86`; `cloud-verify` and `mutation-ratchet` report `1a6e10a`; `claims` and
+  `supply-chain` report `eefae1c`; `nightly-differential` reports `e944407`. Every one of
+  those is a green or a red about a tree nobody is running. **The cure is a dispatch, and a
+  dispatch is an action on the repository rather than an edit to a document**, so this
+  revision names the eight and stops there. §10.4 recorded the same defect at a count of ten
+  and it has not closed; it has re-formed around different lanes.
+* **ADDED 2026-08-14 by D3 — three lanes went from green to red and no worker in this wave
+  owns any of the three causes.** `evidence/tool-usage/aws-services.json` needs two citations
+  re-anchored, a root `collected.txt` needs a licence or a deletion, and `docs/HONESTY.md`'s
+  three SHA literals are D2's under RULING 5. This page reports all three with the log text
+  and touches none of them (§1.0.2, §7.9, §7.10).
+* **ADDED 2026-08-14 by D3 — the 2×2's own table has still never been published by a run.**
+  All four cells passed at `7535670`, and the summary step was skipped because it carries no
+  `if: always()` and a later step failed. **A falsifiability argument whose conclusion is only
+  reachable by reading nineteen step names one at a time is a falsifiability argument most
+  people will not read.** The reconstruction is in
+  [`docs/ci/cluster-lane-falsifiability.md`](ci/cluster-lane-falsifiability.md) §Z; the fix is
+  one `if: always()` in a workflow this wave does not own.
+* **ADDED 2026-08-14 by D3 — `qa/cluster-known-red.json` is stale in both directions and this
+  wave may not touch it.** Its single `groups` entry names a cause that is fixed; all four of
+  its `unstable` entries passed in the same run; and the file's own `policy` block says the
+  `unstable` label does not describe them. Named in full, with the file's own words quoted, in
+  [`docs/ci/cluster-known-red-staleness.md`](ci/cluster-known-red-staleness.md). **Documenting
+  a stale exemption is not the same as removing it, and this page does not pretend otherwise.**
 * **`custody-chain.yml:693`'s cross-reference into this page is still stale** and still belongs
   to another owner. It cites "`docs/CI-STATE.md` 3.1" for a finding that is §2.4. The
   equivalent reference in `ci.yml` was rewritten to cite the owning **domain document** and a

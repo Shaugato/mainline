@@ -24,10 +24,12 @@ Exit codes: `0` every blocking row resolved · `1` at least one unresolved · `2
 could not run. There is no fourth outcome and there is no flag that turns a red row green.
 
 **UNMET rows are not this document's failure. They are its job.** A rules matrix in which
-everything is MET **four days** before the deadline (`4d 19h` remained when the gate was run
-on 2026-08-14), with nothing deployed and no film shot, would be the single least believable
+everything is MET **four days** before the deadline (`4d 11h` remained when the gate was last
+run on 2026-08-14; `4d 19h` eight hours earlier the same day), with nothing deployed and no
+film shot, would be the single least believable
 file in the repository. That sentence read "six days" when it was written on 2026-08-12; the
-clock is the one number here that moves without anybody editing anything.
+clock is the one number here that moves without anybody editing anything, which is why it is
+generated in §2 and only paraphrased here.
 
 ---
 
@@ -91,14 +93,14 @@ authority that decided each one named.
 
 | # | Rule | Verdict | Deciding artefact | What it says |
 |---|---|---|---|---|
-| **R1** | Public repository with an open-source licence | **MET** | `gh repo view Shaugato/mainline --json visibility,licenseInfo` · `git ls-files LICENSE` · `LICENSE` · `docs/submission/LICENCE-CENSUS.md` | **Both halves met.** Public half: `visibility` is `PUBLIC`. Licence half: `LICENSE` is tracked (`git ls-files LICENSE` answers `LICENSE`), 11 357 bytes, reads as Apache-2.0, and GitHub independently resolves `licenseInfo.key` to `apache-2.0`. The tree behind the URL is the audited tree: `git rev-list --left-right --count origin/master...HEAD` answers `0 0`. |
+| **R1** | Public repository with an open-source licence | **MET** | `gh repo view Shaugato/mainline --json visibility,licenseInfo` · `git ls-files LICENSE` · `LICENSE` · `docs/submission/LICENCE-CENSUS.md` | **Both halves met.** Public half: `visibility` is `PUBLIC`. Licence half: `LICENSE` is tracked (`git ls-files LICENSE` answers `LICENSE`), 11 357 bytes, reads as Apache-2.0, and GitHub independently resolves `licenseInfo.key` to `apache-2.0`. *The tree behind the URL was the audited tree when this cell was written on 2026-08-12: `git rev-list --left-right --count origin/master...HEAD` answered `0 0`. Re-derived 2026-08-14 it answers `0<TAB>4` — four commits are here and on no server — which is why `remote_sync` is a `FAIL` in §2 and clears on a push. R1's own two facts, a public repository and a tracked open-source licence, are unaffected: both are true of the tree the server already carries.* |
 | **R2** | A URL to a functional demo, free and unrestricted for judges | **UNMET — two halves, both open, for different reasons** | `docs/submission/SUBMISSION.json` → `demo_url` · `evidence/deploy/acceptance.json` · `evidence/deploy/terraform-plan-furl.txt` | **The origin does not exist.** `demo_url` holds the literal `UNRESOLVED`; `terraform apply` has never been run, so there is no MAINLINE Lambda, Function URL or bucket in the account. The plan that would create it is committed and reads **`Plan: 24 to add, 0 to change, 0 to destroy.`** at `evidence/deploy/terraform-plan-furl.txt:843` — **11** resources in `module.api[0]` and **13** in `module.guard[0]`, the cost guard that `infra/envs/demo/main.tf:631` instantiates — with `authorization_type = "NONE"` at `furl.txt:351`, in `ap-southeast-1`. **The app does not yet answer.** `acceptance.json`, generated `2026-08-13T01:47:58Z`, reads `NOT PROVEN` with **10** named failures: both runs now reach beat 4 and are refused `23503 disposition_signer_credential_id_fkey`, and neither carries a `clearance_digest`. Nothing in that file was relaxed to reach a green. **The access half IS answered** — see the row below the table. |
-| **R3** | A text description of the project's features | **MET** | `docs/submission/DEVPOST.md` · `python scripts/submission/check_submission_prose.py` | Re-derived 2026-08-14: **46 885 bytes, 209 non-blank lines, 7 165 words, 2 fenced blocks** (`wc -c`, non-blank line count, whitespace-split words, and lines beginning with a triple backtick ÷ 2). The prose gate scans it against nine SUB rules and the claim-hygiene table and reports **0 violations in this file**. *This cell read `40 515 / 200 / 6 175 / 5` on 2026-08-12. The first three grew with the page. The fourth does not reproduce: no derivation attempted on this machine today returns 5 fenced blocks, and rather than keep a figure that cannot be re-derived, the count and the command that produced it are both given above.* (The gate exits 1 overall, on 3 claim-hygiene violations in `docs/HONESTY.md` — a different file, a different owner, and quoted in R4 and in the transcript.) |
-| **R4** | A demo video under three minutes, on YouTube or Vimeo | **UNMET** | `docs/submission/SUBMISSION.json` → `video_url` · `docs/submission/VIDEO-KIT.md` · `verticals/mainline/demo/script/SHOT-LIST.yaml` | `video_url` holds `UNRESOLVED`. The kit exists — VO, timings, seeded state, the sentences that may not be said on camera — and `.github/workflows/claims.yml` runs the shot-list validator, so a script that drifts past the three-minute budget is a red build rather than a discovery made during the upload. Two facts a reader should have. **Nothing in this repository can resolve this row.** And the kit defect this cell used to carry is **closed**: on 2026-08-12 `check_submission_prose.py` failed `VIDEO-KIT.md:179 [SUB-06-migration-count]`; re-run on 2026-08-14 the same program reports `submission prose OK` — **0** SUB violations across the 14 files it scans. It still exits `1`, for a different reason in a different file, and that reason is in the transcript below. |
-| **R5** | A new project, created inside the submission window | **MET** | `docs/submission/DISCLOSURE.md` · `evidence/provenance/commit-window.json` | First commit `f80fefd`, authored **and** committed `2026-08-05T22:47:47+10:00` — inside the window, which opened `2026-08-05`. All **80** commits pass (`git rev-list --count HEAD`, re-derived 2026-08-14; this cell said `47` when it was written on 2026-08-12 and the history has grown by 33 since), and the check tests **both** the author date and the committer date, because a rebase moves one and not the other. The separate, earlier research repository is disclosed and holds no product code. |
+| **R3** | A text description of the project's features | **MET** | `docs/submission/DEVPOST.md` · `python scripts/submission/check_submission_prose.py` | Re-derived 2026-08-14, later the same day: **53 343 bytes, 219 non-blank lines, 8 110 words, 2 fenced blocks** (`wc -c`, non-blank line count, whitespace-split words, and lines beginning with a triple backtick ÷ 2). Over the fifteen **paste blocks only** — which is what a judge reads — the page's own one-liner returns `15` blocks, `6 583` words, and an elevator pitch of `163` characters against a cap of `200`. The prose gate scans it against nine SUB rules and the claim-hygiene table and reports **0 violations in this file**. *This cell read `40 515 / 200 / 6 175 / 5` on 2026-08-12 and `46 885 / 209 / 7 165 / 2` earlier on 2026-08-14. The page grew when Limitations took six more gaps. The `5` fenced blocks never reproduced: no derivation attempted on this machine returns it, and rather than keep a figure that cannot be re-derived, the count and the command that produced it are both given above.* (The gate now exits **0** on the surfaces it scans: `submission prose OK`, `claim hygiene OK`, with the three `docs/HONESTY.md` `[HYG-sha-literal]` reds closed by that file's owner under RULING 5. It previously exited 1 on them; the rule was not narrowed.) |
+| **R4** | A demo video under three minutes, on YouTube or Vimeo | **UNMET** | `docs/submission/SUBMISSION.json` → `video_url` · `docs/submission/VIDEO-KIT.md` · `verticals/mainline/demo/script/SHOT-LIST.yaml` | `video_url` holds `UNRESOLVED`. The kit exists — VO, timings, seeded state, the sentences that may not be said on camera — and `.github/workflows/claims.yml` runs the shot-list validator, so a script that drifts past the three-minute budget is a red build rather than a discovery made during the upload. Two facts a reader should have. **Nothing in this repository can resolve this row.** And the kit defect this cell used to carry is **closed**: on 2026-08-12 `check_submission_prose.py` failed `VIDEO-KIT.md:179 [SUB-06-migration-count]`; re-run on 2026-08-14 the same program reports `submission prose OK` — **0** SUB violations across the 14 files it scans. *Earlier on 2026-08-14 it still exited `1` on three `docs/HONESTY.md` `[HYG-sha-literal]` reds; later the same day it exits **`0`**, because that file's owner closed them with the rule's own `claim-hygiene: quoting` escape hatch under RULING 5. The rule was not switched off, no scope list gained an entry, and the SHA is preserved so the two commands beside it still reproduce.* |
+| **R5** | A new project, created inside the submission window | **MET** | `docs/submission/DISCLOSURE.md` · `evidence/provenance/commit-window.json` | First commit `f80fefd`, authored **and** committed `2026-08-05T22:47:47+10:00` — inside the window, which opened `2026-08-05`. All **86** commits pass (`git rev-list --count HEAD`, re-derived 2026-08-14 later the same day; this cell said `47` on 2026-08-12 and `80` earlier on 2026-08-14 — it is a count of commits, so it rises on its own and the gate re-reads the history rather than this cell), and the check tests **both** the author date and the committer date, because a rebase moves one and not the other. The separate, earlier research repository is disclosed and holds no product code. |
 | **R6** | At least two CockroachDB tools | **MET** | `docs/TOOL-USAGE.md` Part 1 · `evidence/tool-usage/crdb-features.json` | Four tools documented and **three carry an EXERCISED verdict in the census**: the database itself (v26.2.5, `evidence/gate-refusal/`, a real refusal on a real cluster), CockroachDB Cloud with the `ccloud` CLI (`evidence/deploy/cloud-chain.json`), and the Managed MCP Server (`evidence/deploy/judge-run.json`: 15 of 16 pack questions PASS over `https://cockroachlabs.cloud/mcp`). The fourth, Agent Skills, reads DESIGNED and is not counted. The floor is two and it is cleared without the third. |
 | **R7** | At least one AWS service | **MET** | `evidence/deploy/aws-live.json` · `evidence/aws/probe/` · `evidence/tool-usage/aws-services.json` | Bedrock **executes** in `ap-southeast-2`. Four live calls, `calls_failed: []`, every one HTTP `200`, each with the AWS request id it returned: `sts:GetCallerIdentity` `04018eca-…`, `bedrock:ListFoundationModels` `d8c940e8-…`, `bedrock-runtime:InvokeModel` `b4d826e9-…` (Titan v2, a 1024-dimension embedding at L2 norm `1.0`), `bedrock-runtime:Converse` `3c7a283c-…` (Claude Haiku 4.5, `end_turn`). Total 1.75 s; the file's own verdict is `AWS BEDROCK EXECUTED`. The census marks **3 of 12** AWS rows EXERCISED, 8 DESIGNED because nothing is deployed, and 1 NOT-AVAILABLE because Bedrock Rerank is genuinely absent in the region. |
-| **R8** | Documentation of **which** CockroachDB tools and AWS services, and **how** | **MET, with a regeneration owed** | `docs/TOOL-USAGE.md` · `evidence/tool-usage/` · `python scripts/submission/capture_tool_evidence.py --check` | `TOOL-USAGE.md` is **87 355** bytes (80 819 on 2026-08-12; it grew by this wave's corrections). The CockroachDB census holds 14 rows — 4 tools and 10 engine features accounted separately, 12 EXERCISED and 2 DESIGNED; the AWS census holds 12 service rows. Every row carries a verdict, a `file:line` that does the work, and an `evidence/` artefact or an explicit "none — not applied"; the gate confirms **21 of 21 cited artefacts are present on disk**. `capture_tool_evidence.py --check` re-derives the counts from the tree with no network and no credential, and **exits 2 today, not 1** — and the reason changed as well as the number. On 2026-08-12 it exited `1` on one stale field (`files_scanned`, 7 388 committed against 7 390 fresh). On 2026-08-14 it refuses earlier and harder: **two anchors in `evidence/tool-usage/aws-services.json` have drifted off their subject** — `aws_lambda` cites `infra/modules/demo-api/main.tf:333` for `authorization_type` and that line now reads `handler = "mainline_demo_api.app.handler"`; `aws_ssm_parameter_store` cites `:215` for `ssm:GetParameter` and that line now reads `#`. `scripts/aws/verify_evidence.py` fails the same two under `[CEN-ANCHORS]`. The generator writes nothing while an anchor is drifted, so **whether `files_scanned` is still fresh is `UNRESOLVED` today** — `--print` refuses too, and a figure nobody can re-derive on this machine does not go in this cell. That is a regeneration owed on `evidence/tool-usage/`, it is owned by the domain that owns the generator, and **the two anchors are the tree moving under a citation, which is the defect the census's own `anchor_must_contain` rule was added to catch.** It caught it. |
+| **R8** | Documentation of **which** CockroachDB tools and AWS services, and **how** | **MET, with a regeneration owed** | `docs/TOOL-USAGE.md` · `evidence/tool-usage/` · `python scripts/submission/capture_tool_evidence.py --check` | `TOOL-USAGE.md` is **92 665** bytes (80 819 on 2026-08-12, 87 355 earlier on 2026-08-14; it grew by each wave's corrections). The CockroachDB census holds 14 rows — 4 tools and 10 engine features accounted separately, 12 EXERCISED and 2 DESIGNED; the AWS census holds 12 service rows. Every row carries a verdict, a `file:line` that does the work, and an `evidence/` artefact or an explicit "none — not applied"; the gate confirms **24 of 24 cited artefacts are present on disk** — `21 of 21` until 2026-08-14, when the Cloud chain, the Cloud seed and the 2026-08-14 gate-refusal proof were cited by name. **The count rose and the denominator rose with it**, which is the only direction that means anything: the owed Cloud gate-run artefact is deliberately *not* named on that page, because a citation of a file that does not exist would have made this read `24 of 25`. `capture_tool_evidence.py --check` re-derives the counts from the tree with no network and no credential, and **exits 2 today, not 1** — and the reason changed as well as the number. On 2026-08-12 it exited `1` on one stale field (`files_scanned`, 7 388 committed against 7 390 fresh). On 2026-08-14 it refuses earlier and harder: **two anchors in `evidence/tool-usage/aws-services.json` have drifted off their subject** — `aws_lambda` cites `infra/modules/demo-api/main.tf:333` for `authorization_type` and that line now reads `handler = "mainline_demo_api.app.handler"`; `aws_ssm_parameter_store` cites `:215` for `ssm:GetParameter` and that line now reads `#`. *`scripts/aws/verify_evidence.py` failed the same two under `[CEN-ANCHORS]` when this cell was written; re-run later on 2026-08-14 it passes — `1016` assertions across `40` of `40` invariants — because it reads the JSON, and the JSON was edited to `:432`/`:280` while the generator that produces it still declares `:333`/`:215`. **Two programs that agreed now disagree, and the one still refusing is the one reading the authoritative side.** See "the regeneration R8 owes" below.* The generator writes nothing while an anchor is drifted, so **whether `files_scanned` is still fresh is `UNRESOLVED` today** — `--print` refuses too, and a figure nobody can re-derive on this machine does not go in this cell. That is a regeneration owed on `evidence/tool-usage/`, it is owned by the domain that owns the generator, and **the two anchors are the tree moving under a citation, which is the defect the census's own `anchor_must_contain` rule was added to catch.** It caught it. |
 
 ### The transcript — every verdict above, re-derived on 2026-08-12
 
@@ -219,12 +221,25 @@ is what they are for.
 
 ### Two counts that legitimately disagree, and why
 
-§2's generated row says **10 AWS services**; the census in R7 says **12**. Both are right
-and they are counting different things. The gate holds a fixed table of ten AWS service
-names and asks `docs/TOOL-USAGE.md` which of them it mentions; the census walks the tree and
+§2's generated row says **10 AWS services**; the census in R7, and the heading of
+`docs/TOOL-USAGE.md` Part 2, say **twelve**. Both are right and they are counting different
+things. The gate holds a **fixed table of ten AWS service names** — `AWS_SERVICES` at
+`scripts/submission/check_submission_ready.py:201` — and asks `docs/TOOL-USAGE.md` which of
+them it mentions, so ten is its **ceiling**, not a census, and it prints `10` because that
+page names all ten. The census walks the tree and
 emits one row per *distinct use*, so Bedrock appears three times — inference, embeddings and
-Rerank. The same arithmetic explains "2 AWS service(s) marked as having run" against the
-census's 3 EXERCISED rows: the gate counts the name **Amazon Bedrock** once.
+Rerank — and `evidence/tool-usage/aws-services.json#totals.rows` is `12`. The same arithmetic
+explains "2 AWS service(s) marked as having run" against the
+census's 3 EXERCISED rows: the gate counts the name **Amazon Bedrock** once, and two of the
+three EXERCISED rows are Bedrock.
+
+**Which side would have moved if one had to.** Neither, and the question was asked rather than
+assumed on 2026-08-14: the heading is *derived from the census*, so changing it to ten would
+have moved this documentation away from the artefact it is checked against in order to agree
+with an instrument measuring a different quantity. That is the forbidden direction. The
+identical paragraph now stands in `docs/TOOL-USAGE.md` Part 2, because the discrepancy is
+visible from either page and a reader should meet the arithmetic wherever they meet the
+numbers.
 
 A reader who spots a discrepancy between two numbers in this file should get this paragraph
 rather than a silent reconciliation, because the alternative is to make one of the two
@@ -261,24 +276,27 @@ exists to prevent, and it is why `--check-urls` fetches rather than trusts.
 **The status column is not typed. It is generated.**
 
 <!-- BEGIN GENERATED: check_submission_ready.py --markdown -->
-Generated `2026-08-14T01:11:06Z` by `python scripts/submission/check_submission_ready.py --markdown`.
+Generated `2026-08-14T09:40:51Z` by `python scripts/submission/check_submission_ready.py --markdown`.
 Exit code at that instant: **1**, with **3** unresolved rows: `remote_sync`, `demo_url`,
 `video_url`. Two of those three are the founder's — an apply and a shoot. The third is a
-dirty working tree and clears on a commit. **The same three rows, in the same states, as
-the 2026-08-12 generation**: nothing in this wave resolved a URL, and nothing was meant to.
+working tree four commits ahead of `origin/master` with uncommitted paths, and it clears on a
+push. **The same three rows, in the same states, as the 2026-08-12 and the earlier 2026-08-14
+generations**: nothing in this wave resolved a URL, and nothing was meant to. `remote_sync`
+moved from `WARN` to `FAIL` between those two runs because four commits landed here and on no
+server; the gate was not tightened.
 
 | Row | Requirement | Status | Observed | Evidence | Re-derive with |
 |---|---|---|---|---|---|
 | `licence_file` | 1 - public repo with an open-source LICENSE file | **PASS** | 11357 bytes, reads as Apache-2.0 | `LICENSE`, `LICENSES/`, `docs/submission/LICENCE-CENSUS.md` | `ls -l LICENSE && python scripts/qa/check_reuse.py` |
-| `remote_sync` | 1 - public repo with an open-source LICENSE file | **WARN** | in sync with origin/master, but 37 path(s) are uncommitted and will not be published: .github/workflows/cluster-lane-bites.yml, docs/TOOL-USAGE.md, docs/ci/cluster-lane-falsifiability.md, docs/deploy/COST-BOUND.md, and 33 more (21 under docs/, 5 under verticals/, 3 under scripts/, 3 under tests/, 2 under evidence/, and 2 other top-level path(s)) | the remote itself - there is no local artefact for this row | `git rev-list --left-right --count origin/master...HEAD` |
+| `remote_sync` | 1 - public repo with an open-source LICENSE file | **FAIL** | 4 commits ahead of origin/master, 22 file(s) on this disk and on no server: .github/actions/build-demo-package/action.yml, .github/workflows/cluster-lane-bites.yml, .gitignore, collected.txt, and 18 more (6 under verticals/, 5 under docs/, 4 under tests/, 2 under .github/, 2 under qa/, and 3 other top-level path(s)) | the remote itself - there is no local artefact for this row | `git rev-list --left-right --count origin/master...HEAD` |
 | `repo_public` | 1 - public repo with an open-source LICENSE file | **PASS** | PUBLIC [gh repo view Shaugato/mainline --json visibility, asked live], repo_url https://github.com/Shaugato/mainline | `qa/public-readiness.json`, `docs/submission/PUBLIC-READINESS.md` | `gh repo view Shaugato/mainline --json visibility` |
 | `demo_url` | 2 - a URL to a functional demo app | **FAIL** | demo_url is UNRESOLVED | `docs/submission/SUBMISSION.json` key `demo_url` | `python scripts/submission/check_submission_ready.py --check-urls` |
 | `video_url` | 4 - demo video under 3 minutes on YouTube or Vimeo | **FAIL** | video_url is UNRESOLVED | `docs/submission/VIDEO-KIT.md`, `verticals/mainline/demo/script/SHOT-LIST.yaml` | `python scripts/submission/check_submission_ready.py --check-urls` |
-| `devpost_description` | 3 - text description of the features | **PASS** | docs/submission/DEVPOST.md: 46885 bytes, 209 non-blank lines | `docs/submission/DEVPOST.md` | `python scripts/submission/check_submission_prose.py` |
-| `tool_usage` | 5 - documented CockroachDB and AWS usage (>=2 CRDB tools, >=1 AWS, >=1 run) | **PASS** | 4 CockroachDB tools, 10 AWS services; 2 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch); 21 of 21 cited artefacts present on disk | `docs/TOOL-USAGE.md`, `evidence/tool-usage/` | `python scripts/submission/capture_tool_evidence.py --check` |
+| `devpost_description` | 3 - text description of the features | **PASS** | docs/submission/DEVPOST.md: 53343 bytes, 219 non-blank lines | `docs/submission/DEVPOST.md` | `python scripts/submission/check_submission_prose.py` |
+| `tool_usage` | 5 - documented CockroachDB and AWS usage (>=2 CRDB tools, >=1 AWS, >=1 run) | **PASS** | 4 CockroachDB tools, 10 AWS services; 2 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch); 24 of 24 cited artefacts present on disk | `docs/TOOL-USAGE.md`, `evidence/tool-usage/` | `python scripts/submission/capture_tool_evidence.py --check` |
 | `judge_access` | 6 - free, unrestricted access for judges | **PASS** | resolved - credential required; how 463 chars, credentials_location 373 chars, and no credential value in the file | `docs/submission/SUBMISSION.json` key `judge_access`, `VERIFY.md` | `python scripts/submission/check_submission_ready.py --json` |
-| `disclosure` | 7 - created in the submission window; pre-existing code disclosed | **PASS** | docs/submission/DISCLOSURE.md present (20445 bytes); 80 commits, all inside the window | `docs/submission/DISCLOSURE.md`, `evidence/provenance/commit-window.json` | `python scripts/submission/provenance_census.py --check` |
-| `deadline` | deadline - 2026-08-18 17:00 EDT | **PASS** | 4d 19h to 2026-08-18 17:00 EDT (2026-08-18T21:00:00Z) | the official rules page | `python scripts/submission/check_submission_ready.py` |
+| `disclosure` | 7 - created in the submission window; pre-existing code disclosed | **PASS** | docs/submission/DISCLOSURE.md present (20445 bytes); 86 commits, all inside the window | `docs/submission/DISCLOSURE.md`, `evidence/provenance/commit-window.json` | `python scripts/submission/provenance_census.py --check` |
+| `deadline` | deadline - 2026-08-18 17:00 EDT | **PASS** | 4d 11h to 2026-08-18 17:00 EDT (2026-08-18T21:00:00Z) | the official rules page | `python scripts/submission/check_submission_ready.py` |
 <!-- END GENERATED -->
 
 **To regenerate this table**, replace everything between the two HTML comments above with
@@ -291,21 +309,27 @@ python scripts/submission/check_submission_ready.py --markdown
 Do not edit a cell by hand. A hand-edited status column is a claim with nothing behind
 it, which is the one thing this repository is built not to ship.
 
-### The `remote_sync` WARN is not noise, and it now names names
+### The `remote_sync` row is not noise, it names names, and it changed status on 2026-08-14
 
-`HEAD` and `origin/master` are the same commit — `git rev-list --left-right --count` answers
-`0 0` — so nothing that was ever committed here is missing from the server. That is why the
-row is a `WARN` and not a `FAIL`.
+**This section described a `WARN` and now describes a `FAIL`, and the change is a real one
+rather than a stricter rule.** It read: *"`HEAD` and `origin/master` are the same commit —
+`git rev-list --left-right --count` answers `0 0` — so nothing that was ever committed here is
+missing from the server. That is why the row is a `WARN` and not a `FAIL`."* Re-derived on
+2026-08-14, that command answers `0<TAB>4`: **four commits exist here and on no server**, so
+the sentence above is no longer true of this tree and the row is correctly a `FAIL`. Nothing in
+the gate was tightened; the tree moved.
 
-What it still reports is **uncommitted** work: paths edited on this disk and therefore
+What it reports on top of that is **uncommitted** work: paths edited on this disk and therefore
 invisible to a judge, who sees only what was pushed. The row used to print a bare
 count, which told a reader that something was wrong and nothing about what, leaving them to
 run `git status` themselves — the exact work the row exists to have already done. It now
 names the first paths and buckets the remainder by top-level directory, and `--json` carries
 the list under `rows[].detail.dirty_paths`.
 
-The count moves with every edit, which is why it lives in the generated table above and not
-in this sentence. It clears the moment those paths are committed and pushed.
+Both counts move with every edit and every commit, which is why they live in the generated
+table above and not in this sentence. The row clears when the work is committed **and pushed**
+— committing alone converts the dirty-path half into the ahead-of-origin half, which is why the
+gate reports the two together and refuses on either.
 
 ---
 
@@ -418,10 +442,11 @@ inconvenient is not a matrix, it is a brochure.
 ### R5 — a new project created inside the submission window
 
 **MET.** The `disclosure` row re-reads the git history and checks **both** the author date
-and the committer date of every one of the **80** commits against `2026-08-05` … `2026-08-18`
+and the committer date of every one of the **86** commits against `2026-08-05` … `2026-08-18`
 evaluated in EDT — one date is half a check, because a rebase moves one and not the other.
-*(This said `47` on 2026-08-12. It is a count of commits, so it rises on its own; the row is
-generated and the gate re-reads the history, which is why nothing here had to be believed.)*
+*(This said `47` on 2026-08-12 and `80` earlier on 2026-08-14. It is a count of commits, so it
+rises on its own; the row is generated and the gate re-reads the history, which is why nothing
+here had to be believed.)*
 
 Re-derive: `python scripts/submission/provenance_census.py --check`, whose output is
 committed at `evidence/provenance/commit-window.json`.
@@ -437,8 +462,10 @@ That row asks two questions that counting names never answered:
   intent cannot pass — it is the check that would have failed on 2026-08-10, when twelve
   AWS services were named and none had run;
 * at least one `evidence/...` artefact the document cites must **exist on disk**, so a
-  citation is a file a reader can open rather than a path somebody typed. Today: 21 of 21
-  cited artefacts present.
+  citation is a file a reader can open rather than a path somebody typed. Today: **24 of 24**
+  cited artefacts present, up from `21 of 21` — the numerator and the denominator rose
+  together, because three real artefacts were cited by name on 2026-08-14 and no path was
+  typed for a file that does not exist.
 
 **The regeneration R8 owes is real, is not hidden, and got bigger between 2026-08-12 and
 2026-08-14.** `python scripts/submission/capture_tool_evidence.py --check` rebuilds both
@@ -447,14 +474,24 @@ censuses from the source tree and exits non-zero if the committed files differ.
 | | 2026-08-12 | 2026-08-14 |
 |---|---|---|
 | exit code | `1` | **`2`** |
-| what it refused on | `scan.files_scanned`, 7 388 committed against 7 390 measured, in each file | **`[CEN-ANCHORS]` — two anchors in `evidence/tool-usage/aws-services.json` have drifted off their subject** |
+| what it refused on | `scan.files_scanned`, 7 388 committed against 7 390 measured, in each file | **`[CEN-ANCHORS]` — two anchors declared in `capture_tool_evidence.py` have drifted off their subject in `infra/modules/demo-api/main.tf`** |
+| does a second program agree? | — | it did, then it stopped. `verify_evidence.py` failed the same pair and now **passes** at `1016` assertions over `40` of `40` invariants, because it reads the JSON and the JSON moved while the generator did not |
 | the drift, exactly | — | `aws_lambda` → `infra/modules/demo-api/main.tf:333` was `authorization_type = var.url_authorization_type` and now reads `handler = "mainline_demo_api.app.handler"`; `aws_ssm_parameter_store` → `:215` was `actions = ["ssm:GetParameter"]` and now reads `#` |
 | what it does NOT say | — | the exit-2 refusal happens *before* any staleness is computed, and `--print` refuses identically, so **`files_scanned`'s freshness is UNRESOLVED today** rather than assumed |
 
 The subjects both moved down the same file: `authorization_type` is at
 `infra/modules/demo-api/main.tf:432` today and `ssm:GetParameter` at `:280`.
-`scripts/aws/verify_evidence.py` reports the identical pair under `[CEN-ANCHORS]` and also
-exits 1, so two independent programs agree on the finding.
+
+**And a later measurement on 2026-08-14 sharpened what "owed" means here, so it is recorded
+rather than smoothed over.** `evidence/tool-usage/aws-services.json` was edited in the working
+tree to carry `:432` and `:280`, while `scripts/submission/capture_tool_evidence.py` — which
+*declares* each row's `anchor` and `anchor_must_contain`, and from which that JSON is
+generated — still declares `:333` and `:215`. So `--check` prints the old pair and **still
+exits `2`**. **The generator's table is the authoritative side and the JSON is derived from
+it**: moving the derived file alone does not close the finding, it makes two files disagree
+about which line a reader should open. Nothing in this document was changed to agree with
+either; the two line numbers a reader should trust are the ones the tree holds, `:432` and
+`:280`, and the exit code they should trust is the one the program prints.
 
 **Read what that refusal actually is before reading it as a failure.** `docs/TOOL-USAGE.md`
 records that on 2026-08-12 five of the twelve AWS anchors were found by hand to have drifted
@@ -490,8 +527,18 @@ a field and answering it are different things.
 
 ## 4 · `docs/submission/SUBMISSION.json` — the schema, documented here because JSON holds no comments
 
-One file is the single write point for every unresolved submission fact. Ten documents and
-one workflow read it; nobody writes a URL into prose.
+One file is the single write point for every unresolved submission fact. **`read_by` lists ten
+entries: one program, eight documents and one workflow.** Nobody writes a URL into prose.
+
+*That list held six entries until 2026-08-14 while claiming to be "every program and document
+that reads the file", which was not true: `DEVPOST.md`, `JUDGING-AXES.md`, `VIDEO-KIT.md` and
+`PUBLIC-FLIP-CHECKLIST.md` each tell a reader to take `demo_url` or `video_url` from that file
+rather than from their own prose, and that is reading. It was widened rather than the claim
+being softened. Paths that merely NAME the file in a sentence — `README.md`, `docs/CI-STATE.md`,
+`docs/TOOL-USAGE.md`, `docs/deploy/JUDGE-PACK.md`, `docs/deploy/OBSERVABILITY.md`,
+`scripts/deploy/demo_acceptance.py`, `scripts/deploy/local_furl.py` — are deliberately absent,
+and the file says so in its own `read_by_is_every_reader_not_every_mention` key: a list that
+counted mentions would stop being the list of things that break when a value there changes.*
 
 **Schema version 2**, bumped when the `notes` object was added. No existing key has changed
 meaning since, and a version is bumped when a key is added or changes meaning — never when
@@ -501,7 +548,8 @@ a value changes.
 |---|---|---|
 | `schema_version` | integer | bumped when a key is added or changes meaning, never when a value changes |
 | `schema_documented_in` | string | points back at this section |
-| `read_by` | array of strings | every program and document that reads the file |
+| `read_by` | array of strings | every program and document that **reads a value out of** the file — ten entries since 2026-08-14, not every file that names it |
+| `read_by_is_every_reader_not_every_mention` | string | why the four documents added on 2026-08-14 belong on that list and why the paths that merely mention the file do not |
 | `unresolved_sentinel` | string | the literal an unresolved field holds: `UNRESOLVED` |
 | `never_write_a_credential_here` | string | the standing rule, in band, where a person editing the file will see it |
 | `a_field_is_resolved_only_when_it_is_proven` | string | why two fields still hold the sentinel: the fact is not true yet, not untyped |

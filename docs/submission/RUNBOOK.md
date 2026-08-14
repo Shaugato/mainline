@@ -55,6 +55,36 @@ same command again and requiring exit **0**.
 > The **statuses** are the part to read, and the program is always the authority — this
 > page is a record of one run, not a substitute for running it.
 
+### The same command, RAN 2026-08-14 — **four of those five rows are now green**
+
+The 2026-08-10 transcript is kept above as the dated record it is. Here is today's, so a
+founder opening this page knows which steps are already behind them:
+
+```
+PASS    root LICENSE           11357 bytes, reads as Apache-2.0
+FAIL    remote is in sync      4 commits ahead of origin/master, 22 file(s) on this disk and on no server
+PASS    repository is public   PUBLIC [gh repo view Shaugato/mainline --json visibility, asked live], repo_url https://github.com/Shaugato/mainline
+FAIL    demo URL               demo_url is UNRESOLVED
+FAIL    video URL              video_url is UNRESOLVED
+PASS    Devpost description    docs/submission/DEVPOST.md: 53343 bytes, 219 non-blank lines
+PASS    tool usage documented  4 CockroachDB tools, 10 AWS services; 2 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch); 24 of 24 cited artefacts present on disk
+PASS    judge access           resolved - credential required; how 463 chars, credentials_location 373 chars, and no credential value in the file
+PASS    provenance disclosure  docs/submission/DISCLOSURE.md present (20445 bytes); 86 commits, all inside the window
+PASS    time remaining         4d 11h to 2026-08-18 17:00 EDT (2026-08-18T21:00:00Z)
+
+NOT READY - 3 unresolved rows.
+```
+
+**Steps 2, 3, 4 and 6 of this page are DONE.** The repository is public, the licence is
+detected, `repo_url` is written and `judge_access` is resolved with no credential value in
+the file. What remains is **step 1** (the push, red only because a documents wave is sitting
+uncommitted on this disk), **step 5** (the demo URL, which needs an apply) and **step 7**
+(the film).
+
+**Do not read `NOT READY - 3` as worse than `NOT READY - 5`.** Two of the three are the
+sentinels this project put there on purpose — `demo_url` and `video_url` are `UNRESOLVED`
+because the facts they would assert are not true — and the third clears with a `git push`.
+
 ---
 
 ## Step 1 — push
@@ -129,7 +159,22 @@ this printed `{"licenseInfo":null}`.
 
 ---
 
-## Step 3 — flip the repository to public · **IRREVERSIBLE** · gated
+## Step 3 — flip the repository to public · **IRREVERSIBLE** · **ALREADY DONE, 2026-08-11**
+
+> **This step has been taken. It is kept in full because a runbook that deletes a completed
+> irreversible step stops being a record of what was done.** `gh repo view Shaugato/mainline
+> --json visibility` answers `{"visibility":"PUBLIC"}`, confirmed live by
+> `check_submission_ready.py` on 2026-08-14. The act itself is recorded in
+> [`PUBLIC-FLIP-CHECKLIST.md`](PUBLIC-FLIP-CHECKLIST.md); the disclosure consequences are the
+> standing register in [`PUBLIC-READINESS.md`](PUBLIC-READINESS.md), which on 2026-08-14
+> reports **160 undisposed findings** and exits 3.
+>
+> **The "sixteen commits" figure in 3b's warning below was true on 2026-08-10 and is now 86.**
+> It is annotated rather than re-typed, because the warning it belongs to is about an act that
+> has already happened: whatever number of commits was published, they are published.
+> `git rev-list --count HEAD` = **86** on 2026-08-14, and every push since the flip has added
+> to the public surface with no further decision point. **Read 3a before every push, not
+> before every flip** — there is only ever one flip and it is behind you.
 
 ### 3a — the gate. Do not run 3b until this exits 0.
 
@@ -277,19 +322,27 @@ is arithmetic rather than a hope.
    the local node; the proof does not. Pass it:
 
    ```bash
-   docker ps --format "{{.Names}} {{.Image}} {{.Status}}"   # expect: mainline-crdb ... Up
-   python scripts/submission/seed_demo_state.py
+   docker ps --format "{{.Names}} {{.Image}} {{.Status}}"   # match the IMAGE, not the name
+   python scripts/submission/seed_demo_state.py --database <your scratch database>
    python scripts/proof/gate_refusal.py \
      --dsn "postgresql://root@localhost:26257/defaultdb?sslmode=disable"
    ```
 
-   **Expected**, measured on 2026-08-10 against the pinned local node — the tail of the
-   run, three beats and a verdict:
+   > **Corrected 2026-08-14: do not expect a container called `mainline-crdb`.** That name
+   > does not exist on this machine any more. `docker ps` today lists one container,
+   > `trappoint-crdb`, on the pinned image `cockroachdb/cockroach:v26.2.5`, and it answers on
+   > `26257`. **The image tag is the thing to check; the name is not load-bearing** and
+   > `python scripts/qa/doctor.py` confirms which socket actually answered. `VIDEO-KIT.md`
+   > §B.1 carries the same correction.
+
+   **Expected**, from the committed transcript of the most recent run —
+   `evidence/gate-refusal/proof-20260814T032418Z.json`, read back on 2026-08-14 — the tail of
+   the run, four beats and a verdict:
 
    ```
    cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
    database      w_qr_gate_refusal_proof
-   chain         271/271 applied, 0 failed, 57.196s
+   chain         271/271 applied, 0 failed, 71.797s
    PROJECTION    10/10 held
    REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
    DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
@@ -301,7 +354,15 @@ is arithmetic rather than a hope.
 
    Exit code **0**. Do not record until you have seen `VERDICT PROVEN` in this session —
    the `chain` and `caveats` lines move as the migration tree changes, and the film is
-   about the three beats, not about a number you remember.
+   about the beats, not about a number you remember. The chain figure was `57.196s` on
+   2026-08-10 and `71.797s` on 2026-08-14 over the *same* 271 files; a slower machine is not
+   a finding.
+
+   **And check the receipt deadline before you roll.** `seed_demo_state.py` prints a
+   `BEAT 4 SKIPS AFTER <instant>` block on every run. Past that instant the admission beat
+   skips silently, the first three beats keep refusing, and nothing on the frame changes —
+   `VIDEO-KIT.md` §B.4 calls it *"the quietest way this shoot fails"* and carries the
+   one-line tripwire to run between takes.
 
 2. Record, keeping under three minutes. The rules cap it at three; the submission cut is
    built with headroom for exactly this reason.

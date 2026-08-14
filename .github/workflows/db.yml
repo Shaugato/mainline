@@ -505,11 +505,237 @@ jobs:
         run: uv run --frozen --package trappoint-migrate trappoint migrate bootstrap --dsn "$LOCAL_DSN"
 
       - name: Apply the reference vertical
+        # THE STEP THIS LANE DIES ON, AND SINCE 2026-08-14 IT SAYS WHY — ruling R8 of
+        # `docs/leads/ci-green-final.md`, applied to a lane that ruling R7 says STAYS RED.
+        #
+        # WHAT THIS STEP USED TO PRINT, verbatim and in its entirety, run 31770238265:
+        #
+        #     trappoint migrate: REFUSED: 0058_blocking_check: [42P01] relation
+        #     "trappoint_ref.event" does not exist
+        #
+        # and then exit 1. Every fact a reader needs was missing. It did not say that the
+        # object has no producer anywhere in the tree rather than being created late; it
+        # did not say that a SECOND object (`trappoint_ref.clause`) is missing behind the
+        # first and can never surface from the database, because `migrate up` stops at its
+        # FIRST refusal; it did not name the owner; it did not say the lane is red ON
+        # PURPOSE; and — the fact this job's own name makes load-bearing — it did not say
+        # that `CONFORMANCE` never executed, so the PL-2 artefact this lane exists to
+        # produce is UNPROVEN by the run rather than red.
+        #
+        # `schema.yml` states the whole finding beautifully in its `producers` and `unweld`
+        # jobs. This is the same finding in the lane that reaches it against a real
+        # database, at the same quality. THE DATABASE STAYS THE AUTHORITY: the refusal
+        # below is CockroachDB's own answer and this step still exits with it. The scan is
+        # only a reading of the same `.sql` files, and it is repeated here rather than
+        # shared because GitHub Actions has no YAML anchors and a script under `scripts/`
+        # would be a second place to look for the sentence THIS log has to carry.
+        #
+        # THE MAINLINE TWIN IS DERIVED, NOT LISTED. `schema.yml` carries a two-entry map
+        # written by hand; this reads `CREATE TABLE mainline.<table>` out of
+        # `verticals/mainline/db/migrations/` and finds `0028_clause.sql` and
+        # `0033_event.sql` — the same two, computed. A hand-listed pair is a lie the day a
+        # third object joins, and a derivation that agrees with the authoritative list is
+        # the right direction for a derived value to move.
+        #
+        # ANSI IS STRIPPED BEFORE ANYTHING IS EXTRACTED OR PRINTED. This workflow sets
+        # `FORCE_COLOR: "1"` at file scope and that is left alone — the escapes are only a
+        # defect for a reader consuming the raw log, which is how the lead read this lane
+        # and why it could not be read without filtering by hand. Classification runs over
+        # the plain copy so a colour code between `relation "` and the object name cannot
+        # turn a classified refusal into an unclassified one.
         run: |
-          uv run --frozen --package trappoint-migrate trappoint migrate up \
-            --dsn "$LOCAL_DSN" \
-            --tree trappoint-ref \
-            --migrations packages/trappoint-sql/refvertical/sql
+          set -euo pipefail
+
+          detail="$RUNNER_TEMP/missing-producers.txt"
+          oneline="$RUNNER_TEMP/missing-producers-oneline.txt"
+          python3 - "$detail" "$oneline" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          detail_path, oneline_path = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+          SQL = pathlib.Path("packages/trappoint-sql/refvertical/sql")
+          MAINLINE = pathlib.Path("verticals/mainline/db/migrations")
+
+          # Deliberately narrow, and identical in shape to `schema.yml`'s: it matches
+          # `REFERENCES trappoint_ref.<table>` and nothing else — not FROM, not JOIN, not a
+          # function body — because a foreign key is the one construct whose target must
+          # exist at APPLY time, and its absence is therefore exactly the 42P01 this lane
+          # already gets. A wider scan would be a different check with different false
+          # positives, and this one has to be trustworthy enough to be read as a work item.
+          created = re.compile(
+              r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?trappoint_ref\.([a-z_][a-z0-9_]*)",
+              re.IGNORECASE,
+          )
+          referenced = re.compile(
+              r"REFERENCES\s+trappoint_ref\.([a-z_][a-z0-9_]*)", re.IGNORECASE
+          )
+          twin_of = re.compile(
+              r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?mainline\.([a-z_][a-z0-9_]*)",
+              re.IGNORECASE,
+          )
+
+          def body(path: pathlib.Path) -> str:
+              text = path.read_text(encoding="utf-8", errors="ignore")
+              return "\n".join(
+                  line for line in text.splitlines() if not line.lstrip().startswith("--")
+              )
+
+          produced: set[str] = set()
+          consumed: dict[str, list[str]] = {}
+          for path in sorted(SQL.glob("*.sql")):
+              text = body(path)
+              produced.update(table.lower() for table in created.findall(text))
+              for table in referenced.findall(text):
+                  consumed.setdefault(table.lower(), []).append(path.stem)
+
+          twins: dict[str, str] = {}
+          for path in sorted(MAINLINE.glob("*.sql")):
+              for table in twin_of.findall(body(path)):
+                  twins.setdefault(table.lower(), path.as_posix())
+
+          missing = sorted(table for table in consumed if table not in produced)
+          detail_path.write_text(
+              "".join(
+                  f"    trappoint_ref.{table}\n"
+                  f"      consumed by   : {', '.join(consumed[table])}"
+                  f"  (REFERENCES trappoint_ref.{table})\n"
+                  f"      expected at   : packages/trappoint-sql/refvertical/sql/"
+                  f"<nnnn>_{table}.sql\n"
+                  f"      MAINLINE twin : {twins.get(table, 'none found in the tree')}\n"
+                  for table in missing
+              ),
+              encoding="utf-8",
+          )
+          oneline_path.write_text(
+              ", ".join(f"trappoint_ref.{table}" for table in missing) or "(none)",
+              encoding="utf-8",
+          )
+          print(
+              f"reference vertical: {len(produced)} table(s) created, {len(consumed)} "
+              f"referenced, {len(missing)} with no producer"
+          )
+          PY
+          objects="$(cat "$oneline")"
+          # `grep -c` exits 1 on no matches, and shell-level error suppression is BANNED in
+          # this directory — `db.yml` permits exactly one suppressed command, the container
+          # cleanup at the foot of this job, and a second would make that ban
+          # unenforceable. `cluster-tests.yml:342-349` solves the identical problem the
+          # identical way: the guard, never the `|| true`. A tree with no missing producer
+          # legitimately produces no match, and that case must read as 0 rather than as an
+          # aborted step.
+          missing_count=0
+          if grep -q '^    trappoint_ref\.' "$detail"; then
+            missing_count="$(grep -c '^    trappoint_ref\.' "$detail")"
+          fi
+
+          log="$RUNNER_TEMP/refvertical-migrate.log"
+          plain="$RUNNER_TEMP/refvertical-migrate.plain.log"
+          if uv run --frozen --package trappoint-migrate trappoint migrate up \
+               --dsn "$LOCAL_DSN" \
+               --tree trappoint-ref \
+               --migrations packages/trappoint-sql/refvertical/sql 2>&1 | tee "$log"; then
+            echo "the reference vertical applied clean"
+            exit 0
+          fi
+
+          # ANSI OUT FIRST, THEN CLASSIFY. Done in python3 and not in `sed`, deliberately:
+          # the CSI grammar needs the intermediate-byte range `[ -/]` inside a bracket
+          # expression, POSIX leaves the delimiter's meaning inside brackets undefined, and
+          # a stripper that silently over-matches would eat the object name this step then
+          # fails to find — turning a classified refusal into an unclassified one for a
+          # reason that has nothing to do with the database. The pattern is character for
+          # character the one `scripts/ci/lane_verdict.py` uses, so the two lanes strip the
+          # same bytes.
+          python3 - "$log" "$plain" <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+          source, target = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+          target.write_text(
+              ANSI.sub("", source.read_text(encoding="utf-8", errors="replace")),
+              encoding="utf-8",
+          )
+          PY
+          object="$(sed -n 's/.*relation "\(trappoint_ref\.[a-z_][a-z0-9_]*\)" does not exist.*/\1/p' "$plain" | head -n1)"
+          consumer="$(sed -n 's/.*REFUSED: \([0-9a-zA-Z_]*\):.*/\1/p' "$plain" | head -n1)"
+
+          if [ -z "$object" ]; then
+            echo "::error title=the reference vertical refused, UNCLASSIFIED::trappoint migrate up failed for a reason this step does not recognise, so it is NOT attributed to the ${missing_count} known missing producer(s) (${objects}). The runner's whole output is below, ANSI-stripped; classify it here rather than leaving the next reader with a bare exit code. Owner of the reference vertical: KERNEL domain, docs/leads/kernel.md 1.1."
+            echo "---- trappoint migrate up, ANSI-stripped ----"
+            cat "$plain"
+            echo "--------------------------------------------"
+            exit 1
+          fi
+
+          # THE TITLE IS THE WHOLE MESSAGE FOR MOST READERS. A judge scanning the Actions
+          # tab sees this annotation and nothing else, and a red that means "by design"
+          # costs exactly the attention of a red that means "broken" unless it says so in
+          # the first clause. No ANSI reaches it: every substring is either this file's own
+          # text or a name extracted from the stripped copy.
+          echo "::error title=RED BY DESIGN (COLLATERAL) - CONFORMANCE never ran::RED BY DESIGN, NOT A CI DEFECT. ${missing_count} object(s) are referenced by packages/trappoint-sql/refvertical/sql and created by no file in it: ${objects}. CockroachDB refused at ${consumer} on ${object}, the first of them. Owner: KERNEL domain, docs/leads/kernel.md 1.1. This job did NOT fail on its own subject -- migrate+conform on a node pinned to Cloud's gc.ttlseconds. attest, status, list and CONFORMANCE did not execute, so this lane's subject is UNPROVEN by this run rather than failing, and no run of this lane may be cited as a CONFORMANCE red. WHAT TURNS IT GREEN: a CREATE TABLE migration for each object named above. WHAT DOES NOT: dropping the foreign key, skipping this job, or removing the reference vertical from this lane -- each closes the lane by deleting the question."
+
+          cat <<EOF
+
+          ========================================================================================
+          COLLATERAL -- this job measured nothing of its own subject
+          ========================================================================================
+            this job     : migrate + conform, on a node pinned to Cloud's gc.ttlseconds
+            its subject  : the reference vertical applies to a fresh node, the schema
+                           fingerprint is stable across two attestations, and the conformance
+                           suite's illegal histories are refused with the SQLSTATEs the
+                           specification names -- on a node whose GC horizon is no more
+                           permissive than Cloud's. NONE of that ran. 'Attest the schema',
+                           'Status', 'List the suite the manifest declares' and 'CONFORMANCE'
+                           are all BELOW this step and were never reached.
+            therefore    : UNPROVEN by this run, not failing. The gc.ttlseconds pin above DID
+                           take and WAS read back, so the node is correct; there is simply no
+                           schema on it to attest or to conform.
+            PL-2 note    : ci.yml's PL-2 field asks for the URL of a db run in which CONFORMANCE
+                           itself went red. This is not that run and no run of this lane is,
+                           while this step refuses. The field stays UNRECORDED; citing this run
+                           would record a colour CONFORMANCE never produced.
+          ----------------------------------------------------------------------------------------
+          MISSING PRODUCERS -- the reference vertical, not MAINLINE
+          ----------------------------------------------------------------------------------------
+            refused at   : ${consumer}  on  ${object}   (FOREIGN KEY target; it must exist at
+                           APPLY time, and migrate stops at its FIRST refusal, which is why the
+                           list below is longer than anything the database will ever report)
+            full list    : ${missing_count} object(s) -- ${objects}
+                           (read out of the .sql files in THIS checkout, in THIS step, so the log
+                           carries the whole finding rather than one instalment of it)
+          EOF
+          cat "$detail"
+          cat <<'EOF'
+            tree         : packages/trappoint-sql/refvertical/sql   (--tree trappoint-ref)
+            expected     : a CREATE TABLE migration per object, in that directory. The MAINLINE
+                           twin printed above already exists and is DERIVED from
+                           verticals/mainline/db/migrations, not listed here. There is no
+                           template in packages/trappoint-sql/templates/ that renders either base
+                           table: 0059_subject_event.sql.j2 renders the per-subject event tables
+                           and 0052_subject_clause.sql.j2 the per-subject clause link tables, so
+                           a producer needs a new template or a hand-authored file.
+            owner        : KERNEL domain -- docs/leads/kernel.md 1.1, which decides that the
+                           kernel ships a reference vertical alongside the MAINLINE binding from
+                           day one, inside packages/trappoint-sql/refvertical/.
+            status       : RED ON PURPOSE. This is product incompleteness, and ruling R7 of
+                           docs/leads/ci-green-final.md keeps it red. It is NOT closed by
+                           continue-on-error, by dropping the foreign key, by skipping this job,
+                           or by removing the reference vertical from this lane -- each of those
+                           closes the lane by deleting the question. Two bindings that both
+                           render is the entire substrate claim; one binding is a template engine
+                           with an audience of one.
+            same finding : schema.yml states this hermetically in ten seconds ('producers') and
+                           against a database ('unwelding matrix'). Three lanes, one finding --
+                           and the fix is one commit in the KERNEL domain, not three.
+          ========================================================================================
+          EOF
+          if [ "$missing_count" -eq 0 ]; then
+            echo "::error title=the scan and the database disagree::The static scan found NO missing producer, yet CockroachDB refused on ${object}. The scan matches REFERENCES trappoint_ref.<table> and nothing else, so it is narrower than the database; that gap is itself a finding and belongs in schema.yml's 'producers' job, not in a silence here."
+          fi
+          exit 1
 
       - name: Attest the schema, twice, and assert the fingerprint is stable
         run: uv run --frozen --package trappoint-migrate trappoint migrate attest --dsn "$LOCAL_DSN"

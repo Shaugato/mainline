@@ -491,7 +491,39 @@ jobs:
           uv run --frozen python scripts/mi_ratchet.py red --on-collect-error-red 2>&1 \
             | tee mi-red.log
           status="${PIPESTATUS[0]}"
-          echo "scripts/mi_ratchet.py red exited ${status} (0 held, 1 law broken, 2 cannot determine)"
+          # THE ECHO THAT CREATED A CONTRADICTION, AND WHAT IT SAYS NOW.
+          #
+          # It read `(0 held, 1 law broken, 2 cannot determine)`. Six words, and one of
+          # them — "law broken" — lands immediately under pytest's own `N failed, M passed`
+          # summary, which the in-process run above prints to this same stream. MEASURED on
+          # run 31770240275: `7 failed, 460 passed`, every one of the seven captioned
+          # *"PL-2 RED, as intended"*, and then `exited 1 … law broken`. Read together those
+          # two lines say that seven deliberately-red tests broke the law they exist to
+          # satisfy. They did not, and the lane had no way to say so.
+          #
+          # RESOLVED BY READING `scripts/mi_ratchet.py`, and FALSIFIED rather than argued.
+          # Exit 1 from the pending law is reachable from exactly one place — `violations`
+          # being non-empty — and `red_violations` populates it only for a pending
+          # invariant whose owning tests ALL PASSED. pytest's own status is consumed
+          # separately: `MEASURABLE_PYTEST_EXITS` is `{0, 1}`, so "some tests failed" is a
+          # MEASUREMENT here and 2/3/4 return 2, never 1. Proven with two hermetic `--junit`
+          # controls at HEAD 7535670, no cluster: a report recording 26 failures over the
+          # owning set exits **0**; the same report with ONE invariant's owning tests
+          # flipped to passing exits **1** naming it. THE POLARITY IS NOT INVERTED. This
+          # lane is an HONEST RED and the defect was legibility, so nothing below changes a
+          # law, an expectation or a status — it changes what the log SAYS about them.
+          echo "scripts/mi_ratchet.py red exited ${status}."
+          echo "  0 = the pending law HELD."
+          echo "  1 = the pending law was BROKEN: at least one PENDING invariant is witnessed"
+          echo "      and every one of its owning tests PASSED, so the catalogue claims"
+          echo "      'not yet enforced' while the suite says otherwise."
+          echo "  2 = the colour of the suite could not be measured at all."
+          echo "THIS NUMBER IS NOT PYTEST'S. A 'N failed' line in the run above is the pending"
+          echo "law WORKING for the invariants those tests own -- a pending invariant is"
+          echo "REQUIRED to have a failing owning test -- and most of what pytest ran owns no"
+          echo "invariant at all, because the law is evaluated over node ids while pytest is"
+          echo "handed their whole FILES. The ratchet's own 'WHY THIS EXIT STATUS' block above"
+          echo "names the three populations and which one produced this number."
           exit "${status}"
 
       - name: The invariants this lane is HOLDING, and why none may be promoted
@@ -790,8 +822,31 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Cluster logs on failure
+        # FOLDED AND FILED, NOT QUIETED AND NOT SHORTENED — ruling R8. The `tail -100` is
+        # unchanged; what is new is that the WHOLE log goes to `schema-engine.log` first
+        # and the tail is taken from that file, so the two readers get what each needs and
+        # neither is the wall the other has to scroll past. A `::group::` collapses it in
+        # the UI and keeps every byte one click away. The alternatives were both refused:
+        # a shorter tail throws away the part of an event log furthest from the failure,
+        # which is usually the part that explains it, and a `--log` filter on the container
+        # would silence exactly the case this step exists for.
         if: failure()
-        run: docker logs trappoint-schema-crdb | tail -100
+        run: |
+          set -euo pipefail
+          docker logs trappoint-schema-crdb > schema-engine.log 2>&1
+          total="$(wc -l < schema-engine.log | tr -d ' ')"
+          echo "::group::docker logs trappoint-schema-crdb | tail -100 (of ${total} line(s))"
+          tail -100 schema-engine.log
+          echo "::endgroup::"
+
+      - name: The engine's own account, as a file
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-schema-engine-${{ github.run_id }}-${{ github.run_attempt }}
+          path: schema-engine.log
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Tear down
         if: always()
@@ -807,6 +862,143 @@ jobs:
           else
             echo "no container named trappoint-schema-crdb exists; nothing to tear down"
           fi
+
+      # ── THE LAST THING A FAILING RUN SAYS ─────────────────────────────────────────
+      #
+      # RULING R8, and the answer to the `mi-red` contradiction. This step is LAST in the
+      # job — after the engine log, after the tear-down — so the bottom of the run is the
+      # diagnosis rather than CockroachDB's session chatter. It is ANSI-free by
+      # construction: this workflow sets `FORCE_COLOR: "1"` at file scope, which is left
+      # alone because the escapes are a defect only for a reader consuming the raw log,
+      # and that is exactly how the lead read this lane and why it could not be read
+      # without filtering by hand.
+      #
+      # IT DECIDES NOTHING. It exits 0 on every input, emits no annotation, and runs only
+      # when the job has ALREADY failed. The verdict is `mi_ratchet.py`'s own exit status,
+      # re-raised by the `mi-red` step several steps above. Deleting this step cannot turn
+      # a red run green and neither can breaking it.
+      #
+      # NOTHING BELOW IS WRITTEN DOWN. The exit-status paragraph is lifted verbatim out of
+      # the ratchet's own transcript by slicing on `mi.EXIT_NOTE_HEADING`, the held ids
+      # come from `mi.RED_VIOLATION_PREFIX`, and the pytest summary is pytest's own line.
+      # A hand-written count would be a lie the day an invariant moves.
+      - name: VERDICT — an HONEST RED, and the arithmetic that proves it is not an inverted polarity
+        if: failure()
+        run: |
+          set -euo pipefail
+          # THE TRANSCRIPT IS CHECKED BEFORE ANYTHING IS RUN, AND THIS IS NOT A
+          # SUPPRESSION. `mi-red.log` is written by step 9; `uv` arrives at step 6. A job
+          # that died on the version comparison at step 5 has neither, and calling
+          # `uv run` there would fail with `command not found` — a SECOND red, for a cause
+          # that has nothing to do with the ratchet, emitted by the step whose entire
+          # purpose is to make the FIRST one readable. Exiting 0 with a sentence is this
+          # step's contract: it decides nothing, and it has nothing to diagnose.
+          #
+          # `python3` is not used here as it is in `cluster-tests.yml`, because this
+          # program imports `scripts/mi_ratchet.py` to read `RED_VIOLATION_PREFIX` and
+          # `EXIT_NOTE_HEADING` rather than restating them, and that module needs `yaml`.
+          # A restated literal is how the wording drifts out from under the reader; the
+          # workspace this step needs is already installed by the time it can have work.
+          if [ ! -f mi-red.log ]; then
+            echo "no mi-red transcript: this job failed before the pending law ran, so this"
+            echo "block has nothing to report. Read the step above that exited non-zero -"
+            echo "the version comparison, the cluster probe and mi-green each carry their own."
+            exit 0
+          fi
+          cat > mi-verdict.py <<'PY'
+          """State which of the two possible readings of `mi-red` is the true one."""
+
+          from __future__ import annotations
+
+          import re
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          import mi_ratchet as mi
+
+          for stream in (sys.stdout, sys.stderr):
+              if hasattr(stream, "reconfigure"):
+                  stream.reconfigure(encoding="utf-8", errors="replace")
+
+          ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+          HELD = re.compile(r"^REFUSED: (MI\d\d) " + re.escape(mi.RED_VIOLATION_PREFIX) + r"\s*$")
+          SUMMARY = re.compile(r"^=*\s*\d+ (failed|passed)[^=]*=*$")
+          RULE = "=" * 86
+
+          transcript = Path(sys.argv[1])
+          if not transcript.is_file():
+              print(f"no mi-red transcript at {transcript}: an earlier step failed first.")
+              raise SystemExit(0)
+          lines = ANSI.sub("", transcript.read_text(encoding="utf-8", errors="replace")).splitlines()
+
+          held = [found.group(1) for found in map(HELD.match, lines) if found]
+          summary = [raw.strip() for raw in lines if SUMMARY.match(raw.strip())]
+          note: list[str] = []
+          for index, raw in enumerate(lines):
+              if raw.startswith(mi.EXIT_NOTE_HEADING):
+                  for tail in lines[index:]:
+                      if tail.startswith("REFUSED:") or (note and not tail.strip()):
+                          break
+                      note.append(tail)
+                  break
+
+          print("")
+          print(RULE)
+          print("DB-SCHEMA / mi-red — VERDICT. Read this block; you should not need `grep`.")
+          print(RULE)
+          # A BLOCK THAT EXPLAINS A RED IT CANNOT SEE WOULD BE THE SAME DEFECT IN A NEWER
+          # COAT. This job can fail for reasons that are not `mi-red` at all — the image
+          # comparison, `mi-green`, the one-way check, a cluster that never answered — and
+          # every one of those leaves a transcript naming no held invariant and carrying no
+          # exit-status paragraph. Saying "an honest red" over one of those would be a
+          # confident sentence about something this step did not measure.
+          if not held and not note:
+              print("  This job is red, and `mi-red` is NOT why: its transcript names no held")
+              print("  invariant and carries no exit-status paragraph, so the pending law either")
+              print("  held or never ran. Read the step above that exited non-zero — `mi-green`,")
+              print("  the version comparison, the one-way check and the cluster probe all fail")
+              print("  on their own terms and each carries its own diagnosis.")
+              print(RULE)
+              raise SystemExit(0)
+          print("  the two statements that look like a contradiction:")
+          for raw in summary or ["    (pytest printed no summary line in this transcript)"]:
+              print(f"    pytest  : {raw}")
+          print(f"    ratchet : scripts/mi_ratchet.py red refused {len(held)} invariant(s)"
+                f"{': ' + ', '.join(held) if held else ''}")
+          print("")
+          print("  THE RESOLUTION — an HONEST RED. The polarity is NOT inverted.")
+          print("    Exit 1 from the pending law is reachable from exactly one place: a PENDING")
+          print("    invariant that is witnessed and whose owning tests ALL PASSED. A failing")
+          print("    test never produces it. pytest's own status is consumed separately -")
+          print("    MEASURABLE_PYTEST_EXITS is {0, 1}, so 'some tests failed' is a MEASUREMENT")
+          print("    here, and 2/3/4 return 2 rather than 1.")
+          print("    Falsified hermetically with --junit and no cluster: a report recording a")
+          print("    failure on every owning node id exits 0; the same report with ONE")
+          print("    invariant's owning tests flipped to passing exits 1 naming that invariant.")
+          print("")
+          if note:
+              print("  the ratchet's own account of which population produced its status:")
+              for raw in note:
+                  print(f"  {raw}")
+              print("")
+          print("  WHAT TURNS THIS LANE GREEN")
+          print("    * strengthen each held invariant's owning tests until at least one FAILS -")
+          print("      a test that makes the SQLSTATE the assertion and would go red if the")
+          print("      mechanism were dropped. The step above names the absent object for each.")
+          print("    * then promote it in mi_catalogue.yaml, which is a measurement rather than")
+          print("      a bookkeeping entry, and shows up in blame forever.")
+          print("  WHAT DOES NOT")
+          print("    * flipping an expectation, or making a deliberately-red test pass. Those")
+          print("      tests are the red law WORKING; a pending invariant is REQUIRED to have a")
+          print("      failing owning test.")
+          print("    * promoting a held invariant on a green test run. Its enforcing object is")
+          print("      ABSENT from the migration tree, so the promotion would record a claim")
+          print("      nobody measured - which is the exact motion this ratchet exists to refuse.")
+          print("    * continue-on-error, || true, an exemption, or a threshold moved.")
+          print(RULE)
+          PY
+          uv run --frozen python mi-verdict.py mi-red.log
 
   # ── The negative control for the version assertion in `ratchet` ─────────────────────
   #

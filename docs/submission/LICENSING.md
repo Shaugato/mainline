@@ -16,6 +16,36 @@ itself untracked when the census ran, and it becomes `27` the moment this docume
 committed. The commands are the durable part; the integers are the reading they gave on
 2026-08-10.
 
+> ## RE-RUN 2026-08-14 · the POLICY is unchanged; the integers moved and the guard still holds
+>
+> This page is the *policy* — which tree is under which licence and why — and **not one
+> policy sentence on it changed**. What moved is the arithmetic, and the two claims a reader
+> would actually test were both re-run:
+>
+> **The forkability guard holds.** `.importlinter` contract 1, *"The Apache substrate never
+> imports the FSL vertical"*, RAN 2026-08-14:
+>
+> ```
+> Analyzed 543 files, 3512 dependencies.
+> 1. The Apache substrate never imports the FSL vertical KEPT
+> ...
+> Contracts: 7 kept, 0 broken.
+> ```
+>
+> **The substrate is still Apache-2.0 essentially everywhere.** §1's two `git grep`
+> one-liners, re-run 2026-08-14: `packages/` gives **605** `Apache-2.0` and 2
+> `FSL-1.1-ALv2` (was 593 and 2); `spec/` gives **38** `Apache-2.0`, unchanged. The two FSL
+> hits are still the string literals inside checkers that assert on the header text, and are
+> still counted rather than hidden.
+>
+> **The coverage totals moved with the tree** — 7 120 tracked files on 2026-08-10, **7 576**
+> on 2026-08-14; the resolved `REUSE.toml` column is **4 636**, not 4 518. `scripts/qa/
+> check_reuse.py` exits **0** with **0 uncovered in every directory**, and the falling-only
+> divergence counter `FSL-1.1-ALv2 = 1 213` **did not rise**. The full comparison, and one
+> genuine finding about `check_reuse.py`'s own self-test, are in
+> [`LICENCE-CENSUS.md`](LICENCE-CENSUS.md)'s header box — this page does not duplicate them,
+> because two copies of a count is how two copies disagree.
+
 ---
 
 ## 1 · The short answer

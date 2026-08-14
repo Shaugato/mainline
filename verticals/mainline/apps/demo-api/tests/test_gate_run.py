@@ -125,6 +125,7 @@ import json
 import os
 import re
 import sys
+import threading
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -929,19 +930,55 @@ def test_every_table_row_count_is_identical_across_a_gate_run(
     after = _every_table_count(w4_conn)
 
     assert payload["verdict"] == "PROVEN", payload["failures"]
+    assert payload["persistence_check"]["self_persisted"] is False, payload["persistence_check"]
     differing = {t: (before[t], after[t]) for t in before if before[t] != after[t]}
-    assert differing == {}, f"rows persisted in {differing}"
+    assert differing == {}, (
+        f"rows appeared in {differing} while a gate run was open. This assertion needs "
+        "EXCLUSIVE ACCESS to the database and does not have it — it counts every base "
+        "table, so it cannot tell this run's rows from anybody else's. Read "
+        "payload['persistence_check'] first: `self_persisted` is "
+        f"{payload['persistence_check']['self_persisted']}, which is the claim the product "
+        "makes and is decided from identifiers only this run could have minted. If that is "
+        "False, this red is a SECOND WRITER on "
+        f"{w4_conn.info.dbname} — another pytest session sharing this scratch database is "
+        "the one measured on this workstation — and not a gate that persisted something. "
+        "docs/diagnosis/gate-run-fingerprint.md carries the reproduction."
+    )
     assert set(before) == set(after)
     assert len(before) >= 80, f"only {len(before)} tables counted; the chain looks incomplete"
 
 
 def test_the_payload_proves_its_own_persistence_claim(run_once: dict[str, Any]) -> None:
+    """The claim is about THIS RUN, and this is the evidence that is about this run.
+
+    It used to assert ``identical is True`` and ``before == after`` — the ten unscoped
+    counts — as though they were the persistence claim. They are not: they are a statement
+    about the whole database, and any other caller committing one row into any of those ten
+    tables made them false while this run had still persisted nothing. That is the defect
+    ``docs/diagnosis/gate-run-fingerprint.md`` reproduces, and the ten counts are still
+    taken, still unscoped and still asserted to be REPORTED — what moved is which reading
+    the claim is read off.
+    """
     check = run_once["persistence_check"]
-    assert check["identical"] is True
-    assert check["before"] == check["after"]
+
+    # The product's claim, decided from identifiers no other writer could have produced.
+    assert check["self_persisted"] is False, check["self_evidence"]
+    evidence = check["self_evidence"]
+    assert evidence["minted_disposition_rows_after_rollback"] == 0
+    assert evidence["minted_disposition_id"] is not None, (
+        "beat 4 minted no disposition, so this run never exercised the one beat the "
+        "database ACCEPTS and the persistence claim has nothing to be about"
+    )
+    assert evidence["permit_row_identical"] is True
+    assert evidence["subject_row_counts_before"] == evidence["subject_row_counts_after"]
+
+    # The broad reading is still taken over every table the four beats can write, and it is
+    # still in the payload. R2: it is not narrowed, and no table left the list.
+    assert "mainline.merge_record" in check["before"]["row_counts"]
+    assert set(check["tables"]) == set(check["before"]["row_counts"])
+    assert len(check["tables"]) == 10, check["tables"]
     assert check["before"]["permit_row"]["state"] != "merged"
     assert check["before"]["permit_row"]["merged_commit"] is None
-    assert "mainline.merge_record" in check["before"]["row_counts"]
 
 
 def test_two_consecutive_runs_see_the_same_subject(w4_conn: psycopg.Connection[Any]) -> None:
@@ -955,7 +992,24 @@ def test_two_consecutive_runs_see_the_same_subject(w4_conn: psycopg.Connection[A
     assert first["subject"] == second["subject"]
     assert first["verdict"] == second["verdict"] == "PROVEN"
     assert first["run_id"] != second["run_id"]
-    assert first["persistence_check"]["after"] == second["persistence_check"]["before"]
+    # THE SUBJECT is what the fifth judge has to see, and the subject is what is asserted.
+    # This used to compare the first run's `after` fingerprint with the second's `before` —
+    # the ten UNSCOPED counts — which asserts that nothing anywhere in those ten tables
+    # moved between two runs. That is a claim about the whole database and about every
+    # other caller of it, not about the two runs; it went red the moment a second pytest
+    # session wrote to this shared scratch database, and it was reported as a demo that
+    # persisted something. The subject-scoped readings below are the ones the two runs are
+    # actually entitled to make, and they are strictly about the rows a judge sees.
+    assert (
+        first["persistence_check"]["after"]["permit_row"]
+        == (second["persistence_check"]["before"]["permit_row"])
+    )
+    assert (
+        first["persistence_check"]["after"]["subject_row_counts"]
+        == (second["persistence_check"]["before"]["subject_row_counts"])
+    )
+    assert first["persistence_check"]["self_persisted"] is False
+    assert second["persistence_check"]["self_persisted"] is False
 
 
 def test_concurrent_runs_do_not_collide(w4_database: str) -> None:
@@ -986,6 +1040,176 @@ def test_concurrent_runs_do_not_collide(w4_database: str) -> None:
     assert a["verdict"] == "PROVEN", a["failures"]
     assert b["verdict"] == "PROVEN", b["failures"]
     assert a["subject"] == b["subject"]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# what a CONCURRENT WRITER does to the persistence check — the three controls
+#
+# `docs/leads/cloud-hardening-final.md` §0.1.1 predicted that two judges pressing the
+# button at once was "precisely this interaction". The first control below FALSIFIES that
+# and the second one names what the interaction really is, which is the reason the contract
+# changed rather than the counts being narrowed (ruling R2). The third is the control R8
+# asks for: a check that has never failed has never discriminated.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_two_judges_pressing_the_button_at_once_do_not_move_the_fingerprint(
+    w4_database: str,
+) -> None:
+    """The predicted interaction, run for real — and it does not happen.
+
+    Two gate runs genuinely interleaved, released together by a barrier rather than run one
+    after the other the way :func:`test_concurrent_runs_do_not_collide` does. Neither can
+    move the other's fingerprint, because neither persists anything: that is the property
+    the whole endpoint is built on, and it holds under concurrency.
+
+    This is a NEGATIVE result and it is asserted rather than assumed, because the plan this
+    work was dispatched under named this case as the cause of five red tests. It is not the
+    cause. A committing caller is (the next test), and the difference matters: the fix for
+    the first would have been to serialise the demo, and serialising it would have removed
+    the one property that lets fifty judges share it.
+    """
+    results: dict[str, dict[str, Any]] = {}
+    errors: list[BaseException] = []
+    barrier = threading.Barrier(2)
+
+    def press(name: str) -> None:
+        connection = demo_db._open(w4_database)
+        connection.autocommit = False
+        try:
+            barrier.wait(timeout=30)
+            results[name] = gate_run(connection)
+        except BaseException as exc:  # noqa: BLE001 - re-raised on the main thread below
+            errors.append(exc)
+        finally:
+            connection.close()
+
+    threads = [threading.Thread(target=press, args=(name,)) for name in ("first", "second")]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=60)
+    assert not errors, errors
+    assert set(results) == {"first", "second"}
+
+    first, second = results["first"], results["second"]
+    for name, payload in results.items():
+        check = payload["persistence_check"]
+        assert payload["verdict"] == "PROVEN", (name, payload["failures"])
+        assert check["self_persisted"] is False, (name, check["self_evidence"])
+        assert check["self_evidence"]["minted_disposition_rows_after_rollback"] == 0, name
+        assert check["self_evidence"]["permit_row_identical"] is True, name
+        assert (
+            check["self_evidence"]["subject_row_counts_before"]
+            == (check["self_evidence"]["subject_row_counts_after"])
+        ), name
+
+    # NOT `identical`. That field is the ten UNSCOPED counts, so asserting it here would
+    # make this control depend on nothing else in the cluster writing for the duration —
+    # which is the exact conflation of "the database was quiet" with "neither run persisted
+    # anything" that this whole change exists to take apart. What the two runs are entitled
+    # to claim is that they saw and left the SAME SUBJECT, and that is what is asserted.
+    assert first["subject"] == second["subject"]
+    assert (
+        first["persistence_check"]["before"]["permit_row"]
+        == (second["persistence_check"]["after"]["permit_row"])
+    )
+
+
+def test_a_concurrent_committer_moves_the_counts_and_is_not_this_runs_failure(
+    w4_conn: psycopg.Connection[Any], w4_database: str
+) -> None:
+    """THE DEFECT, CONSTRUCTED: somebody else commits between the two readings.
+
+    One row, committed by another session into ``mainline.permit`` — which is exactly what
+    ``test_transitions.py``'s own ``fresh_history`` and ``bare_permit`` fixtures do, 779
+    times over, into this same scratch database. Before 2026-08-14 this made the endpoint
+    answer ``NOT PROVEN`` carrying *"the transaction was supposed to persist nothing"*,
+    about a transaction that had persisted nothing.
+
+    What is asserted now is BOTH halves, and the second half is what keeps this honest:
+    the ten unscoped counts still SEE the row — they were not narrowed and this test would
+    fail if they had been — and the verdict no longer blames this run for it.
+    """
+    planted: list[uuid.UUID] = []
+    original = gate_run_mod._fingerprint
+    calls = [0]
+
+    def commit_between_the_readings(
+        conn: psycopg.Connection[Any], permit_id: uuid.UUID
+    ) -> dict[str, Any]:
+        result = original(conn, permit_id)
+        calls[0] += 1
+        if calls[0] == 1:
+            planted.append(_commit_one_foreign_permit(w4_database))
+        return result
+
+    gate_run_mod._fingerprint = commit_between_the_readings
+    try:
+        payload = gate_run(w4_conn)
+    finally:
+        gate_run_mod._fingerprint = original
+
+    assert calls[0] == 2, "gate_run no longer takes exactly one before and one after reading"
+    check = payload["persistence_check"]
+
+    # HALF ONE — the broad check still sees it. R2: not narrowed, no table removed.
+    assert check["identical"] is False, (
+        "the ten unscoped counts did not notice a row another session committed into "
+        "mainline.permit. That is _FINGERPRINT_SQL having been scoped down, which ruling "
+        "R2 forbids, and this assertion is the thing that would go quiet if it were"
+    )
+    assert check["concurrent_writes"] == {
+        "mainline.permit": [
+            check["before"]["row_counts"]["mainline.permit"],
+            check["before"]["row_counts"]["mainline.permit"] + 1,
+        ]
+    }, check["concurrent_writes"]
+
+    # HALF TWO — and it is not this run's failure, because this run persisted nothing.
+    assert check["self_persisted"] is False, check["self_evidence"]
+    assert payload["verdict"] == "PROVEN", payload["failures"]
+    assert payload["failures"] == []
+    assert payload["persisted"] is False
+    assert planted, "the control never planted a row, so it proved nothing"
+
+
+def _commit_one_foreign_permit(dsn: str) -> uuid.UUID:
+    """Commit one permit belonging to nobody, the way ``bare_permit`` does. tuple_row.
+
+    A separate connection in autocommit, because the point is a row this run's transaction
+    cannot see and did not write. Read by position — ``site_role`` comes back as one column
+    and the statements here are the fixture's, not ``db.py``'s.
+    """
+    permit_id = uuid.uuid4()
+    with psycopg.connect(dsn, autocommit=True, row_factory=tuple_row) as other:
+        row = other.execute(
+            "SELECT site_id, site_role::STRING FROM mainline.permit WHERE external_ref = %s",
+            (_DEMO_EXTERNAL_REF,),
+        ).fetchone()
+        assert row is not None, "no seeded subject to borrow a site from"
+        other.execute(
+            "INSERT INTO mainline.permit (permit_id, site_id, site_role, external_ref, "
+            "ref_name, horizon_at) VALUES (%s, %s, %s, %s, %s, now() + INTERVAL '30 days')",
+            (
+                permit_id,
+                row[0],
+                row[1],
+                f"PTW-FOREIGN-{permit_id.hex[:8]}",
+                f"refs/permits/foreign-{permit_id.hex[:8]}",
+            ),
+        )
+    return permit_id
+
+
+#: The control R8 asks for — *a verifier that has never failed has never discriminated* —
+#: lives in ``test_transitions.py::test_a_run_that_really_persists_is_caught``. It has to
+#: commit a real admission to be worth anything, and the transitions are irreversible, so it
+#: needs a THROWAWAY subject. This file cannot seed one: ``seed_history`` mints its own site
+#: with ``site_role = 'proof_site'``, and a second call into the same database is refused
+#: ``23505 site_role_unique`` — measured, not assumed. ``test_transitions.py`` already owns
+#: ``fresh_history``, which mints a permit on the site that is already there, so the control
+#: is beside the fixture that makes it safe rather than beside the code it checks.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════

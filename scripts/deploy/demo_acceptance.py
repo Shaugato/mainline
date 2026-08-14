@@ -99,6 +99,67 @@ the evidence, with an advisory. A PROVEN verdict against the emulator is a true 
 the handler, the console bundle and the database — and **not** a statement that a public demo URL
 exists. Those two are different claims and the file keeps them apart.
 
+THE SIGNATURE PATH — ``--signature-path``, AND WHY IT IS READ-ONLY
+------------------------------------------------------------------
+Beat 4 signs a disposition. ``mainline.disposition.defeater_vocab_sha256`` is the digest of the
+option set the signer was **shown**: ``db/migrations/0064_defeater_option.sql`` says it *"digests
+the whole option set, not the row, so a signature that pins it pins the ALTERNATIVES the signer
+declined as well as the one they chose"*. Until 2026-08-14 both signing paths bound
+``sha256(b"defeater-vocab")`` — the SHA-256 of an ASCII string — so the demo's signature pinned no
+vocabulary at all, and would have gone on pinning none after the option rows landed.
+
+``--signature-path`` walks that claim from outside. For each ``--vocabulary-check`` it reads
+``GET /v1/checks/{check_id}/disposition``, which serves ``mainline.defeater_option``'s own rows,
+and asserts three things the fixed code implies and the broken code could not:
+
+1. **One generation, one digest.** Every option a check offers carries the SAME
+   ``vocab_sha256`` — 0064's rule. Several distinct values mean two generations are interleaved.
+2. **Two vocabularies, two digests.** With two or more checks named, their digests must all
+   DIFFER. *This is the negative control that kills the constant*: a digest computed from a
+   literal is the same value for every check, so it would go on describing three options after
+   somebody added a fourth, and it cannot tell one obligation's option set from another's.
+3. **Neither digest is the literal.** ``sha256(b"defeater-vocab")`` is RECOMPUTED here from the
+   ASCII string rather than copied as hex, so the comparison is one a reader can reproduce.
+
+**No mutating request is issued.** ``POST /v1/checks/{check_id}/disposition`` is the endpoint a
+judge would sign with, and it commits irreversibly: on the seeded demo subject it is refused
+``423 demo_subject_write_protected`` by ``transitions._demo_guard``, and
+``evidence/deploy/demo-guard-armed.json`` is the artefact that measured that guard firing. This
+program does not re-measure it against a shared live database, because a probe whose safety
+depends on a guard holding is a probe that WRITES on the day the guard does not — and the row it
+would write closes the demo's one obligation for every judge after it. The signature itself is
+therefore observed where it is reversible: **beat 4**, inside the gate run's rolled-back
+transaction, whose ``open_blocking_after_signature`` reads 0 while the committed permit still
+reads 1.
+
+**One thing this walk cannot reach, stated rather than glossed.** The gate-run payload does not
+publish the ``defeater_code`` or the ``defeater_vocab_sha256`` that beat 4 actually bound, so
+"the digest the signature pinned equals the digest those rows carry" is asserted by
+``tests/test_judge_can_sign.py`` in-process and **not** by any caller holding only a URL. Beat 4
+answering ``admitted`` does establish that the vocabulary RESOLVED — an absent one raises
+``DefeaterVocabularyAbsent`` and the request is ``422 demo_history_not_seeded``, never a 200 —
+but that is a weaker statement and it is recorded as one.
+
+THE ROW CENSUS — ``--row-census``, THE ONE PART THAT HOLDS A CREDENTIAL
+-----------------------------------------------------------------------
+Everything above is a statement about bytes that came back over HTTPS. The census is not: it
+opens a **read-only** SQL connection and counts rows, before the HTTP phase and again after it.
+
+It exists because of one ruling. ``POST /v1/demo/gate-run`` is allowed to be driven against a
+shared live database *because* it is savepoint-fenced and rolls back — and that permission is
+conditional on the prover demonstrating the affected tables did not move. So the expected counts
+are READ FROM A COMMITTED EVIDENCE FILE (``--row-census evidence/deploy/cloud-seed.json``) and
+never typed into this program: the committed artefact is the authoritative value and this run is
+checked against it, not the other way round.
+
+Two things it will not do. It never reads ``crdb_internal`` or ``system`` — both are restricted
+to this role and a census that tried would report a privilege error as a shortfall. And it never
+trusts the DSN's own path segment: the committed DSN ends ``/defaultdb`` while the demo lives in
+``mainline_demo``, so ``--database`` is substituted by name and confirmed with
+``SELECT current_database()``, which is the pattern ``scripts/deploy/seed_demo.py`` established
+and records under ``database_selection.selected_how``. The DSN is recorded with its password
+replaced and is never printed.
+
 EXIT CODES
 ----------
 ``0`` proven · ``1`` reachable and wrong · ``2`` usage · ``3`` not reachable at all.
@@ -121,7 +182,7 @@ import urllib.request
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Final
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 EXIT_PROVEN: Final = 0
 EXIT_WRONG: Final = 1
@@ -207,6 +268,17 @@ GATE_RUNS: Final = 2
 #: Set by ``scripts/deploy/local_furl.py`` on every response. Its presence means the target is a
 #: local emulator of a Lambda Function URL and NOT a deployed demo.
 EMULATOR_HEADER: Final = "x-mainline-emulator"
+
+#: ``sha256(b"defeater-vocab")`` — the CONSTANT both signing paths bound into
+#: ``mainline.disposition.defeater_vocab_sha256`` until 2026-08-14, and the value the deployed
+#: CockroachDB Cloud recorded on its one signed disposition. RECOMPUTED here from the ASCII string
+#: rather than copied as a hex literal, so a reader reproduces the comparison instead of trusting
+#: a digest this file typed out. A vocabulary digest equal to this is a signature that pinned the
+#: SHA-256 of a word.
+DEFEATER_VOCAB_LITERAL: Final = hashlib.sha256(b"defeater-vocab").hexdigest()
+
+#: The read that serves ``mainline.defeater_option``'s own rows to a caller with no credentials.
+VOCABULARY_ROUTE: Final = "/v1/checks/{check_id}/disposition"
 
 #: Excluded from the two-run comparison, and named in the evidence so the exclusion is auditable.
 VOLATILE_FIELDS: Final[tuple[str, ...]] = (
@@ -484,6 +556,448 @@ def check_beats(data: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
     return recorded, failures
 
 
+def signature_path(
+    args: argparse.Namespace, base: str, signed_check_id: str | None
+) -> tuple[dict[str, Any], list[str]]:
+    """Walk the signature path from outside: which options were offered, and by what digest.
+
+    Args:
+        args: the parsed command line; ``vocabulary_check`` names the obligations to read.
+        base: the demo URL with a trailing slash.
+        signed_check_id: the obligation beat 4 actually signed against, taken from the gate run's
+            own ``subject.blocking_check_id``. Used to tie the vocabulary that was read to the
+            signature that was made; ``None`` when no gate run completed.
+
+    Returns:
+        ``(record, failures)``. Every value in ``record`` came back over HTTP.
+    """
+    failures: list[str] = []
+    checks: list[dict[str, Any]] = []
+
+    for check_id in args.vocabulary_check:
+        url = urljoin(base, VOCABULARY_ROUTE.format(check_id=check_id).lstrip("/"))
+        response = fetch(url, timeout=args.timeout, insecure=args.insecure)
+        entry: dict[str, Any] = {"check_id": check_id, **response.summary()}
+        checks.append(entry)
+        if response.status != 200:
+            failures.append(
+                f"GET {VOCABULARY_ROUTE.format(check_id=check_id)} returned {response.status}, "
+                f"expected 200{describe_error_body(response)}"
+            )
+            continue
+        try:
+            data = response.json().get("data", {})
+        except Exception as exc:  # noqa: BLE001
+            failures.append(f"the vocabulary read for check {check_id} did not return JSON: {exc}")
+            continue
+
+        options = data.get("defeater_options") or []
+        digests = sorted({str(o.get("vocab_sha256")) for o in options})
+        entry["options"] = len(options)
+        entry["codes"] = [o.get("defeater_code") for o in options]
+        entry["prompts_present"] = sum(1 for o in options if (o.get("prompt") or "").strip())
+        entry["generations"] = len(digests)
+        entry["vocab_sha256"] = digests[0] if len(digests) == 1 else digests
+        entry["signed_present"] = data.get("signed") is not None
+        entry["source"] = "mainline.defeater_option, served by GET " + VOCABULARY_ROUTE
+
+        if not options:
+            failures.append(
+                f"check {check_id} offers no defeater option, so a signature against it could "
+                "pin no vocabulary. mainline.disposition has no foreign key onto "
+                "mainline.defeater_option, so nothing in the database would refuse one that did"
+            )
+            continue
+        if len(digests) != 1:
+            # 0064: the digest IS THE SAME VALUE ON EVERY ROW OF ONE GENERATION.
+            failures.append(
+                f"check {check_id} offers {len(options)} options carrying {len(digests)} "
+                "distinct vocab_sha256 values. 0064_defeater_option.sql says one generation "
+                "carries one digest, so these rows are two generations interleaved and a "
+                "signature pinning either would pin an option set that was never on one screen"
+            )
+        if digests[0] == DEFEATER_VOCAB_LITERAL:
+            failures.append(
+                f"check {check_id}'s vocab_sha256 IS sha256(b'defeater-vocab') "
+                f"({DEFEATER_VOCAB_LITERAL[:16]}…): the digest is the SHA-256 of an ASCII "
+                "string, so it pins no option set at all and would go on describing three "
+                "options after somebody added a fourth"
+            )
+
+    record: dict[str, Any] = {
+        "route": VOCABULARY_ROUTE,
+        "checks_requested": list(args.vocabulary_check),
+        "checks": checks,
+        "defeater_vocab_literal": {
+            "value": DEFEATER_VOCAB_LITERAL,
+            "recomputed_from": "sha256(b'defeater-vocab')",
+            "why": (
+                "the constant both signing paths bound until 2026-08-14, and the value the "
+                "deployed Cloud recorded on its one signed disposition. Recomputed here rather "
+                "than quoted so the comparison is reproducible."
+            ),
+        },
+        "mutating_requests_issued": 0,
+        "why_no_mutating_request": (
+            "POST /v1/checks/{check_id}/disposition commits irreversibly and is refused 423 "
+            "demo_subject_write_protected on the seeded demo subject; "
+            "evidence/deploy/demo-guard-armed.json measured that guard firing. A probe whose "
+            "safety depends on a guard holding is a probe that writes on the day it does not, "
+            "and the row it would write closes the demo's one obligation for every judge after "
+            "it. The signature is observed at beat 4 instead, where it is rolled back."
+        ),
+    }
+
+    # THE NEGATIVE CONTROL. Two obligations, two option sets, two digests — which a constant
+    # cannot produce. This is the assertion that distinguishes a resolved digest from a derived
+    # one without any credential and without reading a single row directly.
+    resolved = [c for c in checks if isinstance(c.get("vocab_sha256"), str)]
+    distinct = {c["vocab_sha256"] for c in resolved}
+    record["negative_control"] = {
+        "claim": (
+            "a digest read from each check's own rows differs between checks; a constant cannot"
+        ),
+        "vocabularies_read": len(resolved),
+        "distinct_digests": len(distinct),
+        "digests": {c["check_id"]: c["vocab_sha256"] for c in resolved},
+        "holds": len(resolved) >= 2 and len(distinct) == len(resolved),
+    }
+    if len(resolved) < 2:
+        failures.append(
+            f"the signature path resolved {len(resolved)} vocabulary digest(s) and the negative "
+            "control needs two: a constant is indistinguishable from a resolved value until two "
+            "different option sets are compared. Name a second obligation with --vocabulary-check"
+        )
+    elif len(distinct) != len(resolved):
+        failures.append(
+            f"{len(resolved)} obligations were read and their vocab_sha256 values collapse to "
+            f"{len(distinct)} distinct value(s): {sorted(distinct)}. Two different option sets "
+            "sharing one digest is what a CONSTANT looks like, and it is the defect this walk "
+            "exists to catch"
+        )
+
+    # AND THE TIE. A vocabulary read about some other obligation says nothing about the signature
+    # beat 4 made.
+    record["signed_check_id"] = signed_check_id
+    record["signed_check_vocabulary_was_read"] = signed_check_id in set(args.vocabulary_check)
+    if signed_check_id is None:
+        failures.append(
+            "no gate run reported a subject.blocking_check_id, so the vocabulary that was read "
+            "could not be tied to the obligation beat 4 signed against"
+        )
+    elif not record["signed_check_vocabulary_was_read"]:
+        failures.append(
+            f"beat 4 signed against obligation {signed_check_id}, and no --vocabulary-check named "
+            f"it (given: {list(args.vocabulary_check)}). The digests above are then about some "
+            "other obligation's option set"
+        )
+    record["not_established_here"] = (
+        "the gate-run payload does not publish beat 4's defeater_code or its bound "
+        "defeater_vocab_sha256, so 'the digest the signature pinned equals the digest these rows "
+        "carry' is NOT established by this credential-free caller. It is asserted in-process by "
+        "verticals/mainline/apps/demo-api/tests/test_judge_can_sign.py. What beat 4 answering "
+        "'admitted' DOES establish is that the vocabulary resolved at all: an absent one raises "
+        "DefeaterVocabularyAbsent and the request is 422 demo_history_not_seeded, never a 200."
+    )
+    return record, failures
+
+
+#: Arguments whose VALUE is prose or a file path that would swamp the transcript. The flag is
+#: still recorded — what was elided is named, so nobody has to notice an absence.
+ELIDED_ARGUMENTS: Final[frozenset[str]] = frozenset({"--note", "--corroborate"})
+
+
+def recorded_invocation(argv: list[str]) -> dict[str, Any]:
+    """The command that produced this file, with the operator's home directory masked.
+
+    An evidence file that does not say which command wrote it asks its reader to take the note's
+    word for the run. This records the arguments verbatim with two exceptions, both stated in the
+    output rather than left to be noticed:
+
+    * ``--note`` and ``--corroborate`` values are elided — one is the prose that already appears
+      under ``note``, the other is a path to a file that is embedded whole.
+    * Anything under the operator's home directory is rewritten to ``<home>/…``. That is a
+      privacy measure, not a security one: no credential is ever passed on this command line, but
+      a Windows account name is a real name and ``qa/public-readiness.json`` tracks every file
+      that discloses one. The repository path is left intact because it is not personal.
+
+    BOTH SEPARATOR SPELLINGS ARE MASKED, and that is not defensive coding. ``Path.home()`` on
+    Windows answers ``C:\\Users\\name`` while a path typed on a command line is very often
+    ``C:/Users/name`` — Windows accepts either. A mask that compared only the native spelling
+    matched nothing and wrote the account name into the evidence file, which is exactly what
+    happened on the first capture of 2026-08-14 and is why this is spelled out here.
+    """
+    home = str(Path.home())
+    homes = {home, home.replace("\\", "/")} if home else set()
+    masked: list[str] = []
+    skip_next = False
+    for token in argv:
+        if skip_next:
+            masked.append("<elided; see the key it names>")
+            skip_next = False
+            continue
+        if token in ELIDED_ARGUMENTS:
+            skip_next = True
+        shown = token
+        for spelling in homes:
+            shown = shown.replace(spelling, "<home>")
+        masked.append(shown)
+    return {
+        "program": "scripts/deploy/demo_acceptance.py",
+        "argv": masked,
+        "cwd": str(Path.cwd()),
+        "python": ".".join(str(part) for part in sys.version_info[:3]),
+        "elided": sorted(ELIDED_ARGUMENTS),
+        "home_masked_as": "<home>",
+        "credentials_on_this_command_line": (
+            "none. The DSN is read from the file named by --env-file and is never an argument; "
+            "the only form of it recorded anywhere in this file has its password replaced."
+        ),
+    }
+
+
+def target_provenance(evidence: Mapping[str, Any]) -> dict[str, Any]:
+    """Separate the three things ``target_is_local_emulator`` folds into one boolean.
+
+    That flag answers exactly one question — **who terminated the HTTP connection** — and it is
+    read from a header the target volunteered. It is not a statement about which database answered
+    underneath, and on this project those two have different answers: until ``terraform apply`` has
+    run there is no Function URL to reach, while the database the handler reads can already be the
+    deployed CockroachDB Cloud cluster.
+
+    A single boolean therefore cannot carry the claim, and the temptation is to write ``false``
+    into it because the interesting half is true. That is the falsification this file exists to
+    refuse: ``scripts/deploy/local_furl.py`` stamps ``X-Mainline-Emulator`` precisely so a
+    transcript taken against it can never be mistaken for one taken against the deployment. So the
+    flag keeps the value that was measured and this block says, field by field, what was real.
+
+    Every value here is measured: the emulator header off the console response, the database and
+    fingerprint out of ``GET /v1/health``, and the host and confirmed database name out of the row
+    census when one was taken.
+    """
+    checks = evidence.get("checks") or {}
+    health = checks.get("health") or {}
+    census = (checks.get("row_census") or {}).get("before") or {}
+    selection = census.get("database_selection") or {}
+    host = urlsplit(str(census.get("dsn") or "")).netloc.rpartition("@")[2] or None
+
+    return {
+        "http_hop": {
+            "emulated": bool(evidence.get("target_is_local_emulator")),
+            "emulator": evidence.get("emulator"),
+            "x_mainline_headers": (checks.get("console") or {}).get("x_mainline_headers") or {},
+            "what_that_means": (
+                "the flag `target_is_local_emulator` is read from a header the target sent and "
+                "describes the SOCKET only. A true value means no public demo URL was reached; "
+                "it says nothing about which database answered underneath."
+            ),
+        },
+        "database_under_test": {
+            "reported_by_health": health.get("database"),
+            "confirmed_by_census": selection.get("confirmed_by_server"),
+            "host": host,
+            "is_cockroachdb_cloud": bool(host and "cockroachlabs.cloud" in host),
+            "cluster_version": health.get("cluster_version"),
+            "schema_fingerprint": health.get("schema_fingerprint"),
+            "agree": (
+                health.get("database") == selection.get("confirmed_by_server")
+                if selection.get("confirmed_by_server")
+                else None
+            ),
+            "how": (
+                "GET /v1/health names the database the handler is connected to, with no "
+                "credential involved. The census names the database it selected BY NAME and "
+                "confirmed with SELECT current_database(). Two independent readings, and the "
+                "field above records whether they agree."
+            ),
+        },
+        "not_established_by_this_run": (
+            "that a public demo URL exists. The stack is unapplied — `aws lambda get-function "
+            "--function-name mainline-demo-api` answers ResourceNotFoundException — and no "
+            "acceptance run can conjure one. docs/submission/SUBMISSION.json holds UNRESOLVED "
+            "until it does."
+        ),
+    }
+
+
+def read_env_file(path: Path) -> dict[str, str]:
+    """Parse ``KEY=VALUE`` lines. No expansion, no ``export``, no shell."""
+    values: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, _, value = stripped.partition("=")
+        values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+def redact_dsn(dsn: str) -> str:
+    """A DSN with the password replaced. The only form of it this program will record."""
+    try:
+        split = urlsplit(dsn)
+    except ValueError:
+        return "<unparseable DSN>"
+    if not split.hostname:
+        return "<non-URL DSN, redacted>"
+    user = split.username or ""
+    auth = f"{user}:***@" if split.password else (f"{user}@" if user else "")
+    port = f":{split.port}" if split.port else ""
+    return f"{split.scheme}://{auth}{split.hostname}{port}{split.path}?{split.query}"
+
+
+def with_database(dsn: str, database: str) -> str:
+    """Return *dsn* with its path segment replaced by *database*.
+
+    The committed DSN ends ``/defaultdb`` while the demo history lives in ``mainline_demo``. A
+    connection on the committed DSN answers, and then every ``mainline.*`` count is zero — which
+    reads like an empty deployment and is not one.
+    """
+    split = urlsplit(dsn)
+    return urlunsplit(
+        (split.scheme, split.netloc, f"/{database.lstrip('/')}", split.query, split.fragment)
+    )
+
+
+def parse_extra_counts(pairs: list[str]) -> tuple[dict[str, int], str | None]:
+    """Turn ``["mainline.ledger_leaf=4", …]`` into a mapping, or name the one that is malformed."""
+    extra: dict[str, int] = {}
+    for pair in pairs:
+        name, sep, value = pair.partition("=")
+        if not sep or not name.strip():
+            return {}, f"--census-extra {pair!r} is not TABLE=COUNT"
+        try:
+            extra[name.strip()] = int(value)
+        except ValueError:
+            return {}, f"--census-extra {pair!r} does not carry an integer count"
+    return extra, None
+
+
+def row_census(  # noqa: PLR0911, PLR0915 - every early return is a NAMED refusal with its own
+    # failure line, and a census that could not be taken must say which step could not be taken
+    args: argparse.Namespace,
+    when: str,
+) -> tuple[dict[str, Any], list[str]]:
+    """Count the rows the committed evidence says this database carries. Read-only.
+
+    Args:
+        args: the parsed command line. ``row_census`` is the path to the committed evidence file
+            whose ``row_counts`` object is the EXPECTED value; nothing here is a literal.
+        when: ``"before"`` or ``"after"``, recorded so the two readings can be told apart.
+
+    Returns:
+        ``(record, failures)``. A census that could not be taken is a FAILURE and never a silent
+        skip: the permission to drive a gate run against a shared live database is conditional on
+        this reading existing.
+    """
+    failures: list[str] = []
+    record: dict[str, Any] = {"when": when, "read_only": True}
+
+    expected_source = Path(args.row_census)
+    try:
+        committed = json.loads(expected_source.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        failures.append(
+            f"the census could not read its expected counts from {expected_source}: {exc}"
+        )
+        return record, failures
+    expected: dict[str, int] = {k: int(v) for k, v in (committed.get("row_counts") or {}).items()}
+    extra, malformed = parse_extra_counts(args.census_extra)
+    if malformed:
+        failures.append(malformed)
+        return record, failures
+    expected.update(extra)
+    record["expected_from"] = str(expected_source)
+    record["expected_authority"] = {
+        "row_counts": (
+            f"{expected_source}'s own row_counts object — committed evidence, and the "
+            "authoritative expected value this run is checked against"
+        ),
+        "census_extra": args.census_extra_authority or None,
+    }
+    if not expected:
+        failures.append(
+            f"{expected_source} carries no row_counts object, so the census has nothing to "
+            "check this database against"
+        )
+        return record, failures
+
+    try:
+        import psycopg
+    except Exception as exc:  # noqa: BLE001
+        failures.append(
+            f"the row census needs psycopg and could not import it ({exc}). The census is not "
+            "optional: without it, a gate run driven against a shared live database has not "
+            "shown that the database is unmoved"
+        )
+        return record, failures
+
+    try:
+        dsn = read_env_file(Path(args.env_file))[args.dsn_key]
+    except Exception as exc:  # noqa: BLE001
+        failures.append(f"the census could not read {args.dsn_key} from {args.env_file}: {exc}")
+        return record, failures
+
+    target = with_database(dsn, args.database)
+    record["dsn"] = redact_dsn(target)
+    dsn_segment = (urlsplit(dsn).path or "").lstrip("/")
+    # NEVER `crdb_internal`, NEVER `system`: both are restricted to this role, and a census that
+    # asked would report a privilege error as though it were a shortfall in the deployment.
+    # S608: the names are keys of a COMMITTED evidence file this repository owns, chosen by the
+    # operator on the command line; a table name cannot be a bind parameter in any SQL dialect.
+    counts = [f"(SELECT count(*) FROM {table})" for table in expected]  # noqa: S608
+    statement = "SELECT " + ", ".join(counts)
+    record["statement"] = statement
+    try:
+        with psycopg.connect(target, connect_timeout=args.census_timeout) as conn:
+            conn.read_only = True
+            selected, user, version = conn.execute(
+                "SELECT current_database(), current_user, version()"
+            ).fetchone()
+            record["database_selection"] = {
+                "requested": args.database,
+                "confirmed_by_server": selected,
+                "matches": selected == args.database,
+                "dsn_path_segment": dsn_segment,
+                "selected_how": (
+                    "substituted into the DSN by name and verified with SELECT "
+                    "current_database(); the DSN's own path segment is never trusted"
+                ),
+            }
+            record["connected_as"] = user
+            record["cluster_version"] = version
+            if selected != args.database:
+                failures.append(
+                    f"the census asked for database {args.database!r} and the server answered "
+                    f"{selected!r}. Counting mainline.* in the wrong database is how a live "
+                    "deployment gets reported as empty"
+                )
+                return record, failures
+            row = conn.execute(statement).fetchone()
+    except Exception as exc:  # noqa: BLE001
+        failures.append(f"the row census ({when}) could not be taken: {type(exc).__name__}: {exc}")
+        return record, failures
+
+    observed = {name: int(value) for name, value in zip(expected, row, strict=True)}
+    drift = {
+        n: {"expected": expected[n], "observed": observed[n]}
+        for n in expected
+        if expected[n] != observed[n]
+    }
+    record["tables"] = len(expected)
+    record["row_counts"] = observed
+    record["expected_row_counts"] = expected
+    record["drift"] = drift
+    record["identical_to_committed_evidence"] = not drift
+    if drift:
+        failures.append(
+            f"the {when} row census does not match {expected_source}: {drift}. Those counts are "
+            "committed evidence about the database the demo runs on; a run that moved them has "
+            "falsified that evidence and broken the demo for the next judge"
+        )
+    return record, failures
+
+
 def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assertions ARE the
     # contract. Collapsing them into a loop over a table would make every failure message
     # generic, and the message is what tells an operator which of the four beats moved.
@@ -633,6 +1147,7 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
     projections: list[dict[str, Any]] = []
     digests: list[str | None] = []
     observed: list[dict[str, Any]] = []
+    signed_check_ids: set[str] = set()
     for index in range(1, GATE_RUNS + 1):
         response = fetch(
             urljoin(base, "/v1/demo/gate-run"),
@@ -733,6 +1248,35 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
                     )
 
             subject = data.get("subject") or {}
+            if subject.get("blocking_check_id"):
+                signed_check_ids.add(str(subject["blocking_check_id"]))
+            # THE ADMISSION'S OWN EXHIBIT, hoisted out of beat 4 so a reader does not have to
+            # walk the envelope for it. `open_blocking_after_signature` is the count READ INSIDE
+            # the transaction after the disposition landed; the permit re-read below is the same
+            # counter after the rollback. Zero here beside one there IS the rollback.
+            admitted = next((b for b in data.get("beats", []) if b.get("name") == "admit"), None)
+            observed_admit = (admitted or {}).get("observed") or {}
+            if observed_admit:
+                record["admission_exhibit"] = {
+                    "disposition_id_minted": bool(observed_admit.get("disposition_id")),
+                    "open_blocking_after_signature": observed_admit.get(
+                        "open_blocking_after_signature"
+                    ),
+                    "clearance_digest": (
+                        (observed_admit.get("merge_record") or {}).get("clearance_digest")
+                    ),
+                    "merge_record_permit_state": (
+                        (observed_admit.get("merge_record") or {}).get("permit_state")
+                    ),
+                }
+                if observed_admit.get("open_blocking_after_signature") != 0:
+                    failures.append(
+                        f"run {index}: beat 4 reports open_blocking_after_signature="
+                        f"{observed_admit.get('open_blocking_after_signature')!r}. The signed "
+                        "disposition is supposed to close the obligation inside the "
+                        "transaction — a merge admitted with the obligation still open would "
+                        "mean the admission proved something other than the signature"
+                    )
             if index == 1 and not snapshots and subject:
                 snapshots.append(
                     {
@@ -896,6 +1440,19 @@ def phase2(  # noqa: PLR0912, PLR0915 - one branch per assertion, and the assert
             "be concluded about persistence from readings of different rows."
         )
     evidence["checks"]["permit_invariant"] = invariant
+
+    # ── the signature path, read-only ────────────────────────────────────────────────────
+    if args.signature_path:
+        if len(signed_check_ids) > 1:
+            failures.append(
+                f"the two gate runs signed against different obligations {sorted(signed_check_ids)}"
+                ". The vocabulary read below can be about only one of them"
+            )
+        walked, walk_failures = signature_path(
+            args, base, next(iter(sorted(signed_check_ids)), None)
+        )
+        evidence["checks"]["signature_path"] = walked
+        failures.extend(walk_failures)
     return evidence, failures
 
 
@@ -975,9 +1532,10 @@ def phase1(args: argparse.Namespace, base: str) -> tuple[dict[str, Any], list[st
     return evidence, failures
 
 
-def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argument parsing,
-    # two transcript shapes and the evidence writer. Splitting it would move the transcript
-    # away from the verdict it describes.
+def main(argv: list[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, PLR0915 - argument
+    # parsing, two transcript shapes and the evidence writer, plus one NAMED usage refusal per
+    # argument that cannot be defaulted. Splitting it would move the transcript away from the
+    # verdict it describes, and the refusals away from the arguments they are about.
     parser = argparse.ArgumentParser(
         prog="demo_acceptance",
         description=(
@@ -1042,6 +1600,62 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
         help="verify at most N bundle files; 0 means all of them (phase 1)",
     )
     parser.add_argument(
+        "--signature-path",
+        action="store_true",
+        help=(
+            "walk the signature path from outside: read each --vocabulary-check's own defeater "
+            "options and assert one generation carries one digest, that two obligations carry "
+            "two DIFFERENT digests (which a constant cannot), and that neither is "
+            "sha256(b'defeater-vocab'). Issues no mutating request."
+        ),
+    )
+    parser.add_argument(
+        "--vocabulary-check",
+        action="append",
+        default=[],
+        metavar="CHECK_ID",
+        help=(
+            "an obligation whose defeater vocabulary is read over HTTP. Give it at least TWICE: "
+            "one digest is indistinguishable from a constant until two option sets are compared."
+        ),
+    )
+    parser.add_argument(
+        "--row-census",
+        default="",
+        metavar="EXPECTED_JSON",
+        help=(
+            "before and after the HTTP phase, open a READ-ONLY SQL connection and count the "
+            "tables named in this committed evidence file's row_counts object. The file is the "
+            "authoritative expected value; no count is written into this program."
+        ),
+    )
+    parser.add_argument(
+        "--census-extra",
+        action="append",
+        default=[],
+        metavar="TABLE=COUNT",
+        help=(
+            "an additional expected count the --row-census file does not carry. Every use needs "
+            "--census-extra-authority naming where the number comes from."
+        ),
+    )
+    parser.add_argument(
+        "--census-extra-authority",
+        default="",
+        help="where the --census-extra numbers come from; recorded verbatim beside them",
+    )
+    parser.add_argument("--env-file", default=".env", help="KEY=VALUE file holding the DSN")
+    parser.add_argument("--dsn-key", default="COCKROACH_DSN", help="key inside --env-file")
+    parser.add_argument(
+        "--database",
+        default="",
+        help=(
+            "the database the census selects BY NAME. The committed DSN's path segment is not "
+            "trusted: it is substituted and confirmed with SELECT current_database()."
+        ),
+    )
+    parser.add_argument("--census-timeout", type=float, default=45.0)
+    parser.add_argument(
         "--note", default="", help="a sentence recorded verbatim in the evidence file"
     )
     parser.add_argument(
@@ -1054,6 +1668,9 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
             "run keeps its own verdict and its own note; it never changes this run's verdict."
         ),
     )
+    # Captured before parsing, because the evidence must record what was ASKED for rather than
+    # what argparse defaulted it to.
+    effective_argv = list(argv) if argv is not None else sys.argv[1:]
     args = parser.parse_args(argv)
 
     if args.url and args.url_flag and args.url != args.url_flag:
@@ -1076,6 +1693,28 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
     if scheme not in ("http", "https"):
         print(f"demo_acceptance: {args.url!r} is not an http(s) URL", file=sys.stderr)
         return EXIT_USAGE
+    if args.signature_path and not args.vocabulary_check:
+        print(
+            "demo_acceptance: --signature-path needs at least one --vocabulary-check, and two to "
+            "make the negative control mean anything. There is no default: a prover with a "
+            "built-in obligation proves something about the obligation it remembered.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    if args.row_census and not args.database:
+        print(
+            "demo_acceptance: --row-census needs --database. The DSN's own path segment is not "
+            "trusted and there is no default to fall back to.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    if args.census_extra and not args.census_extra_authority:
+        print(
+            "demo_acceptance: --census-extra needs --census-extra-authority. A number with no "
+            "stated source is an assertion, not an expected value.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     base = args.url if args.url.endswith("/") else args.url + "/"
     mode_name = "phase1" if args.phase1 else "phase2"
 
@@ -1088,8 +1727,63 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
     if args.insecure:
         print("TLS           NOT VERIFIED (--insecure)")
 
+    # ── the census, BEFORE a single request is issued ────────────────────────────────────
+    # It brackets the HTTP phase rather than following it: an "after" with no "before" cannot
+    # tell a database this run moved from one that was already wrong when this run found it.
+    census: dict[str, Any] | None = None
+    census_failures: list[str] = []
+    if args.row_census:
+        before_census, before_failures = row_census(args, "before")
+        census_failures.extend(before_failures)
+        census = {"before": before_census}
+        print(
+            f"CENSUS before  {before_census.get('tables')} tables, identical to committed "
+            f"evidence: {before_census.get('identical_to_committed_evidence')}"
+        )
+
     runner = phase1 if args.phase1 else phase2
     evidence, failures = runner(args, base)
+
+    if args.row_census:
+        after_census, after_failures = row_census(args, "after")
+        census_failures.extend(after_failures)
+        assert census is not None  # noqa: S101 - set in the same `if` above
+        census["after"] = after_census
+        print(
+            f"CENSUS after   {after_census.get('tables')} tables, identical to committed "
+            f"evidence: {after_census.get('identical_to_committed_evidence')}"
+        )
+        before_counts = census["before"].get("row_counts")
+        after_counts = after_census.get("row_counts")
+        moved = (
+            None
+            if before_counts is None or after_counts is None
+            else {
+                name: {"before": before_counts[name], "after": after_counts.get(name)}
+                for name in before_counts
+                if before_counts[name] != after_counts.get(name)
+            }
+        )
+        census["moved_across_this_run"] = moved
+        census["unchanged_across_this_run"] = moved == {}
+        census["why"] = (
+            "POST /v1/demo/gate-run is allowed to be driven against a shared live database "
+            "BECAUSE it is savepoint-fenced and rolls back, and that permission is conditional "
+            "on this reading. A run that moved these counts has broken the demo for the next "
+            "judge and says so here rather than being re-seeded over."
+        )
+        if moved is None:
+            census_failures.append(
+                "the row census could not be compared across this run because one of the two "
+                "readings was not taken"
+            )
+        elif moved:
+            census_failures.append(
+                f"the row counts MOVED across this run: {moved}. The gate run persists nothing "
+                "by construction, so either it does not, or another caller wrote while it ran"
+            )
+        evidence["checks"]["row_census"] = census
+        failures.extend(census_failures)
 
     total_ms = round((time.monotonic() - started) * 1000, 1)
     reachable = evidence["checks"].get("console", {}).get("status", 0) != 0
@@ -1106,6 +1800,7 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
             "CockroachDB Cloud"
         ),
         "url": args.url,
+        "invocation": recorded_invocation(effective_argv),
         "tls_verified": not args.insecure,
         "verdict": verdict,
         "failures": failures,
@@ -1119,6 +1814,9 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
         "expected_beats": list(EXPECTED_BEATS),
         **evidence,
     }
+    # AFTER the spread, so it is built from the measured evidence rather than from the defaults
+    # above it.
+    payload["target_provenance"] = target_provenance(payload)
     if args.note:
         payload["note"] = args.note
     if args.corroborate:
@@ -1173,6 +1871,20 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0912, PLR0915 - argu
                     f"state={snapshot.get('state')} gate_epoch={snapshot.get('gate_epoch')} "
                     f"head_seq={snapshot.get('head_seq')}"
                 )
+        walked = evidence["checks"].get("signature_path")
+        if walked:
+            for entry in walked.get("checks", []):
+                print(
+                    f"VOCABULARY    {entry.get('check_id')}  {entry.get('options')} option(s), "
+                    f"{entry.get('generations')} generation(s), "
+                    f"{str(entry.get('vocab_sha256'))[:16]}…"
+                )
+            control = walked.get("negative_control", {})
+            print(
+                f"NOT A CONSTANT {control.get('holds')}  "
+                f"({control.get('vocabularies_read')} vocabularies, "
+                f"{control.get('distinct_digests')} distinct digests)"
+            )
         if payload_target_is_emulator(evidence):
             print("TARGET        LOCAL EMULATOR (x-mainline-emulator) — not a deployed demo URL")
     else:

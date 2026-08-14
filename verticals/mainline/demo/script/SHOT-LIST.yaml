@@ -42,6 +42,31 @@
 #    filming it would be the exact overclaim this project punishes in others.
 #    See docs/adr/0030-demo-beat4-m8-defeater-lease.md (findings S3, S4).
 #
+# ── RE-MEASURED 2026-08-14 · WHAT MOVED AND WHAT DID NOT ──────────────────────
+# Every `fallback` below carrying a date was re-run on 2026-08-14 against the
+# pinned local node, and the date in it is the date of that run. The budget did
+# NOT move: 25 shots, 171 s, 304 words, 9 s headroom — validate_shotlist.py, exit 0.
+#
+#   BEAT 3 GAINED A SURFACE. mainline.defeater_option is now seeded, so the
+#   choose-a-defeater-then-sign path exists where it did not: 3 options for the
+#   obligation, all sharing one vocab_sha256, plus 2 signing_credential rows. The
+#   committed proof evidence/gate-refusal/proof-20260814T032418Z.json reaches its
+#   ADMISSION. s14's fallback carries the terminal form.
+#
+#   BEAT 1 STILL HAS NO SURFACE, and this wave did not change that. No `mainline`
+#   executable, no fixtures/corpus/authored/, no evidence/demo-run-* tape, no blame
+#   surface under scripts/. s01, s02, s05, s06 and s07 are typeset cards somebody has
+#   to author: 39 s of a 171 s film. Do NOT reach for scope-cut steps 1 and 3 to
+#   avoid that work — the cut is at 171 against a 180 ceiling and there is nothing
+#   to recover.
+#
+#   TWO RECEIPTS, TWO DATABASES, ON PURPOSE. The film path (seed_demo_state.py, via
+#   gate_refusal.py::seed_history) issues an exposure receipt with a TWO-HOUR window;
+#   the demo-api / judge path (db/seeds/demo/demo_permit.sql) seeds one expiring
+#   2027-01-01 so the admission beat answers for every judge. Both are correct for
+#   their own database and NEITHER MAY BE CHANGED to suit a shoot. The two-hour window
+#   is the product's shape and is the one on camera. VIDEO-KIT.md §B.9 states the split.
+#
 # ── THE SCOPE-CUT LADDER ──────────────────────────────────────────────────────
 # Executed top-down by the warden, pre-committed here so it is not a 02:00
 # judgement call. If the ladder reaches step 4, switch to SHOT-LIST-MWS.yaml.
@@ -106,8 +131,10 @@ shots:
     requires_milestone: K3
     fallback: >-
       Static PNG of the same clause, typeset from CAMERA-STRINGS.yaml
-      (clause_text_2013_onwards); no cursor move. Measured 2026-08-12: the authored
-      fixture root is absent, so this IS the path until corpus-spine-authored lands.
+      (clause_text_2013_onwards); no cursor move. RE-MEASURED 2026-08-14: the authored
+      fixture root fixtures/corpus/authored/ is STILL absent, so this IS the path — not the
+      contingency — until corpus-spine-authored lands. The working signature path landed in
+      beat 3 and gave beat 1 nothing.
     evidence_artifact: "evidence/demo-run-<ts>/screens/s01.png"
 
   - t: 6
@@ -123,8 +150,8 @@ shots:
     requires_milestone: K3
     fallback: >-
       The same diff typeset as a card from moc_ref, moc_diff_line and moc_delta_badge
-      in CAMERA-STRINGS.yaml. Measured 2026-08-12: demo/browser/ does not exist on this
-      tree, so no fixture server renders it.
+      in CAMERA-STRINGS.yaml. RE-MEASURED 2026-08-14: demo/browser/ still does not exist on
+      this tree, so no fixture server renders it and the typeset card is the path.
     evidence_artifact: "evidence/demo-run-<ts>/screens/s02.png"
 
   - t: 13
@@ -167,9 +194,12 @@ shots:
     requires_milestone: K3
     fallback: >-
       Typeset replay of the four nodes from spine.labels and spine.dates in
-      CAMERA-STRINGS.yaml; the VO is unchanged. Measured 2026-08-12: no
-      evidence/demo-run-<ts>/ tape exists to replay and no `mainline` executable is
-      installed, so this is the only path until K3 has a surface.
+      CAMERA-STRINGS.yaml; the VO is unchanged. RE-MEASURED 2026-08-14: no
+      evidence/demo-run-<ts>/ tape exists to replay, no `mainline` executable is installed
+      (.venv/Scripts/ holds mainline-boundary, mainline-gate, mainline-mutation,
+      mainline-steward and the trappoint-* family, and no bare `mainline`), and no blame
+      surface exists under scripts/. Do NOT type blame_command live — it is a shell error.
+      This is the only path until K3 has a surface.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s05"
 
   - t: 33
@@ -188,7 +218,9 @@ shots:
     fallback: >-
       Still frame of the same node typeset from commit_message_2013,
       commit_author_display and commit_date_display in CAMERA-STRINGS.yaml; the silence
-      is kept. The authored fixture is absent as of 2026-08-12.
+      is kept. The authored fixture is still absent as of 2026-08-14. The claim survives the
+      medium: validate_shotlist.py asserts commit_message_2013 byte-equal across four files,
+      so a typeset card carries exactly what a rendered UI would have carried.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s06"
 
   - t: 44
@@ -221,10 +253,10 @@ shots:
     requires_milestone: K1
     fallback: >-
       Run the same transition from the terminal; the red bar becomes the SQLSTATE line.
-      Measured 2026-08-12: the seeded demo world's single permit carries
+      RE-MEASURED 2026-08-14: the seeded demo world's single permit still carries
       external_ref='DEMO-PTW-0001', not WO-88213 — that reference belongs to the authored
-      corpus, which has not landed. Frame the banner and the state, never a caption the
-      database does not hold.
+      corpus, which has not landed, and CAMERA-STRINGS.yaml carries a note beside permit_ref
+      saying so. Frame the banner and the state, never a caption the database does not hold.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s08"
 
   - t: 58
@@ -240,7 +272,16 @@ shots:
     word_count: 11
     judging_criterion: Implementation
     requires_milestone: K1
-    fallback: "None. If this cannot be filmed there is no submission; K1 carries no reduction."
+    fallback: >-
+      None for the BEAT. If this cannot be filmed there is no submission; K1 carries no
+      reduction. For the FRAME, use `seed_demo_state.py --camera` and film its s09 block,
+      which prints outcome / SQLSTATE / constraint / source on four labelled lines.
+      MEASURED 2026-08-14: the client_render string quoted in on_screen above is what
+      REFUSAL-STRINGS.yaml records and is NOT what the shipped client prints —
+      trappoint_core.errors.GateRefused renders "23514 gate_closed_when_issued: failed to
+      satisfy CHECK constraint (...)". Both carry the SQLSTATE and the constraint name, so the
+      VO is true either way; do not compose the shot around the YAML string.
+      See docs/submission/VIDEO-KIT.md §C.3 and §G item 5.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s09"
 
   - t: 65
@@ -331,6 +372,15 @@ shots:
     fallback: >-
       If WebAuthn is not enrolled, the sub-beat degrades to the OIDC + signed
       envelope fallback and the honesty card says so in the NOT-BUILT-YET column.
+      NEW 2026-08-14, and this is the shot that changed: mainline.defeater_option is seeded,
+      so the choose-a-defeater step now has rows. On a freshly built STATE A it holds 3
+      options for the obligation — ENERGY_SOURCE_ABSENT, MECHANISM_PRESENT_AND_VERIFIED,
+      WORK_NOT_INTRUSIVE — all sharing ONE vocab_sha256, and mainline.signing_credential holds
+      2 rows. If the console is not ready, the substance is filmable from the terminal: the
+      three rows and their shared digest, then the disposition block of the committed proof
+      (signed true, countersigned_count_after 1). MUST NOT SAY the database refuses a defeater
+      that was never offered — 0066_disposition.sql adds no foreign key onto defeater_option
+      and the refusal is the application's. See MUST-NOT-CLAIM.md families 13 and 14.
     evidence_artifact: "evidence/demo-run-<ts>/roundtrips.jsonl#s14"
 
   - t: 105
@@ -428,10 +478,12 @@ shots:
     judging_criterion: Implementation
     requires_milestone: K4
     fallback: >-
-      Run the same EXPLAIN in the SQL shell; the fragment is identical. Verified
-      2026-08-12 on the pinned local node: with the @cue_scoped_idx hint and a single
-      value for each of site_id, scope_id and facet, the plan prints `vector search` over
-      `event_cue_embedding@cue_scoped_idx` with non-empty `prefix spans`.
+      Run the same EXPLAIN in the SQL shell; the fragment is identical. RE-VERIFIED
+      2026-08-14 on the pinned local node against a freshly seeded database: with the
+      @cue_scoped_idx hint and a single value for each of site_id, scope_id and facet, the
+      plan prints `vector search` over `event_cue_embedding@cue_scoped_idx` with non-empty
+      `prefix spans`, under a lookup join back to the primary index. Run it in Git Bash or the
+      SQL shell — PowerShell parses the distance operator itself and refuses the line.
     evidence_artifact: "evidence/demo-run-<ts>/mcp/prompt2.json"
 
   - t: 141
@@ -448,8 +500,8 @@ shots:
     requires_milestone: K4
     fallback: >-
       Same view over the SQL shell if the MCP key is withheld — but against a database
-      that has actually run a recall. Measured 2026-08-12: on a freshly seeded local
-      database mainline_audit.v_silence_summary returns 0 rows, and an empty view is not
+      that has actually run a recall. RE-MEASURED 2026-08-14: on a freshly seeded local
+      database mainline_audit.v_silence_summary still returns 0 rows, and an empty view is not
       this shot.
     evidence_artifact: "evidence/demo-run-<ts>/mcp/prompt3.json"
 
@@ -468,9 +520,12 @@ shots:
     requires_milestone: K6
     fallback: >-
       Drop the CloudWatch tile; the remaining three stand alone. The condition is not
-      "if AWS is unreachable": as of 2026-08-12 the alarms are DECLARED in Terraform and
+      "if AWS is unreachable": as of 2026-08-14 the alarms are DECLARED in Terraform and
       no apply has created them, so unless the apply has happened before the shoot there
       is nothing to film. Filming the HCL and saying "declared" is the other legal move.
+      check_submission_ready.py, RAN 2026-08-14, prints "10 AWS services; 2 AWS service(s)
+      marked as having run (Amazon Bedrock, Amazon CloudWatch)" — two of ten, and naming the
+      two is the honest line.
     evidence_artifact: "evidence/demo-run-<ts>/screens/s22.png"
 
   - t: 152
@@ -488,7 +543,7 @@ shots:
     requires_milestone: K0
     fallback: >-
       None — the card ships in every cut, including the MWS, so this shot cannot be
-      dropped. Measured 2026-08-12: gen_card.py --check REFUSES because
+      dropped. RE-MEASURED 2026-08-14: gen_card.py --check exits 2 and REFUSES because
       fixtures/corpus/corpus.lock.json is absent, and the committed card.html therefore
       carries its own NOT FOR CAMERA banner, driven by a marker inside the data. Until
       the lock lands, typeset the four columns from demo/DEMO-HONESTY.md, which holds
@@ -520,5 +575,13 @@ shots:
     word_count: 7
     judging_criterion: Readiness
     requires_milestone: K0
-    fallback: "None."
+    fallback: >-
+      Film it LAST. MEASURED 2026-08-14: SUBMISSION.json holds demo_url UNRESOLVED and
+      video_url UNRESOLVED; repo_url is https://github.com/Shaugato/mainline and
+      check_submission_ready.py confirms the repository is PUBLIC, asked live. If demo_url is
+      still UNRESOLVED on the day, the card carries the repository and the MCP line only and
+      the VO drops the word "demo" — seven words minus one, same 6 seconds. The two acceptance
+      artefacts reading PROVEN do NOT license a URL on this card: both were taken over
+      scripts/deploy/local_furl.py with target_is_local_emulator true. Never put a URL on this
+      card that is not in SUBMISSION.json.
     evidence_artifact: "verticals/mainline/demo/script/cards/end.svg"

@@ -86,7 +86,8 @@ Each line names the artefact that measures it.
 | We do **not** claim | The measurement |
 |---|---|
 | **That the demo is deployed.** It is not. Terraform has never been applied and no hostname exists. | `evidence/deploy/terraform-plan-furl.txt` is a plan; `SUBMISSION.json.demo_url` is `UNRESOLVED` |
-| **That the end-to-end acceptance run passes.** It does not. `verdict: NOT PROVEN`. Beat 4 — the admission — does not admit. | `evidence/deploy/acceptance.json`, §6 |
+| **That the acceptance run was taken through a public demo URL.** It was not. Both acceptance artefacts carry `target_is_local_emulator: true`, read from a header the target volunteered — there is no Function URL to point them at yet. The **database** underneath the Cloud run is the deployed one. | `evidence/deploy/cloud-acceptance.json` → `target_provenance`, §6 |
+| **That beat 4's signature was shown, over the wire, to pin the vocabulary the rows carry.** The gate-run payload does not publish the digest it bound. A credential-free caller can prove the vocabulary *resolved*; the equality is asserted in-process by a test. | `cloud-acceptance.json` → `signature_path.not_established_here`, §6 |
 | **That there is end-to-end Australian data residency.** The database is in Singapore (`aws-ap-southeast-1`); Bedrock inference is in Sydney (`ap-southeast-2`). | `docs/HONESTY.md` § *GEOGRAPHY AND LATENCY* |
 | **That any row is real.** Every row is synthetic: fictional operator, fictional sites, fictional people, fictional incidents. | `verticals/mainline/db/seeds/`, §5 |
 | **That the WebAuthn assertion is verified.** It is synthesised and labelled `staged: true` on the wire. This deployment has no authenticator and nothing in the schema verifies a signature. | §5, `verticals/mainline/demo/DEMO-HONESTY.md` §3 |
@@ -106,7 +107,7 @@ The long forms are [`docs/HONESTY.md`](../HONESTY.md),
 | Demo URL | **NOT YET DEPLOYED.** §0.1 |
 | Read-only SQL login | **LIVE, rotated 2026-08-11, verified from the other side** — 14/14 views readable, 11/11 refusals at `42501`. §2 |
 | Managed MCP | **available on Basic and working.** The key is deliberately not published and §4 says exactly why |
-| Acceptance gate | **RED.** `NOT PROVEN`. Beats 1–3 hold against the live cluster; beat 4 does not. §6 |
+| Acceptance gate | **GREEN, against the deployed database.** `PROVEN`, twice, all four beats, with the row census unmoved before and after — `evidence/deploy/cloud-acceptance.json`, 2026-08-14. Reproduced locally in `evidence/deploy/acceptance.json`. Neither run reached a public URL, because there is none. §6 |
 
 **The one thing this page is for — a judge reading the ledger with none of our code in the path —
 works right now, over §0.2 and §2.** The demo URL is a separate and currently unmet obligation,
@@ -149,7 +150,12 @@ python scripts/deploy/demo_acceptance.py --url <DEMO-URL-PENDING-APPLY>
 
 That program fetches `/`, asserts the console loads, calls `GET /v1/health`, then calls
 `POST /v1/demo/gate-run` **twice** and requires the two runs to agree. It exits non-zero if the
-gate did not refuse and then admit. **Today it exits non-zero** — §6 says on which beat and why.
+gate did not refuse and then admit.
+
+**Today it exits zero, and §6 says against what.** There is still no public URL to give it, so it
+was pointed at the same handler over a local socket — but against the **deployed CockroachDB
+Cloud database**, which is the half of the claim that was never proven before 2026-08-14.
+`evidence/deploy/cloud-acceptance.json` is that run.
 
 ---
 
@@ -608,78 +614,139 @@ arrives with no constraint name and no context stack, so the name is recovered f
 `parsed` is a **weakened** diagnosis and the payload says so; a run whose exhibits were inferred
 must never look like a run whose exhibits were reported.
 
-### Today it is RED, and this is exactly what the artefact says
+### Today it is GREEN, and here is exactly which run said so
 
-[`evidence/deploy/acceptance.json`](../../evidence/deploy/acceptance.json), quoted rather than
-paraphrased:
+There are **two** acceptance artefacts and neither is a copy of the other. They answer two
+different questions and the project needs both.
+
+| artefact | target | what it establishes |
+|---|---|---|
+| [`evidence/deploy/cloud-acceptance.json`](../../evidence/deploy/cloud-acceptance.json) | the real handler over a local socket, against **CockroachDB Cloud `mainline_demo`** — the database the deployed Lambda is configured to read | what the demo will actually meet. **Cite this one.** |
+| [`evidence/deploy/acceptance.json`](../../evidence/deploy/acceptance.json) | the same handler against a **local** CockroachDB seeded from the same two seed files | what a stranger with this repository and a Docker node can reproduce |
+
+Both were taken on **2026-08-14** at tree `d098721` **plus that wave's uncommitted working tree** —
+`gate_run.py`, `retry.py` and `transitions.py` were modified and not yet committed when the runs
+were taken, measured with `git status` at the moment of each, and each artefact's own `note` says
+so. `gate_run.py` is the module the four beats live in, so these are measurements of a working tree
+and not of a clean checkout of `d098721`; the latter has not been taken and is not claimed here.
+
+Both report `verdict: PROVEN` with an empty `failures` array. Quoted rather than paraphrased, from
+the Cloud run:
 
 ```
-"generated_at": "2026-08-11T05:43:54Z"
-"verdict":      "NOT PROVEN"
+"verdict": "PROVEN"
+"failures": []
+"target_provenance": { "database_under_test": {
+    "reported_by_health":  "mainline_demo",
+    "confirmed_by_census": "mainline_demo",
+    "host": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257",
+    "is_cockroachdb_cloud": true,
+    "agree": true } }
 ```
 
-That run was taken against `scripts/deploy/local_furl.py` — the **unmodified**
-`mainline_demo_api.app.handler` and the real console bundle, over an emulated Lambda Function URL
-`payload-2.0` event, against the **live** CockroachDB Cloud database `mainline_demo`. Its four
-failures, verbatim:
+The four beats, measured on Cloud, twice, with identical stable projections:
 
-```
-POST /v1/demo/gate-run (run 1) returned 500, expected 200 — database_error ·
-  resource=demo_gate_run · [22P02] error in argument for $2: could not parse "check_id"
-  as type uuid: uuid: incorrect UUID length: check_id
-POST /v1/demo/gate-run (run 2) returned 500, expected 200 — …same…
-fewer than two gate runs completed, so repeatability — the property that makes this demo
-  safe for concurrent judges — was NOT established
-the seeded permit could not be read before and after the gate runs, so the claim that
-  nothing persists was NOT established from outside.
-```
+| # | beat | outcome | SQLSTATE | constraint | how the name was obtained |
+|---|---|---|---|---|---|
+| 1 | `read` | read | `00000` | — | — |
+| 2 | `merge` | **refused** | `23514` | `gate_closed_when_issued` | **reported** by the driver |
+| 3 | `projection_drift_attack` | **refused** | `P0001` | `mainline.fn_permit_merge_gate` | **parsed** out of the message |
+| 4 | `admit` | **admitted** | `00000` | — | a server-computed `clearance_digest` |
 
-**What has changed in the tree since that run, and what has not.** Three things this page
-previously listed as the reasons for the red are gone; the red is not.
+Beat 4 also carries `open_blocking_after_signature: 0` — the obligation counter read *inside* the
+transaction once the disposition landed — beside `GET /v1/permits/{id}` still reporting
+`open_blocking: 1` after both runs. **That pair is the rollback**, measured from two endpoints in
+two transactions rather than taken from the server's own flag.
 
-| was listed as a reason | today |
-|---|---|
-| `POST /v1/demo/gate-run` is not routed — the endpoint 404s | **fixed** at commit `b0fe884`. `app.ROUTES` is **17** rows and the seventeenth is `Route(POST /v1/demo/gate-run -> demo_gate_run)`, re-derived today with `python -c "…; print(len(app.ROUTES))"`. `evidence/deploy/gate-run-reachable.json` is the artefact and `verticals/mainline/apps/demo-api/tests/test_routes_gate_run.py` pins it (repo-root path — the bare `tests/…` this row used to give does not exist from the root a judge clones into) |
-| `scenario.resolve()` unpacks an 8-tuple against `row_factory=dict_row` | **fixed** in the three modules that own it. [`evidence/deploy/rowfactory-defect.json`](../../evidence/deploy/rowfactory-defect.json) records the diagnosis, the fix shape (a cursor-level row factory, not a connection-level one) and a new contract test that makes the claim twice — once through the real production factory |
-| the API and the seed disagree on the demo subject | **fixed.** [`evidence/deploy/permit-id-agreement.json`](../../evidence/deploy/permit-id-agreement.json) read the live database in a read-only transaction on 2026-08-12: exactly **one** permit exists, `dec0de00-0006-4000-8000-000000000001`. The Terraform default now carries that value — `evidence/deploy/terraform-plan-furl.txt:323,332` — and that fix changed no resource. **The plan shape has since moved for a different reason**: the artefact was regenerated on 2026-08-14 with the cost guard instantiated, and now reads `Plan: 24 to add, 0 to change, 0 to destroy` — 11 in `module.api[0]`, 13 in `module.guard[0]` — where the revision of this page that recorded the permit-id fix still said 11 |
+### `target_is_local_emulator` is `true` in both files, and that is the honest value
 
-**Two blockers remain, and they are why the verdict above has not been superseded.** Neither is a
-fault in the gate; both are named with the line that causes them.
+The acceptance brief for this capture asked for `false`. It cannot be `false`, and writing it would
+be the plainest possible falsification. The flag is **read** from the `X-Mainline-Emulator` header
+the target sent, and `scripts/deploy/local_furl.py` stamps that header precisely so a transcript
+taken against it can never be mistaken for one taken against a deployment. There is no Function URL
+to reach: `aws lambda get-function --function-name mainline-demo-api` answers
+`ResourceNotFoundException`.
 
-1. **`refusal.py:235` repeats the row-factory defect one module further on.**
-   `return (row[0] if row and isinstance(row[0], dict) else None), None` — under `dict_row`,
-   `row[0]` on the single-column result of `SELECT trappoint.explain_refusal(...)` is
-   `KeyError: 0`, because CockroachDB names that column `explain_refusal`. It is reached by
-   `gate_run._record_refusal` on **beats 2 and 3 of every gate run**, so there is no path through
-   the demo that avoids it. Recorded in `rowfactory-defect.json` → `blocking_finding`, which also
-   records that **no worker in any recorded wave owns that path** — the file was not edited by the
-   worker that found it, because a fix claimed in an artefact but absent from the tree is the one
-   failure mode this discipline exists to prevent.
-2. **Beat 4 does not admit.** With the row-factory mismatch neutralised in a diagnostic process —
-   `corroborating_run` in the same artefact, **whose own verdict is also `NOT PROVEN`** — the four
-   beats came back, twice, identically:
+What the criterion was reaching for — *did this meet the deployed cluster, or a local imitation of
+it?* — is true, and `target_provenance` carries it by separating the three things the one boolean
+folds together: **the HTTP hop is emulated; the handler and console are the shipping ones; the
+database is CockroachDB Cloud `mainline_demo`**, agreed by two independent readings (`/v1/health`,
+with no credential, and the census's own `SELECT current_database()`). When a Function URL exists,
+the same program pointed at it records `false` with no code change.
 
-   | beat | outcome | SQLSTATE | constraint | source |
-   |---|---|---|---|---|
-   | 1 `read` | read | `00000` | — | — |
-   | 2 `merge` | **refused** | `23514` | `gate_closed_when_issued` | **reported** |
-   | 3 `projection_drift_attack` | **refused** | `P0001` | `mainline.fn_permit_merge_gate` | **parsed** |
-   | 4 `admit` | **refused** | `23503` | `disposition_signer_credential_id_fkey` | reported |
+### Why it was safe to drive the gate against the live demo database
 
-   Beat 4 requires `admitted / 00000` and got `refused / 23503`, with **no `clearance_digest`** —
-   and the artefact says why in one sentence: `gate_run.py` derives `signer_credential_id` as
-   `sha256('cred' + 'signer')` while `verticals/mainline/db/seeds/demo/demo_world.sql` seeds
-   `digest('mainline-demo/credential/demo.signer', 'sha256')`. **Two derivations of one
-   identifier.** The prover's own note records that nothing was relaxed to reach a green.
+`POST /v1/demo/gate-run` persists nothing by construction: every beat is savepoint-fenced and the
+transaction is rolled back. That is *why* it may be driven — repeatedly, and concurrently — against
+a shared live database, and the permission is conditional on proving it each time. So the run
+brackets itself with a **row census**: 30 tables counted read-only before the first request and
+again after the last. The expected counts are read from
+[`evidence/deploy/cloud-seed.json`](../../evidence/deploy/cloud-seed.json) — committed evidence, the
+authoritative value — and never typed into the prover. Both readings matched it exactly and matched
+each other exactly. `mainline.disposition` and `mainline.merge_record` are still `0`.
 
-**What that means for a judge, stated plainly.** Beats 1, 2 and 3 hold against the live Cloud
-cluster: the database refuses the merge with a real `CHECK`, and refuses it *again* when the
-projected counter is zeroed out from under it. That is the mechanism this submission is about, and
-it is proven. **Beat 4 — the admission after a signed disposition — is not proven, so the demo as a
-whole is a gate that currently only ever says no**, which `gate_run.py` itself calls broken. The
-gate is correct; the deployment is not ready; and the file that says so is the artefact, not this
-sentence. **Read `evidence/deploy/acceptance.json`'s own `verdict` key when you open it** — if it
-disagrees with this section, the artefact wins and this section is stale.
+The census never touches `crdb_internal` or `system` (both restricted to this role), and it never
+trusts the DSN's path segment: the committed DSN ends `/defaultdb` while the demo lives in
+`mainline_demo`, so the database is selected **by name** and confirmed by the server.
+
+### The signature path — what a judge signing actually pins
+
+`mainline.disposition.defeater_vocab_sha256` is the digest of the option set the signer was
+*shown*. Until 2026-08-14 both signing paths bound `sha256(b"defeater-vocab")` — the SHA-256 of an
+ASCII string — so the signature pinned no vocabulary at all. The Cloud run walks that claim
+read-only and records:
+
+| obligation | options offered | distinct digests | `vocab_sha256` |
+|---|---:|---:|---|
+| `dec0de00-0007-…0001` (the permit's) | 3 | 1 | `2ccb08a3d9d1f89e…` |
+| `dec0de00-000d-…0001` (the change request's) | 3 | 1 | `d9c837c25bb174d1…` |
+
+**The negative control is the second row existing.** One digest is indistinguishable from a
+constant; two obligations carrying two *different* digests cannot be produced by one, and a constant
+would go on describing three options after somebody added a fourth. Neither value is
+`sha256(b"defeater-vocab")` — recomputed by the prover from the ASCII string rather than quoted, so
+you can reproduce the comparison. The local run reads the **same two digests**, because the same two
+seed files built both databases.
+
+**No mutating request was issued.** `POST /v1/checks/{check_id}/disposition` is the endpoint a judge
+signs with and it commits irreversibly; on the demo subject `transitions._demo_guard` refuses it
+`423 demo_subject_write_protected`, and
+[`evidence/deploy/demo-guard-armed.json`](../../evidence/deploy/demo-guard-armed.json) is the
+artefact that measured that guard firing. A probe whose safety depends on a guard holding is a probe
+that writes on the day it does not, and the row it would write closes the demo's one obligation for
+every judge after it. The signature is therefore observed where it is reversible — at beat 4.
+
+### One thing about the ledger you should know before you query it
+
+Running §0.2's SQL against `mainline.ledger_checkpoint` returns **three** checkpoints — `tree_size`
+1, 2 and 4 — over a `ledger_leaf` holding **4** rows. Two of them are sound. The `tree_size = 1` row
+is not: its `root_hash` **is** `digest('mainline-demo/ledger/root/1','sha256')`, a hash of a string
+naming itself, and `verticals/mainline/db/seeds/demo/demo_world.sql:391` says so in its own words.
+It is a **legacy row**. The current seed writes only the checkpoints at 2 and 4; the 2026-08-14
+re-seed added those and did not delete the old one. So `cloud-seed.json`'s `ledger_checkpoint: 3` is
+a true count of that database and *not* the output of the seed files — a clean database seeded from
+them today carries **2**, which is what `acceptance.json`'s local run measured and recorded. The
+difference is written down in both artefacts rather than reconciled by moving either number.
+
+`reads.read_ledger` already refuses to emit an inclusion proof over a window it cannot cover, so the
+console will not build a false exhibit out of that row — but the row is in the table and you will
+see it.
+
+### What is still not proven
+
+1. **That a public demo URL exists.** It does not; `SUBMISSION.json` holds `UNRESOLVED`.
+2. **That beat 4's signature pinned the digest those vocabulary rows carry.** The payload does not
+   publish the digest it bound, so a credential-free caller can establish only that the vocabulary
+   *resolved* — an absent one raises `DefeaterVocabularyAbsent` and the request is `422`, never a
+   `200`. The equality is asserted in-process by
+   `verticals/mainline/apps/demo-api/tests/test_judge_can_sign.py`. Publishing `defeater_code` and
+   `defeater_vocab_sha256` on beat 4's `observed` block would close it over the wire.
+3. **That the demo is fast.** Each Cloud gate run took ~11.3 s from this workstation against ~1.0 s
+   locally — the round trip to `ap-southeast-1` multiplied by the beats' statements, not a
+   regression, and what a judge in Australia will feel.
+
+**Read each artefact's own `verdict` key when you open it.** If either disagrees with this section,
+the artefact wins and this section is stale.
 
 ---
 

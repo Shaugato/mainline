@@ -46,23 +46,57 @@ it never composes a sentence, and neither does this module. Every ``sqlstate``,
                         was decided. The caller re-attempts, or does not.
     ==========  ======  ====================================================
 
-**There is no retry helper on the four committing paths and there will not be one.**
-``40001`` is an undecided transaction, not a failure; a helper that re-sent a merge because
-a socket closed is a helper that can issue a permit twice. On ``merge_permit``,
-``sign_disposition``, ``materialise_checks`` and ``suspend_permit`` the outcome is surfaced
-as ``503``/``retry`` and the decision keeps an author.
+EVERY POST ON THIS PAGE RETRIES ``40001``, AND ONLY ``40001``
+------------------------------------------------------------
+``spec/errors.md`` §2.1 is normative and has no carve-out: *"retry the whole transaction,
+from BEGIN, never a statement; capped exponential backoff with full jitter; a bounded
+attempt count; and a final surfaced refusal when the budget is exhausted."* Each of the
+five functions below IS one whole transaction — ``_prepare`` rolls back and states the
+isolation level, the work follows, and one ``commit()`` ends it — so one call to one of
+them is exactly one attempt, and :func:`handle_transition` runs that call under
+:func:`mainline_demo_api.retry.run_transaction`.
 
-``POST /v1/demo/gate-run`` IS RETRIED, and the difference is a property of that transaction
-rather than a change of mind about this one. It **persists nothing** — every beat is fenced
-by a savepoint, the whole transaction is rolled back, and a fingerprint taken before and
-after is in the response — so re-running it re-asks the same question of the same rows and
-cannot issue anything twice. It is also the endpoint two judges press at the same moment,
-which is the only contention this deployment actually has. :func:`_demo_gate_run` therefore
-re-runs the WHOLE function under :func:`mainline_demo_api.retry.run_transaction`, which
-retries ``40001`` and only ``40001``: ``spec/errors.md`` §2.1 requires the retried unit to
-be the whole transaction from ``BEGIN``, and one call to ``gate_run`` is exactly one
-attempt. The four refusal codes are still attempted exactly once, ever (§4), because a
-client that retries a ``23514`` writes five identical refusals for one attempted history.
+**This paragraph used to say the opposite**, and the correction is worth reading rather
+than skipping. It said: *"There is no retry helper on the four committing paths and there
+will not be one … a helper that re-sent a merge because a socket closed is a helper that
+can issue a permit twice."* The hazard in that sentence is real and it is NOT ``40001``.
+``40001`` is a transaction the database **aborted**: nothing was written, nothing was
+decided, and re-attempting it cannot issue anything twice. The outcome that is genuinely
+ambiguous — *"the commit may or may not have landed"* — is ``40003``, and §1.1 lists it as
+a **defect** a conformant client MUST NOT treat as a serialization failure.
+:func:`mainline_demo_api.retry.classify_for_retry` therefore calls ``40003`` unmodelled and
+never retries it. The old paragraph conflated the two codes and, in doing so, denied the
+four committing paths the one behaviour the specification requires of them.
+
+What it cost, measured on this tree at ``7535670`` before the repair: a ``40001`` raised by
+any statement OUTSIDE an inner ``except psycopg.Error`` — ``_permit_epoch``, ``_prepare``,
+``_demo_subject_is_established``, ``resolve_credential_id``, and **every ``conn.commit()``**
+— reached :func:`handle_transition`'s last handler, which catches ``psycopg.OperationalError``.
+``psycopg.errors.SerializationFailure`` *is* an ``OperationalError`` in psycopg 3.3.4, so
+the caller was told ``503 database_unreachable``: a sentence that is false, because the
+database answered, and unactionable, because the correct advice for ``40001`` is to attempt
+again. Two whole-suite tests failed on it in the same run — ``sign_disposition`` then
+``merge_permit`` — and the node id moved between runs while the shape never did.
+
+The four refusal codes are still attempted **exactly once, ever** (§4): a client that
+retries a ``23514`` writes five identical refusals for one attempted history.
+:func:`~mainline_demo_api.retry.run_transaction` re-raises every decided outcome
+unchanged after one attempt, and the once-only property is asserted directly by a spy.
+
+WHEN THE BUDGET IS SPENT, THE ANSWER IS STILL ``503``, AND IT NAMES THE RIGHT CONDITION
+---------------------------------------------------------------------------------------
+``spec/errors.md`` §5: an undecided transaction has no reason set and MUST NOT be
+represented as a refusal. So an exhausted budget surfaces as ``503``/``outcome: retry`` —
+the outcome ``contracts/invoke.schema.json`` already declares — when the ``40001`` was
+caught by a transition and turned into that envelope, and as a plain
+``503 transaction_undecided`` carrying ``sqlstate: "40001"`` when it arrived as an
+exception from a statement no transition guards. Neither is ``database_unreachable``, and
+neither is a refusal.
+
+``POST /v1/demo/gate-run`` is retried for a second reason on top of the first: it
+**persists nothing** — every beat is fenced by a savepoint, the whole transaction is rolled
+back, and a fingerprint taken before and after is in the response — and it is the endpoint
+two judges press at the same moment.
 
 Client errors — an unknown resource, a malformed identifier, a body that cannot be
 honoured, a subject that does not exist — return a status of 4xx and a **plain
@@ -137,8 +171,8 @@ from psycopg.types.json import Jsonb
 from .credentials import resolve_credential_id
 from .defeaters import resolve_defeater_vocabulary
 from .gate_run import DEMO_DEFEATER_CODE, GATE_RUN_SCHEMA_ID, canonical_json, gate_run
-from .refusal import classify, diagnose, refusal_payload, rfc3339
-from .retry import RetryBudgetExhausted, run_transaction
+from .refusal import RETRYABLE_SQLSTATE, classify, diagnose, refusal_payload, rfc3339
+from .retry import DEFAULT_POLICY, RetryBudgetExhausted, run_transaction
 from .scenario import ENV_PREFIX, Scenario, ScenarioNotSeeded, from_env, positional
 
 __all__ = [
@@ -424,6 +458,16 @@ def _demo_subject_is_established(conn: psycopg.Connection[Any], scenario: Scenar
     guard that cannot read ``mainline.permit`` — no such relation, no such grant — has
     established nothing, and the whole point of this function is that establishing nothing
     means refusing.
+
+    ``40001`` LEAVES BY THAT SAME DOOR AND IS NOT ANSWERED EITHER, which used to be an
+    accident and is now the point. ``psycopg.errors.SerializationFailure`` is an
+    ``OperationalError``, so a serialization restart on this one read propagates instead of
+    becoming ``False``. Answering ``False`` would refuse the write with
+    ``demo_subject_unidentified`` — a claim that the demo subject is not in this database —
+    on the evidence of a transaction the database threw away before it could look. The
+    caller of this function runs inside :func:`mainline_demo_api.retry.run_transaction`, so
+    what propagation actually buys is a whole re-attempt of the transition, at which point
+    the read is asked again and answers for real.
     """
     try:
         row = positional(conn, _DEMO_SUBJECT_SQL, (scenario.permit_id,)).fetchone()
@@ -583,6 +627,31 @@ def _resource_of(procedure: str) -> str:
         if proc == procedure:
             return key
     raise KeyError(procedure)
+
+
+def _is_undecided(result: tuple[int, dict[str, Any]]) -> bool:
+    """Report whether a transition ANSWERED ``40001`` instead of raising it.
+
+    A ``40001`` reaches this module by one of two doors, and both have to be retried or the
+    loop covers half the surface. The statement inside a transition's own
+    ``except psycopg.Error`` hands it to :func:`_refused`, which classifies it ``retry`` and
+    returns the ``503``/``outcome: retry`` envelope — a RETURNED value, not an exception,
+    so :func:`~mainline_demo_api.retry.run_transaction` cannot see it without a predicate.
+    Every other statement — ``_prepare``, ``_permit_epoch``, the credential and vocabulary
+    reads, and every ``commit()`` — raises, which the loop sees by itself.
+
+    The test is both the status AND the outcome, never the status alone: ``503`` is also
+    what this module answers for an unreachable database, and re-running a transition
+    because the socket is gone would spend the whole budget discovering that four more
+    times. ``outcome: retry`` is produced in exactly one place, from
+    :func:`mainline_demo_api.refusal.classify` returning ``retry``, which happens for
+    ``40001`` and for no other code.
+    """
+    status, body = result
+    if status != _RETRY:
+        return False
+    data = body.get("data")
+    return isinstance(data, dict) and data.get("outcome") == "retry"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -1205,9 +1274,13 @@ def _demo_gate_run(
     poisoned transaction is not a retry of anything.
 
     Re-running is safe because the run PERSISTS NOTHING, which is a property the payload
-    proves rather than asserts. That is the whole reason this endpoint may be retried while
-    the four committing transitions above may not: a second attempt asks the same question
-    of the same rows, where a re-sent merge would issue a permit twice.
+    proves rather than asserts: a second attempt asks the same question of the same rows.
+    That used to be stated as the reason this endpoint may be retried *while the four
+    committing transitions may not*. It is not that reason — it is a second, independent
+    one. The four commit, and they are retried too, because a ``40001`` is a transaction
+    the database aborted and re-attempting an aborted transaction is what
+    ``spec/errors.md`` §2.1 requires of every one of them; see this module's docstring for
+    the code that IS ambiguous and is therefore never retried.
 
     ``gate_run`` reports ``40001`` in its payload instead of raising, because it has to
     return the beats that DID complete, so the undecided outcome is recognised by a
@@ -1259,6 +1332,11 @@ def _demo_gate_run(
             {"pointer": "/beats/2/constraint", "chip": "db:constraint"},
             {"pointer": "/beats/3/observed/merge_record/clearance_digest", "chip": "db:column"},
             {"pointer": "/persistence_check/identical", "chip": "recomputed"},
+            # The field the VERDICT keys on since 2026-08-14. `identical` is the ten
+            # unscoped counts and is a statement about the database; this one is the
+            # statement about the run, and a provenance list that named only the first
+            # would point a reader at the reading the verdict is no longer read off.
+            {"pointer": "/persistence_check/self_persisted", "chip": "recomputed"},
         ],
     )
 
@@ -1319,30 +1397,64 @@ def handle_transition(  # noqa: PLR0911 — one return per outcome; a shared exi
 
             subject = _uuid_param(path_params, param_name)
 
-            # The demo subject is write-protected on the three permit-addressed
-            # transitions. sign_disposition is addressed by check_id, so its guard runs
-            # after the check has been resolved to its permit — inside `_sign_disposition`.
-            #
-            # The rollback is not decoration. `_demo_guard` may have issued the
-            # row-existence read that establishes the demo subject, and on a connection
-            # that is not in autocommit — which, inside this `with`, is every connection —
-            # that read opened a transaction. This function's contract is that it leaves
-            # none in progress, whatever happened: a Lambda reuses this connection on the
-            # next invocation, and inheriting an idle-in-transaction session is how a demo
-            # starts answering 40001 to requests that never conflicted with anything.
-            if mutates and param_name == "permit_id":
-                guard = _demo_guard(conn, subject, scenario)
-                if guard is not None:
-                    conn.rollback()
-                    return guard
+            def attempt() -> tuple[int, dict[str, Any]]:
+                """ONE WHOLE ATTEMPT AT THIS TRANSITION, FROM ``BEGIN``.
 
-            if resource_key == "merge_permit":
-                return _merge_permit(conn, subject, payload, scenario)
-            if resource_key == "suspend_permit":
-                return _suspend_permit(conn, subject, payload, scenario)
-            if resource_key == "materialise_checks":
-                return _materialise_checks(conn, subject, payload, scenario)
-            return _sign_disposition(conn, subject, payload, scenario)
+                This closure is the unit ``spec/errors.md`` §2.1 names, and its boundaries
+                are chosen to make that true rather than nearly true. The opening rollback
+                is what makes a SECOND call a re-attempt instead of a statement issued
+                after an aborted transaction (``25P02``, which §1.1 calls a client bug):
+                the previous attempt died mid-transaction by definition, and psycopg leaves
+                that transaction open and poisoned. On the first attempt it costs nothing —
+                the connection is already ``IDLE``.
+
+                The guard is INSIDE the unit because it issues a read, and a read is a
+                statement that can meet ``40001`` like any other; leaving it outside would
+                have made the retried unit smaller than the transaction it belongs to.
+                Its own rollback stays where it was: `_demo_guard` may have opened a
+                transaction to establish the demo subject, and this function's contract is
+                that it leaves none in progress — a Lambda reuses this connection on the
+                next invocation, and inheriting an idle-in-transaction session is how a
+                demo starts answering 40001 to requests that never conflicted with
+                anything.
+
+                RE-RUNNING IS A FRESH ATTEMPT, NOT A REPLAY, and that is a property of the
+                four functions rather than a hope about them: every identifier a re-attempt
+                could collide with is minted INSIDE the transition —
+                ``_materialise_checks``' ``receipt_id`` and ``_sign_disposition``'s
+                ``disposition_id`` are both ``uuid.uuid4()`` at the top of the write — so a
+                second attempt cannot meet its own first attempt's key and turn a
+                serialization restart into a ``23505`` nobody may retry.
+                """
+                conn.rollback()
+
+                if mutates and param_name == "permit_id":
+                    guard = _demo_guard(conn, subject, scenario)
+                    if guard is not None:
+                        conn.rollback()
+                        return guard
+
+                if resource_key == "merge_permit":
+                    return _merge_permit(conn, subject, payload, scenario)
+                if resource_key == "suspend_permit":
+                    return _suspend_permit(conn, subject, payload, scenario)
+                if resource_key == "materialise_checks":
+                    return _materialise_checks(conn, subject, payload, scenario)
+                return _sign_disposition(conn, subject, payload, scenario)
+
+            try:
+                return run_transaction(attempt, undecided=_is_undecided)
+            except RetryBudgetExhausted as exhausted:
+                # Hand on the DATABASE's own last error rather than a second exhaustion
+                # type. `_demo_gate_run` does the same thing for the same reason: this
+                # function has exactly ONE place that turns a driver error into a response,
+                # and a caller's answer must not depend on how many times the loop tried
+                # before giving up. `run_transaction` chains the exhaustion from that error
+                # precisely so this is possible.
+                cause = exhausted.__cause__
+                if isinstance(cause, psycopg.Error):
+                    raise cause from exhausted
+                raise
 
         except ValueError as exc:
             conn.rollback()
@@ -1351,9 +1463,39 @@ def handle_transition(  # noqa: PLR0911 — one return per outcome; a shared exi
             conn.rollback()
             return _error(422, "demo_history_not_seeded", exc.detail)
         except psycopg.OperationalError as exc:
+            # THE ORDER OF THESE TWO ANSWERS IS THE WHOLE OF FINDING F-2, and the branch
+            # that comes first is the one that used to be missing.
+            #
+            # `psycopg.errors.SerializationFailure` IS a `psycopg.OperationalError` in
+            # psycopg 3.3.4 — measured: SerializationFailure -> OperationalError ->
+            # DatabaseError -> Error — so until 2026-08-14 every 40001 that reached here
+            # was answered `database_unreachable`. That sentence is false: the database
+            # answered, and answered with a decision to abort. It is also unactionable, and
+            # expensively so — it sends whoever is triaging to the cluster, to Terraform,
+            # to the SSM parameter and to the VPC, none of which is the thing that
+            # happened. `docs/diagnosis/divergence-04-connection-semantics.md` §F-2 records
+            # the reproduction; two whole-suite tests failed on it at 7535670.
+            #
+            # Reaching here at all now means the WHOLE transaction was re-attempted
+            # `DEFAULT_POLICY.max_attempts` times and answered 40001 every time, so the
+            # honest report is the one spec/errors.md §5 asks for: a distinct condition,
+            # never a refusal. `refusal.classify` is the predicate, not a second copy of
+            # the taxonomy — `_refused` above branches on the same call.
+            with contextlib.suppress(psycopg.Error):
+                conn.rollback()
+            detail = " ".join(str(exc).split())[:512]
+            if classify(diagnose(exc)) == "retry":
+                return _error(
+                    503,
+                    "transaction_undecided",
+                    f"{RETRYABLE_SQLSTATE} on every one of {DEFAULT_POLICY.max_attempts} "
+                    f"attempts at the whole transaction. NOTHING WAS WRITTEN and nothing "
+                    f"was decided: this is not a refusal and the gate never got to say "
+                    f"anything. Attempt again, or do not. {detail}",
+                    sqlstate=RETRYABLE_SQLSTATE,
+                    attempts=DEFAULT_POLICY.max_attempts,
+                )
             # No cluster is not a refusal. Keeping the two apart is what lets a red lane
             # mean something: "the gate did not refuse" and "there was nothing to ask" are
             # different findings and only one of them is about the product.
-            with contextlib.suppress(psycopg.Error):
-                conn.rollback()
-            return _error(503, "database_unreachable", " ".join(str(exc).split())[:512])
+            return _error(503, "database_unreachable", detail)

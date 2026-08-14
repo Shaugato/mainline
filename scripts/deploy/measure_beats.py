@@ -185,55 +185,316 @@ class Beat:
     expect_status: int
     touches_database: bool
     why: str
+    #: What this beat puts in ``Accept-Encoding``. ``None`` means the header is not sent at
+    #: all, which is the IDENTITY path — and on the deployed tree the identity path is a
+    #: different measurement from the gzip one, by a factor of 3.5. A harness that left this
+    #: implicit measured whichever one urllib happened to negotiate.
+    accept_encoding: str | None = None
+    #: How this beat's path was chosen, recorded beside the measurement so a reader can
+    #: check the choice rather than take it on trust. Empty for the beats that are fixed by
+    #: the API surface rather than by the build.
+    derivation: str = ""
 
 
-BEATS: Final[tuple[Beat, ...]] = (
-    Beat(
-        name="index",
-        method="GET",
-        path="/",
-        body=None,
-        expect_status=200,
-        touches_database=False,
-        why="the document a judge's browser asks for first",
-    ),
-    Beat(
-        name="asset_js",
-        method="GET",
-        path="/assets/index-BjAGxrVJ.js",
-        body=None,
-        expect_status=200,
-        touches_database=False,
-        why="largest non-map object in the served tree (M5: 433,396 B)",
-    ),
-    Beat(
-        name="asset_map",
-        method="GET",
-        path="/assets/index-BjAGxrVJ.js.map",
-        body=None,
-        expect_status=200,
-        touches_database=False,
-        why="largest emittable object in the served tree (M4: 1,554,168 B)",
-    ),
-    Beat(
-        name="health",
-        method="GET",
-        path="/v1/health",
-        body=None,
-        expect_status=200,
-        touches_database=True,
-        why="the cheapest database beat: one connection, one fingerprint read",
-    ),
-    Beat(
-        name="gate_run",
-        method="POST",
-        path="/v1/demo/gate-run",
-        body=b"{}",
-        expect_status=200,
-        touches_database=True,
-        why="the headline four-beat gate run; the beat that decides the timeout",
-    ),
-)
+#: ``.gz``, named once. The suffix is load-bearing twice over — it is the thing that has no
+#: URL, and it is the thing whose size IS the wire cost of its neighbour.
+GZ_SUFFIX_NAME: Final = ".gz"
+
+
+class AssetsUnderivable(RuntimeError):
+    """The served tree could not be inspected, so no asset beat can be named.
+
+    Raised rather than defaulted to a remembered filename. The defect this replaces was
+    exactly a remembered filename: ``asset_map`` measured ``GET
+    /assets/index-BjAGxrVJ.js.map`` and reported the result as *"largest emittable object"*
+    long after ``--strip-source-maps`` became the default and the shipping origin began
+    answering **404** (288 bytes) to that path. ``docs/deploy/LATENCY.md`` annotated it
+    honestly and the harness went on measuring a refusal.
+    """
+
+
+def _response_ceiling(root: Path) -> tuple[int, str]:
+    """The per-response wire-byte ceiling, read from ``static_site`` rather than repeated.
+
+    ``DEFAULT_MAX_RESPONSE_BYTES`` is derived from the deployed tree by the module that
+    enforces it, and it is the thing that decides which objects are *emittable at all* —
+    the largest identity object in the tree answers **413** without ``Accept-Encoding:
+    gzip``. Copying the number here would let this harness and the origin disagree about
+    what "emittable" means, which is how ``asset_map`` came to name a 404.
+    """
+    src = root / "verticals" / "mainline" / "apps" / "demo-api" / "src"
+    if str(src) not in sys.path:
+        sys.path.insert(0, str(src))
+    try:
+        from mainline_demo_api import static_site
+    except ImportError as exc:  # pragma: no cover - a checkout without the app
+        raise AssetsUnderivable(
+            f"mainline_demo_api.static_site is not importable ({exc}), so the response "
+            "ceiling cannot be read from the module that enforces it. This harness will not "
+            "assume one: an assumed ceiling is a harness that disagrees with the origin "
+            "about which objects are emittable."
+        ) from exc
+    return int(
+        static_site.max_response_bytes()
+    ), "mainline_demo_api.static_site.max_response_bytes()"
+
+
+def resolve_served_assets(web_root: Path, root: Path | None = None) -> dict[str, Any]:
+    """Find the objects the ORIGIN ACTUALLY SERVES out of ``web_root``. Never a literal.
+
+    The rules are ``static_site``'s, restated here only as a selection (the origin still
+    enforces them; this just refuses to *ask* for something it knows will be refused):
+
+    * a path ending ``.gz`` **has no URL of its own** — it is the compressed half of the
+      object beside it, and a direct request for it is a 404;
+    * when ``<name>.gz`` exists, a request for ``<name>`` carrying ``Accept-Encoding: gzip``
+      is answered with the sibling's bytes, so the **wire** cost of that object is the
+      sibling's size and not the identity size;
+    * a response wider than the per-response ceiling is a **413**, on whichever path it
+      would have exceeded it.
+
+    Returns the two objects the latency work needs, each with the exact request that
+    obtains it:
+
+    ``largest_wire``
+        the biggest thing this origin can put on the wire at all — the flood multiplier,
+        and the number the cost model's egress term is built on.
+    ``largest_identity``
+        the biggest thing it will emit to a caller that sent no ``Accept-Encoding`` — the
+        ``curl``-without-``--compressed`` case, and a materially different measurement.
+
+    Raises:
+        AssetsUnderivable: the tree holds no servable object under ``/assets/``, or the
+            ceiling could not be read.
+    """
+    root = root or REPO_ROOT
+    ceiling, ceiling_source = _response_ceiling(root)
+    if not web_root.is_dir():
+        raise AssetsUnderivable(
+            f"{web_root} is not a directory, so nothing can be derived from it."
+        )
+
+    candidates: list[dict[str, Any]] = []
+    for path in sorted(web_root.rglob("*")):
+        if not path.is_file() or path.suffix == GZ_SUFFIX_NAME:
+            continue
+        relative = path.relative_to(web_root).as_posix()
+        identity_bytes = path.stat().st_size
+        sibling = path.with_name(path.name + GZ_SUFFIX_NAME)
+        gzip_bytes = sibling.stat().st_size if sibling.is_file() else None
+        wire_bytes = gzip_bytes if gzip_bytes is not None else identity_bytes
+        candidates.append(
+            {
+                "url_path": "/" + relative,
+                "identity_bytes": identity_bytes,
+                "gzip_bytes": gzip_bytes,
+                "wire_bytes": wire_bytes,
+                "emittable_with_gzip": wire_bytes <= ceiling,
+                "emittable_on_identity_path": identity_bytes <= ceiling,
+            }
+        )
+    if not candidates:
+        raise AssetsUnderivable(f"{web_root} holds no servable file.")
+
+    servable = [c for c in candidates if c["emittable_with_gzip"]]
+    identity_servable = [c for c in candidates if c["emittable_on_identity_path"]]
+    if not servable or not identity_servable:
+        raise AssetsUnderivable(
+            f"every object under {web_root} exceeds the {ceiling:,} B response ceiling on at "
+            "least one path. That is a finding about the build, not a harness problem."
+        )
+    largest_wire = max(servable, key=lambda c: (c["wire_bytes"], c["url_path"]))
+    largest_identity = max(identity_servable, key=lambda c: (c["identity_bytes"], c["url_path"]))
+    return {
+        "web_root": str(web_root),
+        "response_ceiling_bytes": ceiling,
+        "response_ceiling_source": ceiling_source,
+        "files_considered": len(candidates),
+        "gz_siblings_seen": sum(1 for c in candidates if c["gzip_bytes"] is not None),
+        "source_maps_present": sum(1 for c in candidates if c["url_path"].endswith(".map")),
+        "largest_wire": largest_wire,
+        "largest_identity": largest_identity,
+        "rules": (
+            "a .gz path has no URL of its own (404); <name> with Accept-Encoding: gzip is "
+            "answered with <name>.gz's bytes; anything above the ceiling is a 413 on the "
+            "path that exceeded it"
+        ),
+    }
+
+
+#: The artefact the plan actually deploys. `infra/modules/demo-api` reads it through
+#: `filebase64sha256`, so THIS zip's `web/` directory is the origin's tree — not
+#: `console/dist`, which is the packer's INPUT and still holds the source maps
+#: `--strip-source-maps` removes. Confusing the two is exactly how a 1,554,168 B source map
+#: came to be published as "the largest response the origin can emit".
+DEFAULT_PACKAGE: Final = REPO_ROOT / "out" / "lambda" / "mainline-demo-api-arm64.zip"
+
+
+def deployed_tree_shape(package: Path, ceiling: int) -> dict[str, Any]:
+    """The same derivation as :func:`resolve_served_assets`, over the zip's central directory.
+
+    No extraction: the central directory carries every name and every uncompressed size,
+    which is all the rules need. Reading the artefact rather than a recorded number is the
+    point — a committed shape file is derived from the build, and this comparison exists to
+    catch the day the two stop agreeing.
+    """
+    import zipfile
+
+    if not package.is_file():
+        return {"package": str(package), "read": False, "why": "the artefact does not exist"}
+    with zipfile.ZipFile(package) as archive:
+        entries = {
+            info.filename[len("web/") :]: info.file_size
+            for info in archive.infolist()
+            if info.filename.startswith("web/") and not info.filename.endswith("/")
+        }
+    identities = {name: size for name, size in entries.items() if not name.endswith(GZ_SUFFIX_NAME)}
+    if not identities:
+        return {"package": str(package), "read": False, "why": "the artefact holds no web/ tree"}
+    rows = []
+    for name, size in identities.items():
+        gzip_bytes = entries.get(name + GZ_SUFFIX_NAME)
+        rows.append(
+            {
+                "url_path": "/" + name,
+                "identity_bytes": size,
+                "gzip_bytes": gzip_bytes,
+                "wire_bytes": gzip_bytes if gzip_bytes is not None else size,
+            }
+        )
+    servable = [r for r in rows if r["wire_bytes"] <= ceiling]
+    identity_ok = [r for r in rows if r["identity_bytes"] <= ceiling]
+    return {
+        "package": str(package),
+        "read": True,
+        "entries": len(entries),
+        "identity_objects": len(identities),
+        "gz_siblings": len(entries) - len(identities),
+        "source_maps": sum(1 for name in identities if name.endswith(".map")),
+        "bytes": sum(entries.values()),
+        "largest_wire": max(servable, key=lambda r: (r["wire_bytes"], r["url_path"]))
+        if servable
+        else None,
+        "largest_identity": max(identity_ok, key=lambda r: (r["identity_bytes"], r["url_path"]))
+        if identity_ok
+        else None,
+    }
+
+
+def served_tree_agrees_with_deployment(
+    served: dict[str, Any], deployed: dict[str, Any]
+) -> list[str]:
+    """Every way the tree being measured differs from the tree that ships. Named, not scored.
+
+    The DEPLOYED tree is authoritative here, and the authority is not a preference: cost and
+    latency are **bytes leaving the origin**, and the origin serves the artefact. A harness
+    pointed at the packer's input tree measures objects no caller can ever request.
+    """
+    if not deployed.get("read"):
+        return [f"the deployed package could not be read ({deployed.get('why')})"]
+    problems: list[str] = []
+    if served["source_maps_present"] and not deployed["source_maps"]:
+        problems.append(
+            f"the tree being served holds {served['source_maps_present']} source map(s) and "
+            "the deployed package holds 0 — this is the packer's INPUT tree, not the "
+            "origin's"
+        )
+    for label in ("largest_wire", "largest_identity"):
+        theirs = deployed.get(label)
+        mine = served.get(label)
+        if theirs and mine and theirs["url_path"] != mine["url_path"]:
+            problems.append(
+                f"{label}: this tree offers {mine['url_path']} "
+                f"({mine['wire_bytes']:,} B on the wire) and the deployed package offers "
+                f"{theirs['url_path']} ({theirs['wire_bytes']:,} B)"
+            )
+    return problems
+
+
+def beats_for(web_root: Path, root: Path | None = None) -> tuple[tuple[Beat, ...], dict[str, Any]]:
+    """The five beats, with the two asset paths DERIVED from the tree that will be served.
+
+    Until 2026-08-14 the two asset paths were filenames written into this file. Both had
+    gone stale: the build hash moved to ``index-DzVoV1YM`` and ``--strip-source-maps``
+    removed the ``.map`` entirely, so on the deployed tree the committed ``asset_js`` path
+    answers **404** and the committed ``asset_map`` path answers **404** as well — and the
+    harness reported the second one as *"largest emittable object in the served tree"*.
+
+    Deriving them means the harness measures whatever this build actually ships, and a
+    build that ships nothing servable makes it **refuse** instead of measuring a refusal.
+    """
+    resolved = resolve_served_assets(web_root, root)
+    wire = resolved["largest_wire"]
+    identity = resolved["largest_identity"]
+    wire_encoding = "gzip" if wire["gzip_bytes"] is not None else None
+    beats = (
+        Beat(
+            name="index",
+            method="GET",
+            path="/",
+            body=None,
+            expect_status=200,
+            touches_database=False,
+            why="the document a judge's browser asks for first",
+        ),
+        Beat(
+            name="asset_js",
+            method="GET",
+            path=identity["url_path"],
+            body=None,
+            expect_status=200,
+            touches_database=False,
+            why=(
+                "largest object this origin emits to a caller that sent no Accept-Encoding "
+                f"({identity['identity_bytes']:,} B on the wire)"
+            ),
+            accept_encoding=None,
+            derivation=(
+                "largest file under the served web root whose IDENTITY size is within the "
+                f"{resolved['response_ceiling_bytes']:,} B response ceiling"
+            ),
+        ),
+        Beat(
+            name="asset_map",
+            method="GET",
+            path=wire["url_path"],
+            body=None,
+            expect_status=200,
+            touches_database=False,
+            why=(
+                "largest object this origin can put on the wire at all "
+                f"({wire['wire_bytes']:,} B"
+                + (", served as its .gz sibling" if wire_encoding else "")
+                + "). THE BEAT KEY IS HISTORICAL: it once named a source map, and the "
+                "deployed package holds zero source maps. The measurement is now of the "
+                "object the deployed origin actually serves."
+            ),
+            accept_encoding=wire_encoding,
+            derivation=(
+                "largest WIRE size over the served web root, where an object with a .gz "
+                "sibling costs the sibling's bytes and a .gz path has no URL of its own"
+            ),
+        ),
+        Beat(
+            name="health",
+            method="GET",
+            path="/v1/health",
+            body=None,
+            expect_status=200,
+            touches_database=True,
+            why="the cheapest database beat: one connection, one fingerprint read",
+        ),
+        Beat(
+            name="gate_run",
+            method="POST",
+            path="/v1/demo/gate-run",
+            body=b"{}",
+            expect_status=200,
+            touches_database=True,
+            why="the headline four-beat gate run; the beat that decides the timeout",
+        ),
+    )
+    return beats, resolved
 
 
 # =====================================================================================
@@ -393,6 +654,12 @@ class Client:
 
     def request(self, beat: Beat) -> Response:
         headers = {"accept": "*/*"}
+        # Sent only when the beat names one. `http.client` adds no Accept-Encoding of its
+        # own and performs no decompression, so a beat that asks for gzip measures the
+        # COMPRESSED bytes -- which is the quantity the egress term of the cost model is
+        # built on, and the one an omitted header would silently swap for the identity size.
+        if beat.accept_encoding:
+            headers["accept-encoding"] = beat.accept_encoding
         if beat.body is not None:
             headers["content-type"] = "application/json"
         started = time.perf_counter()
@@ -756,7 +1023,9 @@ def cpu_share_probe(asset: Path, *, rounds: int, competitors: tuple[int, ...]) -
 # =====================================================================================
 
 
-def connection_state_probe(target: Target, web_root: Path, timeout: float) -> dict[str, Any]:
+def connection_state_probe(
+    target: Target, web_root: Path, timeout: float, beats: tuple[Beat, ...]
+) -> dict[str, Any]:
     """gate-run, then health, in ONE process. Records what actually comes back.
 
     `transitions._prepare` sets `conn.autocommit = False` on the module-scope connection that
@@ -764,7 +1033,7 @@ def connection_state_probe(target: Target, web_root: Path, timeout: float) -> di
     falsifiable statement of that: if the next request after a gate run answers 200, the
     finding is gone and this evidence says so on its own.
     """
-    by_name = {beat.name: beat for beat in BEATS}
+    by_name = {beat.name: beat for beat in beats}
     gate, health = by_name["gate_run"], by_name["health"]
     with emulator(target, web_root) as base:
         client = Client(base, timeout)
@@ -1118,6 +1387,29 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--targets", default="local,cloud", help="comma list of local,cloud")
     parser.add_argument("--web-root", type=Path, default=DEFAULT_WEB_ROOT)
+    parser.add_argument(
+        "--package",
+        type=Path,
+        default=DEFAULT_PACKAGE,
+        help="the deployed artefact the served tree is checked against",
+    )
+    parser.add_argument(
+        "--from-package",
+        action="store_true",
+        help=(
+            "serve the DEPLOYED tree: extract the package's web/ to a temporary directory "
+            "and measure that. This is the tree the origin actually has."
+        ),
+    )
+    parser.add_argument(
+        "--serve-input-tree",
+        action="store_true",
+        help=(
+            "proceed even though the served tree disagrees with the deployed package. Every "
+            "difference is named in the output and recorded in the evidence; use it only "
+            "when the packer's INPUT tree is deliberately the subject."
+        ),
+    )
     parser.add_argument("--local-database", default="defaultdb")
     parser.add_argument("--local-dsn", default=None, help="overrides --local-database")
     parser.add_argument("--env-file", type=Path, default=REPO_ROOT / ".env")
@@ -1282,7 +1574,9 @@ def _cold_dsn(target: Target, args: argparse.Namespace) -> str:
     )
 
 
-def measure_target(target: Target, args: argparse.Namespace) -> dict[str, Any]:
+def measure_target(
+    target: Target, args: argparse.Namespace, plan: tuple[Beat, ...]
+) -> dict[str, Any]:
     print(f"[{target.name}] cold probe ({args.cold_samples} fresh interpreters)")
     cold = cold_probe(
         _cold_dsn(target, args), samples=args.cold_samples, rtt_samples=args.rtt_samples
@@ -1293,13 +1587,15 @@ def measure_target(target: Target, args: argparse.Namespace) -> dict[str, Any]:
         f"rtt p50 {cold['select_1_round_trip_ms']['p50_ms']:.3f} ms"
     )
     beats: dict[str, Any] = {}
-    for beat in BEATS:
+    for beat in plan:
         samples = _samples_for(beat, target.name, args)
         print(f"[{target.name}] {beat.name}: warmup {args.warmup}, {samples} samples")
         with emulator(target, args.web_root) as base:
             beats[beat.name] = drive(
                 beat, base, warmup=args.warmup, samples=samples, timeout=args.http_timeout
             )
+        beats[beat.name]["accept_encoding"] = beat.accept_encoding
+        beats[beat.name]["path_derivation"] = beat.derivation
         wall = beats[beat.name]["wall_ms"]
         print(
             f"[{target.name}]   p50 {wall['p50_ms']:.2f} | p95 {wall['p95_ms']:.2f} | "
@@ -1308,7 +1604,7 @@ def measure_target(target: Target, args: argparse.Namespace) -> dict[str, Any]:
             f"{beats[beat.name]['statuses_observed']}"
         )
     print(f"[{target.name}] connection-state probe")
-    state = connection_state_probe(target, args.web_root, args.http_timeout)
+    state = connection_state_probe(target, args.web_root, args.http_timeout, plan)
     print(f"[{target.name}]   statuses {state['statuses']}")
     return {
         "target": target.name,
@@ -1335,7 +1631,12 @@ def _cpu_slope(probe: dict[str, Any]) -> float | None:
     )
 
 
-def build_document(results: dict[str, Any], cpu: dict[str, Any], args: argparse.Namespace) -> dict:
+def build_document(
+    results: dict[str, Any],
+    cpu: dict[str, Any],
+    args: argparse.Namespace,
+    served: dict[str, Any],
+) -> dict:
     document: dict[str, Any] = {
         "schema": SCHEMA_ID,
         "generated_at": dt.datetime.now(dt.UTC).isoformat(),
@@ -1373,6 +1674,7 @@ def build_document(results: dict[str, Any], cpu: dict[str, Any], args: argparse.
             "clock": "time.perf_counter around request-send to body-read-complete",
         },
         "handler_source": handler_source(),
+        "served_tree": served,
         "targets": results,
         "cpu_share_probe": cpu,
     }
@@ -1406,7 +1708,10 @@ def build_document(results: dict[str, Any], cpu: dict[str, Any], args: argparse.
 
 
 def _gather(
-    targets: list[Target], args: argparse.Namespace, replay: dict[str, Any] | None
+    targets: list[Target],
+    args: argparse.Namespace,
+    replay: dict[str, Any] | None,
+    plan: tuple[Beat, ...],
 ) -> tuple[dict[str, Any], list[str]]:
     """Measure (or replay) every target, stamp the disclosures, and collect the failures."""
     results: dict[str, Any] = {}
@@ -1416,7 +1721,7 @@ def _gather(
             results[target.name] = replay["targets"][target.name]
             continue
         try:
-            results[target.name] = measure_target(target, args)
+            results[target.name] = measure_target(target, args, plan)
         except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as exc:
             failures.append(f"{target.name}: {type(exc).__name__}: {redact(str(exc))[:400]}")
             results[target.name] = {
@@ -1438,18 +1743,89 @@ def _gather(
     return results, failures
 
 
-def _cpu_probe(args: argparse.Namespace, replay: dict[str, Any] | None) -> dict[str, Any]:
+def _cpu_probe(
+    args: argparse.Namespace, replay: dict[str, Any] | None, served: dict[str, Any]
+) -> dict[str, Any]:
     if replay is not None:
         return dict(replay["cpu_share_probe"])
     if args.skip_cpu_probe:
         print("cpu-share probe SKIPPED")
         return {"supported": False, "reason": "--skip-cpu-probe"}
     print("cpu-share probe")
-    return cpu_share_probe(
-        args.web_root / "assets" / "index-BjAGxrVJ.js",
-        rounds=args.cpu_rounds,
-        competitors=(0, 1, 2, 6),
+    # The asset is DERIVED, for the same reason the beats are: this call used to name
+    # `index-BjAGxrVJ.js`, a filename that no longer exists in the tree, and a probe that
+    # cannot open its asset measures nothing while looking like it measured something.
+    asset = args.web_root / served["largest_identity"]["url_path"].lstrip("/")
+    return cpu_share_probe(asset, rounds=args.cpu_rounds, competitors=(0, 1, 2, 6))
+
+
+def _extract_deployed_web(package: Path) -> tempfile.TemporaryDirectory[str] | None:
+    """Unpack the artefact's ``web/`` into a temporary directory, or refuse and say why.
+
+    Returns ``None`` when the artefact is absent, so the caller exits rather than silently
+    measuring whatever the default web root happens to hold — which is the packer's INPUT
+    tree, and is the confusion this whole flag exists to end.
+    """
+    import zipfile
+
+    if not package.is_file():
+        print(f"measure_beats: --from-package but {package} does not exist", file=sys.stderr)
+        return None
+    root = tempfile.TemporaryDirectory(prefix="mainline-deployed-web-")
+    with zipfile.ZipFile(package) as archive:
+        members = [n for n in archive.namelist() if n.startswith("web/")]
+        archive.extractall(root.name, members=members)
+    return root
+
+
+def _report_served_tree(plan: tuple[Beat, ...], served: dict[str, Any]) -> None:
+    """Print what was derived, BEFORE anything is measured against it."""
+    print(
+        f"served tree: {served['files_considered']} files, "
+        f"{served['gz_siblings_seen']} .gz siblings, "
+        f"{served['source_maps_present']} source maps, ceiling "
+        f"{served['response_ceiling_bytes']:,} B"
     )
+    identity = served["largest_identity"]["identity_bytes"]
+    print(f"  asset_js  -> {plan[1].path} ({identity:,} B identity)")
+    print(
+        f"  asset_map -> {plan[2].path} ({served['largest_wire']['wire_bytes']:,} B on the wire, "
+        f"accept-encoding={plan[2].accept_encoding})"
+    )
+
+
+def _deployed_tree_agrees(args: argparse.Namespace, served: dict[str, Any]) -> bool:
+    """Refuse to measure a tree that is not the one that deploys, and say every way it differs.
+
+    THE DEPLOYED TREE IS AUTHORITATIVE, because cost and latency are bytes leaving the origin
+    and the origin serves the artefact. A disagreement is **refused** rather than footnoted: a
+    footnote is exactly what the `asset_map` beat had, and the harness went on publishing a
+    404 as *"largest emittable object"* underneath it.
+    """
+    deployed = deployed_tree_shape(args.package, served["response_ceiling_bytes"])
+    disagreements = served_tree_agrees_with_deployment(served, deployed)
+    served["deployed_package"] = deployed
+    served["disagreements_with_the_deployed_package"] = disagreements
+    served["proceeded_over_disagreement"] = bool(disagreements) and args.serve_input_tree
+    if disagreements and not args.serve_input_tree:
+        print(
+            "measure_beats: the tree being served is not the tree that deploys, and the "
+            "DEPLOYED tree is authoritative because cost and latency are bytes leaving the "
+            "origin:",
+            file=sys.stderr,
+        )
+        for problem in disagreements:
+            print(f"  - {problem}", file=sys.stderr)
+        print(
+            "\n  Re-run with --from-package to measure the tree the origin actually has, or "
+            "with --serve-input-tree if the packer's input tree is deliberately the subject "
+            "(every difference above is then recorded in the evidence).",
+            file=sys.stderr,
+        )
+        return False
+    for problem in disagreements:
+        print(f"  DISAGREEMENT (--serve-input-tree): {problem}")
+    return True
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1463,10 +1839,34 @@ def main(argv: list[str] | None = None) -> int:
         print(f"measure_beats: {redact(str(exc))}", file=sys.stderr)
         return EXIT_USAGE
 
+    package_root: tempfile.TemporaryDirectory[str] | None = None
+    if args.from_package:
+        package_root = _extract_deployed_web(args.package)
+        if package_root is None:
+            return EXIT_USAGE
+        args.web_root = Path(package_root.name) / "web"
+        print(f"serving the DEPLOYED tree extracted from {args.package}")
+
+    try:
+        plan, served = beats_for(args.web_root)
+    except AssetsUnderivable as exc:
+        # A refusal, not a fallback. Measuring a remembered filename is what produced a
+        # "largest emittable object" row over a path the shipping origin answers 404 to.
+        print(f"measure_beats: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    _report_served_tree(plan, served)
+
+    # THE DEPLOYED TREE IS AUTHORITATIVE, because cost and latency are bytes leaving the
+    # origin and the origin serves the artefact. A disagreement is refused rather than
+    # footnoted: a footnote is what `asset_map` had, and the harness went on publishing the
+    # wrong number underneath it for a day.
+    if not _deployed_tree_agrees(args, served):
+        return EXIT_USAGE
+
     replay = _load_replay(args)
-    results, failures = _gather(targets, args, replay)
-    cpu = _cpu_probe(args, replay)
-    document = build_document(results, cpu, args)
+    results, failures = _gather(targets, args, replay, plan)
+    cpu = _cpu_probe(args, replay, served)
+    document = build_document(results, cpu, args, served)
     if replay is not None:
         document["measured_at"] = replay["generated_at"]
         document["recomputed"] = {

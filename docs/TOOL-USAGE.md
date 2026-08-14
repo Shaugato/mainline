@@ -28,21 +28,34 @@ both evidence files from the tree. A document about which cloud services a proje
 must not require those cloud services in order to check it.
 
 > **Run on 2026-08-14 it exits `2`, and this page says so before a reader discovers it.**
-> Not on a count — on two **anchors**. `evidence/tool-usage/aws-services.json` cites
-> `infra/modules/demo-api/main.tf:333` for the Lambda row's `authorization_type` and `:215`
-> for the SSM row's `ssm:GetParameter`; that module has grown to 978 lines and the two
+> Not on a count — on two **anchors**. The generator declares the Lambda row's anchor as
+> `infra/modules/demo-api/main.tf:333` for `authorization_type` and the SSM row's as `:215`
+> for `ssm:GetParameter` (`scripts/submission/capture_tool_evidence.py`, the `anchor=` /
+> `anchor_must_contain=` pair on each row); that module has grown to 978 lines and the two
 > subjects are now at `:432` and `:280`. The generator **refuses to write anything** while an
 > anchor has drifted, and `--print` refuses identically, so **whether
 > `scan.files_scanned` is still fresh cannot be re-derived on this machine today and is
-> recorded as `UNRESOLVED` rather than guessed.** `scripts/aws/verify_evidence.py` reports
-> the same pair under `[CEN-ANCHORS]` and also exits `1`.
+> recorded as `UNRESOLVED` rather than guessed.** `scripts/aws/verify_evidence.py` reported
+> the same pair under `[CEN-ANCHORS]` earlier on 2026-08-14; re-run later the same day it
+> **passes** — `1016` assertions across `40` of `40` invariants — because it reads the JSON,
+> and the JSON has since been edited while the generator has not. Two programs that agreed now
+> disagree, and the one still refusing is the one reading the authoritative side.
+>
+> **Read the two line numbers from the generator, not from the JSON, and here is why that
+> distinction earned its sentence on 2026-08-14.** `evidence/tool-usage/aws-services.json` was
+> edited in the working tree to read `:432` and `:280` while
+> `capture_tool_evidence.py` still declares `:333` and `:215`, so `--check` prints the old pair
+> and still exits `2`. **The generator's table is the authoritative side and the JSON is
+> derived from it**; moving the derived file alone does not close the finding, it only makes
+> two files disagree about which line a reader should open. The regeneration is owed on
+> `evidence/tool-usage/` by the domain that owns the generator, and **this page does not write
+> either file**: a document is not made true by editing the artefact it is checked against. No
+> verdict, count or `[src: …]` citation here rests on any of those four line numbers.
 >
 > That refusal is the mechanism described at the end of this section working as designed, on
-> the next drift after the five it was built for. The regeneration is owed on
-> `evidence/tool-usage/`, which this page does not write and did not touch: **a document is
-> not made true by editing the artefact it is checked against.** No verdict, count or
-> `[src: …]` citation on this page rests on either line number, and both are corrected in
-> place below.
+> the next drift after the five it was built for — and the paragraph above is what the
+> mechanism looks like when only half the fix lands. The subjects' true locations are corrected
+> in place in the table below.
 
 **One convention, borrowed from `docs/HONESTY.md`.** A bare number carries a `[src: …]`
 reference to a committed artefact. Digits inside `code spans` are **names**, not
@@ -509,6 +522,44 @@ folding control-plane audit records into the tamper-evident ledger — therefore
 input source on this tier**, and is documented as unavailable rather than shipped as an
 unbacked claim.
 
+### What the managed cluster now carries, added 2026-08-14 — and what it still does not
+
+This row was already EXERCISED on the strength of the `ccloud` transcript alone, so nothing
+below is a promotion; it is the **evidence behind an existing verdict getting stronger**, and
+it is dated so that a reader can tell the two apart.
+
+> **CockroachDB Cloud carries the demo world, and the gate refuses there.** The migration chain
+> is `APPLIED` and the seeded world is `SEEDED AND REFUSABLE` against
+> `mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud`, database `mainline_demo`,
+> CockroachDB CCL v26.2.5 — the refusal observed on Cloud is `23514`
+> `gate_closed_when_issued`, with `nothing_persisted: true`
+> [src: `evidence/deploy/cloud-chain.json#outcome`, `evidence/deploy/cloud-seed.json#verdict`,
+> `#verification`].
+>
+**And the second half of that ruling, which this page states rather than quotes.** The
+four-beat run through the HTTP handler has **not** been recorded against Cloud: it is reported
+in the body of commit `7535670`, whose diff carries no such artefact, and `evidence/` holds
+none. It is **OWED**, and until the run exists the only `PROVEN` this repository holds is
+[`evidence/gate-refusal/proof-20260814T032418Z.json`](../evidence/gate-refusal/proof-20260814T032418Z.json),
+which is **local** (`cluster.database = w_qr_gate_refusal_proof`).
+
+The ruling names the filename that owed artefact will be written to, and **this page does not
+repeat it**, on purpose: every `evidence/….json` string on this page is read as a citation by
+`scripts/submission/check_submission_ready.py`, which counts how many of them a reader can
+actually open. Typing the name of a file that does not exist would turn *"21 of 21 cited
+artefacts present"* into *"24 of 25"* — a citation that is a path somebody typed rather than a
+file a reader can open, which is precisely what that check exists to refuse. The exact words,
+filename included, are carried verbatim in `docs/leads/docs-true-final.md` RULING 1 and in
+`docs/STATE-OF-THE-BUILD.md`, `docs/HONESTY.md`, `docs/CI-STATE.md` and
+[`docs/submission/JUDGING-AXES.md`](submission/JUDGING-AXES.md) §2, none of which is under
+that counting rule.
+
+**And the harder half, stated on the same page as the good news:
+nothing has ever run against CockroachDB *Cloud* in CI.** The lane that starts a database
+starts a pinned `cockroachdb/cockroach:v26.2.5` **container** on the runner — a real database,
+not the managed one — and the difference is load-bearing, because a single node never returns
+`40001 RETRY_SERIALIZABLE` and a multi-node Cloud cluster does.
+
 ---
 
 ## Tool 3 · CockroachDB Managed MCP Server — **EXERCISED**, promoted 2026-08-12
@@ -654,6 +705,24 @@ not a thirteenth service** — it is a model this project tried to use, was refu
 not adopt. Its files are counted inside the embeddings row, which is why its `files` cell is
 empty; it appears on its own line because a refusal that changed a design decision belongs
 where a reader will see it, not in a footnote.
+
+**Why the submission gate says `10 AWS services` about this page and this heading says
+twelve, and why neither number is being moved.** They count different things, and a reader who
+runs both deserves the arithmetic rather than a silent reconciliation.
+`python scripts/submission/check_submission_ready.py` holds a **fixed table of ten AWS service
+names** — `AWS_SERVICES` at `scripts/submission/check_submission_ready.py:201` — and asks
+which of those ten this document mentions; ten is therefore its ceiling, not a census, and it
+reports `10` because this page names all ten. The census walks the tree and emits **one row per
+distinct use**, so Bedrock appears three times — inference, embeddings and Rerank — and
+`evidence/tool-usage/aws-services.json#totals.rows` is `12`. The same arithmetic explains the
+gate's *"2 AWS service(s) marked as having run"* against this page's `3` EXERCISED rows: the
+gate counts the name **Amazon Bedrock** once, and two of the three EXERCISED rows are Bedrock.
+**The heading is derived from the census and stays at twelve**; changing it to ten would move
+this document away from the artefact it is checked against in order to agree with an
+instrument that is not measuring the same quantity, which is the one direction this repository
+does not allow. The identical paragraph is in
+[`docs/submission/RULES-MATRIX.md`](submission/RULES-MATRIX.md) §1, deliberately, because the
+discrepancy is visible from either page.
 
 | service | verdict | files | mechanism (`file:line`) | evidence |
 |---|---|---|---|---|

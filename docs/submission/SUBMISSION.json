@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "schema_documented_in": "docs/submission/RULES-MATRIX.md",
   "read_by": [
     "scripts/submission/check_submission_ready.py",
@@ -7,8 +7,13 @@
     "docs/submission/RUNBOOK.md",
     "docs/submission/JUDGE-START.md",
     "docs/submission/FIRST-FIVE-MINUTES.md",
+    "docs/submission/DEVPOST.md",
+    "docs/submission/JUDGING-AXES.md",
+    "docs/submission/VIDEO-KIT.md",
+    "docs/submission/PUBLIC-FLIP-CHECKLIST.md",
     ".github/workflows/demo-health.yml"
   ],
+  "read_by_is_every_reader_not_every_mention": "Widened from six entries to ten on 2026-08-14. The key claims to be every program and document that reads this file, and it was not: DEVPOST.md, JUDGING-AXES.md, VIDEO-KIT.md and PUBLIC-FLIP-CHECKLIST.md each tell a reader to take demo_url or video_url from here rather than from their own prose, which is reading. Paths that merely NAME this file in a sentence - README.md, docs/CI-STATE.md, docs/TOOL-USAGE.md, docs/deploy/JUDGE-PACK.md, docs/deploy/OBSERVABILITY.md, scripts/deploy/demo_acceptance.py, scripts/deploy/local_furl.py and others - are deliberately not listed, because a list that counted mentions would stop being the list of things that break when a value here changes.",
   "unresolved_sentinel": "UNRESOLVED",
   "never_write_a_credential_here": "This file becomes world-readable the moment the repository is flipped public. judge_access.credentials_location is a POINTER to where a credential lives, never the credential itself. scripts/submission/check_submission_ready.py scans every value in this file and refuses if any of them is credential-shaped.",
   "a_field_is_resolved_only_when_it_is_proven": "Two fields below hold the sentinel because the fact they would assert is not true yet, not because nobody got round to typing them. Writing a value here that the world does not carry is the one failure this file exists to prevent: the gate would go green and a judge would still meet a 404.",
@@ -22,7 +27,7 @@
   },
   "notes": {
     "repo_url": "RESOLVED, and the repository behind it is PUBLIC. Measured on 2026-08-12: `gh repo view Shaugato/mainline --json visibility,licenseInfo` answered {\"visibility\":\"PUBLIC\",\"licenseInfo\":{\"key\":\"apache-2.0\"}}, and `git rev-list --left-right --count origin/master...HEAD` answered 0 0, so the tree a stranger clones is the tree that was audited. This note used to say the URL answered 404 to everyone but the owner; that sentence described a private repository and stopped being true when the flip landed. Resolving the string and flipping visibility remain two different facts and check_submission_ready.py still reports them as two, because they can diverge again: repo_url is a value in this file, visibility is asked of GitHub live on every run and is never read from a cached artefact. A judge needs no credential of ours to read any of it.",
-    "demo_url": "Unresolved because `terraform apply` has not been run: no MAINLINE Lambda, no Function URL, no bucket exists in the account. The plan that would create it is committed at evidence/deploy/terraform-plan-furl.txt (11 to add, 0 to change, 0 to destroy; authorization_type NONE; ap-southeast-1); the command is `MAINLINE_APPLY_APPROVED=1 scripts/deploy/deploy.sh --expect-account <id>`, and the hostname it prints is the value that belongs here. Two things must both be true before this field is written, and they fail independently: the ORIGIN must exist, and the app behind it must ANSWER. Rule 2 asks for a URL to a *functional* demo, so the second is checked by evidence/deploy/acceptance.json and by `python scripts/submission/check_submission_ready.py --check-urls`, which fetches the URL and requires HTTP 200 rather than trusting that it was pasted correctly. Writing a hostname here before both hold would turn this gate green and still hand a judge a broken page, which is the single failure this file exists to prevent.",
+    "demo_url": "Unresolved because `terraform apply` has not been run: no MAINLINE Lambda, no Function URL, no bucket exists in the account. The plan that would create it is committed at evidence/deploy/terraform-plan-furl.txt and reads, at line 843, `Plan: 24 to add, 0 to change, 0 to destroy.` - 11 resources in module.api[0] and 13 in module.guard[0], the cost guard infra/envs/demo/main.tf:631 instantiates, with authorization_type NONE at line 351, in ap-southeast-1. This note said `11 to add` until 2026-08-14; the 11 is the API module alone and stopped being the plan's total when the guard was wired in. The artefact is authoritative and this note is derived: the note was re-read against the plan, and the plan was not edited to agree with the note. The command is `MAINLINE_APPLY_APPROVED=1 scripts/deploy/deploy.sh --expect-account <id>`, and the hostname it prints is the value that belongs here. Two things must both be true before this field is written, and they fail independently: the ORIGIN must exist, and the app behind it must ANSWER. Rule 2 asks for a URL to a *functional* demo, so the second is checked by evidence/deploy/acceptance.json and by `python scripts/submission/check_submission_ready.py --check-urls`, which fetches the URL and requires HTTP 200 rather than trusting that it was pasted correctly. Writing a hostname here before both hold would turn this gate green and still hand a judge a broken page, which is the single failure this file exists to prevent.",
     "video_url": "Unresolved because the film has not been recorded. The script, the shot list, the seeded state and the sentences that may not be said on camera are in docs/submission/VIDEO-KIT.md; the founder records it, uploads it unlisted to YouTube or Vimeo, and the URL it is given is the value that belongs in video_url."
   },
   "deadline_utc": "2026-08-18T21:00:00Z",

@@ -71,6 +71,52 @@
 #   aws-documentation-placeholder        1       2   AKIAIOSFODNN7EXAMPLE, published by
 #                                                    AWS itself
 #
+# ───────────────────────────────────────────────────────────────────────────────────
+# RE-COUNTED 2026-08-14 — THE COMMENT ABOVE IS THE STALE ONE, EXACTLY AS IT PREDICTED
+# ───────────────────────────────────────────────────────────────────────────────────
+#
+# The block above says 56 entries in seven classes. It also says, in terms, that the
+# scanner is the authority and this comment is what goes stale. It has. Three entries
+# have been added since it was written, and the classes did not change.
+#
+#     $ grep -c '^  - path:' docs/submission/DISCLOSURE-DECISIONS.yaml
+#     59
+#     $ python scripts/submission/audit_public_readiness.py     # the check-8 row
+#     PASS  disclosure_register  59 entry/entries granting 84 finding(s); 0 stale;
+#           classes abs-path-layout=26, abs-path-username=6,
+#           aws-documentation-placeholder=2, detector-context-artefact=2,
+#           history-already-pushed=14, recorded-evidence-account-id=6,
+#           synthetic-test-fixture=3
+#
+#   class                          entries (2026-08-14)   was
+#   abs-path-layout                                  26    25
+#   history-already-pushed                           14    14
+#   abs-path-username                                 6     5
+#   recorded-evidence-account-id                      6     6
+#   synthetic-test-fixture                            3     3
+#   detector-context-artefact                         2     2
+#   aws-documentation-placeholder                     2     1
+#                                                    --    --
+#                                                    59    56
+#
+# `0 stale` is the number that matters and it is the one to keep watching. Every one of
+# the 59 grants still matched a finding that still exists on 2026-08-14. A register
+# whose grants outlive their findings has stopped disposing of anything and started
+# excusing things in general, and check 8 goes red the day that happens.
+#
+# WHAT THIS RE-COUNT DOES NOT DO. It does not touch a grant, add one, or widen one. The
+# live audit reports 160 UNRESOLVED findings, up from 54 on 2026-08-12, and NONE of
+# them was disposed of here to make that number smaller. Writing entries into this file
+# to shrink a red count — rather than because somebody read the value and decided about
+# it — is the single failure mode this register was built to make visible, and adding
+# 106 grants in one commit would be exactly what it looks like.
+#
+# ALSO RE-CHECKED, because it is the founder's own name: the `abs-path-username` class
+# now covers 6 entries, and the audit reports 11 files disclosing a Windows account
+# name — up from nine. Two of those eleven are this file and PUBLIC-READINESS.md, which
+# carry it BECAUSE they are the documents that disclose it, and a third is the
+# scanner's own source. See PUBLIC-READINESS.md §4 for the enumerated list.
+#
 # ═══════════════════════════════════════════════════════════════════════════════════
 
 schema: mainline.submission.disclosure-decisions/1

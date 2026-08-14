@@ -3,7 +3,13 @@ SPDX-FileCopyrightText: 2026 MAINLINE contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# Observability — one heartbeat, four alarms, and the only reader that can exist
+# Observability — one heartbeat, seven alarms, and the only reader that can exist
+
+> **CORRECTED 2026-08-14 (W6 `post-apply`) — the heading said "four alarms".** The stack
+> plans **seven**: `module.api`'s four and `module.guard`'s three, and the guard's three
+> are the ones wired to the stop. §3 has said seven since 2026-08-14; the heading and the
+> reader's exit table had not caught up, and `scripts/deploy/aws_live_probe.py` was
+> comparing against a hard-coded four. All three are corrected below and in that file.
 
 **What watches this demo, by what, at what interval, what each signal means, what a judge
 sees when the database is unreachable, and what it costs.**
@@ -291,12 +297,120 @@ Exit codes are the point:
 
 | Exit | Meaning |
 |---|---|
-| `0` | AWS answered, all four alarms exist, none is in `ALARM`. |
+| `0` | AWS answered, **every alarm the Terraform modules declare** exists, none is in `ALARM`. |
 | `1` | AWS would not answer — credentials, region, permissions. **Not a statement about the demo.** |
 | `3` | AWS answered and **the answer is bad**: an alarm is in `ALARM`, or an expected alarm does not exist. |
 
 `1` and `3` are different numbers because "fix my credentials" and "wake somebody up about
 the demo" are different first moves.
+
+#### CORRECTED 2026-08-14 — the expected set is DERIVED, and it used to be a hard-coded four
+
+Until 2026-08-14, `scripts/deploy/aws_live_probe.py` carried, at what was then line 179,
+`ALARM_SUFFIXES = ("-errors", "-throttles", "-duration-p99", "-concurrency")` — a literal four,
+against a stack that plans seven. `docs/deploy/PRE-APPLY.md` §3 recorded this as a finding
+against that file in the page's own words: *"after the apply this probe will report 'All 4
+alarms exist and none is in ALARM' while never having looked at the three that matter most"*.
+**The three it could not see are the guard's, and the guard's are the ones wired to the stop.**
+
+The literal is gone. `derive_alarm_suffixes()` reads every
+`alarm_name = "${var.<name>}-<suffix>"` out of `infra/modules/demo-api/main.tf` and
+`infra/modules/cost-guard/main.tf`, counts the `aws_cloudwatch_metric_alarm` blocks in each
+file, and **raises** if it could not read the name of every one of them — a module that grows an
+alarm the pattern cannot parse makes the probe refuse rather than quietly grade against a short
+set. The result is then cross-checked against
+`evidence/deploy/terraform-plan-furl.json`; a disagreement is refused, because one of the two is
+describing a tree that does not exist and the modules are authoritative.
+
+Measured on this tree, 2026-08-14, the derivation returns **seven**:
+
+```
+mainline-demo-api-concurrency          mainline-demo-api-invocations-burst
+mainline-demo-api-duration-p99         mainline-demo-api-invocations-hourly
+mainline-demo-api-errors               mainline-demo-api-log-ingestion
+mainline-demo-api-throttles
+```
+
+and the plan cross-check agrees on all seven. A run whose expected set cannot be derived exits
+`1` with the verdict **`EXPECTED ALARM SET UNDERIVABLE - NO READING TAKEN`** — a third
+incident distinct from "AWS would not answer" and from "the answer is bad news", because its
+first move is different again: fix the tree, not the credential.
+
+---
+
+### The measurement that happens the moment the stack exists
+
+`scripts/deploy/aws_live_probe.py --alarms-only` answers *"do the alarms exist and what colour
+are they"*. It does **not** answer the question this section's own §"What a state means" makes
+unavoidable: **can these alarms see anything at all?**
+
+That is what `scripts/deploy/post_apply_verify.py` is for. Run it immediately after an apply:
+
+```bash
+.venv/Scripts/python.exe scripts/deploy/post_apply_verify.py \
+    --out evidence/deploy/verify/post-apply.json
+```
+
+Nine checks, in order, each either **satisfied** or **not satisfied with a reason** — there is
+no third state, no skip, and a check that could not be attempted does not soften the exit code:
+
+1. the Function URL, resolved from `terraform output` and never from a hostname in the file;
+2. HTTPS reached with the certificate **verified** (there is no way to turn that off);
+3. `GET /v1/health` answering `200` with `ok=true`;
+4. the four beats producing `00000` then `23514 gate_closed_when_issued` then `P0001` then `00000`;
+5. the admission beat carrying a **server-computed** `clearance_digest`, against a request body
+   of `{}` that supplied no digest and no seed;
+6. **every alarm the modules declare exists**, each still `treat_missing_data = "missing"`;
+7. **the alarms can SEE the invocations the program just made** — see below;
+8. the kill switch stops the demo: `429`, **with no body**;
+9. the kill switch restores it: `200` again.
+
+#### Why check 7 exists, and why it does not ask the alarms to be green
+
+Every alarm here ships `treat_missing_data = "missing"`. That is **correct and is not relaxed
+by this program or by anything it recommends** — it is the one word that makes
+`INSUFFICIENT_DATA` mean *"nothing was published"* instead of rendering as `OK`, which is what
+`notBreaching` did.
+
+The consequence is that "the alarm is not in `ALARM`" is compatible with "this alarm has never
+received a datapoint and cannot fire". An alarm over a metric with no datapoints is **not
+evidence**, whatever colour a console paints it. So check 7 asks a different question: it
+brackets its own invocations with a timestamp window, then reads
+`cloudwatch:GetMetricStatistics` for each alarm's metric and dimensions over that window, and
+refuses if a metric an invocation **does** publish came back empty.
+
+It requires datapoints only for `Invocations`, `Duration` and `ConcurrentExecutions` — the
+metrics an invocation actually publishes. `Errors` and `Throttles` publish only when one occurs
+and `IncomingBytes` lags log delivery, so those are **reported and not demanded**: a check that
+required an `Errors` datapoint could only pass on a system that was erroring, and a verifier
+that can only pass on a broken demo is worse than no verifier. That scope is itself pinned by a
+control in `tests/deploy/test_post_apply_verify.py`, so widening it turns a test red rather than
+turning the demo red.
+
+#### It has never run against a stack, and it has been proven anyway
+
+As this was written, `aws lambda get-function --function-name mainline-demo-api` answered
+`ResourceNotFoundException`. A verifier that has never failed has never discriminated, so every
+refusal branch is demonstrated **firing** in `tests/deploy/test_post_apply_verify.py` against
+synthetic AWS and HTTP answers — a missing function, a null Function URL, an unverified
+certificate, a `200` health body that says `ok: false`, each of the four beats carrying the
+wrong SQLSTATE, an admission with no `clearance_digest`, four alarms where seven were declared,
+an alarm whose metric has no datapoints, a `--stop` whose effect did not land, and a `429` that
+never cleared. Each demonstration is paired with a **mutant** of the program with that one check
+removed, which does *not* refuse the same input — so a check that stops discriminating turns its
+own control red.
+
+Its dry reading against the unapplied account is
+[`evidence/deploy/verify/post-apply-dry.json`](../../evidence/deploy/verify/post-apply-dry.json):
+**0 of 9 satisfied, exit 1**, with each check naming why. The account id is masked as
+`<account>` throughout, including the first-four/last-four form `kill_switch.sh` prints — eight
+of twelve digits published forever is a narrower search, not a private one.
+
+**The kill-switch checks are the ones to read carefully.** `--kill-switch dry` is the default:
+it drives `--status` and `--dry-run` and **nothing else**, and it reports checks 8 and 9 as
+**not satisfied**, because a stop nobody performed is a stop nobody has evidence for. Dry is
+honest; it is not green. `--kill-switch live` additionally requires `--yes` and is the only path
+that mutates a live function.
 
 **Run against this account today it exits `3`:**
 
