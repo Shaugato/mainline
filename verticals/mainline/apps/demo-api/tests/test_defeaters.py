@@ -872,9 +872,7 @@ def test_gate_run_resolves_the_vocabulary_before_the_beats_transaction_opens() -
     source = (PACKAGE_SOURCE / "gate_run.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     function = next(
-        node
-        for node in tree.body
-        if isinstance(node, ast.FunctionDef) and node.name == "gate_run"
+        node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "gate_run"
     )
     resolved_at = min(
         node.lineno
@@ -1175,10 +1173,7 @@ def test_the_retried_unit_is_the_whole_transaction_and_a_second_attempt_can_succ
             raise _error("40001")
         return "committed"
 
-
-    assert (
-        run_transaction(operation, sleep=lambda _s: None, rng=random.Random(3)) == "committed"
-    )
+    assert run_transaction(operation, sleep=lambda _s: None, rng=random.Random(3)) == "committed"
     assert calls == [0, 1]
 
 
