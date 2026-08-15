@@ -1,16 +1,16 @@
 {
   "artefact": "MAINLINE demo seed",
-  "generated_at_utc": "2026-08-15T05:48:14Z",
+  "generated_at_utc": "2026-08-15T06:30:04Z",
   "generated_by": "scripts/deploy/seed_demo.py",
   "honesty": "No real incident, no real site, no real fatality. Every row named below is synthetic and corresponds to nobody. See verticals/mainline/demo/DEMO-HONESTY.md.",
   "target": {
-    "cluster": "localhost:26257/defaultdb",
-    "database": "w_w4_096ee10637",
+    "cluster": "mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb",
+    "database": "mainline_demo",
     "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
-    "connected_as": "root",
+    "connected_as": "mainline-sql",
     "database_selection": {
-      "requested": "w_w4_096ee10637",
-      "confirmed_by_server": "w_w4_096ee10637",
+      "requested": "mainline_demo",
+      "confirmed_by_server": "mainline_demo",
       "matches": true,
       "dsn_path_segment": "defaultdb",
       "selected_how": "substituted into the DSN by name and verified with SELECT current_database(); the DSN's own path segment is never trusted"
@@ -28,7 +28,7 @@
   "seed_files": [
     {
       "file": "demo_world.sql",
-      "seconds": 0.49,
+      "seconds": 1.136,
       "attempts": 1,
       "sqlstate": "00000",
       "error": null,
@@ -36,7 +36,7 @@
     },
     {
       "file": "demo_permit.sql",
-      "seconds": 0.222,
+      "seconds": 0.323,
       "attempts": 1,
       "sqlstate": "00000",
       "error": null,
@@ -117,7 +117,7 @@
     "constraint": "gate_closed_when_issued",
     "constraint_source": "reported",
     "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
-    "seconds": 20.282,
+    "seconds": 2.669,
     "expected_sqlstate": "23514",
     "expected_constraint": "gate_closed_when_issued",
     "as_expected": true,
@@ -129,7 +129,7 @@
       "nothing_persisted": true
     }
   },
-  "total_seconds": 41.2,
+  "total_seconds": 14.3,
   "failures": [],
   "verdict": "SEEDED AND REFUSABLE"
 }

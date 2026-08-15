@@ -1,0 +1,8 @@
+BEFORE
+  tree_size=2  line3=2459378ba183c9f42f096bf428bc50b86ae35dfb0f82c3
+  tree_size=4  line3=JFk3i6GDyfQvCWv0KLxQuGrjXfsPgsPRoaXu+CuFtXo=
+AFTER
+  tree_size=2  line3=JFk3i6GDyfQvCWv0KLxQuGrjXfsPgsPRoaXu+CuFtXo=  -> 32 bytes  (changed)
+  tree_size=4  line3=JFk3i6GDyfQvCWv0KLxQuGrjXfsPgsPRoaXu+CuFtXo=  -> 32 bytes  (untouched)
+
+both notes decode to the SAME 32-byte root_hash: True

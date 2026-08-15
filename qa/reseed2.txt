@@ -1,0 +1,18 @@
+  connected    mainline_demo as mainline-sql (SELECT current_database(); the DSN's path segment said 'defaultdb' and was overridden)
+  seed         demo_world.sql       FAILED 42883       1.01s attempts=1
+               split_part(): unknown signature: convert_from(string, string) HINT: No function matches the given name and argument types. You might need to add explicit type casts.
+  seed         demo_permit.sql      OK                 0.37s attempts=1
+
+cluster       mainline-dev-31219.j77.aws-ap-southeast-1.cockroachlabs.cloud:26257/defaultdb
+database      mainline_demo  (as mainline-sql; confirmed by SELECT current_database(), DSN path segment 'defaultdb')
+permits       1 in mainline.permit, 1 is the demo permit
+permit        dec0de00-0006-4000-8000-000000000001
+check         dec0de00-0007-4000-8000-000000000001
+state         dispositioned  open_blocking=1  gate_epoch=1  head_seq=2
+obligation    severity=4 virulence=blood_major (projected)
+dispositions  0
+MERGE         REFUSED [23514] gate_closed_when_issued (reported)
+rollback      nothing_persisted=True
+  ! demo_world.sql did not apply [42883]: split_part(): unknown signature: convert_from(string, string) HINT: No function matches the given name and argument types. You might need to add explicit type casts.
+VERDICT       WRONG STATE
+evidence      D:\CoackroachDBxAWS\mainline\evidence\deploy\cloud-seed.json

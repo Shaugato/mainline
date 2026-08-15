@@ -814,6 +814,46 @@ FROM mainline.ledger_node n
       WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND tree_size = 4
    );
 
+-- 8.5b · THE REPAIR THAT REACHES A DATABASE ALREADY HOLDING THESE ROWS
+--
+-- §8.5's hex→base64 correction is INERT on every database that was seeded before it landed, and
+-- CockroachDB Cloud is one of them. Both inserts above are `WHERE NOT EXISTS`-guarded on
+-- `(site_code, tree_size)`, so a checkpoint that already exists is skipped whatever its body
+-- says; §8's `DELETE` only removes the self-naming rows, whose `root_hash` is a digest of a
+-- STRING, and the rows at tree_size 2 and 4 have real `ledger_node` roots and are correctly
+-- kept. So the corrected note was written into the file, the file was re-applied, the seeder
+-- reported success, and the deployed console went on refusing the checkpoint. Measured on the
+-- live demo: `verification FAILED`, four red checks, on the one screen whose subject is whether
+-- you have to take our word for anything.
+--
+-- **A fix that only reaches an empty database is not a fix, and idempotent-by-skipping is what
+-- hid it.** `ON CONFLICT DO NOTHING` and `WHERE NOT EXISTS` make re-application SAFE; they do
+-- not make it CORRECTIVE, and every seed in this tree is written the first way. This statement
+-- is the second: it converges an existing row onto what §8.5 says the note must be.
+--
+-- IT CHANGES NO VALUE AND TYPES NO DIGEST. `root_hash` is untouched; the body is rebuilt from
+-- that same column with `encode(..., 'base64')`, which is the expression §8.5 already uses, so
+-- the note and the column cannot drift — the redundancy a verifier checks stays worth checking.
+-- The predicate is the diagnosis stated as SQL: 64 characters of pure hex on line 3 is not a
+-- 32-byte root in any encoding. Every hex character is also a base64 character, so such a line
+-- DECODES — to 48 bytes — and a conformant parser refuses it on the length, which is why the
+-- console reported `log_signature` FAILED for a reason that had nothing to do with a signature.
+-- A note already carrying base64 does not match and is left alone, so this is idempotent in the
+-- ordinary way as well.
+-- `body` IS `text`, NOT `bytea` — checked in `information_schema` rather than assumed. The
+-- first two attempts at this statement wrapped it in `convert_from(..., 'utf8')` and cast the
+-- result to `::BYTES`, and both failed on the Cloud database with
+-- `42883 split_part(): unknown signature: convert_from(string, string)`. `0075_ledger.sql`
+-- stores the C2SP note as text because that is what it is; only `root_hash`, `log_sig`,
+-- `tsa_token` and `canon_src_sha256` are `bytea`. A scratch table written from memory made the
+-- same mistake and the repair PASSED against it — which is a test proving a statement against a
+-- schema the product does not have, and is the reason this comment names the source of truth.
+UPDATE mainline.ledger_checkpoint AS cp
+   SET body = 'mainline/' || cp.site_code || chr(10) || cp.tree_size::STRING || chr(10)
+              || encode(cp.root_hash, 'base64') || chr(10)
+ WHERE cp.site_code = 'dec0de00-0001-4000-8000-000000000001'
+   AND split_part(cp.body, chr(10), 3) ~ '^[0-9a-f]{64}$';
+
 -- 8.6 · THE WITNESS COSIGNATURES
 --
 -- One per checkpoint. `fn_recall_policy_anchored` requires the anchor to sit inside a checkpoint
