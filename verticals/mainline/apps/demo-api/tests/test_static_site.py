@@ -1216,6 +1216,79 @@ def test_the_headroom_guard_refuses_the_margins_it_is_meant_to_refuse(
     _assert_headroom(ceiling, ceiling - _MINIMUM_HEADROOM_BYTES)
 
 
+#: The console's own budget gate, and the row in it that is welded to the ceiling above.
+#: `verticals/mainline/apps/console/scripts/check-budgets.ts` gzips every object reachable
+#: from an HTML entry and refuses the build whose widest one exceeds `max_gzip_bytes`.
+_CONSOLE_BUDGETS: Final = REPO_ROOT / "verticals/mainline/apps/console/budgets.json"
+_ENTRY_CHUNK_WIRE_BUDGET: Final = "entry-chunk-wire"
+
+
+def test_the_console_ci_budget_goes_red_before_the_origin_does() -> None:
+    """**The weld.** The console's CI budget and this origin's ceiling are one bound in two
+    files, and this is the assertion that stops them drifting apart.
+
+    :func:`_assert_headroom` is the last line before the origin refuses its own site, but it
+    only runs where a built package exists, and by the time it reads one the build it is
+    complaining about is already sitting in ``out/lambda/``. The console's own gate runs
+    **during** ``pnpm run ci``, on ``dist/``, before anything is packed — so it is where the
+    approach should be caught. For that to be true its threshold has to be exactly
+    ``DEFAULT_MAX_RESPONSE_BYTES - _MINIMUM_HEADROOM_BYTES``: one byte higher and CI passes a
+    build this file would refuse; one byte lower and the two guards disagree about what the
+    rule is.
+
+    **Why an equality and not ``<=``.** A ``<=`` would let somebody buy a green by loosening
+    ``budgets.json`` while leaving this file untouched, which is the same move as raising the
+    ceiling, wearing a filename that no reviewer of this file would think to open. Ruling
+    **R3** (``docs/demo/proof-and-polish-plan.md``) freezes both bounds; this makes the freeze
+    checkable from the side the pressure actually comes from.
+
+    **And the ban, in the same test, because bytes without a cause are half a guard.** The
+    budget catches the entry chunk crossing; the ``forbidden_in_entry`` row catches the edit
+    that would make it cross — a static import from the console into ``src/operator/``, which
+    would weld a 96,734 B surface into a chunk with four figures of headroom. The screens the
+    film is shot on are a SECOND HTML ENTRY for exactly this reason
+    (``verticals/mainline/apps/console/operator.html``), and a boundary that is a convention
+    rather than a check is a boundary that survives until the first hurry.
+    """
+    config = json.loads(_CONSOLE_BUDGETS.read_text(encoding="utf-8"))
+    wire = config.get("wire_ceiling")
+    assert wire is not None and wire.get("id") == _ENTRY_CHUNK_WIRE_BUDGET, (
+        f"{_CONSOLE_BUDGETS} no longer carries a `wire_ceiling` gate, so nothing in "
+        "`pnpm run ci` measures the one number that can take the demo dark: the widest "
+        "SINGLE object the origin has to serve. Every budget in that file's `budgets` array "
+        "is a SUM over a closure, and this ceiling is per object — a sum can pass at 63 % of "
+        "its threshold while one chunk inside it is a few hundred bytes from a blank page."
+    )
+
+    ceiling = static_site.DEFAULT_MAX_RESPONSE_BYTES
+    assert wire["max_gzip_bytes"] == ceiling - _MINIMUM_HEADROOM_BYTES == 138_240, (
+        f"the console's entry-chunk wire budget is {wire['max_gzip_bytes']} B, but this "
+        f"origin refuses at {ceiling} B and this repository reserves "
+        f"{_MINIMUM_HEADROOM_BYTES} B of it, so the budget must be "
+        f"{ceiling - _MINIMUM_HEADROOM_BYTES} B. A budget above that number lets CI pass a "
+        "build that is already inside the margin; below it, the two guards disagree. Fix the "
+        "budget — do NOT raise DEFAULT_MAX_RESPONSE_BYTES and do NOT lower "
+        "_MINIMUM_HEADROOM_BYTES to make this equality hold."
+    )
+    # A wire budget that summed its closure would be the gate that could not see the cliff:
+    # on 2026-08-16 the closure sum sat at 63 % of its threshold in the same build whose
+    # entry chunk was 1,332 B from a 413.
+    assert wire["measure"] == "largest_object"
+    assert wire["required"] is True
+    # `all`, not `static`: a lazy chunk over the ceiling is a 413 too. It is a broken
+    # feature rather than a blank page, but it is the same refusal.
+    assert wire["follow"] == "all"
+
+    banned = {(row["match"], row.get("in", "entry")) for row in config["forbidden_in_entry"]}
+    assert ("src/operator/", "index.html") in banned, (
+        "nothing stops the operator screens becoming statically reachable from the console "
+        "entry chunk. They are a second HTML entry precisely because that chunk has four "
+        "figures of headroom under this origin's ceiling; one static import would undo it, "
+        "and the first symptom in production is a 413 on the entry JavaScript and a blank "
+        "page for every browser."
+    )
+
+
 def _package_web() -> dict[str, int]:
     """``{name inside web/: bytes}`` from the built package, or skip loudly.
 

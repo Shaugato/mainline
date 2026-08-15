@@ -1,0 +1,523 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * CONTROL OF WORK — management-of-change module.
+ *
+ * This is the safety engineer's own software, not the MAINLINE console
+ * (operator-systems-plan R1, R13). No vendor mark, no logo, no employer name.
+ * Nothing here imports a design token from `src/design/**`; the module carries its own
+ * short token list so the operator entry closes over zero console modules.
+ *
+ * Two typefaces, and the split is load-bearing:
+ *   • the SANS stack is the operator's register — headings, prose, form labels;
+ *   • the MONO stack is reserved for words the DATABASE produced — enum values,
+ *     constraint names, CHECK predicates, column names, route templates, raw bytes.
+ * A reader who learns that rule in the first ten seconds can tell, at a glance, which
+ * strings on this screen are ours and which are the kernel's. That is the whole point
+ * of the two registers in operator-systems-plan R15.
+ *
+ * Nothing animates. There is no transition, no transform and no keyframe in this file:
+ * a screen whose job is to be believed must be reproducible from a still frame.
+ */
+
+.moc {
+  --moc-ink: #11161c;
+  --moc-ink-soft: #4a5764;
+  --moc-paper: #ffffff;
+  --moc-field: #f6f8fa;
+  --moc-rule: #ccd5de;
+  --moc-rule-soft: #e4eaf0;
+  --moc-db: #1d3557;
+  --moc-db-bg: #eef2f7;
+  --moc-stop: #8a1c1c;
+  --moc-stop-bg: #fbeeee;
+  --moc-typed: #6a4a00;
+  --moc-typed-bg: #fdf6e3;
+  --moc-absent: #6b6b6b;
+  --moc-absent-bg: #f1f1f1;
+  --moc-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --moc-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  box-sizing: border-box;
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 4rem;
+  color: var(--moc-ink);
+  background: var(--moc-paper);
+  font-family: var(--moc-sans);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .moc {
+    --moc-ink: #e6ecf2;
+    --moc-ink-soft: #9fb0c0;
+    --moc-paper: #0e1216;
+    --moc-field: #161c23;
+    --moc-rule: #2d3945;
+    --moc-rule-soft: #1e262f;
+    --moc-db: #a8c4e8;
+    --moc-db-bg: #151d28;
+    --moc-stop: #ef9a9a;
+    --moc-stop-bg: #2a1616;
+    --moc-typed: #e0c07a;
+    --moc-typed-bg: #241f12;
+    --moc-absent: #8b949e;
+    --moc-absent-bg: #191d22;
+  }
+}
+
+.moc *,
+.moc *::before,
+.moc *::after {
+  box-sizing: inherit;
+}
+
+/* ── header ───────────────────────────────────────────────────────────────── */
+
+.moc-head {
+  border-bottom: 2px solid var(--moc-ink);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.moc-head-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+}
+
+.moc-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.moc-ref {
+  font-family: var(--moc-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--moc-db);
+}
+
+.moc-head-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--moc-ink-soft);
+}
+
+.moc-branch {
+  font-family: var(--moc-mono);
+  color: var(--moc-db);
+  overflow-wrap: anywhere;
+}
+
+/* ── ribbon ───────────────────────────────────────────────────────────────── */
+
+.moc-ribbon-wrap {
+  border: 1px solid var(--moc-rule);
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 1.25rem;
+  background: var(--moc-field);
+}
+
+.moc-ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moc-step {
+  border: 1px solid var(--moc-rule);
+  background: var(--moc-paper);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.moc-step-arrow {
+  color: var(--moc-ink-soft);
+  font-size: 0.8rem;
+}
+
+.moc-step-trailer {
+  border: 1px dashed var(--moc-rule);
+  background: transparent;
+  color: var(--moc-ink-soft);
+  margin-left: 0.5rem;
+}
+
+.moc-ribbon-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.moc-statechip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  border: 1px solid var(--moc-db);
+  background: var(--moc-db-bg);
+  padding: 0.25rem 0.6rem;
+}
+
+.moc-statechip-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--moc-ink-soft);
+}
+
+/* ── sections ─────────────────────────────────────────────────────────────── */
+
+.moc-section {
+  border: 1px solid var(--moc-rule);
+  margin-bottom: 1rem;
+}
+
+.moc-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--moc-rule-soft);
+  background: var(--moc-field);
+  padding: 0.5rem 0.9rem;
+}
+
+.moc-section-index {
+  font-family: var(--moc-mono);
+  font-size: 0.78rem;
+  color: var(--moc-ink-soft);
+}
+
+.moc-section-heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.moc-section-cite {
+  font-family: var(--moc-mono);
+  font-size: 0.72rem;
+  color: var(--moc-ink-soft);
+  margin-left: auto;
+}
+
+.moc-section-body {
+  padding: 0.9rem;
+}
+
+/* ── the three registers: database · typed · absent ───────────────────────── */
+
+.moc-db {
+  font-family: var(--moc-mono);
+  color: var(--moc-db);
+  overflow-wrap: anywhere;
+}
+
+.moc-quote {
+  border-left: 3px solid var(--moc-db);
+  background: var(--moc-db-bg);
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.8rem;
+  font-family: var(--moc-mono);
+  font-size: 0.86rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.moc-provenance {
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  color: var(--moc-ink-soft);
+}
+
+.moc-typed-field {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--moc-typed);
+  background: var(--moc-typed-bg);
+  color: var(--moc-ink);
+  padding: 0.55rem 0.65rem;
+  font-family: var(--moc-sans);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.moc-typed-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.74rem;
+  color: var(--moc-typed);
+}
+
+.moc-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--moc-ink-soft);
+}
+
+.moc-absent {
+  border: 1px dashed var(--moc-rule);
+  background: var(--moc-absent-bg);
+  color: var(--moc-absent);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.86rem;
+}
+
+/*
+ * A value the deployment did NOT return. It must not look like an empty string and it
+ * must not look like a value: dashed, muted, italic, and carrying its own words.
+ */
+.moc-absent-inline {
+  border: 1px dashed var(--moc-rule);
+  background: var(--moc-absent-bg);
+  color: var(--moc-absent);
+  padding: 0 0.35rem;
+  font-family: var(--moc-sans);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* ── diff ─────────────────────────────────────────────────────────────────── */
+
+.moc-diff {
+  border: 1px solid var(--moc-rule);
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.75rem;
+  font-family: var(--moc-mono);
+  font-size: 0.84rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.moc-diff-del {
+  background: var(--moc-stop-bg);
+  color: var(--moc-stop);
+  text-decoration: line-through;
+}
+
+.moc-diff-ins {
+  background: var(--moc-typed-bg);
+  color: var(--moc-typed);
+  text-decoration: underline;
+}
+
+/* ── tables ───────────────────────────────────────────────────────────────── */
+
+.moc-scroll {
+  overflow-x: auto;
+}
+
+.moc-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 42rem;
+  font-size: 0.82rem;
+}
+
+.moc-table caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: 0.4rem;
+  font-size: 0.76rem;
+  color: var(--moc-ink-soft);
+}
+
+.moc-table th,
+.moc-table td {
+  border: 1px solid var(--moc-rule-soft);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.moc-table thead th {
+  background: var(--moc-field);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--moc-ink-soft);
+}
+
+.moc-table td.moc-num {
+  font-family: var(--moc-mono);
+  text-align: right;
+}
+
+.moc-table td.moc-kind,
+.moc-table td.moc-pred {
+  font-family: var(--moc-mono);
+  color: var(--moc-db);
+}
+
+.moc-table td.moc-ttl {
+  font-family: var(--moc-mono);
+  font-weight: 700;
+  color: var(--moc-stop);
+}
+
+/* ── action bar and the absence it names ──────────────────────────────────── */
+
+.moc-actionbar {
+  display: grid;
+  grid-template-columns: minmax(18rem, 22rem) 1fr;
+  gap: 1rem;
+  border: 2px solid var(--moc-stop);
+  padding: 0.9rem;
+  margin-top: 1.5rem;
+  background: var(--moc-stop-bg);
+}
+
+@media (max-width: 60rem) {
+  .moc-actionbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.moc-approve {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--moc-rule);
+  background: var(--moc-absent-bg);
+  color: var(--moc-absent);
+  padding: 0.7rem 1rem;
+  font-family: var(--moc-sans);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moc-approve[disabled] {
+  cursor: not-allowed;
+}
+
+/*
+ * The compare control. Deliberately a different class from `.moc-approve`: this button
+ * does something (it compares two strings in this browser) and the approve control does
+ * not and cannot. Two controls that look alike but differ in whether they can act is
+ * exactly the confusion this screen is trying to remove.
+ */
+.moc-compare {
+  margin-top: 0.6rem;
+  border: 1px solid var(--moc-ink-soft);
+  background: var(--moc-field);
+  color: var(--moc-ink);
+  padding: 0.45rem 0.9rem;
+  font-family: var(--moc-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.moc-approve-reason {
+  margin: 0.6rem 0 0;
+  font-size: 0.86rem;
+  color: var(--moc-stop);
+}
+
+.moc-evidence {
+  border: 1px solid var(--moc-rule);
+  background: var(--moc-paper);
+  padding: 0.6rem 0.8rem;
+}
+
+.moc-evidence-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--moc-ink-soft);
+}
+
+.moc-routes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 15rem;
+  overflow-y: auto;
+  font-family: var(--moc-mono);
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.moc-route {
+  color: var(--moc-db);
+  overflow-wrap: anywhere;
+}
+
+.moc-route-missing {
+  color: var(--moc-stop);
+  text-decoration: line-through;
+}
+
+.moc-raw {
+  margin: 0.5rem 0 0;
+  max-height: 12rem;
+  overflow: auto;
+  background: var(--moc-field);
+  padding: 0.5rem 0.6rem;
+  font-family: var(--moc-mono);
+  font-size: 0.72rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.moc-exchange {
+  margin: 0.4rem 0 0;
+  font-family: var(--moc-mono);
+  font-size: 0.72rem;
+  color: var(--moc-ink-soft);
+  overflow-wrap: anywhere;
+}
+
+/* ── defeater prompts (rendered only when a live read yields them) ─────────── */
+
+.moc-prompts {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.moc-prompt {
+  border: 1px solid var(--moc-rule);
+  padding: 0.6rem 0.75rem;
+  background: var(--moc-paper);
+}
+
+.moc-prompt-code {
+  font-family: var(--moc-mono);
+  font-size: 0.76rem;
+  color: var(--moc-db);
+}
+
+.moc-prompt-text {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.88rem;
+}

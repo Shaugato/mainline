@@ -49,6 +49,7 @@ first scope cut: `rm -r src/features/ancestry/render3d/` costs texture, not a fa
 | Budget | What it bounds | Limit | Only true under | Required | Status |
 |---|---|---|---|---|---|
 | `evidentiary-shell` | Evidentiary shell — entry chunk plus its static import closure and CSS | 220 KB | gzip of the transferred JavaScript and CSS closure, not raw bytes | required | measured by `scripts/check-budgets.ts` |
+| `operator-surface` | Operator surface — operator.html’s entry chunk plus its static closure and CSS | 136 KB | gzip of the operator entry’s static closure; the ceiling itself is per-object | required | measured by `scripts/check-budgets.ts` |
 | `memory-register-walk` | Lazy 3D chunk — the MEMORY-register ancestry walk | 600 KB | gzip of the lazy chunk closure, minus anything already in the entry | optional | measured by `scripts/check-budgets.ts` |
 | `gate-interactive` | Gate surface interactive | 1000 ms | 4× CPU throttle, cold cache, replay transport, 1920×1080 | required | **NOT YET MEASURABLE** — `tests/browser/budgets.spec.ts` has not landed |
 | `first-refusal-paint` | First refusal paint, from a verified bundle | 400 ms | from bundle verification resolving to the refusal bar being in the DOM | required | **NOT YET MEASURABLE** — `tests/browser/budgets.spec.ts` has not landed |
@@ -56,16 +57,22 @@ first scope cut: `rm -r src/features/ancestry/render3d/` costs texture, not a fa
 
 <!-- /GENERATED:budgets -->
 
-`budgets.json` is authoritative for the two byte budgets — it is what
+`budgets.json` is authoritative for the three byte budgets — it is what
 `scripts/check-budgets.ts` reads after a build — and `src/perf/budgets.ts` mirrors them so
 the console can state its whole performance contract in one place.
-`tests/unit/perf/budgets.test.ts` asserts the two files agree. If they ever disagree, that
-test fails rather than one of them quietly winning: a performance contract with two answers
-is a performance contract with none.
+`tests/unit/perf/budgets.test.ts` asserts the two files agree, ids included. If they ever
+disagree, that test fails rather than one of them quietly winning: a performance contract with
+two answers is a performance contract with none.
+
+`operator-surface` is the second entry point — `operator.html`, the CONTROL OF WORK surface
+described in `docs/demo/operator-systems-plan.md`. It is budgeted separately rather than folded
+into `evidentiary-shell` because `evidentiary-shell` used to seed from *every* entry chunk, and
+a budget that silently acquired a second subject is a budget that fails for a reason nobody
+chose. Two gates where there was one, each addressable, and nothing exempted.
 
 ### Status, honestly
 
-Two of the five are enforced today, by `scripts/check-budgets.ts` over the real Vite
+Three of the six are enforced today, by `scripts/check-budgets.ts` over the real Vite
 manifest. **The three runtime budgets are NOT YET MEASURABLE.** They need a browser with 4×
 CPU throttling, and `playwright.config.ts` plus `tests/browser/budgets.spec.ts` belong to
 the `cinema-conformance-harness` worker, which had not landed when this package was

@@ -1,0 +1,105 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE PAPER COPY — HSG250 ¶18 and ¶51 bullet four.
+ *
+ * ¶18 requires copies of issued permits to be displayed at the work site or a recognised
+ * location near it, and ¶51's fourth bullet makes the same demand of an ELECTRONIC permit
+ * system: the facility must exist to produce paper for display at the job site.
+ *
+ * THE ONE RULE THIS FILE FOLLOWS: the paper says everything the screen says.
+ *
+ * It is trivially easy — and would look better — to hide the provenance chips, the
+ * `not carried by this deployment` labels and the hatched unsigned rows when printing. That
+ * would produce a second, tidier document making claims the first one does not, which is the
+ * exact class of act this repository exists to refuse. So printing changes ink, page breaks
+ * and furniture, and it removes NO CLAIM. What comes out of the printer is what a judge is
+ * looking at, including everything the screen admits it does not have.
+ *
+ * Anything genuinely interactive — the print button itself — is hidden, because a button on
+ * paper is furniture, not a claim.
+ */
+
+@media print {
+  .cow-permit {
+    --cow-page: #ffffff;
+    --cow-paper: #ffffff;
+    --cow-ink: #000000;
+    --cow-ink-soft: #333333;
+    --cow-ink-faint: #555555;
+    --cow-rule: #999999;
+    --cow-rule-strong: #666666;
+    --cow-field-bg: #ffffff;
+    --cow-input-bg: #ffffff;
+    --cow-chip-bg: #ffffff;
+    --cow-chip-ink: #333333;
+
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    font-size: 10.5pt;
+    background: #ffffff;
+  }
+
+  /* The permit-type edge survives in greyscale as a rule, so the document still reads as a
+     typed, edged form rather than as an undifferentiated printout. */
+  .cow-edge {
+    flex-basis: 6pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Furniture, not claims. */
+  .cow-display-copy {
+    display: none;
+  }
+
+  /* A permit element must not be split across a page break: a hand-back row on its own on
+     page 2 is how a signature block gets misread. */
+  .cow-section,
+  .cow-sig-row,
+  .cow-sig-head,
+  .cow-certified,
+  .cow-clause {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .cow-permit-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* The operator's own words print as written, in a box that shows it was a field. */
+  .cow-input {
+    border: 1px solid #666666;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* The chips print. They are the reason the paper can be checked against the database. */
+  .cow-chip {
+    border: 1px solid #666666;
+    color: #333333;
+  }
+
+  /* The hatching does not survive greyscale reliably, so the unsigned rows say so in words
+     as well — `unsigned — signatory` is already in the DOM and prints with everything else. */
+  .cow-sig-row[data-signed='false'] {
+    background: none;
+  }
+
+  .cow-sig-rule {
+    border-bottom: 1pt solid #000000;
+  }
+
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.75em;
+  }
+}
+
+@page {
+  margin: 14mm;
+}

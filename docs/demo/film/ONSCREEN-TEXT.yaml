@@ -1,0 +1,2416 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# prose-hygiene: register
+#
+# ONSCREEN-TEXT.yaml — EVERY STRING THAT APPEARS ON SCREEN IN THE 172 s, AND WHERE IT CAME
+# FROM. Owner: W5 (story-and-script wave). Beat ids and durations are inherited from
+# `docs/demo/film/BEATS.yaml`, which wins on timing; nothing here re-decides a duration.
+#
+# This file quotes forbidden strings beside true ones, in the same register form
+# `verticals/mainline/demo/script/CAMERA-STRINGS.yaml` uses, so it carries the
+# `prose-hygiene: register` marker above. Structurally it does not need it —
+# `forbidden_on_camera` is one of `claim_hygiene.py`'s PROHIBITION_KEYS and the whole
+# indented block under it is read as quoting the ban rather than committing it — but a
+# reader who does not know that should not have to work it out from a regex.
+#
+# ── SCANNER VERDICT (plan R-B) ────────────────────────────────────────────────────────
+# `docs/demo/film/` is outside every glob in `claim_hygiene.py`'s TARGET_GLOBS, so the
+# scanner is invoked by hand and its verdict is recorded here rather than inferred from a
+# green lane. Command and result, run on this file, 2026-08-16:
+#
+#   .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check \
+#       docs/demo/film/ONSCREEN-TEXT.yaml
+#
+#   scanned 1 file(s) against 21 rules
+#   claim hygiene OK
+#   exit 0
+#
+# VERDICT: PASS, on the first run of this file, and a pass that has never gone red asserts
+# nothing — so it was falsified rather than trusted. A copy of this file with three
+# violations planted at the end was scanned on 2026-08-16:
+#
+#   .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check <scratch>/onscreen-red.yaml
+#
+#   FAIL :2395: [HYG-sha-literal]     a seven-hex tree ref written into a note
+#   FAIL :2396: [HYG-bare-invariant]  a bare invariant id written outside the prohibition block
+#   FAIL :2397: [MNC-14-split-view]   a banned property claimed in prose
+#   3 claim-hygiene violation(s) · exit 1
+#
+# All three families are quiet on the real file and loud on the planted one, which is the
+# reading that matters: the silence above is the rules holding, not the rules asleep. The
+# third probe is the important one — those words DO appear in this file, inside
+# `forbidden_on_camera`, and the planted copy proves the exemption is structural (a
+# PROHIBITION_KEY block) rather than a hole. Why the first run was clean is recorded under
+# `findings.F-6`; it is not a boast, it is a note about which red somebody else already
+# paid for.
+#
+# ── WHAT WAS MEASURED BEFORE THIS FILE WAS WRITTEN ────────────────────────────────────
+# Ten payload GETs against the live origin on 2026-08-16 (server_date 2026-08-15T14:00-
+# 14:02Z), and no POST — the plan forbids one and the recorded gate-run payload is the
+# reference. Three further GETs (`/operator.html`, its script asset, `/v1/demo/subjects`)
+# are recorded under `findings.F-1` and `F-5` rather than here, because they measured the
+# delivery of the page and not the value of a string:
+#
+#   GET /v1/health                              200    409 B
+#   GET /v1/permits/{permit_id}                 200  5,691 B
+#   GET /v1/permits/{permit_id}/blocking-checks 200  2,408 B
+#   GET /v1/checks/{check_id}/disposition       200  3,805 B
+#   GET /v1/recall-runs/{run_id}                200  2,223 B
+#   GET /v1/clauses/{clause_uuid}/versions/{commit_id}  200  3,230 B
+#   GET /v1/clauses/{clause_uuid}/ancestry      200  3,744 B   (bare path; the same route
+#                                                               with ?as_of_commit= answers
+#                                                               400, measured the same day)
+#   GET /v1/receipts/{receipt_id}               200  1,817 B
+#   GET /v1/change-requests/{cr_id}             200  3,295 B
+#   GET /v1/checks/{cr_check_id}/disposition    200  3,850 B
+#
+# Every `payload_value` row below carries the pointer it was read from. Values that change
+# per run are NOT written down as text; they are slots (see `conventions.volatile`).
+# The POST-side values are read from `evidence/deploy/live-gate-run.json` (run `judge-walk`,
+# generated 2026-08-14T22:10:33Z) and are labelled `reference`, never `text`.
+#
+# ── THE ONE THING A READER MUST KNOW BEFORE TRUSTING A `ui_label` ROW ─────────────────
+# Every `ui_label` string here is quoted from the operator source in THIS repository at
+# HEAD. On 2026-08-16 those strings were NOT in the bytes the live origin serves:
+# `GET /operator.html` answers 200 (4,655 B) with `<title>MAINLINE console</title>`, its
+# only script is `/assets/index-LoN3Sn_L.js`, and that bundle contains zero occurrences of
+# `CONTROL OF WORK`, `1 obligation outstanding`, `cow-`, `hz-card` or `moc-`. See
+# `findings.F-1`. Until the operator package is deployed, the `ui_label` rows describe the
+# film the repository can make, not the film this origin can serve today, and W6's
+# fallback governs the shoot.
+#
+# ── HOW TO READ AN ENTRY ──────────────────────────────────────────────────────────────
+#   id            stable handle: <beat>.<region>.<thing>
+#   kind          watermark | lower_third | overlay | ui_label | payload_value
+#   text          the string VERBATIM, exactly as it appears — or
+#   text_slot     a description of the value to be filled from THIS RUN's own response,
+#                 used wherever the value moves between runs. A slot is never a
+#                 placeholder to be typed over: it names the pointer that fills it.
+#   label         the row label the app prints beside the value. EVERY `label` in this
+#                 file is our own word, i.e. editorial; it is recorded once here rather
+#                 than doubling every entry.
+#   chip          the provenance chip: db:column | derived | recomputed | reported |
+#                 parsed | staged | typed | editorial | none_claimed
+#   envelope_chip the chip the WIRE claimed for this pointer, where the wire's vocabulary
+#                 and the chip vocabulary above differ. Recorded, never substituted.
+#   editorial     true when the words are ours rather than the database's.
+#   source        pointer, file:line, or the endpoint the value came back on.
+#
+# ── TWO DECLARED EXTENSIONS TO THE BRIEF'S VOCABULARIES, EACH WITH ITS REASON ─────────
+# 1. `chip: none_claimed`. The brief's chip vocabulary has eight values; the deployed
+#    envelope claims a chip for some pointers and NONE for others, and beats 1 and 4 —
+#    including their `00000` SQLSTATEs — are in the second group (`transitions.py` claims
+#    `db:constraint` for `/beats/1/sqlstate` and `/beats/2/sqlstate` only;
+#    `docs/demo/memory-visible-CONTRACT.md` §2.1). Choosing any of the eight for those
+#    values would be this file inventing a claim the emitter did not make. `none_claimed`
+#    is the console's own third answer (`features/gate/provenance.ts::lookupProvenance`)
+#    and it is used here for exactly that case.
+# 2. `envelope_chip`. The wire's five chips are `db:column`, `db:constraint`,
+#    `recomputed`, `staged`, `derived` (`envelope.py:93`). `reported` and `parsed` are not
+#    wire chips at all — they are the payload's own `constraint_source` values, which the
+#    refusal banner renders AS a chip beside the constraint name (`RefusalBanner.ts:171`).
+#    Both are true of the same string, so both are recorded: `chip` is what the frame
+#    shows, `envelope_chip` is what the envelope claimed.
+#
+# ── kind: editorial ───────────────────────────────────────────────────────────────────
+# The brief asks that every editorial string be marked `kind: editorial`. `editorial` is a
+# member of the CHIP vocabulary and not of the KIND vocabulary, and a string is both a
+# watermark (kind) and ours (provenance) at once. So the mark is carried twice and
+# unambiguously: `chip: editorial` AND `editorial: true`, on every string whose words are
+# ours — the lower third, the straplines, the reveal-control labels, every overlay in the
+# naming block, and every row label. Grep `editorial: true` and you have the complete list
+# of words a judge would be right to call ours.
+
+meta:
+  owner: W5
+  file_purpose: >-
+    Every burned-in and on-screen string in the 172 s cut, keyed by beat, each with its
+    kind, its provenance chip and the pointer or file:line it came from.
+  film_total_s: 172
+  spine: docs/demo/film/BEATS.yaml
+  plan: docs/demo/story-and-script-plan.md
+  siblings: [VO-DEMO.md, VO-CLOSE.md, CLICKS.md, SPINE.md, FALLBACKS.md, CLAIMS-CLEARANCE.md]
+  measured_on: '2026-08-16'
+  origin: https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
+  post_reference: evidence/deploy/live-gate-run.json
+  post_reference_run: judge-walk
+  post_reference_generated_at: '2026-08-14T22:10:33Z'
+  scanner_verdict: PASS
+  scanner_command: .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check docs/demo/film/ONSCREEN-TEXT.yaml
+
+vocabulary:
+  kind: [watermark, lower_third, overlay, ui_label, payload_value]
+  chip:
+    - db:column
+    - derived
+    - recomputed
+    - reported
+    - parsed
+    - staged
+    - typed
+    - editorial
+    - none_claimed
+  envelope_chip: ['db:column', 'db:constraint', recomputed, staged, derived]
+
+conventions:
+  - id: C1
+    rule: >-
+      Nothing on screen is rounded by us and no number is retyped. Per-beat durations are
+      the payload's own elapsed_ms as the panel prints them; no overlay, strap or caption
+      in this file quotes an elapsed figure at all.
+    authority: plan R-K; CLICKS.md §6 rule 5; r6-honesty A2
+  - id: C2
+    rule: >-
+      A value that moves between runs is a slot, never a string. Slots in this file:
+      run_id, response byte count, received-at instant, every elapsed, generated_at,
+      disposition_id, clearance_digest, refusal_id, the two logical timestamps.
+    authority: plan R-K; docs/demo/memory-visible-CONTRACT.md §1.4 (volatile is a confession)
+  - id: C3
+    rule: >-
+      Typed carries no chip. The three typed fields are visible inputs with a caret and a
+      placeholder, labelled by the app itself, and they are never echoed back as data.
+      Every server value carries a chip; nothing typed does.
+    authority: plan R-H; CLICKS.md §4; permit/typed-fields.ts
+  - id: C4
+    rule: >-
+      The SYNTHETIC prefix stays on screen wherever a column carries it — the event title,
+      the evidence summary, the clause text, the blame-edge attribution. It is part of the
+      column value and cropping it to prettify a frame is editing evidence.
+    authority: plan R-F; demo_world.sql:275-278; hazard/precursor.ts:378
+  - id: C5
+    rule: >-
+      An overlay may only name a fact whose evidence is legible in the same frame. An
+      overlay that cannot be checked against the picture behind it is an assertion, and
+      assertions are the thing this product exists to replace.
+    authority: r5-craft §4 rule 1
+  - id: C6
+    rule: >-
+      Every `label` in this file is our own word. Row labels, section headings, glosses and
+      straplines are authored; the values beside them are not. This is the single
+      convention that lets a reviewer see, at a glance, which words are ours.
+  - id: C7
+    rule: >-
+      Where the app composes a sentence from a payload value, the sentence is recorded with
+      its template and the pointer that fills it, so nobody types the reference value into
+      a burned-in strap on the day.
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# THE WATERMARK — on frame for the whole film, and it names this film's world
+# ══════════════════════════════════════════════════════════════════════════════════════
+watermark:
+  id: film.watermark
+  kind: watermark
+  text: SYNTHETIC CORPUS · EVERY SITE, PERMIT, INCIDENT AND PERSON HERE IS AUTHORED
+  chip: editorial
+  editorial: true
+  on_frame: 0 s to 172 s, without exception, including the end card
+  placement: >-
+    Burned in, top strip, inside the middle 90 % of frame and clear of the bottom 12 %
+    where the player's scrubber sits.
+  authority: plan R-L; r6-honesty A3; DEMO-HONESTY.md:35-36 and :83
+
+  deviation_from_committed_string:
+    committed_string: SYNTHETIC CORPUS · KESTREL RESOURCES IS FICTIONAL
+    committed_at: verticals/mainline/demo/DEMO-HONESTY.md:35-36
+    also_at: verticals/mainline/demo/script/CAMERA-STRINGS.yaml banners.watermark
+    deviation: >-
+      This film burns the R-L string above instead of the committed one. The words are
+      different; the control is identical and is not weakened — the committed string names
+      one fictional thing, the string above names every fictional thing on screen.
+    reason: >-
+      The committed string names Kestrel Resources, which is the CORPUS world's cleared
+      fictional operator — cleared against the ASIC company register, ABN Lookup and IP
+      Australia, with the query strings and verbatim results recorded in
+      demo/operator/CLEARANCE.md (DEMO-HONESTY.md:83-86). This film is shot against the
+      demo-api world, whose site seeds as `demo_site` (demo_world.sql:72-76) and whose
+      `site_code` renders on screen as a uuid, not as a company. A watermark naming an
+      operator the frame never shows would be a strange kind of dishonesty: it would
+      disclaim the wrong fiction and leave the site, the permit, the incident and the
+      person on screen undisclaimed.
+    measured: >-
+      `grep -ril kestrel verticals/mainline/apps/console/src/` returns nothing on this
+      tree, so no built operator surface renders a Kestrel site today.
+    reversion_condition: >-
+      If the operator UI does render Kestrel Resources on the day, the committed string is
+      used VERBATIM instead, unchanged and un-merged with this one, and this block records
+      that it was.
+    what_is_preserved: >-
+      Watermark on frame for the whole film; never cropped; never faded under a title;
+      never smaller than the smallest legible on-screen row.
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# PERSISTENT — strings on frame across many beats, recorded once
+# ══════════════════════════════════════════════════════════════════════════════════════
+persistent:
+  - id: film.chip.stack
+    kind: overlay
+    text: AWS Lambda Function URL · ap-southeast-1
+    chip: editorial
+    editorial: true
+    on_frame: b0 to b8, small, top-left, under the watermark
+    why_this_wording: >-
+      Every word of it is confirmable against the URL bar in the same frame, which reads
+      the `…lambda-url.ap-southeast-1.on.aws` origin. The cluster version is deliberately
+      NOT in this chip: it comes from GET /v1/health and is not in frame on the permit
+      screen, so it is named in c3 where the read that produces it is the exhibit.
+    authority: r5-craft §4 (suggested persistent chip, narrowed by rule 1 same-frame confirmability)
+
+  - id: film.strap.disclosure_fallback
+    kind: overlay
+    text: >-
+      All four beats arrived in one already-rolled-back SERIALIZABLE transaction. This
+      panel reveals them in order as a reading aid; every timing shown is the server's.
+    chip: editorial
+    editorial: true
+    on_frame: b2 to b8, only while the page's own disclosure strip is scrolled out of frame
+    carries_no_run_varying_value: true
+    why: >-
+      Plan R-C requires the disclosure in frame from b2 onward; the page's strip is not
+      sticky and leaves frame at b3 and b6 (CLICKS.md §7 D-2). A burned strap carrying a
+      run_id typed by hand could be wrong about a run; this sentence cannot be, because it
+      contains no value from one.
+    authority: plan R-C; CLICKS.md §7 D-2
+
+  - id: film.ui.watermark_strip
+    kind: ui_label
+    text: SYNTHETIC DEMONSTRATION — no real site, no real permit, no real person
+    chip: editorial
+    editorial: true
+    source: verticals/mainline/apps/console/src/operator/chrome/Watermark.ts:22
+    on_frame: b0 only, because the strip is a normal flow element and scrolls away
+    note: >-
+      The page's own watermark. It is not the film's watermark and does not replace it;
+      both are on screen in b0 and only the burned one survives the first scroll.
+
+  - id: film.ui.origin_strip
+    kind: ui_label
+    label: served from
+    text_slot: the origin the page was served from, printed by the page itself
+    chip: derived
+    editorial: false
+    source: verticals/mainline/apps/console/src/operator/chrome/OriginStrip.ts:118,132
+    why_it_matters: >-
+      This strip is the film's R-N device. If the take is made against the local emulator
+      it prints `X-Mainline-Emulator` and the film cannot be passed off as the deployed
+      one. It is in frame at the foot of the document, and it is never cropped.
+
+  - id: film.frame.url_bar
+    kind: ui_label
+    text_slot: the browser's own address bar, uncropped, showing the origin and the route
+    chip: derived
+    editorial: false
+    note: >-
+      Browser chrome, not our string. Recorded because it is one of the four witnesses that
+      must be in frame from the first frame to the last (CLICKS.md §1.4) and because an
+      overlay may never cover it.
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# THE BEATS
+# ══════════════════════════════════════════════════════════════════════════════════════
+beats:
+
+  # ── b0 · THE ORDINARY MOMENT · 0:00 → 0:12 ─────────────────────────────────────────
+  - beat_id: b0
+    t: 0
+    dur: 12
+    title: THE ORDINARY MOMENT
+    strings:
+
+      - id: b0.lower_third.problem
+        kind: lower_third
+        text: >-
+          The lesson a past incident taught is a memo people forget. Here it is a
+          constraint the database enforces — for the supervisors and safety engineers who
+          issue permits to work.
+        chip: editorial
+        editorial: true
+        on_frame: 0:00 to 0:07
+        why: >-
+          Devpost asks for the problem and the audience in one sentence up front and the
+          spoken opener spends its words on the promise, so the problem sentence is written
+          rather than said. It costs zero seconds of voice.
+        authority: plan §1.2
+        set_two_lines: >-
+          Break after `forget.` so neither line exceeds the 42-character subtitle width the
+          craft research fixes; hold both lines for the full 7 s.
+
+      - id: b0.appbar.product
+        kind: ui_label
+        text: CONTROL OF WORK
+        chip: editorial
+        editorial: true
+        source: chrome/AppBar.ts:20
+        note: >-
+          The supervisor's own product, and it is deliberately not MAINLINE. MAINLINE is
+          underneath; the whole point of the film is that the refusal lands inside somebody
+          else's software.
+
+      - id: b0.appbar.modules
+        kind: ui_label
+        text: Modules
+        chip: editorial
+        editorial: true
+        source: chrome/AppBar.ts:50
+
+      - id: b0.rail.items
+        kind: ui_label
+        text: Permits · Isolations · Certificates · Register
+        chip: editorial
+        editorial: true
+        source: chrome/Rail.ts:36-39
+        note: Rendered as a list, not a menu; the unavailable three carry the note below.
+
+      - id: b0.rail.not_carried
+        kind: ui_label
+        text: not carried by this deployment
+        chip: editorial
+        editorial: true
+        source: chrome/Rail.ts:43 (NOT_CARRIED_NOTE), permit/typed-fields.ts:56 (NOT_CARRIED)
+        note: >-
+          The same six words do three jobs on this screen — an absent rail item, an absent
+          column, an absent action. That repetition is a feature: a judge learns the phrase
+          once and can then read every gap on the screen without a legend.
+
+      - id: b0.header.permit_type
+        kind: ui_label
+        label: Permit type
+        text: Cold work
+        chip: typed
+        editorial: false
+        source: permit/header.ts:51,130
+        note: >-
+          Selected on this device from HSG250 Table 2's eight types. It is an input, not a
+          column: `mainline.permit` carries no permit-type column.
+
+      - id: b0.header.permit_type_note
+        kind: ui_label
+        text: HSG250 Table 2 · selected on this device
+        chip: editorial
+        editorial: true
+        source: permit/header.ts:150
+
+      - id: b0.header.external_ref
+        kind: payload_value
+        label: Permit reference number
+        text: DEMO-PTW-0001
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/external_ref
+        note: The one string in the film a judge will remember well enough to type into the API.
+
+      - id: b0.header.ref_name
+        kind: payload_value
+        text: refs/permits/demo-0001
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/ref_name
+        note: A permit that is a git ref. Keep it in the header; it is our most distinctive idea.
+
+      - id: b0.header.state_chip
+        kind: payload_value
+        label: Status
+        text: dispositioned
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/state
+        must_not: >-
+          Do not translate it into `Pending approval`. It is a value of the user-defined
+          enum `mainline.subject_state`, and translating it would invent a status
+          vocabulary this system does not have.
+
+      - id: b0.header.state_ladder
+        kind: ui_label
+        text: mainline.subject_state — the seven values the enum declares
+        chip: editorial
+        editorial: true
+        source: permit/header.ts:255
+        note: >-
+          The chip renders the enum value verbatim and the ladder beside it shows the other
+          six. That pairing is what makes `dispositioned` readable without translating it.
+
+      - id: b0.header.site
+        kind: payload_value
+        label: Site
+        text_slot: '/data/site_code — a uuid, printed as the column holds it'
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/site_code
+        measured_2026_08_16: dec0de00-0001-4000-8000-000000000001
+        must_not: >-
+          Never a plant name. The column is a uuid; a place name here would be an invention
+          wearing a column's clothes.
+
+      - id: b0.header.site_source_note
+        kind: ui_label
+        text: mainline.site.site_code, joined on mainline.permit.site_id
+        chip: editorial
+        editorial: true
+        source: permit/header.ts:180
+
+      - id: b0.header.validity
+        kind: payload_value
+        label: Valid from · Expires
+        text: 2 August 2026, 00:00 UTC → 2 August 2027, 00:00 UTC
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/opened_at and /data/horizon_at
+        rendering: >-
+          The app prints the human UTC form and the emitted ISO literal beside it
+          (`2026-08-02T00:00:00Z`, `2027-08-02T00:00:00Z`). Both are the columns'.
+        note: HSG250 Figure 1 element 9 and audit item 23 — a permit must state its expiry.
+
+      - id: b0.header.epoch_and_head
+        kind: payload_value
+        label: Gate epoch · Chain head · Under hold
+        text: 1 · 2 · false
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/gate_epoch, /data/head_seq, /data/under_hold
+
+      - id: b0.header.display_copy
+        kind: ui_label
+        text: Display copy ⎙
+        chip: editorial
+        editorial: true
+        source: permit/display-copy.ts:50
+        do_not: Do not click it on camera. It opens a print view and costs the take.
+
+      - id: b0.el1.title_typed
+        kind: ui_label
+        label: Permit title
+        text: Cold work — intrusive work inside the isolation boundary
+        chip: typed
+        editorial: true
+        typed: pre-typed in pre-roll, 56 characters
+        source: HSG250 Figure 1 element 1 · no column exists · permit/typed-fields.ts
+        constraint_check: >-
+          No plant name, no asset tag, no crew, no company. Nothing here could be mistaken
+          for a column value if the frame were screenshotted: it contains no identifier, no
+          code and no uuid.
+        authority: plan R-H; r3-operator §5.3 honest option A; CLICKS.md §4
+
+      - id: b0.el3.location_typed
+        kind: ui_label
+        label: Location on site
+        text: Within the isolation boundary declared on this permit
+        chip: typed
+        editorial: true
+        typed: pre-typed in pre-roll, 53 characters
+        source: HSG250 Figure 1 element 3 · no free-text column exists
+        constraint_check: >-
+          Points at the boundary certificate two sections above, which IS a column, rather
+          than at an invented place. A location that names nothing real cannot be mistaken
+          for something real.
+
+      - id: b0.el5.work_typed_head
+        kind: ui_label
+        label: Work and its limitations
+        text: 'Open the guard and inspect; no work until'
+        chip: typed
+        editorial: true
+        typed: pre-typed in pre-roll, 40 characters
+        source: HSG250 Figure 1 element 5 · no column exists
+
+      - id: b0.el5.work_typed_tail
+        kind: ui_label
+        text: ' verified at zero'
+        chip: typed
+        editorial: true
+        typed: TYPED ON CAMERA at 0:05.5 – 0:08, three words, at a human rate
+        joins_to: b0.el5.work_typed_head
+        full_field_when_typed: 'Open the guard and inspect; no work until verified at zero'
+        length_check: 57 characters complete, so the field does not wrap
+        why_these_three_words: >-
+          They are the supervisor writing his own limitation in the language the clause
+          uses, which is what makes the refusal legible eighteen seconds later. They assert
+          nothing about the database and they name nothing that does not exist.
+        authority: CLICKS.md §4 (on-camera tail at least three words, so the typing rate is visible)
+
+      - id: b0.typed.chip_note
+        kind: ui_label
+        text: typed on this device · not carried by this deployment
+        chip: editorial
+        editorial: true
+        source: permit/typed-fields.ts:59 (TYPED_HERE)
+        why_it_is_the_most_important_label_on_the_screen: >-
+          It is the convention a judge can check in two seconds: every server value carries
+          a provenance chip and nothing typed does. In frame, `DEMO-PTW-0001` two sections
+          above carries `db:column` and this field carries this sentence instead.
+
+      - id: b0.el4.plant
+        kind: payload_value
+        label: Plant identification · Tags declared · Tags resolved · Tags unmodelled
+        text: 1 · 1 · 0
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/boundary_certificate
+        beside_it: 'asset graph version: demo-asset-graph-1 · state: boundary certified'
+        note: >-
+          Better than a real form's box: it certifies that the plant identification is
+          COMPLETE, and the certificate is the reason the sentence can be said at all.
+
+      - id: b0.el7.clause_text
+        kind: payload_value
+        label: Precautions necessary and actions in the event of an emergency
+        text: >-
+          SYNTHETIC — Before any intrusive work, stored energy shall be isolated, locked and
+          verified at zero by a competent person.
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/clauses/{clause_uuid}/versions/{commit_id} · /data/version/canon_text
+        synthetic_prefix: KEPT — it is part of the column value (C4)
+        note: >-
+          `raw_text` and `canon_text` are byte-identical on this row and both carry the
+          prefix. The film quotes the clause as the database returned it or not at all.
+
+      - id: b0.el7.clause_facts
+        kind: payload_value
+        label: Clause · Generation · Control delta · Severity max · At commit · Anchors
+        text: 7.3.2(b) · 1 · introduce · 4 · 9f12114d…9a39 · LOTO · ZERO_ENERGY
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: >-
+          GET /v1/clauses/{clause_uuid}/versions/{commit_id} · /data/version/printed_label,
+          /gen, /control_delta, /sev_max, /commit_id, /anchor_set
+        digest_rendering: >-
+          The app shortens a hex value to its first eight and last four characters with an
+          ellipsis between (`hazard/precursor.ts:172-180`). That is the form on screen; it
+          is never a seven-character abbreviation and never a full forty.
+        also_on_screen: >-
+          Canonical sha256 `9b152601…0e7b`, under the label `Canonical sha256`.
+
+      - id: b0.el7.sev_max_note
+        kind: ui_label
+        text: the worst severity anywhere in this version’s blame lineage; projected, never chosen
+        chip: editorial
+        editorial: true
+        source: permit/precautions.ts:81
+        note: >-
+          One of the two sentences on the permit screen that tell a judge the severity was
+          not typed by anybody. The other is on the hazard card in b3.
+
+      - id: b0.el8.ppe
+        kind: ui_label
+        label: Protective equipment (including PPE)
+        text: not carried by this deployment
+        chip: editorial
+        editorial: true
+        source: permit/typed-fields.ts:56; PermitScreen.ts:214
+        do_not: >-
+          Do not scroll past it quickly and do not fill it. An empty field that says why it
+          is empty is a fidelity signal; a plausible PPE list would be a fabrication.
+        authority: plan R-H; r3-operator §5.3 honest option B
+
+      - id: b0.el11.extension
+        kind: ui_label
+        text: >-
+          11 · Extension / shift handover — this deployment has no extension mechanism; no
+          column and no route carry one
+        chip: editorial
+        editorial: true
+        source: permit/signatures.ts:80-81
+
+      - id: b0.actionbar.standing
+        kind: payload_value
+        text: 1 obligation outstanding
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: >-
+          GET /v1/permits/{permit_id} · /data/counters/open_blocking, composed by
+          issue/beats.ts:476-477 (singular/plural chosen from the count, never a constant)
+        must_not: >-
+          This counter does not tick to zero at any point in the film. It was rendered
+          before the press, the beat-3 write was rolled back, and this page never re-reads
+          it. A UI-side decrement, or a line of narration claiming it ticked, is a
+          fabricated exhibit.
+        authority: CLICKS.md §3 first boxed warning
+
+      - id: b0.actionbar.controls
+        kind: ui_label
+        text: 'Save draft   ·   ISSUE ▸'
+        chip: editorial
+        editorial: true
+        source: issue/ActionBar.ts:99,109
+        note: >-
+          The button says ISSUE, which is what a supervisor does to a permit — not Merge and
+          not Submit. `Save draft` is present and disabled with its reason beside it.
+
+      - id: b0.actionbar.save_note
+        kind: ui_label
+        text: Save draft — not carried by this deployment.
+        chip: editorial
+        editorial: true
+        source: issue/ActionBar.ts:117
+
+      - id: b0.signatures.block
+        kind: ui_label
+        text: >-
+          Signature block — HSG250 ¶49 — signatures on permit-to-work forms should be dated
+          and timed.
+        chip: editorial
+        editorial: true
+        source: permit/signatures.ts:67-68
+        rows_visible: Issue · Acceptance · Hand-back · Cancellation, with Extension omitted and labelled
+
+  # ── b1 · THE ATTEMPT · 0:12 → 0:22 ─────────────────────────────────────────────────
+  - beat_id: b1
+    t: 12
+    dur: 10
+    title: THE ATTEMPT
+    strings:
+
+      - id: b1.button.pending
+        kind: ui_label
+        text_slot: 'Issuing… <s> s — the tenths counting up on the real promise'
+        template: 'Issuing… ${(elapsedMs/1000).toFixed(1)} s'
+        chip: derived
+        editorial: false
+        source: issue/pending.ts:135-138
+        must_not: >-
+          There is no setTimeout behind this clock and no skeleton pretending to be work. If
+          the round trip is slow the number is large, and a large number is a better problem
+          than a false one.
+
+      - id: b1.button.pending_note
+        kind: ui_label
+        text: >-
+          One SERIALIZABLE transaction is open against the database. The clock is this
+          browser’s measurement of the round trip; each beat below reports the duration the
+          server measured.
+        chip: editorial
+        editorial: true
+        source: issue/pending.ts:142-144 (PENDING_NOTE)
+        note: >-
+          Quoted with the typographic apostrophe the source carries. It is the sentence that
+          stops the pending clock from being read as a server measurement.
+
+      - id: b1.devtools.row
+        kind: ui_label
+        text_slot: 'gate-run · POST · <status> · <bytes> · <time> — DevTools'' own columns'
+        chip: derived
+        editorial: false
+        note: >-
+          Not our string. In frame because the list was cleared on camera one second before
+          the press, which is the only ordering that distinguishes a live request from a
+          screenshot.
+        authority: r5-craft §6
+
+  # ── b2 · THE REFUSAL · 0:22 → 0:36 ─────────────────────────────────────────────────
+  - beat_id: b2
+    t: 22
+    dur: 14
+    title: THE REFUSAL — filmed calm
+    strings:
+
+      - id: b2.overlay.sqlstate
+        kind: overlay
+        text: |-
+          SQLSTATE 23514
+          CockroachDB CHECK constraint
+        chip: editorial
+        editorial: true
+        note: >-
+          Two lines, 14 and 28 characters, well inside the 42-character line limit; on
+          screen from 0:29 to 0:33. It is the film's only demo-side overlay besides b3's
+          three loop labels, and it goes BESIDE the predicate, never over it — the
+          `:::mainline.subject_state` annotation must stay legible under it.
+        confirmable_in_same_frame: 'yes — `23514` and `gate_closed_when_issued` are both on the banner'
+        authority: r5-craft §4 rules 1-3; CLICKS.md §5 B2
+
+      - id: b2.lock.note
+        kind: ui_label
+        text_slot: 'ISSUE is locked: <constraint> refused this write.'
+        template: 'ISSUE is locked: ${beat.constraint} refused this write.'
+        reference: 'ISSUE is locked: gate_closed_when_issued refused this write.'
+        chip: editorial
+        editorial: true
+        source: issue/ActionBar.ts:278 and its templated sibling
+        note: >-
+          The constraint name in this sentence is the payload's; the sentence around it is
+          ours. `ISSUE ▸` is disabled from here to the end of the film and the lock note
+          stays on screen through the admission beat, which is b8's whole point.
+
+      - id: b2.disclosure.line
+        kind: ui_label
+        text_slot: >-
+          one request · 4 beats · POST /v1/demo/gate-run · run_id <id> · response received
+          <ISO> · <n> bytes
+        template: >-
+          one request · ${beats.length} beats · POST /v1/demo/gate-run · run_id ${run_id} ·
+          response received ${receivedAt} · ${bytes} bytes
+        chip: derived
+        editorial: false
+        source: kernel/gate-run.ts:200-214; shape asserted at issue/disclosure.ts:54-55
+        must_not: >-
+          Do not correct `4 beats` to `four beats`. The transport composed the digit and a
+          line that does not match the expected shape is rendered verbatim anyway, marked
+          unexpected — a screen that quietly repaired a malformed disclosure would be
+          disclosing something other than what happened.
+        authority: plan R-C
+
+      - id: b2.disclosure.caveat
+        kind: ui_label
+        text: >-
+          Every beat below came back in that one response. Each is revealed on a click, and
+          each shows the duration the server measured for it. The received-at instant above
+          is this browser’s clock.
+        chip: editorial
+        editorial: true
+        source: issue/disclosure.ts:83-86
+
+      - id: b2.beat1.rows
+        kind: payload_value
+        label: SQLSTATE · state · open_blocking (projected column) · open_blocking (re-derived) · gate_epoch · head_seq
+        text: 00000 · dispositioned · 1 · 1 · 1 · 2
+        chip: none_claimed
+        envelope_chip: none — the emitter claims no chip for /beats/0
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/beats/0/{sqlstate,observed}'
+        note: >-
+          Two of the four SQLSTATEs on screen carry a chip and two do not. That asymmetry is
+          the truth about what the emitter claimed, and adding a chip to the other two would
+          be an endpoint change made for the camera.
+        authority: docs/demo/memory-visible-CONTRACT.md §2.1
+
+      - id: b2.beat1.statement
+        kind: payload_value
+        label: statement
+        text: SELECT … FROM mainline.permit JOIN mainline.site …
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/0/statement
+        note: The ellipses are the payload's own. They are not our truncation and are not to be filled in.
+
+      - id: b2.banner.headline
+        kind: ui_label
+        text: PERMIT NOT ISSUED
+        chip: editorial
+        editorial: true
+        source: issue/RefusalBanner.ts:116
+        note: >-
+          The supervisor's register, on top; the database's register underneath. The second
+          is what makes a judge believe the first.
+
+      - id: b2.banner.outstanding
+        kind: payload_value
+        text: 1 obligation outstanding
+        chip: derived
+        editorial: false
+        source: >-
+          composed from the beat's observed count, or from the size of the refusal's own
+          reason set — never from a constant (RefusalBanner.ts:125)
+
+      - id: b2.banner.precursor_sentence
+        kind: payload_value
+        text: DEMO-INC-0001 has never been answered for this permit.
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: >-
+          sentence composed at RefusalBanner.ts:274 from the precursor label and the
+          refusal's reason set; the label is /data/checks/0/precursor/external_ref
+
+      - id: b2.banner.register_lead
+        kind: ui_label
+        text: The database refused this write. Everything below is what it returned.
+        chip: editorial
+        editorial: true
+        source: issue/RefusalBanner.ts:159
+
+      - id: b2.banner.sqlstate
+        kind: payload_value
+        label: SQLSTATE
+        text: '23514'
+        chip: reported
+        envelope_chip: db:constraint
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/1/sqlstate
+
+      - id: b2.banner.constraint
+        kind: payload_value
+        label: constraint
+        text: gate_closed_when_issued
+        chip: reported
+        envelope_chip: db:constraint
+        editorial: false
+        source: >-
+          POST /v1/demo/gate-run · /data/beats/1/constraint, with
+          /data/beats/1/constraint_source rendered as the chip beside it
+        note: >-
+          `reported` means the driver handed the constraint name back. Beat 3's is `parsed`,
+          which is weaker, and the difference is on screen at the film's loudest moment.
+
+      - id: b2.banner.check_predicate
+        kind: payload_value
+        label: CHECK predicate
+        text: "((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))"
+        chip: reported
+        envelope_chip: 'none — recovered from /data/beats/1/message, which is itself chipped nowhere'
+        editorial: false
+        source: >-
+          read out of POST /v1/demo/gate-run · /data/beats/1/message by
+          issue/beats.ts::checkPredicate; the banner prints the note
+          `Read out of the message below; no field carries it.`
+        verbatim_rule: >-
+          Quoted to its printed characters, including CockroachDB's own `:::` type
+          annotations and `INT8`. It is neither paraphrased, nor truncated, nor
+          pretty-printed, nor covered by an overlay. It is the most credible string in the
+          film precisely because nobody would write it that way on purpose.
+        do_not_confuse_with: b2.constraint_table.predicate
+        authority: plan R-K; CLICKS.md §5 B2 "In frame"
+
+      - id: b2.constraint_table.predicate
+        kind: payload_value
+        label: 'Constraint (permit screen, §4 Plant identification)'
+        text: "CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))"
+        chip: db:column
+        envelope_chip: db:constraint
+        editorial: false
+        source: >-
+          GET /v1/permits/{permit_id} · /data/constraints/2/predicate, read from
+          pg_catalog.pg_constraint at request time
+        finding: >-
+          THIS IS A DIFFERENT STRING FROM b2.banner.check_predicate AND BOTH ARE REAL. The
+          catalogue prints `::` and no INT8; the refusal message prints `:::` and `0:::INT8`.
+          Two renderers, one constraint. Neither may be "corrected" into the other, and if
+          both are ever in one frame the frame must not imply they are the same bytes.
+        measured: '2026-08-16, both quoted above from their own responses'
+
+      - id: b2.banner.statement
+        kind: payload_value
+        label: statement
+        text: CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/1/statement
+        note: The placeholders are the payload's. A film that filled them in would be filming its own edit.
+
+      - id: b2.banner.message
+        kind: payload_value
+        label: message
+        text: >-
+          failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR
+          (open_blocking = 0:::INT8))
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/1/message
+        length: 108 characters — the longest evidence line in the film, and the one to test for wrap
+
+      - id: b2.banner.diagnosis
+        kind: payload_value
+        label: diagnosis
+        text: declarative · 0 probe calls
+        chip: none_claimed
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/beats/1/refusal/{diagnosis,probe_calls}'
+
+      - id: b2.banner.reason_set
+        kind: payload_value
+        label: reason set
+        text_slot: >-
+          obligation <obligation_id> · origin blame_ancestry · severity 4 · virulence
+          blood_major · clause <clause_id> · precursor event <event_id> · open at gate_epoch
+          1; no live disposition
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/1/refusal/mus/0, joined with ' · ' by issue/beats.ts:303-311
+        why_it_is_the_agentic_memory_answer: >-
+          The refusal names its own cause. `origin: blame_ancestry` and the event id of the
+          2019 incident are IN the refusal, which is store → retrieve → act inside one JSON
+          body a judge can read in devtools.
+        uuids_are_quotable: >-
+          The three ids are uuid5-shaped and derived; they are printed as the payload holds
+          them. They are not commit shas and the ban on hex literals does not reach them.
+
+      - id: b2.banner.naa
+        kind: payload_value
+        label: nearest admissible alternative
+        text: >-
+          1 obligation(s) remain open on this subject; disposing of exactly those restores
+          admissibility
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/1/refusal/naa/description, with kind `dispose_obligations` as the chip beside it
+        note: >-
+          The payload's own remedy line, including its `(s)`. The refusal does not merely
+          say no; it says what would fix it, and that sentence is the reason b6 exists.
+
+      - id: b2.banner.elapsed
+        kind: payload_value
+        label: elapsed
+        text_slot: /data/beats/1/elapsed_ms, printed by the panel's own formatter
+        reference: 572.251 ms in the payload of run judge-walk; the panel prints one decimal above 1 ms
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/1/elapsed_ms; formatter at issue/beats.ts:486-489
+        note_on_screen: Measured by the server for this beat — not a reveal delay.
+        must_not: >-
+          No overlay, strap or spoken line quotes this number, and no digits are added to
+          the ones the panel prints. See findings.F-3.
+
+  # ── b3 · WHY — THE MEMORY LOOP · 0:36 → 0:54 · never cut ───────────────────────────
+  - beat_id: b3
+    t: 36
+    dur: 18
+    title: WHY — THE MEMORY LOOP
+    never_cut: true
+    strings:
+
+      - id: b3.overlay.loop
+        kind: overlay
+        text: 'STORE  →  RETRIEVE  →  ACT'
+        chip: editorial
+        editorial: true
+        placement: >-
+          Three small labels aligned to the card's own three rows, in the left margin. They
+          annotate the rows; they never replace or cover them.
+        note: >-
+          The card's own words for the same three rows are RECALLED · SHOWN TO · STATUS,
+          which is the operator's language for the same loop. Both are on screen. The
+          overlay exists because the rules ask for the loop named, and the card exists
+          because a real permit form would never use the word STORE.
+        authority: plan §2 b3; r3-operator §6.3
+
+      - id: b3.card.heading
+        kind: ui_label
+        text: Hazard identification
+        chip: editorial
+        editorial: true
+        source: hazard/HazardCard.ts:256 (HSG250 Figure 1 element 6)
+
+      - id: b3.card.strapline
+        kind: ui_label
+        text: raised by recall, not by a checklist
+        chip: editorial
+        editorial: true
+        source: hazard/HazardCard.ts:88 (STRAPLINE)
+        declared_editorial: >-
+          THE ONE EDITORIAL SENTENCE ON THIS CARD, and the source file says so in its own
+          comment. Every other character on the card is a column, a label or a provenance
+          pointer. It earns its place because it is the difference between this and every
+          other permit-to-work product: the hazard was not chosen from a drop-down by the
+          person who least wanted to see it.
+
+      - id: b3.precursor.identity
+        kind: payload_value
+        text: DEMO-INC-0001 · incident · 14 March 2019, 06:20 UTC
+        chip: db:column
+        envelope_chip: 'db:column inherited from /checks/0'
+        editorial: false
+        source: >-
+          GET /v1/permits/{permit_id}/blocking-checks ·
+          /data/checks/0/precursor/{external_ref,kind,occurred_at}
+        iso_beside_it: '2019-03-14T06:20:00Z'
+        note: >-
+          The date is a column value. No AS OF SYSTEM TIME produced it and no time travel is
+          claimed anywhere in this film.
+
+      - id: b3.precursor.title
+        kind: payload_value
+        text: SYNTHETIC — Stored energy release during intrusive work
+        chip: db:column
+        envelope_chip: 'db:column inherited from /checks/0'
+        editorial: false
+        source: GET /v1/permits/{permit_id}/blocking-checks · /data/checks/0/precursor/title
+        synthetic_prefix: >-
+          KEPT. It is part of `mainline.event.title` (demo_world.sql:275) and the source
+          comment at hazard/precursor.ts:378 says the same. Do not crop it to make the frame
+          prettier.
+        authority: plan R-F
+
+      - id: b3.precursor.severity
+        kind: payload_value
+        label: severity gate · actual · potential · basis
+        text: 4 · 4 · 4 · human_rated
+        chip: db:column
+        envelope_chip: 'db:column inherited from /checks/0'
+        editorial: false
+        source: GET /v1/permits/{permit_id}/blocking-checks · /data/checks/0/precursor/*
+        must_say: >-
+          A severity-four stored-energy release during intrusive work. Never a person, never
+          an injury — the seed's own narrative column ends by saying it describes nobody
+          (demo_world.sql:276-278).
+
+      - id: b3.precursor.source_document
+        kind: payload_value
+        label: source document · sha256
+        text: demo/incident-0001.pdf · 1f84f023…ba46
+        chip: db:column
+        envelope_chip: 'db:column inherited from /checks/0'
+        editorial: false
+        source: 'GET /v1/permits/{permit_id}/blocking-checks · /data/checks/0/precursor/{source_object_key,source_sha256}'
+        digest_rendering: >-
+          First eight and last four hex characters with an ellipsis between, the full value
+          on the element's title attribute (hazard/precursor.ts:172-180). Never seven
+          characters, never forty.
+
+      - id: b3.evidence_summary
+        kind: payload_value
+        text: >-
+          SYNTHETIC — recalled precursor DEMO-INC-0001 reaches the clause version this permit
+          relies on.
+        chip: db:column
+        envelope_chip: 'db:column inherited from /checks/0'
+        editorial: false
+        source: GET /v1/permits/{permit_id}/blocking-checks · /data/checks/0/evidence_summary
+
+      - id: b3.blame_edge.attribution
+        kind: payload_value
+        text: SYNTHETIC — the investigation names this clause as the control that failed.
+        chip: db:column
+        envelope_chip: 'db:column inherited from /blame_edges/0'
+        editorial: false
+        source: GET /v1/clauses/{clause_uuid}/ancestry · /data/blame_edges/0/attribution
+        beside_it: 'basis asserted_document · state active'
+
+      - id: b3.projection.pair
+        kind: payload_value
+        label: on the obligation · in the blame closure
+        text: 4 / blood_major / closure_gen 0   ·   4 / blood_major / closure_gen 0
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: >-
+          GET …/blocking-checks · /data/checks/0/{severity,virulence,closure_gen} beside GET
+          …/ancestry · /data/closure/{max_severity,virulence,closure_gen}
+        match_marker_note: >-
+          The equality between the two sides is arithmetic this browser performed and it
+          carries NO chip. Both operands are chipped; the verdict of the comparison is the
+          page's own and may not borrow one.
+        authority: docs/demo/memory-visible-CONTRACT.md §2.1
+
+      - id: b3.projection.seed_citation
+        kind: ui_label
+        label: source citation — this repository, not this response
+        text: "0, 'routine', 0,   -- projected over by fn_check_project (MI25)"
+        chip: editorial
+        editorial: true
+        source: >-
+          quoted by hazard/HazardCard.ts:99-104 from
+          verticals/mainline/db/seeds/demo/demo_permit.sql:318, at the tree the constant's
+          own `commit` field pins
+        why_it_is_a_citation_and_not_a_value: >-
+          The seeded severity does not exist as a live value anywhere: `fn_check_project`
+          overwrote it before the row was stored. So it is shown as a code citation with its
+          file and line, under a label that says exactly that, and never as a value from a
+          response.
+        the_sentence_it_earns: >-
+          A counter a client writes is a client's opinion. A counter a trigger writes, on a
+          row the client did not touch, is the database's.
+        do_not_print: >-
+          The pinned commit is a seven-character tree ref. It is not printed on camera and
+          not printed in this file; it is read from `SEED_CITATION.commit` by anyone who
+          needs it. See findings.F-6.
+
+      - id: b3.loop.recalled
+        kind: payload_value
+        label: 'RECALLED — the recall run that armed this obligation'
+        text_slot: >-
+          run <short id> · started 2 August 2026, 03:00 UTC · policy demo-recall-1.0 · index
+          generation g1 · 1 candidates · 1 blocking · 0 silenced · 0 deduped
+        chip: db:column
+        envelope_chip: 'db:column exact, on all eight pointers'
+        editorial: false
+        source: >-
+          GET /v1/recall-runs/{run_id} · /data/{started_at,policy_version,index_generation}
+          and /data/counts/{n_candidates,n_blocking,n_silenced,n_deduped}
+        measured_2026_08_16: 'started_at 2026-08-02T03:00:00Z · 1 · 1 · 0 · 0'
+        tense_rule: >-
+          Everything about this row is PAST. It is a seeded record of a pass that ran on
+          2026-08-02, not a retrieval this page performed. The present tense in this film
+          belongs to exactly one thing and it is the re-derivation on the button press.
+        must_not: >-
+          No similarity score, no nearest-neighbour plot, no embedding cloud. This world
+          seeds no embeddings and runs no vector query; the channel is `blame_ancestry`.
+
+      - id: b3.loop.shown_to
+        kind: payload_value
+        label: 'SHOWN TO — the obligation was put in front of a named human'
+        text: 'actor demo.signer · issued 2 August 2026, 03:05 UTC · receipt digest 993c00c3…af46'
+        chip: db:column
+        envelope_chip: 'db:column exact'
+        editorial: false
+        source: 'GET /v1/receipts/{receipt_id} · /data/{actor_sub,issued_at,receipt_digest}'
+        role_rule: >-
+          `demo.signer` is the ACCEPTOR here, not the issuing authority. The column behind
+          the name is `exposure_receipt.actor_sub` — who the obligation was shown to — which
+          is HSG250 Figure 1 element 10.
+        authority: plan R-G
+
+      - id: b3.loop.status
+        kind: payload_value
+        label: 'STATUS — whether anything has answered it'
+        text: '● OPEN — unanswered on this permit — no disposition of it is live'
+        chip: derived
+        envelope_chip: derived
+        editorial: false
+        source: GET /v1/permits/{permit_id}/blocking-checks · /data/checks/0/open
+        beside_it: 'disposition_id: null'
+
+      - id: b3.loop.status_note
+        kind: ui_label
+        text: >-
+          open has no column: the read API derived it from the absence of a
+          mainline.disposition row for this check that is neither retracted nor expired
+        chip: editorial
+        editorial: true
+        source: hazard/memory-loop.ts:269-270
+        note: >-
+          The one value in the loop that is not a column says so itself, on screen, in the
+          same row. That is why the `derived` chip beside it can be believed.
+
+      - id: b3.interval.band
+        kind: payload_value
+        label: recall run started · obligation materialised
+        text: '2026-08-02T03:00:00Z   →   10 s   →   2026-08-02T03:00:10Z'
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: >-
+          GET /v1/recall-runs/{run_id} · /data/started_at and GET
+          …/blocking-checks · /data/checks/0/materialised_at
+        the_ten_seconds: >-
+          `10 s` is subtraction, performed in the browser, from the two instants either
+          side. It is rendered by the app's own span formatter and it carries no chip.
+        note_on_screen: >-
+          subtracted in this browser from the two instants either side — not a column, and
+          not chipped
+        sub_labels_on_screen: 'mainline_meas.recall_run.started_at · mainline.blocking_check.materialised_at'
+
+      - id: b3.exchange_lines
+        kind: ui_label
+        text_slot: 'GET <path> · 200 · <n> B on the wire · observed_at <ISO> — one line per exchange'
+        chip: derived
+        editorial: false
+        note: >-
+          The card prints the exchange behind each block beneath the values it carries. This
+          is what a judge cross-checks, and it is the reason b3 does not need the disclosure
+          strip in frame while the strip is unsticky.
+
+  # ── b4 · THE HUMAN MOVE · 0:54 → 1:04 ──────────────────────────────────────────────
+  - beat_id: b4
+    t: 54
+    dur: 10
+    title: THE HUMAN MOVE
+    strings:
+
+      - id: b4.control.reveal_beat3_required
+        kind: ui_label
+        text: Show what happens if the counter is forced to zero ▸
+        chip: editorial
+        editorial: true
+        status: REQUIRED BY PLAN R-C · not the string the build renders today
+        source: required at CLICKS.md §3 third boxed warning; owner named at CLICKS.md §7 D-4
+
+      - id: b4.control.reveal_beat3_as_built
+        kind: ui_label
+        text_slot: 'But the counter now reads <counter_forced_to> ▸'
+        template: 'But the counter now reads ${next.observed.counter_forced_to} ▸'
+        reference: But the counter now reads 0 ▸
+        chip: derived
+        editorial: true
+        source: issue/disclosure.ts:167-174 (advanceLabel)
+        status: WHAT THE BUILD RENDERS TODAY
+        ruling: >-
+          Both strings are recorded because only one of them will be on screen and this file
+          may not guess which. If D-4 has not landed on the day, the built label is filmed
+          as it is — it is honest, its number is the payload's — and the founder narrates it
+          as a reveal, never as an action: no "now I'll", no "let me try", no "watch me".
+
+      - id: b4.panel.headline
+        kind: ui_label
+        text: PERMIT STILL NOT ISSUED
+        chip: editorial
+        editorial: true
+        source: issue/RefusalBanner.ts:116 (the `priorRefusals > 0` branch)
+
+      - id: b4.panel.counter_sentence
+        kind: payload_value
+        text_slot: The outstanding-obligation counter now reads <counter_forced_to>.
+        reference: The outstanding-obligation counter now reads 0.
+        chip: none_claimed
+        editorial: true
+        source: >-
+          sentence at issue/RefusalBanner.ts:132, number from POST /v1/demo/gate-run ·
+          /data/beats/2/observed/counter_forced_to
+        note: The words are ours; the zero is the payload's. It is the only zero in the film that is legitimate.
+
+      - id: b4.panel.attack_label
+        kind: payload_value
+        text: 'THE ATTACK: force the projected counter to zero out of band, then merge again.'
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2/label
+        note: The payload's own label for the beat, rendered verbatim. Nobody on the film's side wrote this sentence.
+
+      - id: b4.panel.attack_observed
+        kind: payload_value
+        text: >-
+          mainline.permit.open_blocking set out of band — what a disarmed projector or a
+          careless UPDATE leaves behind
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2/observed/attack
+        rendered_as: >-
+          The banner marks this line as verbatim payload text (`cow-refusal__verbatim`),
+          which is what makes it quotable in the voice-over.
+
+      - id: b4.panel.statement
+        kind: payload_value
+        label: statement
+        text: >-
+          UPDATE mainline.permit SET open_blocking = 0 WHERE permit_id = %s; CALL
+          mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2/statement
+        the_prohibition_this_row_exists_for: >-
+          The forged UPDATE appears on camera exactly once and only as text the server sent
+          back. No admin console, no psql prompt, no terminal, no simulated SQL typed by
+          anybody, and no UI-side decrement of the header counter.
+        authority: plan R-D; CLICKS.md §5 B4
+
+  # ── b5 · REFUSED ANYWAY · 1:04 → 1:20 · the peak · never cut ───────────────────────
+  - beat_id: b5
+    t: 64
+    dur: 16
+    title: REFUSED ANYWAY — the peak
+    never_cut: true
+    overlays: >-
+      NONE. No overlay, no strap, no lower third is added in this beat. The frame holds
+      `P0001` and the message, and the only thing added to it is silence.
+    strings:
+
+      - id: b5.panel.gate_sentence
+        kind: payload_value
+        text_slot: >-
+          The gate did not trust the counter. It counted again, from the obligations
+          themselves, and got <open_blocking_derived>.
+        reference: >-
+          The gate did not trust the counter. It counted again, from the obligations
+          themselves, and got 1.
+        chip: none_claimed
+        editorial: true
+        source: >-
+          sentence at issue/RefusalBanner.ts:137-138, number from POST /v1/demo/gate-run ·
+          /data/beats/2/observed/open_blocking_derived
+
+      - id: b5.panel.sqlstate
+        kind: payload_value
+        label: SQLSTATE
+        text: P0001
+        chip: parsed
+        envelope_chip: db:constraint
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2/sqlstate
+
+      - id: b5.panel.constraint
+        kind: payload_value
+        label: constraint
+        text: mainline.fn_permit_merge_gate
+        chip: parsed
+        envelope_chip: db:constraint
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2/constraint, with constraint_source as the chip beside it
+
+      - id: b5.panel.parsed_note
+        kind: ui_label
+        text: >-
+          Recovered from the message text rather than reported by the driver — a weakened
+          diagnosis, and it is labelled as one.
+        chip: editorial
+        editorial: true
+        source: issue/RefusalBanner.ts:178-179
+        weakening: true
+
+      - id: b5.panel.message
+        kind: payload_value
+        label: message
+        text: >-
+          MAINLINE: merge refused by mainline.fn_permit_merge_gate — re-derived open
+          obligation count is 1 while the projected counter reads zero
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2/message
+        note: >-
+          The database's own sentence, and the only one in the film the voice-over quotes
+          word for word. Say "the gate" for this refusal, never "the CHECK constraint" —
+          beat 2 is a declarative constraint, this is a procedural guard executing inside the
+          database, and collapsing them is the one over-reach available here.
+
+      - id: b5.panel.pair
+        kind: payload_value
+        label: counter forced to · re-derived
+        text: 0 · 1
+        chip: none_claimed
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/beats/2/observed/{counter_forced_to,open_blocking_derived}'
+
+      - id: b5.panel.diagnosis
+        kind: payload_value
+        label: diagnosis
+        text: none · 0 probe calls
+        chip: none_claimed
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/beats/2/refusal/{diagnosis,probe_calls}'
+        weakening: true
+
+      - id: b5.panel.reason_set
+        kind: payload_value
+        label: reason set
+        text: >-
+          capability gap · mainline.fn_permit_merge_gate · outside the declarative
+          decomposition; the general algorithm is QuickXplain over savepoint probes, in a
+          separate transaction and never on the completion path
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2/refusal/mus/0 (kind `capability_gap`), joined at issue/beats.ts:332-333
+        weakening: true
+
+      - id: b5.panel.naa
+        kind: payload_value
+        label: nearest admissible alternative
+        text: NOT COMPUTABLE for this refusal.
+        chip: none_claimed
+        editorial: false
+        source: >-
+          rendered at issue/RefusalBanner.ts:237 because POST /v1/demo/gate-run ·
+          /data/beats/2/refusal/naa is null, with /naa_reason rendered as the chip beside it
+        chip_beside_it: not_computable
+        weakening: true
+
+      - id: b5.weakening.summary
+        kind: payload_value
+        text: 'constraint_source: parsed · naa: null · naa_reason: not_computable · MUS kind: capability_gap'
+        chip: parsed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/2 and /data/beats/2/refusal
+        ruling: >-
+          ALL FOUR ARE ON SCREEN AND ON FRAME AT THE FILM'S LOUDEST MOMENT, and none of them
+          is minimised, moved, shrunk or scrolled past. The system grades its own evidence
+          down on its own best exhibit. A demo that downgrades its own exhibit is not one
+          anybody believes is faked.
+        authority: plan §6 item 6; plan §2 b5; r6-honesty A9
+
+      - id: b5.panel.refusal_id
+        kind: payload_value
+        label: refusal_id
+        text_slot: /data/beats/2/refusal/refusal_id — a uuid4, different every run
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run
+
+  # ── b6 · THE ANSWER IS A QUESTION · 1:20 → 1:38 ────────────────────────────────────
+  - beat_id: b6
+    t: 80
+    dur: 18
+    title: THE ANSWER IS A QUESTION
+    path_note: >-
+      Path A below assumes the read-only disposition panel has landed on the permit screen.
+      If it has not (CLICKS.md §7 D-5), the three prompts are NOT filmed and the strings
+      marked `path: A` are not on screen at all; b6 trims to 14 s and the beat ends on the
+      hazard card's STATUS row instead.
+    strings:
+
+      - id: b6.signatures.acceptance
+        kind: payload_value
+        label: '10 · Acceptance — Acceptor · date and time · Receipt digest · Obligations shown · Tokens'
+        text: 'demo.signer · 2 August 2026, 03:05 UTC · 993c00c3…af46 · 1 · 200'
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: 'GET /v1/receipts/{receipt_id} · /data/{actor_sub,issued_at,receipt_digest,lines/0/tokens}'
+        placement_rule: >-
+          `demo.signer` appears on the ACCEPTANCE row and nowhere else in the film. He is the
+          person the obligation was shown to.
+        authority: plan R-G
+
+      - id: b6.signatures.issue_row
+        kind: ui_label
+        label: '9 · Issue'
+        text: unsigned — signatory · unsigned — date and time
+        chip: derived
+        editorial: true
+        source: permit/signatures.ts:114-118
+        note: >-
+          It stays unsigned for the whole film, including after the admission beat, because
+          the admission happened inside a transaction that was rolled back. An unsigned issue
+          row beside an ADMITTED panel is not a contradiction to hide; it is b8's setup.
+
+      - id: b6.signatures.merged_commit_row
+        kind: payload_value
+        label: Merged commit
+        text: null
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/permits/{permit_id} · /data/merged_commit
+        note_on_screen: null while the permit has not been issued — the column, not an inference
+
+      - id: b6.defeater.mechanism_present
+        path: A
+        kind: payload_value
+        label: MECHANISM_PRESENT_AND_VERIFIED
+        text: Which isolation point was locked, and who verified it at zero?
+        chip: db:column
+        envelope_chip: 'db:column exact on /defeater_options/1'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/defeater_options/1/prompt
+        measured_2026_08_16: 'verbatim, 200, 3,805 B'
+
+      - id: b6.defeater.work_not_intrusive
+        path: A
+        kind: payload_value
+        label: WORK_NOT_INTRUSIVE
+        text: >-
+          Which task in this permit's scope was assessed as non-intrusive, and against which
+          method statement?
+        chip: db:column
+        envelope_chip: 'db:column exact on /defeater_options/2'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/defeater_options/2/prompt
+
+      - id: b6.defeater.energy_source_absent
+        path: A
+        kind: payload_value
+        label: ENERGY_SOURCE_ABSENT
+        text: >-
+          Which stored-energy source was surveyed and found absent within this permit's
+          boundary, and by whom?
+        chip: db:column
+        envelope_chip: 'db:column exact on /defeater_options/0'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/defeater_options/0/prompt
+        note: >-
+          Three questions, each demanding a specific citation, and not one of them is a way
+          of saying the obligation does not apply. There is no global escape hatch in this
+          vocabulary and none may be invented on screen.
+
+      - id: b6.defeater.no_escape_hatch
+        path: A
+        kind: ui_label
+        text: >-
+          There is no “not applicable” option because the vocabulary does not contain one.
+          The prompts above are the ones this read returned, printed verbatim.
+        chip: editorial
+        editorial: true
+        source: change/absence.ts:575-576
+        note: >-
+          Written for the change screen and quoted here because it is the sentence the permit
+          screen's panel owes as well. If the panel lands without it, the founder does not
+          supply it out loud either — silence is better than an unrendered claim.
+
+      - id: b6.lattice.header
+        path: A
+        kind: ui_label
+        text: 'disposition kind · min signer rank · second signer · foreign org · max TTL'
+        chip: editorial
+        editorial: true
+        source: change/lattice.ts:76-84
+
+      - id: b6.lattice.mechanism_absent
+        path: A
+        kind: payload_value
+        text: 'mechanism_absent · 4 · second signer · foreign org · predicate · re-assert'
+        chip: db:column
+        envelope_chip: 'db:column exact on /lattice/3'
+        editorial: false
+        source: >-
+          GET /v1/checks/{check_id}/disposition ·
+          /data/lattice/3/{kind,min_signer_rank,req_second_signer,req_foreign_org,req_predicate,req_reassert}
+        measured_2026_08_16: 'min_signer_rank 4 · req_second_signer true · req_foreign_org true · req_predicate true · req_reassert true · max_ttl_hours null'
+
+      - id: b6.lattice.emergency_override
+        path: A
+        kind: payload_value
+        text: 'emergency_override · 5 · second signer · foreign org · max TTL 12 h'
+        chip: db:column
+        envelope_chip: 'db:column exact on /lattice/1'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/lattice/1
+        measured_2026_08_16: 'min_signer_rank 5 · req_second_signer true · req_foreign_org true · max_ttl_hours 12'
+        why_it_is_on_screen: >-
+          The twelve-hour ceiling is the schema's answer to the named industry failure mode —
+          temporary changes left running past their intended duration. The database holds the
+          ceiling; no page and no policy document does.
+
+      - id: b6.lattice.keyed_by_virulence
+        path: A
+        kind: ui_label
+        text_slot: 'Dispositions legal at virulence <virulence> — read for blood_major on this check'
+        chip: editorial
+        editorial: true
+        source: change/lattice.ts:140
+        note: >-
+          The lattice is keyed by virulence, not by subject, so it is the policy for that
+          severity class rather than a property of this record. Saying otherwise on camera
+          would claim a per-record authorisation the schema does not carry.
+
+      - id: b6.do_not_render
+        kind: ui_label
+        text: '— no radio is selected, no rationale is typed, no citation is entered —'
+        chip: editorial
+        editorial: true
+        is_on_screen: false
+        note: >-
+          Recorded as an on-screen ABSENCE so it cannot be quietly added. Selecting an option
+          on camera would say, in pictures, "I chose this answer and then the permit was
+          admitted" — and the payload does not return which defeater_code the endpoint's own
+          transaction used, so no selection on screen can be shown to be the one that
+          mattered. A typed rationale that is never sent, filmed beside an admission, is a
+          claim about causation that nothing supports.
+        authority: CLICKS.md §3 fourth boxed warning
+
+  # ── b7 · AND THEN IT ADMITS · 1:38 → 1:50 ──────────────────────────────────────────
+  - beat_id: b7
+    t: 98
+    dur: 12
+    title: AND THEN IT ADMITS
+    strings:
+
+      - id: b7.control.reveal_beat4_required
+        kind: ui_label
+        text: Show the beat where one signed disposition is admitted ▸
+        chip: editorial
+        editorial: true
+        status: REQUIRED BY PLAN R-C · not the string the build renders today
+        source: required at CLICKS.md §3 third boxed warning; owner named at CLICKS.md §7 D-4
+
+      - id: b7.control.reveal_beat4_as_built
+        kind: ui_label
+        text: 'Answer the obligation, then issue again ▸'
+        chip: editorial
+        editorial: true
+        source: issue/disclosure.ts:173 (advanceLabel, the `isAdmission` branch)
+        status: WHAT THE BUILD RENDERS TODAY
+        ruling: Same ruling as b4.control.reveal_beat3_as_built. Narrated as a reveal, never as an act.
+
+      - id: b7.panel.headline
+        kind: ui_label
+        text: ISSUE ADMITTED
+        chip: editorial
+        editorial: true
+        source: issue/ActionBar.ts:347
+
+      - id: b7.panel.label
+        kind: payload_value
+        text: Sign one disposition against the obligation, then merge again.
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/3/label
+
+      - id: b7.panel.sqlstate
+        kind: payload_value
+        label: SQLSTATE
+        text: '00000'
+        chip: none_claimed
+        envelope_chip: 'none — the emitter claims no chip for /beats/3'
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/3/sqlstate
+
+      - id: b7.panel.rows
+        kind: payload_value
+        label: disposition · disposition kind · open_blocking after the signature · permit state
+        text_slot: '<uuid4> · applied · 0 · merged'
+        chip: none_claimed
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/beats/3/observed/{disposition_id,disposition_kind,open_blocking_after_signature} and /merge_record/permit_state'
+        note: >-
+          `disposition_id` is a fresh uuid4 per run and is a slot, never a string. It is the
+          same uuid the footer proves is gone.
+
+      - id: b7.panel.clearance_digest
+        kind: payload_value
+        label: clearance digest (server-computed)
+        text_slot: /data/beats/3/observed/merge_record/clearance_digest — 64 hex characters, different every run
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: POST /v1/demo/gate-run
+        must_not: >-
+          It is rendered because the run produced it. It is NEVER captioned as a constant,
+          never spoken, never typed into an overlay, and never quoted from a previous run:
+          four gate-runs on 2026-08-15 produced four different digests, because
+          `disposition_id` is a fresh uuid4 per run — and if it were ever stable the rollback
+          proof would be broken.
+        authority: plan R-K; r6-honesty A14
+
+      - id: b7.panel.merged_at
+        kind: payload_value
+        label: merged_at
+        text_slot: /data/beats/3/observed/merge_record/merged_at — an instant inside the rolled-back transaction
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: POST /v1/demo/gate-run
+
+      - id: b7.optional.merged_commit
+        kind: overlay
+        text: 4fbbd371…c4aa
+        chip: db:column
+        editorial: false
+        permitted: true
+        used_in_this_cut: false
+        source: POST /v1/demo/gate-run · /data/beats/3/observed/merge_record/merged_commit
+        ruling: >-
+          R-K permits `merged_commit` to be captioned because it is stable. This cut does not
+          caption it, for two reasons, both about the frame rather than the value: the
+          admission panel as built does not render it, so an overlay carrying it would name a
+          fact the frame cannot confirm (convention C5); and the permit header two sections
+          above reads `Merged commit null`, which is the live row and is also true. If a
+          later cut does caption it, it is filled from the run's own pointer and labelled as
+          a value from inside the rolled-back transaction.
+
+      - id: b7.panel.statement
+        kind: payload_value
+        label: statement
+        text_slot: >-
+          the INSERT INTO mainline.disposition (…) VALUES (…); CALL mainline.merge_permit(…)
+          statement, as the payload printed it
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/beats/3/statement
+        note: >-
+          The longest string in the film — a thirty-six-column INSERT. It is on screen and it
+          is not reflowed, not abbreviated and not re-typed. It scrolls in its own panel.
+
+      - id: b7.frame.still_locked
+        kind: ui_label
+        text_slot: 'ISSUE is locked: <constraint> refused this write.'
+        chip: editorial
+        editorial: true
+        source: issue/ActionBar.ts, unchanged since b2
+        ruling: >-
+          THE PERMIT SCREEN DOES NOT TURN FROM BLOCKED TO ISSUED, and no string in this file
+          says it does. In the measured capture the ISSUE button is still disabled across the
+          admission stage, the header still reads `dispositioned` and `Chain head 2`, and the
+          counter still reads 1. That is correct behaviour: the admission happened inside a
+          transaction that was rolled back. The frame holds ADMITTED and the lock together,
+          and that pairing is the product.
+        authority: CLICKS.md §3 second boxed warning and §7.1
+
+  # ── b8 · NONE OF IT HAPPENED · 1:50 → 2:00 ─────────────────────────────────────────
+  - beat_id: b8
+    t: 110
+    dur: 10
+    title: NONE OF IT HAPPENED
+    strings:
+
+      - id: b8.footer.verdict
+        kind: payload_value
+        text_slot: 'VERDICT <verdict> — read from /data/verdict on this run'
+        reference: VERDICT PROVEN
+        chip: derived
+        envelope_chip: 'derived exact on /verdict'
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/verdict, rendered at issue/ActionBar.ts:401
+        must_not: >-
+          A remembered PROVEN is the easiest false frame in the film: beat 4 skips silently
+          when the exposure receipt behind it has expired, and the verdict falls without the
+          screen looking wrong. Read the verdict the take produced and film that one.
+
+      - id: b8.footer.transaction
+        kind: payload_value
+        label: isolation · transaction · savepoints
+        text: 'SERIALIZABLE · rolled_back · gate_run_beat_2, gate_run_beat_3, gate_run_beat_4'
+        chip: none_claimed
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/transaction/{isolation,disposition,savepoints}'
+
+      - id: b8.footer.one_transaction
+        kind: payload_value
+        label: one transaction (equal cluster logical timestamps)
+        text_slot: 'true · <opened_logical_timestamp> → <closed_logical_timestamp>'
+        chip: none_claimed
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/transaction/{single_transaction,opened_logical_timestamp,closed_logical_timestamp}'
+        note: >-
+          The two timestamps are identical on a clean run and that identity is the witness.
+          They are long decimal strings; they are shown, not spoken.
+
+      - id: b8.footer.persisted
+        kind: payload_value
+        label: this run persisted anything
+        text: 'false'
+        chip: recomputed
+        envelope_chip: recomputed
+        editorial: false
+        source: POST /v1/demo/gate-run · /data/persistence_check/self_persisted
+        must_say: >-
+          Say `persisted false`, never "nothing was written". Something WAS written — beat 4
+          minted a disposition no other writer holds — and it was unwound inside one
+          SERIALIZABLE transaction. The unwinding is the claim, and it is stronger.
+
+      - id: b8.footer.minted
+        kind: payload_value
+        label: minted disposition after rollback
+        text_slot: '<uuid4> · 0 rows'
+        chip: recomputed
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/persistence_check/self_evidence/{minted_disposition_id,minted_disposition_rows_after_rollback}'
+        note: >-
+          A uuid4 no other writer holds, and zero rows carrying it after the rollback. This
+          is the reading the verdict keys on, because a whole-table count cannot tell "I
+          persisted something" from "somebody else did".
+
+      - id: b8.footer.unchanged
+        kind: payload_value
+        label: permit row unchanged · whole database unchanged
+        text: 'true · true'
+        chip: recomputed
+        envelope_chip: 'recomputed exact on /persistence_check/identical'
+        editorial: false
+        source: 'POST /v1/demo/gate-run · /data/persistence_check/{permit_row_identical via self_evidence,identical}'
+
+      - id: b8b.change.header
+        kind: payload_value
+        text: 'DEMO-MOC-0001 · refs/changes/demo-0001 → refs/heads/main · checks_materialised'
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: 'GET /v1/change-requests/{cr_id} · /data/{external_ref,ref_name,target_ref,state}'
+        measured_2026_08_16: '200, 3,295 B'
+        note: >-
+          A change request that is a branch aimed at a protected branch. Safety engineers do
+          not usually get to see a procedure change described that way.
+
+      - id: b8b.change.ribbon
+        kind: ui_label
+        text: 'Initiate → Screen → Review → Approve → Implement    ·    Capture and Close-out'
+        chip: editorial
+        editorial: true
+        source: change/ribbon.ts:83 and its five steps
+        note_on_screen: >-
+          No step is marked current, because no column in this deployment maps one. The
+          enum chip beside the ribbon is the record's real state and the ribbon is the
+          industry's model; the screen does not silently equate them.
+
+      - id: b8b.change.counter
+        kind: payload_value
+        label: counters.open_blocking
+        text: '1'
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: GET /v1/change-requests/{cr_id} · /data/counters/open_blocking
+        note: The same clause's debt, on a second subject kind, carried by a column.
+
+      - id: b8b.change.constraint
+        kind: payload_value
+        label: cr_gate_closed_when_merged
+        text: "CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))"
+        chip: db:column
+        envelope_chip: db:constraint
+        editorial: false
+        source: GET /v1/change-requests/{cr_id} · /data/constraints/0/predicate
+        note: Catalogue form, with `::`. See b2.constraint_table.predicate and findings.F-2.
+
+      - id: b8b.change.approve_disabled
+        kind: ui_label
+        label: Approve change (disabled)
+        text: Cannot approve. 1 blocking obligation is outstanding on this change request.
+        chip: derived
+        editorial: true
+        source: change/absence.ts:429-430, with the count read from the change request's own counter
+        note_on_screen: >-
+          This control is disabled because no route exists to drive it, and it is wired to
+          nothing. It is not pointed at the permit’s merge route: that route drives a
+          different subject, and a button that refused a different record would be a prop.
+        must_not_say: >-
+          The film does not say "watch the same debt block the change request". There is no
+          merge route for this subject to block; the screen is told, not driven.
+        authority: plan R-I; r6-honesty A13.5
+
+      - id: b8b.change.route_table
+        kind: payload_value
+        text_slot: the verbatim 404 response body, with the two absent routes struck through in place
+        chip: derived
+        editorial: false
+        source: GET /v1/change-requests/{cr_id}/blocking-checks → 404, body declares the whole route table
+        note: >-
+          The absence is confirmed rather than assumed, by the deployment's own answer. This
+          is the strongest thing on the second screen and it costs one Network row.
+
+      - id: b8b.change.proposed_wording
+        kind: ui_label
+        label: Proposed wording
+        text: >-
+          Typed here, now. This deployment carries no proposed text: mainline.change_request
+          has no column for it, so there is nothing to load into this box and nothing was.
+        chip: editorial
+        editorial: true
+        source: change/osha-sections.ts:296-297
+        must_not: >-
+          The box is empty on camera and no proposed clause text is narrated. A hard-coded
+          "proposed" clause string presented as data is forbidden; the left side of any
+          comparison is real and the right side would be fabricated.
+        authority: plan R-I; r3-operator §5.4
+
+  # ══ THE CLOSE ═══════════════════════════════════════════════════════════════════════
+  # C1-C4 overlay text is W3's and is reproduced here VERBATIM so that one file carries
+  # every string in the film. If this block and VO-CLOSE.md ever disagree, VO-CLOSE.md is
+  # the owner of the words and this file is wrong.
+
+  - beat_id: c1
+    t: 120
+    dur: 12
+    title: THE LOOP, NAMED
+    strings:
+
+      - id: c1.overlay.columns
+        kind: overlay
+        text: |-
+          S T O R E                      R E T R I E V E                 A C T
+
+          mainline.event                 mainline_meas.recall_run        mainline.permit
+          mainline.blame_edge            mainline.clause_blame_current   CHECK gate_closed_when_issued
+          mainline.clause_blame_closure    (view · DISTINCT ON, gen DESC)  -> 23514
+            append-only, generation-                                     mainline.fn_permit_merge_gate
+            versioned; superseded,                                         -> P0001
+            never deleted
+
+          occurred_at                    started_at                      refused at
+          2019-03-14T06:20:00Z           2026-08-02T03:00:00Z            <THIS RUN>
+
+                                         obligation materialised
+                                         2026-08-02T03:00:10Z
+                                         ten seconds
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §2.2
+        embedded_payload_values:
+          - text: '2019-03-14T06:20:00Z'
+            chip: db:column
+            source: GET …/blocking-checks · /data/checks/0/precursor/occurred_at
+          - text: '2026-08-02T03:00:00Z'
+            chip: db:column
+            source: GET /v1/recall-runs/{run_id} · /data/started_at
+          - text: '2026-08-02T03:00:10Z'
+            chip: db:column
+            source: GET …/blocking-checks · /data/checks/0/materialised_at
+          - text_slot: 'refused at <THIS RUN> — /data/beats/1/refusal/observed_at from the take''s own response'
+            chip: db:column
+            note: A live slot. Never filled from the reference run.
+
+      - id: c1.overlay.strap
+        kind: overlay
+        text: every date above is a column value · no AS OF SYSTEM TIME produced any frame of this film
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §2.2
+
+      - id: c1.rail.line1
+        kind: overlay
+        text: |-
+          "what makes agentic systems different from traditional apps?"
+             -> the database is in the reasoning loop, as the thing that constrains the agent
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §2.2, fades in at 2:04
+
+  - beat_id: c2
+    t: 132
+    dur: 16
+    title: THE AWS SURFACES
+    strings:
+
+      - id: c2.overlay.aws
+        kind: overlay
+        text: |-
+          AWS  ·  IN THIS REQUEST
+
+            AWS Lambda                  arm64 · mainline-demo-api
+            Lambda Function URL         authorization_type = NONE   (the founder's explicit choice)
+            SSM Parameter Store         /mainline/demo/cockroach_dsn
+            AWS IAM                     one execution role; one inline policy, GetParameter on that one name
+
+
+          AWS  ·  IN THE APPLY THAT CREATED IT        24 created · 0 changed · 0 destroyed
+
+            Amazon S3                   Terraform state · versioned · SSE-S3 · public access blocked
+            CloudWatch alarms + SNS     the cost guard: three alarms on three timescales into one topic,
+            + AWS Budgets               a responder that sets reserved concurrency to zero, and the budget
+
+
+            Amazon Bedrock  —  EXERCISED IN THIS REPOSITORY.  IT IS NOT IN THIS REQUEST PATH.
+            Claude on au.* inference profiles and Titan v2 embeddings, ap-southeast-2 (Sydney).
+            The database is aws-ap-southeast-1 (Singapore).  There is no end-to-end Australian residency and we do not claim one.
+            The refusal you just watched involved no model at all, and that is the point.
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §3.1
+        grouping_is_the_honesty: >-
+          A flat list would let S3 borrow the credibility of Lambda, and S3 was never in the
+          request. The three group headings carry the labels, not a footnote.
+        note_on_one_line: >-
+          The residency sentence is one line and stays one line. It states the split and
+          denies the claim in the same breath, which is what makes it a disclosure rather
+          than a boast.
+
+      - id: c2.rail.line2
+        kind: overlay
+        text: |-
+          "Does the agent use the tools correctly and safely?"
+             -> persisted: false — this endpoint cannot write
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §3.1, fades in at 2:16
+
+  - beat_id: c3
+    t: 148
+    dur: 14
+    title: THE COCKROACHDB SURFACES
+    strings:
+
+      - id: c3.overlay.cockroachdb
+        kind: overlay
+        text: |-
+          CockroachDB  ·  IN THIS REQUEST                 CockroachDB  ·  IN THIS DATABASE, EARLIER
+
+          CockroachDB Cloud (Basic)                       mainline.fn_check_project
+            aws-ap-southeast-1 (Singapore)                  a PL/pgSQL trigger function. It overwrote
+            CCL v26.2.5                                     this obligation's severity and virulence
+            read live from GET /v1/health, not typed        from the blame closure when the row was
+                                                            written. The gate reads its output.
+          SERIALIZABLE                                      It did not run in this request.
+            one transaction, three savepoints,
+            rolled back                                   recursive CTE  (WITH RECURSIVE)
+                                                            the blame-closure writer,
+          CHECK constraint                                  db/queries/closure_write.sql:152.
+            gate_closed_when_issued        -> 23514         THIS world's closure row carries
+                                                            computed_by = demo_world.sql
+          PL/pgSQL trigger function                         projector_ver = demo-1.
+            mainline.fn_permit_merge_gate  -> P0001         It did not run in this request.
+
+          user-defined enum                               42501
+            mainline.subject_state                          read back by this same client during the
+            ((state != 'merged':::mainline.subject_state)   deploy, one HTTP request at a time; and
+             OR (open_blocking = 0:::INT8))                 256/256 ungranted pairs refused in
+            the enum is inside the refusal message           privilege conformance.
+                                                            It did not run in this request.
+          composite foreign keys
+            blocking_check -> clause_version
+              (clause_uuid, commit_id)
+            permit_event -> subject_transition
+              (subject_kind, from_state, to_state)
+
+
+          One cluster.  One region.  This repository holds no load profile, and we do not claim scale.
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §4.1
+        embedded_payload_values:
+          - text: CCL v26.2.5
+            chip: db:column
+            source: GET /v1/health · /data.cluster_version, read on the day, not typed
+            measured_2026_08_16: 'CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)'
+          - text: "((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))"
+            chip: reported
+            source: POST /v1/demo/gate-run · /data/beats/1/message
+            note: >-
+              The same predicate as b2, quoted to the same characters, including the `:::`
+              annotations. It is the cheapest feature to prove in the whole block: the enum
+              type name is inside the error string rather than in a caption.
+        highlight_sweep_order: '23514 → P0001 → the enum inside the predicate → the three `It did not run in this request.` lines'
+
+      - id: c3.rail.line3
+        kind: overlay
+        text: |-
+          "Is it used for more than toy queries — state, embeddings, context, or transactional data
+           at real scale?"
+             -> transactional state, read inside the same SERIALIZABLE transaction as the decision
+                — and no scale is claimed
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §4.1, fades in at 2:32
+
+  - beat_id: c4
+    t: 162
+    dur: 8
+    title: THE HONEST LIMIT
+    strings:
+
+      - id: c4.overlay.limit
+        kind: overlay
+        text: |-
+          THE LIMIT WE WILL NOT DRESS UP
+
+          Nothing in this data model separates a considered disposition from a rubber stamp.
+          It makes the question unavoidable, the record precise, the worst stamp non-representable.
+          We measure deliberation and never threshold it.
+        layout: >-
+          First line centred and set larger; the three sentences left-aligned beneath it. The
+          centring is layout and is not part of the string, which is why it is recorded here
+          rather than as leading spaces nobody could count.
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §5.2
+        why_it_closes_the_film: >-
+          The last thing a judge hears is the sentence a competitor could not say. A film that
+          has spent two minutes saying the database refuses has earned the right to say what
+          it cannot do.
+
+      - id: c4.overlay.rail_all_four
+        kind: overlay
+        text: |-
+          "what makes agentic systems different from traditional apps?"
+             -> the database is in the reasoning loop, as the thing that constrains the agent
+
+          "Does the agent use the tools correctly and safely?"
+             -> persisted: false — this endpoint cannot write
+
+          "Is it used for more than toy queries ... at real scale?"
+             -> transactional state, read inside the same SERIALIZABLE transaction as the decision
+                — and no scale is claimed
+
+          "resilience, access control, and what happens when things go wrong?"
+             -> the refusal itself; 42501 on 256/256 ungranted pairs; a ledger that publishes
+                what did not run
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §5.2
+        note: >-
+          The first three lines have been on screen since 2:00, 2:12 and 2:28. Only the fourth
+          is read for the first time here, which is what makes eight seconds enough.
+
+      - id: c4.overlay.urls
+        kind: overlay
+        text: |-
+          github.com/Shaugato/mainline
+          https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
+        chip: derived
+        editorial: false
+        source: 'README.md:25 (public since 2026-08-11); evidence/deploy/LIVE.md:8'
+        must_not: >-
+          Neither URL is read aloud, and no camera is pointed at docs/submission/SUBMISSION.json
+          while its demo_url field reads UNRESOLVED. The live URL on screen is the origin this
+          film was shot against, confirmed by the request in devtools.
+        authority: plan R-M; r6-honesty A4.3
+
+  - beat_id: end
+    t: 170
+    dur: 2
+    title: END CARD
+    strings:
+
+      - id: end.card
+        kind: overlay
+        text: |-
+          M A I N L I N E
+
+          the lesson a past incident taught, as a constraint the database enforces
+
+          github.com/Shaugato/mainline
+          https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
+
+          SYNTHETIC CORPUS · EVERY SITE, PERMIT, INCIDENT AND PERSON HERE IS AUTHORED
+        layout: >-
+          Product name centred and set largest; the strapline centred beneath it; the two URLs
+          and the watermark line left-aligned in a block, in that order. The centring is layout
+          and is not part of the strings.
+        chip: editorial
+        editorial: true
+        source: docs/demo/film/VO-CLOSE.md §6
+        notes:
+          - Silent. Two seconds is a held frame, not a sentence.
+          - First and only appearance of the product name. There is no title card before the demo.
+          - The last line is the R-L watermark string, unchanged, and it is the same string that has been on frame since 0:00.
+          - No music, no swell, no logo animation.
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# FORBIDDEN ON CAMERA — strings, values and frames that may never appear
+# This block is a `claim_hygiene.py` PROHIBITION_KEY: everything indented under it is read
+# as quoting the ban rather than committing it. That is why the banned words can be
+# written down here, and why they may not be written down anywhere else in this file.
+# ══════════════════════════════════════════════════════════════════════════════════════
+forbidden_on_camera:
+
+  - value: clearance_digest captioned, spoken or overlaid as a constant
+    reason: >-
+      Four gate-runs on 2026-08-15 produced four different digests, because disposition_id
+      is a fresh uuid4 per run. If it were ever stable the rollback proof would be broken.
+      The panel may render the digest the run produced; nothing may present it as a value
+      that will be there tomorrow.
+    authority: plan R-K; r6-honesty A14; CLICKS.md §5 B7
+
+  - value: any 7-hex-character or 40-hex-character SHA literal, on screen or in a caption
+    reason: >-
+      commit_id is a sha256 over the JCS envelope and cannot be chosen in advance, so a SHA
+      written down before the shoot is a SHA that will be wrong. The honesty-card generator
+      refuses to emit runs of seven or more hex characters for the same reason. Content
+      digests render at eight-plus-four or at sixty-four, never at seven and never at forty.
+    authority: CAMERA-STRINGS.yaml:108-109; r6-honesty A14; claim_hygiene.py HYG-sha-literal
+
+  - value: any bare invariant id — I01, MI07, and every sibling
+    reason: >-
+      Two invariant catalogues collide and one of them is a versioned public API, so a bare
+      id is ambiguous. The film cites constraint names, which are unambiguous.
+    authority: CAMERA-STRINGS.yaml:110-111; claim_hygiene.py HYG-bare-invariant
+
+  - value: docs/submission/SUBMISSION.json, in any frame, while its demo_url field reads UNRESOLVED
+    reason: >-
+      That field still holds the sentinel and its note gives a reason that is now false.
+      Filming the file would put a stale artefact on camera; the URL itself is fine to film
+      and is read from the deploy record instead.
+    authority: plan R-M; r6-honesty A4.3; CAMERA-STRINGS.yaml:146-148
+
+  - value: CloudFront
+    reason: No distribution exists on this account, and the conditional grant in Terraform is not taken.
+    authority: CAMERA-STRINGS.yaml:127-131; r6-honesty A6
+
+  - value: CDN
+    reason: Same as CloudFront — there is no distribution, so the noun has nothing to name.
+    authority: CAMERA-STRINGS.yaml:127-131
+
+  - value: edge
+    reason: >-
+      Banned as a word, not merely as an architecture, because it implies a distribution
+      tier this deployment does not have. One Lambda in one region is the whole of it.
+    authority: CAMERA-STRINGS.yaml:127-131
+
+  - value: multi-region
+    reason: Basic tier, one cluster, one region — aws-ap-southeast-1. Nothing here is multi-region.
+    authority: r6-honesty A7
+
+  - value: tamper-proof
+    reason: >-
+      The claim is tamper-EVIDENT. A cluster admin can drop a constraint; what they cannot do
+      is drop it unobserved. Anyone saying a database stops its own administrator is selling
+      something.
+    authority: r6-honesty A10; DEMO-HONESTY.md:58-62
+
+  - value: split-view resistant
+    reason: >-
+      There is one witness, it is ours, q = 1, and the property is not claimed in any form,
+      on any screen, in any caption.
+    authority: r6-honesty A10; claim_hygiene.py MNC-14; docs/decisions/demo-use-cases.md:204-264
+
+  - value: a CloudWatch console window, or any cloud console
+    reason: >-
+      The cost guard is real and applied; a console on camera is trademark-dense and would be
+      some other stack's window. Name the guard in the overlay and film nothing else.
+    authority: CAMERA-STRINGS.yaml:127-131; r6-honesty A6
+
+  - value: CMEK, customer-managed encryption keys, PrivateLink
+    reason: Tier features this deployment does not have. Never named affirmatively, not even as a plan.
+    authority: claim_hygiene.py MNC-03
+
+  - value: a vector-search visualisation, a similarity score, an embedding plot, an EXPLAIN plan beside a live beat
+    reason: >-
+      The demo world seeds no embeddings and runs no vector query. The channel that produced
+      this obligation is blame_ancestry, and tau_applied is 0 because no threshold was
+      consulted. A shimmering embedding cloud would be a fabricated exhibit.
+    authority: r6-honesty A7; demo_permit.sql:181-185
+
+  - value: a changefeed, a CDC stream, or the words "changefeeds propagate the lesson"
+    reason: >-
+      There is no CREATE CHANGEFEED in any of the 271 migrations and v_changefeed_health
+      returns zero rows. What the trigger writes is an outbox row.
+    authority: r6-honesty A7
+
+  - value: the propagation screen, or any narration of it
+    reason: >-
+      All five of its provenance pointers are chipped staged, three of its tables do not
+      exist, and every identifier in it is a digest of its own label. It may be linked under
+      a badge; it may not be narrated, demonstrated or filmed.
+    authority: r6-honesty A13.1; docs/decisions/demo-use-cases.md:136-142
+
+  - value: 'the second permit WO-88213, the 2013 gland-seal fire, INC-2013-044, INC-2024-0117, or the year 2024 in any sentence'
+    reason: >-
+      Those belong to the console-and-corpus world, which is a different database. This film
+      is one world: DEMO-PTW-0001, DEMO-INC-0001, 2019-03-14, demo_site, demo.signer,
+      DEMO-MOC-0001.
+    authority: plan R-E; r6-honesty A3, A15.3
+
+  - value: 'a defeater option named not_applicable, or any global "N/A" on a disposition screen'
+    reason: >-
+      The shipped constructor is mechanism_absent. The other name says something the schema
+      cannot represent, and inventing an escape hatch on camera would destroy the point of
+      rendering the three prompts as questions.
+    authority: claim_hygiene.py MNC-19; r3-operator §7.3
+
+  - value: a real person's name, a real incident, a real operator, a real employer's logo or form number
+    reason: >-
+      Every clause, procedure, incident, permit, operator, site and person in this demo was
+      written for this repository. The mechanism is real; the inputs are authored, and the
+      watermark says so for the whole film.
+    authority: r6-honesty A3, A17.2
+
+  - value: music of any kind
+    reason: No music at all removes the whole licensing question.
+    authority: CAMERA-STRINGS.yaml forbidden_on_camera
+
+  - value: a permit header counter shown or narrated as ticking from 1 to 0
+    reason: >-
+      The header was rendered before the press, the beat-3 write was rolled back, and this
+      page never re-reads it. The only legitimate zero is inside the beat-3 panel, in the
+      payload's own statement and its own counter_forced_to.
+    authority: CLICKS.md §3 first boxed warning; plan R-D
+
+  - value: the permit screen shown turning from blocked to issued
+    reason: >-
+      The admission happened inside a transaction that was rolled back; on the live row the
+      permit is still dispositioned. A screen made to flip would be asserting a state the
+      database does not hold, and that is the one act this wave exists to prevent.
+    authority: CLICKS.md §3 second boxed warning and §7.1
+
+  - value: a 423 Locked response rendered in a refusal banner
+    reason: >-
+      A 423 is the demonstration protecting itself and its message is about a lock, not about
+      an obligation. Rendering it as a gate refusal would put a fabricated exhibit in front of
+      a judge. The ISSUE button posts to the gate-run route and to nothing else.
+    authority: r3-operator §5.5; CLICKS.md §2
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# TODO — strings this file could not source. Each carries the request that would produce
+# it. None is filled with a plausible placeholder, because a plausible placeholder is the
+# exact substitution this repository has already reverted somebody for.
+# ══════════════════════════════════════════════════════════════════════════════════════
+todo:
+
+  - id: T-1
+    what: The URL the browser's address bar shows in b0, to the path.
+    blocked_by: >-
+      GET /operator.html answers 200 on the live origin but serves the console shell, so the
+      operator route this film needs is not addressable there today (findings.F-1).
+    request_that_would_produce_it: >-
+      GET <origin>/operator.html and confirm the served document's <title> and its script
+      asset carry the operator strings before writing this line down.
+    do_not: >-
+      Do not write a route into this file that has never answered. If the film is shot before
+      the operator package is deployed, W6's fallback document governs and this row is void.
+
+  - id: T-2
+    what: The disclosure line's run_id, byte count and received-at instant.
+    status: deliberately a slot, not a TODO to be resolved before the shoot
+    request_that_would_produce_it: >-
+      The take's own POST /v1/demo/gate-run. The kernel composes the sentence; nobody types
+      it. See b2.disclosure.line.
+
+  - id: T-3
+    what: Whether the read-only disposition panel renders on the permit screen in b6.
+    blocked_by: CLICKS.md §7 D-5 — today the three prompts render on the change screen only.
+    request_that_would_produce_it: >-
+      GET /v1/checks/{check_id}/disposition already answers 200 with all three prompts and the
+      five lattice rows (measured 2026-08-16, 3,805 B). The gap is the panel, not the read.
+    consequence_if_unresolved: >-
+      Path B is filmed, the `path: A` rows above are not on screen, and neither the prompts
+      nor the lattice is described in the voice-over.
+
+  - id: T-4
+    what: The two reveal-control labels, as they will actually read on the day.
+    blocked_by: CLICKS.md §7 D-4 — the build renders action-shaped labels, the plan requires reveal-shaped ones.
+    both_recorded: b4.control.reveal_beat3_required and b4.control.reveal_beat3_as_built, and their b7 siblings.
+
+  - id: T-5
+    what: Whether the raw-payload drawer is reachable on the permit screen.
+    blocked_by: >-
+      CLICKS.md §7 D-3 — renderRawPayload() and renderRequestLog() exist and are called by
+      nobody on that screen, so the gate-run body has no in-page drawer.
+    consequence: >-
+      No string in this file depends on it. If it lands, the drawer's own strings are W5's to
+      add; if it does not, DevTools' Response tab carries the raw payload in the naming block.
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# FINDINGS — six, each measured this session, each handed to a named owner
+# ══════════════════════════════════════════════════════════════════════════════════════
+findings:
+
+  - id: F-1
+    severity: HIGH — it decides whether this cut can be shot at all
+    finding: >-
+      The operator screens are not in the bytes the live origin serves. GET /operator.html
+      answers 200 with 4,655 B and the title `MAINLINE console`; its only script is
+      /assets/index-LoN3Sn_L.js; that asset answers 200 gzipped (138,177 B on the wire,
+      490,539 B decoded) and contains zero occurrences of `CONTROL OF WORK`,
+      `1 obligation outstanding`, `not carried by this deployment`, `cow-`, `hz-card` or
+      `moc-`.
+    why_it_matters: >-
+      A pre-flight that checks only for a 200 on /operator.html would pass and the shoot would
+      begin against the console. CLICKS.md D-6 flagged the dependency; this is the measurement
+      that says it is still open and names the check that catches it.
+    measured: '2026-08-16, against the live origin, GET only'
+    owner: orchestrator (packaging), W6 (fallback document)
+    the_check_that_catches_it: >-
+      Confirm the served document's title is the operator's and that the script asset contains
+      the string `1 obligation outstanding`, before step 2 of the pre-roll.
+
+  - id: F-2
+    severity: MEDIUM — two true strings that a tidy-minded person would "reconcile"
+    finding: >-
+      The CHECK predicate appears in two different real forms. The permit and change-request
+      payloads carry the pg_catalog form with `::` and no INT8; the gate-run refusal message
+      carries CockroachDB's `:::` annotations and `0:::INT8`. Both were read from their own
+      responses on 2026-08-16.
+    why_it_matters: >-
+      The `:::` form is the most credible string in the film and R-K quotes it exactly.
+      Somebody comparing the two frames will be tempted to correct one into the other; either
+      correction would put a string on screen that no endpoint returned.
+    owner: W7 (clearance), and anyone building an overlay near either string
+    ruling_recorded_here: b2.banner.check_predicate and b2.constraint_table.predicate are separate entries and neither may be edited into the other.
+
+  - id: F-3
+    severity: MEDIUM — a rounding the film must not out-claim
+    finding: >-
+      The beat panel's own formatter prints one decimal for durations at or above 1 ms and
+      three decimals below it (issue/beats.ts:486-489). A reference beat of 572.251 ms
+      therefore renders as `572.3 ms` on screen, while the payload carries the longer number.
+    why_it_matters: >-
+      R-K says nothing on screen is rounded and nothing spoken is unseen. Both hold, but only
+      if nobody quotes the payload's digits over a frame showing the panel's. The resolution
+      is the one already in this file: no overlay, strap or spoken line quotes an elapsed
+      figure at all, and the panel's printed digits are the only ones on screen.
+    owner: W2 (script), W7 (clearance)
+
+  - id: F-4
+    severity: MEDIUM — a value the brief permits and this cut declines
+    finding: >-
+      merged_commit is stable and R-K permits captioning it, but the admission panel as built
+      does not render it, and the permit header in the same scroll reads `Merged commit null`,
+      which is the live row.
+    ruling: >-
+      Not captioned in this cut (b7.optional.merged_commit). The permission is recorded, the
+      decline is recorded, and the reason is the frame rather than the value.
+    owner: story lead, if a later cut wants it
+
+  - id: F-5
+    severity: LOW — an operational detail that can look like a broken demo
+    finding: >-
+      The static asset route enforces the response ceiling. Without `accept-encoding: gzip`,
+      GET /assets/index-LoN3Sn_L.js answers 413 with a body naming 490,950 bytes against a
+      ceiling of 139,264 and suggesting gzip in its own error text. A browser sends gzip and
+      is served 200; a curl-based pre-flight that does not will see a 413.
+    why_it_matters: >-
+      A 413 in a pre-flight ten minutes before the red light reads as an outage. It is not one,
+      and the deployment says so in the error body — which is itself a small exhibit of the
+      house style.
+    owner: W6 (pre-flight document)
+
+  - id: F-6
+    severity: LOW — recorded because a hygiene verdict that never went red asserts nothing
+    finding: >-
+      This file passed claim_hygiene on its first run, exit 0, and that is worth exactly one
+      sentence of explanation rather than any credit. It passed because BEATS.yaml's header
+      had already recorded the same scanner going red three times on the sibling files, twice
+      on HYG-sha-literal over a seven-character tree ref written into a header. This file was
+      drafted knowing that, so the seed citation at b3.projection.seed_citation names the
+      field that holds the ref instead of printing it, and the banned words live only inside
+      the forbidden_on_camera block. The red was paid for by W1; this file inherited it.
+    what_was_done_about_the_clean_pass: >-
+      A copy with three violations planted at the end — a seven-hex ref, a bare invariant id,
+      and a banned property claimed in prose — was scanned and failed with exit 1 on all
+      three families. The scanner is awake on this file's shape, and the third probe shows
+      the forbidden_on_camera exemption is a structural PROHIBITION_KEY rather than a hole.
+    where_it_shows: b3.projection.seed_citation.do_not_print; the header block above
+    owner: W5 (closed)

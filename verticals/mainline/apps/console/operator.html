@@ -1,0 +1,130 @@
+<!doctype html>
+<!--
+  SPDX-FileCopyrightText: 2026 MAINLINE contributors
+  SPDX-License-Identifier: FSL-1.1-ALv2
+
+  CONTROL OF WORK — the operator surface.
+
+  This is NOT the MAINLINE console. It is the second entry point in the same Vite build
+  (operator-systems-plan.md R1), and it is deliberately a different product: a permit-to-work
+  screen a site supervisor works in, and a management-of-change screen a safety engineer works
+  in. No vendor mark appears anywhere on it (R13). You see MAINLINE by seeing what it stops.
+
+  Two disciplines this document inherits from index.html and must keep:
+
+    • NO EXTERNAL ORIGIN is referenced anywhere in this file — no font CDN, no analytics, no
+      icon host. Everything is served by the origin this page was loaded from.
+    • The BOOT NOTICE below is present in the shipped HTML and is removed by
+      src/operator/boot.ts only once the shell has mounted. The failure mode of a scripted
+      page is a white rectangle, which is indistinguishable from "the system has nothing to
+      say"; the reader gets a sentence instead of a void.
+
+  Everything this document says about itself is true before any script runs, and stays true if
+  no script ever runs — including the synthetic-demonstration statement (R13), which is
+  therefore permanent in the strictest available sense.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content="Control of work — a synthetic demonstration surface. No real site, no real permit, no real person."
+    />
+    <title>Control of Work</title>
+    <style>
+      /*
+        Boot styling only. The operator token set lives in src/operator/chrome/tokens.css and
+        arrives with the bundle; these values are the fallbacks that keep the boot screen
+        legible before it lands, and they are deliberately the same neutral ramp.
+
+        This surface does NOT use the console's --tp-* tokens. It is a different product and
+        sharing the MAINLINE design system would defeat the demonstration (R1).
+      */
+      :root {
+        color-scheme: dark light;
+        --cw-boot-bg: #101215;
+        --cw-boot-ink: #e6e8ea;
+        --cw-boot-dim: #93999f;
+        --cw-boot-rule: #2b3037;
+        --cw-boot-sans:
+          ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+          sans-serif;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        background: var(--cw-boot-bg);
+        color: var(--cw-boot-ink);
+      }
+      body {
+        font-family: var(--cw-boot-sans);
+        font-size: 15px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      .boot {
+        max-width: 68ch;
+        margin: 0;
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid var(--cw-boot-rule);
+      }
+      .boot h1 {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin: 0 0 0.75rem;
+      }
+      .boot p {
+        margin: 0 0 0.5rem;
+        color: var(--cw-boot-dim);
+      }
+      .boot strong {
+        color: var(--cw-boot-ink);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="boot-notice" class="boot">
+      <h1>Control of work — not yet loaded</h1>
+      <p>
+        The application bundle has not mounted. If this text is still here after the page has
+        finished loading, the script did not run: check the browser console for the import error,
+        and check that <strong>assets/</strong> was deployed alongside
+        <strong>operator.html</strong>.
+      </p>
+      <p>
+        <strong
+          >SYNTHETIC DEMONSTRATION — no real site, no real permit, no real person.</strong
+        >
+      </p>
+    </div>
+
+    <noscript>
+      <div class="boot">
+        <h1>JavaScript is required, and here is exactly why</h1>
+        <p>
+          This screen shows nothing it was not told by the system it is a client of. Every field,
+          every state, every refusal on it is fetched over HTTP from the origin this page was
+          served by, and is rendered as the bytes that came back. Without scripting there are no
+          requests, and a page that showed you a filled-in permit without them would be a picture
+          of a permit rather than a permit.
+        </p>
+        <p>
+          <strong
+            >SYNTHETIC DEMONSTRATION — no real site, no real permit, no real person.</strong
+          >
+        </p>
+      </div>
+    </noscript>
+
+    <div id="operator-root"></div>
+    <script type="module" src="/src/operator/boot.ts"></script>
+  </body>
+</html>

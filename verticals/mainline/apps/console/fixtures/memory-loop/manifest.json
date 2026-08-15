@@ -1,0 +1,74 @@
+{
+  "captured_by": "scripts/demo/capture_memory_loop.py",
+  "base_url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+  "note": "Raw response bodies, byte for byte as the deployed API returned them. Nothing here was reformatted, pretty-printed or re-serialised. `received_at` is this client's clock at the moment the body finished arriving; each payload carries its own `observed_at` and `server_date`.",
+  "manifest_written_at": "2026-08-15T11:57:21.747273Z",
+  "captures": [
+    {
+      "name": "subjects",
+      "file": "subjects.json",
+      "method": "GET",
+      "path": "/v1/demo/subjects",
+      "http_status": 200,
+      "byte_length": 8941,
+      "sha256_hex": "2678dcd2bcf381bd48ab3f32e20aca0307fe92e6154171f703c4ac5330328535",
+      "content_type": "application/json; charset=utf-8",
+      "received_at": "2026-08-15T11:57:16.056943Z"
+    },
+    {
+      "name": "blocking-checks",
+      "file": "blocking-checks.json",
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "byte_length": 2408,
+      "sha256_hex": "7825a6b6e42f67d69487e6752697cbb3b939145ffbdf4bba34b14e594f271f42",
+      "content_type": "application/json; charset=utf-8",
+      "received_at": "2026-08-15T11:57:16.767855Z"
+    },
+    {
+      "name": "ancestry",
+      "file": "ancestry.json",
+      "method": "GET",
+      "path": "/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "byte_length": 3744,
+      "sha256_hex": "0342ffa41df99dd5fc562b53ff646e605484b66e156a3616a18ac7981a6d53ac",
+      "content_type": "application/json; charset=utf-8",
+      "received_at": "2026-08-15T11:57:17.572136Z"
+    },
+    {
+      "name": "recall-run",
+      "file": "recall-run.json",
+      "method": "GET",
+      "path": "/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "byte_length": 2223,
+      "sha256_hex": "c8199c14ebf8d10965a6d332b2693e53e90deee74663031550e55c5cec973a62",
+      "content_type": "application/json; charset=utf-8",
+      "received_at": "2026-08-15T11:57:18.262174Z"
+    },
+    {
+      "name": "ledger",
+      "file": "ledger.json",
+      "method": "GET",
+      "path": "/v1/ledger",
+      "http_status": 200,
+      "byte_length": 9505,
+      "sha256_hex": "418a4c61a7ef3f62eba4ce777fb731de1f4713d2e48913943ddc7e6c3427d001",
+      "content_type": "application/json; charset=utf-8",
+      "received_at": "2026-08-15T11:57:18.984555Z"
+    },
+    {
+      "name": "gate-run",
+      "file": "gate-run.json",
+      "method": "POST",
+      "path": "/v1/demo/gate-run",
+      "http_status": 200,
+      "byte_length": 10499,
+      "sha256_hex": "65a417dc1d3f61d516ebfe34b5aeed139c4c0bc38cba133261b013b78fa0caac",
+      "content_type": "application/json; charset=utf-8",
+      "received_at": "2026-08-15T11:57:21.734183Z"
+    }
+  ]
+}

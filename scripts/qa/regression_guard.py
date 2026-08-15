@@ -103,9 +103,20 @@ of which has already cost somebody a wrong answer:
 
 The gate chain gets its own check. When ``mainline_api`` calls ``mainline.merge_permit``
 the trigger bodies run AS THE CALLER, so the role needs SELECT on tables the application
-source never names. ``scripts/deploy/cloud_roles.API_GATE_READ`` is the list, discovered
-the expensive way — "parse the 42501, grant exactly the named privilege, repeat" — and it
-is read from that file rather than restated here, so the two cannot drift apart.
+source never names. That list was discovered the expensive way — "parse the 42501, grant
+exactly the named privilege, repeat" — and it is READ rather than restated, so the copy
+and the original cannot drift apart.
+
+**It is read from ``verticals/mainline/db/GRANTS.yaml``, and that is the fifth trap.** It
+used to be read from ``cloud_roles.API_GATE_READ``, which was a literal tuple until
+2026-08-15 and is now a comprehension deriving from that matrix. ``ast.literal_eval``
+cannot evaluate a comprehension, the reader began returning ``[]``, and the check —
+``not gate_denied`` over an empty list — went on printing PASS while asking the cluster
+nothing at all. It was still printing PASS when the matrix had grown to fourteen tables.
+So the read set now comes from the matrix both files agree on, and **an empty read set is
+a FAIL**: a check that iterates nothing reports no shortfalls for exactly the same reason
+it would report no successes, and this repository has already been bitten once by a green
+that asserted nothing.
 
 LIVE — and a skip that cannot be mistaken for a pass
 -----------------------------------------------------
@@ -186,9 +197,44 @@ KERNEL_ADMISSION = "00000"
 
 # ── SUITES ───────────────────────────────────────────────────────────────────────────
 SUITE_PATHS = ("verticals/mainline/apps/demo-api/tests", "tests/deploy")
-#: Measured 2026-08-15 against a clean tree with the local node up. `collected` is the
-#: number `--collect-only` reports; the other four come off the junit root element.
-SUITE_BASELINE = {"collected": 911, "passed": 910, "failed": 0, "errors": 0, "skipped": 1}
+#: RE-RECORDED UPWARD, AND ONLY EVER UPWARD. Every figure below is the ``--junitxml`` ROOT
+#: ELEMENT of a run whose XML is committed beside this file; ``passed`` is
+#: ``tests - failures - errors - skipped``. No figure here was ever read off a terminal
+#: summary line — see the module docstring for the run that printed a ``Timeout`` traceback
+#: and no summary at all while its XML carried ``tests="579"``.
+#:
+#:   collected  when                        XML                 why it moved
+#:   ---------  --------------------------  ------------------  ----------------------------
+#:         911  2026-08-15T04:31:49+10:00   qa/final5.xml       the first baseline
+#:         988  2026-08-15T18:09:01+10:00   qa/final6.xml       +77, tests were added
+#:         998  2026-08-16T01:39:22+10:00   qa/wave-after.xml   +10, tests were added
+#:
+#: THE +10 IS NAMED, because "the number went up" is not a reason:
+#:   +9  tests/deploy/test_memory_page_is_served.py — a whole new file, the memory panel's
+#:       served-bytes guard, landed by the memory-visible lead.
+#:   +1  test_static_site.py::test_the_console_ci_budget_goes_red_before_the_origin_does,
+#:       landed by worker P5 with the entry-chunk wire budget.
+#: `docs/regression/WAVE-PROOF.md` carries both diffs by node id, and records that NOTHING
+#: was removed: 0 tests disappeared between 988 and 998.
+#:
+#: The one skip is `test_gate_run.py::test_payload_validates_against_the_json_schema`,
+#: *"jsonschema is not a workspace dependency"* — the same skip in all three runs.
+#:
+#: The argv, unchanged across all three::
+#:
+#:     .venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests \
+#:         tests/deploy --crdb=reuse -q -p no:cacheprovider --timeout=900 \
+#:         --junitxml=<out>
+#:
+#: `--timeout=900` and not the root ini's `timeout=120`: run together the common ancestor
+#: is the repo root, so the root ini binds, and the demo-api fixtures apply the 271-file
+#: deploy chain. `tests/demo/` is under the root `testpaths` but NOT under `SUITE_PATHS`,
+#: so `tests/demo/test_demo_ready.py` and `tests/demo/test_memory_loop_contract.py` are
+#: collected by a bare `pytest` and are deliberately NOT in these counts.
+#:
+#: A COUNT THAT FALLS IS A REGRESSION AND STOPS THE WAVE. It is never re-recorded downward
+#: to make a run green: that would delete the only evidence that a test was deleted.
+SUITE_BASELINE = {"collected": 998, "passed": 997, "failed": 0, "errors": 0, "skipped": 1}
 
 # ── BOUNDS ───────────────────────────────────────────────────────────────────────────
 CEILING_EXPRESSION = "136 * 1024"
@@ -221,6 +267,27 @@ SQL_VERBS: tuple[tuple[str, re.Pattern[str]], ...] = (
 DEFAULT_API_SRC = Path("verticals/mainline/apps/demo-api/src/mainline_demo_api")
 DEFAULT_STATIC_SITE = DEFAULT_API_SRC / "static_site.py"
 CLOUD_ROLES = Path("scripts/deploy/cloud_roles.py")
+#: THE COMMITTED GRANT MATRIX, and the reason this constant exists at all.
+#:
+#: `API_GATE_READ` used to be a literal tuple in `cloud_roles.py`, and `gate_chain_reads`
+#: below `ast.literal_eval`ed it. On 2026-08-15 that assignment became a generator
+#: comprehension deriving from this file — `literal_eval` started raising, the reader
+#: started returning `[]`, and the `gate_chain` check went on printing PASS while
+#: iterating over nothing. `cloud_roles.py:546-560` names the defect, the consequence and
+#: the repair in its own margin, and says the repair is not that module's to make. This is
+#: that repair: read the `demand: gate_chain` rows out of the MATRIX, which is what
+#: `cloud_roles.py` itself derives from, so the guard and the deploy script now agree
+#: because they read one source rather than because one copied the other.
+#:
+#: A check that iterates an empty list cannot fail. `family_privileges` therefore treats an
+#: EMPTY read set as a FAIL and not as a clean sweep — see the `gate_chain` check.
+GRANTS_MATRIX = Path("verticals/mainline/db/GRANTS.yaml")
+GRANTS_SECTION = "table_privileges"
+#: The three predicates `cloud_roles.API_GATE_READ` applies, restated so a reader can see
+#: them: the row is the API login's, it carries SELECT, it is not audit surface, and it is
+#: marked for the trigger cascade. `_is_gate_chain` accepts both spellings and so does this.
+GATE_CHAIN_ROLE = "mainline_api"
+GATE_CHAIN_READ_PRIVILEGE = "SELECT"
 #: `mainline_audit` is reached as `SELECT * FROM mainline_audit.{name}` where `name` came
 #: out of `information_schema.views`. Enumerated from the catalogue, never guessed.
 AUDIT_SCHEMA = "mainline_audit"
@@ -824,17 +891,57 @@ def extract_requirements(src: Path) -> dict[str, set[str]]:
     return required
 
 
-def gate_chain_reads(path: Path) -> list[str]:
-    """``cloud_roles.API_GATE_READ``, read out of the file rather than restated here.
+def _gate_chain_from_matrix(path: Path) -> tuple[list[str], str]:
+    """The ``demand: gate_chain`` read set, out of the committed grant matrix.
 
-    That list was discovered by running the deployment and parsing ``42501`` one HTTP
-    request at a time. Restating it would let the copy and the original drift, and the
-    drift would be invisible until the next outage.
+    The four predicates are ``cloud_roles.API_GATE_READ``'s, in the same order it applies
+    them: the row belongs to the API login, it carries ``SELECT``, it is not audit surface
+    (those are enumerated from the catalogue instead), and ``_is_gate_chain`` marks it —
+    which that module spells two ways, ``demand: gate_chain`` and ``gate_chain: true``, so
+    reading only one of them would silently under-report.
+    """
+    try:
+        import yaml
+    except ImportError as exc:  # pragma: no cover - a sibling of five scripts that import it
+        return [], f"pyyaml is not importable ({exc}); the matrix could not be read"
+    try:
+        document = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        return [], f"could not read {path}: {' '.join(str(exc).split())[:160]}"
+    if not isinstance(document, dict):
+        return [], f"{path} is not a mapping"
+    rows = document.get(GRANTS_SECTION)
+    if not isinstance(rows, list):
+        return [], f"{path} carries no {GRANTS_SECTION} list"
+
+    found: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict) or row.get("role") != GATE_CHAIN_ROLE:
+            continue
+        obj = row.get("object")
+        if not isinstance(obj, str) or obj.startswith(f"{AUDIT_SCHEMA}."):
+            continue
+        privileges = {str(p).upper() for p in (row.get("privileges") or []) if isinstance(p, str)}
+        if GATE_CHAIN_READ_PRIVILEGE not in privileges:
+            continue
+        marked = row.get("gate_chain") is True or (
+            str(row.get("demand", "")).strip().lower() == "gate_chain"
+        )
+        if marked:
+            found.append(obj.lower())
+    return sorted(set(found)), f"{path.name}:{GRANTS_SECTION} demand=gate_chain"
+
+
+def _gate_chain_from_literal(path: Path) -> tuple[list[str], str]:
+    """The legacy reader: ``API_GATE_READ`` as a literal in a deploy script.
+
+    Kept as a FALLBACK and not as the authority. It answers only while that assignment is
+    a literal, and the whole point of the constant above is that it stopped being one.
     """
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
-    except (OSError, SyntaxError):
-        return []
+    except (OSError, SyntaxError) as exc:
+        return [], f"could not parse {path}: {type(exc).__name__}"
     for node in ast.walk(tree):
         targets = [node.target] if isinstance(node, ast.AnnAssign) else getattr(node, "targets", [])
         if not isinstance(node, ast.Assign | ast.AnnAssign) or node.value is None:
@@ -842,10 +949,36 @@ def gate_chain_reads(path: Path) -> list[str]:
         if any(isinstance(t, ast.Name) and t.id == "API_GATE_READ" for t in targets):
             try:
                 value = ast.literal_eval(node.value)
-            except ValueError:
-                return []
-            return [str(v).lower() for v in value]
-    return []
+            except (ValueError, TypeError, SyntaxError):
+                return [], (
+                    f"{path.name}:API_GATE_READ is no longer a literal — it is derived, "
+                    "and a literal reader cannot see a comprehension"
+                )
+            return sorted({str(v).lower() for v in value}), f"{path.name}:API_GATE_READ literal"
+    return [], f"{path.name} assigns no API_GATE_READ"
+
+
+def gate_chain_reads(matrix: Path, legacy: Path) -> tuple[list[str], str]:
+    """What the gate transaction's trigger cascade reads, and WHERE that was learnt.
+
+    That list was discovered by running the deployment and parsing ``42501`` one HTTP
+    request at a time. Restating it here would let the copy and the original drift, and the
+    drift would be invisible until the next outage — so it is read, never retyped. It is
+    read from the MATRIX first because that is the file ``cloud_roles.py`` derives from;
+    the literal reader stays as a fallback so that pointing ``--cloud-roles`` at a planted
+    copy still exercises this path.
+
+    Returns ``([], why)`` when neither source answers. **An empty list is never silently
+    acceptable**: the caller turns it into a FAIL, because a loop over nothing reports no
+    shortfalls for the same reason it would report no successes.
+    """
+    objects, source = _gate_chain_from_matrix(matrix)
+    if objects:
+        return objects, source
+    fallback, legacy_source = _gate_chain_from_literal(legacy)
+    if fallback:
+        return fallback, f"{legacy_source} (matrix unavailable: {source})"
+    return [], f"{source}; and {legacy_source}"
 
 
 def family_privileges(  # noqa: PLR0911, PLR0912, PLR0915 - every early return is a NAMED
@@ -895,7 +1028,8 @@ def family_privileges(  # noqa: PLR0911, PLR0912, PLR0915 - every early return i
 
     role = args.role
     gate_source = Path(args.cloud_roles) if args.cloud_roles else root / CLOUD_ROLES
-    gate_tables = gate_chain_reads(gate_source)
+    gate_matrix = Path(args.grants_matrix) if args.grants_matrix else root / GRANTS_MATRIX
+    gate_tables, gate_source_note = gate_chain_reads(gate_matrix, gate_source)
     unresolved: list[str] = []
     relation_denied: list[str] = []
     routine_denied: list[str] = []
@@ -1111,13 +1245,24 @@ def family_privileges(  # noqa: PLR0911, PLR0912, PLR0915 - every early return i
         _check(
             "PRIVILEGES",
             "gate_chain",
-            not gate_denied,
+            bool(gate_tables) and not gate_denied,
             f"{role} reads every table merge_permit's triggers touch",
-            f"{len(gate_denied)} shortfall(s)",
+            f"{len(gate_denied)} shortfall(s) over {len(gate_tables)} table(s)",
             "; ".join(gate_denied[:6])
-            or f"{len(gate_tables)} tables from {gate_source.name}:API_GATE_READ",
+            or (
+                f"{len(gate_tables)} tables from {gate_source_note}"
+                if gate_tables
+                # An empty read set is the one observation this check may never call clean:
+                # `not gate_denied` is vacuously true over nothing, so a reader that stopped
+                # resolving would print PASS forever. It did exactly that between 2026-08-15
+                # and this run.
+                else f"NOTHING WAS CHECKED — the gate-chain read set resolved empty: "
+                f"{gate_source_note}"
+            ),
             denied=gate_denied,
-            source=str(gate_source),
+            tables=gate_tables,
+            source=gate_source_note,
+            matrix=str(gate_matrix),
         ),
     ]
 
@@ -1534,7 +1679,14 @@ def main(argv: list[str] | None = None) -> int:  # noqa: PLR0915 - one add_argum
     parser.add_argument(
         "--cloud-roles",
         default=None,
-        help="the module carrying API_GATE_READ (default: cloud_roles.py)",
+        help="the module carrying API_GATE_READ as a literal; the FALLBACK gate-chain "
+        "source and a falsification seam (default: cloud_roles.py)",
+    )
+    parser.add_argument(
+        "--grants-matrix",
+        default=None,
+        help="the committed grant matrix the gate-chain read set is taken from "
+        f"(default: {GRANTS_MATRIX.as_posix()})",
     )
     parser.add_argument("--base-url", default=os.environ.get("MAINLINE_DEMO_URL", DEFAULT_BASE_URL))
     parser.add_argument("--http-timeout", type=float, default=60.0)

@@ -11,19 +11,19 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7388,
+    "files_scanned": 7823,
     "files_by_category": {
-      "config": 4809,
-      "docs": 292,
+      "config": 4865,
+      "docs": 403,
       "migration": 271,
-      "other": 345,
-      "python": 1216,
-      "sql": 130,
-      "terraform": 25,
-      "typescript": 282,
-      "workflow": 18
+      "other": 421,
+      "python": 1287,
+      "sql": 131,
+      "terraform": 29,
+      "typescript": 396,
+      "workflow": 20
     },
-    "skipped_binary": 22,
+    "skipped_binary": 27,
     "skipped_too_large": 0,
     "skipped_unreadable": 0,
     "excluded_dir_names": [
@@ -96,16 +96,16 @@
         "must_contain": "cockroachdb/cockroach:v26.2.5",
         "subject_holds": true
       },
-      "file_count": 329,
+      "file_count": 426,
       "files_by_category": {
-        "config": 52,
-        "docs": 84,
+        "config": 79,
+        "docs": 140,
         "migration": 59,
-        "other": 20,
-        "python": 81,
+        "other": 26,
+        "python": 89,
         "sql": 23,
-        "typescript": 2,
-        "workflow": 8
+        "typescript": 3,
+        "workflow": 7
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0008a_owner_business.sql",
@@ -123,7 +123,7 @@
       "name": "SERIALIZABLE isolation (the default, never weakened under the gate)",
       "kind": "feature",
       "verdict": "EXERCISED",
-      "verdict_basis": "measured on the pinned local node: SHOW default_transaction_isolation returns 'serializable', and a write-skew pair — two transactions each reading sum(v), then each updating a different row — was REFUSED at commit with 40001 'restart transaction: TransactionRetryWithProtoRefreshError'. The isolation level is not merely reported; it refuses",
+      "verdict_basis": "measured on the pinned local node: SHOW default_transaction_isolation returns 'serializable', and a write-skew pair — two transactions each reading sum(v), then each updating a different row — was REFUSED at commit with 40001 'restart transaction: TransactionRetryWithProtoRefreshError'. The isolation level is not merely reported; it refuses. SECOND WITNESS, ON THE DEPLOYMENT RATHER THAN A LAPTOP, added 2026-08-15: evidence/deploy/live-gate-run.json is the four-beat run as answered by the public Lambda Function URL over CockroachDB Cloud, and its data.transaction block reports isolation SERIALIZABLE with single_transaction true and disposition rolled_back — the opened and closed logical timestamps are identical, so all four beats sit inside one transaction. evidence/deploy/LIVE.md is that sitting's narrative",
       "how": "The merge gate re-derives an obligation count and then writes; under anything weaker than SERIALIZABLE that read-then-write is a write-skew hole. Isolation is set explicitly on the connection instead of trusted as a default, and 40001 is the only SQLSTATE the harness retries.",
       "anchor": "packages/trappoint-model/src/trappoint_model/cluster.py:222",
       "anchor_resolved": {
@@ -134,15 +134,15 @@
         "must_contain": "isolation",
         "subject_holds": true
       },
-      "file_count": 151,
+      "file_count": 240,
       "files_by_category": {
-        "config": 21,
-        "docs": 36,
+        "config": 34,
+        "docs": 79,
         "migration": 15,
-        "other": 6,
-        "python": 57,
+        "other": 13,
+        "python": 69,
         "sql": 8,
-        "typescript": 4,
+        "typescript": 18,
         "workflow": 4
       },
       "representative_paths": [
@@ -161,7 +161,7 @@
       "name": "PL/pgSQL triggers and functions (v26.2 feature)",
       "kind": "feature",
       "verdict": "EXERCISED",
-      "verdict_basis": "evidence/gate-refusal/proof-20260810T004200Z.json#drift_refusal raises P0001 from mainline.fn_permit_merge_gate — a trigger function executing",
+      "verdict_basis": "evidence/gate-refusal/proof-20260810T004200Z.json#drift_refusal raises P0001 from mainline.fn_permit_merge_gate — a trigger function executing. The same function refuses ON THE DEPLOYMENT, over HTTP, in evidence/deploy/live-gate-run.json: the projection_drift_attack beat forces the projected counter to zero out of band and the merge is still REFUSED with SQLSTATE P0001 naming mainline.fn_permit_merge_gate, because the gate re-derives the count instead of trusting the column it was handed",
       "how": "The gate is a BEFORE trigger, not application code, so it is enforced against psql, a migration script and a back-office correction alike. 0115_fn_permit_merge_gate.sql:77 is the RAISE that produces the P0001 exhibit; 0120_trg_check_project.sql:28 is the projection trigger.",
       "anchor": "verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:77",
       "anchor_resolved": {
@@ -172,12 +172,12 @@
         "must_contain": "P0001",
         "subject_holds": true
       },
-      "file_count": 122,
+      "file_count": 126,
       "files_by_category": {
-        "config": 2,
-        "docs": 15,
+        "config": 3,
+        "docs": 17,
         "migration": 46,
-        "other": 5,
+        "other": 6,
         "python": 27,
         "sql": 27
       },
@@ -197,7 +197,7 @@
       "name": "Named CHECK constraints as the refusal exhibit",
       "kind": "feature",
       "verdict": "EXERCISED",
-      "verdict_basis": "evidence/gate-refusal/proof-20260810T004200Z.json#refusal.constraint == 'gate_closed_when_issued', source 'reported'",
+      "verdict_basis": "evidence/gate-refusal/proof-20260810T004200Z.json#refusal.constraint == 'gate_closed_when_issued', source 'reported'. Also on the deployment: the merge beat of evidence/deploy/live-gate-run.json carries SQLSTATE 23514 with constraint gate_closed_when_issued, which is the constraint NAME travelling intact from a CockroachDB Cloud node, through the Lambda handler, into a JSON envelope a browser can read",
       "how": "The constraint NAME is the deliverable, not the exception. A refusal with the right SQLSTATE and the wrong constraint name is the right outcome for the wrong reason, so every conformance case asserts both.",
       "anchor": "verticals/mainline/db/migrations/0050_permit.sql:114",
       "anchor_resolved": {
@@ -208,15 +208,15 @@
         "must_contain": "gate_closed_when_issued",
         "subject_holds": true
       },
-      "file_count": 181,
+      "file_count": 309,
       "files_by_category": {
-        "config": 34,
-        "docs": 60,
+        "config": 61,
+        "docs": 109,
         "migration": 7,
-        "other": 5,
-        "python": 47,
+        "other": 31,
+        "python": 60,
         "sql": 6,
-        "typescript": 19,
+        "typescript": 32,
         "workflow": 3
       },
       "representative_paths": [
@@ -246,12 +246,12 @@
         "must_contain": "VECTOR INDEX ce_ann",
         "subject_holds": true
       },
-      "file_count": 141,
+      "file_count": 151,
       "files_by_category": {
-        "config": 17,
-        "docs": 41,
+        "config": 19,
+        "docs": 48,
         "migration": 14,
-        "other": 1,
+        "other": 2,
         "python": 61,
         "sql": 4,
         "typescript": 2,
@@ -284,13 +284,13 @@
         "must_contain": "AS OF SYSTEM TIME",
         "subject_holds": true
       },
-      "file_count": 75,
+      "file_count": 84,
       "files_by_category": {
-        "config": 14,
-        "docs": 28,
+        "config": 15,
+        "docs": 33,
         "migration": 1,
-        "other": 2,
-        "python": 27,
+        "other": 3,
+        "python": 29,
         "sql": 1,
         "typescript": 1,
         "workflow": 1
@@ -322,10 +322,12 @@
         "must_contain": "follower_read_timestamp()",
         "subject_holds": true
       },
-      "file_count": 9,
+      "file_count": 12,
       "files_by_category": {
-        "docs": 1,
+        "config": 1,
+        "docs": 2,
         "migration": 2,
+        "other": 1,
         "python": 6
       },
       "representative_paths": [
@@ -355,11 +357,12 @@
         "must_contain": "FORCE ROW LEVEL SECURITY",
         "subject_holds": true
       },
-      "file_count": 40,
+      "file_count": 44,
       "files_by_category": {
-        "config": 4,
-        "docs": 14,
+        "config": 5,
+        "docs": 16,
         "migration": 13,
+        "other": 1,
         "python": 8,
         "sql": 1
       },
@@ -390,12 +393,12 @@
         "must_contain": "SHOW CREATE ALL SCHEMAS",
         "subject_holds": true
       },
-      "file_count": 67,
+      "file_count": 69,
       "files_by_category": {
-        "config": 7,
+        "config": 8,
         "docs": 17,
         "migration": 10,
-        "other": 3,
+        "other": 4,
         "python": 26,
         "sql": 4
       },
@@ -426,13 +429,13 @@
         "must_contain": "FORBIDDEN_SCHEMAS",
         "subject_holds": true
       },
-      "file_count": 64,
+      "file_count": 82,
       "files_by_category": {
-        "config": 10,
-        "docs": 21,
+        "config": 15,
+        "docs": 27,
         "migration": 9,
-        "other": 2,
-        "python": 21,
+        "other": 3,
+        "python": 27,
         "workflow": 1
       },
       "representative_paths": [
@@ -462,15 +465,16 @@
         "must_contain": "CREATE CHANGEFEED",
         "subject_holds": true
       },
-      "file_count": 3,
+      "file_count": 7,
       "files_by_category": {
-        "docs": 1,
+        "config": 1,
+        "docs": 4,
         "migration": 2
       },
       "representative_paths": [
         "verticals/mainline/db/migrations/0155a_ops_changefeed_health_snapshot.sql",
         "verticals/mainline/db/migrations/0168_v_changefeed_health.sql",
-        "packages/trappoint-migrate/README.md"
+        "docs/demo/film/ONSCREEN-TEXT.yaml"
       ],
       "search": {
         "pattern": "CREATE CHANGEFEED",
@@ -494,12 +498,13 @@
         "must_contain": "0.6.12",
         "subject_holds": true
       },
-      "file_count": 60,
+      "file_count": 68,
       "files_by_category": {
-        "config": 13,
-        "docs": 19,
+        "config": 15,
+        "docs": 23,
         "migration": 3,
-        "python": 23,
+        "other": 1,
+        "python": 24,
         "typescript": 1,
         "workflow": 1
       },
@@ -530,13 +535,13 @@
         "must_contain": "cockroachlabs.cloud/mcp",
         "subject_holds": true
       },
-      "file_count": 173,
+      "file_count": 192,
       "files_by_category": {
-        "config": 27,
-        "docs": 31,
+        "config": 28,
+        "docs": 42,
         "migration": 45,
-        "other": 3,
-        "python": 57,
+        "other": 4,
+        "python": 63,
         "sql": 3,
         "typescript": 7
       },
@@ -567,16 +572,16 @@
         "must_contain": "_SQLSTATE",
         "subject_holds": true
       },
-      "file_count": 16,
+      "file_count": 19,
       "files_by_category": {
-        "config": 4,
-        "docs": 11,
-        "workflow": 1
+        "config": 5,
+        "docs": 12,
+        "workflow": 2
       },
       "representative_paths": [
         ".claude-plugin/marketplace.json",
         "docs/leads/workers.json",
-        "evidence/provenance/third-party.json"
+        "evidence/deploy/lead/plan-repro-fresh-clone.json"
       ],
       "search": {
         "pattern": "designing-diachronic-gates|designing-vector-recall-prefixes|cockroachdb-resilience-and-disaster-recovery",

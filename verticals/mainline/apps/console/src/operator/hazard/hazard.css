@@ -1,0 +1,498 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * HAZARD IDENTIFICATION — HSG250 Figure 1 element 6.
+ *
+ * This is CONTROL OF WORK's stylesheet, not MAINLINE's. It shares no token, no class and
+ * no import with `src/design/**`: R1 forbids the import, and the demo would be weaker if
+ * the supervisor's app looked like the vendor's console. What it does share with the rest
+ * of the operator surface is the token NAMES W1 defines on the shell, each used here with
+ * a fallback so this card renders correctly on its own in a unit test or a screenshot.
+ *
+ * PLAIN CSS, NOT A CSS MODULE, and every class is prefixed `hz-`. The operator entry is a
+ * separate Vite entry point with its own budget; a module would add a hashing step and a
+ * runtime lookup object for no benefit on a page with one card.
+ *
+ * NOTHING HERE ANIMATES. A hazard panel that shimmered, pulsed or counted up would be
+ * making the retrieval look like it happened just now, which is exactly the claim R17
+ * forbids. Values appear when their response lands and not one frame before.
+ */
+
+.hz-card {
+  --hz-ink: var(--op-ink, #14161a);
+  --hz-ink-soft: var(--op-ink-soft, #5b6470);
+  --hz-rule: var(--op-rule, #c9d0d8);
+  --hz-paper: var(--op-paper, #ffffff);
+  --hz-wash: var(--op-wash, #f4f6f8);
+  --hz-alarm: var(--op-alarm, #8c1d18);
+  --hz-alarm-wash: var(--op-alarm-wash, #fdf0ee);
+  --hz-mono: var(--op-mono, ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid var(--hz-rule);
+  border-left: 4px solid var(--hz-alarm);
+  background: var(--hz-paper);
+  color: var(--hz-ink);
+}
+
+.hz-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  border-bottom: 1px solid var(--hz-rule);
+  padding-bottom: 0.5rem;
+}
+
+.hz-h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.hz-h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--hz-ink-soft);
+}
+
+/* The one editorial sentence on the card. Set apart so it reads as a claim, not a column. */
+.hz-strapline {
+  margin: 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--hz-ink-soft);
+}
+
+.hz-pending {
+  margin: 0;
+  font-family: var(--hz-mono);
+  font-size: 0.72rem;
+  color: var(--hz-ink-soft);
+}
+
+/* ── the precursor ────────────────────────────────────────────────────────────────── */
+
+.hz-precursor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.hz-event-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.hz-warn {
+  color: var(--hz-alarm);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.hz-ref {
+  font-family: var(--hz-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.hz-kind,
+.hz-when {
+  font-size: 0.82rem;
+}
+
+.hz-kind {
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--hz-rule);
+  background: var(--hz-wash);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.66rem;
+}
+
+.hz-when {
+  font-weight: 600;
+}
+
+.hz-iso {
+  font-family: var(--hz-mono);
+  font-size: 0.66rem;
+  color: var(--hz-ink-soft);
+  word-break: break-all;
+}
+
+.hz-title {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.hz-sev,
+.hz-evsrc,
+.hz-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  align-items: baseline;
+}
+
+.hz-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.hz-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hz-ink-soft);
+  white-space: nowrap;
+}
+
+.hz-val {
+  font-size: 0.82rem;
+}
+
+.hz-val--loud {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.hz-val--origin {
+  font-family: var(--hz-mono);
+  font-weight: 700;
+}
+
+.hz-mono {
+  font-family: var(--hz-mono);
+}
+
+.hz-sub {
+  display: block;
+  font-size: 0.66rem;
+  line-height: 1.45;
+  color: var(--hz-ink-soft);
+}
+
+/* ── the ancestry sentences ───────────────────────────────────────────────────────── */
+
+.hz-ancestry {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-left: 2px solid var(--hz-rule);
+  padding-left: 0.7rem;
+}
+
+.hz-arrow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.hz-arrow::before {
+  content: "↳";
+  position: absolute;
+  margin-left: -1.35rem;
+  color: var(--hz-ink-soft);
+}
+
+.hz-quote,
+.hz-lede {
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.hz-quote {
+  font-style: italic;
+}
+
+/* ── the projection exhibit ───────────────────────────────────────────────────────── */
+
+.hz-projection {
+  border: 1px solid var(--hz-rule);
+  background: var(--hz-wash);
+  padding: 0.55rem 0.7rem;
+}
+
+.hz-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hz-grid-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 3rem minmax(6rem, 10rem) auto;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.hz-grid-key {
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hz-ink-soft);
+}
+
+.hz-equal,
+.hz-unequal {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+}
+
+.hz-unequal {
+  color: var(--hz-alarm);
+  font-weight: 700;
+}
+
+.hz-citation {
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-top: 1px dashed var(--hz-rule);
+  padding-top: 0.4rem;
+}
+
+.hz-citation-tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--hz-ink-soft);
+}
+
+.hz-citation-code {
+  font-family: var(--hz-mono);
+  font-size: 0.7rem;
+  word-break: break-word;
+}
+
+/* ── the loop ─────────────────────────────────────────────────────────────────────── */
+
+.hz-loop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border-top: 1px solid var(--hz-rule);
+  padding-top: 0.6rem;
+}
+
+.hz-line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hz-line-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.hz-line-label {
+  min-width: 6.5rem;
+  font-family: var(--hz-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.hz-line-gloss {
+  font-size: 0.72rem;
+  color: var(--hz-ink-soft);
+}
+
+.hz-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+}
+
+.hz-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.hz-count-n {
+  font-family: var(--hz-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.hz-count-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--hz-ink-soft);
+}
+
+.hz-state {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-weight: 700;
+}
+
+.hz-state--open {
+  color: var(--hz-alarm);
+}
+
+.hz-state-word {
+  font-family: var(--hz-mono);
+  letter-spacing: 0.1em;
+}
+
+/* The two instants, side by side. The gap between them is the fact. */
+.hz-interval {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.5rem 0.9rem;
+  align-items: center;
+  border: 1px solid var(--hz-rule);
+  background: var(--hz-wash);
+  padding: 0.5rem 0.7rem;
+}
+
+.hz-interval-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.hz-interval-gap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  max-width: 12rem;
+  text-align: center;
+}
+
+.hz-gap-value {
+  font-family: var(--hz-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* ── provenance ───────────────────────────────────────────────────────────────────── */
+
+.hz-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.4rem;
+}
+
+.hz-chip-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.hz-chip {
+  font-family: var(--hz-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--hz-rule);
+  background: var(--hz-paper);
+  color: var(--hz-ink-soft);
+  white-space: nowrap;
+}
+
+.hz-chip--db-column {
+  border-color: currentcolor;
+  color: var(--hz-ink);
+}
+
+.hz-ptr {
+  font-family: var(--hz-mono);
+  font-size: 0.6rem;
+  color: var(--hz-ink-soft);
+  word-break: break-all;
+}
+
+.hz-blockprov {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-top: 1px dashed var(--hz-rule);
+  padding-top: 0.35rem;
+}
+
+.hz-source {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+  font-family: var(--hz-mono);
+  font-size: 0.62rem;
+  color: var(--hz-ink-soft);
+}
+
+.hz-source-res {
+  font-weight: 700;
+  color: var(--hz-ink);
+}
+
+/* ── absence ──────────────────────────────────────────────────────────────────────── */
+
+.hz-empty,
+.hz-absent {
+  border: 1px dashed var(--hz-rule);
+  padding: 0.45rem 0.6rem;
+  font-size: 0.72rem;
+  color: var(--hz-ink-soft);
+}
+
+.hz-empty {
+  margin: 0;
+}
+
+.hz-absent-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.hz-absent-item {
+  font-family: var(--hz-mono);
+  font-size: 0.66rem;
+  word-break: break-word;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hz-card {
+    --hz-ink: var(--op-ink, #e8ecf1);
+    --hz-ink-soft: var(--op-ink-soft, #9aa5b1);
+    --hz-rule: var(--op-rule, #39414c);
+    --hz-paper: var(--op-paper, #14171c);
+    --hz-wash: var(--op-wash, #1b1f26);
+    --hz-alarm: var(--op-alarm, #ef8b80);
+    --hz-alarm-wash: var(--op-alarm-wash, #2a1a18);
+  }
+}

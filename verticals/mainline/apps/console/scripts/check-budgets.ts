@@ -19,6 +19,40 @@
  *   • A MEMORY-register library that has become statically reachable from the entry
  *     chunk FAILS, even if the total is under budget. That means the lazy boundary
  *     broke and every machine is now paying for a surface most of them never render.
+ *
+ * ── TWO MEASURES, AND THE SECOND ONE IS THE ONE WITH TEETH (added 2026-08-16) ────────
+ *
+ * `measure: "closure_total"` (the default, and what every budget here did until today)
+ * SUMS the gzipped closure. That answers "how much does this screen cost to paint",
+ * which is what a performance budget is for.
+ *
+ * `measure: "largest_object"` — which the required `wire_ceiling` gate uses — answers a
+ * different question and it is the one that can take the demo dark: **how big is the
+ * biggest SINGLE object this origin has to put on the wire.** `static_site.py` refuses any one response body over
+ * `DEFAULT_MAX_RESPONSE_BYTES` (136 * 1024 = 139,264) with a 413, and that bound is per
+ * object, not per closure. A sum can therefore sit comfortably inside its threshold while
+ * one chunk inside it is a few hundred bytes from a total outage — measured on
+ * 2026-08-16, `evidentiary-shell` reported 63 % of its 220 KB budget in the same run
+ * where its entry chunk measured 1,332 B under the wire ceiling.
+ *
+ * When the entry chunk crosses, the origin answers 413 to its own entry JavaScript for
+ * every browser: `GET /` still returns a 200 shell, the shell's only module returns a JSON
+ * problem document, and the reader gets a BLANK PAGE. The fix is a smaller or split entry
+ * chunk — a lazy route, or a second HTML entry as `operator.html` already is. It is never
+ * a larger ceiling and never a larger number in `budgets.json`; both bounds are frozen by
+ * ruling R3 of `docs/demo/proof-and-polish-plan.md`, and
+ * `verticals/mainline/apps/demo-api/tests/test_static_site.py` asserts that the wire
+ * budget below still equals `DEFAULT_MAX_RESPONSE_BYTES - _MINIMUM_HEADROOM_BYTES`, so
+ * loosening one of the two files is red in the other.
+ *
+ * ── A BAN THAT CANNOT SEE ITS SUBJECT HAS NOT PASSED EITHER ─────────────────────────
+ *
+ * `forbidden_in_entry` rows now carry an optional `scope` (`node_modules`, the default, or
+ * `source`) and an optional `in` (which entry root the ban applies to, default `entry` =
+ * every `isEntry` chunk). `source` is what lets a ban name a directory of ours —
+ * `src/operator/` must never be statically reachable from `index.html` — where the old
+ * needle could only name a package. If an `in` root matches no chunk, that is a FAILURE
+ * and not a silent pass: an entry that was renamed takes its bans with it.
  */
 
 import { gzipSync } from 'node:zlib';
@@ -52,6 +86,8 @@ interface Budget {
   root: string;
   follow: 'static' | 'all';
   subtract?: string;
+  /** `closure_total` (default) sums the closure; `largest_object` takes its widest file. */
+  measure?: 'closure_total' | 'largest_object';
   max_gzip_bytes: number;
   max_gzip_human: string;
   required: boolean;
@@ -61,9 +97,15 @@ interface Budget {
 interface ForbiddenInEntry {
   match: string;
   why: string;
+  /** `node_modules` (default) matches a package; `source` matches a path of ours. */
+  scope?: 'node_modules' | 'source';
+  /** Which root's static closure the ban applies to. Default `entry` = every entry. */
+  in?: string;
 }
 
 interface BudgetsFile {
+  /** The per-object bound the ORIGIN refuses at. Required; its absence is a failure. */
+  wire_ceiling?: Budget;
   budgets: Budget[];
   forbidden_in_entry: ForbiddenInEntry[];
 }
@@ -201,7 +243,23 @@ if (Object.keys(manifest).length === 0) {
 process.stdout.write('\ncheck-budgets — D13, budgets are tests\n');
 process.stdout.write(`  manifest: ${Object.keys(manifest).length} chunks\n\n`);
 
-for (const budget of config.budgets) {
+// The wire ceiling runs FIRST and its absence is a failure, not a silent skip. It is the
+// only gate here whose breach is an outage rather than a slow page, so it may not be
+// disabled by deleting a key — a gate that can be removed by removing it is not a gate.
+if (config.wire_ceiling === undefined || typeof config.wire_ceiling.max_gzip_bytes !== 'number') {
+  problems.push(
+    '[wire-ceiling] budgets.json declares no `wire_ceiling` with a numeric max_gzip_bytes, so\n' +
+      '      NOTHING in this run measures the widest SINGLE object the origin has to serve. Every\n' +
+      "      other budget here is a SUM over a closure, and this origin's 413 is per object: a sum\n" +
+      '      can pass at 63% while one chunk inside it is a few hundred bytes from a blank page.',
+  );
+}
+
+const gates = config.wire_ceiling === undefined
+  ? config.budgets
+  : [config.wire_ceiling, ...config.budgets];
+
+for (const budget of gates) {
   const seeds = rootKeys(manifest, budget.root);
 
   if (seeds.length === 0) {
@@ -224,56 +282,110 @@ for (const budget of config.budgets) {
 
   const files = filesOf(manifest, included);
   let total = 0;
-  for (const file of files) total += gzipBytes(file);
+  let widestFile = '';
+  let widestBytes = 0;
+  for (const file of files) {
+    const bytes = gzipBytes(file);
+    total += bytes;
+    if (bytes > widestBytes) {
+      widestBytes = bytes;
+      widestFile = file;
+    }
+  }
 
-  const verdict = total <= budget.max_gzip_bytes ? 'PASS' : 'FAIL';
-  const pct = ((total / budget.max_gzip_bytes) * 100).toFixed(0);
+  const perObject = (budget.measure ?? 'closure_total') === 'largest_object';
+  const measured = perObject ? widestBytes : total;
+
+  const verdict = measured <= budget.max_gzip_bytes ? 'PASS' : 'FAIL';
+  const pct = ((measured / budget.max_gzip_bytes) * 100).toFixed(0);
+  // The margin is printed on every run, PASS included: at 0.2 % of the wire ceiling the
+  // interesting number is not "did it pass" but "by how much", and a reader who only ever
+  // sees a verdict cannot tell 300 bytes of room from 30,000.
+  const margin = budget.max_gzip_bytes - measured;
   process.stdout.write(
-    `  ${verdict}  ${budget.id.padEnd(24)} ${human(total).padStart(10)} gzip  /  ${budget.max_gzip_human.padStart(7)}  (${pct}%, ${files.size} files)\n`,
+    `  ${verdict}  ${budget.id.padEnd(24)} ${human(measured).padStart(10)} gzip  /  ${budget.max_gzip_human.padStart(7)}  (${pct}%, ${margin} B left, ` +
+      `${perObject ? `widest of ${files.size}: ${widestFile}` : `${files.size} files`})\n`,
   );
 
   if (verdict === 'FAIL') {
     problems.push(
-      `[${budget.id}] ${human(total)} gzip exceeds the ${budget.max_gzip_human} budget.\n` +
-        `      ${budget.why}\n` +
-        `      Files in the closure: ${[...files].sort().join(', ')}`,
+      perObject
+        ? `[${budget.id}] ${widestFile} is ${measured} B gzipped — ${measured - budget.max_gzip_bytes} B OVER the ` +
+            `${budget.max_gzip_bytes} B wire budget (${budget.max_gzip_human}).\n` +
+            `      ${budget.why}\n` +
+            `      Make THAT CHUNK smaller. Do not raise this number, and do not raise ` +
+            `DEFAULT_MAX_RESPONSE_BYTES: move what grew behind a lazy import, or give it its own HTML entry.`
+        : `[${budget.id}] ${human(total)} gzip exceeds the ${budget.max_gzip_human} budget.\n` +
+            `      ${budget.why}\n` +
+            `      Files in the closure: ${[...files].sort().join(', ')}`,
     );
   }
 }
 
 // ── The lazy boundary ──────────────────────────────────────────────────────
 
-const entryClosure = closure(manifest, rootKeys(manifest, 'entry'), 'static');
-const entryFiles = [...filesOf(manifest, entryClosure)];
+const reportedMissingMaps = new Set<string>();
+const scanned = new Map<string, string[]>();
 
-const entryModules: string[] = [];
-let mapsMissing = false;
-for (const file of entryFiles) {
-  const modules = modulesInChunk(file);
-  if (modules === null) {
-    mapsMissing = true;
+/** Every original module inside the static closure of `root`. Missing maps are a FAILURE. */
+function modulesReachableFrom(root: string): string[] {
+  const cached = scanned.get(root);
+  if (cached !== undefined) return cached;
+
+  const seeds = rootKeys(manifest, root);
+  if (seeds.length === 0) {
+    // A ban whose subject is not in the build has not been satisfied; it has not run.
+    // `operator.html` being renamed must take its bans down loudly, not silently.
     problems.push(
-      `[lazy-boundary] ${file} has no sourcemap, so the modules inside it cannot be enumerated.\n` +
-        '      `build.sourcemap` must stay true: without it this gate cannot tell a lazy 3D chunk\n' +
-        '      from a 3D library welded into the evidentiary shell.',
+      `[lazy-boundary] no chunk matched the root "${root}", so every forbidden_in_entry row\n` +
+        '      scoped to it was NOT checked. Fix the root name, or delete the rows that name it —\n' +
+        '      a boundary check that cannot find its subject is not a boundary check.',
     );
-    continue;
   }
-  entryModules.push(...modules);
+
+  const modules: string[] = [];
+  for (const file of filesOf(manifest, closure(manifest, seeds, 'static'))) {
+    const inChunk = modulesInChunk(file);
+    if (inChunk === null) {
+      if (!reportedMissingMaps.has(file)) {
+        reportedMissingMaps.add(file);
+        problems.push(
+          `[lazy-boundary] ${file} has no sourcemap, so the modules inside it cannot be enumerated.\n` +
+            '      `build.sourcemap` must stay true: without it this gate cannot tell a lazy 3D chunk\n' +
+            '      from a 3D library welded into the evidentiary shell.',
+        );
+      }
+      continue;
+    }
+    modules.push(...inChunk);
+  }
+  scanned.set(root, modules);
+  return modules;
 }
 
-if (!mapsMissing) {
+const entryModules = modulesReachableFrom('entry');
+if (reportedMissingMaps.size === 0) {
   process.stdout.write(
     `  lazy boundary: ${entryModules.length} modules inside the entry closure\n`,
   );
 }
 
 for (const forbidden of config.forbidden_in_entry) {
-  const needle = `/node_modules/${forbidden.match}/`;
-  const hits = [...new Set(entryModules.filter((source) => source.includes(needle)))];
+  const root = forbidden.in ?? 'entry';
+  const source = (forbidden.scope ?? 'node_modules') === 'source';
+  // `source` matches a path of OURS, so a vendored copy under node_modules/ that happens
+  // to share the path fragment is not the finding this row is about.
+  const needle = source ? forbidden.match : `/node_modules/${forbidden.match}/`;
+  const hits = [
+    ...new Set(
+      modulesReachableFrom(root).filter(
+        (module) => module.includes(needle) && (!source || !module.includes('/node_modules/')),
+      ),
+    ),
+  ];
   if (hits.length > 0) {
     problems.push(
-      `[lazy-boundary] "${forbidden.match}" is bundled INTO the evidentiary entry chunk.\n` +
+      `[lazy-boundary] "${forbidden.match}" is bundled INTO the static closure of "${root}".\n` +
         `      ${forbidden.why}\n` +
         `      First offending modules: ${hits.slice(0, 5).join(', ')}${hits.length > 5 ? ` (+${hits.length - 5} more)` : ''}`,
     );

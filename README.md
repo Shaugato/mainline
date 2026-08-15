@@ -12,29 +12,79 @@ Every clause of a procedure, setpoint, isolation standard and critical control c
 Recall is not displayed beside the decision. **Recall is a precondition of the decision.**
 
 If you are judging this, [`docs/submission/JUDGE-START.md`](docs/submission/JUDGE-START.md)
-is ninety seconds: what to look at, what to run, and what we are not claiming.
+is ninety seconds: what to look at, what to run, and what we are not claiming. If you paused
+the film on a number, [`docs/demo/JUDGE-90-SECONDS.md`](docs/demo/JUDGE-90-SECONDS.md) is one
+row per frame — the exact value, the route or file it came from, and the one command that
+regenerates it.
 
 **What the rules ask for, and where each one is:**
 
 | Required | Where it is |
 |---|---|
-| **Demo URL** | `UNRESOLVED` |
-| **Judge access — free and unrestricted** | `UNRESOLVED` |
+| **Demo URL** | **`https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`** — answering `ok: true`, database `mainline_demo`, deploy chain `271` of `271` files [src: evidence/demo/live-beats.json#world.health]. `SUBMISSION.json` still holds the sentinel; see below |
+| **Judge access — free and unrestricted** | the URL above takes no account, no login and no credential of ours — [`docs/demo/JUDGE-90-SECONDS.md`](docs/demo/JUDGE-90-SECONDS.md) is the ninety-second walk, and the read-only SQL login into the same cluster is [`docs/deploy/JUDGE-PACK.md`](docs/deploy/JUDGE-PACK.md) §2 |
 | **Video, under 3 minutes** | `UNRESOLVED` |
 | **Which CockroachDB tools and AWS services, and how** | [`docs/TOOL-USAGE.md`](docs/TOOL-USAGE.md) — every tool and every service with a file, a line number, and a verdict saying whether it has actually run |
 | **Repository and licence** | `https://github.com/Shaugato/mainline` — **public since 2026-08-11** · root [`LICENSE`](LICENSE) is Apache-2.0 |
 
-`UNRESOLVED` is a **literal token**, not a placeholder somebody forgot to replace. Those three
-rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMISSION.json), the one
-file in this repository where a submission URL may be written, and every field in it starts
-life as that exact string. That file has since landed and is tracked; those three fields still
-hold `UNRESOLVED` because nothing is deployed and no film exists, so the rows still say so. A
-submission checklist that looks finished before it is finished is the one failure mode this
-repository is built to refuse — including when the thing being described is the submission.
+`UNRESOLVED` is a **literal token**, not a placeholder somebody forgot to replace. Those rows
+render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMISSION.json), the one file
+in this repository where a submission URL may be written, and every field in it starts life as
+that exact string. ~~Those three fields still hold `UNRESOLVED` because nothing is deployed and
+no film exists.~~ **SUPERSEDED 2026-08-15: the demo is deployed and the four beats have been
+driven through it** — `verdict: PROVEN`, `target_is_local_emulator: false`, eleven requests, no
+credential [src: evidence/demo/live-beats.json#verdict]. `demo_url` in that file is
+nevertheless **still the sentinel**, because resolving it is the submission domain's act and
+not this page's, and the two disagree until its owner resolves it. **Where they disagree, the
+wire wins and this paragraph is the record of the disagreement.** `video_url` is genuinely
+unresolved: the film has not been uploaded. A submission checklist that looks finished before
+it is finished is the one failure mode this repository is built to refuse — including when the
+thing being described is the submission.
 
 `python scripts/submission/check_submission_ready.py` reads that file, prints exactly what is
 missing and what would resolve it, and reports **0 rows NOT CHECKED** — because a question
 nobody could answer is an unresolved row, never a pass.
+
+## The live demo, and the two screens the film is shot in
+
+**This is not a tour of the MAINLINE console.** It is the software the people in the story
+actually use, with the refusal landing *inside* it — because that is where a refusal lands in
+reality. MAINLINE is infrastructure; you see it by seeing what it stops.
+
+| screen | who is using it | route |
+|---|---|---|
+| **Permit to work** | a site supervisor issuing a permit | `/operator.html#/permit` |
+| **Management of change** | a safety engineer editing a clause | `/operator.html#/change` |
+
+`operator.html` is a second HTML entry point in the same Vite build — the file is
+`verticals/mainline/apps/console/operator.html` and the router is
+`src/operator/route.ts` — deliberately not a page inside the console, and carrying no vendor
+mark. **Every refusal on those screens comes back over HTTP from the deployed API and carries
+the SQLSTATE the database produced.** Nothing is mocked, staged or timed with a `setTimeout`;
+open devtools and you meet a real request and a real answer.
+
+**Those two screens are in this tree and are not on the deployed origin yet, and this page will
+not let you find that out by clicking.** Measured 2026-08-15: `GET /operator.html` on the live
+URL returns the console shell **byte-for-byte identical** to `GET /` — the single-page fallback,
+which is what a not-yet-deployed second entry point looks like. The **API** half is live and is
+what the three commands below prove; the screens ship when the orchestrator redeploys.
+
+**Three commands hand a judge the same evidence, with a URL and nothing else.** No account, no
+credential, no AWS access, no database:
+
+| command | what it answers |
+|---|---|
+| `.venv/Scripts/python.exe scripts/demo/demo_ready.py` | *is the world ready to film?* — eight facts, read-only, zero writes. [`docs/demo/DEMO-READY.md`](docs/demo/DEMO-READY.md) |
+| `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url <the URL above>` | the four beats off the deployed URL, each with the SQLSTATE the database produced → `evidence/demo/live-beats.json`. [`docs/demo/LIVE-BEATS.md`](docs/demo/LIVE-BEATS.md) |
+| `.venv/Scripts/python.exe scripts/proof/memory_loop.py --base-url <the URL above>` | STORE → RETRIEVE → ACT, forty rows with a table, a column and a timestamp behind each → `evidence/demo/memory-loop.json`. [`docs/demo/MEMORY-LOOP.md`](docs/demo/MEMORY-LOOP.md) |
+
+The memory loop is the one worth running. An incident in **2019** named a clause; seven years
+later a permit relies on that clause; a retrieval pass finds the incident and **ten seconds**
+later the finding becomes an obligation on the permit — and from that instant a `CHECK` in the
+database will not let the permit be issued. Those ten seconds are a subtraction of two columns
+off two live routes, not a sentence
+[src: evidence/demo/memory-loop.json#gap.seconds]. No endpoint was added to make any of it
+filmable.
 
 ---
 
@@ -226,13 +276,24 @@ disagree. The short version, because it should not be buried:
   There is no end-to-end Australian residency; that claim is false here.
   The cross-region hop is unmeasured under load, and **every timing in the demo is a local
   timing** — a single-node CockroachDB in Docker on one laptop.
-* **Bedrock genuinely executes, and nothing else on AWS does.**
-  [`evidence/deploy/aws-live.json`](evidence/deploy/aws-live.json) records four live calls
-  with their AWS request ids — `sts:GetCallerIdentity`, `bedrock:ListFoundationModels`, a
-  Titan v2 embedding (1024-d, L2 norm 1.0) and a Claude Haiku 4.5 `Converse` that returned
-  `end_turn` — `calls_failed: []`, whole probe under one cent. Lambda, CloudFront, S3, KMS,
-  IAM roles and SSM are **DESIGNED**: `terraform apply` has never been run, which is also why
-  the demo URL above is `UNRESOLVED`.
+* ~~**Bedrock genuinely executes, and nothing else on AWS does.**~~ **SUPERSEDED — a Lambda
+  Function URL now serves the demo, and the apply that created it has run.**
+  [`evidence/deploy/aws-live.json`](evidence/deploy/aws-live.json) still records the four live
+  Bedrock-and-STS calls with their AWS request ids — `sts:GetCallerIdentity`,
+  `bedrock:ListFoundationModels`, a Titan v2 embedding (1024-d, L2 norm 1.0) and a Claude
+  Haiku 4.5 `Converse` that returned `end_turn` — `calls_failed: []`, whole probe under one
+  cent. Beside it, [`evidence/deploy/LIVE.md`](evidence/deploy/LIVE.md) and
+  [`evidence/demo/live-beats.json`](evidence/demo/live-beats.json) record eleven requests
+  answered by the public Function URL over the internet, `target_is_local_emulator: false`.
+  **CloudFront is still not `DESIGNED`-by-choice but blocked**: the account carries a
+  verification hold — `AccessDenied: Your account must be verified before you can add new
+  CloudFront resources.` — proven by a real apply attempt and kept verbatim with its
+  `RequestID` in [`docs/deploy/RUNBOOK.md`](docs/deploy/RUNBOOK.md) Appendix A, so the origin
+  is the Function URL itself. **Which AWS row is EXERCISED and which is still DESIGNED is not
+  this page's to assert** — the census is
+  [`evidence/tool-usage/aws-services.json`](evidence/tool-usage/aws-services.json), re-derived
+  with `python scripts/submission/capture_tool_evidence.py --check`, and a row promoted on a
+  memory of a deploy would be worse than a row left honest.
 
 ---
 
@@ -341,9 +402,12 @@ Pre-alpha. Under active construction. Design corpus: `ARCHITECTURE.md` and `BUIL
 Before drawing a conclusion from a colour, read [`docs/CI-STATE.md`](docs/CI-STATE.md): it
 names every lane, separates the reds that report a true incompleteness — seven of sixteen
 custody checks unwritten, a reference vertical with no producer, 21 of 30 invariants pending,
-no demo to health-check — from the ones whose jobs died in the runner's network before
+~~no demo to health-check~~ — from the ones whose jobs died in the runner's network before
 executing a single check. A red that reports true incompleteness **stays** red here, with a
-sharper message.
+sharper message. *(The struck item is the one that moved: there is a demo to health-check now,
+and `GET /v1/health` on it answers `ok: true` [src: evidence/demo/live-beats.json#world.health].
+Whether the lane itself has been pointed at it is `docs/CI-STATE.md`'s to say and not this
+page's — a green badge asserted from a README is exactly the failure this repository refuses.)*
 
 **Nothing here claims what it cannot prove**, and the claims that are not proven are
 listed by name in [`docs/HONESTY.md`](docs/HONESTY.md) rather than left out.
@@ -351,7 +415,13 @@ listed by name in [`docs/HONESTY.md`](docs/HONESTY.md) rather than left out.
 ## Licence
 
 The root [`LICENSE`](LICENSE) is **Apache-2.0** — the licence of the substrate, which is the
-part of this repository a stranger may fork unconditionally. The tree is multi-licensed by
+part of this repository a stranger may fork unconditionally. **GitHub detects it**, so the
+badge in the About panel at the top right of the repository page reads Apache-2.0 without a
+judge having to open a file: `gh repo view Shaugato/mainline --json visibility,licenseInfo`
+answers `{"visibility":"PUBLIC","licenseInfo":{"key":"apache-2.0"}}`, re-derived and recorded
+in [`docs/submission/JUDGING-AXES.md`](docs/submission/JUDGING-AXES.md) §4. **That badge is
+true and it is not the whole tree**, which is why this section exists rather than stopping at
+the badge. The tree is multi-licensed by
 directory: the table above is the summary, `LICENSES/` holds every licence text, and
 [`docs/submission/LICENSING.md`](docs/submission/LICENSING.md) is the full account — including
 why `LICENSES/` carries both `FSL-1.1-ALv2.txt` and `LicenseRef-FSL-1.1-ALv2.txt` with

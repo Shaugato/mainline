@@ -1,0 +1,681 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE PERMIT-TO-WORK SCREEN'S OWN STYLESHEET.
+ *
+ * R1: this file shares nothing with `src/design/**`. That is not isolation for its own sake
+ * — the operator screens are a DIFFERENT PRODUCT's user interface, and dressing them in the
+ * MAINLINE design system would defeat the demo. This looks like a dense industrial form
+ * because that is what a supervisor's screen looks like, and it prints because a permit that
+ * cannot be displayed at the worksite is not compliant with HSG250 ¶18.
+ *
+ * Every selector is prefixed `cow-` (control of work) and scoped under `.cow-permit`, so
+ * nothing here can reach the console's own DOM.
+ *
+ * The colour tokens under "HSG250 Table 2" are the guide's document colours. They are
+ * assigned by the operator's permit-type selection, never by data.
+ */
+
+.cow-permit {
+  /* HSG250 Table 2 — document edge colours. */
+  --cow-edge-cold: #1e5fbf;
+  --cow-edge-hot: #c0392b;
+  --cow-edge-confined: #1e8449;
+  --cow-edge-disjointing: #1c1c1c;
+  --cow-edge-hv: #c9a227;
+  --cow-edge-white: #9aa4ae;
+
+  /* Paper. A permit is a document before it is a screen. */
+  --cow-paper: #ffffff;
+  --cow-page: #eef1f4;
+  --cow-ink: #12181f;
+  --cow-ink-soft: #4b5763;
+  --cow-ink-faint: #7d8994;
+  --cow-rule: #d3dae0;
+  --cow-rule-strong: #aab4bd;
+  --cow-field-bg: #f7f9fb;
+  --cow-input-bg: #fffdf3;
+  --cow-input-border: #8a949e;
+  --cow-chip-bg: #e8eef5;
+  --cow-chip-ink: #2c4a6b;
+  --cow-good: #1e8449;
+  --cow-warn: #b9770e;
+  --cow-mono-face: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 0 4rem;
+  color: var(--cow-ink);
+  background: var(--cow-page);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.cow-permit *,
+.cow-permit *::before,
+.cow-permit *::after {
+  box-sizing: border-box;
+}
+
+.cow-mono {
+  font-family: var(--cow-mono-face);
+  font-size: 0.86em;
+  word-break: break-all;
+}
+
+/* ── header ─────────────────────────────────────────────────────────────────────── */
+
+.cow-permit-header {
+  display: flex;
+  background: var(--cow-paper);
+  border: 1px solid var(--cow-rule);
+  border-bottom-width: 2px;
+}
+
+.cow-edge {
+  flex: 0 0 10px;
+  background: var(--cow-edge-cold);
+}
+
+.cow-permit-header-inner {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 1rem 1.25rem 1.1rem;
+}
+
+.cow-hdr-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--cow-rule);
+}
+
+.cow-hdr-type {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 12rem;
+}
+
+.cow-hdr-ref {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.cow-hdr-ref-line,
+.cow-hdr-branch,
+.cow-hdr-state-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cow-ref {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.cow-branch {
+  color: var(--cow-ink-soft);
+}
+
+.cow-hdr-state {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.cow-state-chip {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--cow-rule-strong);
+  border-radius: 2px;
+  background: var(--cow-field-bg);
+  font-family: var(--cow-mono-face);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+/* The state machine's alphabet. `suspended` is not `closed`, and the screen shows it. */
+.cow-state-alphabet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.3rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 22rem;
+}
+
+.cow-state-value {
+  color: var(--cow-ink-faint);
+  font-family: var(--cow-mono-face);
+  font-size: 0.64rem;
+  letter-spacing: 0.01em;
+}
+
+.cow-state-value + .cow-state-value::before {
+  content: '· ';
+}
+
+.cow-state-value[data-current='true'] {
+  color: var(--cow-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cow-hdr-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.35rem 1.5rem;
+  padding-top: 0.8rem;
+}
+
+.cow-hdr-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.6rem;
+}
+
+/* ── sections ───────────────────────────────────────────────────────────────────── */
+
+.cow-permit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.cow-section {
+  background: var(--cow-paper);
+  border: 1px solid var(--cow-rule);
+}
+
+.cow-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  border-bottom: 1px solid var(--cow-rule);
+  background: var(--cow-field-bg);
+}
+
+.cow-element-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.9rem;
+  height: 1.45rem;
+  padding: 0 0.35rem;
+  border: 1px solid var(--cow-rule-strong);
+  border-radius: 2px;
+  background: var(--cow-paper);
+  font-family: var(--cow-mono-face);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cow-ink-soft);
+}
+
+.cow-section-title {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cow-section-note {
+  margin: 0;
+  padding: 0.45rem 0.9rem 0;
+  color: var(--cow-ink-soft);
+  font-size: 0.86rem;
+}
+
+.cow-section-body {
+  padding: 0.7rem 0.9rem 0.9rem;
+}
+
+/* ── fields ─────────────────────────────────────────────────────────────────────── */
+
+.cow-field {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.18rem 0;
+  flex-wrap: wrap;
+}
+
+.cow-field-typed {
+  display: block;
+  padding: 0.35rem 0;
+}
+
+.cow-field-label {
+  display: block;
+  color: var(--cow-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex: 0 0 auto;
+}
+
+.cow-field-read .cow-field-label {
+  flex: 0 0 11rem;
+}
+
+.cow-field-value {
+  min-width: 0;
+  word-break: break-word;
+}
+
+.cow-null {
+  color: var(--cow-ink-faint);
+  font-family: var(--cow-mono-face);
+  font-style: italic;
+}
+
+.cow-absent {
+  color: var(--cow-ink-faint);
+  font-style: italic;
+}
+
+.cow-field-absent,
+.cow-field-omitted {
+  padding: 0.5rem 0.6rem;
+  background: var(--cow-field-bg);
+  border: 1px dashed var(--cow-rule-strong);
+}
+
+.cow-hint {
+  color: var(--cow-ink-faint);
+  font-size: 0.76rem;
+}
+
+.cow-unchipped {
+  color: var(--cow-warn);
+}
+
+/* Operator-typed controls look like controls. Caret, border, a warm unfilled ground. */
+
+.cow-input {
+  display: block;
+  width: 100%;
+  max-width: 46rem;
+  margin: 0.25rem 0 0.2rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--cow-input-border);
+  border-radius: 2px;
+  background: var(--cow-input-bg);
+  color: var(--cow-ink);
+  font: inherit;
+  caret-color: var(--cow-edge-cold);
+}
+
+.cow-input:focus-visible {
+  outline: 2px solid var(--cow-edge-cold);
+  outline-offset: 1px;
+}
+
+.cow-input::placeholder {
+  color: var(--cow-ink-faint);
+  font-style: italic;
+}
+
+.cow-textarea {
+  resize: vertical;
+}
+
+.cow-select {
+  max-width: 16rem;
+}
+
+/* ── provenance chips ───────────────────────────────────────────────────────────── */
+
+.cow-chip {
+  display: inline-block;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--cow-chip-ink);
+  border-radius: 2px;
+  background: var(--cow-chip-bg);
+  color: var(--cow-chip-ink);
+  font-family: var(--cow-mono-face);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+/* ── plant identification ───────────────────────────────────────────────────────── */
+
+.cow-plant-version,
+.cow-plant-computed {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+}
+
+.cow-plant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.cow-plant-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--cow-rule);
+  background: var(--cow-field-bg);
+}
+
+.cow-plant-count {
+  font-family: var(--cow-mono-face);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cow-plant-label {
+  color: var(--cow-ink-soft);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cow-certified {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--cow-rule);
+  border-left: 4px solid var(--cow-rule-strong);
+  background: var(--cow-field-bg);
+}
+
+.cow-certified-yes {
+  border-left-color: var(--cow-good);
+}
+
+.cow-certified-no {
+  border-left-color: var(--cow-warn);
+}
+
+.cow-certified-mark {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-bottom: 0.3rem;
+}
+
+.cow-certified-glyph {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.cow-certified-yes .cow-certified-glyph {
+  color: var(--cow-good);
+}
+
+.cow-certified-no .cow-certified-glyph {
+  color: var(--cow-warn);
+}
+
+.cow-certified-word {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.86rem;
+}
+
+.cow-constraint {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.2rem;
+}
+
+.cow-constraint-name {
+  font-weight: 600;
+}
+
+.cow-predicate {
+  margin: 0.4rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--cow-rule);
+  background: var(--cow-paper);
+  color: var(--cow-ink-soft);
+  font-family: var(--cow-mono-face);
+  font-size: 0.74rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+/* ── precautions ────────────────────────────────────────────────────────────────── */
+
+.cow-clause {
+  margin: 0 0 0.7rem;
+  padding: 0.7rem 0.9rem;
+  border-left: 4px solid var(--cow-edge-cold);
+  background: var(--cow-field-bg);
+}
+
+.cow-clause-text {
+  margin: 0 0 0.35rem;
+  font-size: 1.06rem;
+  line-height: 1.5;
+}
+
+.cow-clause-identity {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
+  gap: 0.1rem 1.5rem;
+}
+
+.cow-anchors {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.6rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--cow-rule);
+}
+
+.cow-anchor-list {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cow-anchor {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--cow-rule-strong);
+  border-radius: 2px;
+  background: var(--cow-paper);
+  font-family: var(--cow-mono-face);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ── signature block ────────────────────────────────────────────────────────────── */
+
+.cow-signatures {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--cow-rule);
+}
+
+.cow-sig-head,
+.cow-sig-row {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1.1fr) minmax(9rem, 1fr) minmax(9rem, 1fr) minmax(14rem, 2fr);
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--cow-rule);
+}
+
+.cow-sig-head {
+  background: var(--cow-field-bg);
+}
+
+.cow-sig-h {
+  color: var(--cow-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cow-sig-what {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.cow-sig-title {
+  font-weight: 700;
+}
+
+.cow-sig-role {
+  color: var(--cow-ink-soft);
+  font-size: 0.78rem;
+}
+
+.cow-sig-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  justify-content: flex-start;
+}
+
+/* A signature line, as it sits on the paper form: ruled, waiting, and clearly empty. */
+.cow-sig-rule {
+  display: block;
+  height: 1.35rem;
+  border-bottom: 1px solid var(--cow-rule-strong);
+}
+
+.cow-sig-name {
+  font-weight: 600;
+}
+
+.cow-sig-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.cow-sig-detail .cow-field-label {
+  flex: 0 0 9rem;
+  font-size: 0.7rem;
+}
+
+.cow-sig-row[data-signed='false'] {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 9px,
+    rgba(125, 137, 148, 0.06) 9px,
+    rgba(125, 137, 148, 0.06) 18px
+  );
+}
+
+.cow-field-omitted {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--cow-rule);
+}
+
+/* ── slots, absence, buttons ────────────────────────────────────────────────────── */
+
+.cow-slot {
+  margin-top: 0.75rem;
+}
+
+.cow-absence {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px dashed var(--cow-rule-strong);
+  background: var(--cow-field-bg);
+}
+
+.cow-absence-what {
+  font-weight: 600;
+}
+
+.cow-absence-detail,
+.cow-absent-reason {
+  color: var(--cow-ink-soft);
+  font-size: 0.8rem;
+}
+
+.cow-absent-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.cow-absent-item {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cow-button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--cow-input-border);
+  border-radius: 2px;
+  background: var(--cow-paper);
+  color: var(--cow-ink);
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.cow-button:hover {
+  background: var(--cow-field-bg);
+}
+
+.cow-button:focus-visible {
+  outline: 2px solid var(--cow-edge-cold);
+  outline-offset: 1px;
+}
+
+.cow-display-copy {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+@media (max-width: 720px) {
+  .cow-sig-head,
+  .cow-sig-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cow-field-read .cow-field-label {
+    flex: 0 0 100%;
+  }
+}

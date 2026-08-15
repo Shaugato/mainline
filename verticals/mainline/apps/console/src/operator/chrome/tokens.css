@@ -1,0 +1,69 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * CONTROL OF WORK — the operator surface's own token set.
+ *
+ * These are `--cw-*`, not `--tp-*`, and that is the whole point. The MAINLINE console's
+ * palette is declared in src/design/tokens.css and is in strict bijection with the TOKEN_LAW
+ * table (tests/unit/design/tokens.test.ts). This surface is a DIFFERENT PRODUCT — the software
+ * a site supervisor already has open — and dressing it in MAINLINE's design system would
+ * quietly turn the demonstration into a tour of our own console (operator-systems-plan.md R1).
+ *
+ * No colour here encodes a MAINLINE severity band. The one accent used for a refusal is a
+ * plain industrial red, chosen to be legible on a projector at 1080p and to be obviously the
+ * host system's own alarm colour rather than ours.
+ */
+
+:root {
+  color-scheme: dark light;
+
+  /* Ground and panels */
+  --cw-bg: #101215;
+  --cw-bg-bar: #171a1f;
+  --cw-bg-rail: #14171b;
+  --cw-bg-panel: #1b1f25;
+  --cw-bg-inset: #0c0e11;
+
+  /* Rules */
+  --cw-rule: #262b32;
+  --cw-rule-strong: #39414b;
+
+  /* Ink */
+  --cw-ink: #e6e8ea;
+  --cw-ink-dim: #a8aeb5;
+  --cw-ink-faint: #7d848c;
+  --cw-ink-inert: #5c636b;
+
+  /* States. Only three, and each one means one thing. */
+  --cw-accent: #7fb3ff;
+  --cw-refuse: #ff6b5e;
+  --cw-caution: #f2b544;
+  --cw-focus: #7fb3ff;
+
+  /* Type */
+  --cw-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --cw-mono:
+    ui-monospace, "SFMono-Regular", "Cascadia Mono", "Roboto Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --cw-size-caption: 0.75rem;
+  --cw-size-label: 0.8125rem;
+  --cw-size-body: 0.9375rem;
+  --cw-size-title: 1.0625rem;
+  --cw-tracking-caps: 0.11em;
+
+  /* Space */
+  --cw-space-1: 4px;
+  --cw-space-2: 8px;
+  --cw-space-3: 12px;
+  --cw-space-4: 20px;
+  --cw-space-5: 32px;
+
+  /* Geometry */
+  --cw-hairline: 1px;
+  --cw-radius: 3px;
+  --cw-bar-height: 46px;
+  --cw-rail-width: 208px;
+}

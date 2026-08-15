@@ -1,0 +1,356 @@
+# SPDX-FileCopyrightText: 2026 MAINLINE contributors
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# BEATS.yaml — THE SPINE OF THE FILM, MACHINE-READABLE. Owner: W1 (story-and-script).
+#
+# This file is the single source of truth for TIMING. Every other film document —
+# VO-DEMO.md, VO-CLOSE.md, CLICKS.md, ONSCREEN-TEXT.yaml, FALLBACKS.md,
+# CLAIMS-CLEARANCE.md — cites a `beat_id` from here and inherits its `t` and `dur`.
+# If a worker's document disagrees with this file about a duration, this file wins
+# and that document is wrong. Prose, emotional map, opener and cut ladder live in
+# the sibling SPINE.md; nothing here duplicates them except the cut ladder, which is
+# repeated in machine form below because a 02:00 cut must be executable, not read.
+#
+# ── SCANNER VERDICT (R-B) ─────────────────────────────────────────────────────
+# `docs/demo/film/` is outside every glob in `claim_hygiene.py`'s TARGET_GLOBS, so
+# the scanner is invoked by hand and its verdict is recorded here rather than
+# inferred from a green lane. Command and result, 2026-08-15:
+#
+#   .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check \
+#       docs/demo/film/BEATS.yaml docs/demo/film/SPINE.md
+#
+#   scanned 2 file(s) against 21 rules
+#   claim hygiene OK
+#   exit 0
+#
+# VERDICT: PASS, and it is a pass the scanner had to be talked into. The first run
+# went RED three times on these two files — two `HYG-sha-literal` hits on a tree
+# ref written into the headers, and one `MNC-17` hit where a forbidden opener was
+# quoted on a source line whose negation marker had wrapped onto the line above.
+# All three were fixed in the files, never in the scanner. Recorded because a
+# hygiene verdict that never went red asserts nothing.
+#
+# ── WHAT IS AND IS NOT A MEASURED NUMBER IN THIS FILE ─────────────────────────
+# `t`, `dur`, and every word budget are DURATIONS THIS FILE IS BUDGETING. They are
+# editorial decisions, not measurements, and they are labelled as such.
+#
+# The only kernel-produced values quoted here are the four SQLSTATEs and the four
+# outcomes of the gate run — `00000 read`, `23514 refused`, `P0001 refused`,
+# `00000 admitted` — which are read from `evidence/deploy/live-gate-run.json`
+# (`data.beats[*].sqlstate`, `data.beats[*].outcome`, run `judge-walk`, generated
+# 2026-08-14T22:10:33Z). Per-beat `elapsed_ms`, byte counts, digests and any
+# on-screen field value are NOT budgeted here and MUST NOT be copied from a plan:
+# they are re-derived from the run that is actually filmed (R-K).
+#
+# ── HOW TO CHECK THE ARITHMETIC BY HAND, IN TWO SUBTRACTIONS ──────────────────
+# Every beat carries `t`, `dur` and `ends`, where `ends = t + dur`. The list is
+# contiguous and gapless, so:
+#
+#   1. For each beat:  ends - t == dur          (one subtraction per row)
+#   2. For each pair:  ends(n) == t(n+1)        (no gaps, no overlaps)
+#
+# The last demo beat b8 ends at 120. The last close beat c4 ends at 170. `end`
+# ends at 172. No validator script is shipped for this file — W1 owns no `.py`
+# and a script nobody runs is worse than a subtraction anybody can do.
+
+budget:
+  # ── The three numbers that bound the cut ────────────────────────────────────
+  total_s: 172 # 120 demo + 50 close + 2 end card. The film as designed.
+  hard_stop_s: 174 # If the assembled cut exceeds this, the ladder below is executed.
+  ceiling_s: 180 # The contest rule. A 180 s cut is a disqualified cut; never approach it.
+
+  # ── How 172 decomposes ──────────────────────────────────────────────────────
+  demo_s: 120 # b0..b8, nine beats
+  close_s: 50 # c1..c4, four beats
+  end_card_s: 2 # `end`
+  # 120 + 50 + 2 = 172. 174 - 172 = 2 s of margin above the hard stop.
+  # 180 - 172 = 8 s of margin to the rule. Both margins are deliberate and small:
+  # editing lands long, never short.
+
+  # ── The speech-rate assumption every word budget is derived from ────────────
+  wps_assumption: 1.9 # words per second == 114 wpm
+  # 1.9 w/s is BETWEEN the existing kit's measured average and its comfortable
+  # ceiling. It is chosen deliberately unhurried because several lines in this film
+  # contain a SQLSTATE, and a SQLSTATE read fast is a SQLSTATE nobody catches.
+  # A word budget is a CEILING, not a target. Under-running a beat is free.
+
+  demo_words: 225 # sum of vo_word_budget over b0..b8
+  close_words: 83 # sum of vo_word_budget over c1..c4
+  film_words: 308 # 225 + 83
+  # 225 / 120 = 1.875 w/s  — under the 1.9 assumption
+  #  83 /  50 = 1.660 w/s  — deliberately far under: the close is a READING block,
+  #                          and the voice must leave room for the eye
+  # 308 / 170 = 1.812 w/s  — the film's average
+
+  # ── The organiser's clock, which is not the same clock ──────────────────────
+  first_refusal_at_s: 22 # `23514` visible inside the operator app at 0:22
+  # The instruction is "get to the live demo fast (within the first 20 to 30
+  # seconds)". Live product is on screen at 0:00 and the first refusal lands at
+  # 0:22 — inside the window with eight seconds to spare, and without spending any
+  # of the running-time margin above.
+
+axes:
+  # The five criteria, Official Rules spelling, in TIE-BREAK ORDER. `axis` on each
+  # beat below is one or more of these keys. Tie-break order matters: a tie is
+  # broken on the first criterion, so the beats carrying `agentic_memory_design`
+  # are the ones that may never be cut.
+  - agentic_memory_design
+  - technological_implementation
+  - real_world_impact
+  - product_readiness
+  - creativity_originality
+
+beats:
+  # ═══ THE DEMO — nine beats, 120 s ═════════════════════════════════════════
+  - beat_id: b0
+    t: 0
+    dur: 12
+    ends: 12
+    title: THE ORDINARY MOMENT
+    axis: [real_world_impact]
+    vo_word_budget: 24
+    never_cut: false
+    on_screen: >-
+      The supervisor's own permit form on the deployed origin, URL bar in frame,
+      state chip and hazard card visible, cursor already resting on ISSUE while the
+      founder types the tail of the work description on camera.
+
+  - beat_id: b1
+    t: 12
+    dur: 10
+    ends: 22
+    title: THE ATTEMPT
+    axis: [real_world_impact]
+    vo_word_budget: 16
+    never_cut: false
+    on_screen: >-
+      The click, the button's real pending state, and one real in-flight
+      POST /v1/demo/gate-run with DevTools already docked. Nothing else moves.
+
+  - beat_id: b2
+    t: 22
+    dur: 14
+    ends: 36
+    title: THE REFUSAL — filmed calm
+    axis: [technological_implementation]
+    vo_word_budget: 26
+    never_cut: false
+    on_screen: >-
+      The refusal band inside the operator app — REFUSED, SQLSTATE 23514,
+      gate_closed_when_issued, source reported — with the database's own CHECK
+      predicate and the payload's remedy line, and the network panel in frame ~2 s.
+
+  - beat_id: b3
+    t: 36
+    dur: 18
+    ends: 54
+    title: WHY — THE MEMORY LOOP
+    axis: [agentic_memory_design]
+    vo_word_budget: 34
+    never_cut: true # rules requirement: footage showing the memory layer at work
+    on_screen: >-
+      Three labelled panels, STORE then RETRIEVE then ACT, with the recall run's own
+      two timestamps rendered large ten seconds apart, its candidate and blocking
+      counts, and the seeded severity beside the severity the trigger wrote.
+
+  - beat_id: b4
+    t: 54
+    dur: 10
+    ends: 64
+    title: THE HUMAN MOVE
+    axis: [creativity_originality]
+    vo_word_budget: 19
+    never_cut: false
+    on_screen: >-
+      The MAINLINE gate-transcript panel opens beneath the operator app and renders
+      the response's own third-beat statement and label verbatim; the projected
+      counter now reads zero and the CHECK predicate is satisfied.
+
+  - beat_id: b5
+    t: 64
+    dur: 16
+    ends: 80
+    title: REFUSED ANYWAY — the peak
+    axis: [creativity_originality, technological_implementation]
+    vo_word_budget: 30
+    never_cut: true # this beat is the product; everything else is context for it
+    on_screen: >-
+      REFUSED, SQLSTATE P0001, mainline.fn_permit_merge_gate, the re-derivation
+      sentence verbatim beside the forced counter — and the diagnosis chip the
+      system grades DOWN on its own best exhibit. Held in silence after the line.
+
+  - beat_id: b6
+    t: 80
+    dur: 18
+    ends: 98
+    title: THE ANSWER IS A QUESTION
+    axis: [real_world_impact, product_readiness]
+    vo_word_budget: 34
+    never_cut: false
+    on_screen: >-
+      The safety engineer's disposition screen: three defeaters rendered as
+      questions with no global escape hatch, the cost lattice beside them, and the
+      signature taken as demo.signer on the acceptance row.
+
+  - beat_id: b7
+    t: 98
+    dur: 12
+    ends: 110
+    title: AND THEN IT ADMITS
+    axis: [technological_implementation]
+    vo_word_budget: 22
+    never_cut: false
+    on_screen: >-
+      ADMITTED, SQLSTATE 00000, and the permit screen turning from blocked to
+      issued with the subject's post-merge fields beside it.
+
+  - beat_id: b8
+    t: 110
+    dur: 10
+    ends: 120
+    title: NONE OF IT HAPPENED
+    axis: [product_readiness]
+    vo_word_budget: 20
+    never_cut: false
+    on_screen: >-
+      persisted false, single transaction true, isolation SERIALIZABLE, the minted
+      disposition id with zero rows surviving the rollback — then one read-only cut
+      to the change request still carrying the same obligation.
+
+  # ═══ THE CLOSE — four beats + end card, 52 s ═══════════════════════════════
+  # Overlay over LIVE PICTURE, never a stock slide. Devpost's tip permits "text
+  # overlay or slide"; the overlay is chosen because a judge can pause it against
+  # the running surfaces behind it.
+  - beat_id: c1
+    t: 120
+    dur: 12
+    ends: 132
+    title: THE LOOP, NAMED
+    axis: [agentic_memory_design]
+    vo_word_budget: 22
+    never_cut: false # not ruled never_cut — but no ladder step below reaches it
+    on_screen: >-
+      Three words, large — STORE, RETRIEVE, ACT — each with the table it came from
+      and its timestamp under it, over live picture.
+
+  - beat_id: c2
+    t: 132
+    dur: 16
+    ends: 148
+    title: THE AWS SURFACES
+    axis: [technological_implementation, product_readiness]
+    vo_word_budget: 24
+    never_cut: false
+    on_screen: >-
+      The AWS services this request path actually used, named in text a judge can
+      pause on — and, on its own labelled line, the one service exercised in the
+      repository but NOT in this request path.
+
+  - beat_id: c3
+    t: 148
+    dur: 14
+    ends: 162
+    title: THE COCKROACHDB SURFACES
+    axis: [agentic_memory_design, technological_implementation]
+    vo_word_budget: 22
+    never_cut: false
+    on_screen: >-
+      Cluster, region and version; the isolation level; the CHECK constraint; the
+      two trigger functions; the recursive CTE blame closure; and the SQLSTATEs the
+      client read back — 23514, P0001 and the ungranted-pair 42501.
+
+  - beat_id: c4
+    t: 162
+    dur: 8
+    ends: 170
+    title: THE HONEST LIMIT
+    axis: [product_readiness]
+    vo_word_budget: 15
+    never_cut: false
+    on_screen: >-
+      One line naming what this deployment does not do or claim, then the public
+      repository URL and the live URL.
+
+  - beat_id: end
+    t: 170
+    dur: 2
+    ends: 172
+    title: END CARD
+    axis: [real_world_impact]
+    vo_word_budget: 0
+    never_cut: false
+    on_screen: >-
+      End card: the product name, the repository URL, the live URL. No swell, no
+      logo animation, no music sting.
+
+cut_ladder:
+  # PRE-COMMITTED, IN ORDER. Executed from the top until the cut is under
+  # hard_stop_s. Never improvised at 02:00, never reordered on the day.
+  #
+  # Total recoverable: 4 + 4 + 4 + 3 + 4 = 19 s. Floor 172 - 19 = 153 s.
+  # Running floors: 168, 164, 160, 157, 153.
+  # b3 and b5 are the two beats no step may reach. c1, c2 and c3 are not ruled
+  # never_cut, but no step below touches them either — the naming block is what a
+  # judge pauses on to tick their checklist, and 50 s is already the short version.
+  never_cut: [b3, b5]
+  steps:
+    - rank: 1
+      beat_id: b8
+      from_dur: 10
+      to_dur: 6
+      saves_s: 4
+      film_after_s: 168
+      what_goes: The change-request cut in b8's second half.
+      why: >-
+        First, because it is the weakest-supported second on camera: that subject is
+        shown read-only and told rather than driven. The rollback proof, which is
+        the Product Readiness point, is all in b8's first half and survives.
+    - rank: 2
+      beat_id: b0
+      from_dur: 12
+      to_dur: 8
+      saves_s: 4
+      film_after_s: 164
+      what_goes: The establishing pan.
+      why: >-
+        The cursor-on-button frame is what makes b1 legible and it is kept. The pan
+        is atmosphere, and atmosphere is the first thing a 3-minute film can spare.
+    - rank: 3
+      beat_id: b6
+      from_dur: 18
+      to_dur: 14
+      saves_s: 4
+      film_after_s: 160
+      what_goes: One of the three defeaters.
+      why: >-
+        Two questions carry the point that the answer is a question. The cost
+        lattice is kept — it is the half a competitor cannot also show.
+    - rank: 4
+      beat_id: b7
+      from_dur: 12
+      to_dur: 9
+      saves_s: 3
+      film_after_s: 157
+      what_goes: The dwell on the post-merge fields.
+      why: >-
+        ADMITTED and the screen turning from blocked to issued is the whole job of
+        this beat: it proves b2 was not a bug. Three seconds of dwell is not.
+    - rank: 5
+      beat_id: c4
+      from_dur: 8
+      to_dur: 4
+      saves_s: 4
+      film_after_s: 153
+      what_goes: The spoken limit; the end card carries the URLs alone.
+      why: >-
+        Last, because it answers the criteria's own second sentences, which nothing
+        else in the film answers. It is cut only when everything else already has.
+
+constraints:
+  # Facts about the film's shape that other workers must not contradict.
+  one_post_per_film: true # exactly one POST /v1/demo/gate-run in the whole cut
+  memory_loop_beat: b3 # the beat that discharges the rules requirement
+  peak_beat: b5 # the film's emotional peak; nothing else may compete with it
+  title_card_before_demo: false # there is none; the name is earned in the close
+  reveal_disclosure_from_beat: b2 # the one-transaction disclosure line is on screen from here on
+  operator_ui_is_a_real_client: true # every refusal on screen came back over HTTP from the deployed API

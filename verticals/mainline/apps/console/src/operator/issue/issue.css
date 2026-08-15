@@ -1,0 +1,335 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The action bar, the four beats and the refusal experience.
+ *
+ * Plain CSS, no framework, no import from the console's design system — the operator
+ * screens are a DIFFERENT PRODUCT'S user interface and sharing MAINLINE's visual language
+ * would defeat the demo (R1). Every colour is a custom property with a literal fallback so
+ * the operator shell can retheme without this file knowing about it.
+ *
+ * TWO TEMPERATURES, and the difference is deliberate. `[data-emphasis="calm"]` is beat 2 —
+ * a CHECK constraint refusing a write, which every database can do and which must not be
+ * staged as the climax. `[data-emphasis="peak"]` is beat 3 — the counter was falsified and
+ * the gate refused anyway. That is the one this screen exists for, so that is the one that
+ * gets the weight.
+ *
+ * Nothing here animates a wait. There is no keyframed skeleton, no shimmer and no pulse
+ * standing in for work: the only thing that moves during a request is a counter reading a
+ * real clock (`pending.ts`).
+ */
+
+.cow-issue {
+  --cow-ink: var(--cow-color-ink, #16191d);
+  --cow-muted: var(--cow-color-muted, #5b636d);
+  --cow-rule: var(--cow-color-rule, #ccd2d9);
+  --cow-paper: var(--cow-color-paper, #ffffff);
+  --cow-stop: var(--cow-color-stop, #a51c1c);
+  --cow-stop-wash: var(--cow-color-stop-wash, #fdf4f4);
+  --cow-go: var(--cow-color-go, #16653a);
+  --cow-go-wash: var(--cow-color-go-wash, #f2f9f5);
+  --cow-mono: var(--cow-font-mono, ui-monospace, "SFMono-Regular", "Consolas", monospace);
+
+  color: var(--cow-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── The bar ─────────────────────────────────────────────────────────────────────── */
+
+.cow-actionbar {
+  align-items: center;
+  background: var(--cow-paper);
+  border: 1px solid var(--cow-rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+
+.cow-actionbar[data-locked='true'] {
+  border-color: var(--cow-stop);
+  box-shadow: inset 4px 0 0 0 var(--cow-stop);
+}
+
+.cow-actionbar__standing {
+  font-weight: 600;
+  margin: 0;
+}
+
+.cow-actionbar__controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cow-actionbar__note,
+.cow-actionbar__lock {
+  color: var(--cow-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.cow-actionbar__lock {
+  color: var(--cow-stop);
+  font-weight: 600;
+}
+
+.cow-btn {
+  background: var(--cow-paper);
+  border: 1px solid var(--cow-rule);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.5rem 1rem;
+}
+
+.cow-btn:disabled {
+  color: var(--cow-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cow-btn--issue {
+  background: var(--cow-ink);
+  border-color: var(--cow-ink);
+  color: var(--cow-paper);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.cow-btn--issue:disabled {
+  background: var(--cow-muted);
+  border-color: var(--cow-muted);
+  color: var(--cow-paper);
+}
+
+.cow-btn--advance {
+  align-self: flex-start;
+}
+
+.cow-btn:focus-visible {
+  outline: 3px solid currentcolor;
+  outline-offset: 2px;
+}
+
+/* ── The wait, which is real ─────────────────────────────────────────────────────── */
+
+.cow-issue__pending-label {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cow-issue__pending-note {
+  color: var(--cow-muted);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+}
+
+/* ── The permanent disclosure line (R5) ──────────────────────────────────────────── */
+
+.cow-disclosure {
+  border-top: 1px solid var(--cow-rule);
+  border-bottom: 1px solid var(--cow-rule);
+  padding: 0.5rem 0;
+}
+
+.cow-disclosure__line {
+  font-family: var(--cow-mono);
+  font-size: 0.8rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.cow-disclosure__caveat {
+  color: var(--cow-muted);
+  font-size: 0.78rem;
+  margin: 0.25rem 0 0;
+}
+
+/* ── The refusal, over a locked action ───────────────────────────────────────────── */
+
+.cow-issue__stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cow-refusal {
+  background: var(--cow-stop-wash);
+  border: 1px solid var(--cow-stop);
+  border-left-width: 4px;
+  padding: 0.75rem 1rem;
+}
+
+.cow-refusal[data-emphasis='peak'] {
+  border-left-width: 10px;
+}
+
+.cow-refusal__headline {
+  color: var(--cow-stop);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.4rem;
+}
+
+.cow-refusal[data-emphasis='peak'] .cow-refusal__headline {
+  font-size: 1.15rem;
+}
+
+.cow-refusal__facts {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.cow-refusal__facts li + li {
+  margin-top: 0.2rem;
+}
+
+.cow-refusal__verbatim {
+  color: var(--cow-muted);
+  font-size: 0.85rem;
+}
+
+.cow-refusal__database {
+  border-top: 1px solid var(--cow-rule);
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+}
+
+.cow-refusal__register {
+  color: var(--cow-muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cow-refusal__rows {
+  display: grid;
+  gap: 0.15rem 1rem;
+  grid-template-columns: minmax(9rem, max-content) 1fr;
+  margin: 0;
+}
+
+.cow-refusal__rows dt {
+  color: var(--cow-muted);
+  font-size: 0.8rem;
+}
+
+.cow-refusal__rows dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.cow-refusal__value {
+  font-family: var(--cow-mono);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.cow-refusal__chip {
+  border: 1px solid var(--cow-rule);
+  font-size: 0.7rem;
+  margin-left: 0.4rem;
+  padding: 0 0.35rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cow-refusal__note,
+.cow-refusal__text {
+  color: var(--cow-muted);
+  font-size: 0.8rem;
+  margin: 0.15rem 0 0;
+}
+
+.cow-refusal__atoms {
+  font-size: 0.82rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+/* ── The beats that are not refusals ─────────────────────────────────────────────── */
+
+.cow-beat {
+  background: var(--cow-paper);
+  border: 1px solid var(--cow-rule);
+  border-left-width: 4px;
+  padding: 0.75rem 1rem;
+}
+
+.cow-beat--admitted {
+  background: var(--cow-go-wash);
+  border-color: var(--cow-go);
+}
+
+.cow-beat__headline {
+  color: var(--cow-go);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.3rem;
+}
+
+.cow-beat__label {
+  margin: 0 0 0.5rem;
+}
+
+/* ── The run, the verdict, and the proof that nothing persisted ──────────────────── */
+
+.cow-run {
+  border: 1px solid var(--cow-rule);
+  padding: 0.75rem 1rem;
+}
+
+.cow-run__headline {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.4rem;
+}
+
+.cow-run[data-verdict='NOT PROVEN'] .cow-run__headline {
+  color: var(--cow-stop);
+}
+
+.cow-run__failures {
+  color: var(--cow-stop);
+  margin: 0 0 0.5rem;
+  padding-left: 1.1rem;
+}
+
+.cow-run__note {
+  color: var(--cow-muted);
+  font-size: 0.78rem;
+  margin: 0.5rem 0 0;
+}
+
+/* ── Undecided, and transport failures. Neither is a refusal. ────────────────────── */
+
+.cow-undecided,
+.cow-problem {
+  border: 1px dashed var(--cow-rule);
+  padding: 0.75rem 1rem;
+}
+
+.cow-undecided__headline,
+.cow-problem__headline {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.3rem;
+}
+
+.cow-undecided__body,
+.cow-problem__body {
+  margin: 0 0 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cow-issue * {
+    transition: none !important;
+  }
+}

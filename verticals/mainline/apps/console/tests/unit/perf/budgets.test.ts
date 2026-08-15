@@ -55,7 +55,10 @@ describe('the register is well formed', () => {
   it('has unique ids, real reasons, and stated conditions', () => {
     const ids = BUDGETS.map((budget) => budget.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(BUDGETS.length).toBe(5);
+    // Six: three byte budgets (the console shell, the operator surface, the lazy 3D chunk)
+    // and three runtime ones. Pinned rather than derived so that adding a budget is a visible
+    // edit to a test rather than a silent widening of the register.
+    expect(BUDGETS.length).toBe(6);
 
     for (const budget of BUDGETS) {
       expect(BUDGET_KINDS).toContain(budget.kind);

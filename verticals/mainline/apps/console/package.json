@@ -20,8 +20,9 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "check:budgets": "node scripts/check-budgets.ts",
+    "check:entrypoints": "node scripts/check-entrypoints.ts",
     "check:licences": "node scripts/check-licences.ts",
-    "ci": "pnpm run lint && pnpm run typecheck && pnpm run test && vite build && pnpm run check:budgets && pnpm run check:licences"
+    "ci": "pnpm run lint && pnpm run typecheck && pnpm run test && vite build && pnpm run check:budgets && pnpm run check:entrypoints && pnpm run check:licences"
   },
   "dependencies": {
     "@react-three/drei": "10.7.8",

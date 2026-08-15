@@ -1,0 +1,147 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The two evidentiary affordances R18 puts on every operator screen: the raw payload
+ * drawer and the request log. Nothing else is styled here.
+ *
+ * This is NOT the MAINLINE design system. R1 forbids importing `src/design/**` into the
+ * operator entry — partly because of the 1,108-byte headroom on the existing chunk, and
+ * mostly because these screens are a DIFFERENT PRODUCT's software. A control-of-work app
+ * that wore MAINLINE's visual language would defeat the demo: the point is that the
+ * refusal arrives inside somebody else's system.
+ *
+ * Every colour is a custom property with a fallback, so W1's shell can retheme the drawer
+ * to match the host application without editing this file. The defaults are deliberately
+ * plain: a payload viewer that looked designed would read as a product feature rather than
+ * as the bytes.
+ */
+
+.mlk-raw,
+.mlk-log {
+  --mlk-ink: var(--operator-ink, #16191d);
+  --mlk-quiet: var(--operator-quiet, #5c6570);
+  --mlk-rule: var(--operator-rule, #ccd2d9);
+  --mlk-surface: var(--operator-surface-sunken, #f4f6f8);
+  --mlk-bad: var(--operator-bad, #8c1d18);
+  --mlk-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Consolas", monospace;
+
+  color: var(--mlk-ink);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* ── metadata grid ─────────────────────────────────────────────────────────── */
+
+.mlk-meta {
+  margin: 0 0 0.75rem;
+  display: grid;
+  gap: 0.125rem 0.75rem;
+}
+
+.mlk-meta__row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.125rem 0;
+  border-bottom: 1px solid var(--mlk-rule);
+}
+
+.mlk-meta__row dt {
+  margin: 0;
+  color: var(--mlk-quiet);
+  letter-spacing: 0.01em;
+}
+
+.mlk-meta__row dd {
+  margin: 0;
+  font-family: var(--mlk-mono);
+  overflow-wrap: anywhere;
+}
+
+/* An absence is written, never implied by an empty cell. */
+.mlk-absent {
+  color: var(--mlk-quiet);
+  font-style: italic;
+}
+
+/* ── the raw payload ───────────────────────────────────────────────────────── */
+
+.mlk-raw__caption {
+  margin: 0 0 0.375rem;
+  color: var(--mlk-quiet);
+  max-width: 62ch;
+}
+
+.mlk-raw__body {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  max-height: 22rem;
+  overflow: auto;
+  background: var(--mlk-surface);
+  border: 1px solid var(--mlk-rule);
+  border-radius: 2px;
+  font-family: var(--mlk-mono);
+  font-size: 0.75rem;
+  /* pre-wrap, never pre-line: pre-line collapses runs of whitespace, and the claim this
+     element makes is that the bytes are unmodified. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  tab-size: 2;
+}
+
+.mlk-raw__body:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* ── the request log ───────────────────────────────────────────────────────── */
+
+.mlk-log__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mlk-log__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.1875rem 0;
+  border-bottom: 1px solid var(--mlk-rule);
+  font-family: var(--mlk-mono);
+  font-size: 0.75rem;
+}
+
+.mlk-log__method {
+  min-width: 3rem;
+  color: var(--mlk-quiet);
+}
+
+.mlk-log__path {
+  flex: 1 1 18rem;
+  overflow-wrap: anywhere;
+}
+
+.mlk-log__status[data-ok='false'] {
+  color: var(--mlk-bad);
+}
+
+.mlk-log__size,
+.mlk-log__ms {
+  color: var(--mlk-quiet);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The emulator marker is loud on purpose: a rehearsal that looked like the deployment is
+   the one confusion `local_furl.py` stamps this header to prevent. */
+.mlk-log__emulator {
+  padding: 0 0.3125rem;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  color: var(--mlk-bad);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

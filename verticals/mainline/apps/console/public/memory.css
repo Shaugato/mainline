@@ -1,0 +1,902 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE MEMORY PANEL — the page shell's stylesheet.
+ *
+ * `docs/demo/memory-visible-plan.md` §3 is the layout; R-M2 is why this file exists at all.
+ * It is served from `public/`, copied into `dist/` verbatim, and never enters the module
+ * graph — so it adds ZERO bytes to the console entry chunk, whose gzipped headroom is
+ * 1,087 B and whose ceiling serves 413 when crossed.
+ *
+ * ── WHY THE TOKENS ARE MIRRORED AND NOT IMPORTED ─────────────────────────────────────
+ *
+ * `src/design/tokens.css` is the token set, and it is compiled into the console bundle.
+ * A `public/` file cannot import it: nothing under `src/` has a stable URL on the served
+ * origin, and an `@import` at a bundled path is exactly the module-graph entanglement R-M2
+ * forbids. So the values below are COPIED from `src/design/tokens.css`, coordinate for
+ * coordinate, and are a mirror rather than a source. If that file's ramp moves, this one is
+ * stale until somebody moves it too — which is a smaller cost than putting this page inside
+ * the budget it must stay out of.
+ *
+ * One deliberate deviation, stated rather than smuggled: the type scale is the same ramp
+ * shifted one step up (`--mp-step-0: 14px` where the console reads 13px). This screen is
+ * filmed and read in under twenty seconds from a video frame, not operated at arm's length.
+ *
+ * No webfont is fetched, no external origin is referenced, no image is loaded. This file
+ * renders identically from `file://`, from a bare static host and from the deployed origin.
+ *
+ * ── THE FOUR REGISTERS, AND WHY THE DIFFERENCE IS LOAD-BEARING ───────────────────────
+ *
+ *   (a) `.row__v`          A CHIPPED VALUE. Mono, full ink, carries the provenance chip the
+ *                          response supplied (R-M3: the envelope's five, never a sixth,
+ *                          never a substitute for an absent one).
+ *   (b) `.note`            AN UNCHIPPED ANNOTATION. Sans, dim, unboxed, prefixed `↳`.
+ *                          R-M4: browser arithmetic over two rendered columns is not a
+ *                          column, is not `derived` and is not `recomputed`. It reads as
+ *                          commentary on the values above it because it IS commentary.
+ *   (c) `.cite`            A SOURCE CITATION. Mono, dashed amber left rule, sunken ground,
+ *                          `file:line`. R-M5.1: the overwritten "before" value is
+ *                          recoverable by no read, so it is quoted from this repository in
+ *                          the past tense and is unmistakably not a database value.
+ *   (d) `.stmt`            A COLLAPSED DISCLOSURE holding verbatim SQL. R-M6: the bytes are
+ *                          `statement_refs[].text` as the server returned them — never
+ *                          retyped, never reformatted, never re-highlighted into different
+ *                          characters. `white-space: pre` and an `overflow-x` scroller are
+ *                          what keep that promise when the line is long.
+ *
+ * Plus the EQUALITY MARKER (`.tie`, `.row[data-tie]`): the double rule and the `═` gutter
+ * glyph mark the severity / virulence / closure_gen match across two independent responses
+ * (R-M5.2). The marker is a comparison this browser made, so it carries no chip — and the
+ * page says so in words rather than leaving the absence to be noticed.
+ *
+ * ── THE CONTRACT WITH THE CLIENT (w3) ────────────────────────────────────────────────
+ *
+ * The seam is `data-cell`, and it is fixed by plan §4. This file adds no id and removes
+ * none. What it styles, and who emits it:
+ *
+ *   `<span class="chip" data-chip="db:column">`   the loop client, inside a filled cell
+ *   `data-error="true"`                           the loop client, on a cell that got a
+ *                                                 status and a path instead of a value
+ *   `data-memory-loop-error="…"`                  the loop client, on the mount root
+ *   `.mem-*` and `data-verify="…"`                the recomputation module's own markup
+ *
+ * And two hooks this file styles that no client sets yet — offered, not required:
+ *
+ *   `data-state="refused|admitted|failed|pending"`  on a filled cell, to give a refusal the
+ *                                                   accent it earns
+ *   `data-live="true"`                              on a `.col` being filled, the marker
+ *                                                   plan §3 asks for
+ *
+ * An UNFILLED cell renders an em dash from `:empty::after` and needs no cooperation to do
+ * it. An unfilled slot must look unfilled — never blank, never plausible.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces — src/design/tokens.css */
+  --tp-bg: oklch(0.145 0.006 250);
+  --tp-bg-sunken: oklch(0.11 0.006 250);
+  --tp-bg-raised: oklch(0.195 0.007 250);
+  --tp-bg-inset: oklch(0.215 0.008 250);
+
+  /* Boundaries */
+  --tp-rule: oklch(0.34 0.008 250);
+  --tp-rule-strong: oklch(0.52 0.01 250);
+
+  /* Ink */
+  --tp-ink: oklch(0.94 0.004 250);
+  --tp-ink-dim: oklch(0.8 0.006 250);
+  --tp-ink-faint: oklch(0.685 0.008 250);
+
+  /* The severity ramp. One hue, monotone in both coordinates, never a rainbow. */
+  --tp-sev-routine: oklch(0.845 0.016 30);
+  --tp-sev-serious: oklch(0.775 0.085 30);
+  --tp-sev-blood-major: oklch(0.705 0.15 30);
+  --tp-sev-blood-fatal: oklch(0.635 0.2 30);
+
+  /* States. `--tp-refuse` is an EMPHASIS foreground only, never small body text. */
+  --tp-refuse: oklch(0.655 0.2 27);
+  --tp-refuse-ink: oklch(0.9 0.045 27);
+  --tp-warn: oklch(0.79 0.115 78);
+  --tp-focus: oklch(0.8 0.102 230);
+
+  /*
+   * There is no green on this page. The console's one green belongs to the verification
+   * seal and to nothing else; an ADMITTED beat is the system working, not a celebration,
+   * and it renders in plain ink.
+   */
+
+  --tp-sans:
+    system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --tp-mono:
+    ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+
+  /* The console ramp, one step up, because this screen is read from a video frame. */
+  --mp-step--2: 11px;
+  --mp-step--1: 12px;
+  --mp-step-0: 14px;
+  --mp-step-1: 16px;
+  --mp-step-2: 20px;
+  --mp-step-3: 26px;
+
+  --mp-space-1: 4px;
+  --mp-space-2: 8px;
+  --mp-space-3: 12px;
+  --mp-space-4: 20px;
+  --mp-space-5: 32px;
+}
+
+/* ── THE PRINTED EXHIBIT ─────────────────────────────────────────────────────────────
+ * Fully specified, not inverted. The severity ramp keeps its direction — severity deepens
+ * and saturates — but runs down from a mid grey into a dark blood red, because on paper the
+ * darkest ink is the loudest. A court exhibit is a page, not a canvas.
+ */
+@media print {
+  :root {
+    color-scheme: light;
+
+    --tp-bg: oklch(1 0 250);
+    --tp-bg-sunken: oklch(0.965 0.002 250);
+    --tp-bg-raised: oklch(1 0 250);
+    --tp-bg-inset: oklch(0.955 0.003 250);
+
+    --tp-rule: oklch(0.78 0.006 250);
+    --tp-rule-strong: oklch(0.55 0.008 250);
+
+    --tp-ink: oklch(0.17 0.004 250);
+    --tp-ink-dim: oklch(0.38 0.006 250);
+    --tp-ink-faint: oklch(0.5 0.008 250);
+
+    --tp-sev-routine: oklch(0.535 0.016 30);
+    --tp-sev-serious: oklch(0.46 0.088 30);
+    --tp-sev-blood-major: oklch(0.385 0.112 30);
+    --tp-sev-blood-fatal: oklch(0.31 0.122 30);
+
+    --tp-refuse: oklch(0.45 0.155 27);
+    --tp-refuse-ink: oklch(0.28 0.09 27);
+    --tp-warn: oklch(0.52 0.095 78);
+    --tp-focus: oklch(0.5 0.088 230);
+  }
+}
+
+/* ── Document ───────────────────────────────────────────────────────────────────────── */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--tp-bg);
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--mp-step-0);
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--tp-focus);
+  outline-offset: 2px;
+}
+
+.page {
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: var(--mp-space-4) var(--mp-space-4) var(--mp-space-5);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────────────── */
+
+.head {
+  border-bottom: 1px solid var(--tp-rule-strong);
+  padding-bottom: var(--mp-space-3);
+}
+
+.head__title {
+  margin: 0;
+  font-size: var(--mp-step-2);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.head__lede {
+  margin: var(--mp-space-2) 0 0;
+  max-width: 96ch;
+  font-size: var(--mp-step-0);
+  color: var(--tp-ink-dim);
+}
+
+/*
+ * R-M7.1 — a PERSISTENT disclosure line, on screen the whole time, never a tooltip. It is
+ * the shape of the request, stated before anybody asks: one POST, four beats, one
+ * transaction. It is not a caption on the reveal; it is what the reveal is a view of.
+ */
+.disclosure {
+  margin: var(--mp-space-3) 0 0;
+  padding: var(--mp-space-2) var(--mp-space-3);
+  background: var(--tp-bg-inset);
+  border: 1px solid var(--tp-rule);
+  border-radius: 2px;
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+  color: var(--tp-ink-dim);
+}
+
+.disclosure b {
+  color: var(--tp-ink);
+  font-weight: 650;
+}
+
+/* ── The three columns ──────────────────────────────────────────────────────────────── */
+
+.cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--mp-space-4);
+  margin-top: var(--mp-space-4);
+}
+
+.col {
+  min-width: 0;
+}
+
+.col + .col {
+  border-left: 1px solid var(--tp-rule);
+  padding-left: var(--mp-space-4);
+}
+
+/*
+ * The marker naming which column is live. It is set by the client while that column's
+ * request is in flight and while its values are being written, and it is removed after.
+ * It names an activity, never a verdict.
+ */
+.col[data-live='true'] .col__name {
+  color: var(--tp-sev-blood-major);
+}
+
+.col__head {
+  margin: 0 0 10px;
+  padding-bottom: var(--mp-space-2);
+  border-bottom: 1px solid var(--tp-rule);
+}
+
+.col__name {
+  display: block;
+  font-size: var(--mp-step-1);
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.col__num {
+  color: var(--tp-ink-faint);
+  margin-right: 0.6ch;
+}
+
+.col__gloss {
+  display: block;
+  margin-top: var(--mp-space-1);
+  font-size: var(--mp-step--1);
+  color: var(--tp-ink-faint);
+}
+
+/* ── Groups and rows ────────────────────────────────────────────────────────────────── */
+
+.grp {
+  margin: var(--mp-space-3) 0 0;
+}
+
+.grp:first-of-type {
+  margin-top: 0;
+}
+
+.grp__head {
+  margin: 0 0 var(--mp-space-2);
+  font-size: var(--mp-step--1);
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tp-ink-faint);
+  border-bottom: 1px dotted var(--tp-rule);
+  padding-bottom: 2px;
+}
+
+/* (a) THE CHIPPED VALUE REGISTER. */
+.row {
+  display: grid;
+  grid-template-columns: 13ch minmax(0, 1fr);
+  gap: var(--mp-space-2);
+  align-items: baseline;
+  padding: 1px 0;
+}
+
+.row__k {
+  font-size: var(--mp-step--1);
+  line-height: 1.35;
+  color: var(--tp-ink-faint);
+  overflow-wrap: anywhere;
+}
+
+.row__v {
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step-0);
+  line-height: 1.35;
+  color: var(--tp-ink);
+  overflow-wrap: anywhere;
+}
+
+/* One emphasised value per group, so a reader lands somewhere in the first second. */
+.row--lead .row__v {
+  font-size: var(--mp-step-1);
+  font-weight: 650;
+}
+
+/*
+ * A value that must be allowed to render IN FULL: `SYNTHETIC — ` prefixes (R-M13), digests,
+ * a `computed_by` path. The prefix is a column value; it is not stripped, not trimmed and
+ * not styled away, so the slot gets the whole width and wraps rather than truncating.
+ */
+.row--wide {
+  display: block;
+  padding: 1px 0;
+}
+
+.row--wide .row__k {
+  display: block;
+}
+
+.row--wide .row__v {
+  display: block;
+  font-size: var(--mp-step--1);
+  line-height: 1.4;
+}
+
+/*
+ * AN UNFILLED SLOT LOOKS UNFILLED. No JavaScript is required for this and none can forget
+ * it: the rule stops applying the moment something is written into the cell.
+ */
+[data-cell]:empty::after {
+  content: '—';
+  color: var(--tp-ink-faint);
+}
+
+/*
+ * R-M10 — A READ THAT DID NOT ANSWER SAYS SO, IN THE CELL THAT NEEDED IT.
+ *
+ * The loop client sets `data-error="true"` on a cell it filled with a status and a path
+ * instead of a value. It is amber, never red: this is an outage, not a refusal, and the two
+ * must never be confusable on a screen whose whole subject is refusals. No cell anywhere
+ * falls back to a previously fetched value, to a captured fixture, or to a default.
+ */
+[data-cell][data-error='true'] {
+  color: var(--tp-warn);
+  font-size: var(--mp-step--1);
+}
+
+/*
+ * The client sets this on the mount root when `mount()` throws. A panel that failed to fill
+ * itself must say so on the page, not only in the console: the failure mode of a scripted
+ * screen is a plausible-looking one, and this is what makes it implausible instead.
+ */
+[data-memory-loop-error]::before {
+  content: 'the loop client failed to mount — ' attr(data-memory-loop-error);
+  display: block;
+  margin-bottom: var(--mp-space-3);
+  padding: var(--mp-space-2) var(--mp-space-3);
+  border: 1px solid var(--tp-warn);
+  border-radius: 2px;
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+  color: var(--tp-warn);
+}
+
+/* Filled-cell states the client may set. Refuse is emphasis-sized wherever it is used. */
+.row__v[data-state='refused'],
+.verdict__v[data-state='refused'] {
+  color: var(--tp-refuse);
+  font-size: var(--mp-step-1);
+  font-weight: 650;
+}
+
+.row__v[data-state='admitted'],
+.verdict__v[data-state='admitted'] {
+  color: var(--tp-ink);
+  font-size: var(--mp-step-1);
+  font-weight: 650;
+}
+
+/* A failed read prints its status and its endpoint HERE. It never falls back to a value. */
+.row__v[data-state='failed'],
+.verdict__v[data-state='failed'],
+.stmt[data-state='failed'] > summary {
+  color: var(--tp-warn);
+}
+
+.row__v[data-state='pending'] {
+  color: var(--tp-ink-faint);
+}
+
+/* ── The provenance chip ────────────────────────────────────────────────────────────── */
+
+/*
+ * R-M3 — the vocabulary is the ENVELOPE's five: db:column, db:constraint, recomputed,
+ * staged, derived. The page never assigns one; it renders the one the response supplied,
+ * resolved by pointer. A value whose pointer carries no chip gets NO chip and no
+ * substitute, because unclaimed provenance is better than a comfortable default.
+ */
+.chip {
+  display: inline-block;
+  margin-left: 0.7ch;
+  padding: 0 0.5ch;
+  border: 1px solid var(--tp-rule-strong);
+  border-radius: 2px;
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--2);
+  line-height: 1.6;
+  color: var(--tp-ink-dim);
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+.chip[data-chip='db:constraint'] {
+  border-style: dashed;
+}
+
+/* Re-derived in this browser from signed bytes. The strongest claim, so the clearest box. */
+.chip[data-chip='recomputed'] {
+  border-color: var(--tp-ink-dim);
+  color: var(--tp-ink);
+}
+
+/* Weaker claims wear the unverified amber: computed by the read API, or never written. */
+.chip[data-chip='derived'],
+.chip[data-chip='staged'] {
+  border-color: var(--tp-warn);
+  color: var(--tp-warn);
+}
+
+/*
+ * ── THE RECOMPUTATION MODULE'S OWN MARKUP ────────────────────────────────────────────
+ *
+ * `memory-verify.js` builds its verdict as elements of its own, with its own class names
+ * (`mem-*`) and a `data-verify` state. This shell styles them rather than leaving them to
+ * the user-agent default, and two of these rules are load-bearing rather than cosmetic:
+ *
+ *   `.mem-visually-hidden` MUST actually be hidden. The module puts a full spoken sentence
+ *   in it for assistive technology; unstyled, that sentence prints on screen beside the
+ *   value it describes and wrecks the row.
+ *
+ *   A FAILED verification must be impossible to miss, and it must not be red — a hash
+ *   mismatch is this page's own arithmetic disagreeing with the ledger, which is a louder
+ *   and rarer thing than a gate refusing, and it gets its own treatment rather than
+ *   borrowing the refusal's.
+ */
+.mem-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mem-verify {
+  display: inline;
+  font-family: var(--tp-mono);
+  overflow-wrap: anywhere;
+}
+
+.mem-chip {
+  display: inline-block;
+  margin-right: 0.7ch;
+  padding: 0 0.5ch;
+  border: 1px solid var(--tp-ink-dim);
+  border-radius: 2px;
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--2);
+  line-height: 1.6;
+  color: var(--tp-ink);
+  white-space: nowrap;
+}
+
+.mem-chip-detail {
+  margin-left: 0.6ch;
+  color: var(--tp-ink-faint);
+}
+
+.mem-verify-hash {
+  color: var(--tp-ink);
+}
+
+.mem-verify-label {
+  display: block;
+  font-size: var(--mp-step--2);
+  color: var(--tp-ink-faint);
+}
+
+.mem-verify-failure,
+.mem-verify:not([data-verify='match']) {
+  display: block;
+  padding: var(--mp-space-2);
+  border: 2px solid var(--tp-warn);
+  border-radius: 2px;
+  color: var(--tp-warn);
+}
+
+/* ── (b) THE ANNOTATION REGISTER — unchipped, and never mistakable for a column ─────── */
+
+/*
+ * R-M4. Arithmetic performed in this browser over two values already on screen. It is not
+ * `derived` (that identifier belongs to the read API), it is not `recomputed` (that one
+ * belongs to re-derivation from signed bytes), and it is not a column. So it wears no chip
+ * at all, sits in the prose face rather than the mono face, and reads as commentary on the
+ * two values above it.
+ */
+.note {
+  margin: var(--mp-space-1) 0 0;
+  padding-left: 2.2ch;
+  max-width: 62ch;
+  font-family: var(--tp-sans);
+  font-size: var(--mp-step--1);
+  line-height: 1.4;
+  color: var(--tp-ink-faint);
+  text-indent: -2.2ch;
+}
+
+.note::before {
+  content: '↳ ';
+  color: var(--tp-rule-strong);
+}
+
+.note b {
+  color: var(--tp-ink-dim);
+  font-weight: 650;
+}
+
+/* The two sentences the panel carries as prose. Earned above them, never asserted alone. */
+.claim {
+  margin: var(--mp-space-2) 0 0;
+  font-size: var(--mp-step-1);
+  font-weight: 650;
+  color: var(--tp-ink);
+  letter-spacing: 0.01em;
+}
+
+/* ── (c) THE SOURCE-CITATION REGISTER — a quotation of this repository ──────────────── */
+
+/*
+ * R-M5.1. Some of what makes the loop legible is recoverable by no read — the seed's
+ * pre-projection values were overwritten in place. Rendering them beside a column value
+ * would put a fabricated exhibit in front of a judge. Rendering them as a CITATION, in the
+ * past tense, with the file and line, is true as a quotation and is checkable by anybody
+ * with the repository open. Nothing in this register carries a provenance chip, and nothing
+ * in it may be styled to resemble one.
+ */
+.cite {
+  margin: var(--mp-space-1) 0 0;
+  padding: 5px 6px 5px var(--mp-space-2);
+  border-left: 2px dashed var(--tp-warn);
+  background: var(--tp-bg-sunken);
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--2);
+  line-height: 1.4;
+  color: var(--tp-ink-dim);
+}
+
+.cite__label {
+  color: var(--tp-warn);
+  letter-spacing: 0.06em;
+}
+
+.cite__path {
+  color: var(--tp-ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.cite__quote {
+  color: var(--tp-ink);
+}
+
+.cite p {
+  margin: var(--mp-space-1) 0 0;
+}
+
+/* ── (d) THE VERBATIM-SQL DISCLOSURE — collapsed by default, expanded for the film ──── */
+
+.stmt {
+  margin: 6px 0 0;
+  border: 1px solid var(--tp-rule);
+  border-radius: 2px;
+  background: var(--tp-bg-sunken);
+}
+
+.stmt > summary {
+  padding: 5px 6px;
+  cursor: pointer;
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tp-ink-dim);
+}
+
+.stmt[open] > summary {
+  border-bottom: 1px solid var(--tp-rule);
+  color: var(--tp-ink);
+}
+
+/*
+ * The bytes as the server returned them. `pre` and `white-space: pre` are the promise:
+ * no rewrap, no re-indent, no substitution. A long line scrolls inside this box and never
+ * widens the page.
+ */
+.stmt pre {
+  margin: 0;
+  padding: var(--mp-space-2);
+  overflow-x: auto;
+  white-space: pre;
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+  line-height: 1.5;
+  color: var(--tp-ink);
+}
+
+/* ── THE EQUALITY MARKER ────────────────────────────────────────────────────────────── */
+
+/*
+ * R-M5.2 — the check's severity is not an independent value. It IS the closure's value,
+ * arriving over a second HTTP request a judge can watch in devtools. The double rule is the
+ * `═` of the plan's panel, made structural; the gutter glyph marks each operand row so the
+ * tie is visible across the column boundary that CSS cannot draw a line over.
+ */
+.row[data-tie] {
+  position: relative;
+  padding-left: 1.6ch;
+}
+
+.row[data-tie]::before {
+  content: '═';
+  position: absolute;
+  left: 0;
+  color: var(--tp-sev-blood-major);
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+}
+
+.tie {
+  margin: 10px 0 0;
+  padding: 6px 0;
+  border-top: 3px double var(--tp-sev-blood-major);
+  border-bottom: 3px double var(--tp-sev-blood-major);
+}
+
+.tie__head {
+  margin: 0 0 var(--mp-space-1);
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tp-sev-blood-major);
+}
+
+.row--match .row__v {
+  color: var(--tp-sev-blood-major);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── The four beats ─────────────────────────────────────────────────────────────────── */
+
+.beats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.beat {
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--tp-rule);
+}
+
+.beat:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.beat__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8ch;
+  margin: 0 0 var(--mp-space-1);
+}
+
+.beat__n {
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+  color: var(--tp-ink-faint);
+  border: 1px solid var(--tp-rule);
+  border-radius: 2px;
+  padding: 0 0.6ch;
+}
+
+.beat__name {
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step-1);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  color: var(--tp-ink-dim);
+}
+
+/* ── The control ────────────────────────────────────────────────────────────────────── */
+
+.run {
+  margin: var(--mp-space-4) 0 0;
+}
+
+.btn {
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step-0);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  color: var(--tp-ink);
+  background: var(--tp-bg-inset);
+  border: 1px solid var(--tp-rule-strong);
+  border-radius: 2px;
+  padding: var(--mp-space-2) var(--mp-space-4);
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--tp-bg-raised);
+}
+
+.btn[disabled] {
+  color: var(--tp-ink-faint);
+  cursor: not-allowed;
+}
+
+/* ── The verdict strip ──────────────────────────────────────────────────────────────── */
+
+.verdict {
+  margin-top: var(--mp-space-4);
+  padding-top: var(--mp-space-3);
+  border-top: 1px solid var(--tp-rule-strong);
+}
+
+.verdict__strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mp-space-2) var(--mp-space-5);
+  align-items: baseline;
+}
+
+.verdict__cell {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8ch;
+  min-width: 0;
+}
+
+.verdict__k {
+  font-size: var(--mp-step--1);
+  color: var(--tp-ink-faint);
+}
+
+.verdict__v {
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step-0);
+  color: var(--tp-ink);
+  overflow-wrap: anywhere;
+}
+
+.verdict__v[data-cell='act.verdict'] {
+  font-size: var(--mp-step-2);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+/* `failures[]` is printed in full, every string of it, or it is not printed honestly. */
+.verdict__failures {
+  margin: var(--mp-space-2) 0 0;
+  font-family: var(--tp-mono);
+  font-size: var(--mp-step--1);
+  color: var(--tp-warn);
+  overflow-wrap: anywhere;
+}
+
+/* ── Foot ───────────────────────────────────────────────────────────────────────────── */
+
+.foot {
+  margin-top: var(--mp-space-4);
+  padding-top: var(--mp-space-3);
+  border-top: 1px solid var(--tp-rule);
+  font-size: var(--mp-step--1);
+  color: var(--tp-ink-faint);
+}
+
+.foot p {
+  margin: 0 0 var(--mp-space-1);
+  max-width: 108ch;
+}
+
+.foot code,
+.foot b {
+  font-family: var(--tp-mono);
+  color: var(--tp-ink-dim);
+  font-weight: 400;
+}
+
+.synthetic {
+  color: var(--tp-warn);
+  font-weight: 650;
+}
+
+/* ── The no-script and no-style fallbacks ───────────────────────────────────────────── */
+
+.boot {
+  max-width: 72ch;
+  margin: var(--mp-space-4) 0 0;
+  padding: var(--mp-space-3);
+  border: 1px solid var(--tp-rule);
+  background: var(--tp-bg-sunken);
+  font-size: var(--mp-step--1);
+  color: var(--tp-ink-dim);
+}
+
+.boot h2 {
+  margin: 0 0 var(--mp-space-2);
+  font-size: var(--mp-step-0);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tp-ink);
+}
+
+.boot p {
+  margin: 0 0 var(--mp-space-2);
+}
+
+.boot p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Narrow viewports ───────────────────────────────────────────────────────────────── */
+
+/*
+ * The three columns are the argument, so they stay side by side as long as each can hold a
+ * digest without shredding it. Below that they stack in reading order — store, retrieve,
+ * act — which is the same order and the same argument, one screen taller.
+ */
+@media (max-width: 1180px) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+
+  .col + .col {
+    border-left: 0;
+    border-top: 1px solid var(--tp-rule);
+    padding-left: 0;
+    padding-top: var(--mp-space-4);
+  }
+}
+
+@media print {
+  .run {
+    display: none;
+  }
+
+  .stmt pre {
+    white-space: pre-wrap;
+  }
+}

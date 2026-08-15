@@ -1,15 +1,38 @@
 {
-  "$schema_note": "Read by scripts/check-budgets.ts against dist/.vite/manifest.json. Licensing: budgets.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "$schema_note": "Read by scripts/check-budgets.ts against dist/.vite/manifest.json. Licensing: budgets.json.license (REUSE sidecar; JSON admits no comment syntax). THREE gates live here and they are not the same kind of thing: 'wire_ceiling' is the per-object bound the ORIGIN refuses at and is required; 'budgets' are the closure sums that state the console's performance contract; 'forbidden_in_entry' bans a module from a closure whatever it weighs. A gate may carry 'measure': 'closure_total' (the default — sum the gzipped closure) or 'largest_object' (take the widest single file in it, which is what a per-object response ceiling governs). A forbidden_in_entry row may carry 'scope': 'node_modules' (the default — match a package) or 'source' (match a path of ours), and 'in': the root whose static closure the ban applies to (the default 'entry' is every isEntry chunk).",
   "rationale": "D13 — budgets are tests. 'Sub-second on a mine-site laptop' is a number or it is marketing. Every threshold below is gzip of the transferred JavaScript and CSS closure, not raw bytes, because gzip is what the wire carries.",
+  "wire_ceiling": {
+    "id": "entry-chunk-wire",
+    "title": "THE WIRE CEILING, PER OBJECT (widest single file reachable from either HTML entry)",
+    "why": "Every budget below is a SUM over a closure, and the bound that can take the demo dark is PER OBJECT: static_site.py refuses any one response body over DEFAULT_MAX_RESPONSE_BYTES (136 * 1024 = 139264) with a 413. So a sum can sit at 63% of its threshold in the same run where one chunk inside it is 1,332 B from a total outage — both measured 2026-08-16, and that gap is the reason this gate exists. When the entry chunk crosses, this origin answers 413 to its own entry JavaScript for EVERY browser: GET / still returns a 200 shell, the shell fetches its only module, receives a JSON problem document, and the reader is looking at a BLANK PAGE. No warning arrives from production, because the shell keeps answering 200. 138240 = 139264 - 1024, where 1024 is _MINIMUM_HEADROOM_BYTES in verticals/mainline/apps/demo-api/tests/test_static_site.py, so this goes red in CI while the origin is still serving every object it has. THE FIX WHEN IT DOES IS A SMALLER OR SPLIT ENTRY CHUNK — a lazy import, or a second HTML entry as operator.html already is. It is never a larger ceiling and never a larger number here: ruling R3 of docs/demo/proof-and-polish-plan.md freezes both, and test_the_console_ci_budget_goes_red_before_the_origin_does asserts this number still equals the ceiling minus the minimum headroom, so loosening either file is red in the other. 'all' rather than 'static' because a lazy chunk over the ceiling is a 413 too — it is a broken feature rather than a blank page, but it is the same refusal and it should be caught here.",
+    "root": "entry",
+    "follow": "all",
+    "measure": "largest_object",
+    "max_gzip_bytes": 138240,
+    "max_gzip_human": "135 KB",
+    "required": true,
+    "why_it_is_not_in_the_budgets_array": "Because it is not a performance budget and must not be mirrored as one. src/perf/budgets.ts is the console's own performance CONTRACT — D13's 'sub-second on a mine-site laptop', six budgets with CPU-throttle conditions — and tests/unit/perf/budgets.test.ts asserts that its id set equals this array's, id for id. This number is not one of those: it does not come from what a supervisor can wait for, it comes from what THE ORIGIN REFUSES, and its authority is static_site.py rather than ui.md. Filing it beside them would state a fourth 'performance budget' the console does not have, and would drag two files this gate has no business editing along behind it. check-budgets.ts reads this key FIRST and FAILS if it is missing, so being outside the array costs it no teeth — it is the strictest gate in the file.",
+    "measured": "2026-08-16 over the committed dist: PASS at 137,887 B, 353 B under this number and 1,377 B under the ceiling. The archive that shipped at HEAD 4af05e1 measured 138,177 B (1,087 B of headroom), so the wave that added the operator screens SPENT NONE of its 63 bytes: the entry chunk fell 245 B because CONTROL OF WORK landed as a second HTML entry. Full record with sha256s: qa/bundle-headroom.json; the argument: docs/deploy/console-headroom.md."
+  },
   "budgets": [
     {
       "id": "evidentiary-shell",
       "title": "Evidentiary shell (entry chunk + its static import closure + CSS)",
-      "why": "The refusal must paint before a supervisor decides the screen is broken. This is the only weight on the critical path; every feature surface is a lazy chunk.",
-      "root": "entry",
+      "why": "The refusal must paint before a supervisor decides the screen is broken. This is the only weight on the critical path; every feature surface is a lazy chunk. The root is the manifest key rather than 'entry' because 'entry' seeds EVERY isEntry chunk, and operator.html is now one of them — a budget that silently grew a second subject is a budget that fails for a reason nobody chose. Splitting it is the non-weakening move: two gates where there was one, each addressable, and nothing exempted.",
+      "root": "index.html",
       "follow": "static",
       "max_gzip_bytes": 225280,
       "max_gzip_human": "220 KB",
+      "required": true
+    },
+    {
+      "id": "operator-surface",
+      "title": "Operator surface (operator.html's entry chunk + its static import closure + CSS)",
+      "why": "CONTROL OF WORK is a SEPARATE WIRE OBJECT served by the same static handler under the same response ceiling: static_site.py refuses a body over DEFAULT_MAX_RESPONSE_BYTES (136 * 1024 = 139264) with a 413, and a 413 on an entry chunk is a page that never boots. That ceiling is per-object; bounding this budget's whole static closure at the same number is strictly stronger than bounding its largest object, and it holds the operator surface to the size of a screen a supervisor opens on a mine-site laptop. It also makes the R1 boundary measurable rather than asserted: if this entry ever picked up React or the console's design package, it could not stay under a number this size.",
+      "root": "operator.html",
+      "follow": "static",
+      "max_gzip_bytes": 139264,
+      "max_gzip_human": "136 KB",
       "required": true
     },
     {
@@ -25,6 +48,7 @@
       "absent_note": "render3d/ is not present in this build. BUILD_PLAN §10.2 cut 1 has either been taken or the surface has not landed yet. The ribbon carries every fact the walk does (ui.md §1.3), so this is a texture loss, not a claim loss."
     }
   ],
+  "lazy_boundary_note": "A row with no 'in' is seeded from 'entry', INDEPENDENTLY of the budget roots above, so it walks every isEntry chunk — index.html and operator.html both. That is deliberate and must not be narrowed to match the split roots: the three / @react-three ban covers the operator entry automatically, which is the answer we want and did not have to write down twice. A row that names 'in' is the other case — a ban that is true of ONE entry and would be false of the other, which is what the two rows below it are. If an 'in' root matches no chunk in the manifest, check-budgets.ts FAILS rather than passing quietly: an entry that gets renamed must take its bans with it loudly.",
   "forbidden_in_entry": [
     {
       "match": "three",
@@ -33,6 +57,23 @@
     {
       "match": "@react-three",
       "why": "Same boundary as three.js."
+    },
+    {
+      "match": "src/operator/",
+      "scope": "source",
+      "in": "index.html",
+      "why": "THE 63 BYTES. On 2026-08-15 the console entry chunk had 1,087 B of room under the wire ceiling and the guard reserves 1,024 of it, so the operator screens had to land as a SECOND HTML ENTRY rather than inside the console's import closure. They did: operator.html's entry chunk is a separate 29,906 B wire object and the console entry FELL 245 B. This row is what stops a single `import` from index.html's side of the tree undoing that — one static edge from the console to CONTROL OF WORK would weld 96,734 identity bytes into a chunk with 1,332 B of headroom, and the first symptom in production would be a 413 on the entry JavaScript and a blank page for every judge. The budget above catches the bytes; this catches the CAUSE, and names it."
+    },
+    {
+      "match": "src/app/",
+      "scope": "source",
+      "in": "operator.html",
+      "why": "The same boundary from the other side, and it is the operator-surface budget's own claim made checkable: 'if this entry ever picked up React or the console's design package, it could not stay under a number this size.' CONTROL OF WORK is the software the people in the story use — a different product that shares no module with the MAINLINE console (docs/demo/operator-systems-plan.md R1). Measured 2026-08-16: all 35 modules in operator.html's entry chunk are under src/operator/ and not one is from node_modules, so this row is true today and says so."
+    },
+    {
+      "match": "react",
+      "in": "operator.html",
+      "why": "Same R1 boundary, stated as the package rather than as our directory, because the cheapest way to acquire the console's weight is to acquire its framework. React and react-dom are 0 of the 35 modules in operator.html's entry chunk today; a supervisor's permit screen that starts paying for a virtual DOM has stopped being the thing this budget measured."
     }
   ]
 }

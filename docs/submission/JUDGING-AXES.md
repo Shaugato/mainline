@@ -8,6 +8,22 @@ SPDX-License-Identifier: CC-BY-4.0
 Five axes, equally weighted: **Agentic Memory Design · Technological Implementation ·
 Real-World Impact · Product Readiness · Creativity & Originality.**
 
+**Those are the Official Rules' spellings and this page keeps them.** The contest's public
+overview page renders two of the five differently; the Rules page is the authoritative one, the
+criterion *text* is identical on both, and the discrepancy is recorded here rather than
+"fixed".
+
+**Equally weighted for the sum — and strictly ordered for the tie-break.** The Rules break a tie
+on the highest score in the *first applicable criterion listed*, then the next, in the order
+above. So Agentic Memory Design decides every tie, and Product Readiness — the axis this page
+concedes at §4 — is fourth, behind three axes this repository is strong on.
+
+**Each criterion is two sentences, and until now this page answered only the first of each.**
+The second sentence is where the scoring hook is, so §§1–5 each open by quoting it and
+answering it in a line of prose before anything else. The full text of all five is
+[`docs/demo/research/r1-judging.md`](../demo/research/r1-judging.md) §1.1, quoted there from the
+Official Rules.
+
 This page is written for someone filling in a score sheet, not for someone deciding whether
 to keep reading — that is [`DEVPOST.md`](DEVPOST.md). Each section gives the one sentence to
 take away, the two or three artefacts that earn it with their exact paths, and **the honest
@@ -17,8 +33,10 @@ The counterweights are the point. A submission that argues five axes and concede
 asking to be disbelieved on all five. Every limitation below is one we published before a
 judge could find it, and each is a number with a file behind it.
 
-**Every relative path on this page was re-resolved against the working tree on `2026-08-14`,
-after this revision's edits: `60` links, `0` broken** — the same walk over
+**Every relative path on this page was re-resolved against the working tree on `2026-08-15`,
+after this revision's edits: `65` links, `0` broken** — *it read `60` and `0` on `2026-08-14`;
+the count rose because this revision added links and the denominator is printed so the claim
+stays falsifiable.* The same walk over
 [`DEVPOST.md`](DEVPOST.md) returned `11` and `0`, over
 [`RULES-MATRIX.md`](RULES-MATRIX.md) `12` and `0`, and over
 [`docs/TOOL-USAGE.md`](../TOOL-USAGE.md) `40` and `0`.
@@ -51,6 +69,21 @@ falsified and every axis below should be marked down. That is the intended failu
 > **Take away:** memory here is not retrieval shown beside a decision — it is a
 > **precondition of the state transition**, enforced by the database, so it cannot be
 > dismissed, skipped, or routed around by a writer who did not use the application.
+
+**The criterion's second sentence:** *"Is it used for more than toy queries — state,
+embeddings, context, or transactional data at real scale?"*
+
+**The answer.** It is **transactional data on the write path**, which is the strongest of the
+four things that sentence lists and the hardest to fake: the obligation is a row, the counter is
+a column a trigger projects onto the subject row, the gate is a plain `CHECK` over that column,
+and all of it is inside one `SERIALIZABLE` transaction that a merge cannot commit around —
+plus a composite foreign key onto `(subject_id, epoch)` with `ON UPDATE RESTRICT`, and C-SPANN
+vector indexes for the recall prefix. **The falsification test is beat 3**: the projected counter
+is forced to zero out of band and the merge is refused anyway, because the gate re-derives from
+ancestry instead of trusting the number — a toy query cannot survive having its own input
+falsified. **On *"at real scale"* this page concedes and does not argue**: the corpus is
+authored, and there is no p50, no p99 and no load profile anywhere in this repository — the
+counterweight below is the same concession and it stays.
 
 | Artefact | What it earns |
 |---|---|
@@ -93,6 +126,21 @@ client's own number, memory here is a cache and this axis is falsified.
 > **Take away:** the refusal lives in CockroachDB — constraints, triggers, `SERIALIZABLE` —
 > so it holds against `psql`, a migration script and a back-office correction alike, and the
 > repository proves that by attacking it rather than by demonstrating it.
+
+**The criterion's second sentence:** *"Does the agent use the tools correctly and safely?"*
+
+**The answer.** *Correctly*: nothing in the application composes a SQLSTATE — `23514` and
+`P0001` come out of CockroachDB through the driver's error object, and where a constraint name
+had to be **parsed** out of a `RAISE` message rather than **reported** by the driver, the payload
+says `constraint_source: parsed` and this page repeats it, because a run whose exhibits were
+inferred must never look like a run whose exhibits were reported. *Safely*: the safety is in the
+tool rather than around it — `POST /v1/demo/gate-run` is savepoint-fenced and ends in `ROLLBACK`,
+which is why a hundred judges may press it concurrently; the seeded subject's own mutating route
+answers `423 demo_subject_write_protected` with `use_instead` naming the safe one; the published
+judge login has **no write surface at all**; and the transcript proves the claim rather than
+asserting it, by counting rows over ten tables before and after and keying its verdict on a
+minted disposition id no other writer could hold
+[src: `evidence/demo/live-beats.json#gate_run.persistence_check`].
 
 | Artefact | What it earns |
 |---|---|
@@ -140,13 +188,25 @@ apart on it:
 > [src: `evidence/deploy/cloud-chain.json#outcome`, `evidence/deploy/cloud-seed.json#verdict`,
 > `#verification`].
 >
-> **The four-beat run through the HTTP handler has NOT been recorded against Cloud.** The
+> ~~**The four-beat run through the HTTP handler has NOT been recorded against Cloud.** The
 > operator reports it in the body of commit `7535670`; that commit's diff carries no such
 > artefact, and `evidence/` holds none. **OWED:** re-run `scripts/deploy/…` against Cloud with
 > `--out evidence/deploy/cloud-gate-run.json`, and only then may a Cloud `PROVEN` appear on
 > this page. Until it exists, the only `PROVEN` this repository holds is
 > `evidence/gate-refusal/proof-20260814T032418Z.json`, and it is **local**
-> (`cluster.database = w_qr_gate_refusal_proof`).
+> (`cluster.database = w_qr_gate_refusal_proof`).~~
+>
+> **THE DEBT IS DISCHARGED — 2026-08-15.** The four beats have been recorded through the HTTP
+> handler, over the **public Function URL**, against the deployed CockroachDB Cloud database,
+> by a client holding no DSN, no AWS profile and no token:
+> [`evidence/demo/live-beats.json`](../../evidence/demo/live-beats.json) —
+> `verdict: PROVEN`, `failures: []`, `target_is_local_emulator: **false**`, `23514`
+> `gate_closed_when_issued` *(reported)* and `P0001` `mainline.fn_permit_merge_gate`
+> *(parsed)*. It was written to a different path than the one this ruling nominated, and the
+> ruling's text is kept rather than re-pointed, because a debt is discharged by an artefact and
+> not by an edit. The local `PROVEN` at
+> `evidence/gate-refusal/proof-20260814T032418Z.json` is still local and this page still says
+> so wherever it quotes it.
 
 **OPEN THIS TO CHECK IT — [`scripts/proof/gate_refusal.py`](../../scripts/proof/gate_refusal.py).**
 Run it against a bare local node and read the last line. The committed transcript it writes is
@@ -162,6 +222,19 @@ verdict `PROVEN`, `caveats: []`, chain `271/271`, `PROJECTION 10/10`,
 > **Take away:** the failure this addresses is not a missing document — it is a *defensible*
 > change approved by people doing their jobs correctly, because the reason behind the rule
 > left with the person who wrote it.
+
+**The criterion's second sentence:** *"Is the use case meaningful, not just technically
+impressive?"*
+
+**The answer.** The use case is the one where nobody is negligent. A permit is raised, every
+approver does their job, and the control that would have mattered is weakened anyway because the
+person who knew why it existed left in 2017 — that is the ordinary way a fatality's lesson is
+undone, and no shipping permit system can express it, because every one of them gates on the
+present state of the world rather than on ancestry. The demonstration is deliberately shot
+**inside a permit-to-work screen and a change-request screen** rather than inside our own
+console, because a control that only exists in a vendor's console is a control nobody meets at
+the moment of the decision. **What keeps this honest**: no real operator has used it, no real
+data is in it, and the counterweight below says so before a judge has to find it.
 
 | Artefact | What it earns |
 |---|---|
@@ -185,7 +258,11 @@ this sentence was corrected against it; the artefact was not touched.*
 An earlier version of this paragraph costed a static console build with replay fixtures at
 US$0/month; that shape was abandoned because the console alone does not exercise the gate, and
 because CloudFront cannot be created on this account at all — see §4. The estimate is an
-estimate: **no bill has been observed, because nothing has been applied.**
+estimate: ~~**no bill has been observed, because nothing has been applied.**~~ **CORRECTED
+2026-08-15 — the apply has run and the Function URL is serving, so the second half of that
+sentence is no longer true. The first half still is: no bill has been observed.** This page
+prints no cost figure it has not been handed one for, and an estimate does not become a
+measurement because the resource it estimated now exists.
 
 **Honest counterweight.** No real operator has used this, and no real data is in it. The
 domain corpus was authored for this repository. **Inference is in Sydney and the database is
@@ -211,6 +288,40 @@ The managed-cluster half is
 > shipping readiness is not, and a submission that pretended otherwise would contradict the
 > one thing it is actually selling.
 
+**The criterion's second sentence:** *"Has the team thought about resilience, access control,
+and what happens when things go wrong?"*
+
+**The answer — and it is a different question from the one the take-away above concedes.** The
+take-away concedes **maturity**: no SLO, no load profile, one deployment. Every number in the
+table below stands, unsoftened, and none of it is retracted by what follows. But the criterion
+does not ask how mature the deployment is; it asks whether the team **thought about** failure
+and access control, and on that specific question this repository has an answer for every clause
+of it:
+
+| the criterion's own words | the answer | where it is measured |
+|---|---|---|
+| *what happens when things go wrong* | **the write path fails closed, and it was attacked to prove it.** A merge with an open obligation is refused `23514` `gate_closed_when_issued`. The projected counter is then forced to zero out of band — a disarmed projector, or a careless `UPDATE` — and the same merge is refused **again**, `P0001` `mainline.fn_permit_merge_gate`, because the gate re-derives the count instead of trusting the column | `evidence/demo/live-beats.json#gate_run.beats`, taken through the public URL with no credential |
+| *what happens when the system cannot answer* | **it says so and grades itself down.** On its strongest refusal the payload reports `diagnosis: none`, `naa: null`, `naa_reason: not_computable`, and one minimal-unsatisfiable-subset atom of kind `capability_gap` naming the function — instead of shipping a plausible superset labelled declarative | `evidence/demo/live-beats.json#gate_run.beat_three_diagnosis` |
+| *access control* — who may **sign** | **signer enrolment is resolved out of the database**, not derived in the application: `mainline.signing_credential` and `mainline.defeater_option`. `demo.signer` and `demo.countersigner` are enrolled and unrevoked, and that is a checked fact rather than a sentence | `.venv/Scripts/python.exe scripts/demo/demo_ready.py`, fact `signers` |
+| *access control* — who may **read** | **measured from the other side rather than asserted**: 14 of 14 `mainline_audit` views readable, 11 of 11 base-table reads, inserts, `CREATE TABLE` and `DROP VIEW` attempts refused with the expected SQLSTATE | `evidence/deploy/judge-access.json`, verdict `PROVEN`, `failures: []` |
+| *access control* — who may **write** | **the published login has no write surface at all** — narrower than our own documents used to describe (§7 of the judge pack records the correction). The one shared demo subject answers `423 demo_subject_write_protected` on its mutating route, naming the safe endpoint instead, so one caller cannot brick the demo for the next | `verticals/mainline/db/demo/judge_grants.sql:155`; `evidence/demo/live-beats.json#documented_traps` |
+| *resilience* — history cannot be rewritten | **obligations and dispositions are append-only.** A disposition is retracted by writing a row that points at it (`retracted_by`), never by deleting one; a completed transition takes a composite foreign key onto `(subject_id, epoch)` and **`ON UPDATE RESTRICT` makes attaching a new obligation to a completed transition physically impossible**; `CASCADE` is forbidden in both positions, because a cascade rewrites history | `evidence/demo/memory-loop.json#published_sql`; `spec/TRAPPOINT-SPEC.md` §2 rules `N-1`–`N-4` |
+| *resilience* — the schema is reproducible | the deployed database reports its chain at **`271` of `271` files**, applied by `scripts/deploy/cloud_chain.py`, beside a `schema_fingerprint` the endpoint publishes about itself | `evidence/demo/live-beats.json#world.health` — re-derive with `curl -s <the demo URL>/v1/health` |
+| *observable* | **the honesty ledger is published and is a test, not a disclaimer.** `docs/HONESTY.md` carries an inline reference on every number, and `tests/release/test_honesty_is_checkable.py` fails the build when a number and its source disagree — **and fails it again when evidence appears that the document has not absorbed**, which is a rule that runs against us | `tests/release/test_honesty_is_checkable.py`, and the red it produced, quoted below |
+
+**Two limits belong inside that table rather than after it, or the table is an advertisement.**
+There is **no foreign key from `mainline.disposition` onto `mainline.defeater_option`**, so the
+refusal of an unknown defeater code is the *application's* and not the database's — a smaller
+claim than the rest of this section makes, and `MUST-NOT-CLAIM.md` families 13 and 14 govern it.
+And the WebAuthn assertion on a signed disposition is **synthesised and labelled `staged: true`
+on the wire**: this deployment has no authenticator and nothing in the schema verifies a
+signature.
+
+**So: score this axis down, and score it down for the reasons below rather than for the ones
+above.** The concession is about maturity and it is correct. The criterion asked a narrower
+question and this page now answers it before conceding, because losing a mark for failing to
+answer the question that was actually asked is an avoidable cost and not an honest one.
+
 **The measured reasons, each with its artefact.** Every row below was re-derived on
 `2026-08-14` **from the artefact its own Source column names**, one row at a time and never
 from the row above it — which is how four of them were found to have drifted. Where a figure
@@ -218,8 +329,8 @@ moved, the superseded one is named in the same cell.
 
 | Finding | Measurement | Source |
 |---|---|---|
-| **Nothing is deployed.** `terraform apply` has not been run | `demo_url` holds the literal `UNRESOLVED` | [`docs/submission/SUBMISSION.json`](SUBMISSION.json); `python scripts/submission/check_submission_ready.py` |
-| The plan that would deploy it is written and unapplied | `Plan: 24 to add, 0 to change, 0 to destroy.` — `11` in `module.api[0]`, `13` in `module.guard[0]`, the cost guard `infra/envs/demo/main.tf:631` instantiates. *This cell said `11 to add` and cited `terraform-plan-furl.txt:339` until 2026-08-14. Both digits were stale, and the correction went one way only: the document was re-read against the artefact, and the artefact was not touched.* | [`evidence/deploy/terraform-plan-furl.txt`](../../evidence/deploy/terraform-plan-furl.txt) line `843` |
+| ~~**Nothing is deployed.** `terraform apply` has not been run~~ **SUPERSEDED 2026-08-15: the apply has run and the demo is live.** The finding that survives is narrower and is still a finding: **`demo_url` in the submission file has not been resolved to the hostname the apply produced**, so the repository's own gate still reports it unresolved while the wire answers `ok: true`. Where the two disagree the wire wins, and neither was edited to agree with the other | `demo_url` holds the literal `UNRESOLVED`; the deployment answers `ok: true` with the deploy chain at `271` of `271` files | [`docs/submission/SUBMISSION.json`](SUBMISSION.json); `python scripts/submission/check_submission_ready.py`; [`evidence/demo/live-beats.json`](../../evidence/demo/live-beats.json) |
+| ~~The plan that would deploy it is written and unapplied~~ **the plan that deployed it, kept as a plan** | `Plan: 24 to add, 0 to change, 0 to destroy.` — `11` in `module.api[0]`, `13` in `module.guard[0]`, the cost guard `infra/envs/demo/main.tf:631` instantiates. *This cell said `11 to add` and cited `terraform-plan-furl.txt:339` until 2026-08-14. Both digits were stale, and the correction went one way only: the document was re-read against the artefact, and the artefact was not touched.* **The artefact is still a plan and is not re-labelled as a state file: it records what was going to be created, and what exists is measured over HTTP instead.** | [`evidence/deploy/terraform-plan-furl.txt`](../../evidence/deploy/terraform-plan-furl.txt) line `843` |
 | The end-to-end acceptance run does not reach its contract | `"verdict": "NOT PROVEN"` at `generated_at 2026-08-13T01:47:58Z`, with `10` named failures — both runs reach beat `4` and are refused `23503 disposition_signer_credential_id_fkey`, with no `clearance_digest` on the admission beat. *This cell said `2026-08-11T05:43:54Z` with `4` failures, which was two regenerations behind; the count went UP and is published as it stands* | [`evidence/deploy/acceptance.json`](../../evidence/deploy/acceptance.json) |
 | The conformance suite has never been demonstrated | `10` passed, `6` failed, `55` cannot-run, `0` errored, over `71` selected | [`qa/conformance-census.json`](../../qa/conformance-census.json) `totals`, `selected` |
 | Lint is a published number, not a clean one | `671` `ruff` findings — down from the `847` an earlier version of this row carried — and `0` files `ruff format` would rewrite | [`qa/ruff-ratchet.json`](../../qa/ruff-ratchet.json) `lint.total`, `format.unformatted_files` |
@@ -227,7 +338,7 @@ moved, the superseded one is named in the same cell.
 | The test suite is not green | `9290` tests with no cluster: `8323` passed, `44` failed, `923` skipped, generated `2026-08-09T22:44:59Z`. *This cell read `8845` / `8065` / `44` / `736` until 2026-08-14 — the census taken before the demo API's own rows were merged into it. `docs/HONESTY.md` and `DEVPOST.md` were re-derived against the artefact days before this page was, and for those days the two disagreed; the artefact was right both times* | [`qa/test-state.json`](../../qa/test-state.json) `totals.none` |
 | One target cannot be measured at all | `tests/integration` under `--crdb=reuse` was killed at `2400.02` seconds having written no JUnit XML, so `tests: 0` there is *unmeasured*, not *none* | [`qa/test-state.json`](../../qa/test-state.json) `packages."tests/integration".runs.cluster` |
 | Custody verification is deliberately **not** a pass | exit `2`: `9` checks held, `0` failed, `7` never ran, of `16` | [`qa/test-state.json`](../../qa/test-state.json) `external_checks.custody_bundle_verification.counts` |
-| Master is more red than green, and got redder today | Latest run of each workflow: **`20` workflows, `8` success, `12` failure**. *The two figures this row has carried are both kept: `18` workflows at `8`/`10`, re-derived `2026-08-12T14:58Z` at `1d41442`; and `20` workflows at `11`/`9`, re-derived earlier on `2026-08-14`. The board moved against us between two runs of the same command on the same day, which is the reason this row prints the command and not a remembered number* | `gh run list --branch master --limit 300`, re-derived `2026-08-14` after the `04:29Z` push. `gh` lists `21` names because `cluster-lane-bites` appears twice, once under its file path; collapsed, `20` |
+| Master is more red than green, and got redder today | Latest run of each workflow: **`20` workflows, `8` success, `12` failure**. *The two figures this row has carried are both kept: `18` workflows at `8`/`10`, re-derived `2026-08-12T14:58Z` at `1d41442` <!-- claim-hygiene: quoting: a git object name recording when a run was taken, not a commit_id anybody chose -->; and `20` workflows at `11`/`9`, re-derived earlier on `2026-08-14`. The board moved against us between two runs of the same command on the same day, which is the reason this row prints the command and not a remembered number* | `gh run list --branch master --limit 300`, re-derived `2026-08-14` after the `04:29Z` push. `gh` lists `21` names because `cluster-lane-bites` appears twice, once under its file path; collapsed, `20` |
 
 **Two rows that were on this list are off it, and the removal is recorded rather than
 silent.** The repository was `PRIVATE` when this page was first written and is now `PUBLIC` —
@@ -314,7 +425,7 @@ flattering: [`docs/CI-STATE.md`](../CI-STATE.md) now names every workflow with i
 what those run ids show is a board that is more red than green. Re-derived on `2026-08-14`
 with `gh run list --branch master --limit 300`, taking the latest run of each: **`20`
 workflows, `8` success, `12` failure.** *Two earlier readings of the same command are kept
-beside it — `18` workflows at `8`/`10` on `2026-08-12` at commit `1d41442`, and `20` at
+beside it — `18` workflows at `8`/`10` on `2026-08-12` at commit `1d41442` <!-- claim-hygiene: quoting: a git object name recording when a reading was taken -->, and `20` at
 `11`/`9` earlier on `2026-08-14`.* Several of the reds report a true incompleteness and are
 meant to stay red; `docs/CI-STATE.md` is the page that says which, and it is not this page's
 to write. The observation problem is solved; the lanes are not.
@@ -336,6 +447,22 @@ output is this axis, stated by a program rather than by us.
 > every shipping permit system gates on the present state of the world, and this one gates on
 > **ancestry** — and the mechanism is three ordinary SQL features composed into something
 > none of them does alone.
+
+**The criterion's second sentence:** *"Does it demonstrate insight into what makes agentic
+systems different from traditional apps?"*
+
+**The answer.** A traditional app's user is in the application. An agent is not: it writes over
+whatever surface it can reach, and it does not stop being an agent when it uses `psql`, a
+migration script or a back-office correction. Two consequences follow and this project is built
+on both. **First, an agent's memory has to be a precondition of the state transition rather than
+a panel beside it** — a nag can be dismissed, a retrieval can go unread, and a constraint a
+writer can route around is not a constraint. **Second, a refusal has to be explainable or it
+gets engineered around**, so every refusal emits a minimal unsatisfiable subset and, where
+computable, the nearest admissible alternative — and where it is *not* computable the system says
+`not_computable` and names its own capability gap rather than inventing a plausible answer. The
+third consequence is the demonstration itself: most systems prove memory by recalling something.
+**This one proves memory by refusing something, and then proves the memory is real by refusing
+again after the number it reads has been falsified.**
 
 | Artefact | What it earns |
 |---|---|
@@ -379,8 +506,16 @@ axis is worth less than it claims.
    local node (`cluster.database = w_qr_gate_refusal_proof`): `chain 271/271 applied, 0 failed`,
    `PROJECTION 10/10 held`, `REFUSAL REFUSED [23514] gate_closed_when_issued (reported)`,
    `DRIFT REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)`,
-   `ADMISSION ADMITTED [00000]`. **That `PROVEN` is local.** The equivalent four-beat run
-   through the HTTP handler against CockroachDB Cloud is **OWED** and is quoted in full in §2.
+   `ADMISSION ADMITTED [00000]`. **That `PROVEN` is local, and it stays labelled local.**
+   ~~The equivalent four-beat run through the HTTP handler against CockroachDB Cloud is
+   **OWED** and is quoted in full in §2.~~ **DISCHARGED 2026-08-15**: it exists, it was taken
+   through the public Function URL with no credential, and it is
+   [`evidence/demo/live-beats.json`](../../evidence/demo/live-beats.json) —
+   `target_is_local_emulator: false`, `verdict: PROVEN`. §2 carries the ruling and its
+   discharge side by side. Regenerate it yourself with
+   `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url <the demo URL>`; the
+   memory loop behind it is `scripts/proof/memory_loop.py`, and the frame-by-frame map from the
+   film to both artefacts is [`docs/demo/JUDGE-90-SECONDS.md`](../demo/JUDGE-90-SECONDS.md).
 2. **Open [`docs/HONESTY.md`](../HONESTY.md) before the README.** It is the shortest route to
    an accurate picture, and it was written to be used against us.
 3. **Score Product Readiness low.** It is the weakest axis, the reasons are counted above,

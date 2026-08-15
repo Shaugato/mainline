@@ -132,6 +132,41 @@ export default defineConfig({
     // it fires first and is informative rather than duplicative.
     chunkSizeWarningLimit: 200,
     rollupOptions: {
+      /**
+       * TWO HTML ENTRIES, ENUMERATED.
+       *
+       * `index.html` is the MAINLINE console. `operator.html` is CONTROL OF WORK — the
+       * software the people in the story actually use, which is a different product and
+       * shares no module with the console (`docs/demo/operator-systems-plan.md` R1).
+       *
+       * They are separate INPUTS rather than separate builds because `static_site.py` serves
+       * whatever the packer copied into `web/`, and the packer copies the whole of `dist/`
+       * with no script change (M5, M6). One build, two wire objects.
+       *
+       * **This is not a build INPUT in the `console_repro.py` sense.** `BUILD_INPUT_NAMES`
+       * enumerates the ambient values that reach the emitted bytes — the `process.env` reads
+       * above and the four `VITE_*` names — and `tests/deploy/test_console_repro.py` fails on
+       * an undeclared one. These two paths are literals in this file, so the build stays as
+       * reproducible as it was; `scripts/check-entrypoints.ts` is what asserts both of them
+       * actually reached `dist/` with every asset they reference.
+       *
+       * ── WHY THESE ARE ROOT-RELATIVE STRINGS AND NOT RESOLVED ABSOLUTE PATHS ────────
+       *
+       * `tests/deploy/test_console_repro.py` (`_RESOLVE_LITERAL`, line 89) scans this file for
+       * a path resolved from `here` against a quoted literal, and asserts every one it finds
+       * is a declared `ATTESTATION_CANDIDATE`. That is right, because until now every such
+       * call in this file has been a FILESYSTEM PROBE — a file whose mere existence changes
+       * what gets compiled, and which a reproducibility record must be able to name.
+       *
+       * An HTML entry is not that. If one of these is missing the build FAILS loudly; it does
+       * not quietly compile a different value. Writing them as root-relative strings lets that
+       * probe assertion keep meaning exactly what it says instead of acquiring two exceptions,
+       * and Vite resolves a relative input against `root`, which is this directory.
+       */
+      input: {
+        index: 'index.html',
+        operator: 'operator.html',
+      },
       output: {
         // Named chunks make a budget addressable by the thing it is a budget FOR.
         chunkFileNames: 'assets/[name]-[hash].js',

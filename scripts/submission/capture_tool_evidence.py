@@ -353,7 +353,13 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
             "'serializable', and a write-skew pair — two transactions each reading sum(v), "
             "then each updating a different row — was REFUSED at commit with 40001 "
             "'restart transaction: TransactionRetryWithProtoRefreshError'. The isolation "
-            "level is not merely reported; it refuses"
+            "level is not merely reported; it refuses. SECOND WITNESS, ON THE DEPLOYMENT "
+            "RATHER THAN A LAPTOP, added 2026-08-15: evidence/deploy/live-gate-run.json is "
+            "the four-beat run as answered by the public Lambda Function URL over "
+            "CockroachDB Cloud, and its data.transaction block reports isolation "
+            "SERIALIZABLE with single_transaction true and disposition rolled_back — the "
+            "opened and closed logical timestamps are identical, so all four beats sit "
+            "inside one transaction. evidence/deploy/LIVE.md is that sitting's narrative"
         ),
         how=(
             "The merge gate re-derives an obligation count and then writes; under anything "
@@ -373,7 +379,12 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
         verdict="EXERCISED",
         verdict_basis=(
             "evidence/gate-refusal/proof-20260810T004200Z.json#drift_refusal raises "
-            "P0001 from mainline.fn_permit_merge_gate — a trigger function executing"
+            "P0001 from mainline.fn_permit_merge_gate — a trigger function executing. The "
+            "same function refuses ON THE DEPLOYMENT, over HTTP, in "
+            "evidence/deploy/live-gate-run.json: the projection_drift_attack beat forces the "
+            "projected counter to zero out of band and the merge is still REFUSED with "
+            "SQLSTATE P0001 naming mainline.fn_permit_merge_gate, because the gate "
+            "re-derives the count instead of trusting the column it was handed"
         ),
         how=(
             "The gate is a BEFORE trigger, not application code, so it is enforced against "
@@ -393,7 +404,11 @@ CRDB_ROWS: Final[tuple[Row, ...]] = (
         verdict="EXERCISED",
         verdict_basis=(
             "evidence/gate-refusal/proof-20260810T004200Z.json#refusal.constraint == "
-            "'gate_closed_when_issued', source 'reported'"
+            "'gate_closed_when_issued', source 'reported'. Also on the deployment: the merge "
+            "beat of evidence/deploy/live-gate-run.json carries SQLSTATE 23514 with "
+            "constraint gate_closed_when_issued, which is the constraint NAME travelling "
+            "intact from a CockroachDB Cloud node, through the Lambda handler, into a JSON "
+            "envelope a browser can read"
         ),
         how=(
             "The constraint NAME is the deliverable, not the exception. A refusal with the "
@@ -844,10 +859,16 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         verdict="DESIGNED",
         verdict_basis=(
             "the module and its Rego policies are complete and the plan fixtures exercise "
-            "them, but no bucket has been applied: the S3 object-lock comparison is one of "
-            "the SEVEN cryptographic checks in the custody bundle that DID NOT RUN "
-            "(qa/test-state.json#external_checks.custody_bundle_verification.counts."
-            "not_checked)"
+            "them, but no EVIDENCE-STORE bucket has been applied: the S3 object-lock "
+            "comparison is one of the SEVEN cryptographic checks in the custody bundle that "
+            "DID NOT RUN (qa/test-state.json#external_checks.custody_bundle_verification."
+            "counts.not_checked). ONE S3 BUCKET DOES NOW EXIST AND IT IS NOT THIS ONE, "
+            "recorded here so that a reader who finds it does not think this row was hiding "
+            "it: evidence/deploy/APPLIED.md names the Terraform STATE bucket created ahead "
+            "of the demo apply — versioned, public access blocked on all four settings, "
+            "SSE-S3, noncurrent versions expiring at 30 days. It carries NO Object Lock "
+            "configuration, holds no checkpoint, and is a deployment mechanic rather than "
+            "the evidence store this row is about, so it promotes nothing"
         ),
         how=(
             "Checkpoints of the tamper-evident ledger are written to a versioned bucket whose "
@@ -911,38 +932,65 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         kind="service",
         pattern=r"aws_lambda|lambda_function|LambdaFunctionURL",
         case_sensitive=False,
-        verdict="DESIGNED",
+        verdict="EXERCISED",
         verdict_basis=(
-            "the module is complete (python3.13, arm64, 512 MB, 15 s, four alarms, one "
-            "dashboard) and NOTHING IS DEPLOYED. A plan exists and a plan is not an apply: "
-            "evidence/deploy/terraform-plan-furl.txt reads '11 to add, 0 to change, 0 to "
-            "destroy' and terraform apply has not been run against it, so there is no "
-            "function, no role, no log group and no demo URL as of this census. This row "
-            "stays DESIGNED until an apply has happened — promoting it because an apply is "
-            "planned and authorised is exactly the arithmetic the verdict column exists to "
-            "refuse"
+            "PROMOTED 2026-08-15, and the basis it replaces is the point of the verdict "
+            "column: this row read 'a plan exists and a plan is not an apply … there is no "
+            "function, no role, no log group and no demo URL', and that was true every day "
+            "it was written. The apply then happened. evidence/deploy/APPLIED.md records it "
+            "in the orchestrator's own words — 'terraform apply 24 created, 0 changed, 0 "
+            "destroyed', 'terraform state 37 resources' — against the plan committed at "
+            "evidence/deploy/terraform-plan-furl.txt, whose line 843 reads 'Plan: 24 to add, "
+            "0 to change, 0 to destroy.' (11 in module.api[0], 13 in module.guard[0]). THE "
+            "FUNCTION ANSWERS, and three committed transcripts of that origin say so rather "
+            "than one: evidence/deploy/live-health.json is a GET /v1/health body carrying "
+            "ok true, database mainline_demo, CockroachDB CCL v26.2.5 and "
+            "evidence/deploy/live-health.json#/deploy_chain_applied = 271 of "
+            "evidence/deploy/live-health.json#/deploy_chain_files = 271 files; "
+            "evidence/deploy/live-gate-run.json is a POST /v1/demo/gate-run answer from the "
+            "same origin whose data.verdict is PROVEN over four beats — 00000, then 23514 "
+            "gate_closed_when_issued, then P0001 mainline.fn_permit_merge_gate against a "
+            "falsified counter, then 00000 once a disposition is signed — in ONE SERIALIZABLE "
+            "transaction that ends in ROLLBACK, "
+            "evidence/deploy/live-gate-run.json#/data/elapsed_ms = 1857.405; and "
+            "evidence/deploy/judge-walk.json is the same URL walked by a program that is "
+            "handed the URL and nothing else. evidence/deploy/LIVE.md is the narrative of "
+            "that sitting. NO AWS API CALL EARNED THIS PROMOTION: this census still opens no "
+            "socket and reads no credential, and every file named above was committed before "
+            "it ran. WHAT THIS DOES NOT SAY, and it is recorded in the same file that records "
+            "the apply: the FIRST readings after the apply were ok=false reason='dsn_unset', "
+            "because Terraform constructs the DSN parameter's ARN and never reads it; and the "
+            "console artefact those bytes were serving on 2026-08-15 was a REPLAY build with "
+            "'demo_gate_run' absent from it (evidence/deploy/APPLIED.md § What the apply "
+            "actually put on that origin, evidence/deploy/console-mode.json). Both are "
+            "statements about the served JavaScript and about a missing parameter, not about "
+            "the function, and neither has been edited out now that the health endpoint "
+            "answers ok true"
         ),
         how=(
             "One python3.13 arm64 function in ap-southeast-1, beside the Cloud cluster, "
             "because the same call from ap-southeast-2 pays about 90 ms each way and the "
-            "gate screen makes six of them. Its execution role's entire non-managed grant "
-            "is ssm:GetParameter on ONE parameter ARN plus a conditioned kms:Decrypt. "
-            "MEASURED CORRECTION, and it is the kind that matters: an earlier census said "
-            "this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT WHAT THE "
-            "COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and "
-            "evidence/deploy/terraform-plan-furl.txt:326 plans authorization_type = "
+            "gate screen makes six of them. memory_size 256 and timeout 14 s in the "
+            "committed plan (evidence/deploy/terraform-plan-furl.txt:290 and :315; this "
+            "sentence said 512 MB and 15 s until 2026-08-15, which was the module's shape "
+            "before the deploy-safety wave and not the plan's). Its execution role's entire "
+            "non-managed grant is ssm:GetParameter on ONE parameter ARN plus a conditioned "
+            "kms:Decrypt. MEASURED CORRECTION, and it is the kind that matters: an earlier "
+            "census said this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT "
+            "WHAT THE COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and "
+            "evidence/deploy/terraform-plan-furl.txt:351 plans authorization_type = "
             '"NONE", because AWS_IAM is only a hardening if a CloudFront distribution '
             "exists to be granted lambda:InvokeFunctionUrl — and this account cannot "
             "create one (see the aws_cloudfront row). An AWS_IAM URL with no principal "
             "behind it is not a hardened demo, it is a demo nobody can reach. So the URL "
-            "is public and the module says so — and THE LIST OF WHAT BOUNDS IT IS NOW "
-            "SHORTER THAN THIS ROW ONCE CLAIMED. This census used to say "
-            "'reserved_concurrent_executions caps the bill'. It does not and it never "
-            "did on this account: `aws lambda get-account-settings` reports "
-            "AccountLimit.ConcurrentExecutions = 10 in both ap-southeast-1 and "
+            "is public — applied that way, not merely planned that way — and the module "
+            "says so. THE LIST OF WHAT BOUNDS IT IS SHORTER THAN THIS ROW ONCE CLAIMED. "
+            "This census used to say 'reserved_concurrent_executions caps the bill'. It "
+            "does not and it never did on this account: `aws lambda get-account-settings` "
+            "reports AccountLimit.ConcurrentExecutions = 10 in both ap-southeast-1 and "
             "ap-southeast-2, min(20, 10) = 10, and every POSITIVE reservation is refused "
-            "at apply — so the plan now carries "
-            "evidence/deploy/terraform-plan-furl.txt:279 "
+            "at apply — so the plan carries "
+            "evidence/deploy/terraform-plan-furl.txt:296 "
             "reserved_concurrent_executions = -1 and the reservation is not a control at "
             "all. What is left is genuinely load-bearing and is written down instead of "
             "assumed: the ACCOUNT concurrency ceiling of 10 (an AWS default nobody chose, "
@@ -951,18 +999,35 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "bounds database STATE, not spend), and the Basic cluster's own spend limit "
             "(which bounds the database side only — a flood's target is the static tree "
             "inside the zip, which opens no connection). The -concurrency alarm at "
-            "evidence/deploy/terraform-plan-furl.txt:77 is a TRIPWIRE, not a bound: it "
-            "reports and does not stop, and it plans threshold = 8 against that ceiling "
-            "of 10 rather than the 20 it used to sit above. That is a smaller claim than "
-            "'invocable by one distribution and nothing else', smaller again than the one "
-            "this row carried yesterday, and it is the true one for this account."
+            "evidence/deploy/terraform-plan-furl.txt:66, threshold = 8 at :91, is a "
+            "TRIPWIRE, not a bound: it reports and does not stop, and it sits against that "
+            "ceiling of 10 rather than the 20 it used to sit above. The cost guard applied "
+            "beside it — 13 of the 24 resources, three alarms into one SNS topic into a "
+            "responder that calls PutFunctionConcurrency(ReservedConcurrentExecutions=0) — "
+            "is the one thing here that stops rather than reports, and NO artefact records "
+            "it ever having fired. That is a smaller claim than 'invocable by one "
+            "distribution and nothing else', and it is the true one for this account."
         ),
         # Re-pointed 2026-08-12. This anchor named main.tf:257, which reads
         # `timeout = var.timeout` — a citation that resolved and proved nothing.
         # Re-pointed 2026-08-13: the deploy-safety wave rewrote this module and :310 slid
-        # onto a prose comment line. :333 is `authorization_type = var.url_authorization
+        # onto a prose comment line. :333 was `authorization_type = var.url_authorization
         # _type` — the authorisation decision itself, which is what the row turns on.
-        anchor="infra/modules/demo-api/main.tf:333",
+        #
+        # Re-pointed 2026-08-15, and this move is the one worth reading. :333 now reads
+        # `handler = "mainline_demo_api.app.handler"`: the module has grown past 978 lines
+        # and the citation retargeted silently onto an unrelated attribute, which is the
+        # rot `anchor_must_contain` exists to expose and did — the generator REFUSED to
+        # write and exited 2 rather than publish a citation it knew was wrong. THE CODE IS
+        # AUTHORITATIVE AND THE CITATION MOVED TO MATCH IT: main.tf was not edited, the
+        # quoted text was located by search rather than by offset, and :432 is the one line
+        # in the file carrying it verbatim as the attribute (the other six occurrences of
+        # `url_authorization_type` are a comment, a local, a precondition and an output).
+        # `evidence/tool-usage/aws-services.json` had already been hand-edited to :432
+        # while this table still said :333; a derived file moved without its generator is
+        # two files disagreeing about which line a reader should open, so the fix lands
+        # HERE and the JSON is re-derived from it.
+        anchor="infra/modules/demo-api/main.tf:432",
         anchor_must_contain="authorization_type",
     ),
     Row(
@@ -983,8 +1048,13 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "identity holds AdministratorAccess, so it is an account-level verification "
             "hold only AWS Support can lift — not a permissions bug and not something this "
             "repository can fix. CloudFront is therefore EXCLUDED from the committed plan: "
-            "enable_cloudfront is false in evidence/deploy/terraform-plan-furl.json and no "
-            "aws_cloudfront_* resource appears among its 11 planned additions. The "
+            "enable_cloudfront is false in evidence/deploy/terraform-plan-furl.json (at "
+            "evidence/deploy/terraform-plan-furl.txt:895 and :904) and no aws_cloudfront_* "
+            "resource appears among its 24 planned additions — a count this row gave as 11 "
+            "until 2026-08-15, before the cost guard was wired in; the exclusion is "
+            "unchanged and the total is the plan's. THE APPLY OF 2026-08-14 CHANGED NOTHING "
+            "HERE: evidence/deploy/APPLIED.md records 24 created and none of them is a "
+            "distribution, so this row is DESIGNED for a reason no schedule will clear. The "
             "transcript is at infra/modules/demo-api/main.tf:22 and docs/deploy/RUNBOOK.md"
         ),
         how=(
@@ -1028,8 +1098,15 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
             "terraform apply, and the reader invoked no model — bedrock-metrics.json's "
             "prohibitions block asserts each of those false and cloudwatch_evidence.py's "
             "before-call guard raises for any operation outside its six-item read-only "
-            "allow-list before the request is signed. The alarms and dashboard WRITTEN in "
-            "infra/modules/demo-api remain unapplied and unexercised"
+            "allow-list before the request is signed. THAT SENTENCE USED TO END 'the alarms "
+            "and dashboard WRITTEN in infra/modules/demo-api remain unapplied and "
+            "unexercised', and half of it stopped being true on 2026-08-14: "
+            "evidence/deploy/APPLIED.md records 24 resources created, among them the log "
+            "group, the four demo-api alarms, the dashboard, and the cost guard's three "
+            "further alarms and its own log group. They EXIST. They are still UNEXERCISED — "
+            "no artefact in this repository records any of the seven alarms transitioning to "
+            "ALARM, or the dashboard being read, and an alarm that has never fired has "
+            "demonstrated its existence and nothing about its threshold"
         ),
         how=(
             "A log group with a finite retention — an unbounded retention on a demo account is "
@@ -1054,20 +1131,50 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         kind="service",
         pattern=r"aws_iam_|iam:PassRole|assume_role_policy",
         case_sensitive=False,
-        verdict="DESIGNED",
+        verdict="EXERCISED",
         verdict_basis=(
-            "eleven aws_iam_policy_document data sources exist across infra/; the Rego suite "
-            "asserts the deny statements against plan fixtures, offline"
+            "PROMOTED 2026-08-15, and the promotion is NARROWER than the row's title. What "
+            "ran is the demo stack's least-privilege half: evidence/deploy/APPLIED.md "
+            "records 'terraform apply 24 created, 0 changed, 0 destroyed', and three of "
+            "those 24 are IAM — aws_iam_role.this, aws_iam_role_policy.dsn_access and "
+            "aws_iam_role_policy_attachment.basic_execution, enumerated in the committed "
+            "plan at evidence/deploy/terraform-plan-furl.txt lines 195, 237 and 270. The "
+            "role was not merely created, it was ASSUMED and its one non-managed grant was "
+            "used: evidence/deploy/live-health.json answers ok true, which the function can "
+            "only produce by completing an ssm:GetParameter that this inline policy allows "
+            "and that an unauthorised caller would have met with AccessDeniedException "
+            "instead (see the aws_ssm_parameter_store row for why no other DSN path exists). "
+            "WHAT THIS DOES NOT SAY, and it is the more interesting half of the row: the "
+            "DENY-FIRST policy documents this row is named for are in "
+            "infra/modules/evidence-store and are STILL UNAPPLIED. No bucket policy denying "
+            "s3:DeleteObjectVersion exists in the account, the Rego suite asserts those "
+            "denials against plan fixtures OFFLINE and nothing else, and the S3 object-lock "
+            "comparison remains one of the seven cryptographic custody checks that did not "
+            "run (qa/test-state.json#external_checks.custody_bundle_verification.counts."
+            "not_checked). An applied allow is not an applied deny, and this verdict covers "
+            "only the first"
         ),
         how=(
-            "The interesting IAM here is what is DENIED. The evidence-store bucket policy "
-            "denies the writer s3:DeleteObjectVersion and denies PutObjectRetention without a "
-            "bounded retention date, so the identity that appends checkpoints cannot shorten "
-            "or remove them. infra/policy/custody/*.rego asserts each denial against a "
-            "compliant plan and a family of deliberately broken ones."
+            "Two halves, and only one of them is in the account. APPLIED: the Lambda "
+            "execution role, whose ENTIRE non-managed grant is ssm:GetParameter "
+            "(infra/modules/demo-api/main.tf:280) on one parameter ARN (:285) plus a "
+            "conditioned kms:Decrypt — the managed AWSLambdaBasicExecutionRole attachment is "
+            "the only other policy on it. UNAPPLIED: the interesting IAM, which is what is "
+            "DENIED. The evidence-store bucket policy "
+            "(infra/modules/evidence-store/main.tf:145) denies the writer "
+            "s3:DeleteObjectVersion and denies PutObjectRetention without a bounded "
+            "retention date, so the identity that appends checkpoints cannot shorten or "
+            "remove them, and infra/policy/custody/*.rego asserts each denial against a "
+            "compliant plan and a family of deliberately broken ones. That module has never "
+            "been applied."
         ),
-        anchor="infra/modules/evidence-store/main.tf:145",
-        anchor_must_contain="aws_iam_policy_document",
+        # Re-pointed 2026-08-15 with the verdict, for the reason the aws_cloudwatch row's
+        # comment gives: an EXERCISED row whose anchor points at unapplied Terraform sends a
+        # judge to the half that did NOT run. `resource "aws_iam_role" "this"` is the role
+        # the apply created and the function assumed; the deny-first policy document is
+        # still cited, in `how`, where it belongs and where its verdict is stated plainly.
+        anchor="infra/modules/demo-api/main.tf:260",
+        anchor_must_contain="aws_iam_role",
     ),
     Row(
         key="aws_ssm_parameter_store",
@@ -1075,24 +1182,56 @@ AWS_ROWS: Final[tuple[Row, ...]] = (
         kind="service",
         pattern=r"ssm:GetParameter|aws_ssm_",
         case_sensitive=False,
-        verdict="DESIGNED",
+        verdict="EXERCISED",
         verdict_basis=(
-            "granted in the Lambda execution role and NOTHING DEPLOYED — no parameter has "
-            "been written and no role exists. The grant is in the committed plan "
-            "(aws_iam_role_policy.dsn_access, one of the 11 additions in "
-            "evidence/deploy/terraform-plan-furl.txt) and a plan is not an apply, so this "
-            "row stays DESIGNED"
+            "PROMOTED 2026-08-15 on the strength of a REFUSAL and its repair, both "
+            "committed, and the pair is what makes the promotion checkable rather than "
+            "asserted. The old basis read 'no parameter has been written and no role "
+            "exists', and evidence/deploy/APPLIED.md is the file that records it ceasing to "
+            "be true. Its 'First light' block is the deployment with the parameter ABSENT: "
+            "GET /v1/health answered ok=false reason='dsn_unset' and POST /v1/demo/gate-run "
+            "answered 503 kind='dsn_unset', both naming the cause exactly — SSM "
+            "GetParameter '/mainline/demo/cockroach_dsn' in ap-southeast-1 answered HTTP "
+            "400, __type ParameterNotFound — re-taken from the wire by "
+            "evidence/deploy/judge-walk.json, 23 steps, 2 satisfied, 20 refused for that one "
+            "named reason. evidence/deploy/live-health.json is the SAME endpoint afterwards: "
+            "ok true, database mainline_demo, "
+            "evidence/deploy/live-health.json#/deploy_chain_applied = 271. The function's "
+            "only configured route to a DSN is that parameter — the committed plan's "
+            "environment block sets MAINLINE_DSN_PARAM = '/mainline/demo/cockroach_dsn' at "
+            "evidence/deploy/terraform-plan-furl.txt:325 and sets NO MAINLINE_DSN — so an "
+            "ok=true health body is a successful, signed, role-authorised "
+            "ssm:GetParameter with WithDecryption, and there is no other path by which that "
+            "body could exist. WHAT THIS DOES NOT SAY: no artefact in this repository "
+            "records the parameter's VALUE, its type, its KMS key or its version, and none "
+            "ever will — the value is a database credential placed by hand by the founder "
+            "and read back without --with-decryption precisely so that no check can print "
+            "it. What is evidenced is that the call succeeded, not what it returned"
         ),
         how=(
             "The CockroachDB Cloud DSN is a SecureString parameter, not a Lambda environment "
             "variable, so the connection string never appears in the function configuration "
             "that anyone with lambda:GetFunction can read. The role's grant is scoped to "
-            "exactly one parameter ARN."
+            "exactly one parameter ARN (infra/modules/demo-api/main.tf:285, "
+            "resources = [local.dsn_parameter_arn]). The call itself is hand-rolled SigV4 "
+            "over one HTTPS request in "
+            "verticals/mainline/apps/demo-api/src/mainline_demo_api/db.py:214 — no SDK, no "
+            "IMDS walk, no profile resolution, credentials taken from the environment the "
+            "Lambda runtime injects — because every one of those is a code path that behaves "
+            "differently on a workstation than in a function, and the DSN is cached for the "
+            "life of the container so a warm request makes no SSM call at all."
         ),
         # Re-pointed 2026-08-12: main.tf:146 was a bare `})` closing a locals block.
         # Re-pointed 2026-08-13: the deploy-safety wave rewrote this module and :192 slid
-        # onto a bare `}`. :215 is `actions = ["ssm:GetParameter"]`, the grant itself.
-        anchor="infra/modules/demo-api/main.tf:215",
+        # onto a bare `}`. :215 was `actions = ["ssm:GetParameter"]`, the grant itself.
+        #
+        # Re-pointed 2026-08-15: :215 now reads a bare `#` — a comment marker inside the
+        # environment block's prose. That is the worst shape of drift, because the anchor
+        # still resolves to a real line in a real file and only the quoted-text check can
+        # see it; the generator refused to write and exited 2. THE CODE IS AUTHORITATIVE:
+        # main.tf was not edited, `actions = ["ssm:GetParameter"]` occurs exactly once in
+        # the file, and it is at :280.
+        anchor="infra/modules/demo-api/main.tf:280",
         anchor_must_contain="ssm:GetParameter",
     ),
     Row(

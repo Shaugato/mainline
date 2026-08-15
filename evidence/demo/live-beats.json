@@ -1,0 +1,729 @@
+{
+  "artefact": "live-beats",
+  "schema": "mainline.evidence/live-beats/1",
+  "generated_at": "2026-08-15T14:11:35Z",
+  "generated_by": "scripts/proof/live_beats.py",
+  "owner": "proof-and-polish worker P2",
+  "command": ".venv/Scripts/python.exe scripts/proof/live_beats.py --base-url https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+  "base_url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/",
+  "credentials_used": "none - no DSN, no AWS profile, no token; a stranger with the URL",
+  "target_is_local_emulator": false,
+  "verdict": "PROVEN",
+  "failures": [],
+  "transport_failures": [],
+  "what_is_asserted": {
+    "beats": [
+      "read 00000",
+      "merge REFUSED 23514 gate_closed_when_issued (constraint_source reported)",
+      "projection_drift_attack REFUSED P0001 mainline.fn_permit_merge_gate (constraint_source parsed)",
+      "admit ADMITTED 00000 with a server-computed clearance_digest"
+    ],
+    "note": "the SQLSTATEs are asserted here, not read off the server's own verdict. A different SQLSTATE is a regression even when a verdict still says PROVEN.",
+    "beat_table_source": "scripts/deploy/demo_acceptance.EXPECTED_BEATS (imported, not copied)"
+  },
+  "one_request_four_beats": {
+    "line": "one request - four beats - response received 2026-08-15T14:11:33Z (x-amzn-requestid be1d350a-262c-42d3-9990-6cf27ed41963)",
+    "line_as_written": "one request \u2014 four beats \u2014 response received 2026-08-15T14:11:33Z",
+    "request_id": "be1d350a-262c-42d3-9990-6cf27ed41963",
+    "request_id_header": "x-amzn-requestid",
+    "request_id_issued_by": "the AWS Lambda Function URL that served this request",
+    "run_id": "0c5eb410-e56b-470d-b28a-2b457e581b8b",
+    "response_timestamp": "2026-08-15T14:11:33Z",
+    "response_timestamp_source": "the HTTP Date header on the single gate-run response",
+    "response_date_header": "Sat, 15 Aug 2026 14:11:33 GMT",
+    "payload_observed_at": "2026-08-15T14:11:33Z",
+    "payload_generated_at": "2026-08-15T14:11:32Z",
+    "beat_count": 4,
+    "beat_names": [
+      "read",
+      "merge",
+      "projection_drift_attack",
+      "admit"
+    ],
+    "response_bytes": 10499,
+    "why_it_matters": "the operator screens reveal the beats one at a time. That is defensible only because all four arrived in ONE response body, under one request id, at one timestamp \u2014 the reveal is a rendering choice, not four requests wearing a costume. Any delay a viewer sees between beats belongs to the screen and is never to be narrated as database latency."
+  },
+  "request_discipline": {
+    "rule": "against the live URL: every GET, POST /v1/demo/gate-run, and the one documented 423 trap. Nothing else on the wire.",
+    "authority": "proof-and-polish-plan.md ruling R4",
+    "methods": {
+      "GET": 9,
+      "POST": 2
+    },
+    "post_count": 2,
+    "gate_run_count": 1,
+    "trap_count": 1,
+    "total_requests": 11
+  },
+  "timing_discipline": {
+    "wall_ms": "this client's monotonic clock around the round trip: DNS, TLS, the trip to the region and back, any cold start, and JSON parsing",
+    "payload_elapsed_ms": "what the server said about itself, taken from the JSON pointer recorded beside it. null where the envelope carries no duration at all \u2014 which is every read on this API. An absent measurement is written down as absent, never as a zero and never as the wall clock wearing a server's name.",
+    "beat_elapsed_ms": "the server's own per-statement durations, inside the gate run",
+    "they_are_never_added": "wall_ms is not a database latency and the payload durations are not a user's experience. Both are recorded so a reader can see the gap rather than be told it."
+  },
+  "world": {
+    "discovery": {
+      "source": "GET /v1/demo/subjects",
+      "note": "mainline_demo_api.subjects answers this entirely out of SELECTs; not one identifier in that module is a Python constant. Nothing below is hard-coded in this script.",
+      "identifiers": {
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "cr_id": "dec0de00-000c-4000-8000-000000000001",
+        "check_id": "dec0de00-0007-4000-8000-000000000001",
+        "receipt_id": "dec0de00-0008-4000-8000-000000000001",
+        "run_id": "dec0de00-0009-4000-8000-000000000001",
+        "clause_uuid": "dec0de00-0004-4000-8000-000000000001"
+      },
+      "absent": [],
+      "permit": {
+        "count": 1,
+        "external_ref": "DEMO-PTW-0001",
+        "gate_epoch": 1,
+        "open_blocking": 1,
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "ref_name": "refs/permits/demo-0001",
+        "state": "dispositioned"
+      },
+      "change_request": {
+        "count": 1,
+        "cr_id": "dec0de00-000c-4000-8000-000000000001",
+        "external_ref": "DEMO-MOC-0001",
+        "ref_name": "refs/changes/demo-0001",
+        "state": "checks_materialised"
+      },
+      "event": {
+        "count": 1,
+        "event_id": "dec0de00-0005-4000-8000-000000000001",
+        "external_ref": "DEMO-INC-0001",
+        "kind": "incident",
+        "severity_gate": 4
+      }
+    },
+    "health": {
+      "ok": true,
+      "database": "mainline_demo",
+      "deploy_chain_applied": 271,
+      "deploy_chain_files": 271,
+      "migrations_applied": 0,
+      "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+      "server_date": "2026-08-15T14:11:27.617400Z",
+      "seconds": 0.0125
+    },
+    "permit_before": {
+      "permit_id": "dec0de00-0006-4000-8000-000000000001",
+      "open_blocking": 1,
+      "state": "dispositioned",
+      "gate_epoch": 1,
+      "head_seq": 2
+    },
+    "permit_before_snapshot": {
+      "permit_id": "dec0de00-0006-4000-8000-000000000001",
+      "open_blocking": 1,
+      "state": "dispositioned",
+      "gate_epoch": 1,
+      "head_seq": 2
+    },
+    "blocking_checks": {
+      "count": 1,
+      "open_count": 1,
+      "gate_epoch": 1,
+      "checks": [
+        {
+          "check_id": "dec0de00-0007-4000-8000-000000000001",
+          "open": true,
+          "origin": "blame_ancestry",
+          "severity": 4,
+          "virulence": "blood_major",
+          "clause_label": "7.3.2(b)",
+          "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+          "commit_id": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+          "precursor_external_ref": "DEMO-INC-0001",
+          "precursor_occurred_at": "2019-03-14T06:20:00Z",
+          "precursor_severity_gate": 4,
+          "evidence_summary": "SYNTHETIC \u2014 recalled precursor DEMO-INC-0001 reaches the clause version this permit relies on."
+        }
+      ],
+      "severity_provenance": "severity and virulence are supplied as 0 / 'routine' by the seed and are overwritten by mainline.fn_check_project from mainline.clause_blame_current (invariant MI25, docs/deploy/cloud-database.md:808). A 4 read back here is how you know the projection ran \u2014 nobody typed it."
+    },
+    "silence": {
+      "silence_receipt_id": "dec0de00-000a-4000-8000-000000000001",
+      "run_id": "dec0de00-0009-4000-8000-000000000001",
+      "policy_version": "demo-recall-1.0",
+      "n": 1,
+      "s": 1,
+      "theta": 0.35,
+      "issued_at": "2026-08-02T03:00:05Z",
+      "corpus_root": "91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329",
+      "candidate_root": "f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab",
+      "bound_statement": "PER proves exhaustion of the retrieval that ran, not of the corpus.",
+      "entries": 0
+    },
+    "change_request": {
+      "cr_id": "dec0de00-000c-4000-8000-000000000001",
+      "external_ref": "DEMO-MOC-0001",
+      "state": "checks_materialised",
+      "gate_epoch": 1,
+      "head_seq": 1,
+      "merged_commit": null,
+      "target_ref": "refs/heads/main",
+      "counters": {
+        "open_blocking": 1,
+        "open_conflicts": 0,
+        "open_residue": 0
+      }
+    },
+    "ledger": {
+      "site_code": "dec0de00-0001-4000-8000-000000000001",
+      "leaves": 4,
+      "nodes": 3,
+      "checkpoints": 2,
+      "cosignatures": 2,
+      "inclusion_proofs": 6,
+      "consistency_proofs": 1,
+      "unwitnessed_debt": []
+    }
+  },
+  "gate_run": {
+    "request": {
+      "seq": 8,
+      "label": "gate_run",
+      "why": "the four beats, in one transaction, on the deployed database",
+      "method": "POST",
+      "path": "/v1/demo/gate-run",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/gate-run",
+      "status": 200,
+      "response_bytes": 10499,
+      "wall_ms": 2111.0,
+      "payload_elapsed_ms": 1414.96,
+      "payload_elapsed_pointer": "/data/elapsed_ms",
+      "wall_minus_payload_ms": 696.04,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "be1d350a-262c-42d3-9990-6cf27ed41963",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:33 GMT",
+      "response_date_iso": "2026-08-15T14:11:33Z",
+      "payload_observed_at": "2026-08-15T14:11:33Z",
+      "payload_server_date": "2026-08-15T14:11:33Z",
+      "emulator_header": null
+    },
+    "run_id": "0c5eb410-e56b-470d-b28a-2b457e581b8b",
+    "generated_at": "2026-08-15T14:11:32Z",
+    "outcome": "completed",
+    "verdict": "PROVEN",
+    "server_failures": [],
+    "persisted": false,
+    "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json",
+    "subject": {
+      "blocking_check_id": "dec0de00-0007-4000-8000-000000000001",
+      "exposure_receipt_id": "dec0de00-0008-4000-8000-000000000001",
+      "external_ref": "DEMO-PTW-0001",
+      "gate_epoch": 1,
+      "head_seq": 2,
+      "open_blocking": 1,
+      "open_blocking_derived": 1,
+      "site_code": "dec0de00-0001-4000-8000-000000000001",
+      "state": "dispositioned",
+      "subject_id": "dec0de00-0006-4000-8000-000000000001",
+      "subject_kind": "permit"
+    },
+    "transaction": {
+      "canonicalisation": "mainline_demo_api.gate_run.canonical_json (sorted-key JSON; ASCII payloads only)",
+      "closed_logical_timestamp": "1786803092296625448.0000000000",
+      "disposition": "rolled_back",
+      "isolation": "SERIALIZABLE",
+      "opened_logical_timestamp": "1786803092296625448.0000000000",
+      "retry_sqlstate": null,
+      "savepoints": [
+        "gate_run_beat_2",
+        "gate_run_beat_3",
+        "gate_run_beat_4"
+      ],
+      "single_transaction": true
+    },
+    "persistence_check": {
+      "identical": true,
+      "self_persisted": false,
+      "concurrent_writes": null,
+      "tables": [
+        "mainline.permit",
+        "mainline.permit_event",
+        "mainline.merge_record",
+        "mainline.disposition",
+        "mainline.ledger_intake",
+        "mainline.refusal_ledger",
+        "mainline.blocking_check",
+        "mainline.exposure_receipt",
+        "mainline.exposure_line",
+        "mainline_ops.outbox"
+      ],
+      "minted_disposition_id": "c03c27cb-6f49-43f7-a52a-0885ab62b0fb",
+      "minted_disposition_rows_after_rollback": 0,
+      "permit_row_identical": true,
+      "note": "Row counts over every table the four beats can write, taken before the transaction opened and after it was rolled back, plus mainline.permit's own columns \u2014 because the attack beat mutates a column without changing a count. `identical` is that reading and it is about the DATABASE. `self_persisted` is about THIS RUN: the disposition beat 4 minted is a uuid4 no other writer holds, and it is gone, and this subject's own row counts and permit row are unchanged. The verdict keys on the second, because a whole-table count cannot tell 'I persisted something' from 'somebody else did' and this endpoint used to report the difference as its own failure.",
+      "how_to_read_identical": "identical answers 'did the DATABASE move', over unscoped whole-table counts, so another judge's write between the two readings turns it false. self_persisted answers 'did THIS RUN persist anything' and keys on the minted disposition id no other writer could have produced. The verdict keys on self_persisted (docs/deploy/gate-run-contract.md \u00a73 amendment)."
+    },
+    "beats": [
+      {
+        "ordinal": 1,
+        "name": "read",
+        "label": "The permit, and the obligation that is still open on it.",
+        "outcome": "read",
+        "sqlstate": "00000",
+        "constraint": null,
+        "constraint_source": null,
+        "matched_expectation": true,
+        "message": null,
+        "ms": 0.011,
+        "expected": {
+          "outcome": "read",
+          "sqlstate": "00000",
+          "constraint": null,
+          "constraint_source": null
+        },
+        "why_it_matters": "the permit and its open obligation, read from the cluster",
+        "present": true
+      },
+      {
+        "ordinal": 2,
+        "name": "merge",
+        "label": "MERGE the permit. One open obligation, no signed disposition.",
+        "outcome": "refused",
+        "sqlstate": "23514",
+        "constraint": "gate_closed_when_issued",
+        "constraint_source": "reported",
+        "matched_expectation": true,
+        "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+        "ms": 445.753,
+        "expected": {
+          "outcome": "refused",
+          "sqlstate": "23514",
+          "constraint": "gate_closed_when_issued",
+          "constraint_source": "reported"
+        },
+        "why_it_matters": "a plain CHECK refuses the merge while an obligation is open",
+        "present": true
+      },
+      {
+        "ordinal": 3,
+        "name": "projection_drift_attack",
+        "label": "THE ATTACK: force the projected counter to zero out of band, then merge again.",
+        "outcome": "refused",
+        "sqlstate": "P0001",
+        "constraint": "mainline.fn_permit_merge_gate",
+        "constraint_source": "parsed",
+        "matched_expectation": true,
+        "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+        "ms": 449.649,
+        "expected": {
+          "outcome": "refused",
+          "sqlstate": "P0001",
+          "constraint": "mainline.fn_permit_merge_gate",
+          "constraint_source": "parsed"
+        },
+        "why_it_matters": "the counter is forged to zero and the gate refuses anyway, by re-deriving it",
+        "present": true
+      },
+      {
+        "ordinal": 4,
+        "name": "admit",
+        "label": "Sign one disposition against the obligation, then merge again.",
+        "outcome": "admitted",
+        "sqlstate": "00000",
+        "constraint": null,
+        "constraint_source": null,
+        "matched_expectation": true,
+        "message": null,
+        "ms": 376.922,
+        "expected": {
+          "outcome": "admitted",
+          "sqlstate": "00000",
+          "constraint": null,
+          "constraint_source": null
+        },
+        "why_it_matters": "one signed disposition, and the same merge succeeds \u2014 a gate that always refuses is broken",
+        "present": true
+      }
+    ],
+    "timing": {
+      "wall_ms": 2111.0,
+      "payload_run_elapsed_ms": 1414.96,
+      "beat_elapsed_ms": {
+        "read": 0.011,
+        "merge": 445.753,
+        "projection_drift_attack": 449.649,
+        "admit": 376.922
+      },
+      "beat_elapsed_ms_sum": 1272.335,
+      "network_and_cold_start_ms": 696.04,
+      "why_three_levels": "wall_ms is this client's monotonic clock around the round trip; payload_run_elapsed_ms is what the server said about the whole run; the per-beat numbers are what it said about each statement. They are three different measurements and the transcript never adds them together."
+    },
+    "beat_three_diagnosis": {
+      "present": true,
+      "beat": "projection_drift_attack",
+      "sqlstate": "P0001",
+      "constraint": "mainline.fn_permit_merge_gate",
+      "constraint_source": "parsed",
+      "class": "gate",
+      "diagnosis": "none",
+      "naa": null,
+      "naa_reason": "not_computable",
+      "mus": [
+        {
+          "capability": "mainline.fn_permit_merge_gate",
+          "detail": "outside the declarative decomposition; the general algorithm is QuickXplain over savepoint probes, in a separate transaction and never on the completion path",
+          "kind": "capability_gap"
+        }
+      ],
+      "probe_calls": 0,
+      "gate_epoch": 1,
+      "spec_version": "1.0.0-rc.1",
+      "profile": "mainline",
+      "refusal_id": "a84b75bb-01bb-4a83-b8ea-009333495954",
+      "observed_at": "2026-08-15T14:11:33Z",
+      "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+      "why_this_is_recorded_and_not_tidied_away": "On its strongest refusal the system reports that it cannot compute a nearest admissible answer: diagnosis 'none', naa null, naa_reason 'not_computable', and one MUS atom of kind capability_gap naming the function. trappoint.explain_refusal has no declarative decomposition for mainline.fn_permit_merge_gate and says so instead of shipping a plausible superset labelled declarative. That is a Product-Readiness point, not an embarrassment.",
+      "why_parsed_and_not_reported": "CockroachDB populates no PL/pgSQL context stack, so psycopg's diag.constraint_name and diag.context are both None on a RAISE. The name is recovered from the kernel's own 'refused by <schema>.<object>' clause. parsed is a WEAKENED diagnosis and the payload says so, so a run whose exhibits were inferred never looks like a run whose exhibits were reported.",
+      "mus_kinds": [
+        "capability_gap"
+      ]
+    },
+    "beat_four_exhibit": {
+      "present": true,
+      "sqlstate": "00000",
+      "outcome": "admitted",
+      "clearance_digest": "84a2fb4a213ac58de9114b3fb31a73cdcb6c4209dd3a4ee2800818966eed6aac",
+      "merged_commit": "4fbbd37106cf5e02b03a49ce2ba5c4aa4fbbd37106cf5e02b03a49ce2ba5c4aa",
+      "merged_at": "2026-08-15T14:11:32.296607+00:00",
+      "permit_state_inside_the_savepoint": "merged",
+      "permit_open_blocking_inside_the_savepoint": 0,
+      "disposition_id": "c03c27cb-6f49-43f7-a52a-0885ab62b0fb",
+      "disposition_kind": "applied",
+      "open_blocking_after_signature": 0,
+      "computed_by": "the server, over the sorted (check_id, disposition_id) set, inside the savepoint \u2014 then rolled back with the rest of the transaction",
+      "value_is_observed_not_asserted": "the disposition is minted fresh in every run, so two runs legitimately produce two digests; the SHAPE is asserted, the value is recorded",
+      "why_a_fourth_beat_at_all": "a gate that always refuses is broken, not safe: one signed disposition closes the counter through the projection trigger and the same merge succeeds"
+    }
+  },
+  "permit_invariant": {
+    "gate_run_subject_snapshot": {
+      "permit_id": "dec0de00-0006-4000-8000-000000000001",
+      "open_blocking": 1,
+      "state": "dispositioned",
+      "gate_epoch": 1,
+      "head_seq": 2
+    },
+    "before": {
+      "permit_id": "dec0de00-0006-4000-8000-000000000001",
+      "open_blocking": 1,
+      "state": "dispositioned",
+      "gate_epoch": 1,
+      "head_seq": 2
+    },
+    "after_gate_run": {
+      "read": true,
+      "snapshot": {
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "open_blocking": 1,
+        "state": "dispositioned",
+        "gate_epoch": 1,
+        "head_seq": 2
+      },
+      "drift": {},
+      "unchanged": true
+    },
+    "after_trap": {
+      "read": true,
+      "snapshot": {
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "open_blocking": 1,
+        "state": "dispositioned",
+        "gate_epoch": 1,
+        "head_seq": 2
+      },
+      "drift": {},
+      "unchanged": true
+    },
+    "fields": [
+      "open_blocking",
+      "state",
+      "gate_epoch",
+      "head_seq"
+    ],
+    "why": "beat 4 signs a disposition, which closes the obligation and takes open_blocking to zero. If that survived the rollback the next judge would see a permit that merges with no refusal at all, and the demo would silently stop demonstrating anything."
+  },
+  "documented_traps": [
+    {
+      "label": "DOCUMENTED TRAP \u2014 NOT A REFUSAL",
+      "request": {
+        "method": "POST",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+        "body": {}
+      },
+      "status": 423,
+      "response_bytes": 582,
+      "wall_ms": 679.3,
+      "payload_elapsed_ms": null,
+      "error": "demo_subject_write_protected",
+      "use_instead": "POST /v1/demo/gate-run",
+      "subject_id": "dec0de00-0006-4000-8000-000000000001",
+      "detail": "This is the seeded demo subject, and it is a single shared copy that a hundred judges read. Every transition on this path is irreversible on it \u2014 a permit is never un-merged \u2014 so one caller must not be able to brick the demo for the next. Drive the gate through POST /v1/demo/gate-run, which plays the same four beats in one transaction and rolls all of it back. Set MAINLINE_DEMO_ALLOW_MUTATION=1 in a deployment you own to lift this.",
+      "is_a_gate_refusal": false,
+      "carries_a_sqlstate": false,
+      "authority": "docs/deploy/gate-run-contract.md \u00a77; proof-and-polish-plan.md ruling R4",
+      "why_it_is_in_this_transcript": "423 Locked is a write protection on a single shared public row, not the gate refusing. It carries no SQLSTATE, no constraint and no MUS. Rendering it in a refusal banner would put a fabricated exhibit in front of a judge, so it is recorded here once, labelled, with the endpoint it names instead \u2014 and every operator screen reads the label.",
+      "recorded_once": true
+    }
+  ],
+  "requests": [
+    {
+      "seq": 1,
+      "label": "discovery",
+      "why": "which subjects does this database carry \u2014 the only source of identifiers used below",
+      "method": "GET",
+      "path": "/v1/demo/subjects",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/subjects",
+      "status": 200,
+      "response_bytes": 8941,
+      "wall_ms": 778.9,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "ba594b22-0b56-48dc-9ff9-3abd8142aad6",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:26 GMT",
+      "response_date_iso": "2026-08-15T14:11:26Z",
+      "payload_observed_at": "2026-08-15T14:11:26.848035Z",
+      "payload_server_date": "2026-08-15T14:11:26.848035Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 2,
+      "label": "health",
+      "why": "is the deployment up, and on which chain",
+      "method": "GET",
+      "path": "/v1/health",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health",
+      "status": 200,
+      "response_bytes": 410,
+      "wall_ms": 699.6,
+      "payload_elapsed_ms": 12.5,
+      "payload_elapsed_pointer": "/seconds (seconds x 1000)",
+      "wall_minus_payload_ms": 687.1,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "d0e8f5ca-dc2d-4f18-ba9e-897a1a29f01f",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:27 GMT",
+      "response_date_iso": "2026-08-15T14:11:27Z",
+      "payload_observed_at": null,
+      "payload_server_date": "2026-08-15T14:11:27.617400Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 3,
+      "label": "permit_before",
+      "why": "the permit the supervisor's screen is about, read before the gate is driven",
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "status": 200,
+      "response_bytes": 5691,
+      "wall_ms": 826.8,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "387c6a8b-a3eb-443c-9f23-f79ff3a3faa4",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:28 GMT",
+      "response_date_iso": "2026-08-15T14:11:28Z",
+      "payload_observed_at": "2026-08-15T14:11:28.344733Z",
+      "payload_server_date": "2026-08-15T14:11:28.344733Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 4,
+      "label": "blocking_checks",
+      "why": "the obligation that is still open \u2014 what the gate will refuse about",
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "status": 200,
+      "response_bytes": 2408,
+      "wall_ms": 705.8,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "f9578419-25a3-4c8e-bc32-b9b2051eea29",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:29 GMT",
+      "response_date_iso": "2026-08-15T14:11:29Z",
+      "payload_observed_at": "2026-08-15T14:11:29.174653Z",
+      "payload_server_date": "2026-08-15T14:11:29.174653Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 5,
+      "label": "silence",
+      "why": "the Proof of Exhausted Recall behind the obligation \u2014 what was searched, and to what",
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/silence",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/silence",
+      "status": 200,
+      "response_bytes": 2386,
+      "wall_ms": 731.4,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "b64b4ec1-b412-4236-bd9c-f5d6d34af32a",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:29 GMT",
+      "response_date_iso": "2026-08-15T14:11:29Z",
+      "payload_observed_at": "2026-08-15T14:11:29.925517Z",
+      "payload_server_date": "2026-08-15T14:11:29.925517Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 6,
+      "label": "change_request",
+      "why": "the second subject \u2014 the proposal to edit the clause the permit relies on",
+      "method": "GET",
+      "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/change-requests/dec0de00-000c-4000-8000-000000000001",
+      "status": 200,
+      "response_bytes": 3295,
+      "wall_ms": 797.5,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "735645cd-3c85-4f95-973a-7bd1300e9ce9",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:30 GMT",
+      "response_date_iso": "2026-08-15T14:11:30Z",
+      "payload_observed_at": "2026-08-15T14:11:30.673730Z",
+      "payload_server_date": "2026-08-15T14:11:30.673730Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 7,
+      "label": "ledger",
+      "why": "the transparency log this site's checkpoints live in",
+      "method": "GET",
+      "path": "/v1/ledger",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/ledger",
+      "status": 200,
+      "response_bytes": 9505,
+      "wall_ms": 726.1,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "671f8a7d-fef8-4f3c-9570-7bf4ae73deba",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:31 GMT",
+      "response_date_iso": "2026-08-15T14:11:31Z",
+      "payload_observed_at": "2026-08-15T14:11:31.473342Z",
+      "payload_server_date": "2026-08-15T14:11:31.473342Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 8,
+      "label": "gate_run",
+      "why": "the four beats, in one transaction, on the deployed database",
+      "method": "POST",
+      "path": "/v1/demo/gate-run",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/gate-run",
+      "status": 200,
+      "response_bytes": 10499,
+      "wall_ms": 2111.0,
+      "payload_elapsed_ms": 1414.96,
+      "payload_elapsed_pointer": "/data/elapsed_ms",
+      "wall_minus_payload_ms": 696.04,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "be1d350a-262c-42d3-9990-6cf27ed41963",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:33 GMT",
+      "response_date_iso": "2026-08-15T14:11:33Z",
+      "payload_observed_at": "2026-08-15T14:11:33Z",
+      "payload_server_date": "2026-08-15T14:11:33Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 9,
+      "label": "permit_after_gate_run",
+      "why": "the same four fields, after the gate ran \u2014 the rollback, proven from outside",
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "status": 200,
+      "response_bytes": 5691,
+      "wall_ms": 795.4,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "45cfd8ed-9cbb-43c0-8222-9b89fef54641",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:34 GMT",
+      "response_date_iso": "2026-08-15T14:11:34Z",
+      "payload_observed_at": "2026-08-15T14:11:34.351350Z",
+      "payload_server_date": "2026-08-15T14:11:34.351350Z",
+      "emulator_header": null
+    },
+    {
+      "seq": 10,
+      "label": "documented_trap",
+      "why": "recorded once so that no operator screen ever wires an ISSUE button to it",
+      "method": "POST",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+      "status": 423,
+      "response_bytes": 582,
+      "wall_ms": 679.3,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "9e97453d-d2de-42ed-87d7-69262d60289a",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:35 GMT",
+      "response_date_iso": "2026-08-15T14:11:35Z",
+      "payload_observed_at": null,
+      "payload_server_date": null,
+      "emulator_header": null
+    },
+    {
+      "seq": 11,
+      "label": "permit_after_trap",
+      "why": "and again after the 423, because a write protection that wrote would be worse",
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "status": 200,
+      "response_bytes": 5691,
+      "wall_ms": 802.7,
+      "payload_elapsed_ms": null,
+      "payload_elapsed_pointer": null,
+      "wall_minus_payload_ms": null,
+      "content_type": "application/json; charset=utf-8",
+      "request_id": "3839f728-88e1-431f-8865-ea6d3530afec",
+      "response_date_header": "Sat, 15 Aug 2026 14:11:35 GMT",
+      "response_date_iso": "2026-08-15T14:11:35Z",
+      "payload_observed_at": "2026-08-15T14:11:35.868027Z",
+      "payload_server_date": "2026-08-15T14:11:35.868027Z",
+      "emulator_header": null
+    }
+  ],
+  "not_proven_by_this_transcript": [
+    "Nothing about the console or the operator screens. No browser ran; this is an HTTP client. That a screen renders these bytes is a separate claim with separate evidence.",
+    "Not that the seeded history is true of the world. It is SYNTHETIC and the payload says so in its own evidence_summary; what is proven is that the gate re-derives from it.",
+    "Not that the store is CockroachDB Cloud rather than any PostgreSQL-wire server. What is recorded is the cluster_version string the deployment reported about itself.",
+    "Not that beat 4's signature was verified by an authenticator. The WebAuthn assertion is synthesised and the envelope declares staged; only the projected columns are real.",
+    "Not a latency figure for a judge's network. wall_ms is this machine's path to this region at this hour, with an unknown warm/cold state; a measurement, not a service level.",
+    "Not that the endpoint behaves this way for every subject. One seeded subject was driven, once, and the transcript names it.",
+    "Not that nothing persisted forever. The permit is re-read after the run and after the trap and compared field by field, which proves the rollback happened, not that it always will.",
+    "Not that the 423 trap is unreachable from a user interface. It proves the API refuses it; keeping it off an ISSUE button is the screen's job and this transcript is why."
+  ],
+  "reproduce": {
+    "command": ".venv/Scripts/python.exe scripts/proof/live_beats.py --base-url https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/",
+    "needs": "python 3.13 and the URL. No credential, no database, no AWS access.",
+    "expect": "exit 0 and VERDICT PROVEN, with different timings and a different clearance_digest \u2014 the digest is minted fresh in every run"
+  },
+  "redaction": {
+    "applied": "scripts/deploy/judge_walk.mask over the whole document",
+    "masks": "DSNs, URL credentials, password/token key-values, 12-digit account ids",
+    "verified": "the four SQLSTATEs and the clearance digest are re-checked after masking"
+  }
+}

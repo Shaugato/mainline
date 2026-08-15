@@ -11,19 +11,19 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7388,
+    "files_scanned": 7823,
     "files_by_category": {
-      "config": 4809,
-      "docs": 292,
+      "config": 4865,
+      "docs": 403,
       "migration": 271,
-      "other": 345,
-      "python": 1216,
-      "sql": 130,
-      "terraform": 25,
-      "typescript": 282,
-      "workflow": 18
+      "other": 421,
+      "python": 1287,
+      "sql": 131,
+      "terraform": 29,
+      "typescript": 396,
+      "workflow": 20
     },
-    "skipped_binary": 22,
+    "skipped_binary": 27,
     "skipped_too_large": 0,
     "skipped_unreadable": 0,
     "excluded_dir_names": [
@@ -69,8 +69,8 @@
   "totals": {
     "rows": 12,
     "by_verdict": {
-      "EXERCISED": 3,
-      "DESIGNED": 8,
+      "EXERCISED": 6,
+      "DESIGNED": 5,
       "NOT-AVAILABLE": 1
     },
     "by_kind": {
@@ -96,13 +96,13 @@
         "must_contain": "Refuse any model identifier",
         "subject_holds": true
       },
-      "file_count": 325,
+      "file_count": 344,
       "files_by_category": {
-        "config": 88,
-        "docs": 67,
+        "config": 91,
+        "docs": 81,
         "migration": 2,
-        "other": 4,
-        "python": 151,
+        "other": 5,
+        "python": 152,
         "sql": 3,
         "terraform": 5,
         "typescript": 1,
@@ -140,7 +140,8 @@
         "config": 20,
         "docs": 25,
         "migration": 1,
-        "python": 23,
+        "other": 1,
+        "python": 22,
         "sql": 4
       },
       "representative_paths": [
@@ -170,10 +171,10 @@
         "must_contain": "class ListwiseReranker",
         "subject_holds": true
       },
-      "file_count": 21,
+      "file_count": 23,
       "files_by_category": {
         "config": 2,
-        "docs": 16,
+        "docs": 18,
         "python": 2,
         "workflow": 1
       },
@@ -193,7 +194,7 @@
       "name": "Amazon S3 + Object Lock (COMPLIANCE mode) — the evidence store",
       "kind": "service",
       "verdict": "DESIGNED",
-      "verdict_basis": "the module and its Rego policies are complete and the plan fixtures exercise them, but no bucket has been applied: the S3 object-lock comparison is one of the SEVEN cryptographic checks in the custody bundle that DID NOT RUN (qa/test-state.json#external_checks.custody_bundle_verification.counts.not_checked)",
+      "verdict_basis": "the module and its Rego policies are complete and the plan fixtures exercise them, but no EVIDENCE-STORE bucket has been applied: the S3 object-lock comparison is one of the SEVEN cryptographic checks in the custody bundle that DID NOT RUN (qa/test-state.json#external_checks.custody_bundle_verification.counts.not_checked). ONE S3 BUCKET DOES NOW EXIST AND IT IS NOT THIS ONE, recorded here so that a reader who finds it does not think this row was hiding it: evidence/deploy/APPLIED.md names the Terraform STATE bucket created ahead of the demo apply — versioned, public access blocked on all four settings, SSE-S3, noncurrent versions expiring at 30 days. It carries NO Object Lock configuration, holds no checkpoint, and is a deployment mechanic rather than the evidence store this row is about, so it promotes nothing",
       "how": "Checkpoints of the tamper-evident ledger are written to a versioned bucket whose Object Lock configuration is COMPLIANCE mode — which even the root account cannot shorten — and object_lock_enabled is set AT BUCKET CREATION because it cannot be added afterwards, which is why the module refuses a second bucket. The writer identity is denied DeleteObjectVersion and denied PutObjectRetention with an unconstrained retention date.",
       "anchor": "infra/modules/evidence-store/main.tf:100",
       "anchor_resolved": {
@@ -204,12 +205,12 @@
         "must_contain": "aws_s3_bucket_object_lock_configuration",
         "subject_holds": true
       },
-      "file_count": 126,
+      "file_count": 134,
       "files_by_category": {
-        "config": 33,
-        "docs": 36,
+        "config": 35,
+        "docs": 41,
         "migration": 5,
-        "other": 3,
+        "other": 4,
         "python": 33,
         "sql": 1,
         "terraform": 8,
@@ -243,10 +244,10 @@
         "must_contain": "ECDSA_SHA_256",
         "subject_holds": true
       },
-      "file_count": 43,
+      "file_count": 45,
       "files_by_category": {
-        "config": 18,
-        "docs": 9,
+        "config": 19,
+        "docs": 10,
         "python": 9,
         "terraform": 7
       },
@@ -277,10 +278,10 @@
         "must_contain": "aws_cloudtrail",
         "subject_holds": true
       },
-      "file_count": 35,
+      "file_count": 38,
       "files_by_category": {
         "config": 19,
-        "docs": 11,
+        "docs": 14,
         "python": 3,
         "terraform": 2
       },
@@ -299,29 +300,30 @@
       "key": "aws_lambda",
       "name": "AWS Lambda — the /v1/* demo API",
       "kind": "service",
-      "verdict": "DESIGNED",
-      "verdict_basis": "the module is complete (python3.13, arm64, 512 MB, 15 s, four alarms, one dashboard) and NOTHING IS DEPLOYED. A plan exists and a plan is not an apply: evidence/deploy/terraform-plan-furl.txt reads '11 to add, 0 to change, 0 to destroy' and terraform apply has not been run against it, so there is no function, no role, no log group and no demo URL as of this census. This row stays DESIGNED until an apply has happened — promoting it because an apply is planned and authorised is exactly the arithmetic the verdict column exists to refuse",
-      "how": "One python3.13 arm64 function in ap-southeast-1, beside the Cloud cluster, because the same call from ap-southeast-2 pays about 90 ms each way and the gate screen makes six of them. Its execution role's entire non-managed grant is ssm:GetParameter on ONE parameter ARN plus a conditioned kms:Decrypt. MEASURED CORRECTION, and it is the kind that matters: an earlier census said this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT WHAT THE COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and evidence/deploy/terraform-plan-furl.txt:329 plans authorization_type = \"NONE\", because AWS_IAM is only a hardening if a CloudFront distribution exists to be granted lambda:InvokeFunctionUrl — and this account cannot create one (see the aws_cloudfront row). An AWS_IAM URL with no principal behind it is not a hardened demo, it is a demo nobody can reach. So the URL is public and the module says so. MEASURED CORRECTION, 2026-08-13: this sentence used to continue 'reserved_concurrent_executions caps the bill rather than reporting it', and that was false. The committed plan sets reserved_concurrent_executions = -1 — no reservation at all — because this account's Lambda concurrency ceiling is 10 and AWS refuses every positive reservation against it; the module's own comment at infra/modules/demo-api/main.tf says so. Nothing named in this row bounds the bill. The handler's write surface is one transaction that ends in ROLLBACK and the Basic cluster carries its own $25 spend limit, but neither is under attack in a flood: the target is the static tree. The concurrency alarm REPORTS and does not stop. The only thing bounding spend today is the account's measured concurrency ceiling of 10, which is Adjustable: true and which nobody in this repository chose — worst case USD 33,250 for thirty days, computed in docs/deploy/COST-BOUND.md. That is a smaller claim than 'invocable by one distribution and nothing else' and it is the true one for this account.",
+      "verdict": "EXERCISED",
+      "verdict_basis": "PROMOTED 2026-08-15, and the basis it replaces is the point of the verdict column: this row read 'a plan exists and a plan is not an apply … there is no function, no role, no log group and no demo URL', and that was true every day it was written. The apply then happened. evidence/deploy/APPLIED.md records it in the orchestrator's own words — 'terraform apply 24 created, 0 changed, 0 destroyed', 'terraform state 37 resources' — against the plan committed at evidence/deploy/terraform-plan-furl.txt, whose line 843 reads 'Plan: 24 to add, 0 to change, 0 to destroy.' (11 in module.api[0], 13 in module.guard[0]). THE FUNCTION ANSWERS, and three committed transcripts of that origin say so rather than one: evidence/deploy/live-health.json is a GET /v1/health body carrying ok true, database mainline_demo, CockroachDB CCL v26.2.5 and evidence/deploy/live-health.json#/deploy_chain_applied = 271 of evidence/deploy/live-health.json#/deploy_chain_files = 271 files; evidence/deploy/live-gate-run.json is a POST /v1/demo/gate-run answer from the same origin whose data.verdict is PROVEN over four beats — 00000, then 23514 gate_closed_when_issued, then P0001 mainline.fn_permit_merge_gate against a falsified counter, then 00000 once a disposition is signed — in ONE SERIALIZABLE transaction that ends in ROLLBACK, evidence/deploy/live-gate-run.json#/data/elapsed_ms = 1857.405; and evidence/deploy/judge-walk.json is the same URL walked by a program that is handed the URL and nothing else. evidence/deploy/LIVE.md is the narrative of that sitting. NO AWS API CALL EARNED THIS PROMOTION: this census still opens no socket and reads no credential, and every file named above was committed before it ran. WHAT THIS DOES NOT SAY, and it is recorded in the same file that records the apply: the FIRST readings after the apply were ok=false reason='dsn_unset', because Terraform constructs the DSN parameter's ARN and never reads it; and the console artefact those bytes were serving on 2026-08-15 was a REPLAY build with 'demo_gate_run' absent from it (evidence/deploy/APPLIED.md § What the apply actually put on that origin, evidence/deploy/console-mode.json). Both are statements about the served JavaScript and about a missing parameter, not about the function, and neither has been edited out now that the health endpoint answers ok true",
+      "how": "One python3.13 arm64 function in ap-southeast-1, beside the Cloud cluster, because the same call from ap-southeast-2 pays about 90 ms each way and the gate screen makes six of them. memory_size 256 and timeout 14 s in the committed plan (evidence/deploy/terraform-plan-furl.txt:290 and :315; this sentence said 512 MB and 15 s until 2026-08-15, which was the module's shape before the deploy-safety wave and not the plan's). Its execution role's entire non-managed grant is ssm:GetParameter on ONE parameter ARN plus a conditioned kms:Decrypt. MEASURED CORRECTION, and it is the kind that matters: an earlier census said this row's Function URL was 'AWS_IAM — never NONE'. THAT IS NOT WHAT THE COMMITTED PLAN DOES. var.url_authorization_type defaults to NONE and evidence/deploy/terraform-plan-furl.txt:351 plans authorization_type = \"NONE\", because AWS_IAM is only a hardening if a CloudFront distribution exists to be granted lambda:InvokeFunctionUrl — and this account cannot create one (see the aws_cloudfront row). An AWS_IAM URL with no principal behind it is not a hardened demo, it is a demo nobody can reach. So the URL is public — applied that way, not merely planned that way — and the module says so. THE LIST OF WHAT BOUNDS IT IS SHORTER THAN THIS ROW ONCE CLAIMED. This census used to say 'reserved_concurrent_executions caps the bill'. It does not and it never did on this account: `aws lambda get-account-settings` reports AccountLimit.ConcurrentExecutions = 10 in both ap-southeast-1 and ap-southeast-2, min(20, 10) = 10, and every POSITIVE reservation is refused at apply — so the plan carries evidence/deploy/terraform-plan-furl.txt:296 reserved_concurrent_executions = -1 and the reservation is not a control at all. What is left is genuinely load-bearing and is written down instead of assumed: the ACCOUNT concurrency ceiling of 10 (an AWS default nobody chose, and `Adjustable: true` — raising it raises the worst case linearly), the handler's write surface being one transaction that ends in ROLLBACK (which bounds database STATE, not spend), and the Basic cluster's own spend limit (which bounds the database side only — a flood's target is the static tree inside the zip, which opens no connection). The -concurrency alarm at evidence/deploy/terraform-plan-furl.txt:66, threshold = 8 at :91, is a TRIPWIRE, not a bound: it reports and does not stop, and it sits against that ceiling of 10 rather than the 20 it used to sit above. The cost guard applied beside it — 13 of the 24 resources, three alarms into one SNS topic into a responder that calls PutFunctionConcurrency(ReservedConcurrentExecutions=0) — is the one thing here that stops rather than reports, and NO artefact records it ever having fired. That is a smaller claim than 'invocable by one distribution and nothing else', and it is the true one for this account.",
       "anchor": "infra/modules/demo-api/main.tf:432",
       "anchor_resolved": {
         "path": "infra/modules/demo-api/main.tf",
         "line": 432,
         "resolves": true,
-        "re_anchored": "2026-08-14: was :333, which CEN-ANCHORS caught reading 'handler = \"mainline_demo_api.app.handler\"'. The infra wave inserted lines above the aws_lambda_function_url block and the citation retargeted silently onto an unrelated attribute. THE CODE IS AUTHORITATIVE AND THE CITATION MOVED TO MATCH IT: main.tf was not edited, the quoted text was located by search rather than by offset, and :432 is the one line in the file that carries it verbatim (the other six occurrences of `url_authorization_type` are a comment, a local, a precondition and an output, none of them the attribute this row cites).",
         "line_text": "authorization_type = var.url_authorization_type",
         "must_contain": "authorization_type",
         "subject_holds": true
       },
-      "file_count": 23,
+      "file_count": 42,
       "files_by_category": {
-        "config": 6,
-        "docs": 12,
-        "terraform": 5
+        "config": 10,
+        "docs": 20,
+        "other": 1,
+        "python": 2,
+        "terraform": 9
       },
       "representative_paths": [
         "infra/envs/demo/main.tf",
         "infra/envs/demo/outputs.tf",
-        "infra/modules/demo-api/main.tf"
+        "infra/envs/demo/variables.tf"
       ],
       "search": {
         "pattern": "aws_lambda|lambda_function|LambdaFunctionURL",
@@ -334,7 +336,7 @@
       "name": "Amazon CloudFront + Origin Access Control — the demo site",
       "kind": "service",
       "verdict": "DESIGNED",
-      "verdict_basis": "one distribution with two OACs is written, nothing is deployed, and — the part that is not a schedule problem — THIS ACCOUNT CANNOT CREATE ONE. A real terraform apply returned, verbatim: 'Error: creating CloudFront Distribution: StatusCode: 403, RequestID: 3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied: Your account must be verified before you can add new CloudFront resources.' It reproduces from a bare `aws cloudfront create-distribution` with no Terraform involved, and the identity holds AdministratorAccess, so it is an account-level verification hold only AWS Support can lift — not a permissions bug and not something this repository can fix. CloudFront is therefore EXCLUDED from the committed plan: enable_cloudfront is false in evidence/deploy/terraform-plan-furl.json and no aws_cloudfront_* resource appears among its 11 planned additions. The transcript is at infra/modules/demo-api/main.tf:22 and docs/deploy/RUNBOOK.md",
+      "verdict_basis": "one distribution with two OACs is written, nothing is deployed, and — the part that is not a schedule problem — THIS ACCOUNT CANNOT CREATE ONE. A real terraform apply returned, verbatim: 'Error: creating CloudFront Distribution: StatusCode: 403, RequestID: 3e63e30d-8c5b-441b-a01b-b70085eba504, AccessDenied: Your account must be verified before you can add new CloudFront resources.' It reproduces from a bare `aws cloudfront create-distribution` with no Terraform involved, and the identity holds AdministratorAccess, so it is an account-level verification hold only AWS Support can lift — not a permissions bug and not something this repository can fix. CloudFront is therefore EXCLUDED from the committed plan: enable_cloudfront is false in evidence/deploy/terraform-plan-furl.json (at evidence/deploy/terraform-plan-furl.txt:895 and :904) and no aws_cloudfront_* resource appears among its 24 planned additions — a count this row gave as 11 until 2026-08-15, before the cost guard was wired in; the exclusion is unchanged and the total is the plan's. THE APPLY OF 2026-08-14 CHANGED NOTHING HERE: evidence/deploy/APPLIED.md records 24 created and none of them is a distribution, so this row is DESIGNED for a reason no schedule will clear. The transcript is at infra/modules/demo-api/main.tf:22 and docs/deploy/RUNBOOK.md",
       "how": "AS DESIGNED, and the design is on hold: a single distribution fronts the static console from a private S3 origin and the /v1/* Lambda Function URL, so a judge sees one origin and the bucket is never public. Origin Access Control (not the legacy OAI) signs both origins, which is what would let the Function URL keep AWS_IAM auth instead of NONE. With the verification hold in place there is no distribution, therefore no principal to grant lambda:InvokeFunctionUrl to, therefore the Function URL is public — which is why the aws_lambda row above reads NONE. One AWS account setting propagates into the security posture of a second service, and both rows say so rather than one of them quietly describing the plan that was abandoned.",
       "anchor": "infra/modules/demo-site/main.tf:299",
       "anchor_resolved": {
@@ -345,12 +347,12 @@
         "must_contain": "aws_cloudfront_distribution",
         "subject_holds": true
       },
-      "file_count": 67,
+      "file_count": 99,
       "files_by_category": {
-        "config": 10,
-        "docs": 32,
-        "other": 6,
-        "python": 7,
+        "config": 15,
+        "docs": 54,
+        "other": 8,
+        "python": 10,
         "terraform": 11,
         "typescript": 1
       },
@@ -370,7 +372,7 @@
       "name": "Amazon CloudWatch — logs, four alarms, one dashboard",
       "kind": "service",
       "verdict": "EXERCISED",
-      "verdict_basis": "METRICS READ, NOTHING PROVISIONED — and the second half of that sentence is the load-bearing half. evidence/aws/cloudwatch/bedrock-metrics.json#/payload/api_call_summary/GetMetricStatistics = 110 read-only calls against the AWS/Bedrock namespace in ap-southeast-2 recorded, for amazon.titan-embed-text-v2:0, evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/Invocations/value = 7542 and evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/InputTokenCount/value = 1026175 — each Sum taken at Period 300 and at 3600 and required to agree, because a Sum is resolution-invariant and a disagreement would mean a clipped bucket. evidence/aws/cloudwatch/reconciliation.json subtracts this repository's own token ledgers from AWS's counters and names every non-zero delta. NOTHING WAS PROVISIONED: no log group, alarm, dashboard, metric filter, IAM role or terraform apply, and the reader invoked no model — bedrock-metrics.json's prohibitions block asserts each of those false and cloudwatch_evidence.py's before-call guard raises for any operation outside its six-item read-only allow-list before the request is signed. The alarms and dashboard WRITTEN in infra/modules/demo-api remain unapplied and unexercised",
+      "verdict_basis": "METRICS READ, NOTHING PROVISIONED — and the second half of that sentence is the load-bearing half. evidence/aws/cloudwatch/bedrock-metrics.json#/payload/api_call_summary/GetMetricStatistics = 110 read-only calls against the AWS/Bedrock namespace in ap-southeast-2 recorded, for amazon.titan-embed-text-v2:0, evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/Invocations/value = 7542 and evidence/aws/cloudwatch/bedrock-metrics.json#/payload/models/amazon.titan-embed-text-v2:0/sums/InputTokenCount/value = 1026175 — each Sum taken at Period 300 and at 3600 and required to agree, because a Sum is resolution-invariant and a disagreement would mean a clipped bucket. evidence/aws/cloudwatch/reconciliation.json subtracts this repository's own token ledgers from AWS's counters and names every non-zero delta. NOTHING WAS PROVISIONED: no log group, alarm, dashboard, metric filter, IAM role or terraform apply, and the reader invoked no model — bedrock-metrics.json's prohibitions block asserts each of those false and cloudwatch_evidence.py's before-call guard raises for any operation outside its six-item read-only allow-list before the request is signed. THAT SENTENCE USED TO END 'the alarms and dashboard WRITTEN in infra/modules/demo-api remain unapplied and unexercised', and half of it stopped being true on 2026-08-14: evidence/deploy/APPLIED.md records 24 resources created, among them the log group, the four demo-api alarms, the dashboard, and the cost guard's three further alarms and its own log group. They EXIST. They are still UNEXERCISED — no artefact in this repository records any of the seven alarms transitioning to ALARM, or the dashboard being read, and an alarm that has never fired has demonstrated its existence and nothing about its threshold",
       "how": "A log group with a finite retention — an unbounded retention on a demo account is a cost bug, not a safety feature — plus four metric alarms and a dashboard that makes the demo's latency and error rate visible to a judge who wants to look.",
       "anchor": "scripts/aws/cloudwatch_evidence.py:299",
       "anchor_resolved": {
@@ -381,18 +383,19 @@
         "must_contain": "def _guard",
         "subject_holds": true
       },
-      "file_count": 64,
+      "file_count": 115,
       "files_by_category": {
-        "config": 14,
-        "docs": 28,
-        "python": 15,
-        "terraform": 6,
+        "config": 20,
+        "docs": 45,
+        "other": 12,
+        "python": 27,
+        "terraform": 10,
         "workflow": 1
       },
       "representative_paths": [
         "infra/envs/demo/main.tf",
-        "infra/envs/demo/variables.tf",
-        "infra/modules/demo-api/main.tf"
+        "infra/envs/demo/outputs.tf",
+        "infra/envs/demo/variables.tf"
       ],
       "search": {
         "pattern": "aws_cloudwatch|CloudWatch",
@@ -404,29 +407,30 @@
       "key": "aws_iam",
       "name": "AWS IAM — deny-first policy documents",
       "kind": "service",
-      "verdict": "DESIGNED",
-      "verdict_basis": "eleven aws_iam_policy_document data sources exist across infra/; the Rego suite asserts the deny statements against plan fixtures, offline",
-      "how": "The interesting IAM here is what is DENIED. The evidence-store bucket policy denies the writer s3:DeleteObjectVersion and denies PutObjectRetention without a bounded retention date, so the identity that appends checkpoints cannot shorten or remove them. infra/policy/custody/*.rego asserts each denial against a compliant plan and a family of deliberately broken ones.",
-      "anchor": "infra/modules/evidence-store/main.tf:145",
+      "verdict": "EXERCISED",
+      "verdict_basis": "PROMOTED 2026-08-15, and the promotion is NARROWER than the row's title. What ran is the demo stack's least-privilege half: evidence/deploy/APPLIED.md records 'terraform apply 24 created, 0 changed, 0 destroyed', and three of those 24 are IAM — aws_iam_role.this, aws_iam_role_policy.dsn_access and aws_iam_role_policy_attachment.basic_execution, enumerated in the committed plan at evidence/deploy/terraform-plan-furl.txt lines 195, 237 and 270. The role was not merely created, it was ASSUMED and its one non-managed grant was used: evidence/deploy/live-health.json answers ok true, which the function can only produce by completing an ssm:GetParameter that this inline policy allows and that an unauthorised caller would have met with AccessDeniedException instead (see the aws_ssm_parameter_store row for why no other DSN path exists). WHAT THIS DOES NOT SAY, and it is the more interesting half of the row: the DENY-FIRST policy documents this row is named for are in infra/modules/evidence-store and are STILL UNAPPLIED. No bucket policy denying s3:DeleteObjectVersion exists in the account, the Rego suite asserts those denials against plan fixtures OFFLINE and nothing else, and the S3 object-lock comparison remains one of the seven cryptographic custody checks that did not run (qa/test-state.json#external_checks.custody_bundle_verification.counts.not_checked). An applied allow is not an applied deny, and this verdict covers only the first",
+      "how": "Two halves, and only one of them is in the account. APPLIED: the Lambda execution role, whose ENTIRE non-managed grant is ssm:GetParameter (infra/modules/demo-api/main.tf:280) on one parameter ARN (:285) plus a conditioned kms:Decrypt — the managed AWSLambdaBasicExecutionRole attachment is the only other policy on it. UNAPPLIED: the interesting IAM, which is what is DENIED. The evidence-store bucket policy (infra/modules/evidence-store/main.tf:145) denies the writer s3:DeleteObjectVersion and denies PutObjectRetention without a bounded retention date, so the identity that appends checkpoints cannot shorten or remove them, and infra/policy/custody/*.rego asserts each denial against a compliant plan and a family of deliberately broken ones. That module has never been applied.",
+      "anchor": "infra/modules/demo-api/main.tf:260",
       "anchor_resolved": {
-        "path": "infra/modules/evidence-store/main.tf",
-        "line": 145,
+        "path": "infra/modules/demo-api/main.tf",
+        "line": 260,
         "resolves": true,
-        "line_text": "data \"aws_iam_policy_document\" \"evidence\" {",
-        "must_contain": "aws_iam_policy_document",
+        "line_text": "resource \"aws_iam_role\" \"this\" {",
+        "must_contain": "aws_iam_role",
         "subject_holds": true
       },
-      "file_count": 29,
+      "file_count": 37,
       "files_by_category": {
-        "config": 7,
-        "docs": 11,
+        "config": 9,
+        "docs": 14,
+        "other": 1,
         "python": 5,
-        "terraform": 6
+        "terraform": 8
       },
       "representative_paths": [
-        "infra/modules/demo-api/main.tf",
-        "infra/modules/demo-api/outputs.tf",
-        "infra/modules/demo-site/main.tf"
+        "infra/modules/cost-guard/main.tf",
+        "infra/modules/cost-guard/outputs.tf",
+        "infra/modules/demo-api/main.tf"
       ],
       "search": {
         "pattern": "aws_iam_|iam:PassRole|assume_role_policy",
@@ -438,23 +442,22 @@
       "key": "aws_ssm_parameter_store",
       "name": "AWS Systems Manager Parameter Store — the DSN",
       "kind": "service",
-      "verdict": "DESIGNED",
-      "verdict_basis": "granted in the Lambda execution role and NOTHING DEPLOYED — no parameter has been written and no role exists. The grant is in the committed plan (aws_iam_role_policy.dsn_access, one of the 11 additions in evidence/deploy/terraform-plan-furl.txt) and a plan is not an apply, so this row stays DESIGNED",
-      "how": "The CockroachDB Cloud DSN is a SecureString parameter, not a Lambda environment variable, so the connection string never appears in the function configuration that anyone with lambda:GetFunction can read. The role's grant is scoped to exactly one parameter ARN.",
+      "verdict": "EXERCISED",
+      "verdict_basis": "PROMOTED 2026-08-15 on the strength of a REFUSAL and its repair, both committed, and the pair is what makes the promotion checkable rather than asserted. The old basis read 'no parameter has been written and no role exists', and evidence/deploy/APPLIED.md is the file that records it ceasing to be true. Its 'First light' block is the deployment with the parameter ABSENT: GET /v1/health answered ok=false reason='dsn_unset' and POST /v1/demo/gate-run answered 503 kind='dsn_unset', both naming the cause exactly — SSM GetParameter '/mainline/demo/cockroach_dsn' in ap-southeast-1 answered HTTP 400, __type ParameterNotFound — re-taken from the wire by evidence/deploy/judge-walk.json, 23 steps, 2 satisfied, 20 refused for that one named reason. evidence/deploy/live-health.json is the SAME endpoint afterwards: ok true, database mainline_demo, evidence/deploy/live-health.json#/deploy_chain_applied = 271. The function's only configured route to a DSN is that parameter — the committed plan's environment block sets MAINLINE_DSN_PARAM = '/mainline/demo/cockroach_dsn' at evidence/deploy/terraform-plan-furl.txt:325 and sets NO MAINLINE_DSN — so an ok=true health body is a successful, signed, role-authorised ssm:GetParameter with WithDecryption, and there is no other path by which that body could exist. WHAT THIS DOES NOT SAY: no artefact in this repository records the parameter's VALUE, its type, its KMS key or its version, and none ever will — the value is a database credential placed by hand by the founder and read back without --with-decryption precisely so that no check can print it. What is evidenced is that the call succeeded, not what it returned",
+      "how": "The CockroachDB Cloud DSN is a SecureString parameter, not a Lambda environment variable, so the connection string never appears in the function configuration that anyone with lambda:GetFunction can read. The role's grant is scoped to exactly one parameter ARN (infra/modules/demo-api/main.tf:285, resources = [local.dsn_parameter_arn]). The call itself is hand-rolled SigV4 over one HTTPS request in verticals/mainline/apps/demo-api/src/mainline_demo_api/db.py:214 — no SDK, no IMDS walk, no profile resolution, credentials taken from the environment the Lambda runtime injects — because every one of those is a code path that behaves differently on a workstation than in a function, and the DSN is cached for the life of the container so a warm request makes no SSM call at all.",
       "anchor": "infra/modules/demo-api/main.tf:280",
       "anchor_resolved": {
         "path": "infra/modules/demo-api/main.tf",
         "line": 280,
         "resolves": true,
-        "re_anchored": "2026-08-14: was :215, which CEN-ANCHORS caught reading '#' — a bare comment marker inside the environment-block prose. That is the worst form of drift: the anchor still resolved to a real line in a real file, so only the quoted-text check could see it. THE CODE IS AUTHORITATIVE AND THE CITATION MOVED TO MATCH IT: main.tf was not edited, and `actions = [\"ssm:GetParameter\"]` occurs exactly once in the file, at :280.",
         "line_text": "actions = [\"ssm:GetParameter\"]",
         "must_contain": "ssm:GetParameter",
         "subject_holds": true
       },
-      "file_count": 18,
+      "file_count": 26,
       "files_by_category": {
-        "config": 3,
-        "docs": 10,
+        "config": 4,
+        "docs": 17,
         "other": 1,
         "terraform": 4
       },
@@ -485,12 +488,12 @@
         "must_contain": "EventBridge",
         "subject_holds": true
       },
-      "file_count": 29,
+      "file_count": 32,
       "files_by_category": {
         "config": 2,
-        "docs": 10,
+        "docs": 12,
         "migration": 2,
-        "other": 2,
+        "other": 3,
         "python": 13
       },
       "representative_paths": [

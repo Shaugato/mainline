@@ -28,23 +28,34 @@ https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
 > failure this project will not commit**, so the token stayed until there was a real one to
 > replace it with. There is now.
 >
-> Measured against that hostname on 2026-08-14, not assumed:
+> **UPDATED AGAIN 2026-08-15 — THE DATABASE IS WIRED AND THE FOUR BEATS RUN THROUGH IT.**
+> The 2026-08-14 reading below is kept because a page whose credibility rests on showing its
+> own movement may not quietly delete where it moved from:
 >
-> | request | answer |
-> |---|---|
-> | `GET /` | **`200`**, 4,655 B, 1.52 s — the console shell serves |
-> | `GET /v1/health` | **`503`**, `ok=false`, `reason="dsn_unset"` |
-> | `POST /v1/demo/gate-run` | **`503`**, `kind="dsn_unset"` — the route exists; it does not 404 |
+> | request | 2026-08-14 | 2026-08-15 |
+> |---|---|---|
+> | `GET /` | **`200`**, 4,655 B, 1.52 s — the console shell serves | **`200`**, 4,655 B |
+> | `GET /v1/health` | **`503`**, `ok=false`, `reason="dsn_unset"` | **`200`**, `ok: true`, `mainline_demo`, deploy chain `271` of `271` files |
+> | `POST /v1/demo/gate-run` | **`503`**, `kind="dsn_unset"`, 174 bytes — and **not** a `404`: the route existed and was reachable | **`200`**, 10,499 bytes, `verdict: PROVEN`, four beats, one `SERIALIZABLE` transaction, rolled back |
+>
+> The 2026-08-14 column is the reading [`RUNBOOK.md`](RUNBOOK.md) §5.10 describes and §5.11
+> says how to re-run; it is kept because the *behaviour* it records — an endpoint that names
+> the SSM parameter it could not read instead of pretending — is the behaviour we want back
+> the next time something is missing.
+>
+> The right-hand column is `evidence/demo/live-beats.json`, generated `2026-08-15T14:11:35Z`
+> by pointing `scripts/proof/live_beats.py` at this hostname with **no credential of any
+> kind** — eleven requests, `failures: []`, `target_is_local_emulator: false`. What closed
+> the gap was a DSN written into SSM by an operator and five missing `SELECT` grants found
+> one HTTP request at a time; the account of it, including the finding that **there is not
+> one `GRANT` statement in the 271 migrations**, is `evidence/deploy/LIVE.md`.
 >
 > **Every row of that table is regenerable by one command that needs no credential of ours:**
-> `python scripts/deploy/judge_walk.py --base-url` followed by the hostname above.
-> **§1.1** is what it does, what its three outcomes mean, and what it answered on 2026-08-14.
-> Run it rather than believing this note.
+> `python scripts/deploy/judge_walk.py --base-url` followed by the hostname above, or
+> `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url` and the same hostname.
+> **§1.1** is what the walk does and what its three outcomes mean. Run one of them rather
+> than believing this note.
 >
-> **Read §0.4 before you click.** The origin is up and the database behind it is not yet
-> wired to it: both API answers name the missing SSM parameter, verbatim, and
-> [`RUNBOOK.md`](RUNBOOK.md) §5.10 says what that gets you and what it does not,
-> [§5.11](RUNBOOK.md) how to re-run it.
 > `docs/submission/SUBMISSION.json` still holds `"demo_url": "UNRESOLVED"` — that file is
 > not this page's to write, and the two disagree until its owner resolves it. **Where they
 > disagree, the wire wins and this note is the record of the disagreement.**
@@ -85,8 +96,10 @@ Function URL itself.
 above was a token, and it is the reason this submission leads with the ledger rather than with a
 URL. It is still the strongest thing on this page: **the origin can be down, half-configured, or
 serving a recording, and §0.2 is unaffected**, because it puts a judge's own SQL client against the
-deployed cluster with none of our code in the path. Today the origin is up and half-configured
-(§0.4), which is precisely the case §0.2 was written to survive.
+deployed cluster with none of our code in the path. ~~Today the origin is up and half-configured
+(§0.4)~~ **— on 2026-08-14 it was, which is precisely the case §0.2 was written to survive. On
+2026-08-15 it is up and wired**, and §0.2 is no less true for it: a page that only worked once
+the deployment did would have been the wrong page to write.
 
 ### 0.2 · What to run — the ledger in your own SQL client, no checkout, no build
 
@@ -123,10 +136,10 @@ Each line names the artefact that measures it.
 
 | We do **not** claim | The measurement |
 |---|---|
-| ~~**That the demo is deployed.** It is not. Terraform has never been applied and no hostname exists.~~ **SUPERSEDED 2026-08-14: it is deployed.** What we do not claim is narrower and sharper — **that the deployed origin can run the four beats.** It cannot: the Lambda has no DSN, and `POST /v1/demo/gate-run` answers `503 dsn_unset` naming the missing SSM parameter. Nor do we claim the deployed console talks to that kernel: the artefact on the URL is a **REPLAY** build (`buildId:"dev"`) and every byte on its screen is a recording. §0.4, §1 | measured against the URL 2026-08-14; compiled literals in [`console-build.md`](console-build.md) §7.1 |
-| **That the acceptance run was taken through the public demo URL.** It was not. Both acceptance artefacts carry `target_is_local_emulator: true`, read from a header the target volunteered. ~~there is no Function URL to point them at yet~~ **CORRECTED 2026-08-14: the URL exists and still cannot host the run** — it has no DSN and answers `503 dsn_unset`, so a re-capture against it would transcribe a 503, not four beats. The **database** underneath the Cloud run is the deployed one. | `evidence/deploy/cloud-acceptance.json` → `target_provenance`, §6 |
+| ~~**That the demo is deployed.** It is not. Terraform has never been applied and no hostname exists.~~ **SUPERSEDED 2026-08-14: it is deployed.** ~~What we do not claim is narrower and sharper — **that the deployed origin can run the four beats.** It cannot: the Lambda has no DSN, and `POST /v1/demo/gate-run` answers `503 dsn_unset` naming the missing SSM parameter. Nor do we claim the deployed console talks to that kernel: the artefact on the URL is a **REPLAY** build (`buildId:"dev"`) and every byte on its screen is a recording.~~ **SUPERSEDED AGAIN 2026-08-15: the origin runs the four beats** (`verdict: PROVEN`, `target_is_local_emulator: false`), **and the entry chunk it serves compiles `VITE_MAINLINE_API_BASE:"/"` beside `VITE_MAINLINE_BUNDLE_URL:"./bundle/"` — both sources, LIVE by default, REPLAY one control away** (`src/app/source-select.ts`'s three rules). What we do not claim is narrower again: **that the operator screens are on that origin.** They are not yet — `GET /operator.html` returns the console shell byte-for-byte identical to `GET /`, which is the SPA fallback, measured 2026-08-15. §0.4, §1 | `evidence/demo/live-beats.json#verdict`; entry chunk read off the origin, rule in [`console-build.md`](console-build.md) §7.1 |
+| **That the acceptance run was taken through the public demo URL.** It was not. Both acceptance artefacts carry `target_is_local_emulator: true`, read from a header the target volunteered. ~~there is no Function URL to point them at yet~~ **CORRECTED 2026-08-14: the URL exists and still cannot host the run** — it has no DSN and answers `503 dsn_unset`, so a re-capture against it would transcribe a 503, not four beats. The **database** underneath the Cloud run is the deployed one. **CORRECTED AGAIN 2026-08-15: a transcript through the public URL now exists** — `evidence/demo/live-beats.json`, `target_is_local_emulator: false`. It was taken by `scripts/proof/live_beats.py` rather than by `demo_acceptance.py`, so the sentence about the two *acceptance* artefacts stands exactly as written and is not retro-fitted. | `evidence/deploy/cloud-acceptance.json` → `target_provenance`, §6; `evidence/demo/live-beats.json` |
 | **That beat 4's signature was shown, over the wire, to pin the vocabulary the rows carry.** The gate-run payload does not publish the digest it bound. A credential-free caller can prove the vocabulary *resolved*; the equality is asserted in-process by a test. | `cloud-acceptance.json` → `signature_path.not_established_here`, §6 |
-| **That there is end-to-end Australian data residency.** The database is in Singapore (`aws-ap-southeast-1`); Bedrock inference is in Sydney (`ap-southeast-2`). | `docs/HONESTY.md` § *GEOGRAPHY AND LATENCY* |
+| **That there is end-to-end Australian data residency. Any claim of one is false here.** The database is in Singapore (`aws-ap-southeast-1`); Bedrock inference is in Sydney (`ap-southeast-2`), because `ap-southeast-2` is Advanced-tier only on CockroachDB Cloud. | `docs/HONESTY.md` § *GEOGRAPHY AND LATENCY* |
 | **That any row is real.** Every row is synthetic: fictional operator, fictional sites, fictional people, fictional incidents. | `verticals/mainline/db/seeds/`, §5 |
 | **That the WebAuthn assertion is verified.** It is synthesised and labelled `staged: true` on the wire. This deployment has no authenticator and nothing in the schema verifies a signature. | §5, `verticals/mainline/demo/DEMO-HONESTY.md` §3 |
 | **That beat 3's constraint name was *reported*.** It was **parsed** out of a message. A PL/pgSQL `RAISE` on CockroachDB carries no constraint name, and `constraint_source: parsed` says so on the wire. | §6 |
@@ -142,19 +155,24 @@ The long forms are [`docs/HONESTY.md`](../HONESTY.md),
 
 | | |
 |---|---|
-| Demo URL | ~~**NOT YET DEPLOYED.**~~ **DEPLOYED AND SERVING, HALF-CONFIGURED.** `GET /` → `200`. `GET /v1/health` and `POST /v1/demo/gate-run` → `503 dsn_unset`, both naming the SSM parameter that does not exist. The console artefact on it is a **REPLAY** build, so what is on screen is a recording rather than that kernel. Measured 2026-08-14. §0.1, §1 |
+| Demo URL | ~~**NOT YET DEPLOYED.**~~ ~~**DEPLOYED AND SERVING, HALF-CONFIGURED.**~~ **DEPLOYED, WIRED, AND ANSWERING THE FOUR BEATS.** `GET /` → `200`. `GET /v1/health` → `200`, `ok: true`, `mainline_demo`, deploy chain `271` of `271` files. `POST /v1/demo/gate-run` → `200`, `verdict: PROVEN`. Measured 2026-08-15 with no credential [src: `evidence/demo/live-beats.json`]. §0.1, §1 |
 | Read-only SQL login | **LIVE, rotated 2026-08-11, verified from the other side** — 14/14 views readable, 11/11 refusals at `42501`. §2 |
 | Managed MCP | **available on Basic and working.** The key is deliberately not published and §4 says exactly why |
-| Acceptance gate | **GREEN, against the deployed database.** `PROVEN`, twice, all four beats, with the row census unmoved before and after — `evidence/deploy/cloud-acceptance.json`, 2026-08-14. Reproduced locally in `evidence/deploy/acceptance.json`. **Neither run reached the public URL** — both carry `target_is_local_emulator: true`, and the URL cannot run the beats until the DSN parameter exists. §6 |
+| Acceptance gate | **GREEN, against the deployed database.** `PROVEN`, twice, all four beats, with the row census unmoved before and after — `evidence/deploy/cloud-acceptance.json`, 2026-08-14. Reproduced locally in `evidence/deploy/acceptance.json`. **Neither of those two runs reached the public URL** — both carry `target_is_local_emulator: true`. ~~and the URL cannot run the beats until the DSN parameter exists~~ **A third transcript, taken 2026-08-15 through the public URL itself, now does**: `evidence/demo/live-beats.json`, `target_is_local_emulator: false`. §6 |
+| Operator screens | **BUILT IN THE TREE, NOT YET ON THIS ORIGIN.** `/operator.html#/permit` and `/operator.html#/change`; measured 2026-08-15, `GET /operator.html` on the live URL returns the console shell **byte-for-byte identical** to `GET /` — the SPA fallback, which is what a not-yet-deployed second entry point looks like. §1.2 |
 
 **The one thing this page is for — a judge reading the ledger with none of our code in the path —
-works right now, over §0.2 and §2.** The demo URL exists and is a **partial** obligation: the
-origin serves, and the kernel behind it cannot reach a database. **Two things are outstanding and
-neither is hidden here.** (1) An operator must write `/mainline/demo/cockroach_dsn` — a secret step,
-deliberately not scripted and deliberately not in this repository. (2) The console artefact must be
-rebuilt against its own origin and redeployed; the packaging guard that refuses the wrong
-combination is [`console-build.md`](console-build.md) §7.3. **Neither is a claim this page is
-making in advance of the work.**
+works right now, over §0.2 and §2.** ~~The demo URL exists and is a **partial** obligation: the
+origin serves, and the kernel behind it cannot reach a database.~~ **DISCHARGED 2026-08-15: the
+kernel reaches the database and the four beats run through the URL.** The two outstanding items
+this table used to carry were (1) an operator writing `/mainline/demo/cockroach_dsn` — a secret
+step, deliberately not scripted and deliberately not in this repository — and (2) the console
+artefact rebuilt against its own origin. **Both have happened**, and the account of what it took,
+including five privilege gaps found one HTTP request at a time, is `evidence/deploy/LIVE.md`. The
+packaging guard that refuses the wrong combination is
+[`console-build.md`](console-build.md) §7.3 and is now a required declaration rather than
+unreachable code. **What is still outstanding is one thing and it is named above:** the two
+operator screens are in the tree and are not on this origin.
 
 ### 0.5 · The one placeholder left on this page, and nothing else
 
@@ -198,7 +216,9 @@ https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
 today, and [`terraform-plan.md`](terraform-plan.md) reads the committed plan.
 
 Check it yourself, from outside, with no credentials and no checkout. These are the three
-requests this page's claims rest on, and the answers measured on 2026-08-14:
+requests this page's claims rest on, and the answers measured on **2026-08-15**. The
+2026-08-14 answers are kept beside them in §0.1's table, because a page that deletes its own
+earlier reading is a page you cannot check for movement:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code} %{size_download}\n' \
@@ -206,28 +226,45 @@ curl -s -o /dev/null -w '%{http_code} %{size_download}\n' \
 #  200 4655        — the console shell serves
 
 curl -s https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health
-#  503, "ok": false, "reason": "dsn_unset"
+#  200, "ok": true, "database": "mainline_demo",
+#       "deploy_chain_applied": 271, "deploy_chain_files": 271, "migrations_applied": 0
 
 curl -s -X POST -H 'content-type: application/json' -d '{}' \
   https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/gate-run
-#  503, "kind": "dsn_unset"   — 174 bytes, and NOT a 404: the route exists and is reachable
+#  200, "verdict": "PROVEN"  — four beats, one SERIALIZABLE transaction, rolled back
 ```
 
-Both API answers carry the same `detail` and it names the cause exactly:
+~~Both API answers carry the same `detail` and it names the cause exactly:
 `SSM GetParameter '/mainline/demo/cockroach_dsn' in ap-southeast-1 answered HTTP 400:
 {"__type":"ParameterNotFound"}`. **An operator has not finished, and the endpoint says so
-rather than pretending.** That is the demo's own thesis applied to its own deployment.
+rather than pretending.**~~ **SUPERSEDED 2026-08-15 — the operator finished.** The sentence is
+kept because the behaviour it describes is the behaviour we want back the next time something
+is missing: that is the demo's own thesis applied to its own deployment.
 
-**Two things this page will not overstate.**
+`migrations_applied` reads `0` and that is **true, not broken**: two appliers write two ledgers,
+and this database was built by `scripts/deploy/cloud_chain.py`, which writes
+`trappoint.deploy_chain` rather than `trappoint.schema_migration`. The endpoint reports both and
+names which one it is quoting.
 
-1. **The kernel cannot run the four beats yet.** It has no DSN. Writing that parameter is a
-   secret-handling step, it is the operator's, and no DSN appears anywhere in this repository.
-2. **The console artefact currently on that origin is a REPLAY build.** Measured off the
+**Two things this page used to say it would not overstate, and where each stands now.**
+
+1. ~~**The kernel cannot run the four beats yet.** It has no DSN.~~ **SUPERSEDED 2026-08-15.**
+   The parameter was written by an operator, out of band and out of this repository, exactly as
+   this page said it would have to be — and then five `SELECT` grants had to be added by hand,
+   because **there is not one `GRANT` statement in the 271 migrations**. That finding is open
+   and is recorded in `evidence/deploy/LIVE.md` rather than closed quietly.
+2. ~~**The console artefact currently on that origin is a REPLAY build.** Measured off the
    JavaScript the URL serves: `VITE_MAINLINE_API_BASE:""`, `VITE_MAINLINE_BUNDLE_URL:"./bundle/"`,
-   `buildId:"dev"`, and zero occurrences of `gate-run` in the bundle. So the screen a judge sees
-   today is a **verified recording**, badged `REPLAY (staged)`, not that kernel — and it carries no
-   gate-run control at all. The compiled literals, why the packer did not catch it, and the guard
-   that now refuses that combination are [`console-build.md`](console-build.md) §7.
+   `buildId:"dev"`, and zero occurrences of `gate-run` in the bundle.~~ **SUPERSEDED 2026-08-15,
+   measured the same way, off the same entry chunk the origin serves
+   (`/assets/index-LoN3Sn_L.js`, 138,177 wire bytes):** `VITE_MAINLINE_API_BASE:"/"` beside
+   `VITE_MAINLINE_BUNDLE_URL:"./bundle/"`, and `gate-run` occurs **12** times where it occurred
+   zero. By `src/app/source-select.ts`'s own three rules, a build carrying **both** sources is
+   LIVE by default with REPLAY one control away. The compiled literals, why the packer did not
+   catch the earlier build, and the guard that now refuses that combination are
+   [`console-build.md`](console-build.md) §7. **The guard keyed on the variable NAME and never
+   on its VALUE, so it was unreachable code that had never once executed, and the founder found
+   the defect by opening the URL — no test in this repository did.**
 
 Verify the whole path with the acceptance program, which is stricter than the three requests above:
 
@@ -237,16 +274,21 @@ python scripts/deploy/demo_acceptance.py --url https://ihuuyvm4z6nfuktihnkey77fp
 
 That program fetches `/`, asserts the console loads, calls `GET /v1/health`, then calls
 `POST /v1/demo/gate-run` **twice** and requires the two runs to agree. It exits non-zero if the
-gate did not refuse and then admit. **Pointed at the URL today it exits non-zero, at the health
+gate did not refuse and then admit. ~~**Pointed at the URL today it exits non-zero, at the health
 check, and that is the correct answer** — a program that passed against a kernel with no database
-would be worth nothing.
+would be worth nothing.~~ **That sentence described 2026-08-14 and this page has not re-run the
+program against the URL since the DSN landed, so it prints no exit code for it.** A remembered
+exit code is exactly the kind of number this page refuses to carry. What **has** been run against
+the URL since is `scripts/proof/live_beats.py` — §1.2.
 
 **Where the beats HAVE been proven, and against what.** `evidence/deploy/cloud-acceptance.json` is
 a run of the same program that came back `PROVEN`, twice, all four beats, against the **deployed
 CockroachDB Cloud database** — but over a local socket, not this hostname. It carries
 `target_is_local_emulator: true`, read from a header the target volunteered, so a transcript taken
 against the emulator can never be mistaken for one taken against the deployment. §6 is that run.
-`evidence/deploy/acceptance.json` is the local reproduction.
+`evidence/deploy/acceptance.json` is the local reproduction. **And since 2026-08-15 there is a
+third, taken through this hostname**: `evidence/demo/live-beats.json`,
+`target_is_local_emulator: false` — §1.2.
 
 ### 1.1 · The judge's walk — one command that regenerates every claim in §0.1 and §1
 
@@ -267,8 +309,9 @@ It does five things, in this order, and the fourth is the one worth knowing abou
 2. **The transport badge, read out of the shipped JavaScript rather than off a screen.** It
    fetches the entry chunks the shell references, extracts the compiled `VITE_MAINLINE_*`
    literals, and applies `src/app/source-select.ts`'s own rule — empty and whitespace are
-   **unset**, exactly as they are in your browser. This is how the REPLAY finding in §0.3 and
-   §0.4 was established, and you can re-establish it yourself.
+   **unset**, exactly as they are in your browser. This is how the REPLAY finding §0.3 and §0.4
+   record — and now record as superseded — was established, and you can re-establish it
+   yourself against whatever the origin serves today.
 3. `GET /v1/health`.
 4. **Every request the artefact itself declares.** The console ships an EvidenceBundle whose
    `manifest.json` enumerates every request it makes; the walk reads that manifest *from the
@@ -295,11 +338,67 @@ and exit 0, it must be typed on the command line, and any document produced that
 corrected artefact is deployed, the bare command exits 0.** That transition is the check to
 apply to this page, and it needs no word from us.
 
+> **The transition has happened and this page prints no new exit code for it, on purpose.**
+> The two conditions that produced the `exit 1` above are both gone as of 2026-08-15 —
+> `GET /v1/health` answers `200 ok:true` and the served entry chunk compiles
+> `VITE_MAINLINE_API_BASE:"/"` with `gate-run` in it (§1). **`judge_walk.py` has not been
+> re-run against the URL since, so `evidence/deploy/judge-walk.json` still carries the
+> 2026-08-14 walk and its `exit_code: 1`.** Run the command above and read what it says today;
+> a number written here from a prediction about a walk nobody took would be the exact defect
+> this page exists to refuse.
+
 The program never applies anything, never redeploys, knows no AWS API, never reads or writes
 `/mainline/demo/cockroach_dsn`, and masks every database URL, embedded password and bare
 twelve-digit account number before anything reaches the screen or the file. Its own honest
 caveat: three of the eighteen frames are `POST` merges, so a walk against a seeded live cluster
 **writes** — exactly as clicking the console writes.
+
+### 1.2 · The three commands a judge is handed, and the two screens the film is shot in
+
+Each takes a URL and nothing else. No account, no credential, no AWS access, no database, no
+build. `uv` is not on PATH on the machine these were measured on and is not needed.
+
+| command | what it answers | what it writes |
+|---|---|---|
+| `.venv/Scripts/python.exe scripts/demo/demo_ready.py` | *is the world ready to film?* — eight facts about the deployed demo, **read-only, zero writes** | nothing; `--check` is the default |
+| `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url <the URL>` | the four beats off this hostname, each with the SQLSTATE the database produced, two clocks and a byte count per request | `evidence/demo/live-beats.json` |
+| `.venv/Scripts/python.exe scripts/proof/memory_loop.py --base-url <the URL>` | STORE → RETRIEVE → SHOWN TO → ACT as forty rows, each with a table, a column, a route and an RFC 6901 pointer | `evidence/demo/memory-loop.json` |
+
+Their long forms are [`../demo/DEMO-READY.md`](../demo/DEMO-READY.md),
+[`../demo/LIVE-BEATS.md`](../demo/LIVE-BEATS.md) and
+[`../demo/MEMORY-LOOP.md`](../demo/MEMORY-LOOP.md); the frame-by-frame map from the film to the
+artefact — the exact value, the route it came from, the command that regenerates it — is
+[`../demo/JUDGE-90-SECONDS.md`](../demo/JUDGE-90-SECONDS.md).
+
+**What `live_beats.py` recorded on 2026-08-15**, quoted rather than paraphrased:
+`verdict: PROVEN`, `failures: []`, `transport_failures: []`, `target_is_local_emulator: false`,
+**11** requests — 9 `GET`, one `POST /v1/demo/gate-run`, one documented `423` trap — and the four
+beats at `00000` / **`23514`** `gate_closed_when_issued` *(reported)* / **`P0001`**
+`mainline.fn_permit_merge_gate` *(parsed)* / `00000`.
+
+**What `memory_loop.py` recorded three minutes later**: `verdict: PROVEN`, **40** rows,
+**23 of 23** cross-response identities held, `0` failed. Its single most useful number is a
+subtraction of two columns off two different routes —
+`mainline.blocking_check.materialised_at` minus `mainline_meas.recall_run.started_at` = **10.0
+seconds** — and the artefact records that the figure is *computed there and stated nowhere in the
+program that produced it*.
+
+**The `423` is a trap and not a refusal, and this is where it is written down.**
+`POST /v1/permits/{permit_id}/merge` on the seeded demo subject answers `423`
+`demo_subject_write_protected` with `use_instead: POST /v1/demo/gate-run`. It carries **no
+SQLSTATE, no constraint and no minimal unsatisfiable subset**, and the transcript records it once
+with `is_a_gate_refusal: false`. Rendering it in a refusal banner would put a fabricated exhibit
+in front of a judge; the subject is a single shared row that a hundred judges read, and a merge on
+it is irreversible.
+
+**The two screens.** The film is shot inside the software the people in the story use, not inside
+the MAINLINE console: a **permit-to-work** screen at `/operator.html#/permit` that a site
+supervisor fills in, and a **management-of-change** screen at `/operator.html#/change` that a
+safety engineer works in. `operator.html` is a second HTML entry point in the same Vite build
+(`verticals/mainline/apps/console/operator.html`, routed by `src/operator/route.ts`), it carries
+no vendor mark, and every refusal on it arrives over HTTP from this origin carrying the SQLSTATE
+the database produced. **They are in the tree and they are not on this origin yet** — §0.4 carries
+the measurement that establishes it.
 
 ---
 
@@ -720,7 +819,11 @@ what it plants.
 * the schema. **271 migrations** — `ls verticals/mainline/db/migrations/ | wc -l` → `271` — applied
   to a real managed CockroachDB cluster.
 * the refusal to merge. That is the database's decision, and it is reproduced on the live Cloud
-  cluster today. **The admission after one signed disposition is not currently reached** — §6.
+  cluster today. ~~**The admission after one signed disposition is not currently reached** — §6.~~
+  **SUPERSEDED 2026-08-15: it is reached, through the public URL.** Beat 4 came back
+  `ADMITTED`, SQLSTATE `00000`, `open_blocking_after_signature: 0`
+  [src: `evidence/demo/live-beats.json#gate_run.beat_four_exhibit`] — and then rolled back with
+  the rest of the transaction, which is why the next reader still meets an open obligation.
 
 **Labelled `staged: true` in the wire envelope.** The WebAuthn assertion on a signed disposition
 is synthesised: this deployment has no authenticator and nothing in the schema verifies a
@@ -768,11 +871,11 @@ different questions and the project needs both.
 | [`evidence/deploy/cloud-acceptance.json`](../../evidence/deploy/cloud-acceptance.json) | the real handler over a local socket, against **CockroachDB Cloud `mainline_demo`** — the database the deployed Lambda is configured to read | what the demo will actually meet. **Cite this one.** |
 | [`evidence/deploy/acceptance.json`](../../evidence/deploy/acceptance.json) | the same handler against a **local** CockroachDB seeded from the same two seed files | what a stranger with this repository and a Docker node can reproduce |
 
-Both were taken on **2026-08-14** at tree `d098721` **plus that wave's uncommitted working tree** —
+Both were taken on **2026-08-14** at tree `d098721` **plus that wave's uncommitted working tree** — <!-- claim-hygiene: quoting: a git object name is provenance for a recorded run, not a commit_id anybody chose -->
 `gate_run.py`, `retry.py` and `transitions.py` were modified and not yet committed when the runs
 were taken, measured with `git status` at the moment of each, and each artefact's own `note` says
 so. `gate_run.py` is the module the four beats live in, so these are measurements of a working tree
-and not of a clean checkout of `d098721`; the latter has not been taken and is not claimed here.
+and not of a clean checkout of that tree ref; the latter has not been taken and is not claimed here.
 
 Both report `verdict: PROVEN` with an empty `failures` array. Quoted rather than paraphrased, from
 the Cloud run:
@@ -809,18 +912,27 @@ be the plainest possible falsification. The flag is **read** from the `X-Mainlin
 the target sent, and `scripts/deploy/local_furl.py` stamps that header precisely so a transcript
 taken against it can never be mistaken for one taken against a deployment. ~~There is no Function URL
 to reach: `aws lambda get-function --function-name mainline-demo-api` answers
-`ResourceNotFoundException`.~~ **CORRECTED 2026-08-14: a Function URL now exists** (§1) — but it
+`ResourceNotFoundException`.~~ **CORRECTED 2026-08-14: a Function URL now exists** (§1) — ~~but it
 still cannot host this run, for a different and equally checkable reason: it has no DSN, and
 `POST /v1/demo/gate-run` against it answers `503 dsn_unset`. So the flag stays `true` on both
 artefacts, and it stays true **honestly rather than by omission**: re-capturing against the
-hostname today would produce a transcript of a 503, not of four beats.
+hostname today would produce a transcript of a 503, not of four beats.~~
+**CORRECTED AGAIN 2026-08-15: the hostname can host a four-beat run, and one has been taken.**
+The flag stays `true` **on these two artefacts** because they are recordings and a record you
+edit afterwards is not a record. The run through the hostname is a **third, separate** artefact
+with its own flag: `evidence/demo/live-beats.json`, `target_is_local_emulator: false`, read the
+same way — from what the target volunteered, not from what a prover wanted. Neither number was
+moved to agree with the other.
 
 What the criterion was reaching for — *did this meet the deployed cluster, or a local imitation of
 it?* — is true, and `target_provenance` carries it by separating the three things the one boolean
 folds together: **the HTTP hop is emulated; the handler and console are the shipping ones; the
 database is CockroachDB Cloud `mainline_demo`**, agreed by two independent readings (`/v1/health`,
 with no credential, and the census's own `SELECT current_database()`). When a Function URL exists,
-the same program pointed at it records `false` with no code change.
+the same program pointed at it records `false` with no code change. **A Function URL now exists,
+and `demo_acceptance.py` has not been re-pointed at it in this wave — so no `false` from *that*
+program is claimed here.** The `false` this page does claim was recorded by a different program,
+`scripts/proof/live_beats.py`, in its own artefact, and it is named as such every time it appears.
 
 ### Why it was safe to drive the gate against the live demo database
 
@@ -883,10 +995,16 @@ see it.
 ### What is still not proven
 
 1. ~~**That a public demo URL exists.** It does not; `SUBMISSION.json` holds `UNRESOLVED`.~~
-   **SUPERSEDED 2026-08-14: it exists and serves `200` at `/`** (§0.1, §1). What is still not
+   **SUPERSEDED 2026-08-14: it exists and serves `200` at `/`** (§0.1, §1). ~~What is still not
    proven is the narrower claim this line was standing in for: **that the four beats can be
    driven through it.** They cannot — the Lambda has no DSN, `POST /v1/demo/gate-run` answers
-   `503 dsn_unset`, and the artefact on the origin is a REPLAY build with no gate-run control.
+   `503 dsn_unset`, and the artefact on the origin is a REPLAY build with no gate-run control.~~
+   **SUPERSEDED AGAIN 2026-08-15: the four beats have been driven through it**, with no
+   credential, `verdict: PROVEN` — `evidence/demo/live-beats.json`. What is still not proven is
+   narrower again and is stated in that artefact's own words rather than ours: **nothing in it
+   is about a browser.** No browser ran; it is an HTTP client. That a *screen* renders these
+   bytes is a separate claim needing separate evidence, and the two operator screens the film is
+   shot in are not on this origin yet (§0.4, §1.2).
    `docs/submission/SUBMISSION.json` still holds `"demo_url": "UNRESOLVED"`; that file is the
    submission domain's and the disagreement is recorded in §0.1 rather than resolved here.
 2. **That beat 4's signature pinned the digest those vocabulary rows carry.** The payload does not
@@ -1020,6 +1138,9 @@ credential, MCP and question-pack facts in §2, §3 and §4 were measured **2026
 facts in §2.4 and §6 **2026-08-12**; the route count, the SQLSTATE
 reproduction in §2.3, the grant and migration counts, and the previous rewrite **2026-08-13**; the
 Terraform-plan count in §0.1 and §6 was re-read from the artefact regenerated **2026-08-14** and
-moved 11 → 24 on that reading. Every
+moved 11 → 24 on that reading. **The demo URL's own answers in §0.1, §0.4, §1 and §1.2, the served
+entry chunk's compiled literals, and the `GET /operator.html` fallback were measured
+2026-08-15**, the first two against `evidence/demo/live-beats.json` and the last two off the
+origin directly. Every
 number on this page names the command or the artefact it came from, because the repository is
 public and a remembered count is a claim we cannot defend to a stranger.*

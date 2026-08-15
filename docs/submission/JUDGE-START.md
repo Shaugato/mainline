@@ -10,6 +10,15 @@ command that reproduces this project's central claim needs nothing from us — n
 key, no login, no email. The repository is public: `github.com/Shaugato/mainline`, Apache-2.0,
 `master`.
 
+**The demo is live and it takes no credential either:**
+`https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws` —
+`GET /v1/health` answers `ok: true` on database `mainline_demo` with the deploy chain at
+`271` of `271` files, and `POST /v1/demo/gate-run` answers `verdict: PROVEN`, measured
+2026-08-15 with no credential [src: `evidence/demo/live-beats.json`]. Stop 6 is what that
+does and does not entitle us to say. If you paused the film on a number,
+[`docs/demo/JUDGE-90-SECONDS.md`](../demo/JUDGE-90-SECONDS.md) is one row per frame: the exact
+value, the route or file it came from, and the one command that regenerates it.
+
 Every figure below resolves to a file in this repository, named beside it. If a figure and
 its file disagree, **the file is right and this page is stale.**
 
@@ -34,8 +43,10 @@ disclaimer; this one is a test.
 Read this **before** you open the Actions tab, because the tab is red and that is on
 purpose. Some lanes are red because something is broken. Others are red because a ratchet is
 holding a line we have not yet earned — the custody chain has 7 of 16 checks unimplemented,
-the conformance suite has never been demonstrated end to end, and a demo-health lane cannot
-be green while no demo is deployed. `CI-STATE.md` says which is which, names the run id, and
+the conformance suite has never been demonstrated end to end, and ~~a demo-health lane cannot
+be green while no demo is deployed~~ *(there is a demo to health-check now; whether the lane
+has been pointed at it is `CI-STATE.md`'s to say, not this page's)*.
+`CI-STATE.md` says which is which, names the run id, and
 records the rule that a red reporting true incompleteness **stays red with a sharper
 message**. `continue-on-error` and `|| true` are banned in this repository.
 
@@ -51,11 +62,14 @@ transcribed into a document goes stale the next time a lane runs, and two lists 
 are worse than one. `CI-STATE.md` names each lane, its conclusion and its run id, and it
 distinguishes the two kinds of red — **something is broken** from **a ratchet is holding a
 line we have not yet earned**. The custody chain has 7 of 16 checks unimplemented; the
-conformance suite has never been demonstrated end to end; a demo-health lane cannot be green
-while no demo is deployed. Those reds are the product.
+conformance suite has never been demonstrated end to end; ~~a demo-health lane cannot be green
+while no demo is deployed~~ — **that last one changed on 2026-08-15 and the change is recorded
+here rather than in a badge**: the demo is deployed and answers `ok: true`
+[src: `evidence/demo/live-beats.json#world.health`], and whether the lane has been re-pointed
+at it is `CI-STATE.md`'s to report. Those reds are the product.
 
-A submission that showed you an all-green tab four days before a deadline, with nothing
-deployed, would be telling you something about its badges rather than about its software.
+A submission that showed you an all-green tab four days before a deadline would be telling you
+something about its badges rather than about its software.
 `continue-on-error` and `|| true` are banned in this repository.
 
 ---
@@ -88,7 +102,11 @@ not say otherwise.** Two further artefacts record the same four beats against Co
 Cloud and against a local database through the real HTTP handler
 (`evidence/deploy/cloud-acceptance.json`, `evidence/deploy/acceptance.json`); both were taken
 over `scripts/deploy/local_furl.py`, a local emulator of a Lambda Function URL, and both set
-`target_is_local_emulator: true`. **Neither is a deployed demo** — see stop 6.
+`target_is_local_emulator: true`. **Neither of those two is a deployed demo** — see stop 6.
+**A third artefact is**: `evidence/demo/live-beats.json`, taken 2026-08-15 through the public
+Function URL itself, sets `target_is_local_emulator: false` and records the same four beats
+with the same two SQLSTATEs. It is a separate transcript, not a re-labelling of either of the
+other two, and stop 6 keeps all three apart.
 
 Three attempts at the same permit merge. The first is a plain `CHECK` constraint refusing a
 merge while an obligation is open. The second is the same merge with the projected counter
@@ -234,8 +252,33 @@ taken while other jobs shared the same container; they are upper bounds, not ben
 30.112 [src: `…#runs.1.steps.3.duration_s`] seconds.
 
 *Proves:* the suite is real and imports cleanly with no database anywhere —
-8845 [src: `qa/test-state.json#totals.none.tests`] tests were counted by the census, with
+9290 [src: `qa/test-state.json#totals.none.tests`] tests were counted by the census, with
 0 [src: `qa/test-state.json#totals.none.errored`] collection errors, against no cluster.
+
+> **CORRECTED — this line printed a superseded figure, and here is which figure superseded
+> which.** It read `8845` while `qa/test-state.json#totals.none.tests` read
+> **`9290`**. The full quartet moved the same way, and both readings are of the same field
+> in the same file, one census apart:
+>
+> | | tests | passed | failed | skipped |
+> |---|---:|---:|---:|---:|
+> | this page, until now | 8845 | 8065 | 44 | 736 |
+> | `qa/test-state.json#totals.none`, today | **9290** | **8323** | **44** | **923** |
+>
+> The earlier census was taken **before the demo API's own rows were merged into it**; the
+> later one includes them. `failed` is unchanged at `44` in both, which is the useful part: the
+> count that went up is the denominator, and the failures did not move.
+> `docs/HONESTY.md` and `docs/submission/DEVPOST.md` were re-derived against the artefact days
+> before this page was, so for those days the two disagreed — **the artefact was right both
+> times.** `docs/submission/JUDGING-AXES.md` §4 carries the same correction with the same
+> numbers. Neither number was moved to make the other agree, and re-derivation is one command:
+> `python -c "import json;print(json.load(open('qa/test-state.json'))['totals']['none'])"`.
+>
+> Two things the artefact says about itself that this page will not round off: the census
+> **predates the producer migrations and has not been retaken**, so it describes a tree that no
+> longer exists; and `totals.cluster` records `245` errored with one target timed out and one
+> unmeasured, which is a different and worse reading than `totals.none` and is not the one
+> quoted above.
 
 The longer account of these same five minutes, including every way they go wrong, is
 [`FIRST-FIVE-MINUTES.md`](FIRST-FIVE-MINUTES.md).
@@ -270,14 +313,26 @@ promise.
 
 ## Stop 6 · What is not here, and what we are not claiming
 
-**There is no demo URL yet, and two files that read `PROVEN` do not change that.**
-`docs/submission/SUBMISSION.json` holds the literal `UNRESOLVED` for `demo_url` and for
-`video_url`, because `terraform apply` has not been run and the film has not been shot.
-`check_submission_ready.py`, RAN 2026-08-14, still reports both as unresolved rows.
+~~**There is no demo URL yet, and two files that read `PROVEN` do not change that.**~~
+**SUPERSEDED 2026-08-15 — there is a demo URL, and a third file that reads `PROVEN` was taken
+through it.** `evidence/demo/live-beats.json` records eleven requests to
+`https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws` with
+`target_is_local_emulator: false`, `failures: []`, and the four beats at
+`00000` / `23514` `gate_closed_when_issued` / `P0001` `mainline.fn_permit_merge_gate` /
+`00000`. It needed no credential of ours and neither do you.
 
-Read this before you open `evidence/deploy/`, because it is the one place where an honest
-artefact could be misread as a deployment. **Both acceptance artefacts read `verdict:
-PROVEN` as of 2026-08-14, and both were taken over a local socket:**
+**`docs/submission/SUBMISSION.json` nevertheless still holds the literal `UNRESOLVED` for
+`demo_url` and for `video_url`, and this page is not the file that resolves them.** `video_url`
+is genuinely unresolved — the film has not been uploaded. `demo_url` is a disagreement between
+a document and the wire, and **where they disagree the wire wins and this paragraph is the
+record of it**. `check_submission_ready.py`, RAN 2026-08-14, reported both as unresolved rows;
+it has not been re-run here and no exit code is printed for it that nobody took.
+
+Read the rest of this stop before you open `evidence/deploy/`, because it is the one place where
+an honest artefact could be misread as a deployment. **The two *acceptance* artefacts read
+`verdict: PROVEN` as of 2026-08-14, and both were taken over a local socket — that is still
+true of them, and the live-beats transcript above is a separate artefact and not a re-labelling
+of either:**
 
 | artefact | database under test | HTTP hop | what it proves |
 |---|---|---|---|
@@ -292,17 +347,36 @@ Cloud" when its own `target_provenance` says `localhost` — read `target_proven
 `mode_description`.** At the time of writing, `cloud-acceptance.json` was untracked in the
 working tree; if it is not in your clone, that is why.
 
-The plan that would create the origin is committed at
+The plan that created the origin is committed at
 `evidence/deploy/terraform-plan-furl.txt` — `Plan: 24 to add, 0 to change, 0 to destroy` at line 843:
 11 resources in `module.api[0]` and 13 in `module.guard[0]`, the cost guard that
 `infra/envs/demo/main.tf:631` now instantiates. **An earlier version of this page said 11**,
 which was the count before the guard was wired in; the artefact is the authority and this
 sentence is derived from it, so re-read it with
-`grep -n '^Plan:' evidence/deploy/terraform-plan-furl.txt` rather than trusting us. Writing a
-hostname into `SUBMISSION.json` before the origin exists would turn our own gate green and still
-hand you a 404, which is precisely the failure that file exists to prevent.
+`grep -n '^Plan:' evidence/deploy/terraform-plan-furl.txt` rather than trusting us. **It is a
+plan and it stays a plan** — a record of what was going to be created, not a claim about what
+now exists; what exists is measured over HTTP and is quoted at the top of this stop. Writing a
+hostname into `SUBMISSION.json` before the origin existed would have turned our own gate green
+and still handed you a 404, which is precisely the failure that file exists to prevent — and it
+is why that field still holds the sentinel today rather than being back-filled by this page.
 [`RULES-MATRIX.md`](RULES-MATRIX.md) carries the rule-by-rule verdicts, each with the command
 that re-derives it.
+
+**Three commands hand you the same evidence, with the URL and nothing else** — no account, no
+credential, no AWS access, no database, no build:
+
+| command | what it answers |
+|---|---|
+| `.venv/Scripts/python.exe scripts/demo/demo_ready.py` | *is the deployed world ready?* — eight facts, read-only, zero writes ([`docs/demo/DEMO-READY.md`](../demo/DEMO-READY.md)) |
+| `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url <the URL>` | the four beats off the URL, each with the SQLSTATE the database produced ([`docs/demo/LIVE-BEATS.md`](../demo/LIVE-BEATS.md)) |
+| `.venv/Scripts/python.exe scripts/proof/memory_loop.py --base-url <the URL>` | STORE → RETRIEVE → ACT, forty rows with a table and a column behind each ([`docs/demo/MEMORY-LOOP.md`](../demo/MEMORY-LOOP.md)) |
+
+**And the film is not shot in the MAINLINE console.** It is shot in the software the people in
+the story use — a permit-to-work screen at `/operator.html#/permit` and a management-of-change
+screen at `/operator.html#/change` — with the refusal landing inside those screens, because
+that is where a refusal lands in reality. Those two screens are **in the tree and not on the
+origin yet**: measured 2026-08-15, `GET /operator.html` returns the console shell byte-for-byte
+identical to `GET /`, which is the SPA fallback.
 
 Five more, taken from [`docs/HONESTY.md`](../HONESTY.md). Nothing here is softened for a
 submission; if anything, read it first.

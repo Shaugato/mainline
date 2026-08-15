@@ -1,0 +1,689 @@
+<!doctype html>
+<!--
+  SPDX-FileCopyrightText: 2026 MAINLINE contributors
+  SPDX-License-Identifier: FSL-1.1-ALv2
+
+  WHAT THIS SYSTEM REMEMBERS — the store → retrieve → act loop, rendered from the live kernel.
+
+  `docs/demo/memory-visible-plan.md` is the specification. §3 is this layout, §4's table is the
+  binding seam between this document and `memory-loop.js`, and the rulings in §2 are why the page
+  looks the way it does rather than the way a dashboard usually looks.
+
+  ── WHAT THIS FILE IS AND IS NOT ────────────────────────────────────────────────────────────
+
+  It is a framework-free static document in `public/` (R-M2). Vite copies `public/` into `dist/`
+  verbatim: not transformed, not hashed, not entered into the manifest — so this page adds ZERO
+  bytes to the console entry chunk, whose gzipped headroom is 1,087 B and whose ceiling serves a
+  413 for the console's own JavaScript when crossed. That is a structural guarantee, not a
+  measurement that happened to fit.
+
+  No framework, no bundler, no npm dependency, no external origin, no webfont, no image. One
+  relative stylesheet and two relative module scripts, all siblings of this file. It renders from
+  `file://`, from a bare static host, and from the deployed origin identically.
+
+  ── EVERY VALUE SLOT IS EMPTY, AND THAT IS THE POINT ────────────────────────────────────────
+
+  This document emits the skeleton and the labels. It emits NO value. Every value slot is an
+  empty element carrying a `data-cell` attribute drawn exactly from plan §4, and it is filled by
+  `memory-loop.js` from four GETs and, on press, one POST against the deployed API.
+
+    • NO UUID literal appears in this file (R-M8). The page addresses every subject from
+      `GET /v1/demo/subjects`, because the deployed world's ids are not the ids a local
+      `scenario.EXPECTED` derives, and a hardcoded id is a page that lies on the next deploy.
+    • NO SQLSTATE, no constraint name, no count, no verdict and no refusal text appears in this
+      file. A refusal this document could render without a response is a staged refusal, and a
+      staged refusal is a Functionality violation judged by people with this repository open.
+    • The verbatim SQL disclosures below are EMPTY `<pre>` elements. They are filled from
+      `statement_refs[].text` as the server returned it (R-M6). Pasting SQL from a migration or a
+      seed into that gap is forbidden: a query path we assert is worth less than one the server
+      hands us, and the difference is the whole product.
+
+  ── THE FOUR REGISTERS ──────────────────────────────────────────────────────────────────────
+
+  `memory.css` documents them. In short: a chipped value is a value the response supplied; an
+  annotation (`.note`) is arithmetic this browser did over two values already on screen and wears
+  no chip; a citation (`.cite`) is a quotation of this repository with its file and line, in the
+  past tense, and is not a database value; a disclosure (`.stmt`) holds bytes the server returned.
+  Confusing any two of them is the failure this page exists to avoid.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content="The store, retrieve and act loop of an agentic memory, rendered from live responses. Every value on this page came back over HTTP from the deployed kernel."
+    />
+    <title>What this system remembers</title>
+    <link rel="stylesheet" href="./memory.css" />
+  </head>
+
+  <body>
+    <!--
+      `data-memory-panel` is the mount root the client self-mounts on when this page is the
+      document; without it the client would mount on `<body>` and any client error would be
+      reported onto an element with no styling to make it loud. `data-column` on each column
+      is the host the client falls back to when a page hosting this panel declares no button.
+    -->
+    <main class="page" data-memory-panel>
+      <header class="head">
+        <h1 class="head__title">What this system remembers</h1>
+        <p class="head__lede">
+          Most systems prove memory by recalling something. This one proves memory by refusing
+          something — and proves the memory is real by refusing again after the number it reads was
+          falsified.
+        </p>
+        <!--
+          R-M7.1 — the persistent disclosure. On screen the whole time, never a tooltip. The ACT
+          column is filled from ONE POST whose four beats already happened inside one SERIALIZABLE
+          transaction; splitting it into three requests would destroy the single-transaction claim
+          the beats depend on. Saying so before anybody asks is cheaper than being asked.
+        -->
+        <p class="disclosure">
+          one request · four beats · one <b>SERIALIZABLE</b> transaction · response received
+          <b data-cell="meta.received_at"></b>
+        </p>
+      </header>
+
+      <div class="cols">
+        <!-- ═══ ① STORED ══════════════════════════════════════════════════════════════════ -->
+        <section class="col" id="col-store" data-column="store" aria-labelledby="col-store-name">
+          <h2 class="col__head">
+            <span class="col__name" id="col-store-name">
+              <span class="col__num">&#9312;</span>STORED
+            </span>
+            <span class="col__gloss">what an incident taught, written once and never rewritten</span>
+          </h2>
+
+          <section class="grp">
+            <h3 class="grp__head">the precursor event</h3>
+            <div class="row row--lead">
+              <span class="row__k">reference</span>
+              <span class="row__v" data-cell="store.event.ref"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">kind</span>
+              <span class="row__v" data-cell="store.event.kind"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">occurred at</span>
+              <span class="row__v" data-cell="store.event.occurred_at"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">severity gate</span>
+              <span class="row__v" data-cell="store.event.severity_gate"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">severity basis</span>
+              <span class="row__v" data-cell="store.event.severity_basis"></span>
+            </div>
+            <!--
+              R-M13 — the `SYNTHETIC — ` prefix is a column value. It is not stripped, not trimmed
+              and not styled away, so this slot is full width and wraps rather than truncating.
+              Leaving it visible makes every value beside it more credible, not less.
+            -->
+            <div class="row row--wide">
+              <span class="row__k">title</span>
+              <span class="row__v" data-cell="store.event.title"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">source digest</span>
+              <span class="row__v" data-cell="store.event.source_sha256"></span>
+            </div>
+          </section>
+
+          <section class="grp">
+            <h3 class="grp__head">the blame edge</h3>
+            <div class="row">
+              <span class="row__k">basis</span>
+              <span class="row__v" data-cell="store.edge.basis"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">state</span>
+              <span class="row__v" data-cell="store.edge.state"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">attribution</span>
+              <span class="row__v" data-cell="store.edge.attribution"></span>
+            </div>
+          </section>
+
+          <section class="grp">
+            <h3 class="grp__head">the closure this edge produced</h3>
+            <div class="row" data-tie="closure_gen">
+              <span class="row__k">generation</span>
+              <span class="row__v" data-cell="store.closure.gen"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">ancestors</span>
+              <span class="row__v" data-cell="store.closure.ancestors"></span>
+            </div>
+            <div class="row row--lead" data-tie="severity">
+              <span class="row__k">max severity</span>
+              <span class="row__v" data-cell="store.closure.max_severity"></span>
+            </div>
+            <div class="row row--lead" data-tie="virulence">
+              <span class="row__k">virulence</span>
+              <span class="row__v" data-cell="store.closure.virulence"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">depth</span>
+              <span class="row__v" data-cell="store.closure.depth"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">truncated</span>
+              <span class="row__v" data-cell="store.closure.truncated"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">computed by</span>
+              <span class="row__v" data-cell="store.closure.computed_by"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">projector</span>
+              <span class="row__v" data-cell="store.closure.projector_ver"></span>
+            </div>
+
+            <p class="claim">Nothing here was deleted.</p>
+            <p class="note">
+              A recomputation writes a <b>new generation</b>, so the closure that armed a check last
+              year is still readable this year. The current row is whichever generation is highest,
+              chosen at read time — not the survivor of an overwrite.
+            </p>
+            <p class="cite">
+              <span class="cite__label">source:</span>
+              <span class="cite__path"
+                >verticals/mainline/db/migrations/0128j_trg_refuse_mutation_clause_blame_closure.sql:28</span
+              >
+              <span class="cite__quote"
+                >— an append-only weld: update and delete are refused on the closure table by the
+                database itself, not by a convention anybody can forget.</span
+              >
+            </p>
+            <p class="cite">
+              <span class="cite__label">source:</span>
+              <span class="cite__path"
+                >verticals/mainline/db/migrations/0039_clause_blame_current.sql:125</span
+              >
+              <span class="cite__quote"
+                >— the read that picks the current row orders by generation, descending. Superseded
+                generations stay on disk and stay readable.</span
+              >
+            </p>
+          </section>
+
+          <!--
+            The two memory writes, sequenced and Merkle-committed. The client finds each leaf by
+            its `entry_kind`, never by an array index, because an index is a fact about this
+            response and the kind is a fact about the write.
+
+            The two `verify.leaf.*` slots are OUTSIDE the loop client's namespaces on purpose: the
+            recomputation module owns `verify.`, and the loop client leaves those ids untouched.
+            They hold the only claim this page makes on its own account — a leaf hash re-derived
+            here, in this browser, from the canonical bytes the same response carried. That is a
+            claim about arithmetic, not about trust, and an unfilled slot stays an em dash.
+          -->
+          <section class="grp">
+            <h3 class="grp__head">the ledger — the write, sequenced</h3>
+
+            <div class="row">
+              <span class="row__k">leaf</span>
+              <span class="row__v" data-cell="store.leaf.ingested.seq"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">entry kind</span>
+              <span class="row__v" data-cell="store.leaf.ingested.entry_kind"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">leaf hash</span>
+              <span class="row__v" data-cell="store.leaf.ingested.leaf_hash_hex"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">verified here</span>
+              <span class="row__v" data-cell="verify.leaf.ingested"></span>
+            </div>
+
+            <div class="row">
+              <span class="row__k">leaf</span>
+              <span class="row__v" data-cell="store.leaf.closure.seq"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">entry kind</span>
+              <span class="row__v" data-cell="store.leaf.closure.entry_kind"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">leaf hash</span>
+              <span class="row__v" data-cell="store.leaf.closure.leaf_hash_hex"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">verified here</span>
+              <span class="row__v" data-cell="verify.leaf.closure"></span>
+            </div>
+
+            <p class="note">
+              Each leaf is found by its <b>entry kind</b>, never by its position in the array — the
+              position is a fact about this response, the kind is a fact about the write.
+            </p>
+          </section>
+        </section>
+
+        <!-- ═══ ② RETRIEVED ═══════════════════════════════════════════════════════════════ -->
+        <section
+          class="col"
+          id="col-retrieve"
+          data-column="retrieve"
+          aria-labelledby="col-retrieve-name"
+        >
+          <h2 class="col__head">
+            <span class="col__name" id="col-retrieve-name">
+              <span class="col__num">&#9313;</span>RETRIEVED
+            </span>
+            <span class="col__gloss">what the gate read when the merge was attempted</span>
+          </h2>
+
+          <!--
+            R-M6 — not a claim that the database was consulted, but the statement it was consulted
+            with. These two `<pre>` elements are filled byte-for-byte from `statement_refs[].text`
+            as the server returned it: never retyped, never reformatted, never re-highlighted into
+            different characters. Where the server returns no text, the client prints the kind, the
+            object, and the words "statement text not returned by this endpoint" — and never fills
+            the gap from a migration.
+          -->
+          <section class="grp">
+            <h3 class="grp__head">the statement the read was made with</h3>
+            <details class="stmt">
+              <summary>ancestry read · object: mainline.clause_blame_current</summary>
+              <pre data-cell="retrieve.sql.view"></pre>
+            </details>
+            <details class="stmt">
+              <summary>recall run read · object: mainline_meas.recall_run</summary>
+              <pre data-cell="retrieve.sql.recall"></pre>
+            </details>
+            <p class="note">
+              Returned by the read API in its own envelope. Expand either one during the run; the
+              bytes are the bytes.
+            </p>
+          </section>
+
+          <section class="grp">
+            <h3 class="grp__head">the obligation, armed</h3>
+            <div class="row row--lead" data-tie="severity">
+              <span class="row__k">severity</span>
+              <span class="row__v" data-cell="retrieve.armed.severity"></span>
+            </div>
+            <div class="row row--lead" data-tie="virulence">
+              <span class="row__k">virulence</span>
+              <span class="row__v" data-cell="retrieve.armed.virulence"></span>
+            </div>
+            <div class="row" data-tie="closure_gen">
+              <span class="row__k">closure gen</span>
+              <span class="row__v" data-cell="retrieve.armed.closure_gen"></span>
+            </div>
+            <!--
+              R-M9 — the channel is stated rather than hidden. This world's recall reached the
+              clause through blame ancestry, and the page prints the origin the response gave it
+              beside counts that show what else was and was not considered.
+            -->
+            <div class="row">
+              <span class="row__k">origin</span>
+              <span class="row__v" data-cell="retrieve.armed.origin"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">materialised</span>
+              <span class="row__v" data-cell="retrieve.armed.materialised_at"></span>
+            </div>
+            <!--
+              R-M4 — the annotation register, and the ONLY form browser arithmetic is allowed to
+              take. Both operands are on screen in their own chipped cells: the incident's
+              `occurred at` in column ① and the `materialised` timestamp directly above. The gap
+              between them is neither a column, nor `derived` (that identifier belongs to the read
+              API), nor `recomputed` (that one belongs to re-derivation from signed bytes), so it
+              carries no chip, sits in the prose face, and says in the same breath what it is.
+            -->
+            <p class="note"><span data-cell="annot.gap.event_to_check"></span></p>
+          </section>
+
+          <!--
+            R-M5.2 — the money shot, and the honest half of it. The check's severity is not an
+            independent value: it IS the closure's value, arriving over a SECOND HTTP request that
+            a judge can watch in devtools. The marker below reports the comparison this browser
+            made between the two responses. It carries no chip, because a comparison is not a
+            column and there is no identifier in the vocabulary that would make it one.
+          -->
+          <section class="grp">
+            <div class="tie">
+              <p class="tie__head">same value, two responses</p>
+              <div class="row row--match">
+                <span class="row__k">severity</span>
+                <span class="row__v" data-cell="retrieve.match.severity"></span>
+              </div>
+              <div class="row row--match">
+                <span class="row__k">virulence</span>
+                <span class="row__v" data-cell="retrieve.match.virulence"></span>
+              </div>
+              <div class="row row--match">
+                <span class="row__k">closure gen</span>
+                <span class="row__v" data-cell="retrieve.match.closure_gen"></span>
+              </div>
+            </div>
+            <p class="note">
+              Compared in this browser between the two responses marked <b>═</b> above. No chip: it
+              is not a column, and neither response returned it.
+            </p>
+
+            <p class="claim">The agent could not choose this.</p>
+            <p class="cite">
+              <span class="cite__label">source:</span>
+              <span class="cite__path"
+                >verticals/mainline/db/migrations/0100_fn_check_project.sql:80</span
+              >
+              <span class="cite__quote"
+                >— severity, virulence and generation are assigned from the closure
+                unconditionally, on the way in. A supplied value is overwritten whether or not it
+                agrees, so nothing that writes an obligation can choose how bad it is.</span
+              >
+            </p>
+            <p class="cite">
+              <span class="cite__label">source:</span>
+              <span class="cite__path">verticals/mainline/db/seeds/demo/demo_permit.sql:318</span>
+              <span class="cite__quote"
+                >— the seed supplied <b>0, 'routine', 0</b> for those three columns. It was
+                projected over as the row went in, and the pre-projection values are recoverable by
+                no read. They are quoted here from this repository, in the past tense, and are not
+                a value this page was given.</span
+              >
+            </p>
+          </section>
+
+          <section class="grp">
+            <h3 class="grp__head">the recall run</h3>
+            <div class="row">
+              <span class="row__k">started at</span>
+              <span class="row__v" data-cell="retrieve.recall.started_at"></span>
+            </div>
+            <!--
+              The second gap, and the tighter one: the run started, and the obligation was standing
+              on the permit before it finished. Both operands are adjacent on screen — the
+              `materialised` timestamp closes the group above, `started at` opens this one — and
+              the figure between them is annotation, exactly as above.
+            -->
+            <p class="note"><span data-cell="annot.gap.recall_to_check"></span></p>
+            <div class="row row--wide">
+              <span class="row__k">policy</span>
+              <span class="row__v" data-cell="retrieve.recall.policy"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">index gen</span>
+              <span class="row__v" data-cell="retrieve.recall.index_generation"></span>
+            </div>
+            <div class="row row--wide">
+              <span class="row__k">index plan digest</span>
+              <span class="row__v" data-cell="retrieve.recall.index_plan_digest"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">candidates</span>
+              <span class="row__v" data-cell="retrieve.recall.n_candidates"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">blocking</span>
+              <span class="row__v" data-cell="retrieve.recall.n_blocking"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">advisory</span>
+              <span class="row__v" data-cell="retrieve.recall.n_advisory"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">silenced</span>
+              <span class="row__v" data-cell="retrieve.recall.n_silenced"></span>
+            </div>
+            <div class="row">
+              <span class="row__k">deduped</span>
+              <span class="row__v" data-cell="retrieve.recall.n_deduped"></span>
+            </div>
+          </section>
+        </section>
+
+        <!-- ═══ ③ ACTED ON ════════════════════════════════════════════════════════════════ -->
+        <section class="col" id="col-act" data-column="act" aria-labelledby="col-act-name">
+          <h2 class="col__head">
+            <span class="col__name" id="col-act-name">
+              <span class="col__num">&#9314;</span>ACTED ON
+            </span>
+            <span class="col__gloss">what it did with what it read</span>
+          </h2>
+
+          <!--
+            Four beats, one response. Every name, outcome, SQLSTATE, constraint and elapsed figure
+            below arrives in the payload of the single POST; none of them is written into this
+            document. Each beat prints ITS OWN `elapsed_ms` from that payload — the order values
+            appear in is never displayed as a duration and never labelled as latency.
+          -->
+          <ol class="beats">
+            <li class="beat" data-beat="1">
+              <p class="beat__head">
+                <span class="beat__n">1</span>
+                <span class="beat__name" data-cell="act.beat1.name"></span>
+              </p>
+              <div class="row row--lead">
+                <span class="row__k">outcome</span>
+                <span class="row__v" data-cell="act.beat1.outcome"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">sqlstate</span>
+                <span class="row__v" data-cell="act.beat1.sqlstate"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint</span>
+                <span class="row__v" data-cell="act.beat1.constraint"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint source</span>
+                <span class="row__v" data-cell="act.beat1.constraint_source"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">elapsed ms</span>
+                <span class="row__v" data-cell="act.beat1.elapsed_ms"></span>
+              </div>
+            </li>
+
+            <li class="beat" data-beat="2">
+              <p class="beat__head">
+                <span class="beat__n">2</span>
+                <span class="beat__name" data-cell="act.beat2.name"></span>
+              </p>
+              <div class="row row--lead">
+                <span class="row__k">outcome</span>
+                <span class="row__v" data-cell="act.beat2.outcome"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">sqlstate</span>
+                <span class="row__v" data-cell="act.beat2.sqlstate"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint</span>
+                <span class="row__v" data-cell="act.beat2.constraint"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint source</span>
+                <span class="row__v" data-cell="act.beat2.constraint_source"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">elapsed ms</span>
+                <span class="row__v" data-cell="act.beat2.elapsed_ms"></span>
+              </div>
+              <p class="note">
+                The obligation above is open when this beat runs. Whatever the gate answers, it
+                answers by <b>name</b>: the SQLSTATE and the constraint printed here are the ones
+                the database reported, not a message this page chose.
+              </p>
+            </li>
+
+            <!--
+              Beat 3 is the peak of the whole submission and is given the room the story plan asked
+              for. The counter the gate reads is set to zero out of band before this beat runs, and
+              the gate refuses ANYWAY, because it re-derives the open obligation count from the base
+              tables instead of trusting the projection. That is the difference between a checkbox
+              and a control, and it is the reason a falsified number does not buy a merge.
+            -->
+            <li class="beat" data-beat="3">
+              <p class="beat__head">
+                <span class="beat__n">3</span>
+                <span class="beat__name" data-cell="act.beat3.name"></span>
+              </p>
+              <div class="row row--lead">
+                <span class="row__k">outcome</span>
+                <span class="row__v" data-cell="act.beat3.outcome"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">sqlstate</span>
+                <span class="row__v" data-cell="act.beat3.sqlstate"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint</span>
+                <span class="row__v" data-cell="act.beat3.constraint"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint source</span>
+                <span class="row__v" data-cell="act.beat3.constraint_source"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">elapsed ms</span>
+                <span class="row__v" data-cell="act.beat3.elapsed_ms"></span>
+              </div>
+              <p class="claim">An attacker who owns the counter does not own the gate.</p>
+              <p class="cite">
+                <span class="cite__label">source:</span>
+                <span class="cite__path"
+                  >verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:62</span
+                >
+                <span class="cite__quote"
+                  >— the gate re-derives the open obligation count from the base tables and refuses
+                  when the projected counter disagrees. The projection is enforced, never
+                  trusted.</span
+                >
+              </p>
+            </li>
+
+            <li class="beat" data-beat="4">
+              <p class="beat__head">
+                <span class="beat__n">4</span>
+                <span class="beat__name" data-cell="act.beat4.name"></span>
+              </p>
+              <div class="row row--lead">
+                <span class="row__k">outcome</span>
+                <span class="row__v" data-cell="act.beat4.outcome"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">sqlstate</span>
+                <span class="row__v" data-cell="act.beat4.sqlstate"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint</span>
+                <span class="row__v" data-cell="act.beat4.constraint"></span>
+              </div>
+              <div class="row row--wide">
+                <span class="row__k">constraint source</span>
+                <span class="row__v" data-cell="act.beat4.constraint_source"></span>
+              </div>
+              <div class="row">
+                <span class="row__k">elapsed ms</span>
+                <span class="row__v" data-cell="act.beat4.elapsed_ms"></span>
+              </div>
+              <p class="note">
+                The memory does not veto. One disposition is signed against the obligation and the
+                same merge is attempted again — same gate, same transaction. What that attempt
+                answered is printed above, whichever way it went.
+              </p>
+            </li>
+          </ol>
+
+          <!--
+            The control. The page makes its four GETs on load and nothing else; this button is what
+            sends the single POST. No timer runs before the response has resolved and no timer gates
+            a request — the client constructs any reveal inside the handler that already holds the
+            parsed body.
+          -->
+          <p class="run">
+            <button type="button" class="btn" id="run" data-action="gate-run">Run the gate</button>
+          </p>
+        </section>
+      </div>
+
+      <!-- ═══ the verdict, spanning ═══════════════════════════════════════════════════════ -->
+      <section class="verdict" aria-label="run verdict">
+        <div class="verdict__strip">
+          <span class="verdict__cell">
+            <span class="verdict__k">verdict</span>
+            <span class="verdict__v" data-cell="act.verdict"></span>
+          </span>
+          <span class="verdict__cell">
+            <span class="verdict__k">self persisted</span>
+            <span class="verdict__v" data-cell="act.self_persisted"></span>
+          </span>
+          <span class="verdict__cell">
+            <span class="verdict__k">single transaction</span>
+            <span class="verdict__v" data-cell="act.single_transaction"></span>
+          </span>
+          <span class="verdict__cell">
+            <span class="verdict__k">generated at</span>
+            <span class="verdict__v" data-cell="meta.generated_at"></span>
+          </span>
+          <span class="verdict__cell">
+            <span class="verdict__k">round trip ms</span>
+            <span class="verdict__v" data-cell="meta.elapsed_ms"></span>
+          </span>
+        </div>
+        <!--
+          R-M10 — failure renders. A NOT PROVEN verdict prints as NOT PROVEN with every string in
+          `failures[]` printed in full, and a failed GET prints its status and its endpoint in the
+          cell that needed it. No cell falls back to a previously fetched value, to a captured
+          fixture, or to a default. A truthful red beats a fabricated green.
+        -->
+        <p class="verdict__failures" data-cell="act.failures"></p>
+      </section>
+
+      <noscript>
+        <div class="boot">
+          <h2>JavaScript is required, and here is exactly why</h2>
+          <p>
+            This page renders no value it was not handed by the system it is a client of. Every
+            figure on it is fetched over HTTP from the origin this document was served by and is
+            rendered as the bytes that came back; two of them are re-derived here, in this browser,
+            from the canonical bytes the same response carried. Without scripting there are no
+            requests, and a page that showed you a filled-in loop without them would be a picture of
+            a memory rather than a memory.
+          </p>
+          <p>
+            Nothing on this page is a screenshot, and nothing on it is written into this document.
+            Open the network panel and read the four responses it renders from.
+          </p>
+        </div>
+      </noscript>
+
+      <footer class="foot">
+        <p>
+          Every value above arrives in one of five responses — four reads on load and one write on
+          press — and each is findable in the body of the response it came from. Open the network
+          panel and check. An em dash means this page has been handed no value for that slot; it is
+          not a zero and it is not a blank.
+        </p>
+        <p>
+          Add <code>?reveal=off</code> to the address to fill all four beats the instant the
+          response arrives. Every figure was already in that one response, and one keystroke is
+          enough to prove it.
+        </p>
+        <p>
+          <span class="synthetic">SYNTHETIC DEMONSTRATION</span> — no real site, no real permit, no
+          real person. Values that arrive with a <code>SYNTHETIC —</code> prefix keep it: the prefix
+          is a column, and stripping it would be the one edit on this page that changed a stored
+          value.
+        </p>
+      </footer>
+    </main>
+
+    <script type="module" src="./memory-verify.js"></script>
+    <script type="module" src="./memory-loop.js"></script>
+  </body>
+</html>

@@ -1,0 +1,255 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The product chrome: app bar, left rail, watermark, origin strip, and the frame the two
+ * modules mount into. Plain global CSS with a `cw-` prefix rather than CSS Modules, because
+ * this entry has no framework and no scoped-class pipeline, and a hashed class name would put
+ * a build input into a file whose whole job is to be readable in devtools during a demo.
+ *
+ * Nothing in here uses `content:` to carry words and nothing removes a focus ring inside
+ * `:focus-visible` — both are refused by src/a11y/source-checks.ts, which walks every .css
+ * under src/.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--cw-bg);
+  color: var(--cw-ink);
+}
+
+body {
+  font-family: var(--cw-sans);
+  font-size: var(--cw-size-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cw-focus);
+  outline-offset: 2px;
+}
+
+/* ── The shell ─────────────────────────────────────────────────────────────────── */
+
+.cw-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.cw-body {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.cw-module {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--cw-space-4);
+}
+
+.cw-unbuilt {
+  max-width: 66ch;
+  margin: 0;
+  padding: var(--cw-space-4);
+  border: var(--cw-hairline) dashed var(--cw-rule-strong);
+  border-radius: var(--cw-radius);
+  color: var(--cw-ink-dim);
+}
+
+.cw-unbuilt h2 {
+  margin: 0 0 var(--cw-space-2);
+  font-size: var(--cw-size-label);
+  font-weight: 600;
+  letter-spacing: var(--cw-tracking-caps);
+  text-transform: uppercase;
+  color: var(--cw-caution);
+}
+
+.cw-unbuilt p {
+  margin: 0 0 var(--cw-space-2);
+}
+
+/* ── App bar ───────────────────────────────────────────────────────────────────── */
+
+.cw-appbar {
+  display: flex;
+  align-items: center;
+  gap: var(--cw-space-4);
+  min-height: var(--cw-bar-height);
+  padding: 0 var(--cw-space-4);
+  background: var(--cw-bg-bar);
+  border-bottom: var(--cw-hairline) solid var(--cw-rule-strong);
+}
+
+.cw-appbar__product {
+  font-size: var(--cw-size-label);
+  font-weight: 700;
+  letter-spacing: var(--cw-tracking-caps);
+  text-transform: uppercase;
+  color: var(--cw-ink);
+  white-space: nowrap;
+}
+
+.cw-appbar__divider {
+  width: var(--cw-hairline);
+  align-self: stretch;
+  margin: var(--cw-space-2) 0;
+  background: var(--cw-rule-strong);
+}
+
+.cw-appbar__module {
+  font-size: var(--cw-size-body);
+  color: var(--cw-ink-dim);
+  white-space: nowrap;
+}
+
+.cw-appbar__nav {
+  display: flex;
+  gap: var(--cw-space-1);
+  margin-left: auto;
+}
+
+.cw-appbar__link {
+  display: inline-block;
+  padding: var(--cw-space-1) var(--cw-space-3);
+  border: var(--cw-hairline) solid transparent;
+  border-radius: var(--cw-radius);
+  font-size: var(--cw-size-label);
+  color: var(--cw-ink-dim);
+  text-decoration: none;
+}
+
+.cw-appbar__link:hover {
+  color: var(--cw-ink);
+  border-color: var(--cw-rule-strong);
+}
+
+.cw-appbar__link[aria-current="page"] {
+  color: var(--cw-ink);
+  border-color: var(--cw-accent);
+}
+
+/* ── Left rail ─────────────────────────────────────────────────────────────────── */
+
+.cw-rail {
+  flex: 0 0 var(--cw-rail-width);
+  width: var(--cw-rail-width);
+  padding: var(--cw-space-4) var(--cw-space-3);
+  background: var(--cw-bg-rail);
+  border-right: var(--cw-hairline) solid var(--cw-rule);
+}
+
+.cw-rail__heading {
+  margin: 0 0 var(--cw-space-3);
+  font-size: var(--cw-size-caption);
+  font-weight: 600;
+  letter-spacing: var(--cw-tracking-caps);
+  text-transform: uppercase;
+  color: var(--cw-ink-faint);
+}
+
+.cw-rail__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cw-rail__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--cw-space-2) var(--cw-space-2);
+  border-left: 2px solid transparent;
+  /* Visibly not a control: no pointer, no hover affordance, no focus ring to find. */
+  cursor: default;
+  user-select: none;
+}
+
+.cw-rail__name {
+  font-size: var(--cw-size-label);
+  color: var(--cw-ink-inert);
+}
+
+.cw-rail__item[data-state="current"] {
+  border-left-color: var(--cw-accent);
+}
+
+.cw-rail__item[data-state="current"] .cw-rail__name {
+  color: var(--cw-ink);
+}
+
+.cw-rail__note {
+  font-size: var(--cw-size-caption);
+  color: var(--cw-ink-faint);
+}
+
+.cw-rail__caption {
+  margin: var(--cw-space-3) 0 0;
+  padding-top: var(--cw-space-3);
+  border-top: var(--cw-hairline) solid var(--cw-rule);
+  font-size: var(--cw-size-caption);
+  color: var(--cw-ink-faint);
+}
+
+/* ── Watermark ─────────────────────────────────────────────────────────────────── */
+
+.cw-watermark {
+  padding: var(--cw-space-1) var(--cw-space-4);
+  background: var(--cw-bg-inset);
+  border-bottom: var(--cw-hairline) solid var(--cw-caution);
+  font-size: var(--cw-size-caption);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cw-caution);
+  text-align: center;
+}
+
+/* ── Origin strip ──────────────────────────────────────────────────────────────── */
+
+.cw-origin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--cw-space-2) var(--cw-space-4);
+  padding: var(--cw-space-2) var(--cw-space-4);
+  background: var(--cw-bg-inset);
+  border-top: var(--cw-hairline) solid var(--cw-rule-strong);
+  font-size: var(--cw-size-caption);
+}
+
+.cw-origin__pair {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cw-space-2);
+  min-width: 0;
+}
+
+.cw-origin__label {
+  color: var(--cw-ink-faint);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.cw-origin__value {
+  font-family: var(--cw-mono);
+  color: var(--cw-ink);
+  overflow-wrap: anywhere;
+}
+
+.cw-origin__value[data-observed="unobserved"],
+.cw-origin__value[data-observed="absent"] {
+  color: var(--cw-ink-faint);
+  font-family: var(--cw-sans);
+  font-style: italic;
+}

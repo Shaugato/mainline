@@ -116,6 +116,47 @@ const ANCESTRY_FLAT_GLOBS = [
 
 const MEMORY_GLOBS = ['src/features/ancestry/render3d/**/*.{ts,tsx}'];
 
+/**
+ * CONTROL OF WORK — the second entry point (docs/demo/operator-systems-plan.md R1).
+ *
+ * `operator.html` → `src/operator/**` is a DIFFERENT PRODUCT's user interface, built in
+ * vanilla TypeScript with no framework, and its isolation from the console is an arithmetic
+ * constraint rather than a taste: the console's entry chunk sits ~1.1 KB under the response
+ * ceiling `static_site.py` serves objects at (docs/STATE-OF-THE-BUILD.md §12.9). One shared
+ * import puts both entries in one closure and spends that headroom, and a 413 on the entry
+ * chunk is the "NOT YET BOOTED" screen.
+ *
+ * So this register forbids MORE than any other: no framework, no animation library, no GPU
+ * package (the no-GPU restriction that EVIDENCE and INSTRUMENT carry applies here too), and
+ * no module from the console's own directories. `tests/unit/operator/shell/boundary.test.ts`
+ * asserts the same law over the file text, because a lint is defeated by one inline
+ * suppression and by one edit to this file.
+ */
+const OPERATOR_GLOBS = ['src/operator/**/*.{ts,tsx}'];
+
+/** React and the DOM renderer. The operator surface has neither and must never gain one. */
+const FRAMEWORK = ['react', 'react/**', 'react-dom', 'react-dom/**'];
+
+/**
+ * The console's own directories, in both spellings an author would reach for: the
+ * root-absolute form Vite resolves (`/src/app/...`) and the relative climbs available from
+ * `src/operator/**` and from one and two levels below it.
+ */
+const CONSOLE_PACKAGES = ['app', 'design', 'features', 'verify'];
+
+const consoleReach = (packages) =>
+  packages.flatMap((name) => [
+    `/src/${name}`,
+    `/src/${name}/**`,
+    `**/src/${name}/**`,
+    `../${name}`,
+    `../${name}/**`,
+    `../../${name}`,
+    `../../${name}/**`,
+    `../../../${name}`,
+    `../../../${name}/**`,
+  ]);
+
 export default tseslint.config(
   {
     ignores: [
@@ -224,6 +265,50 @@ export default tseslint.config(
   {
     files: MEMORY_GLOBS,
     rules: restrict({ patterns: [] }),
+  },
+
+  // ── Register: OPERATOR (the CONTROL OF WORK entry) ─────────────────────────
+  {
+    files: OPERATOR_GLOBS,
+    rules: restrict({
+      patterns: [
+        ...deny(
+          THREE_D,
+          'OPERATOR register: no GPU rendering. Only src/features/ancestry/render3d/** may import a 3D library (ui.md §1.1), and the operator entry may not import a heavy dependency of any kind — it ships under a 136 KB wire ceiling of its own (budgets.json, operator-surface).',
+        ),
+        ...deny(
+          MOTION,
+          'OPERATOR register: nothing on a permit screen moves that a screenshot could not reproduce, and no animation library enters this entry closure (operator-systems-plan.md R1).',
+        ),
+        ...deny(
+          FRAMEWORK,
+          'OPERATOR register: no React. src/operator/** is vanilla TypeScript so that operator.html shares no chunk with index.html — the console entry has ~1.1 KB of headroom against the response ceiling and a shared closure spends it (operator-systems-plan.md R1/R2).',
+        ),
+        ...deny(
+          consoleReach(CONSOLE_PACKAGES),
+          'OPERATOR register: this is a different product’s UI. Importing src/app, src/design, src/features or src/verify would weld the two entries into one chunk closure AND dress the operator screens in MAINLINE’s design system, which is the one thing the demonstration must not do (operator-systems-plan.md R1).',
+        ),
+        {
+          // src/data is the console's transport and schema layer. ONE module in it is free:
+          // types.generated.ts, imported `import type`, because a type erases to zero bytes
+          // and is the same contract the kernel client answers to. The negations below carve
+          // exactly that module out; everything else in the directory is refused outright.
+          group: [
+            ...consoleReach(['data']),
+            '!**/data/types.generated',
+            '!**/data/types.generated.ts',
+          ],
+          message:
+            'OPERATOR register: src/data is the console’s transport and schema layer and belongs to the console’s chunk closure. The one permitted reach is `import type` from src/data/types.generated.ts.',
+        },
+        {
+          group: ['**/data/types.generated', '**/data/types.generated.ts'],
+          message:
+            'OPERATOR register: src/data/types.generated.ts may be imported ONLY as `import type`. A value import of a generated module pulls it into the operator entry closure, which is measured against its own 136 KB ceiling (budgets.json, operator-surface).',
+          allowTypeImports: true,
+        },
+      ],
+    }),
   },
 
   // ── Tooling: Node, not a browser ───────────────────────────────────────────

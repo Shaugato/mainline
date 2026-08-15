@@ -1,0 +1,1886 @@
+{
+  "artefact": "STORE -> RETRIEVE -> SHOWN TO -> ACT, measured on the deployment",
+  "generated_at": "2026-08-15T14:18:20.623921Z",
+  "generated_by": "scripts/proof/memory_loop.py",
+  "command": "python scripts/proof/memory_loop.py --base-url <the live URL>",
+  "ruling": {
+    "R7": "the loop needs no new endpoint; every word is already a live GET",
+    "R8": "the incident is 2019-03-14 and nothing was rewritten",
+    "R9": "the obligation's severity and band are projected; every 4 names its writer"
+  },
+  "route_table": [
+    "verticals/mainline/apps/demo-api/src/mainline_demo_api/app.py:229-252"
+  ],
+  "base_url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+  "deployment": {
+    "route": "GET /v1/health",
+    "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health",
+    "http_status": 200,
+    "body": {
+      "applied_by": "scripts/deploy/cloud_chain.py",
+      "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "database": "mainline_demo",
+      "deploy_chain_applied": 271,
+      "deploy_chain_files": 271,
+      "migrations_applied": 0,
+      "ok": true,
+      "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+      "seconds": 0.0185,
+      "server_date": "2026-08-15T14:18:17.534168Z"
+    }
+  },
+  "subject": {
+    "resolved_from": "GET /v1/demo/subjects",
+    "not_one_of_these_is_a_literal_in_this_program": true,
+    "ids": {
+      "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+      "run_id": "dec0de00-0009-4000-8000-000000000001",
+      "receipt_id": "dec0de00-0008-4000-8000-000000000001",
+      "permit_id": "dec0de00-0006-4000-8000-000000000001"
+    }
+  },
+  "requests": [
+    {
+      "name": "subjects",
+      "route": "GET /v1/demo/subjects",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/subjects",
+      "http_status": 200,
+      "bytes": 8941,
+      "sha256": "38d793e6c9f1e8ea136a685061a873ea6ffd3079320651ebf9eb4518f6f47487",
+      "read_at": "2026-08-15T14:18:15.873579Z",
+      "resource": "demo_subjects",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/subjects.schema.json",
+      "observed_at": "2026-08-15T14:18:16.763615Z",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/subjects' | python -m json.tool"
+    },
+    {
+      "name": "health",
+      "route": "GET /v1/health",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health",
+      "http_status": 200,
+      "bytes": 410,
+      "sha256": "75080b7ccac248dc4dc0b27012d9590065188814c1137f8e8308747e45910567",
+      "read_at": "2026-08-15T14:18:16.593971Z",
+      "resource": null,
+      "schema_id": null,
+      "observed_at": null,
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health' | python -m json.tool"
+    },
+    {
+      "name": "ancestry",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "bytes": 3744,
+      "sha256": "bdf3c3de238a63490ec6a504dc77ab8eff0b78d400c98c27e2bff8549fa4b134",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "resource": "clause_ancestry",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/ancestry.schema.json",
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "name": "recall_run",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "bytes": 2223,
+      "sha256": "157a2f14789acd3e1e5f7c8ec5dde0d4be75a7e41ff0263542c2681998bcc9a4",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "resource": "recall_run",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/recall-run.schema.json",
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "name": "receipt",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "http_status": 200,
+      "bytes": 1817,
+      "sha256": "a345f8b73e57bddc81ddb4e2a67e84953ef5cf56ba934dd5e140740f62867c55",
+      "read_at": "2026-08-15T14:18:18.890807Z",
+      "resource": "exposure_receipt",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/exposure.schema.json",
+      "observed_at": "2026-08-15T14:18:19.823955Z",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "name": "blocking_checks",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "bytes": 2408,
+      "sha256": "3bf99c095be34b6b730aae1bda5504cd830f8667de714c6fc59d5e63cc87b8f6",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "resource": "blocking_checks",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/blocking-check.schema.json",
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "name": "permit",
+      "route": "GET /v1/permits/{permit_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "http_status": 200,
+      "bytes": 5691,
+      "sha256": "51686b21a0201d352cc2835012c0b79313667a3741f8b745c2ff3cdcbc1c0068",
+      "read_at": "2026-08-15T14:18:20.459558Z",
+      "resource": "permit",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/permit.schema.json",
+      "observed_at": "2026-08-15T14:18:21.295450Z",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001' | python -m json.tool"
+    }
+  ],
+  "the_gate_constraint_was_located": {
+    "located": true,
+    "by": "counters[].column == 'open_blocking'"
+  },
+  "published_sql": {
+    "mainline.clause_blame_current": "SELECT closure_gen, ancestor_events, ancestor_count, max_severity,\n       virulence::text                  AS virulence,\n       depth, truncated, computed_by, projector_ver, computed_at, site_id,\n       encode(as_of_commit, 'hex')      AS as_of_commit\n  FROM mainline.clause_blame_current\n WHERE clause_uuid = %s AND as_of_commit = decode(%s, 'hex')",
+    "pg_catalog.pg_constraint": "SELECT pg_get_constraintdef(con.oid) AS predicate\n  FROM pg_catalog.pg_constraint con\n  JOIN pg_catalog.pg_class      rel ON rel.oid = con.conrelid\n  JOIN pg_catalog.pg_namespace  nsp ON nsp.oid = rel.relnamespace\n WHERE nsp.nspname = 'mainline'\n   AND rel.relname = 'clause_blame_closure'\n   AND con.conname = 'ancestor_count_within_cap'",
+    "mainline.event": null,
+    "mainline.control_failure": null,
+    "mainline.event_edge": null,
+    "mainline.blame_edge": null,
+    "mainline.clause_version": null,
+    "mainline.commit_obj": null,
+    "mainline.ledger_checkpoint": null,
+    "mainline_meas.recall_run": "SELECT run_id, permit_id, site_id,\n       encode(corpus_commit, 'hex')         AS corpus_commit,\n       policy_version,\n       encode(index_plan_digest, 'hex')     AS index_plan_digest,\n       index_generation,\n       n_candidates, n_blocking, n_advisory, n_silenced, n_deduped,\n       n_bonded_sev5, n_bonded_sev5_blocking,\n       arms_degraded, started_at, latency_ms\n  FROM mainline_meas.recall_run\n WHERE run_id = %s",
+    "mainline.exposure_receipt": null,
+    "mainline.exposure_line": null,
+    "mainline.receipt_expiry": null,
+    "mainline.blocking_check": null,
+    "mainline.disposition": "SELECT d.disposition_id FROM mainline.disposition d WHERE d.check_id = bc.check_id AND d.retracted_by IS NULL ORDER BY d.signed_at DESC LIMIT 1",
+    "mainline.permit": null,
+    "mainline.site": null,
+    "mainline.boundary_certificate": null,
+    "mainline.merge_record": null
+  },
+  "loop": [
+    {
+      "word": "STORE",
+      "claim": "the incident this world was taught, by the reference an investigator would quote",
+      "table_column": "mainline.event.external_ref",
+      "relation": "mainline.event",
+      "column": "external_ref",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/events/0/external_ref",
+      "value": "DEMO-INC-0001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.event.occurred_at",
+        "pointer": "/data/events/0/occurred_at",
+        "value": "2019-03-14T06:20:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "word": "STORE",
+      "claim": "when it happened — outside any garbage-collection window on any tier, deliberately",
+      "table_column": "mainline.event.occurred_at",
+      "relation": "mainline.event",
+      "column": "occurred_at",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/events/0/occurred_at",
+      "value": "2019-03-14T06:20:00Z",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.event.occurred_at",
+        "pointer": "/data/events/0/occurred_at",
+        "value": "2019-03-14T06:20:00Z",
+        "is_the_value_itself": true
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "word": "STORE",
+      "claim": "how badly it went, and on whose authority (severity_basis, next row)",
+      "table_column": "mainline.event.severity_gate",
+      "relation": "mainline.event",
+      "column": "severity_gate",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/events/0/severity_gate",
+      "value": 4,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.event.occurred_at",
+        "pointer": "/data/events/0/occurred_at",
+        "value": "2019-03-14T06:20:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool",
+      "written_by": {
+        "written_by": "the seed, and the row says so",
+        "stated_in_the_response_at": "/data/events/0/severity_basis",
+        "value": "human_rated",
+        "projected": false
+      }
+    },
+    {
+      "word": "STORE",
+      "claim": "the basis of that severity, stated as a column rather than assumed",
+      "table_column": "mainline.event.severity_basis",
+      "relation": "mainline.event",
+      "column": "severity_basis",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/events/0/severity_basis",
+      "value": "human_rated",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.event.occurred_at",
+        "pointer": "/data/events/0/occurred_at",
+        "value": "2019-03-14T06:20:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "word": "STORE",
+      "claim": "THE EDGE — one end of it is the incident",
+      "table_column": "mainline.blame_edge.event_id",
+      "relation": "mainline.blame_edge",
+      "column": "event_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/blame_edges/0/event_id",
+      "value": "dec0de00-0005-4000-8000-000000000001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.event.occurred_at",
+        "pointer": "/data/events/0/occurred_at",
+        "value": "2019-03-14T06:20:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "word": "STORE",
+      "claim": "the other end is the clause the permit relies on: this is what was stored",
+      "table_column": "mainline.blame_edge.clause_uuid",
+      "relation": "mainline.blame_edge",
+      "column": "clause_uuid",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/blame_edges/0/clause_uuid",
+      "value": "dec0de00-0004-4000-8000-000000000001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.event.occurred_at",
+        "pointer": "/data/events/0/occurred_at",
+        "value": "2019-03-14T06:20:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "word": "STORE",
+      "claim": "and it names the clause VERSION, not the clause — a commit, so the memory cannot slide",
+      "table_column": "mainline.blame_edge.commit_id",
+      "relation": "mainline.blame_edge",
+      "column": "commit_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/blame_edges/0/commit_id",
+      "value": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.commit_obj.committed_at",
+        "pointer": "/data/commit_chain/0/committed_at",
+        "value": "2026-01-08T00:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "word": "STORE",
+      "claim": "the ancestry projected into a closure the gate can read in one lookup",
+      "table_column": "mainline.clause_blame_current.max_severity",
+      "relation": "mainline.clause_blame_current",
+      "column": "max_severity",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/closure/max_severity",
+      "value": 4,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.clause_blame_current.computed_at",
+        "pointer": "/data/closure/computed_at",
+        "value": "2026-08-10T02:57:43.852434Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "view",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool",
+      "written_by": {
+        "written_by": "verticals/mainline/db/seeds/demo/demo_world.sql",
+        "projector_ver": "demo-1",
+        "stated_in_the_response_at": [
+          "/data/closure/computed_by",
+          "/data/closure/projector_ver"
+        ],
+        "projected": false,
+        "note": "this is the ancestry fact the projector READS FROM; it is not the value the projector wrote"
+      }
+    },
+    {
+      "word": "STORE",
+      "claim": "the band that severity falls in, stored beside it",
+      "table_column": "mainline.clause_blame_current.virulence",
+      "relation": "mainline.clause_blame_current",
+      "column": "virulence",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/closure/virulence",
+      "value": "blood_major",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.clause_blame_current.computed_at",
+        "pointer": "/data/closure/computed_at",
+        "value": "2026-08-10T02:57:43.852434Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "view",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": true,
+        "select_expression": "virulence::text"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool",
+      "written_by": {
+        "written_by": "verticals/mainline/db/seeds/demo/demo_world.sql",
+        "projector_ver": "demo-1",
+        "stated_in_the_response_at": [
+          "/data/closure/computed_by",
+          "/data/closure/projector_ver"
+        ],
+        "projected": false,
+        "note": "this is the ancestry fact the projector READS FROM; it is not the value the projector wrote"
+      }
+    },
+    {
+      "word": "STORE",
+      "claim": "how many events reach this clause version — one, and it is the 2019 one",
+      "table_column": "mainline.clause_blame_current.ancestor_count",
+      "relation": "mainline.clause_blame_current",
+      "column": "ancestor_count",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/closure/ancestor_count",
+      "value": 1,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.clause_blame_current.computed_at",
+        "pointer": "/data/closure/computed_at",
+        "value": "2026-08-10T02:57:43.852434Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "view",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "THE MOMENT THE MEMORY WAS READ BACK — a column, and the left edge of the gap",
+      "table_column": "mainline_meas.recall_run.started_at",
+      "relation": "mainline_meas.recall_run",
+      "column": "started_at",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/started_at",
+      "value": "2026-08-02T03:00:00Z",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": true
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "how many memories the pass surfaced",
+      "table_column": "mainline_meas.recall_run.n_candidates",
+      "relation": "mainline_meas.recall_run",
+      "column": "n_candidates",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/counts/n_candidates",
+      "value": 1,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "how many of them block — the retrieval decided this, not a human",
+      "table_column": "mainline_meas.recall_run.n_blocking",
+      "relation": "mainline_meas.recall_run",
+      "column": "n_blocking",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/counts/n_blocking",
+      "value": 1,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "how many were suppressed: none, so nothing was hidden from the signer",
+      "table_column": "mainline_meas.recall_run.n_silenced",
+      "relation": "mainline_meas.recall_run",
+      "column": "n_silenced",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/counts/n_silenced",
+      "value": 0,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "under which retrieval policy — an anchored one, or the row could not exist",
+      "table_column": "mainline_meas.recall_run.policy_version",
+      "relation": "mainline_meas.recall_run",
+      "column": "policy_version",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/policy_version",
+      "value": "demo-recall-1.0",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "against which generation of the index",
+      "table_column": "mainline_meas.recall_run.index_generation",
+      "relation": "mainline_meas.recall_run",
+      "column": "index_generation",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/index_generation",
+      "value": "g1",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "and the digest of the plan it ran, so the retrieval is reproducible rather than recalled",
+      "table_column": "mainline_meas.recall_run.index_plan_digest",
+      "relation": "mainline_meas.recall_run",
+      "column": "index_plan_digest",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/index_plan_digest",
+      "value": "d98e50a8f7f84354b022ed0a86de9c8f49fbdf37f1fe6641012af3b63171439b",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": true,
+        "select_expression": ", 'hex')"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "over which corpus commit — the same commit the blame edge above names",
+      "table_column": "mainline_meas.recall_run.corpus_commit",
+      "relation": "mainline_meas.recall_run",
+      "column": "corpus_commit",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/corpus_commit",
+      "value": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": true,
+        "select_expression": ", 'hex')"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "SHOWN TO",
+      "claim": "WHO WAS SHOWN IT — a memory nobody was shown cannot bind anybody",
+      "table_column": "mainline.exposure_receipt.actor_sub",
+      "relation": "mainline.exposure_receipt",
+      "column": "actor_sub",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/actor_sub",
+      "value": "demo.signer",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.exposure_receipt.issued_at",
+        "pointer": "/data/issued_at",
+        "value": "2026-08-02T03:05:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.823955Z",
+      "read_at": "2026-08-15T14:18:18.890807Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "SHOWN TO",
+      "claim": "when they were shown it",
+      "table_column": "mainline.exposure_receipt.issued_at",
+      "relation": "mainline.exposure_receipt",
+      "column": "issued_at",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/issued_at",
+      "value": "2026-08-02T03:05:00Z",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.exposure_receipt.issued_at",
+        "pointer": "/data/issued_at",
+        "value": "2026-08-02T03:05:00Z",
+        "is_the_value_itself": true
+      },
+      "observed_at": "2026-08-15T14:18:19.823955Z",
+      "read_at": "2026-08-15T14:18:18.890807Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "SHOWN TO",
+      "claim": "the digest of what they were shown, so 'I was never told' is a checkable claim",
+      "table_column": "mainline.exposure_receipt.receipt_digest",
+      "relation": "mainline.exposure_receipt",
+      "column": "receipt_digest",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/receipt_digest",
+      "value": "993c00c3f3c34a2bbf2bfd7646af7b5a51c594aa06f75fb6ce08cf4b5dd7af46",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.exposure_receipt.issued_at",
+        "pointer": "/data/issued_at",
+        "value": "2026-08-02T03:05:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.823955Z",
+      "read_at": "2026-08-15T14:18:18.890807Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "SHOWN TO",
+      "claim": "under the same retrieval policy the run above ran under",
+      "table_column": "mainline.exposure_receipt.policy_version",
+      "relation": "mainline.exposure_receipt",
+      "column": "policy_version",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/policy_version",
+      "value": "demo-recall-1.0",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.exposure_receipt.issued_at",
+        "pointer": "/data/issued_at",
+        "value": "2026-08-02T03:05:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.823955Z",
+      "read_at": "2026-08-15T14:18:18.890807Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "SHOWN TO",
+      "claim": "and the line names the obligation itself — the receipt is about THIS memory",
+      "table_column": "mainline.exposure_line.check_id",
+      "relation": "mainline.exposure_line",
+      "column": "check_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/lines/0/check_id",
+      "value": "dec0de00-0007-4000-8000-000000000001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.exposure_receipt.issued_at",
+        "pointer": "/data/issued_at",
+        "value": "2026-08-02T03:05:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.823955Z",
+      "read_at": "2026-08-15T14:18:18.890807Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "SHOWN TO",
+      "claim": "digested per line, not per receipt",
+      "table_column": "mainline.exposure_line.payload_digest",
+      "relation": "mainline.exposure_line",
+      "column": "payload_digest",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/lines/0/payload_digest",
+      "value": "d48e0eb951b8e97d09870808c023fa4f1b4cef31aa901d5046a713fc1af0c55b",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.exposure_receipt.issued_at",
+        "pointer": "/data/issued_at",
+        "value": "2026-08-02T03:05:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.823955Z",
+      "read_at": "2026-08-15T14:18:18.890807Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "THE MOMENT THE MEMORY BECAME AN OBLIGATION — the right edge of the gap",
+      "table_column": "mainline.blocking_check.materialised_at",
+      "relation": "mainline.blocking_check",
+      "column": "materialised_at",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/materialised_at",
+      "value": "2026-08-02T03:00:10Z",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": true
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "why it exists: blame ancestry — the obligation cites the memory as its cause",
+      "table_column": "mainline.blocking_check.origin",
+      "relation": "mainline.blocking_check",
+      "column": "origin",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/origin",
+      "value": "blame_ancestry",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "and names the 2019 incident by id, on the obligation row itself",
+      "table_column": "mainline.blocking_check.precursor_event_id",
+      "relation": "mainline.blocking_check",
+      "column": "precursor_event_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/precursor_event_id",
+      "value": "dec0de00-0005-4000-8000-000000000001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "and the retrieval that found it, so ACT points back at RETRIEVE by foreign key",
+      "table_column": "mainline.blocking_check.recall_run_id",
+      "relation": "mainline.blocking_check",
+      "column": "recall_run_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/recall_run_id",
+      "value": "dec0de00-0009-4000-8000-000000000001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "the severity the obligation carries — PROJECTED onto it, never typed (R9)",
+      "table_column": "mainline.blocking_check.severity",
+      "relation": "mainline.blocking_check",
+      "column": "severity",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/severity",
+      "value": 4,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool",
+      "written_by": {
+        "written_by": "mainline.fn_check_project",
+        "invariant": "MI25",
+        "weld": "0120_trg_check_project.sql (BEFORE INSERT, FOR EACH ROW)",
+        "projected": true,
+        "the_seed_supplied_instead": {
+          "read": true,
+          "severity": 0,
+          "virulence": "routine",
+          "closure_gen": 0,
+          "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+          "line": 318
+        },
+        "citations": [
+          {
+            "what": "the weld that makes MI25 a property of the database",
+            "file": "verticals/mainline/db/migrations/0120_trg_check_project.sql",
+            "needle": "MI: MI25",
+            "found": true,
+            "line": 7,
+            "text": "-- MI: MI25"
+          },
+          {
+            "what": "what the seed supplies for the permit's obligation",
+            "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+            "needle": "projected over by fn_check_project (MI25)",
+            "found": true,
+            "line": 318,
+            "text": "  0, 'routine', 0,                       -- projected over by fn_check_project (MI25)"
+          },
+          {
+            "what": "the ruling, in the deployment's own database document",
+            "file": "docs/deploy/cloud-database.md",
+            "needle": "overwritten by `fn_check_project`",
+            "found": true,
+            "line": 808,
+            "text": "overwritten by `fn_check_project` from `mainline.clause_blame_current` (invariant MI25). The"
+          }
+        ],
+        "sentence": "nobody typed the four: the seed wrote what the citations show, and the projection under MI25 overwrote it before the row landed"
+      }
+    },
+    {
+      "word": "ACT",
+      "claim": "and the band, projected by the same trigger under the same invariant",
+      "table_column": "mainline.blocking_check.virulence",
+      "relation": "mainline.blocking_check",
+      "column": "virulence",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/virulence",
+      "value": "blood_major",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool",
+      "written_by": {
+        "written_by": "mainline.fn_check_project",
+        "invariant": "MI25",
+        "weld": "0120_trg_check_project.sql (BEFORE INSERT, FOR EACH ROW)",
+        "projected": true,
+        "the_seed_supplied_instead": {
+          "read": true,
+          "severity": 0,
+          "virulence": "routine",
+          "closure_gen": 0,
+          "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+          "line": 318
+        },
+        "citations": [
+          {
+            "what": "the weld that makes MI25 a property of the database",
+            "file": "verticals/mainline/db/migrations/0120_trg_check_project.sql",
+            "needle": "MI: MI25",
+            "found": true,
+            "line": 7,
+            "text": "-- MI: MI25"
+          },
+          {
+            "what": "what the seed supplies for the permit's obligation",
+            "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+            "needle": "projected over by fn_check_project (MI25)",
+            "found": true,
+            "line": 318,
+            "text": "  0, 'routine', 0,                       -- projected over by fn_check_project (MI25)"
+          },
+          {
+            "what": "the ruling, in the deployment's own database document",
+            "file": "docs/deploy/cloud-database.md",
+            "needle": "overwritten by `fn_check_project`",
+            "found": true,
+            "line": 808,
+            "text": "overwritten by `fn_check_project` from `mainline.clause_blame_current` (invariant MI25). The"
+          }
+        ],
+        "sentence": "nobody typed the four: the seed wrote what the citations show, and the projection under MI25 overwrote it before the row landed"
+      }
+    },
+    {
+      "word": "ACT",
+      "claim": "still open: the reader's lookup for a non-retracted disposition comes back null",
+      "table_column": "mainline.disposition.disposition_id",
+      "relation": "mainline.disposition",
+      "column": "disposition_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/disposition_id",
+      "value": null,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "derived",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "THE COUNTER THE MEMORY DROVE — one open obligation on this subject",
+      "table_column": "mainline.permit.open_blocking",
+      "relation": "mainline.permit",
+      "column": "open_blocking",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/counters/open_blocking",
+      "value": 1,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.permit.opened_at",
+        "pointer": "/data/opened_at",
+        "value": "2026-08-02T00:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:21.295450Z",
+      "read_at": "2026-08-15T14:18:20.459558Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "and the epoch the same trigger bumped, pinning the subject to a new (id, epoch) pair",
+      "table_column": "mainline.permit.gate_epoch",
+      "relation": "mainline.permit",
+      "column": "gate_epoch",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/gate_epoch",
+      "value": 1,
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.permit.opened_at",
+        "pointer": "/data/opened_at",
+        "value": "2026-08-02T00:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:21.295450Z",
+      "read_at": "2026-08-15T14:18:20.459558Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "while the client's own claim is that every obligation is disposed of. It is not.",
+      "table_column": "mainline.permit.state",
+      "relation": "mainline.permit",
+      "column": "state",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/state",
+      "value": "dispositioned",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.permit.opened_at",
+        "pointer": "/data/opened_at",
+        "value": "2026-08-02T00:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:21.295450Z",
+      "read_at": "2026-08-15T14:18:20.459558Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "THE CHECK THE MEMORY ARMED — named by the catalogue, not by us",
+      "table_column": "pg_catalog.pg_constraint.conname",
+      "relation": "pg_catalog.pg_constraint",
+      "column": "conname",
+      "column_kind": "column",
+      "column_name_source": "the envelope renamed it; the relation's real name is recorded here",
+      "route": "GET /v1/permits/{permit_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/constraints/2/constraint",
+      "value": "gate_closed_when_issued",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.permit.opened_at",
+        "pointer": "/data/opened_at",
+        "value": "2026-08-02T00:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:21.295450Z",
+      "read_at": "2026-08-15T14:18:20.459558Z",
+      "provenance_chip": "db:constraint",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "view",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "and its predicate, verbatim: this is the sentence the database refuses on",
+      "table_column": "pg_catalog.pg_constraint.pg_get_constraintdef(oid)",
+      "relation": "pg_catalog.pg_constraint",
+      "column": "pg_get_constraintdef(oid)",
+      "column_kind": "catalogue_expression",
+      "column_name_source": "the envelope renamed it; the relation's real name is recorded here",
+      "route": "GET /v1/permits/{permit_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/constraints/2/predicate",
+      "value": "CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.permit.opened_at",
+        "pointer": "/data/opened_at",
+        "value": "2026-08-02T00:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:21.295450Z",
+      "read_at": "2026-08-15T14:18:20.459558Z",
+      "provenance_chip": "db:constraint",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "view",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": false,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "the commit the obligation cites",
+      "table_column": "mainline.blocking_check.commit_id",
+      "relation": "mainline.blocking_check",
+      "column": "commit_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/commit_id",
+      "value": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "word": "ACT",
+      "claim": "the obligation's own identity",
+      "table_column": "mainline.blocking_check.check_id",
+      "relation": "mainline.blocking_check",
+      "column": "check_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "http_status": 200,
+      "pointer": "/data/checks/0/check_id",
+      "value": "dec0de00-0007-4000-8000-000000000001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.blocking_check.materialised_at",
+        "pointer": "/data/checks/0/materialised_at",
+        "value": "2026-08-02T03:00:10Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:20.542740Z",
+      "read_at": "2026-08-15T14:18:19.615861Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": false,
+        "why": "the response published no SQL text for this relation"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+    },
+    {
+      "word": "RETRIEVE",
+      "claim": "the run's own identity",
+      "table_column": "mainline_meas.recall_run.run_id",
+      "relation": "mainline_meas.recall_run",
+      "column": "run_id",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "http_status": 200,
+      "pointer": "/data/run_id",
+      "value": "dec0de00-0009-4000-8000-000000000001",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline_meas.recall_run.started_at",
+        "pointer": "/data/started_at",
+        "value": "2026-08-02T03:00:00Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:19.135605Z",
+      "read_at": "2026-08-15T14:18:18.194004Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "table",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": false
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+    },
+    {
+      "word": "STORE",
+      "claim": "the commit the ancestry is as-of",
+      "table_column": "mainline.clause_blame_current.as_of_commit",
+      "relation": "mainline.clause_blame_current",
+      "column": "as_of_commit",
+      "column_kind": "column",
+      "column_name_source": "the response's own key at this pointer",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "http_status": 200,
+      "pointer": "/data/as_of_commit",
+      "value": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "value_present": true,
+      "timestamp": {
+        "table_column": "mainline.clause_blame_current.computed_at",
+        "pointer": "/data/closure/computed_at",
+        "value": "2026-08-10T02:57:43.852434Z",
+        "is_the_value_itself": false
+      },
+      "observed_at": "2026-08-15T14:18:18.272541Z",
+      "read_at": "2026-08-15T14:18:17.504592Z",
+      "provenance_chip": "db:column",
+      "relation_confirmed_by_statement_refs": true,
+      "statement_ref_kind": "view",
+      "column_named_in_published_sql": {
+        "checked": true,
+        "named": true,
+        "is_alias": true,
+        "select_expression": ", 'hex')"
+      },
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+    }
+  ],
+  "cross_response_identities": [
+    {
+      "id": "store_names_the_clause_version_the_obligation_cites",
+      "claim": "the blame edge's commit is the commit on the obligation",
+      "holds": true,
+      "observed": "mainline.blame_edge.commit_id='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39' vs mainline.blocking_check.commit_id='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39'"
+    },
+    {
+      "id": "store_is_the_precursor_the_obligation_names",
+      "claim": "the blame edge's event is the obligation's precursor",
+      "holds": true,
+      "observed": "mainline.blame_edge.event_id='dec0de00-0005-4000-8000-000000000001' vs mainline.blocking_check.precursor_event_id='dec0de00-0005-4000-8000-000000000001'"
+    },
+    {
+      "id": "act_points_back_at_retrieve",
+      "claim": "the obligation names the recall run that found the memory",
+      "holds": true,
+      "observed": "mainline_meas.recall_run.run_id='dec0de00-0009-4000-8000-000000000001' vs mainline.blocking_check.recall_run_id='dec0de00-0009-4000-8000-000000000001'"
+    },
+    {
+      "id": "shown_to_is_about_this_obligation",
+      "claim": "the receipt line names the obligation",
+      "holds": true,
+      "observed": "mainline.exposure_line.check_id='dec0de00-0007-4000-8000-000000000001' vs mainline.blocking_check.check_id='dec0de00-0007-4000-8000-000000000001'"
+    },
+    {
+      "id": "retrieve_and_shown_to_share_the_policy",
+      "claim": "the receipt was issued under the policy the run ran under",
+      "holds": true,
+      "observed": "mainline_meas.recall_run.policy_version='demo-recall-1.0' vs mainline.exposure_receipt.policy_version='demo-recall-1.0'"
+    },
+    {
+      "id": "retrieve_ran_over_the_clause_version_store_wrote",
+      "claim": "the run's corpus commit is the commit the ancestry is as-of",
+      "holds": true,
+      "observed": "mainline_meas.recall_run.corpus_commit='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39' vs mainline.clause_blame_current.as_of_commit='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39'"
+    },
+    {
+      "id": "the_projection_took_the_ancestry_severity",
+      "claim": "the obligation's severity is the closure's, not the one the seed supplied",
+      "holds": true,
+      "observed": "mainline.clause_blame_current.max_severity=4 vs mainline.blocking_check.severity=4"
+    },
+    {
+      "id": "the_projection_took_the_ancestry_band",
+      "claim": "the obligation's virulence is the closure's",
+      "holds": true,
+      "observed": "mainline.clause_blame_current.virulence='blood_major' vs mainline.blocking_check.virulence='blood_major'"
+    }
+  ],
+  "gap": {
+    "claim": "the gap between RETRIEVE and ACT is a subtraction of two columns",
+    "from": {
+      "word": "RETRIEVE",
+      "table_column": "mainline_meas.recall_run.started_at",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "pointer": "/data/started_at",
+      "value": "2026-08-02T03:00:00Z"
+    },
+    "to": {
+      "word": "ACT",
+      "table_column": "mainline.blocking_check.materialised_at",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "pointer": "/data/checks/0/materialised_at",
+      "value": "2026-08-02T03:00:10Z"
+    },
+    "computed_here": true,
+    "stated_anywhere_in_this_program": false,
+    "seconds": 10.0,
+    "how": "datetime(materialised_at) - datetime(started_at), both ISO-8601 off the wire",
+    "corroboration": {
+      "why": "the running database and the checked-in seed are two independent artefacts",
+      "retrieve": {
+        "served_by_the_deployment": "2026-08-02T03:00:00Z",
+        "sought_in_the_seed": "2026-08-02 03:00:00+00",
+        "status": "AGREES",
+        "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+        "line": 250,
+        "text": "TIMESTAMPTZ '2026-08-02 03:00:00+00'"
+      },
+      "act": {
+        "served_by_the_deployment": "2026-08-02T03:00:10Z",
+        "sought_in_the_seed": "2026-08-02 03:00:10+00",
+        "status": "AGREES",
+        "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+        "line": 321,
+        "text": "TIMESTAMPTZ '2026-08-02 03:00:10+00'"
+      }
+    }
+  },
+  "projection": {
+    "ruling": "R9",
+    "projector": "mainline.fn_check_project",
+    "invariant": "MI25",
+    "weld": "0120_trg_check_project.sql (BEFORE INSERT, FOR EACH ROW)",
+    "supplied_by_the_seed": {
+      "read": true,
+      "severity": 0,
+      "virulence": "routine",
+      "closure_gen": 0,
+      "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+      "line": 318
+    },
+    "citations": [
+      {
+        "what": "the weld that makes MI25 a property of the database",
+        "file": "verticals/mainline/db/migrations/0120_trg_check_project.sql",
+        "needle": "MI: MI25",
+        "found": true,
+        "line": 7,
+        "text": "-- MI: MI25"
+      },
+      {
+        "what": "what the seed supplies for the permit's obligation",
+        "file": "verticals/mainline/db/seeds/demo/demo_permit.sql",
+        "needle": "projected over by fn_check_project (MI25)",
+        "found": true,
+        "line": 318,
+        "text": "  0, 'routine', 0,                       -- projected over by fn_check_project (MI25)"
+      },
+      {
+        "what": "the ruling, in the deployment's own database document",
+        "file": "docs/deploy/cloud-database.md",
+        "needle": "overwritten by `fn_check_project`",
+        "found": true,
+        "line": 808,
+        "text": "overwritten by `fn_check_project` from `mainline.clause_blame_current` (invariant MI25). The"
+      }
+    ],
+    "sentence": "a 4 with no provenance is a number somebody could have typed; every 4 in this artefact carries the thing that wrote it"
+  },
+  "self_audit": {
+    "claim": "no value in this artefact originates in scripts/proof/memory_loop.py",
+    "source": "D:/CoackroachDBxAWS/mainline/scripts/proof/memory_loop.py",
+    "source_sha256": "dc1935a6530ea57a8d40575221a301e24b9e2b93887eba71a7599654820195a8",
+    "source_bytes": 66153,
+    "uuid_literals_in_the_source": 0,
+    "values_audited": 79,
+    "values_found_in_the_source": [],
+    "scope": "every measured value: the loop's values and timestamps, the subjects, and the deployment identity. The ADDRESSES — route templates, RFC 6901 pointers and relation names — are this program's contribution and are named as such; the relation names are confirmed against each response's own statement_refs.",
+    "short_value_exemption": {
+      "min_audited_length": 5,
+      "why": "a value of one to four characters occurs in any source file by coincidence",
+      "boundary_rule": "a match flanked by identifier characters is not an occurrence of the value: the database's name is a prefix of the package that serves it",
+      "instead": "each carries the deployment's own provenance chip, listed in its row",
+      "exempted": [
+        {
+          "pointer": "/loop/2/value",
+          "value": 4
+        },
+        {
+          "pointer": "/loop/7/value",
+          "value": 4
+        },
+        {
+          "pointer": "/loop/9/value",
+          "value": 1
+        },
+        {
+          "pointer": "/loop/11/value",
+          "value": 1
+        },
+        {
+          "pointer": "/loop/12/value",
+          "value": 1
+        },
+        {
+          "pointer": "/loop/13/value",
+          "value": 0
+        },
+        {
+          "pointer": "/loop/15/value",
+          "value": "g1"
+        },
+        {
+          "pointer": "/loop/28/value",
+          "value": 4
+        },
+        {
+          "pointer": "/loop/31/value",
+          "value": 1
+        },
+        {
+          "pointer": "/loop/32/value",
+          "value": 1
+        },
+        {
+          "pointer": "/deployment/deploy_chain_applied",
+          "value": 271
+        },
+        {
+          "pointer": "/deployment/deploy_chain_files",
+          "value": 271
+        },
+        {
+          "pointer": "/deployment/migrations_applied",
+          "value": 0
+        },
+        {
+          "pointer": "/deployment/ok",
+          "value": true
+        }
+      ]
+    }
+  },
+  "year_scan": {
+    "ruling": "R8",
+    "superseded_year_occurrences": 0,
+    "incident_date_occurrences": 8,
+    "digests_masked_before_scanning": 20,
+    "why_masked": "a sha256 may legitimately contain any four digits, and a check that fires on one teaches its reader to ignore it"
+  },
+  "assertions": [
+    {
+      "id": "every_route_answered_200",
+      "claim": "each of the reads this loop is drawn from answered 200",
+      "holds": true,
+      "observed": "ancestry=200, recall_run=200, receipt=200, blocking_checks=200, permit=200"
+    },
+    {
+      "id": "every_row_carried_a_value",
+      "claim": "no row's pointer missed in the body it addressed",
+      "holds": true,
+      "observed": "40/40"
+    },
+    {
+      "id": "every_relation_was_confirmed_by_the_response",
+      "claim": "each row's relation appears in the statement_refs of the response that carried it",
+      "holds": true,
+      "observed": "40/40"
+    },
+    {
+      "id": "store_names_the_clause_version_the_obligation_cites",
+      "claim": "the blame edge's commit is the commit on the obligation",
+      "holds": true,
+      "observed": "mainline.blame_edge.commit_id='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39' vs mainline.blocking_check.commit_id='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39'"
+    },
+    {
+      "id": "store_is_the_precursor_the_obligation_names",
+      "claim": "the blame edge's event is the obligation's precursor",
+      "holds": true,
+      "observed": "mainline.blame_edge.event_id='dec0de00-0005-4000-8000-000000000001' vs mainline.blocking_check.precursor_event_id='dec0de00-0005-4000-8000-000000000001'"
+    },
+    {
+      "id": "act_points_back_at_retrieve",
+      "claim": "the obligation names the recall run that found the memory",
+      "holds": true,
+      "observed": "mainline_meas.recall_run.run_id='dec0de00-0009-4000-8000-000000000001' vs mainline.blocking_check.recall_run_id='dec0de00-0009-4000-8000-000000000001'"
+    },
+    {
+      "id": "shown_to_is_about_this_obligation",
+      "claim": "the receipt line names the obligation",
+      "holds": true,
+      "observed": "mainline.exposure_line.check_id='dec0de00-0007-4000-8000-000000000001' vs mainline.blocking_check.check_id='dec0de00-0007-4000-8000-000000000001'"
+    },
+    {
+      "id": "retrieve_and_shown_to_share_the_policy",
+      "claim": "the receipt was issued under the policy the run ran under",
+      "holds": true,
+      "observed": "mainline_meas.recall_run.policy_version='demo-recall-1.0' vs mainline.exposure_receipt.policy_version='demo-recall-1.0'"
+    },
+    {
+      "id": "retrieve_ran_over_the_clause_version_store_wrote",
+      "claim": "the run's corpus commit is the commit the ancestry is as-of",
+      "holds": true,
+      "observed": "mainline_meas.recall_run.corpus_commit='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39' vs mainline.clause_blame_current.as_of_commit='9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39'"
+    },
+    {
+      "id": "the_projection_took_the_ancestry_severity",
+      "claim": "the obligation's severity is the closure's, not the one the seed supplied",
+      "holds": true,
+      "observed": "mainline.clause_blame_current.max_severity=4 vs mainline.blocking_check.severity=4"
+    },
+    {
+      "id": "the_projection_took_the_ancestry_band",
+      "claim": "the obligation's virulence is the closure's",
+      "holds": true,
+      "observed": "mainline.clause_blame_current.virulence='blood_major' vs mainline.blocking_check.virulence='blood_major'"
+    },
+    {
+      "id": "retrieve_precedes_act",
+      "claim": "the memory was read back before it became an obligation",
+      "holds": true,
+      "observed": "gap=10.0s"
+    },
+    {
+      "id": "the_gap_is_corroborated_by_the_seed",
+      "claim": "both instants the deployment served are written in a seed in this repository",
+      "holds": true,
+      "observed": "retrieve=AGREES act=AGREES"
+    },
+    {
+      "id": "the_seed_line_was_read",
+      "claim": "the values the seed supplies for the obligation were read off disk, not assumed",
+      "holds": true,
+      "observed": "{\"read\": true, \"severity\": 0, \"virulence\": \"routine\", \"closure_gen\": 0, \"file\": \"verticals/mainline/db/seeds/demo/demo_permit.sql\", \"line\": 318}"
+    },
+    {
+      "id": "severity_was_projected_not_typed",
+      "claim": "the severity on the obligation is not the severity the seed supplied",
+      "holds": true,
+      "observed": "wire=4 seed=0"
+    },
+    {
+      "id": "virulence_was_projected_not_typed",
+      "claim": "the band on the obligation is not the band the seed supplied",
+      "holds": true,
+      "observed": "wire='blood_major' seed='routine'"
+    },
+    {
+      "id": "the_counter_equals_the_open_obligations",
+      "claim": "the counter the CHECK reads agrees with the obligations that are actually open",
+      "holds": true,
+      "observed": "open_blocking=1 open_obligations=1"
+    },
+    {
+      "id": "the_check_reads_that_counter_and_demands_zero",
+      "claim": "the predicate the catalogue returned demands the counter be zero to merge",
+      "holds": true,
+      "observed": "\"CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))\""
+    },
+    {
+      "id": "the_counter_is_not_zero",
+      "claim": "so the subject cannot be merged while the memory stands",
+      "holds": true,
+      "observed": "open_blocking=1"
+    },
+    {
+      "id": "the_incident_is_the_2019_one",
+      "claim": "R8: the precursor occurred on 2019-03-14 and nothing was rewritten",
+      "holds": true,
+      "observed": "'2019-03-14T06:20:00Z'"
+    },
+    {
+      "id": "no_measured_value_originates_in_this_source",
+      "claim": "no value in this artefact originates in scripts/proof/memory_loop.py",
+      "holds": true,
+      "observed": "hits=0 uuids=0"
+    },
+    {
+      "id": "the_superseded_year_is_absent",
+      "claim": "R8: the year this repository's rulings name as wrong appears nowhere",
+      "holds": true,
+      "observed": "occurrences=0"
+    },
+    {
+      "id": "the_incident_date_is_present",
+      "claim": "and the date that is right appears on the artefact's face",
+      "holds": true,
+      "observed": "occurrences=8"
+    }
+  ],
+  "assertions_total": 23,
+  "assertions_held": 23,
+  "assertions_failed": [],
+  "verdict": "PROVEN"
+}

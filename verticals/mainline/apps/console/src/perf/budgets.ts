@@ -6,19 +6,20 @@
  *
  * > *"Sub-second on a mine-site laptop" is a number or it is marketing.*
  *
- * Five budgets. Two are byte counts and are enforced after the build by
+ * Six budgets. Three are byte counts and are enforced after the build by
  * `scripts/check-budgets.ts` over the real Vite manifest; three are durations measured in
- * a running browser. This file is the register of all five, so that the console can state
+ * a running browser. This file is the register of all six, so that the console can state
  * its own performance contract in one place and so that no number appears twice with two
  * values.
  *
- * ── THE TWO BYTE BUDGETS ARE MIRRORED, NOT DUPLICATED ────────────────────────────
+ * ── THE THREE BYTE BUDGETS ARE MIRRORED, NOT DUPLICATED ──────────────────────────
  *
  * `budgets.json` is authoritative for them — it is what the build gate reads, and it
  * belongs to the `console-foundation` worker. The entries here carry the same numbers and
- * `tests/unit/perf/budgets.test.ts` asserts the two files agree byte for byte. If they
- * ever disagree, that test fails rather than one of them silently winning; a performance
- * contract with two answers is a performance contract with none.
+ * `tests/unit/perf/budgets.test.ts` asserts the two files agree byte for byte, INCLUDING the
+ * set of ids. If they ever disagree, that test fails rather than one of them silently winning;
+ * a performance contract with two answers is a performance contract with none. That is why
+ * `operator-surface` had to be added here the moment it was added there.
  *
  * ── WHY `status` EXISTS ──────────────────────────────────────────────────────────
  *
@@ -79,6 +80,21 @@ export const BUDGETS: readonly Budget[] = [
     limit: 225280,
     unit: 'bytes (gzip)',
     conditions: 'gzip of the transferred JavaScript and CSS closure, not raw bytes',
+    required: true,
+    measuredBy: 'scripts/check-budgets.ts',
+    status: 'measurable',
+  },
+  {
+    id: 'operator-surface',
+    title: 'Operator surface — operator.html’s entry chunk plus its static closure and CSS',
+    why:
+      'CONTROL OF WORK is a separate wire object served by the same static handler under the same ' +
+      'response ceiling: a body over DEFAULT_MAX_RESPONSE_BYTES comes back as a 413, and a 413 on ' +
+      'an entry chunk is a screen that never boots in front of a supervisor.',
+    kind: 'transfer-bytes',
+    limit: 139264,
+    unit: 'bytes (gzip)',
+    conditions: 'gzip of the operator entry’s static closure; the ceiling itself is per-object',
     required: true,
     measuredBy: 'scripts/check-budgets.ts',
     status: 'measurable',

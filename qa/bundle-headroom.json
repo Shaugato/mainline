@@ -1,0 +1,145 @@
+{
+  "$schema_note": "Written by worker P5 of the proof-and-polish wave (docs/demo/proof-and-polish-plan.md §2, ruling R3). It BRACKETS the wave: `before` is the console the operator screens were written against, `after` is the console they produced. Nothing here is quoted from a document; every number came out of a command run in this sitting, and each block names the command that produces it again.",
+  "worker": "P5",
+  "recorded": "2026-08-16",
+  "subject": "the wire size of the console's ENTRY CHUNK, against the response ceiling this origin refuses at",
+
+  "why_this_file_exists": [
+    "This is a per-object cliff, not a bundle-size trend. static_site.py refuses any ONE response body over DEFAULT_MAX_RESPONSE_BYTES (136 * 1024 = 139264) with a 413.",
+    "When the console's entry chunk crosses it, the origin answers 413 to its own entry JavaScript for every browser. GET / still answers 200 with the shell — 4,655 B in the archive that ships today, 4,749 B in the console this wave produced, both measured — the shell fetches its only module, receives a JSON problem document, and the reader is looking at a BLANK PAGE.",
+    "That is a total outage of the demo URL, and it arrives with no warning from production, because the shell keeps answering 200.",
+    "The second-largest served object in the `before` package is 18,263 B. There was never a bundle problem; there was an ENTRY CHUNK problem, and saying so is what let the operator screens land at all."
+  ],
+
+  "bounds": {
+    "DEFAULT_MAX_RESPONSE_BYTES": 139264,
+    "DEFAULT_MAX_RESPONSE_BYTES_source": "verticals/mainline/apps/demo-api/src/mainline_demo_api/static_site.py:323, `136 * 1024`",
+    "_MINIMUM_HEADROOM_BYTES": 1024,
+    "_MINIMUM_HEADROOM_BYTES_source": "verticals/mainline/apps/demo-api/tests/test_static_site.py:992",
+    "entry_chunk_wire_budget": 138240,
+    "entry_chunk_wire_budget_source": "verticals/mainline/apps/console/budgets.json, top-level `wire_ceiling` gate (id `entry-chunk-wire`), added by this worker",
+    "why_it_is_not_in_that_file_s_budgets_array": "src/perf/budgets.ts mirrors the `budgets` array as the console's performance contract, and tests/unit/perf/budgets.test.ts asserts the two id SETS are equal — so a fourth row there is a vitest failure until two files this worker does not own are edited (src/perf/budgets.ts and that test's `expect(BUDGETS.length).toBe(6)`). It also would not be true: the six mirrored budgets are D13 performance budgets with CPU-throttle conditions, and this number comes from what THE ORIGIN REFUSES. It is filed as its own required gate instead, read first by check-budgets.ts, whose absence is a FAILURE. No file outside this worker's ownership was edited, and `pnpm exec vitest run tests/unit/perf/budgets.test.ts` passes: 11 tests, 0 failures.",
+    "arithmetic": "138240 = 139264 - 1024. CI goes red 1,024 B before production does.",
+    "frozen": "Ruling R3: DEFAULT_MAX_RESPONSE_BYTES and _MINIMUM_HEADROOM_BYTES may not move in either direction, for any reason, by anyone in this wave. Verified unmoved after every edit this worker made — see `verification` below. The fix when a guard goes red is a smaller or split entry chunk. It is never a larger ceiling and it is never deleting the guard."
+  },
+
+  "method": {
+    "read_from": "the CENTRAL DIRECTORY of out/lambda/mainline-demo-api-arm64.zip, never console/dist — only the archive carries the `.gz` siblings the origin actually serves",
+    "the_after_measurement_is_different_and_says_so": "No archive was built in this sitting. Building one would have overwritten the deploy artefact out/lambda/mainline-demo-api-arm64.zip from a dist whose compiled buildId is `dev`, which is not what the orchestrator will deploy, and this worker does not deploy. So `after` was measured over the console tree the packer takes as INPUT, using the packer's OWN gzip function, lifted verbatim from scripts/deploy/build_lambda.sh:664-692.",
+    "why_that_is_not_a_forecast": "The function was falsified against the artefact that ships. All 69 identity objects in out/lambda/mainline-demo-api-arm64.zip were re-compressed with it and compared to the `.gz` sibling the packer wrote beside each of them: 69 of 69 are BYTE-IDENTICAL, not merely equal in length. The number `after` reports is therefore the number the archive's central directory will carry for that tree, not an estimate of it.",
+    "packer_gzip": "zlib.compressobj(9, zlib.DEFLATED, -zlib.MAX_WBITS), wrapped in a hand-written RFC 1952 container: b'\\x1f\\x8b\\x08\\x00\\x00\\x00\\x00\\x00\\x02\\xff' + deflate + crc32 LE + isize LE. 18 container bytes. No clock, no OS byte, no FNAME — which is why the same input gives the same bytes on the Windows workstation and the Linux runner.",
+    "reproduce": ".venv/Scripts/python.exe -c \"import zlib,zipfile;z=zipfile.ZipFile('out/lambda/mainline-demo-api-arm64.zip');print(max((i.file_size,i.filename) for i in z.infolist() if i.filename.startswith('web/') and i.filename.endswith('.gz')))\"",
+    "what_this_file_does_not_measure": "Objects the Vite manifest does not know about. `dist/memory.html`, `dist/memory-loop.js` and `dist/memory-verify.js` are hand-written public/ assets, so `check-budgets.ts` cannot see them; the largest of the three is 16,023 wire bytes, four figures below the ceiling, and the archive-level assertions in test_static_site.py are what cover them. Stated because a guard's blind spot is part of the guard."
+  },
+
+  "before": {
+    "what": "the console the operator screens were written against — the deployed artefact at HEAD 4af05e1",
+    "read_at": "2026-08-16, from the archive's central directory",
+    "archive": "D:/CoackroachDBxAWS/mainline/out/lambda/mainline-demo-api-arm64.zip",
+    "archive_sha256": "7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22",
+    "archive_built_from": "HEAD f0ba767, --console-transport live, MAINLINE_BUILD_ID=f0ba767, VITE_MAINLINE_API_BASE=/ (out/lambda/mainline-demo-api-arm64.zip.json, /build/command_line and /console/*)",
+    "html_entries": 1,
+    "web_entries": 138,
+    "identity_entries": 69,
+    "gz_siblings": 69,
+    "largest_served_wire_object": {
+      "path": "web/assets/index-LoN3Sn_L.js.gz",
+      "bytes": 138177,
+      "sha256": "d109fe41bfe4ada18d8e3f5fa157f56e2a19b36a9db85b6f3c56fa1df6307cda",
+      "identity_path": "web/assets/index-LoN3Sn_L.js",
+      "identity_bytes": 490950,
+      "identity_sha256": "7eb3ec715dc3113ce00acccf5156a6f55f950ba27fc68412908a3561ff0eeea6"
+    },
+    "second_largest_served_wire_object": {
+      "path": "web/assets/surface-BD2Wh4U2.js.gz",
+      "bytes": 18263
+    },
+    "headroom_bytes": 1087,
+    "headroom_percent_of_ceiling": 0.78,
+    "growth_this_wave_could_spend": 63,
+    "room_available_to_a_second_entry_or_lazy_chunk": "about 120 KB — the second-largest served object is 18,263 B, so everything except the entry chunk had four to five figures of room"
+  },
+
+  "after": {
+    "what": "the console the operator screens produced — CONTROL OF WORK landed as a SECOND HTML ENTRY (verticals/mainline/apps/console/operator.html), not inside the console's import closure",
+    "verdict": "PASS",
+    "measurements": [
+      {
+        "id": "committed-dist",
+        "what": "verticals/mainline/apps/console/dist as the operator-UI leads left it, 2026-08-15T23:56 local. Compiled buildId is `dev`: this tree is what CI measures, and it is NOT what deploys.",
+        "entry_chunk": "assets/index-Dif0ht5g.js",
+        "entry_chunk_wire_bytes": 137887,
+        "entry_chunk_wire_sha256": "9bb7b63442304eb192f363872bd8e11412ebb237a0de472a45ada84c9949ad51",
+        "entry_chunk_identity_bytes": 490200,
+        "entry_chunk_identity_sha256": "a8d61429076589ee66d9cf1172541de5eed7ff573c22903d7551fb7e776aa2b2",
+        "headroom_bytes": 1377,
+        "margin_over_the_1024_floor": 353
+      },
+      {
+        "id": "deploy-env-rehearsal",
+        "what": "the same source rebuilt in this sitting with the variables the deploy supplies — VITE_MAINLINE_API_BASE=/ and MAINLINE_BUILD_ID=4af05e1 — into a scratch outDir, because those two reach the emitted bytes and the committed dist was built without them. THIS is the row that predicts the archive.",
+        "command": "$env:VITE_MAINLINE_API_BASE='/'; $env:MAINLINE_BUILD_ID='4af05e1'; pnpm exec vite build --mode demo --outDir <scratch> --emptyOutDir   (PowerShell, never Git Bash: MSYS rewrites a bare `/` argument — docs/deploy/console-build.md §1)",
+        "entry_chunk": "assets/index-rcqxpJ3U.js",
+        "entry_chunk_wire_bytes": 137932,
+        "entry_chunk_wire_sha256": "2866ba8d373b5fbd3e804a35be0b4952333a01a4b99b80db3a1b93e1b60488a5",
+        "entry_chunk_identity_bytes": 490373,
+        "entry_chunk_identity_sha256": "ebbb52ed606c3c0b1bfdc693247c36ba35a8752587e654e005508a6f36baa9b9",
+        "headroom_bytes": 1332,
+        "margin_over_the_1024_floor": 308,
+        "cost_of_the_deploy_variables": "+173 identity B / +45 wire B over the committed dist. The build id is compiled into the chrome so a screenshot can name the artefact it came from; that is the whole cost of it."
+      }
+    ],
+    "second_largest_served_wire_object": {
+      "path": "assets/operator-D24tzVGh.js",
+      "bytes": 29906,
+      "identity_bytes": 96734,
+      "note": "CONTROL OF WORK, byte-identical in both measurements — it compiles nothing that either deploy variable touches. It is now the second-largest wire object, where the `before` package's second was an 18,263 B console surface."
+    },
+    "delta_against_before": {
+      "entry_chunk_wire_bytes": -245,
+      "headroom_bytes": 245,
+      "reading": "The wave SPENT NONE of its 63 bytes. The console entry chunk got SMALLER while two operator screens landed, because they landed as a separate wire object rather than in the entry's static closure. The 96,734 identity bytes of CONTROL OF WORK are on the wire in a chunk of their own, at 29,906 B, and no browser that opens the console pays for them."
+    }
+  },
+
+  "verification": {
+    "bounds_unmoved": "grep -n '_MINIMUM_HEADROOM_BYTES: Final' verticals/mainline/apps/demo-api/tests/test_static_site.py -> `_MINIMUM_HEADROOM_BYTES: Final = 1024`; grep -n 'DEFAULT_MAX_RESPONSE_BYTES: Final' verticals/mainline/apps/demo-api/src/mainline_demo_api/static_site.py -> `DEFAULT_MAX_RESPONSE_BYTES: Final = 136 * 1024`. Both re-read after every edit in this sitting.",
+    "static_site_suite": "verticals/mainline/apps/demo-api/tests/test_static_site.py — 100 tests, 0 failures, 0 errors, 0 skipped, read from the --junitxml root element (ruling R10), 2026-08-16T01:13:35+10:00. It was 99 before this worker; the +1 is test_the_console_ci_budget_goes_red_before_the_origin_does.",
+    "check_budgets": "node verticals/mainline/apps/console/scripts/check-budgets.ts exits 0 over the committed dist: entry-chunk-wire PASS at 134.7 KB / 135 KB with 337 B left, naming assets/index-Dif0ht5g.js as the widest of 43 objects. 337 rather than the 353 recorded above because the gate compresses with Node's zlib and the packer with CPython's — see `compressor_agreement`.",
+    "falsifications": [
+      "entry chunk padded by 400 incompressible bytes -> FAIL, exit 1: `assets/index-Dif0ht5g.js is 138599 B gzipped — 359 B OVER the 138240 B wire budget`. Note 138,599 is still 665 B BELOW the production ceiling: the guard fires while the origin is still serving every object it has, which is the entire design.",
+      "a src/operator module injected into the console entry's sourcemap sources -> FAIL, exit 1: `\"src/operator/\" is bundled INTO the static closure of \"index.html\"`, naming the offending module.",
+      "the operator.html manifest key renamed -> FAIL, exit 1, twice: the operator-surface budget cannot be measured, AND `no chunk matched the root \"operator.html\", so every forbidden_in_entry row scoped to it was NOT checked`. A ban whose subject was renamed goes red rather than quiet.",
+      "the `wire_ceiling` key deleted from budgets.json -> FAIL, exit 1: `budgets.json declares no wire_ceiling with a numeric max_gzip_bytes, so NOTHING in this run measures the widest SINGLE object the origin has to serve`. A gate that can be disabled by deleting it is not a gate.",
+      "wire_ceiling.max_gzip_bytes loosened from 138240 to the ceiling itself (139264) -> test_the_console_ci_budget_goes_red_before_the_origin_does FAILS with `assert 139264 == (139264 - 1024)`. budgets.json was restored byte-for-byte after every one of these (verified by sha256)."
+    ],
+    "compressor_agreement": {
+      "why_it_matters": "CI measures with Node's zlib (1.3.1-e00f703) and production compresses with CPython's. If they disagreed by more than the reserved margin, a green in CI could still be a 413 in production.",
+      "measured_over": "all 51 compressible objects in the committed dist",
+      "max_absolute_delta_bytes": 110,
+      "worst_object": "assets/worker-CdMYWUil.js — Node 15,692 B, packer 15,582 B",
+      "entry_chunk_delta_bytes": 16,
+      "conclusion": "The 1,024 B reserved between the CI budget and the wire ceiling is 9.3x the largest disagreement observed. A Node-measured pass at 138,240 B implies a packer-measured size of at most 138,350 B, which is 914 B under the ceiling. The guard cannot be fooled by the compressor."
+    }
+  },
+
+  "for_the_orchestrator": {
+    "the_archive_on_disk_is_the_PREVIOUS_console": "out/lambda/mainline-demo-api-arm64.zip (sha256 7c97b532…) carries one HTML entry and no operator.html. It must be rebuilt before deploy or the demo URL serves a console without the screens the film is shot on.",
+    "when_you_rebuild_these_five_declarations_move": "test_static_site.py: _LARGEST_SERVED_WIRE_BYTES, _LARGEST_IDENTITY_BYTES, _SECOND_LARGEST_IDENTITY_BYTES, _WEB_ENTRIES, _IDENTITY_ENTRIES, plus the object named in test_serving_the_deployed_package_derives_the_ceiling_end_to_end's `refused` dict. They are MEASUREMENTS and re-recording them is not moving a bound (test_static_site.py:879-895).",
+    "predicted_shape_of_the_next_archive": {
+      "web_entries": 154,
+      "identity_entries": 77,
+      "gz_siblings": 77,
+      "was": "138 / 69 / 69",
+      "basis": "the deploy-env rehearsal dist plus verticals/mainline/apps/console/fixtures/bundles/demo-cloud, counted after the source-map strip. A PREDICTION, recorded so a surprise is visible; the archive's own central directory is what gets recorded into the test file."
+    },
+    "do_not": "raise DEFAULT_MAX_RESPONSE_BYTES, lower _MINIMUM_HEADROOM_BYTES, or raise budgets.json's entry-chunk-wire budget to make any of the above agree. Three separate guards now go red on that move, in two languages."
+  },
+
+  "observation_not_chased": {
+    "subject": "the mojibake reported in budgets.json and evidence/tool-usage/*.json",
+    "measured": "There is none in the files. verticals/mainline/apps/console/budgets.json decodes as clean UTF-8 and its only non-ASCII characters are 4x U+2014 EM DASH and 2x U+00A7 SECTION SIGN. evidence/tool-usage/aws-services.json is 42x U+2014; crdb-features.json is 23x U+2014, 1x U+2022, 2x U+2264. Zero occurrences of the 'a-euro-\"' byte sequence in any of the three.",
+    "cause": "The Windows console's code page. A .venv/Scripts/python.exe that prints those characters to a cp1252 stdout raises UnicodeEncodeError or renders them as replacement glyphs — reproduced in this sitting, and fixed for reading by `python -X utf8`. The bytes on disk are correct.",
+    "action": "None. Nothing was re-encoded. Re-encoding a clean file to satisfy a terminal would corrupt it."
+  }
+}

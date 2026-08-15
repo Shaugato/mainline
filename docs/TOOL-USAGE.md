@@ -27,35 +27,40 @@ That command is standard-library only, takes no network and no credential, and r
 both evidence files from the tree. A document about which cloud services a project uses
 must not require those cloud services in order to check it.
 
-> **Run on 2026-08-14 it exits `2`, and this page says so before a reader discovers it.**
-> Not on a count — on two **anchors**. The generator declares the Lambda row's anchor as
+> **It exited `2` on 2026-08-14 and it exits `0` on 2026-08-15. Both readings stay on this
+> page, because the red is the part that proves the green is worth anything.**
+>
+> *The red.* Not a count — two **anchors**. The generator declared the Lambda row's anchor as
 > `infra/modules/demo-api/main.tf:333` for `authorization_type` and the SSM row's as `:215`
 > for `ssm:GetParameter` (`scripts/submission/capture_tool_evidence.py`, the `anchor=` /
-> `anchor_must_contain=` pair on each row); that module has grown to 978 lines and the two
-> subjects are now at `:432` and `:280`. The generator **refuses to write anything** while an
-> anchor has drifted, and `--print` refuses identically, so **whether
-> `scan.files_scanned` is still fresh cannot be re-derived on this machine today and is
-> recorded as `UNRESOLVED` rather than guessed.** `scripts/aws/verify_evidence.py` reported
-> the same pair under `[CEN-ANCHORS]` earlier on 2026-08-14; re-run later the same day it
-> **passes** — `1016` assertions across `40` of `40` invariants — because it reads the JSON,
-> and the JSON has since been edited while the generator has not. Two programs that agreed now
-> disagree, and the one still refusing is the one reading the authoritative side.
+> `anchor_must_contain=` pair on each row); that module has grown past 978 lines, `:333` had
+> slid onto `handler = "mainline_demo_api.app.handler"` and `:215` onto a bare `#`. Both
+> resolved perfectly and neither said anything. The generator **refuses to write anything**
+> while an anchor has drifted, and `--print` refuses identically, so `scan.files_scanned`
+> could not be re-derived on that machine that day and was recorded as `UNRESOLVED` rather
+> than guessed. `scripts/aws/verify_evidence.py` reported the same pair under `[CEN-ANCHORS]`
+> earlier on 2026-08-14; re-run later the same day it **passed** — `1016` assertions across
+> `40` of `40` invariants — because it reads the JSON, and the JSON had been hand-edited to
+> `:432` and `:280` while the generator had not. Two programs that agreed then disagreed, and
+> the one still refusing was the one reading the authoritative side.
 >
-> **Read the two line numbers from the generator, not from the JSON, and here is why that
-> distinction earned its sentence on 2026-08-14.** `evidence/tool-usage/aws-services.json` was
-> edited in the working tree to read `:432` and `:280` while
-> `capture_tool_evidence.py` still declares `:333` and `:215`, so `--check` prints the old pair
-> and still exits `2`. **The generator's table is the authoritative side and the JSON is
-> derived from it**; moving the derived file alone does not close the finding, it only makes
-> two files disagree about which line a reader should open. The regeneration is owed on
-> `evidence/tool-usage/` by the domain that owns the generator, and **this page does not write
-> either file**: a document is not made true by editing the artefact it is checked against. No
-> verdict, count or `[src: …]` citation here rests on any of those four line numbers.
+> *The fix, and where it had to land.* **The generator's table is the authoritative side and
+> the JSON is derived from it**; moving the derived file alone did not close the finding, it
+> only made two files disagree about which line a reader should open. So on 2026-08-15 the
+> `anchor=` pair in `capture_tool_evidence.py` moved to `:432` and `:280` — located by
+> searching for the quoted text, not by counting an offset — and both censuses were
+> regenerated from it. **Nothing under `infra/` was edited to make a citation true.**
+> `--check` now exits `0`, `scan.files_scanned` is
+> 7823 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] again rather than
+> `UNRESOLVED`, and no verdict or count on this page ever rested on any of those four line
+> numbers.
 >
 > That refusal is the mechanism described at the end of this section working as designed, on
-> the next drift after the five it was built for — and the paragraph above is what the
-> mechanism looks like when only half the fix lands. The subjects' true locations are corrected
-> in place in the table below.
+> the next drift after the five it was built for. **A count on this page is fresh as of the
+> tree it was taken from and no longer**: several people edit this repository at once, a file
+> that merely *mentions* a feature moves a `file_count`, and the command above is the only
+> thing entitled to say whether these numbers are current. Run it; do not trust this
+> paragraph.
 
 **One convention, borrowed from `docs/HONESTY.md`.** A bare number carries a `[src: …]`
 reference to a committed artefact. Digits inside `code spans` are **names**, not
@@ -77,35 +82,45 @@ depends on one. Part 5 gives the commands.
 
 Counted across both censuses: EXERCISED
 12 [src: evidence/tool-usage/crdb-features.json#totals.by_verdict.EXERCISED]
-+ 3 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.EXERCISED],
++ 6 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.EXERCISED],
 DESIGNED 2 [src: evidence/tool-usage/crdb-features.json#totals.by_verdict.DESIGNED]
-+ 8 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.DESIGNED],
++ 5 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.DESIGNED],
 NOT-AVAILABLE 1 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.NOT-AVAILABLE].
 
 **Read that asymmetry rather than skipping it.** The CockroachDB half has run. On the AWS
-side exactly three rows have run — **Bedrock inference, Bedrock embeddings and
-CloudWatch** — and every one of them is an API call against a service AWS already
-operates. **Nothing is deployed.** No bucket, no KMS key, no trail, no function, no
-distribution, no rule, no parameter: eight rows are DESIGNED, which here means *the
-configuration is complete and on disk and nothing recorded has run it end to end*. An
-earlier version of this document said the EXERCISED column was empty, and it was; the
-column filled on 2026-08-11 for those three rows and for no others. A submission document
-that flattened "we called a model" and "we deployed an evidence store" into "used" would be
-lying about the more important one. See [`docs/HONESTY.md`](HONESTY.md).
+side the EXERCISED column was **empty** until 2026-08-11, held **three** rows until
+2026-08-14 — **Bedrock inference, Bedrock embeddings and CloudWatch**, every one of them an
+API call against a service AWS already operates and none of them a deployment — and holds
+**six** now, because on 2026-08-14 a `terraform apply` ran. What did *not* move is as
+informative as what did: **five rows are still DESIGNED** — S3 + Object Lock, KMS,
+CloudTrail, CloudFront and EventBridge — which here means *the configuration is complete and
+on disk and nothing recorded has run it end to end*. There is still no MAINLINE evidence
+bucket, no KMS signing key, no trail, no distribution and no schedule rule. A submission
+document that flattened "we called a model" and "we deployed an evidence store" into "used"
+would be lying about the more important one. See [`docs/HONESTY.md`](HONESTY.md).
 
-**A verdict moves only when a measurement moves it, and one moved on 2026-08-12.**
-`crdb_managed_mcp` was promoted DESIGNED → EXERCISED because
+**A verdict moves only when a measurement moves it. Four have moved, and each names the
+committed file that moved it.** `crdb_managed_mcp` was promoted DESIGNED → EXERCISED on
+2026-08-12 because
 [`evidence/deploy/judge-run.json`](../evidence/deploy/judge-run.json) captures a live
 session against the managed endpoint; the promotion is recorded in that row's
-`verdict_basis`, with the run's own `DIVERGED — KNOWN GAP` verdict intact. Nothing on the
-AWS side moved, and the four rows an apply would move — **Lambda, IAM, SSM Parameter Store
-and CloudFront** — are **still DESIGNED**. A `terraform apply` is planned, reviewed and
-authorised as this is written, and *authorised* is not *applied*. Promoting a row on the
-strength of an intention is precisely the arithmetic the third verdict value exists to
-refuse, so these rows will move when an apply has happened and a transcript records it,
-and not one commit earlier.
+`verdict_basis`, with the run's own `DIVERGED — KNOWN GAP` verdict intact. On 2026-08-15
+**`aws_lambda`, `aws_iam` and `aws_ssm_parameter_store`** were promoted, on
+[`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — *"terraform apply 24
+created, 0 changed, 0 destroyed"* — plus
+[`evidence/deploy/live-health.json`](../evidence/deploy/live-health.json) (`ok true`,
+`deploy_chain 271/271`) and
+[`evidence/deploy/live-gate-run.json`](../evidence/deploy/live-gate-run.json) (the four
+beats, verdict `PROVEN`, over HTTP). **No AWS API call earned any of those three**: this
+census opens no socket, and every file behind a promotion was committed before it ran. Two
+things did not move and are the reason this paragraph is worth reading. **CloudFront cannot
+be promoted at all** — the account is refused new distributions, which is not a schedule
+problem — and the `aws_iam` promotion is **narrower than its own row title**: what ran is
+the execution role's single allow, while the deny-first evidence-store policies remain
+unapplied and offline-asserted. A promotion that quietly widened its scope would be the same
+offence as one made on an intention.
 
-Everything the three EXERCISED rows rest on is under
+Everything the two Bedrock rows and the CloudWatch row rest on is under
 [`evidence/aws/`](../evidence/aws/README.md), and it is checkable without our credentials:
 
 ```bash
@@ -120,10 +135,10 @@ checkout with no secrets configured, alongside a red half that plants one defect
 and requires the matching invariant to fire.
 
 **Scan set for every count below**: a filesystem walk of
-7388 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] text files, caches
+7823 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] text files, caches
 and build output pruned, of which
 271 [src: evidence/tool-usage/crdb-features.json#scan.files_by_category.migration] are
-migrations and 25 [src: evidence/tool-usage/crdb-features.json#scan.files_by_category.terraform]
+migrations and 29 [src: evidence/tool-usage/crdb-features.json#scan.files_by_category.terraform]
 are Terraform/Rego. `file_count` counts where a feature is used **and** where it is
 discussed, which is why every row also names one hand-checked file and line.
 
@@ -156,7 +171,7 @@ that was written to respect it.
 **Where it runs.** A local single-node `cockroachdb/cockroach:v26.2.5` pinned at
 `compose.yaml:31`, and CockroachDB Cloud Basic cluster `mainline-dev` in
 `aws-ap-southeast-1` (Singapore). The pinned version string appears in
-329 [src: evidence/tool-usage/crdb-features.json#rows.crdb_database.file_count] files.
+426 [src: evidence/tool-usage/crdb-features.json#rows.crdb_database.file_count] files.
 
 **And, since 2026-08-13, in CI.** `.github/workflows/cluster-tests.yml` starts the same
 pinned image on the runner and runs the demo API's suite against it at `--crdb=reuse`. Before
@@ -214,16 +229,16 @@ numbers.
 
 | feature | verdict | files | anchor |
 |---|---|---|---|
-| SERIALIZABLE isolation | EXERCISED | 151 [src: evidence/tool-usage/crdb-features.json#rows.crdb_serializable.file_count] | `packages/trappoint-model/src/trappoint_model/cluster.py:222` |
-| PL/pgSQL triggers & functions | EXERCISED | 122 [src: evidence/tool-usage/crdb-features.json#rows.crdb_triggers.file_count] | `verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:77` |
-| Named CHECK constraints | EXERCISED | 181 [src: evidence/tool-usage/crdb-features.json#rows.crdb_check_constraints.file_count] | `verticals/mainline/db/migrations/0050_permit.sql:114` |
-| C-SPANN vector index | EXERCISED | 141 [src: evidence/tool-usage/crdb-features.json#rows.crdb_vector_index.file_count] | `verticals/mainline/db/migrations/0031_clause_embedding.sql:149` |
-| `AS OF SYSTEM TIME` | EXERCISED | 75 [src: evidence/tool-usage/crdb-features.json#rows.crdb_as_of_system_time.file_count] | `packages/trappoint-conformance/cases/cf46_time_travel_cannot_reach.py:106` |
-| Follower reads | EXERCISED | 9 [src: evidence/tool-usage/crdb-features.json#rows.crdb_follower_reads.file_count] | `verticals/mainline/db/migrations/0180c_role_agent_patroller.sql:37` |
-| Row-level security | EXERCISED | 40 [src: evidence/tool-usage/crdb-features.json#rows.crdb_row_level_security.file_count] | `verticals/mainline/db/migrations/0181a_permit_rls_force.sql:54` |
-| `SHOW CREATE` self-attestation | EXERCISED | 67 [src: evidence/tool-usage/crdb-features.json#rows.crdb_show_create.file_count] | `packages/trappoint-migrate/src/trappoint_migrate/attest.py:243` |
-| `crdb_internal` | EXERCISED | 64 [src: evidence/tool-usage/crdb-features.json#rows.crdb_internal.file_count] | `packages/mainline-mcp/src/mainline_mcp/limits.py:75` |
-| CHANGEFEED / CDC | **DESIGNED** | 3 [src: evidence/tool-usage/crdb-features.json#rows.crdb_changefeed.file_count] | `verticals/mainline/db/migrations/0168_v_changefeed_health.sql:37` |
+| SERIALIZABLE isolation | EXERCISED | 240 [src: evidence/tool-usage/crdb-features.json#rows.crdb_serializable.file_count] | `packages/trappoint-model/src/trappoint_model/cluster.py:222` |
+| PL/pgSQL triggers & functions | EXERCISED | 126 [src: evidence/tool-usage/crdb-features.json#rows.crdb_triggers.file_count] | `verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:77` |
+| Named CHECK constraints | EXERCISED | 309 [src: evidence/tool-usage/crdb-features.json#rows.crdb_check_constraints.file_count] | `verticals/mainline/db/migrations/0050_permit.sql:114` |
+| C-SPANN vector index | EXERCISED | 151 [src: evidence/tool-usage/crdb-features.json#rows.crdb_vector_index.file_count] | `verticals/mainline/db/migrations/0031_clause_embedding.sql:149` |
+| `AS OF SYSTEM TIME` | EXERCISED | 84 [src: evidence/tool-usage/crdb-features.json#rows.crdb_as_of_system_time.file_count] | `packages/trappoint-conformance/cases/cf46_time_travel_cannot_reach.py:106` |
+| Follower reads | EXERCISED | 12 [src: evidence/tool-usage/crdb-features.json#rows.crdb_follower_reads.file_count] | `verticals/mainline/db/migrations/0180c_role_agent_patroller.sql:37` |
+| Row-level security | EXERCISED | 44 [src: evidence/tool-usage/crdb-features.json#rows.crdb_row_level_security.file_count] | `verticals/mainline/db/migrations/0181a_permit_rls_force.sql:54` |
+| `SHOW CREATE` self-attestation | EXERCISED | 69 [src: evidence/tool-usage/crdb-features.json#rows.crdb_show_create.file_count] | `packages/trappoint-migrate/src/trappoint_migrate/attest.py:243` |
+| `crdb_internal` | EXERCISED | 82 [src: evidence/tool-usage/crdb-features.json#rows.crdb_internal.file_count] | `packages/mainline-mcp/src/mainline_mcp/limits.py:75` |
+| CHANGEFEED / CDC | **DESIGNED** | 7 [src: evidence/tool-usage/crdb-features.json#rows.crdb_changefeed.file_count] | `verticals/mainline/db/migrations/0168_v_changefeed_health.sql:37` |
 
 Now the *how*, which is the part the rule actually asks for.
 
@@ -461,7 +476,7 @@ document's to touch.
 #### CHANGEFEED — DESIGNED, and deliberately not in a migration
 
 `CREATE CHANGEFEED` appears in
-3 [src: evidence/tool-usage/crdb-features.json#rows.crdb_changefeed.file_count] files and
+7 [src: evidence/tool-usage/crdb-features.json#rows.crdb_changefeed.file_count] files and
 has never been run. *Re-measured on the pinned local node 2026-08-12:* `SHOW CHANGEFEED
 JOBS` → `0` jobs, and `SHOW CLUSTER SETTING kv.rangefeed.enabled` → **`false`**.
 
@@ -487,7 +502,7 @@ on it.
 **Verdict: EXERCISED.** [`evidence/ccloud/cluster-list.txt`](../evidence/ccloud/cluster-list.txt)
 is a verbatim captured transcript of `ccloud auth whoami` followed by
 `ccloud cluster list -o json`, ANSI spinner frames stripped and nothing else altered. The
-term appears in 60 [src: evidence/tool-usage/crdb-features.json#rows.crdb_cloud_ccloud.file_count]
+term appears in 68 [src: evidence/tool-usage/crdb-features.json#rows.crdb_cloud_ccloud.file_count]
 files across the tree.
 
 ```json
@@ -596,7 +611,7 @@ talk to asserts nothing, and a green *negative* run with nothing to talk to asse
 opposite of what it claims.
 
 The MCP-facing surface — the client plus the `mainline_audit` schema it reads — appears in
-173 [src: evidence/tool-usage/crdb-features.json#rows.crdb_managed_mcp.file_count] files.
+192 [src: evidence/tool-usage/crdb-features.json#rows.crdb_managed_mcp.file_count] files.
 
 ### How: every documented limit is a type, not a comment
 
@@ -655,7 +670,7 @@ never receives an account on any tier, and MCP is never marketed as site-scoped.
 ## Tool 4 · CockroachDB Agent Skills — DESIGNED
 
 Two authored skills plus one staged upstream contribution;
-16 [src: evidence/tool-usage/crdb-features.json#rows.crdb_agent_skills.file_count] files
+19 [src: evidence/tool-usage/crdb-features.json#rows.crdb_agent_skills.file_count] files
 name them.
 
 | skill | what it teaches | its executable assertion |
@@ -689,12 +704,14 @@ one. Profile `mainline-dev`,
 region **`ap-southeast-2`** for Bedrock and **`ap-southeast-1`** for the demo stack beside
 the database.
 
-Three rows are EXERCISED and the evidence for each is named in its own row. Eight are
-DESIGNED because **nothing is deployed**. One is NOT-AVAILABLE because it does not exist in
-this region and we checked. The `mechanism` column is the file and line that *does the
-thing* — every one of them re-checked on 2026-08-12 against the substring the row is about,
-not merely against the file's length; the `evidence` column is what a reader opens to check
-that it did.
+Six rows are EXERCISED and the evidence for each is named in its own row — three of them
+model and metric calls, three of them the applied demo stack. Five are DESIGNED because
+**that half is still not deployed**: no evidence bucket, no signing key, no trail, no
+distribution, no schedule rule. One is NOT-AVAILABLE because it does not exist in this
+region and we checked. The `mechanism` column is the file and line that *does the thing* —
+every one of them re-checked against the substring the row is about, not merely against the
+file's length, most recently on 2026-08-15 when two of them had drifted and the generator
+refused to write; the `evidence` column is what a reader opens to check that it did.
 
 **The two Bedrock rows name an AWS request id.** That is the strongest single token in this
 table, because a request id is a string **AWS minted and this repository could not have**.
@@ -724,35 +741,58 @@ does not allow. The identical paragraph is in
 [`docs/submission/RULES-MATRIX.md`](submission/RULES-MATRIX.md) §1, deliberately, because the
 discrepancy is visible from either page.
 
+> **Annotation, 2026-08-15, written beside that paragraph rather than inside it.** Its last
+> reconciliation — *"the gate's `2 AWS service(s) marked as having run` against this page's
+> `3` EXERCISED rows"* — was taken when the AWS census had `3` EXERCISED rows. It has
+> 6 [src: evidence/tool-usage/aws-services.json#totals.by_verdict.EXERCISED] now, and the
+> gate re-run on 2026-08-15 prints *"`5` AWS service(s) marked as having run (Amazon Bedrock,
+> Amazon CloudWatch, AWS Lambda, AWS IAM, AWS SSM Parameter Store); `28` of `28` cited
+> artefacts present on disk"*. **Both figures in that sentence have moved; the arithmetic
+> that reconciles them has not** — the gate still counts the name *Amazon Bedrock* once where
+> the census emits two rows for it, which is the whole of the difference between `5` and `6`.
+> **The paragraph is left verbatim on purpose**: it is carried word-for-word by
+> `RULES-MATRIX.md` §1 so the
+> two pages cannot drift apart, that file is not this one's to edit, and correcting one copy
+> alone would break the only mechanism keeping them equal. Re-derive both sides —
+> `python scripts/submission/check_submission_ready.py` for the gate's figure,
+> `evidence/tool-usage/aws-services.json#totals.by_verdict.EXERCISED` for this page's — and
+> correct the two copies together. Recorded as owed in
+> [`docs/demo/ON-SCREEN-CLAIMS.md`](demo/ON-SCREEN-CLAIMS.md) § *Discrepancies filed, not
+> smoothed*.
+
 | service | verdict | files | mechanism (`file:line`) | evidence |
 |---|---|---|---|---|
-| Bedrock — Claude inference | **EXERCISED** | 325 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_runtime.file_count] | `packages/mainline-agentkit/src/mainline_agentkit/transport.py:273` | [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — `Converse` `200`, **request id `3c7a283c-9f67-4d98-aa8f-26490d54d32d`**, `stop_reason end_turn`; also [`evidence/aws/probe/raw-haiku-converse.json`](../evidence/aws/probe/raw-haiku-converse.json), [`evidence/aws/agent/live-run.json`](../evidence/aws/agent/live-run.json) |
+| Bedrock — Claude inference | **EXERCISED** | 344 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_runtime.file_count] | `packages/mainline-agentkit/src/mainline_agentkit/transport.py:273` | [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — `Converse` `200`, **request id `3c7a283c-9f67-4d98-aa8f-26490d54d32d`**, `stop_reason end_turn`; also [`evidence/aws/probe/raw-haiku-converse.json`](../evidence/aws/probe/raw-haiku-converse.json), [`evidence/aws/agent/live-run.json`](../evidence/aws/agent/live-run.json) |
 | Bedrock — embeddings | **EXERCISED** | 73 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_embeddings.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:55` | [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — Titan v2 `InvokeModel` `200`, **request id `b4d826e9-03ba-4368-9687-f00cc28a98ef`**, `1024`-d; and [`evidence/aws/probe/raw-titan-invoke.json`](../evidence/aws/probe/raw-titan-invoke.json) — **request id `6dcdcdf0-38d3-453f-a476-fa69b2d87863`**; also [`evidence/aws/embeddings/manifest.json`](../evidence/aws/embeddings/manifest.json), [`evidence/aws/ann/ann-proof.json`](../evidence/aws/ann/ann-proof.json) |
-| CloudWatch | **EXERCISED** (read-only) | 64 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudwatch.file_count] | `scripts/aws/cloudwatch_evidence.py:299` | [`evidence/aws/cloudwatch/bedrock-metrics.json`](../evidence/aws/cloudwatch/bedrock-metrics.json), [`evidence/aws/cloudwatch/reconciliation.json`](../evidence/aws/cloudwatch/reconciliation.json) |
+| CloudWatch | **EXERCISED** (metrics read; alarms now applied, never fired) | 115 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudwatch.file_count] | `scripts/aws/cloudwatch_evidence.py:299` | [`evidence/aws/cloudwatch/bedrock-metrics.json`](../evidence/aws/cloudwatch/bedrock-metrics.json), [`evidence/aws/cloudwatch/reconciliation.json`](../evidence/aws/cloudwatch/reconciliation.json); the log group, four alarms and dashboard are among the 24 created in [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md), and **no artefact records any alarm transitioning to `ALARM`** |
 | **Bedrock — `cohere.embed-v4`** | **REFUSED in-region** | *(counted in the embeddings row)* | `scripts/aws/_common.py::CROSS_REGION_PREFIXES` | [`evidence/aws/probe/raw-cohere-refusal.json`](../evidence/aws/probe/raw-cohere-refusal.json) — `400`, **request id `a826eb16-e813-45aa-932e-4696e9979087`**; [`evidence/aws/bench/residency-finding.json`](../evidence/aws/bench/residency-finding.json) |
-| **Bedrock Rerank** | **NOT-AVAILABLE** | 21 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_rerank.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/rerank/listwise.py:77` | absent in `ap-southeast-2`; no dependency taken. [`evidence/aws/probe/model-availability.json`](../evidence/aws/probe/model-availability.json) is the live census it is absent from |
-| S3 + Object Lock | DESIGNED | 126 [src: evidence/tool-usage/aws-services.json#rows.aws_s3_object_lock.file_count] | `infra/modules/evidence-store/main.tf:100` | none — not applied; the live check is one of the seven that did not run |
-| KMS | DESIGNED | 43 [src: evidence/tool-usage/aws-services.json#rows.aws_kms.file_count] | `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` | none — unit-tested against an injected client only |
-| CloudTrail | DESIGNED | 35 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudtrail.file_count] | `infra/envs/evidence/main.tf:114` | none — no trail exists in the account |
-| Lambda | DESIGNED | 23 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:326` | none — **not applied.** A plan exists ([`evidence/deploy/terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843`, `Plan: 24 to add, 0 to change, 0 to destroy.` — `11` in `module.api[0]`, `13` in `module.guard[0]`) and a plan is not an apply |
-| CloudFront + OAC | DESIGNED | 67 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudfront.file_count] | `infra/modules/demo-site/main.tf:299` | none — **excluded from the plan**, and not by choice: `403 AccessDenied`, account not verified for new CloudFront resources. See below |
-| IAM | DESIGNED | 29 [src: evidence/tool-usage/aws-services.json#rows.aws_iam.file_count] | `infra/modules/evidence-store/main.tf:145` | none — Rego asserts the denials against plan fixtures, offline |
-| SSM Parameter Store | DESIGNED | 18 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:280` | none — granted in an unapplied role; no parameter written |
-| EventBridge | DESIGNED | 29 [src: evidence/tool-usage/aws-services.json#rows.aws_eventbridge.file_count] | `verticals/mainline/apps/steward/schedules.yaml:14` | none — and there is no `aws_cloudwatch_event_*` resource anywhere under `infra/` |
+| **Bedrock Rerank** | **NOT-AVAILABLE** | 23 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_rerank.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/rerank/listwise.py:77` | absent in `ap-southeast-2`; no dependency taken. [`evidence/aws/probe/model-availability.json`](../evidence/aws/probe/model-availability.json) is the live census it is absent from |
+| S3 + Object Lock | DESIGNED | 134 [src: evidence/tool-usage/aws-services.json#rows.aws_s3_object_lock.file_count] | `infra/modules/evidence-store/main.tf:100` | none — not applied; the live check is one of the seven that did not run. *One S3 bucket does exist — the Terraform **state** bucket in [`APPLIED.md`](../evidence/deploy/APPLIED.md), no Object Lock, no checkpoint — and it promotes nothing* |
+| KMS | DESIGNED | 45 [src: evidence/tool-usage/aws-services.json#rows.aws_kms.file_count] | `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` | none — unit-tested against an injected client only |
+| CloudTrail | DESIGNED | 38 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudtrail.file_count] | `infra/envs/evidence/main.tf:114` | none — no trail exists in the account |
+| Lambda | **EXERCISED** | 42 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:432` (the authorisation decision); the function opens at `:326` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — *"terraform apply 24 created, 0 changed, 0 destroyed"*, `37` resources in state; [`evidence/deploy/live-health.json`](../evidence/deploy/live-health.json) — `ok true`, `deploy_chain 271/271`; [`evidence/deploy/live-gate-run.json`](../evidence/deploy/live-gate-run.json) — four beats, verdict `PROVEN`; [`evidence/deploy/judge-walk.json`](../evidence/deploy/judge-walk.json). The plan it was applied from is [`terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843`, `Plan: 24 to add, 0 to change, 0 to destroy.` — `11` in `module.api[0]`, `13` in `module.guard[0]` |
+| CloudFront + OAC | DESIGNED | 99 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudfront.file_count] | `infra/modules/demo-site/main.tf:299` | none — **excluded from the plan**, and not by choice: `403 AccessDenied`, account not verified for new CloudFront resources. See below |
+| IAM | **EXERCISED** (the allow half only) | 37 [src: evidence/tool-usage/aws-services.json#rows.aws_iam.file_count] | `infra/modules/demo-api/main.tf:260` (the role that was created and assumed); the deny-first document is `infra/modules/evidence-store/main.tf:145` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — the role, its inline `dsn_access` policy and the managed attachment are 3 of the 24 created (plan lines `195`, `237`, `270`); the role was assumed and its one grant used, per `live-health.json`. **The deny-first evidence-store policies are still unapplied** and Rego asserts them against plan fixtures, offline |
+| SSM Parameter Store | **EXERCISED** | 26 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:280` (the grant); the signed call is `…/demo-api/src/mainline_demo_api/db.py:214` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) with the parameter ABSENT — `ok=false reason="dsn_unset"`, `ParameterNotFound` — and [`evidence/deploy/live-health.json`](../evidence/deploy/live-health.json) with it present — `ok true`. The plan sets `MAINLINE_DSN_PARAM` and no `MAINLINE_DSN` (`terraform-plan-furl.txt:325`), so there is no other path to that answer |
+| EventBridge | DESIGNED | 32 [src: evidence/tool-usage/aws-services.json#rows.aws_eventbridge.file_count] | `verticals/mainline/apps/steward/schedules.yaml:14` | none — and there is no `aws_cloudwatch_event_*` resource anywhere under `infra/` |
 
-**Two `mechanism` cells moved on 2026-08-14, and the old values are named rather than
-erased.** The Lambda row cited `infra/modules/demo-api/main.tf:310`, which now reads
-`test = "StringEquals"` — a condition operator inside an unrelated policy statement. The SSM
-row cited `:192`, which now reads `LOG_LEVEL = var.log_level`. Both are the same drift the
-census refuses on, in the same module, and both are exactly the *"citation onto a closing
-brace"* failure this page describes below: they resolved perfectly and told a reader nothing.
-The tree is authoritative and this column is derived, so the column moved:
-`resource "aws_lambda_function" "this"` opens at `:326` and `actions = ["ssm:GetParameter"]`
-is at `:280`. **Nothing under `infra/` or `evidence/` was edited to make this table true.**
+**Four `mechanism` cells have moved in this module, and every old value is named rather
+than erased.** On 2026-08-14 the Lambda row cited `infra/modules/demo-api/main.tf:310`,
+which reads `test = "StringEquals"` — a condition operator inside an unrelated policy
+statement — and the SSM row cited `:192`, which reads `LOG_LEVEL = var.log_level`. On
+2026-08-15 the census's own anchors were found at `:333`
+(`handler = "mainline_demo_api.app.handler"`) and `:215` (a bare `#`), and the generator
+refused to write. All four are the same drift, in the same 978-line module, and all four are
+exactly the *"citation onto a closing brace"* failure this page describes below: they
+resolved perfectly and told a reader nothing. The tree is authoritative and this column is
+derived, so the column moved — `authorization_type = var.url_authorization_type` is at
+`:432`, `resource "aws_lambda_function" "this"` opens at `:326`,
+`resource "aws_iam_role" "this"` at `:260`, and `actions = ["ssm:GetParameter"]` at `:280`.
+**Nothing under `infra/` or `evidence/` was edited to make this table true.**
 
 Each row's full `verdict_basis` — the sentence that has to be re-derivable from a committed
 artefact — is at `evidence/tool-usage/aws-services.json#rows.<key>.verdict_basis`, and for
-the three EXERCISED rows those sentences quote their figures in the form
+the six EXERCISED rows those sentences quote their figures in the form
 `artefact#/json/pointer = number`, which `scripts/aws/verify_evidence.py` resolves and
 compares on every CI run. A number here that has drifted from the JSON behind it is a red
 build, not a footnote.
@@ -1064,24 +1104,41 @@ retries that are separate HTTP requests AWS served and counted, and an unattribu
 from iterations run while these programs were being written — calls **no artefact in this
 repository records, so no artefact in this repository may claim them.**
 
-**What is still DESIGNED.** The log group with finite retention
-(`infra/modules/demo-api/main.tf:239`), the four metric alarms (`:581` errors, `:615`
-throttles, `:648` duration p99, `:757` concurrency) and the dashboard (`:841`) are **written
-and unapplied**. *This paragraph cited `main.tf:391` for all six until 2026-08-14; that line
-is a comment inside the function resource about an `ELFCLASS` error, and it named none of
-them.* No log
-group, alarm, dashboard, metric filter or IAM role was created by any program in this fleet,
-and `bedrock-metrics.json`'s `prohibitions` block asserts each of those false and reads the
-account state back to check.
+**What was DESIGNED here, and what changed on 2026-08-14.** The log group with finite
+retention (`infra/modules/demo-api/main.tf:239`), the four metric alarms (`:581` errors,
+`:615` throttles, `:648` duration p99, `:757` concurrency) and the dashboard (`:841`) were
+**written and unapplied**. *This paragraph cited `main.tf:391` for all six until 2026-08-14;
+that line is a comment inside the function resource about an `ELFCLASS` error, and it named
+none of them.* They are **applied now** — they are among the `24` resources in
+[`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md), together with the cost
+guard's three further alarms and its own log group. **Two things are unchanged and both
+matter.** First, existing is not firing: **no artefact in this repository records any alarm
+transitioning to `ALARM`**, so what is evidenced is the resource, never the threshold.
+Second, and this is the sentence the CloudWatch verdict rests on: **no log group, alarm,
+dashboard, metric filter or IAM role was created by any program in this evidence fleet** —
+`bedrock-metrics.json`'s `prohibitions` block asserts each of those false about its own run
+and reads the account state back to check. The reader that took the metrics still provisions
+nothing; the orchestrator's `terraform apply` is a different program with a different
+authorisation.
 
-## AWS Lambda, CloudFront + OAC, IAM, SSM Parameter Store — the demo stack · **all DESIGNED**
+## AWS Lambda, IAM, SSM Parameter Store — the demo stack · **EXERCISED**
+
+**And Amazon CloudFront + OAC, which is in this section because it is part of the same
+design — DESIGNED, and on this account it cannot be applied at all.**
+
+**This heading read *"the demo stack · all DESIGNED"* until 2026-08-15.** Three of the four
+moved when `terraform apply` ran on 2026-08-14 — `24` created, `0` changed, `0` destroyed,
+[`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — and the fourth did not move
+and cannot, for the reason below. The diagram is now a description of something a judge can
+open rather than of something planned.
 
 **The shape below is not the shape this document described until 2026-08-12, and the
 correction is the most important paragraph in Part 2.** This section used to state that the
 Function URL's `authorization_type` was **`AWS_IAM`, never `NONE`**, invoked only by
 CloudFront over an OAC signature. **The committed plan does the opposite**, for a measured
 reason, and a submission document whose security posture disagrees with its own committed
-Terraform is worse than one that says nothing.
+Terraform is worse than one that says nothing. **It is now the applied posture too, not only
+the planned one.**
 
 ```
 judge's browser ──/v1/*──► Lambda Function URL (authorization_type = NONE, public)
@@ -1158,28 +1215,41 @@ the true one for this account.
   console and the Lambda Function URL, so a judge saw one origin and the bucket was never
   public; OAC (not the legacy OAI) signing both origins is what would let the Function URL
   keep `AWS_IAM`. None of that is deployed and, on this account, none of it *can* be.
-* **IAM** — the interesting IAM here is what is **denied**:
-  `infra/modules/evidence-store/main.tf:145` is the policy document that denies the
+* **IAM** — **two halves, and only one of them is in the account.** The half that ran is the
+  Lambda execution role (`infra/modules/demo-api/main.tf:260`), created by the apply,
+  assumed by the function, whose entire non-managed grant is `ssm:GetParameter`
+  (`:280`) on **one** parameter ARN (`:285`, `resources = [local.dsn_parameter_arn]`) plus a
+  conditioned `kms:Decrypt`. The half that did not is **the interesting one — what is
+  denied**: `infra/modules/evidence-store/main.tf:145` is the policy document that denies the
   checkpoint writer `s3:DeleteObjectVersion` and denies `PutObjectRetention` without a
-  bounded retention date. The Lambda execution role's entire non-managed grant is
-  `ssm:GetParameter` (`infra/modules/demo-api/main.tf:280`) on **one** parameter ARN
-  (`:285`, `resources = [local.dsn_parameter_arn]`) plus a conditioned `kms:Decrypt`.
+  bounded retention date, and **that module has never been applied**; Rego asserts each
+  denial against plan fixtures, offline, and nowhere else.
   *Cited as `:192` and `:197` until 2026-08-14; `:192` reads `LOG_LEVEL = var.log_level`.*
 * **SSM Parameter Store** — the CockroachDB Cloud DSN is a SecureString parameter, **not** a
   Lambda environment variable, so the connection string never appears in the function
   configuration that anyone holding `lambda:GetFunction` can read. Terraform is given the
   parameter's **name**, never its value: a Terraform-managed secret is a plaintext secret in
   the state file, and the state bucket has a wider read audience than the parameter does.
+  The call is hand-rolled SigV4 over one HTTPS request
+  (`verticals/mainline/apps/demo-api/src/mainline_demo_api/db.py:214`) and the result is
+  cached for the life of the container, so a warm request makes no SSM call at all.
 
-**Verdict on all four: DESIGNED, and deliberately still DESIGNED.** As this is written a
-`terraform apply` is planned, reviewed and authorised, and the plan is committed at
-[`evidence/deploy/terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843` —
-`Plan: 24 to add, 0 to change, 0 to destroy.`, being `11` in `module.api[0]` and `13` in
-`module.guard[0]`. **An authorised plan is not an apply.** Nothing is
-deployed: no function, no role, no log group, no parameter, no alarm, no guard. The submission's demo
-URL is unresolved as of this document, and `docs/submission/SUBMISSION.json` is the single
-place a resolved URL is written. These four rows move when an apply has happened and a
-transcript records it — not when one is scheduled.
+**Verdict: three EXERCISED, one DESIGNED-and-unapplyable, and the paragraph this replaces is
+worth keeping in view.** It read *"Verdict on all four: DESIGNED, and deliberately still
+DESIGNED … An authorised plan is not an apply."* That was correct on the day it was written
+and it is how these rows are supposed to behave — a verdict does not move on an intention.
+The apply then happened, on 2026-08-14, against the plan committed at
+[`evidence/deploy/terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843`
+— `Plan: 24 to add, 0 to change, 0 to destroy.`, being `11` in `module.api[0]` and `13` in
+`module.guard[0]` — and
+[`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) records `24 created, 0 changed,
+0 destroyed` with `37` resources in state. **Lambda, IAM and SSM Parameter Store moved on
+that transcript and on the live readings beside it; CloudFront did not and will not, because
+this account is refused new distributions.** Two limits ride along with the promotion:
+the IAM verdict covers the role's allow and **not** the deny-first evidence-store policies,
+and `docs/submission/SUBMISSION.json` remains the **single write point** for the submission's
+`demo_url` — a URL existing and a URL being *submitted* are different facts and this page
+settles only the first.
 
 ## Amazon EventBridge — DESIGNED, and weaker than the others
 
@@ -1264,19 +1334,28 @@ Collected here so a judge does not have to hunt for it. Every line is also in
   from the committed plan, and the demo's Function URL is **public** (`authorization_type =
   NONE`) rather than `AWS_IAM` — a weaker posture than the one originally designed, stated
   here rather than left to be discovered in the plan file.
-* **Nothing has been applied, including what is authorised.** A `terraform apply` is
-  planned, reviewed and authorised as this document is written. Lambda, IAM, SSM Parameter
-  Store and CloudFront remain **DESIGNED**, because *authorised* is not *applied* and the
-  verdict column would be worthless if intent could move it.
+* ~~**Nothing has been applied, including what is authorised.**~~ **Retired 2026-08-15, and
+  the sentence it replaces is kept because it is the rule.** It read: *"A `terraform apply`
+  is planned, reviewed and authorised as this document is written. Lambda, IAM, SSM Parameter
+  Store and CloudFront remain DESIGNED, because authorised is not applied and the verdict
+  column would be worthless if intent could move it."* The apply ran on 2026-08-14
+  ([`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md), `24 created`), so three of
+  those four moved on a transcript rather than on the intention. **CloudFront did not move
+  and cannot**, and the IAM promotion covers the execution role's allow and **not** the
+  deny-first evidence-store policies, which remain unapplied.
 * **The conformance suite has never been demonstrated.** Against a bare node its cases
   *error* rather than skip; `just migrate && just conform` is the invocation that would run
   them. This is the single largest gap between what the repository contains and what it has
   shown.
-* **Nothing is deployed.** The three EXERCISED AWS rows are all *API calls against services
-  AWS already operates* — model inference and read-only metrics. Every row that would
-  require `terraform apply` is DESIGNED: no bucket, no KMS key, no trail, no function, no
-  distribution, no rule, no parameter. The submission's demo URL is `UNRESOLVED` in
-  `docs/submission/SUBMISSION.json` as this document is written.
+* **Half of the AWS surface is still not deployed, and it is the custody half.** Three of the
+  six EXERCISED rows are *API calls against services AWS already operates* — model inference
+  and read-only metrics — and three are the applied demo stack. **Five rows still require a
+  `terraform apply` that has not happened**: no evidence bucket, no Object Lock, no KMS
+  signing key, no trail, no distribution, no schedule rule. The evidence store is the one a
+  reader should care about most, because the custody claim rests on it, and it is the one
+  that is not there. Separately: **`docs/submission/SUBMISSION.json` is the single write
+  point for the submission's `demo_url`**, and a URL existing is not a URL submitted — take
+  that value from that file, never from this page.
 * **The AWS corpus is SYNTHETIC.** Every document embedded and searched was generated by
   `trappoint_recall.corpora.synthetic`, because every source record in this domain is a real
   death and a repository is a copy. The Bedrock calls, the vectors, the CockroachDB writes
@@ -1297,9 +1376,10 @@ Collected here so a judge does not have to hunt for it. Every line is also in
 #   2. does every `N [src: evidence/tool-usage/...]` number ON THIS PAGE equal the
 #      value it cites? Regenerating the artefacts does not update the prose, and a
 #      fresh census under a stale sentence is the false negative that matters.
-#   3. does every row's anchor still land on the line's declared subject? This is the
-#      one that is RED on 2026-08-14: it exits 2, not 1, and it refuses BEFORE 1 and 2
-#      are computed, so a green on this command today would be a green nobody has.
+#   3. does every row's anchor still land on the line's declared subject? It refuses
+#      with exit 2 BEFORE 1 and 2 are computed, which is what it did on 2026-08-14 on
+#      two drifted anchors. Both were re-pointed in the GENERATOR on 2026-08-15 and it
+#      exits 0. Counts move whenever anybody adds a file, so run it; do not assume it.
 python scripts/submission/capture_tool_evidence.py            # write
 python scripts/submission/capture_tool_evidence.py --check    # non-zero if any of the three is stale
 python scripts/aws/verify_evidence.py --list                  # the same anchor rule, as [CEN-ANCHORS]
