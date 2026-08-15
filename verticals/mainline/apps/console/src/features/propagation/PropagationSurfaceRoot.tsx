@@ -10,8 +10,11 @@
  *
  * Three jobs and no more:
  *
- *   1. read the subject from the URL — `#/propagation?lesson=<uuid>`. The console does not
- *      guess which lesson you meant, and a surface with no subject says so;
+ *   1. resolve the subject — `#/propagation?lesson=<uuid>` if the reader named one,
+ *      otherwise whichever lesson the kernel says this deployment seeded. The console
+ *      still does not GUESS which lesson you meant; it ASKS, at `GET /v1/demo/subjects`,
+ *      and when there is no answer this surface says so and shows nothing. It never falls
+ *      back to an identifier written into its own source — see `src/data/demo-subjects.ts`;
  *   2. take a transport from `PropagationTransportContext` and render the NO SOURCE panel
  *      when nobody has provided one;
  *   3. fill the honesty chrome slots it is in a position to fill — the transport mode, the
@@ -23,15 +26,31 @@ import { useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react'
 
 import { useHonestyPublisher } from '../../app/honesty';
 import { parseRoute } from '../../app/router';
+import {
+  addressSubject,
+  subjectAbsence,
+  useDemoSubjects,
+  type SubjectAddressShape,
+  type SubjectIndex,
+} from '../../data/demo-subjects';
 import { Mono, RegisterFrame } from '../../design/primitives';
 
 import styles from './propagation.module.css';
 import { PropagationScreen } from './PropagationScreen';
+import { SubjectDoors } from './SubjectDoors';
 import { usePropagationTransport } from './transport-context';
 import { usePropagationData } from './usePropagationData';
 
 /** The query parameter that addresses a subject: `#/propagation?lesson=<uuid>`. */
 export const LESSON_PARAM = 'lesson';
+
+/** What this surface asks the subject index for, and how a reader overrides it. */
+const ADDRESS: SubjectAddressShape = {
+  noun: 'lesson',
+  member: 'lesson_id',
+  subjectKey: 'event',
+  example: `#/propagation?${LESSON_PARAM}=<uuid>`,
+};
 
 function subscribe(onChange: () => void): () => void {
   window.addEventListener('hashchange', onChange);
@@ -61,20 +80,39 @@ function useRouteParams(): URLSearchParams {
   }, [key]);
 }
 
-function NoSubject(): ReactNode {
+function NoSubject({ index }: { readonly index: SubjectIndex }): ReactNode {
+  const absence = subjectAbsence(index, ADDRESS);
   return (
     <RegisterFrame register="evidence">
       <div className={styles.surface} data-testid="propagation-no-subject">
         <h1 className={styles.title}>Propagation — where the lesson travelled</h1>
-        <section className={styles.panel}>
+        <section className={styles.panel} data-index={index.status}>
+          <span className={styles.kicker}>{absence.kicker}</span>
+          {absence.paragraphs.map((paragraph) => (
+            <p className={styles.prose} key={paragraph}>
+              {paragraph}
+            </p>
+          ))}
           <p className={styles.prose}>
-            This surface renders the fleet response to ONE lesson and does not choose one for
-            you. Address a lesson by its identifier —{' '}
-            <Mono>#/propagation?{LESSON_PARAM}=&lt;uuid&gt;</Mono> — and the console will read
-            that lesson, every site&apos;s answer to it, and every conflict still open against
-            it.
+            {absence.override} <Mono>{absence.example}</Mono> — and the console will read that
+            lesson, every site&apos;s answer to it, and every conflict still open against it.
           </p>
+          {absence.detail !== null && (
+            <pre className={styles.verbatim} data-testid="propagation-subject-index-detail">
+              {absence.detail}
+            </pre>
+          )}
         </section>
+
+        {/*
+          * ONE CLICK, NEVER A TYPED UUID — and never a link to a subject nobody named.
+          *
+          * The rule above is unchanged: this surface still refuses to choose a lesson and
+          * still says so in the emitter's own words. What follows is the way out, built out
+          * of the SAME answer — every href comes from `GET /v1/demo/subjects`, and a slot the
+          * kernel left null renders nothing at all.
+          */}
+        <SubjectDoors index={index} />
       </div>
     </RegisterFrame>
   );
@@ -82,9 +120,12 @@ function NoSubject(): ReactNode {
 
 export function PropagationSurfaceRoot(): ReactNode {
   const params = useRouteParams();
-  const lessonId = params.get(LESSON_PARAM);
   const transport = usePropagationTransport();
   const publish = useHonestyPublisher();
+
+  const index = useDemoSubjects(transport);
+  const addressed = addressSubject(params.get(LESSON_PARAM), index, (subjects) => subjects.lessonId);
+  const lessonId = addressed.value;
 
   // Hooks run unconditionally; the empty subject is handled by the render below, and
   // `usePropagationData` performs no exchange when the transport is null.
@@ -103,7 +144,7 @@ export function PropagationSurfaceRoot(): ReactNode {
     });
   }, [publish, mode, digestPrefix, clockSkewMs]);
 
-  if (lessonId === null || lessonId === '') return <NoSubject />;
+  if (lessonId === null) return <NoSubject index={index} />;
 
   return <PropagationScreen lessonId={lessonId} state={state} noSource={transport === null} />;
 }

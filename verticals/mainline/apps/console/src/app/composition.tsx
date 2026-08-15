@@ -49,6 +49,16 @@
  * transport contexts must wrap everything. A render prop gives the shell both without a
  * second context to carry the verification state, and without this module knowing where
  * in the layout its own chrome lands.
+ *
+ * It hands over the TRANSPORT as a second argument for the same reason, added 2026-08-15.
+ * The shell's navigation now opens each surface on the subject `GET /v1/demo/subjects`
+ * named, and the shell therefore has to be able to ask — through the very transport every
+ * surface asks through, because an index resolved from one source is not an answer about
+ * another (`src/data/demo-subjects.ts` memoises per transport object, so the shell and the
+ * five surfaces share ONE exchange rather than opening a second). A seventh
+ * `TransportContext` for the shell would be a second socket on the same wire; the render
+ * prop already crosses this boundary, so it carries this too. Existing callers that take
+ * one parameter are unaffected — a shorter function is assignable to a longer type.
  */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -106,8 +116,14 @@ interface Built {
 }
 
 export interface CompositionProps {
-  /** Given the source chrome to place. The shell puts it inside `<main>`. */
-  readonly children: (chrome: ReactNode) => ReactNode;
+  /**
+   * Given the source chrome to place, and the transport that was composed.
+   *
+   * The shell puts the chrome inside `<main>`. The transport is `null` exactly when this
+   * build carries no source — the shell must render that as a named absence, never as an
+   * empty navigation.
+   */
+  readonly children: (chrome: ReactNode, transport: MainlineTransport | null) => ReactNode;
   /** Build-time variables. Defaults to `import.meta.env`; injected by tests. */
   readonly env?: ConsoleEnvironment;
   /** Address parameters. Defaults to this page's; injected by tests. */
@@ -349,7 +365,7 @@ export function Composition({
             <DiffTransportContext.Provider value={built.transport}>
               <SilenceTransportContext.Provider value={built.transport}>
                 <PropagationTransportContext.Provider value={built.transport}>
-                  {children(chrome)}
+                  {children(chrome, built.transport)}
                 </PropagationTransportContext.Provider>
               </SilenceTransportContext.Provider>
             </DiffTransportContext.Provider>

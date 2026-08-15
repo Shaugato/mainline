@@ -139,6 +139,28 @@ async function serveClause(
   });
 }
 
+/**
+ * Opens every disclosure on the panel.
+ *
+ * Since 2026-08-15 the canonical texts, the anchor table, the structured fields, the
+ * witness rows and the stored columns open COLLAPSED — `docs/leads/two-audience-ux-plan.md`
+ * R6, so that a first-time reader meets the plain band and the verdict before meeting a
+ * hash table. Nothing was removed: every one of them is in the DOM in both states, which is
+ * why the reassembly assertions below still hold either way. What a closed `<details>` does
+ * change is `toBeVisible()`, so a spec that asserts what a reader SEES has to perform the
+ * click the reader performs.
+ *
+ * It sets `open` rather than clicking, deliberately: the assertion that the summary is a
+ * real operable control belongs to one dedicated test ("collapsed, not removed"), and
+ * repeating it in every fixture step would make an unrelated failure look like a layout
+ * regression.
+ */
+async function openDisclosures(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    for (const node of document.querySelectorAll('details')) node.open = true;
+  });
+}
+
 /** Reassembles one side of the clause from the rendered runs. */
 async function reassemble(page: Page, side: 'parent' | 'version'): Promise<string> {
   const excluded = side === 'parent' ? 'added' : 'removed';
@@ -184,6 +206,22 @@ test.describe('the diff', () => {
 
   test('reassembles both canon_text values exactly from the DOM', async ({ page }) => {
     await page.goto(ROUTE);
+    await openDisclosures(page);
+    await expect(page.getByTestId('text-unified')).toBeVisible();
+    expect(await reassemble(page, 'parent')).toBe(PARENT.canon_text);
+    expect(await reassemble(page, 'version')).toBe(VERSION.canon_text);
+  });
+
+  test('opens plain, and the exact wording is one click away and complete', async ({ page }) => {
+    await page.goto(ROUTE);
+
+    // What a first-time reader meets: the plain band and the verdict, not a hash table.
+    await expect(page.getByTestId('diff-plain-band')).toBeVisible();
+    await expect(page.getByTestId('delta-verdict')).toBeVisible();
+    await expect(page.getByTestId('text-unified')).not.toBeVisible();
+
+    // ONE click, on a control that names what is behind it, and nothing was lost.
+    await page.getByText('Show the exact wording of the rule, before and after').click();
     await expect(page.getByTestId('text-unified')).toBeVisible();
     expect(await reassemble(page, 'parent')).toBe(PARENT.canon_text);
     expect(await reassemble(page, 'version')).toBe(VERSION.canon_text);
@@ -206,6 +244,7 @@ test.describe('the diff', () => {
 
   test('badges the diff as recomputed and the witnesses as db:column', async ({ page }) => {
     await page.goto(ROUTE);
+    await openDisclosures(page);
     await expect(
       page.getByTestId('text-diff').locator('[data-kind="recomputed"]').first(),
     ).toBeVisible();
@@ -297,6 +336,7 @@ test.describe('nothing is hardcoded', () => {
       },
     }));
     await page.goto(ROUTE);
+    await openDisclosures(page);
     await expect(page.getByTestId('text-unified')).toBeVisible();
     expect(await reassemble(page, 'version')).toBe(replacement);
   });

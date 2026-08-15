@@ -32,6 +32,7 @@ import { type ReactNode } from 'react';
 import { ProvenanceChip } from '../../../design/primitives';
 import styles from '../diff.module.css';
 import type { AnchorResidue, CatDiff, ScalarChange, UnwitnessedChange } from '../model';
+import { Disclosure, Gloss } from './Plain';
 
 export function AnchorResidueView({ anchors }: { readonly anchors: AnchorResidue }): ReactNode {
   const changed = anchors.dropped.length + anchors.added.length;
@@ -56,6 +57,13 @@ export function AnchorResidueView({ anchors }: { readonly anchors: AnchorResidue
         <ProvenanceChip kind="recomputed" detail="set difference, exact string equality" />
       </div>
 
+      <Gloss>
+        An <em>anchor</em> is one of the fixed handles a rule is filed under — the short names
+        that let a later reader find this rule again and tell it apart from a similar one. A
+        handle that disappears between two versions is how a rule quietly stops being found, so
+        the count above is stated whether or not anything changed.
+      </Gloss>
+
       <p className={styles.note}>
         Compared by exact string equality — no case folding, no trimming, no fuzzy match.
         Deciding that two spellings are one anchor is an identity judgement, and identity
@@ -65,39 +73,45 @@ export function AnchorResidueView({ anchors }: { readonly anchors: AnchorResidue
       {changed === 0 ? (
         <p className={styles.settled}>The anchor set is unchanged.</p>
       ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <caption className={styles.caption}>
-              Anchors present in one version and not the other. An anchor dropped between
-              versions is a declared reason for an <code className={styles.mono}>anchor_drop</code>{' '}
-              row in <code className={styles.mono}>mainline.identity_residue</code>.
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">anchor</th>
-                <th scope="col">state</th>
-              </tr>
-            </thead>
-            <tbody>
-              {anchors.dropped.map((value) => (
-                <tr key={`dropped-${value}`}>
-                  <th scope="row" className={styles.mono}>
-                    {value}
-                  </th>
-                  <td className={styles.changedCell}>dropped</td>
+        <Disclosure
+          summary="Show which handles were dropped and which were added"
+          testId="diff-anchor-disclosure"
+        >
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <caption className={styles.caption}>
+                Anchors present in one version and not the other. An anchor dropped between
+                versions is a declared reason for an{' '}
+                <code className={styles.mono}>anchor_drop</code> row in{' '}
+                <code className={styles.mono}>mainline.identity_residue</code>.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">anchor</th>
+                  <th scope="col">state</th>
                 </tr>
-              ))}
-              {anchors.added.map((value) => (
-                <tr key={`added-${value}`}>
-                  <th scope="row" className={styles.mono}>
-                    {value}
-                  </th>
-                  <td className={styles.changedCell}>added</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {anchors.dropped.map((value) => (
+                  <tr key={`dropped-${value}`}>
+                    <th scope="row" className={styles.mono}>
+                      {value}
+                    </th>
+                    <td className={styles.changedCell}>dropped</td>
+                  </tr>
+                ))}
+                {anchors.added.map((value) => (
+                  <tr key={`added-${value}`}>
+                    <th scope="row" className={styles.mono}>
+                      {value}
+                    </th>
+                    <td className={styles.changedCell}>added</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Disclosure>
       )}
 
       {anchors.duplicatedInParent.length + anchors.duplicatedInVersion.length === 0 ? null : (
@@ -143,6 +157,14 @@ export function CatDeltaView({ cat }: { readonly cat: CatDiff }): ReactNode {
         </div>
       )}
 
+      <Gloss>
+        The <em>Control Assertion Tuple</em> is the machine-readable half of the rule: the same
+        requirement written as structured fields rather than as a sentence, so that a check can
+        be run against it. This console displays those fields and their addresses and states
+        nothing about what any one of them means — that meaning belongs to the rule-book, not to
+        a screen.
+      </Gloss>
+
       {cat.changes.length === 0 ? (
         <p className={styles.settled}>
           {cat.availability === 'neither'
@@ -150,35 +172,40 @@ export function CatDeltaView({ cat }: { readonly cat: CatDiff }): ReactNode {
             : 'The Control Assertion Tuple is unchanged.'}
         </p>
       ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <caption className={styles.caption}>
-              Field-level differences, as JSON Pointers into{' '}
-              <code className={styles.mono}>cat_json</code>. The console renders the tuple as
-              structured data and asserts nothing about what any key means.
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">pointer</th>
-                <th scope="col">kind</th>
-                <th scope="col">ancestor</th>
-                <th scope="col">this version</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cat.changes.map((change) => (
-                <tr key={`${change.pointer}-${change.kind}`}>
-                  <th scope="row" className={styles.mono}>
-                    {change.pointer === '' ? '(root)' : change.pointer}
-                  </th>
-                  <td>{change.kind}</td>
-                  <td className={styles.mono}>{change.fromRepr ?? '∅'}</td>
-                  <td className={styles.mono}>{change.toRepr ?? '∅'}</td>
+        <Disclosure
+          summary="Show the structured fields that changed, one address at a time"
+          testId="diff-cat-disclosure"
+        >
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <caption className={styles.caption}>
+                Field-level differences, as JSON Pointers into{' '}
+                <code className={styles.mono}>cat_json</code>. The console renders the tuple as
+                structured data and asserts nothing about what any key means.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">pointer</th>
+                  <th scope="col">kind</th>
+                  <th scope="col">ancestor</th>
+                  <th scope="col">this version</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {cat.changes.map((change) => (
+                  <tr key={`${change.pointer}-${change.kind}`}>
+                    <th scope="row" className={styles.mono}>
+                      {change.pointer === '' ? '(root)' : change.pointer}
+                    </th>
+                    <td>{change.kind}</td>
+                    <td className={styles.mono}>{change.fromRepr ?? '∅'}</td>
+                    <td className={styles.mono}>{change.toRepr ?? '∅'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Disclosure>
       )}
 
       <p className={styles.note}>
@@ -218,42 +245,57 @@ export function ScalarTable({ scalars }: { readonly scalars: readonly ScalarChan
       <div className={styles.chips}>
         <ProvenanceChip kind="db:column" detail="mainline.clause_version" />
       </div>
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <caption className={styles.caption}>
-            Every compared column of <code className={styles.mono}>mainline.clause_version</code>,
-            both sides, verbatim. Columns marked <em>presentation only</em> are never identity —
-            a renumber is not an edit.
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">column</th>
-              <th scope="col">ancestor</th>
-              <th scope="col">this version</th>
-              <th scope="col">state</th>
-            </tr>
-          </thead>
-          <tbody>
-            {scalars.map((scalar) => (
-              <tr key={scalar.column} data-changed={scalar.changed ? 'true' : 'false'}>
-                <th scope="row" className={styles.mono}>
-                  {scalar.column}
-                  {scalar.presentationOnly ? (
-                    <span className={styles.note}> presentation only</span>
-                  ) : null}
-                </th>
-                <td className={`${styles.mono} ${scalar.changed ? styles.changedCell : styles.unchangedCell}`}>
-                  {scalar.fromRepr}
-                </td>
-                <td className={`${styles.mono} ${scalar.changed ? styles.changedCell : styles.unchangedCell}`}>
-                  {scalar.toRepr}
-                </td>
-                <td>{scalar.changed ? 'changed' : 'unchanged'}</td>
+      <Gloss>
+        Everything the database stores about each of the two versions, side by side, with no
+        selection: the fields that changed and the fields that did not. It is the longest thing
+        on this screen and the least interpreted, which is why it is the one behind a click.
+      </Gloss>
+      <Disclosure
+        summary="Show every stored field for both versions, side by side"
+        testId="diff-scalar-disclosure"
+      >
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <caption className={styles.caption}>
+              Every compared column of{' '}
+              <code className={styles.mono}>mainline.clause_version</code>, both sides, verbatim.
+              Columns marked <em>presentation only</em> are never identity — a renumber is not an
+              edit.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">column</th>
+                <th scope="col">ancestor</th>
+                <th scope="col">this version</th>
+                <th scope="col">state</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {scalars.map((scalar) => (
+                <tr key={scalar.column} data-changed={scalar.changed ? 'true' : 'false'}>
+                  <th scope="row" className={styles.mono}>
+                    {scalar.column}
+                    {scalar.presentationOnly ? (
+                      <span className={styles.note}> presentation only</span>
+                    ) : null}
+                  </th>
+                  <td
+                    className={`${styles.mono} ${scalar.changed ? styles.changedCell : styles.unchangedCell}`}
+                  >
+                    {scalar.fromRepr}
+                  </td>
+                  <td
+                    className={`${styles.mono} ${scalar.changed ? styles.changedCell : styles.unchangedCell}`}
+                  >
+                    {scalar.toRepr}
+                  </td>
+                  <td>{scalar.changed ? 'changed' : 'unchanged'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Disclosure>
     </section>
   );
 }

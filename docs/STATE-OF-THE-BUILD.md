@@ -5,24 +5,32 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # STATE OF THE BUILD
 
-**Re-certified 2026-08-15 — NINTH verification, and the first one taken against a package
-that starts LIVE.** Every number on this page came from a command run on this machine today,
-against the tree described in §0. Suite totals are read from `--junitxml` root elements and
-from nowhere else, and the artefact figures are read out of the **zip's own central
-directory**, never out of a document and never out of `dist/`. Deadline **2026-08-18**.
+**Re-certified 2026-08-15 — TENTH verification, and the first one taken by OPENING THE
+CONSOLE IN A BROWSER rather than by reading its source.** Every number on this page came from
+a command run on this machine today, against the tree described in §0. Suite totals are read
+from `--junitxml` root elements and from nowhere else, and the artefact figures are read out
+of the **zip's own central directory**, never out of a document and never out of `dist/`.
+Deadline **2026-08-18**.
 
-**VERDICT: still NOT READY for a judge, and the reason has shrunk to three things.** The
-eighth verification listed four blockers. Two of them — the ruff LINT ratchet and the
-response-ceiling STOP — are **discharged and re-measured here**. What remains is that
-**nothing has reached the origin**, one evidence document now describes a deploy path that
-has moved under it, and the SSM secret is the founder's step. §1.
+**VERDICT: NOT READY — and the addressing wave is a real, honest repair that stops one step
+short of the deployment.** The console defects the founder found by clicking are **fixed and
+re-measured here by clicking**: eight screens render real seeded data, the Gate opens on the
+seeded permit with no query string, and the honesty strip's `unknown` chips now carry
+sentences. **No invention was found anywhere in the wave** — §12.1, and that is the finding
+this page cared about most. What blocks the verdict is §12.4: the seed's hex→base64
+checkpoint repair is **correct in the file and cannot reach the deployed database**, because
+every insert in §8 of `demo_world.sql` is guarded by `WHERE NOT EXISTS` and no statement in
+the tree updates a `body` that is already there. Measured today against both the live URL and
+a local database in the same state.
 
-> **THE FRAMING THAT STILL MATTERS MORE THAN THE VERDICT.** The founder opened the demo URL
-> and found a console playing a recording with no way to press the headline button. *He*
-> found it. The defect was a **build-time value**, invisible to every source test. That is
-> why this page reads the artefact rather than the source, and it is why §2 of this
-> verification spends its whole budget asking *what did this wave move, and was it allowed
-> to move it?* before it reports a single green.
+> **THE FRAMING THAT STILL MATTERS MORE THAN THE VERDICT.** The founder found every defect in
+> the last wave by opening the URL and clicking. No test in this repository found any of them,
+> because they all read source and none read what is served. **This verification was performed
+> the way he performs one** — a real build, served by the real handler, driven in a real
+> browser — and it found the remaining blocker the same way: not by reading the seed, but by
+> re-running it and then asking the database what it now held. The seed's own comment
+> diagnoses this exact failure mode one section higher up, for the checkpoint it deletes. The
+> encoding fix one section lower repeats it.
 
 ---
 
@@ -59,7 +67,231 @@ public.**
 
 ---
 
+## 12 · THE JUDGE-EYE WALK — the tenth verification, taken in a browser
+
+**Method, stated first because it is the point.** A real `vite build` with
+`VITE_MAINLINE_API_BASE=/`, served by `scripts/deploy/local_furl.py` — which calls the same
+`mainline_demo_api.app.handler` the Lambda carries — against a local CockroachDB v26.2.5
+holding the demo world. Every screen below was opened in Chrome and read off the page. The
+live Function URL was measured directly for the two claims that are about the deployment.
+
+### 12.1 · NO INVENTION — the first check, and it passes
+
+**Nothing in this wave mints a row, a seal, a checkpoint or a tick that the kernel did not
+produce, and no claim was weakened to make a screen render.** The three highest-risk diffs
+were read in full and each survives:
+
+| Change | What it actually is | Verdict |
+|---|---|---|
+| `demo_world.sql` §8.4 — a `DELETE` in a seed file | Retires a checkpoint whose `root_hash` **is** `digest('mainline-demo/ledger/root/' \|\| tree_size)` and appears in no `ledger_node`. Measured on the **live URL** today: `GET /v1/ledger` serves three checkpoints, and the one at `tree_size = 1` has root `74f0845f11c5992b…`, which is **exactly** `sha256("mainline-demo/ledger/root/1")`. The row is a fiction and this removes it. | **Removal of an invention, not an invention** |
+| `demo_world.sql` §8.5 — `encode(n.hash,'hex')` → `encode(n.hash,'base64')` | `spec/wire/checkpoint.md` (v1.0, frozen 2026-08-07) line 86 fixes note line 3 as *"base64 of the 32-byte RFC 6962 Merkle Tree Hash"*. The seed wrote hex, which base64-decodes to **48 bytes**. Same `n.hash`, re-encoded — no digest typed. | **Correct against the frozen spec** |
+| `checkpoint.json` — `no-blank-line` reclassified `malformed` → `unsigned` | `spec/wire/checkpoint.md` §10 item 6 lists **exactly four** required refusals and this is none of them. `ledger.ts` orders `failed` → `malformed` → `unsigned`, so a bad signature and an unparseable note both still fail **before** `unsigned` is reachable. `unsigned` maps to **SKIP, never PASS**. | **Not a relaxation** |
+
+The seed still computes every hash in the database; no hex literal was introduced. `GRANTS.yaml`
+grew by documenting roles and memberships that **already exist on the live cluster** (the
+`trappoint` USAGE grant was hand-granted 2026-08-14 and recorded in `evidence/deploy/LIVE.md`);
+it declares no privilege the deployment does not hold.
+
+### 12.2 · THE SCREENS — eight render real seeded data, two declare themselves unbuilt
+
+The addressing repair is real and it is the right one: `GET /v1/demo/subjects` makes the
+**kernel name its own subjects out of its own tables**, and `src/data/demo-subjects.ts` carries
+no fallback literal. Against the local kernel the index answers `absent: []` — every subject
+the console addresses exists.
+
+| Screen | Before (founder, 2026-08-14) | Now, read off the page |
+|---|---|---|
+| **Overview** | did not exist | **Renders.** Three use cases in plain English, each linking to a seeded subject; states *"The identifiers behind the links were read from `GET /v1/demo/subjects` just now — none of them is written into this console."* |
+| **Gate** | *"NO SUBJECT ADDRESSED"* | **Renders `DEMO-PTW-0001` with no query string**, and says which of three origins named it. §12.3 |
+| **Diff** | `HTTP 404` on an invented clause | **Renders** clause `dec0de00-0004-…` at the seeded head commit |
+| **Custody** | `HTTP 404` — no rows for `BLK-07` | **Renders** the seeded site. `BLK-07` — a string that had leaked out of a test vector — is gone. §12.4 |
+| **Evidence** | *"Failed to construct 'URL': Invalid base URL"* | **Renders.** Says *"no capture was consulted, that fact in words rather than a blank"* |
+| **Audit** | every aggregate *"No rows"* | **Renders** — `views carried 14`, `views that returned rows 6 of 14` |
+| **Propagation** | — | **Renders** with a `STAGED` badge stating the three governing tables do not exist in any migration |
+| **Silence** | — | **Renders** with `STAGED`, the conservation identity and the PER limit |
+| **Ancestry**, **Disposition** | — | **`NOT BUILT YET — K3 owes it` / `K5 owes it`** in the sidebar. Declared, not faked. |
+
+All twelve read routes answer `200` against the local kernel. `POST /v1/demo/gate-run` answers
+**`PROVEN`** with the four beats `00000 → 23514 → P0001 → 00000`.
+
+### 12.3 · THE GATE ON ARRIVAL — yes
+
+With no query string the Gate opens on the seeded permit and prints, on screen:
+
+> *"The console asked this deployment which permit it seeded, at GET /v1/demo/subjects, and
+> this is the identifier that read returned."*
+
+There is no default and no literal: `SubjectOrigin` is `address | index | demo-run`, an address
+always wins, and a run's subject can only fill a slot the other two left empty. The plain band
+opens *"A permit is a written authorisation for one specific piece of work"* and the precise
+machinery — constraint names, SQLSTATEs, `db:column` provenance chips — is one disclosure away.
+
+### 12.4 · THE BLOCKER — a correct repair that cannot reach the deployment
+
+**The hex→base64 fix in `demo_world.sql` §8.5 is unreachable on any database that already
+holds those checkpoint rows.** Every insert in §8 is guarded by `WHERE NOT EXISTS`; there is no
+`ON CONFLICT DO UPDATE` and **no statement anywhere in the tree updates
+`mainline.ledger_checkpoint.body`** (the only three matches are nemesis attack fixtures).
+`scripts/deploy/reconcile_demo_checkpoints.sql` deletes the self-naming row and, by its own
+statement, touches nothing else.
+
+**Measured, not reasoned:**
+
+| Database | Action | `body` line 3 |
+|---|---|---|
+| live `mainline_demo` (Function URL, today) | — | 64 hex chars → decodes to **48 bytes** |
+| local `mainline_demo` (same state) | **re-ran `seed_demo.py` — `OK, attempts=1`** | still 64 hex chars → **48 bytes** |
+| fresh scratch database | first seed | `v13D5bJFio5XjbmEHJaQJ7uz…` → **32 bytes** |
+
+So on the deployed database the custody screen reads, verbatim:
+
+> **the custody ledger: verification FAILED.** … *check 4 `log_signature`* — *"the root line
+> decodes to 48 bytes; spec §3 requires exactly 32 bytes"* … *check 10
+> `canonicaliser_identity`* — *"carries a note that will not parse"*
+
+`7 / 2 / 6`, and the honesty strip's **SEAL** reads **`VERIFICATION FAILED`** in red. On a
+correctly seeded database the same build reads **`NOT VERIFIED`**, `0` failed, and the strip
+says *"every check that ran passed, but 8 were NOT RUN … A report containing a SKIP is not a
+clean report."* The whole difference is whether the deployment is recreated or reconciled.
+
+**Nothing in the repository would catch this.** `verify_demo_checkpoints.py` computes
+`root_line_is_hex_of_root` and `root_line_decodes_to_bytes` and **reports** them; nothing
+asserts either. It is the founder's pattern exactly — a defect that only exists in what is
+served. The `unsigned` verdict added this wave is, against the deployed data, dead code: the
+note never parses, so `malformed` wins first.
+
+### 12.5 · THE HONESTY STRIP — five of the founder's five chips answered
+
+| Chip | 2026-08-14 | Now |
+|---|---|---|
+| BUNDLE | `unknown` | **`none consulted`** + a paragraph distinguishing it from a digest that could not be recomputed |
+| SEAL | `NOT VERIFIED` | a **measured verdict** — `VERIFICATION FAILED` (hex data) or `NOT VERIFIED` (correct data) |
+| CORPUS ROOT | `unknown` | the real root, chipped `db:column` |
+| CLOCK SKEW | `unknown` | `−657 ms`, chipped `recomputed` |
+| SIGNATURE PATH | `unknown` | **`none compiled`** + why (no GT-15 attestation at build time) |
+
+Three chips still carry the `unset` marker, and **each now states its reason in a sentence**
+rather than showing a bare `unknown`. The `unset` provenance is unchanged, which is correct:
+nothing was established either way. One residual — `CORPUS ROOT` and `CLOCK SKEW` read
+`unknown` when Custody is opened as the **first** screen, because they are published by
+surfaces the reader has not visited yet. Order-dependent, honest, worth closing.
+
+### 12.6 · THE PRIVILEGE CONFORMANCE TEST — one direction is falsifiable, one is not
+
+`scripts/qa/privilege_conformance.py` exists and is serious. Baseline: **120/120 granted pairs
+reachable, 256/256 ungranted pairs refused with `42501`, 0 differences.**
+
+* **Negative direction — FALSIFIABLE.** Granting `SELECT ON mainline_qa.v_my_record` to
+  `mainline_api` (a pair the matrix does not name) turns it red with a precise finding:
+  *"the matrix does NOT grant this and the cluster allowed it — expected 42501, observed
+  00000"* → **`VERDICT PRIVILEGE CONFORMANCE FAILED`**. This is the direction that matters for
+  an `authorization_type = NONE` endpoint, and it works.
+* **Positive direction — NOT FALSIFIABLE AS RUN.** `REVOKE SELECT ON mainline.permit FROM
+  mainline_api`, then re-probe: **`PRIVILEGE CONFORMANCE HOLDS`, 120/120, exit 0** — and the
+  grant was back afterwards. `main()` calls `apply_matrix()` unconditionally before probing,
+  in `--database` (borrowed) mode too, so the probe **repairs the defect it is meant to
+  detect**. There is no `--no-apply`. A missing grant cannot make it red.
+
+### 12.7 · THE SUITE, THE PROOF, AND ONE NEW RED
+
+* **Lane (`demo-api` + `tests/deploy`), `--crdb=reuse`, from `--junitxml`:
+  983 collected / 981 passed / 1 FAILED / 0 errors / 1 skipped.** Baseline was
+  911/910/0/0/1 — 72 tests added, and **one is red**. **Identical in both orders**
+  (randomised default, and `-p no:randomly`): same single failure, 196 s each.
+* **A caution about scope, recorded so nobody repeats it.** A first run of bare
+  `pytest --crdb=reuse` at the repo root collects **10,594** tests across every package in one
+  interpreter and reports 184 failed / 111 errors. That is **not** a regression signal — it is
+  the wrong shape. `qa/test-state.json` runs each distribution in its **own pytest
+  subprocess**; a single-process monorepo run collides on imports. The lane above is the
+  comparable measurement.
+* The red is **new and honest**:
+  `test_privilege_census.py::test_every_routine_the_demo_api_calls_holds_execute_from_some_authority_here`.
+  It finds that `trappoint.explain_refusal` (called at `refusal.py:141`) holds `EXECUTE` from
+  **no authority this repository declares**, and says so at length: *"on an
+  `authorization_type = NONE` endpoint an undeclared privilege is the defect whether or not it
+  is currently held."* It is a control that went red on first contact. **It is not registered
+  in `qa/cluster-known-red.json` or any skip census** — no banned exemption was added.
+* **Gate proof: `VERDICT PROVEN`, caveats `(none)`.** `PROJECTION 10/10 held`;
+  `REFUSAL REFUSED [23514] gate_closed_when_issued (reported)`;
+  `DRIFT REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)`; `ADMISSION ADMITTED [00000]`.
+* **Console vitest: 103 files / 1937 tests / all passed.**
+
+### 12.8 · READING LEVEL — an on-ramp, and no claim went vaguer
+
+The tracked before/after on Custody's standards sentence is a **strengthening**. Before, one
+flat list implied all four checks ran. After, it is inside a disclosure with the fourth
+separated: *"The ECDSA P-256 signature over the checkpoint note is checked too — whenever a
+checkpoint carries one and this reader holds a key."* The wave's own comment is right that the
+old sentence *"was crediting this browser with work it had not done"*. **Not one precise term
+was removed** — `RFC 8785`, `RFC 6962`, `ECDSA P-256` all survive verbatim, one control away.
+
+### 12.9 · A SIZE RISK, NOT YET A BLOCKER
+
+The entry chunk is **138,156 B gzipped against the 139,264 B (`136 * 1024`) response
+ceiling — 1,108 bytes of headroom.** `budgets.json` bounds the entry *closure* at 220 KB and
+**nothing bounds a single asset against the wire ceiling**. A served asset over the ceiling is
+a `413`, and a `413` on the entry chunk is the *"MAINLINE CONSOLE — NOT YET BOOTED"* screen —
+observed on this machine before the gzip siblings were generated. The ceiling itself is
+**unmoved at `136 * 1024`**.
+
+### 12.9a · WHAT THIS VERIFICATION DISTURBED, DECLARED
+
+Three things, none of them tracked and none of them a claim on this page:
+
+* **`verticals/mainline/apps/console/dist/` WAS REBUILT** (twice) and had 70 `.gz` siblings
+  written into it by hand, because a browser walk needs a served artefact and `vite build`
+  alone does not emit the pre-compressed siblings `build_lambda.sh` produces. `dist/` is
+  `.gitignore`d (line 10) and the zip in the deploy path was **not** touched — but **§4.2's
+  "`console/dist` undisturbed and byte-identical to the zip" is no longer true of this working
+  tree**, and the orchestrator should rebuild through `build_lambda.sh` rather than pack what
+  is there now.
+* **Local databases `mainline_demo` and one scratch database were seeded**, to measure the
+  before/after in §12.4. Local only; the deployed cluster was **read** and never written.
+* **One grant was revoked and one granted on a scratch database** for §12.6, and both were
+  restored — re-verified afterwards: `mainline.permit` holds `SELECT, UPDATE` again and
+  `mainline_qa.v_my_record` holds nothing.
+
+No commit was made, nothing was deployed, no AWS call was issued, no SSM parameter was
+written, and no DSN or credential appears anywhere in this page.
+
+### 12.10 · WHAT A JUDGE SEES, CLICKING THE SIDEBAR TOP TO BOTTOM
+
+Ten entries. This is the walk after the orchestrator redeploys, **and it forks at Custody**
+depending on whether the deployed `mainline_demo` is recreated or only reconciled.
+
+1. **Overview — what this refuses, and why.** Opens *"The answer this system is built to give
+   is 'no'."* Three cases in plain English, each ending in a link addressed to a seeded
+   identifier. This is the fix for *"present a couple of exceptional use cases"*, and cases 1
+   and 2 are backed by real rows. Case 3 (Silence) carries a `STAGED` badge before its numbers.
+2. **Gate — the refusal.** Opens on `DEMO-PTW-0001` **with no query string**, says the kernel
+   named it, and offers four controls. `RUN ALL` returns `PROVEN`: read `00000`, merge
+   **REFUSED `23514 gate_closed_when_issued`**, forged-counter **REFUSED `P0001
+   mainline.fn_permit_merge_gate`**, signed disposition **ADMITTED `00000`**. This is the
+   demo, and it works.
+3. **Diff — what "weakened" meant.** Clause `7.3.2(b)` at the seeded commit, with the CAT
+   comparison recomputed in the browser.
+4. **Custody — the chain.** **Fork.** If the database was recreated: `NOT VERIFIED`, **0
+   failed**, 8 not run, each named. If it was only reconciled — which is what
+   `reconcile_demo_checkpoints.sql` alone does — **`verification FAILED`, 2 red checks**, both
+   for the 48-byte root line, and the SEAL chip is red across every screen in the console.
+   **This is the one thing standing between the walk and a clean read.**
+5. **Evidence — the bundle.** No longer a URL exception; states that no capture was consulted.
+6. **Audit — the MCP surface.** 14 views carried, 6 returning rows.
+7. **Propagation — where the lesson travelled.** `STAGED`, with an unusually candid note that
+   the three governing tables exist in no migration.
+8. **Silence — what was not surfaced.** `STAGED`, conservation identity recomputed in-browser.
+9. **Ancestry** and 10. **Disposition** — **`NOT BUILT YET`**, each naming the worker that owes
+   it. A judge sees an honest gap, not a broken screen.
+
+**The honesty strip rides above all ten** and is now readable: transport `LIVE`, and every
+`unset` chip carrying a sentence for why.
+
+---
+
 ## 1 · The verdict
+
+**Superseded by §12 where the two disagree.** The rows below were measured by the ninth
+verification and are retained unedited; §12 is today's.
 
 | # | Condition | Status | Where measured |
 |---|---|---|---|

@@ -327,6 +327,68 @@ test.describe('the gate surface', () => {
   });
 });
 
+/**
+ * THE ON-RAMP, IN A REAL BROWSER.
+ *
+ * `docs/leads/two-audience-ux-plan.md` §1: the screen opens with three sentences a site
+ * supervisor can read, and every exact thing that was already on it is one deliberate,
+ * permanent click away. The unit tier asserts the structure; this tier asserts the two
+ * halves a DOM assertion cannot see — that the collapsed exhibit is genuinely collapsed
+ * to a viewer, and that FULL DETAIL genuinely opens it.
+ */
+test.describe('the plain-language band', () => {
+  test('opens with a band, a marker slot and the reading-mode control', async ({ page }) => {
+    await openGate(page);
+
+    const band = page.getByTestId('plain-band');
+    await expect(band).toBeVisible();
+    // Three sentences, at most. R6's ceiling, counted in the rendered page.
+    expect(await band.locator('p').first().isVisible()).toBe(true);
+
+    // The marker is a permanent slot: it either carries the seed's own text or it says,
+    // in words, that no payload here declared one. It is never an empty slot.
+    await expect(page.getByTestId('synthetic-marker')).toBeVisible();
+    await expect(page.getByTestId('detail-mode')).toHaveAttribute('data-mode', 'plain');
+  });
+
+  test('labels the control in words and keeps the exact method and path', async ({ page }) => {
+    await openGate(page);
+    const button = page.getByTestId('attempt-merge');
+    await expect(button).toContainText('merge this permit');
+    await expect(button).toContainText(`POST /v1/permits/${PERMIT_ID}/merge`);
+  });
+
+  test('collapses the CHECK expression in PLAIN and opens it under ?detail=full', async ({
+    page,
+  }) => {
+    await openGate(page);
+    const collapsed = page.getByTestId(`weld-predicate-${REFUSAL.constraint}`);
+    await expect(collapsed).not.toHaveAttribute('open', '');
+
+    await openGate(page, '&detail=full');
+    await expect(page.getByTestId('detail-mode')).toHaveAttribute('data-mode', 'full');
+    await expect(page.getByTestId(`weld-predicate-${REFUSAL.constraint}`)).toHaveAttribute(
+      'open',
+      '',
+    );
+  });
+
+  test('never puts the refusal, the SQLSTATE or the constraint name inside a disclosure', async ({
+    page,
+  }) => {
+    await openGate(page);
+    await attemptMerge(page);
+    await expect(page.getByTestId('refusal-constraint')).toBeVisible();
+
+    for (const testId of ['refusal-bar', 'refusal-constraint', 'refusal-sqlstate', 'refusal-message']) {
+      const inside = await page
+        .getByTestId(testId)
+        .evaluate((node) => node.closest('details') !== null);
+      expect(inside, `${testId} is inside a disclosure in PLAIN`).toBe(false);
+    }
+  });
+});
+
 test.describe('nothing is hardcoded', () => {
   test('renders whatever constraint name the re-sealed bundle carries', async ({ page }) => {
     const replacement = 'reading_floor_when_issued';

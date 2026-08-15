@@ -128,7 +128,11 @@ export interface CheckpointCase {
   readonly trust: readonly string[];
   readonly note_text?: string;
   readonly full_note: string;
-  readonly expect: 'verified' | 'failed' | 'malformed';
+  // `unsigned` joined the union on 2026-08-15 with the `no-blank-line` case, per
+  // docs/leads/screens-work-plan.md §2.6(b). It is NOT a relaxation of `malformed`: a note
+  // whose TEXT does not parse is still `malformed`, and a note carrying a signature that
+  // does not verify is still `failed`. See tests/unit/verify/checkpoint-unsigned.test.ts.
+  readonly expect: 'verified' | 'failed' | 'malformed' | 'unsigned';
   readonly expect_reason_contains?: string;
   readonly expect_parsed?: {
     readonly origin: string;

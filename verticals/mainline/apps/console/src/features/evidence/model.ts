@@ -6,9 +6,17 @@
  *
  * This surface answers one question about the console itself:
  *
- * > Every byte on every other screen came from a file in this table. Are these the
- * > bytes that were sealed, and what is in the table that no screen ever reads?
+ * > Are these the bytes that were sealed, and what is in the table that no screen ever
+ * > reads?
  *
+ * It used to open by asserting the answer to a SECOND question as well — *every byte on
+ * every other screen came from a file in this table* — and on the LIVE deployment that
+ * sentence is false: the transport is `HttpTransport`, `VITE_MAINLINE_API_BASE` is `/`,
+ * and no other screen has read a bundle byte. Which of the two is true depends on the
+ * transport, which this module cannot see and does not guess. `transportCaveat` below
+ * carries both sentences and the screen picks by the mode the composition root published.
+ *
+
  * Everything here is arithmetic over `manifest.files` plus the declarations in
  * `src/data/resources.ts`. Nothing is inferred, nothing is smoothed, and every value a
  * caller renders can be recomputed by a reader with the same two inputs — which is the
@@ -47,8 +55,78 @@
  * it, because a frame nothing can address is invisible rather than wrong.
  */
 
+import type { TransportMode } from '../../app/honesty';
 import type { BundleFileEntry, BundleManifest } from '../../data/bundle';
 import { RESOURCES, type ResourceDescriptor } from '../../data/resources';
+
+// ── Which screens this audit is about, and which it is not ─────────────────
+
+/**
+ * What this screen may say about the OTHER screens, given the transport's own mode.
+ *
+ * The audit below is identical in all three cases — the same files, the same SHA-256, the
+ * same verdict. What differs is a claim about somebody else's bytes, and that claim is the
+ * one this surface got wrong on the live demo: it opened with *"Every byte on every other
+ * screen came from a file listed below"* while `VITE_MAINLINE_API_BASE:"/"` was compiled
+ * in and the transport was reporting `mode: 'live'`. On the one screen whose subject is
+ * provenance, that is a must-not-claim violation rather than a wording preference.
+ *
+ * Three rules held every branch to the same standard:
+ *
+ * 1. **No sentence gets vaguer.** The REPLAY branch carries the original claim verbatim,
+ *    because in REPLAY it is exactly true.
+ * 2. **`unknown` is not smoothed into either.** Nobody told this screen the mode, so it
+ *    says so and states only what it established itself.
+ * 3. **The LIVE branch does not apologise.** A bundle audit beside live screens is worth
+ *    the same as it ever was; what it is not is evidence about the live screens. The
+ *    honesty strip's BUNDLE and SEAL chips and the Audit surface say the parallel thing in
+ *    their own words; this is this screen's.
+ *
+ * It is data rather than JSX for the same reason `LIMITS` is: a constant with a test
+ * cannot be deleted in a hurry.
+ */
+export interface TransportCaveat {
+  readonly mode: TransportMode;
+  /** One line, bold on screen. States whose bytes are whose. */
+  readonly headline: string;
+  /** The paragraph under it. Never a summary of the headline; it adds the mechanism. */
+  readonly body: string;
+}
+
+const TRANSPORT_CAVEATS: Readonly<Record<TransportMode, TransportCaveat>> = Object.freeze({
+  live: Object.freeze({
+    mode: 'live' as const,
+    headline: 'The other screens in this console are LIVE. Not one byte below is on them.',
+    body:
+      'This console’s transport is reading the kernel over HTTP, so the bundle audited here is ' +
+      'a separate artefact that this screen fetched by itself — the sealed recording of the same ' +
+      'demo, not the source of anything you have already seen. A clean verdict below establishes ' +
+      'that these files are the bytes that were sealed. It establishes nothing about the bytes ' +
+      'the other screens are showing you: those came from the database, and each of those screens ' +
+      'states its own provenance and recomputes its own arithmetic.',
+  }),
+  replay: Object.freeze({
+    mode: 'replay' as const,
+    headline: 'The other screens in this console are REPLAY, and they are reading this bundle.',
+    body:
+      'Every byte on every other screen came from a file listed below. The transport serves no ' +
+      'frame at all until this same arithmetic has resolved, so a bundle that fails here is a ' +
+      'bundle no screen in this console can be fed from — a failure state, never a screen.',
+  }),
+  unknown: Object.freeze({
+    mode: 'unknown' as const,
+    headline: 'Which source the other screens are reading has not been established here.',
+    body:
+      'No transport has told this console its mode, so this screen will not say whether the files ' +
+      'below are the ones any other screen was served from. What it does say is bounded and ' +
+      'checkable on its own: these are the bytes this browser fetched from the location named ' +
+      'above, and this is what they hash to.',
+  }),
+});
+
+export function transportCaveat(mode: TransportMode): TransportCaveat {
+  return TRANSPORT_CAVEATS[mode];
+}
 
 // ── Classification ─────────────────────────────────────────────────────────
 
@@ -356,9 +434,11 @@ export const LIMITS: readonly Limit[] = Object.freeze([
   Object.freeze({
     claim: 'A matching digest establishes provenance, not truth.',
     why:
-      'It says these are the bytes that were sealed and that every screen in this console was ' +
-      'produced from them. Whether the numbers inside describe a real cluster is what the ' +
-      'STAGED flag and cluster_fingerprint.source are for.',
+      'It says these are the bytes that were sealed. Whether the numbers inside describe a real ' +
+      'cluster is what the STAGED flag and cluster_fingerprint.source are for. Whether any OTHER ' +
+      'screen in this console was produced from these bytes is a question about the transport, ' +
+      'not about this digest, and the source note at the top of this screen answers it for the ' +
+      'transport actually in force.',
   }),
   Object.freeze({
     claim: 'Nothing here signs the manifest.',

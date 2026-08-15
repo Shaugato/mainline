@@ -340,3 +340,148 @@
   font-size: var(--tp-step-1);
   font-weight: var(--tp-weight-strong);
 }
+
+/* ── Whose bytes the other screens are reading ───────────────────────────── */
+
+/*
+ * The transport note is a STATEMENT, not a warning, so it is neutral by default and takes
+ * its accent from the mode. `live` is the case where the note is load-bearing — a bundle
+ * audit sitting beside screens that never read the bundle — so that is the one that gets
+ * the attention colour. `replay` is the case where the strongest claim on the screen is
+ * true, and a strong claim rendered in alarm colours teaches a reader to discount it.
+ */
+.sourceNote {
+  padding: var(--tp-space-3) var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-left: 3px solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-inset);
+}
+
+.sourceNote[data-mode='live'] {
+  border-left-color: var(--tp-warn);
+}
+
+.sourceNote[data-mode='replay'] {
+  border-left-color: var(--tp-ok);
+}
+
+.sourceNoteTitle {
+  margin: 0 0 var(--tp-space-1);
+  color: var(--tp-ink);
+  font-size: var(--tp-step-0);
+  font-weight: var(--tp-weight-strong);
+}
+
+/* ── The on-ramp: a plain band, collapsible detail, and glosses ─────────── */
+
+/*
+ * EVIDENCE register: no motion, no depth, no gradient. There is deliberately NO
+ * `transition` on the disclosure — a <details> that eases open is a screen a screenshot
+ * cannot reproduce, and this surface's whole subject is that a picture of it is the whole
+ * truth.
+ *
+ * A rule and a change of ink, not a card. A boxed block at the top of an evidentiary screen
+ * reads as a finding, and the plain band is not a finding.
+ */
+.plainBand {
+  max-width: 80ch;
+  margin: 0;
+  padding-block-end: var(--tp-space-3);
+  border-block-end: var(--tp-hairline) solid var(--tp-rule);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.plainLead {
+  margin: 0;
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+}
+
+.disclosure {
+  margin: 0;
+}
+
+/*
+ * `display: list-item`, and it is load-bearing — a <summary> whose display is not
+ * `list-item` gets no disclosure triangle in Chromium, and the line then reads as a caption
+ * rather than as a control. The dotted underline says the same thing a second way for a
+ * reader who does not read a small triangle as an affordance.
+ */
+.disclosureSummary {
+  display: list-item;
+  list-style-position: inside;
+  width: fit-content;
+  cursor: pointer;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step-0);
+  border-radius: var(--tp-radius);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.disclosureSummary:hover {
+  color: var(--tp-ink);
+  text-decoration: underline solid;
+}
+
+.disclosureSummary:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.disclosureBody {
+  margin-block-start: var(--tp-space-3);
+  padding-inline-start: var(--tp-space-3);
+  border-inline-start: 2px solid var(--tp-rule-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+}
+
+/*
+ * Console prose beside a verbatim value, never inside it (R8).
+ *
+ * Sans face, smaller step, dimmer ink: a reader copying a digest out of this screen has to
+ * be able to tell what the manifest declared from what this console explained.
+ */
+.gloss {
+  display: block;
+  max-width: 72ch;
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+}
+
+/*
+ * The one distinction on this screen a lay reader most needs and is least likely to make.
+ * Rendered as prose, at body weight rather than as a warning: it is a fact about what was
+ * checked, not an alarm about what was found.
+ */
+.establishedNote {
+  max-width: 80ch;
+  margin: var(--tp-space-3) 0 0;
+  padding-inline-start: var(--tp-space-3);
+  border-inline-start: var(--tp-hairline) solid var(--tp-rule-strong);
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+}
+
+@media print {
+  /*
+   * An exhibit is not a screen: nothing a reader could have opened may be missing from the
+   * paper. Both properties, because browsers hide a closed <details> two different ways —
+   * older user-agent sheets use `display: none` on the non-summary children, current
+   * Chromium uses `content-visibility: hidden` — and setting one and not the other prints a
+   * blank where the inventory belongs on half the browsers in the room.
+   */
+  .disclosure > .disclosureBody {
+    display: flex;
+    content-visibility: visible;
+  }
+}

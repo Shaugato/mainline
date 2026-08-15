@@ -24,9 +24,67 @@
 
 import { type ReactNode } from 'react';
 
-import { ProvenanceChip } from '../../../design/primitives';
-import { capReading, completeness, type AuditCell, type AuditView } from '../model';
+import { Disclosure, ProvenanceChip } from '../../../design/primitives';
+import {
+  capReading,
+  capsPlain,
+  completeness,
+  type AuditCell,
+  type AuditView,
+  type EmptinessReason,
+} from '../model';
 import styles from '../audit.module.css';
+
+/**
+ * "No rows", and then the reason there are none — R3.
+ *
+ * The reason is TWO things and they are kept apart on purpose. The first is this console's
+ * sentence about what a zero is: a fact about what was reachable here, never a claim that
+ * nothing exists. The second is the kernel's own sentence about this deployment, quoted
+ * verbatim in the mono face, because R8 forbids paraphrasing `unreachable[].probe` and
+ * because a reader has to be able to see how far the kernel's claim actually reaches.
+ *
+ * What is NOT here: any assertion that the quoted sentence explains THIS view's zero. The
+ * emitter said what it said. The console prints it and lets the reader judge.
+ */
+function EmptyRow({
+  columns,
+  emptiness,
+  view,
+}: {
+  readonly columns: number;
+  readonly emptiness: EmptinessReason;
+  readonly view: string;
+}): ReactNode {
+  return (
+    <tr>
+      <td colSpan={Math.max(columns, 1)}>
+        <p className={styles.detail} data-testid={`empty-${view}`}>
+          <strong>No rows — </strong>
+          {emptiness.category} An empty aggregate is a statement about what was reachable under
+          the caps above, not a statement that nothing exists.
+        </p>
+        {emptiness.quoted.map((sentence) => (
+          <pre className={styles.statement} key={sentence} data-testid={`empty-probe-${view}`}>
+            {sentence}
+          </pre>
+        ))}
+        {emptiness.unquoted === null ? null : (
+          <p className={styles.detail} data-testid={`empty-unquoted-${view}`}>
+            {emptiness.unquoted}
+          </p>
+        )}
+        {emptiness.quoted.length === 0 ? null : (
+          <p className={styles.columnType}>
+            Quoted above, unchanged, from this payload&rsquo;s own account of what the connection
+            that produced it can and cannot reach. It is the kernel&rsquo;s sentence and not this
+            console&rsquo;s.
+          </p>
+        )}
+      </td>
+    </tr>
+  );
+}
 
 function Cell({ value }: { readonly value: AuditCell }): ReactNode {
   if (value === null) {
@@ -43,7 +101,13 @@ function Cell({ value }: { readonly value: AuditCell }): ReactNode {
   );
 }
 
-export function ViewTable({ view }: { readonly view: AuditView }): ReactNode {
+export function ViewTable({
+  view,
+  emptiness,
+}: {
+  readonly view: AuditView;
+  readonly emptiness: EmptinessReason;
+}): ReactNode {
   const caps = capReading(view);
   const complete = completeness(view);
 
@@ -64,10 +128,25 @@ export function ViewTable({ view }: { readonly view: AuditView }): ReactNode {
         <strong>Completeness. </strong>
         {complete.detail}
       </p>
-      <p className={styles.detail} data-testid={`caps-${view.view}`}>
-        <strong>Caps. </strong>
-        {caps.detail}
-      </p>
+      {/*
+        * THE PLAIN SENTENCE IS VISIBLE IN BOTH MODES; THE PRECISE READING IS ONE CLICK AWAY.
+        *
+        * R6 lists byte and row caps among the things PLAIN collapses, and the brief requires a
+        * lay reader to get one sentence saying these are the limits the read-only auditor
+        * account runs under — with the exact numbers still on the page. Both hold here: the
+        * plain sentence is painted, `capReading().detail` is inside the disclosure with every
+        * number intact, and `caps-<view>` still contains both, so a reader searching the page
+        * for "very probably discarded" finds it whether the control is open or shut.
+        */}
+      <div className={styles.limit} data-testid={`caps-${view.view}`}>
+        <span className={styles.limitTitle}>caps</span>
+        <p className={styles.detail}>{capsPlain(view)}</p>
+        <Disclosure summary="Show what this view's caps mean for whether the answer is complete">
+          <p className={styles.detail} data-testid={`caps-detail-${view.view}`}>
+            {caps.detail}
+          </p>
+        </Disclosure>
+      </div>
 
       <div className={styles.tableWrap}>
         <table className={styles.table}>
@@ -76,6 +155,22 @@ export function ViewTable({ view }: { readonly view: AuditView }): ReactNode {
             produced them; this console does not coerce.
           </caption>
           <thead>
+            {/*
+              * THE DECLARED TYPE STAYS BESIDE ITS OWN COLUMN, AND THAT IS A RULING.
+              *
+              * R6 lists "column type lists" among the things PLAIN collapses, and the obvious
+              * reading of that is a disclosure under the table pairing each name with its type.
+              * It was built that way and then REVERTED, for a reason worth writing down: it put
+              * every column name in the DOM twice, which made `getByText(name, { exact: true })`
+              * ambiguous — a by-text query in another surface's test, and, far more importantly,
+              * a reader's own Ctrl-F. A page where searching for a column name lands you in a
+              * type table rather than in the data is worse for BOTH audiences.
+              *
+              * The distinction that survives: a `sql_type` is one short token attached to one
+              * heading, not a list anybody wades through. The genuine column list on this
+              * screen — the eight columns of `mainline_meas.external_attestation` — IS collapsed,
+              * in `ReachPanel`, where collapsing costs nothing and duplicates nothing.
+              */}
             <tr>
               {view.columns.map((column) => (
                 <th key={column.name} scope="col">
@@ -87,12 +182,11 @@ export function ViewTable({ view }: { readonly view: AuditView }): ReactNode {
           </thead>
           <tbody>
             {view.rows.length === 0 ? (
-              <tr>
-                <td colSpan={Math.max(view.columns.length, 1)}>
-                  No rows. An empty aggregate is a statement about what was reachable under the
-                  caps above, not a statement that nothing exists.
-                </td>
-              </tr>
+              <EmptyRow
+                columns={view.columns.length}
+                emptiness={emptiness}
+                view={view.view}
+              />
             ) : (
               view.rows.map((row, rowIndex) => (
                 <tr key={`row-${rowIndex}`}>
@@ -115,9 +209,17 @@ export function ViewTable({ view }: { readonly view: AuditView }): ReactNode {
           be reproduced by a reader.
         </p>
       ) : (
-        <pre className={styles.statement} data-testid={`statement-${view.view}`}>
-          {view.statement}
-        </pre>
+        /*
+         * R6 lists SQL statements among the things PLAIN collapses. It is collapsed and never
+         * removed: the statement is in the DOM in both modes, is found by a text search, and is
+         * open by default in FULL DETAIL. It is rendered VERBATIM inside — this is the exact
+         * text the database executed, and paraphrasing it would make it unreproducible.
+         */
+        <Disclosure summary="Show the exact statement the database ran to produce this table">
+          <pre className={styles.statement} data-testid={`statement-${view.view}`}>
+            {view.statement}
+          </pre>
+        </Disclosure>
       )}
     </section>
   );

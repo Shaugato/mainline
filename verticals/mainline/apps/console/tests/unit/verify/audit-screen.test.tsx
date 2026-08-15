@@ -24,6 +24,7 @@ import { describe, expect, it } from 'vitest';
 
 import { BundleTransport, MemoryBundleSource } from '../../../src/data/bundle';
 import { createContractRegistry } from '../../../src/data/contracts';
+import { HttpTransport } from '../../../src/data/transport';
 import { toBase64, toHex, utf8 } from '../../../src/verify/bytes';
 import { InBrowserBundleVerifier } from '../../../src/verify/bundle-verifier';
 import { InlineVerifier } from '../../../src/verify/client';
@@ -35,6 +36,7 @@ import { AuditTransportContext } from '../../../src/features/audit/transport-con
 import {
   capReading,
   completeness,
+  readCarriage,
   readUnreachable,
   tallyCalls,
   type AuditPayload,
@@ -102,6 +104,30 @@ function withAuditEnvelope(
   };
   next.set('manifest.json', utf8(JSON.stringify(sealed, null, 2)));
   return next;
+}
+
+/**
+ * The SAME audit payload, over the live transport.
+ *
+ * It is the fixture bundle's own envelope handed back by an injected `fetch`, so the two
+ * mounts below differ in exactly one thing — how the bytes arrived — which is the only
+ * thing the sentence under test is allowed to be about.
+ */
+function mountLive(files: ReadonlyMap<string, Uint8Array>): void {
+  const body = JSON.stringify(auditEnvelope(new Map(files)));
+  const transport = new HttpTransport({
+    baseUrl: 'https://kernel.invalid',
+    registry: createContractRegistry(),
+    fetchImpl: () =>
+      Promise.resolve(
+        new Response(body, { status: 200, headers: { 'content-type': 'application/json' } }),
+      ),
+  });
+  render(
+    <AuditTransportContext.Provider value={transport}>
+      <AuditRoot />
+    </AuditTransportContext.Provider>,
+  );
 }
 
 function mount(files: ReadonlyMap<string, Uint8Array>): void {
@@ -186,6 +212,35 @@ describe('completeness is a claim about the view, not a default', () => {
     expect(reading.complete).toBe(false);
     expect(reading.detail).toContain('undercount');
     expect(reading.detail).toContain('ancestry_complete');
+  });
+});
+
+describe('which views carried rows is stated, and no view is dropped to state it', () => {
+  const carrying = view({ view: 'v_full', rows: [['a'], ['b']] });
+  const empty = view({ view: 'v_empty', rows: [] });
+
+  it('partitions without losing a view', () => {
+    const reading = readCarriage([empty, carrying, empty]);
+    expect(reading.total).toBe(3);
+    expect(reading.carrying).toHaveLength(1);
+    expect(reading.empty).toHaveLength(2);
+    // The failure this guards against is a "show the interesting ones" helper that
+    // quietly becomes a filter, so a view that was read and came back empty is never seen.
+    expect(reading.ordered).toHaveLength(3);
+    expect(reading.carrying.length + reading.empty.length).toBe(reading.total);
+  });
+
+  it('prints the ones with rows first, and says so rather than doing it silently', () => {
+    const reading = readCarriage([empty, carrying]);
+    expect(reading.ordered[0]?.view).toBe('v_full');
+    expect(reading.detail).toContain('1 of the 2 view(s)');
+    expect(reading.detail).toContain('a reading order and not a filter');
+    // The claim about empty aggregates may be restated but never weakened.
+    expect(reading.detail).toContain('not a statement that nothing exists');
+  });
+
+  it('says nothing was read when nothing was carried', () => {
+    expect(readCarriage([]).detail).toContain('not a claim that nothing exists');
   });
 });
 
@@ -328,5 +383,63 @@ describe('the screen renders whatever columns arrive', () => {
     mount(bundleFiles());
     const table = await screen.findByTestId('call-table', undefined, { timeout: 10000 });
     expect(table.textContent).toContain('EXPLAIN ANALYZE is not available');
+  }, 20000);
+
+  it('states the ratio of views that carried rows, and prints those first', async () => {
+    mount(bundleFiles());
+    const payload = (auditEnvelope(bundleFiles()).data as AuditPayload | undefined) ?? null;
+    const reading = readCarriage(payload?.views ?? []);
+    expect(reading.total).toBeGreaterThan(0);
+    // The ratio renders before the payload lands, reading 0 of 0, which is true of an
+    // empty payload; wait for the read to settle before asserting on it.
+    await screen.findByTestId(`caps-${reading.ordered[0]?.view ?? ''}`, undefined, {
+      timeout: 10000,
+    });
+    const ratio = screen.getByTestId('views-carrying-rows');
+    expect(ratio.textContent).toContain(`${reading.carrying.length} of ${reading.total}`);
+    expect(screen.getByTestId('view-count').textContent).toBe(String(reading.total));
+
+    // Every view the payload carried is still on screen, empty ones included.
+    for (const carried of reading.ordered) {
+      expect(screen.getByTestId(`caps-${carried.view}`)).toBeInTheDocument();
+    }
+    const rendered = [...document.querySelectorAll('[data-view]')].map((node) =>
+      node.getAttribute('data-view'),
+    );
+    expect(rendered).toEqual(reading.ordered.map((carried) => carried.view));
+  }, 20000);
+});
+
+/**
+ * THE SENTENCE THAT SHIPPED FALSE.
+ *
+ * On the live demo this screen printed *"The bytes reached it through a bundle whose
+ * every file digest and whose checkpoint were recomputed in this browser"* while the
+ * transport was `live`, `bundleDigestPrefix` was null and the honesty strip two inches
+ * above said no bundle had been consulted. Both mounts below carry the SAME payload, so
+ * the only thing either assertion can be sensitive to is how the bytes arrived.
+ */
+describe('what this screen says about how its bytes arrived', () => {
+  it('under REPLAY, keeps the bundle sentence verbatim — it is true there', async () => {
+    mount(bundleFiles());
+    const note = await screen.findByTestId('audit-seal-note', undefined, { timeout: 10000 });
+    expect(note).toHaveAttribute('data-transport', 'replay');
+    expect(note.textContent ?? '').toContain(
+      'The bytes reached it through a bundle whose every file digest and whose checkpoint ' +
+        'were recomputed in this browser',
+    );
+  }, 20000);
+
+  it('under LIVE, claims no bundle, and names where live arithmetic does run', async () => {
+    mountLive(bundleFiles());
+    const note = await screen.findByTestId('audit-seal-note', undefined, { timeout: 10000 });
+    expect(note).toHaveAttribute('data-transport', 'live');
+    const text = note.textContent ?? '';
+    // The false claim, in the form it shipped in.
+    expect(text).not.toContain('reached it through a bundle');
+    expect(text).toContain('no bundle was consulted');
+    expect(text).toContain('custody');
+    // The screen still refuses to borrow a seal it did not earn.
+    expect(text).toContain('a tick with nothing behind it is decoration');
   }, 20000);
 });

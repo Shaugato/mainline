@@ -12,9 +12,8 @@
  *
  * The register's law, restated as things a reader can check in this file:
  *   • no gradient, no shadow implying a light source, no blur, no transform, no filter;
- *   • the only transition is --tp-duration-evidence (120 ms), under the 160 ms ceiling,
- *     and it is on a focus/hover affordance rather than on anything a screenshot would
- *     have to catch mid-flight;
+ *   • every duration is --tp-duration-evidence (120 ms), under the 160 ms ceiling —
+ *     the hover/focus affordances, and the staged reveal in §3a;
  *   • one severity accent (--tp-refuse) over one neutral ramp;
  *   • --tp-ok is NOT used anywhere below. TOKEN_LAW reserves it for the VerificationSeal
  *     verified state and for nothing else, ever — so an admitted beat is rendered in the
@@ -175,6 +174,37 @@
   max-width: 78ch;
 }
 
+/* ── The walkthrough — use case 1, in words ──────────────────────────────── */
+
+/*
+ * Set in the reader's face and at the reader's size, above the controls. It is
+ * deliberately NOT mono: every sentence in it is the console's own prose about what the
+ * demonstration does, and a reader must be able to see at a glance which words on this
+ * panel are ours and which are the database's.
+ */
+.walkthrough {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+  gap: var(--tp-space-3) var(--tp-space-4);
+  align-items: start;
+}
+
+.walkthroughStep {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  border-left: var(--tp-hairline) solid var(--tp-rule-strong);
+  padding-left: var(--tp-space-3);
+}
+
+.walkthroughTitle {
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-tight);
+  font-weight: var(--tp-weight-strong);
+  color: var(--tp-ink);
+  margin: 0;
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -211,6 +241,25 @@
 .control[aria-pressed='true'] {
   border-color: var(--tp-ink);
   border-left-width: var(--tp-space-1);
+}
+
+/*
+ * RUN ALL (docs/leads/demo-story-plan.md §5).
+ *
+ * It is first in the DOM, so it is first in the tab order and first under a finger; this
+ * rule only makes the eye agree with the tab order. The emphasis is a RULE and a size,
+ * which print and survive a screenshot — not a fill colour, which would need a second
+ * hue that the register does not have and that --tp-ok is forbidden to supply.
+ */
+.control[data-primary='true'] {
+  border-color: var(--tp-ink);
+  border-width: var(--tp-hairline);
+  border-left-width: var(--tp-space-1);
+  flex: 1 1 100%;
+}
+
+.control[data-primary='true'] .controlLabel {
+  font-size: var(--tp-step-2);
 }
 
 .control:disabled {
@@ -254,8 +303,85 @@
   padding: var(--tp-space-3) var(--tp-space-4);
 }
 
+/*
+ * ── 3a. THE STAGED REVEAL (R11, R12) ────────────────────────────────────────
+ *
+ * WHAT THIS IS. The four beats arrive together, in one already-rolled-back SERIALIZABLE
+ * transaction; they cannot arrive any other way. Showing them one after another is a
+ * READING AID over a completed exchange, and the panel says so in words next to the
+ * paragraph that states the transaction discipline. Nothing here re-enacts anything and
+ * nothing here is a measurement.
+ *
+ * WHAT IT IS MADE OF. `--beat-step` is an INDEX the component sets — 0, 1, 2, 3 — and
+ * every millisecond in the calculation is --tp-duration-evidence, the EVIDENCE register's
+ * own token (120 ms, ceiling 160 ms, docs/leads/ui.md §1.1). So the step a reader waits
+ * and the step src/design/tokens.css declares are one value: there is no number in this
+ * file to drift, and tests/unit/gate/beats.test.ts asserts the token is under the ceiling
+ * rather than assuming it.
+ *
+ * WHY `both`. `backwards` holds opacity 0 through the delay so a beat does not flash
+ * before its turn; `forwards` holds opacity 1 afterwards. Together they make the RESTING
+ * STATE THE COMPLETE PANEL — the sequence ends with every beat present and stays there,
+ * so a screenshot taken after ~480 ms is the whole exhibit and a screenshot taken during
+ * is a partial reveal of it, never a rendering that claims something untrue.
+ *
+ * WHY NOTHING MOVES. The animated property is opacity and only opacity. No transform, no
+ * height, no margin: layout is computed once and never changes, so no line of evidence
+ * ever slides under a reader's eye or reflows a printed page.
+ *
+ * WHO SEES NONE OF IT. `prefers-reduced-motion` cancels the animation outright at the
+ * end of §3a — `animation: none`, not a shorter one. tokens.css already forces every
+ * animation-duration in the document to 0.001 ms under that query, but it does NOT
+ * cancel a DELAY, so a beat staged this way would still have waited its turn invisibly.
+ * Cancelling the whole shorthand is what actually makes all four render at once.
+ */
+.beat {
+  animation: beatReveal var(--tp-duration-evidence) linear both;
+  animation-delay: calc(var(--beat-step, 0) * var(--tp-duration-evidence));
+}
+
+@keyframes beatReveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beat {
+    animation: none;
+  }
+}
+
+/*
+ * ── 3b. Severity, which is a rule's WEIGHT and never a second hue ────────────
+ *
+ * One accent (--tp-refuse) over one neutral ramp is the whole palette this register has,
+ * so the difference between the two refusals is expressed as geometry: the first refusal
+ * carries the accent, the second carries the accent on a rule twice as thick.
+ *
+ * That is the demonstration's own argument in the order it happens. The first refusal is
+ * a CHECK constraint doing its job. The second happened AFTER the counter that CHECK
+ * reads had been forced to zero — the gate recounted rather than trusting the column —
+ * and it is the rarer claim of the two, so it is the heavier mark. The weight comes from
+ * `data-refusal-index`, which is a POSITION among the run's refusals; no rule in this
+ * file selects on a SQLSTATE, a constraint name or a beat's name.
+ *
+ * The admitted beat is deliberately NOT lighter than the refusals. It carries the same
+ * rule width in the neutral ink: a gate that always refuses is broken, not safe, so the
+ * admission is a result of equal standing and is drawn as one. --tp-ok is not available
+ * to it and is not wanted — TOKEN_LAW reserves the console's one green for a verified
+ * seal, and a green tick here would be a claim about a verification nobody ran.
+ */
 .beat[data-outcome='refused'] {
   border-left-color: var(--tp-refuse);
+}
+
+.beat[data-outcome='refused'][data-refusal-index='1'] {
+  border-left-width: var(--tp-space-2);
 }
 
 .beat[data-outcome='admitted'] {
@@ -295,8 +421,20 @@
   color: var(--tp-ink);
 }
 
+/*
+ * REFUSED is the loudest word on this panel, and it is the database's word — the
+ * component upper-cases `beat.outcome` and writes no sentence of its own. It is set at
+ * the driver title's size in the one severity accent the register has. ADMITTED sits at
+ * the same size in the neutral ink for the reason §3b gives: it is a result of equal
+ * standing, not a lesser event.
+ */
 .beatOutcome[data-outcome='refused'] {
+  font-size: var(--tp-step-2);
   color: var(--tp-refuse);
+}
+
+.beatOutcome[data-outcome='admitted'] {
+  font-size: var(--tp-step-2);
 }
 
 .beatLabel {
@@ -529,10 +667,23 @@
     display: none;
   }
 
+  /*
+   * The reveal is cancelled on paper, not merely finished. A print job can be issued
+   * while the sequence is still staging, and a page that came out with two of four beats
+   * missing would be an exhibit with evidence removed from it by a stylesheet. `animation:
+   * none` puts every beat at its natural opacity regardless of when the page was sent.
+   *
+   * `border-color: currentcolor` below is deliberately outranked on the left edge: the
+   * three `.beat[data-outcome=…]` rules are more specific and keep their tokens, which
+   * tokens.css re-declares for the printed register. The WIDTH carries the rest — the
+   * second refusal stays the heavier mark on a monochrome printer, where a hue does not
+   * survive at all.
+   */
   .beat {
     background: none;
     border-color: currentcolor;
     break-inside: avoid;
+    animation: none;
   }
 
   .verbatim {

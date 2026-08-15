@@ -27,6 +27,7 @@ import { type ReactNode } from 'react';
 import { ProvenanceChip } from '../../../design/primitives';
 import styles from '../diff.module.css';
 import type { TextDiff } from '../model';
+import { Disclosure, Gloss } from './Plain';
 
 function Run({ kind, text }: { readonly kind: string; readonly text: string }): ReactNode {
   if (kind === 'removed') {
@@ -78,6 +79,13 @@ export function TextDiffView({
         </span>
       </div>
 
+      <Gloss>
+        The <em>canonical text</em> is the rule&rsquo;s wording written in one exact,
+        byte-for-byte form, so that two different computers reading the same version arrive at
+        the same characters and the same fingerprint. It is the wording itself, not a
+        description of it.
+      </Gloss>
+
       <p className={styles.note}>
         Offsets are into <code className={styles.mono}>canon_text</code> and nothing else. The
         two wells below are the columns as the database holds them; the unified rendering
@@ -102,33 +110,45 @@ export function TextDiffView({
         <ProvenanceChip kind="db:column" detail="clause_version.canon_text" />
       </div>
 
-      <h4 className={styles.subtitle}>
-        Ancestor <code className={styles.mono}>{parentCommit.slice(0, 12)}…</code>
-      </h4>
-      <div className={styles.text} data-testid="text-parent">
-        {parentText}
-      </div>
+      {/*
+       * COLLAPSED, NOT REMOVED. R6 names canonicalisation detail as collapsible and the
+       * summary says what is behind it in the reader's words. Every character of both
+       * columns and every run of the unified diff is in the DOM in both states — the
+       * browser spec reassembles both sides from `data-text` and would fail on a single
+       * missing character whether this is open or shut — and the whole block prints open.
+       */}
+      <Disclosure
+        summary="Show the exact wording of the rule, before and after"
+        testId="diff-text-disclosure"
+      >
+        <h4 className={styles.subtitle}>
+          Ancestor <code className={styles.mono}>{parentCommit.slice(0, 12)}…</code>
+        </h4>
+        <div className={styles.text} data-testid="text-parent">
+          {parentText}
+        </div>
 
-      <h4 className={styles.subtitle}>
-        This version <code className={styles.mono}>{versionCommit.slice(0, 12)}…</code>
-      </h4>
-      <div className={styles.text} data-testid="text-version">
-        {versionText}
-      </div>
+        <h4 className={styles.subtitle}>
+          This version <code className={styles.mono}>{versionCommit.slice(0, 12)}…</code>
+        </h4>
+        <div className={styles.text} data-testid="text-version">
+          {versionText}
+        </div>
 
-      <div className={styles.chips}>
-        <ProvenanceChip kind="recomputed" detail="token diff over canon_text, in this browser" />
-      </div>
+        <div className={styles.chips}>
+          <ProvenanceChip kind="recomputed" detail="token diff over canon_text, in this browser" />
+        </div>
 
-      <div className={styles.text} data-testid="text-unified">
-        {diff.segments.map((segment, index) => (
-          <Run
-            key={`${segment.kind}-${String(segment.fromStart)}-${String(segment.toStart)}-${index}`}
-            kind={segment.kind}
-            text={segment.text}
-          />
-        ))}
-      </div>
+        <div className={styles.text} data-testid="text-unified">
+          {diff.segments.map((segment, index) => (
+            <Run
+              key={`${segment.kind}-${String(segment.fromStart)}-${String(segment.toStart)}-${index}`}
+              kind={segment.kind}
+              text={segment.text}
+            />
+          ))}
+        </div>
+      </Disclosure>
 
       {diff.identical ? (
         <p className={styles.settled}>

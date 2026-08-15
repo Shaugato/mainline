@@ -1,0 +1,106 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The on-ramp block: the plain-language lede every surface opens with, and the
+ * disclosure that carries the precise version one line below it.
+ *
+ * EVIDENCE register (docs/leads/ui.md §1.1): no motion, no depth, no gradient. There is
+ * deliberately NO `transition` on the disclosure — a <details> that eases open is a
+ * screenshot that cannot reproduce the screen, and this block sits above surfaces whose
+ * whole subject is that a picture of them is the whole truth.
+ *
+ * It is a rule and a change of ink, not a card. The lede is chrome above the evidence; a
+ * boxed panel would read as a finding, and nothing here is a finding.
+ */
+
+.onramp {
+  max-width: 80ch;
+  margin: 0 0 var(--tp-space-4);
+  padding: 0 0 var(--tp-space-3);
+  border-bottom: var(--tp-hairline) solid var(--tp-rule);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.kicker {
+  margin: 0;
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-dim);
+}
+
+/*
+ * One step up from body copy, and the brightest ink on the block.
+ *
+ * This is the first thing a non-specialist reads on any screen in the console, and the
+ * only typographic claim made here is that it is first.
+ */
+.lede {
+  margin: 0;
+  font-size: var(--tp-step-1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+}
+
+.details {
+  margin: 0;
+}
+
+/*
+ * `display: list-item`, and it is load-bearing.
+ *
+ * This started as `inline-flex`, which is the obvious way to lay a summary out and which
+ * silently DELETES the native disclosure triangle in Chromium — a `<summary>` whose
+ * `display` is not `list-item` gets no marker. Measured on the served build: the line read
+ * as a caption, not a control, and nobody would have clicked it. The whole on-ramp depends
+ * on a reader believing there is something behind this line, so the marker stays, and the
+ * dotted underline says the same thing a second way for anyone who does not read a small
+ * triangle as an affordance.
+ */
+.summary {
+  display: list-item;
+  list-style-position: inside;
+  width: fit-content;
+  cursor: pointer;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step-0);
+  border-radius: var(--tp-radius);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.summary:hover {
+  color: var(--tp-ink);
+  text-decoration: underline solid;
+}
+
+.summary:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.preciseBody {
+  margin: var(--tp-space-2) 0 0;
+  padding-left: var(--tp-space-3);
+  border-left: 2px solid var(--tp-rule-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.promise {
+  margin: 0;
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+}
+
+.provenance {
+  margin: 0;
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-faint);
+}

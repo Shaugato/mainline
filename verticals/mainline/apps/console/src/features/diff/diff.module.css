@@ -335,6 +335,91 @@
   white-space: nowrap;
 }
 
+/* ── The on-ramp: a plain band, collapsible detail, and glosses ─────────── */
+
+/*
+ * EVIDENCE register (docs/leads/ui.md §1.1): no motion, no depth, no gradient. There is
+ * deliberately NO `transition` on the disclosure — a <details> that eases open is a screen
+ * a screenshot cannot reproduce, and this panel's entire subject is that a picture of it is
+ * the whole truth.
+ *
+ * A rule and a change of ink, not a card: a boxed block at the top of an evidentiary panel
+ * reads as a finding, and the plain band is not a finding.
+ */
+.plainBand {
+  max-width: 80ch;
+  margin: 0;
+  padding-block-end: var(--tp-space-3);
+  border-block-end: var(--tp-hairline) solid var(--tp-rule);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.plainLead {
+  margin: 0;
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+}
+
+.disclosure {
+  margin: 0;
+}
+
+/*
+ * `display: list-item`, and it is load-bearing — a <summary> whose display is not
+ * `list-item` gets no disclosure triangle in Chromium, and the line then reads as a caption
+ * rather than as a control. The dotted underline says the same thing a second way for a
+ * reader who does not read a small triangle as an affordance.
+ */
+.disclosureSummary {
+  display: list-item;
+  list-style-position: inside;
+  width: fit-content;
+  cursor: pointer;
+  color: var(--tp-ink-dim);
+  font-size: var(--tp-step-0);
+  border-radius: var(--tp-radius);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.disclosureSummary:hover {
+  color: var(--tp-ink);
+  text-decoration: underline solid;
+}
+
+.disclosureSummary:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.disclosureBody {
+  margin-block-start: var(--tp-space-3);
+  padding-inline-start: var(--tp-space-3);
+  border-inline-start: 2px solid var(--tp-rule-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+}
+
+/*
+ * Console prose beside a verbatim value, never inside it (R8).
+ *
+ * The sans face at a smaller step and dimmer ink: the two must not be confusable, because a
+ * reader copying a value out of this panel has to be able to tell what the database wrote
+ * from what this console explained.
+ */
+.gloss {
+  display: block;
+  max-width: 72ch;
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+}
+
 /* ── Print: the exhibit form ───────────────────────────────────────────── */
 
 @media print {
@@ -344,5 +429,19 @@
 
   .text {
     background: none;
+  }
+
+  /*
+   * An exhibit is not a screen: nothing a reader could have opened may be missing from the
+   * paper. Every disclosure prints open, whatever state it was left in.
+   *
+   * Both properties, because browsers hide a closed <details> two different ways: older
+   * user-agent sheets use `display: none` on the non-summary children, current Chromium
+   * uses `content-visibility: hidden`. Setting one and not the other prints a blank where a
+   * witness table belongs on half the browsers in the room.
+   */
+  .disclosure > .disclosureBody {
+    display: flex;
+    content-visibility: visible;
   }
 }

@@ -18,7 +18,7 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { type ReactNode } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { HonestyProvider } from '../../../src/app/HonestyProvider';
 import { PER_LIMIT_SENTENCE } from '../../../src/features/silence/model';
@@ -54,18 +54,36 @@ function mount(transport: MainlineTransport | null): ReactNode {
   );
 }
 
+/*
+ * THE WAITS ARE EXPLICIT, AND THAT IS A HARNESS FACT RATHER THAN A SOFTENED ASSERTION.
+ *
+ * This surface performs TWO chained exchanges through the real replay transport — the
+ * silence ledger, then the recall run the receipt names — and the second cannot start until
+ * the first has landed, by design (`useSilenceData` says why: a conservation identity
+ * belonging to a different retrieval than the rows under it would be the most convincing
+ * wrong screen this console could paint). Both go through bundle verification. At Testing
+ * Library's default one second these helpers failed intermittently under the fully parallel
+ * tier while passing every time in isolation, which is a statement about a shared machine
+ * and not about the screen. Every expectation below is unchanged; only the patience is.
+ */
+const SETTLE = { timeout: 10_000 } as const;
+
+// The per-case ceiling has to clear the wait above, or the case dies at five seconds while
+// the arithmetic it is waiting for is still running and the report reads as a screen defect.
+vi.setConfig({ testTimeout: 20_000 });
+
 async function renderReady(files: ReadonlyMap<string, Uint8Array>): Promise<void> {
   render(mount(bundleTransport(files)));
   await waitFor(() => {
     expect(screen.getByTestId('entry-list')).toBeInTheDocument();
-  });
+  }, SETTLE);
 }
 
 async function renderWithRun(files: ReadonlyMap<string, Uint8Array>): Promise<void> {
   render(mount(bundleTransport(files)));
   await waitFor(() => {
     expect(screen.getByTestId('conservation-panel')).toBeInTheDocument();
-  });
+  }, SETTLE);
 }
 
 describe('no transport, no claim', () => {

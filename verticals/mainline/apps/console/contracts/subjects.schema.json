@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/subjects.schema.json",
+  "$comment": "Governs the `data` member of the GET /v1/demo/subjects envelope. The demo API owns this original at verticals/mainline/apps/demo-api/contracts/subjects.schema.json and serves the route against it; verticals/mainline/apps/console/contracts/subjects.schema.json is the console's byte-identical copy, exactly as gate-run.schema.json is. Emitted by src/mainline_demo_api/subjects.py. Licensing: subjects.schema.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "title": "MAINLINE demo — the subject index",
+  "description": "Which subjects THIS deployment seeded, read back out of the demo tables at request time and never typed as a constant. It exists because the console addresses seven surfaces by identifier and had no way to learn one: /v1/audit is aggregate-first and names no permit_id, so screens either opened on nothing or opened on an identifier somebody had written into a .tsx constant — which 404s the first time a deployment seeds a different history, and did, on three separate screens, on the live URL. The payload carries the same facts twice on purpose. The ADDRESSING VECTOR (permit_id, cr_id, check_id, receipt_id, clause_uuid, commit_id, run_id, lesson_id, site_code, site_id) is named after the path and query parameters src/data/resources.ts already declares, so each member answers exactly one question: what value goes in that slot. `subjects` carries, for each subject that EXISTS, how many rows satisfied the predicate it was chosen from and the columns the vector has no slot for. `absent` names each subject that was looked for and not found, and why. A slot with no row is null and its subject has NO key in `subjects` — never a value standing in for a row.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": { "data": { "$ref": "#/$defs/subject_index" } },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "subject_index": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "site_id",
+        "site_code",
+        "permit_id",
+        "cr_id",
+        "check_id",
+        "receipt_id",
+        "clause_uuid",
+        "commit_id",
+        "run_id",
+        "lesson_id",
+        "subjects",
+        "absent"
+      ],
+      "properties": {
+        "site_id": {
+          "description": "mainline.site.site_id. The console addresses no resource by it today; it is carried so a reader can correlate the ledger with the permit.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "site_code": {
+          "description": "mainline.site.site_code as the seed wrote it — NOT a display name and not a code anything may pattern-match. Addresses the site_code query parameter of ledger. demo_world.sql seeds it as the literal text of the site_id UUID and says so in a comment, so nothing may assume a human-readable shape.",
+          "oneOf": [{ "$ref": "#/$defs/site_code" }, { "type": "null" }]
+        },
+        "permit_id": {
+          "description": "mainline.permit.permit_id — the subject the gate refuses. Addresses {permit_id} in permit, blocking_checks, silence and the three permit transitions.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "cr_id": {
+          "description": "mainline.change_request.cr_id — the second gated subject. Addresses {cr_id} in change_request.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "check_id": {
+          "description": "The OPEN mainline.blocking_check on that permit, or null when none is open. `open` is not a column: it is the absence of a live mainline.disposition row. Addresses {check_id} in disposition.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "receipt_id": {
+          "description": "The mainline.exposure_receipt covering that permit, or null. Addresses {receipt_id} in exposure_receipt.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "clause_uuid": {
+          "description": "The clause whose edit armed the check. Addresses {clause_uuid} in clause_version and clause_ancestry.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "commit_id": {
+          "description": "That clause's head_commit, hex-rendered as encode(col,'hex') produces. Addresses {commit_id} in clause_version. A clause identifier without a commit addresses no version, so the two travel together or not at all. Whether a clause_version row EXISTS at this commit is reported by subjects.clause.head_gen, which is null when it does not.",
+          "oneOf": [{ "$ref": "common.schema.json#/$defs/commit_id" }, { "type": "null" }]
+        },
+        "run_id": {
+          "description": "The mainline_meas.recall_run behind the silence ledger, or null. Addresses {run_id} in recall_run.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "lesson_id": {
+          "description": "The mainline.event identifier GET /v1/lessons/{lesson_id}/propagation accepts. That resource is STAGED — mainline.lesson, mainline.propagation and mainline.merge_conflict have no producer migration — and says so in its own envelope; the identifier offered here is a real column of a real row either way.",
+          "$ref": "#/$defs/nullable_uuid"
+        },
+        "subjects": { "$ref": "#/$defs/subjects" },
+        "absent": {
+          "description": "One entry per subject this index looked for and did not find. Empty means every indexed subject is present. An entry here is the ONLY honest rendering of a missing subject: the emitter has no identifier to offer and must not manufacture one.",
+          "type": "array",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/absence" }
+        }
+      }
+    },
+    "subjects": {
+      "description": "One object per subject that EXISTS, carrying how many rows satisfied the predicate the chosen row was chosen from and the columns the addressing vector has no slot for. A subject the database does not carry has NO key here — it is named in `absent` instead. `site` is always present, because the emitter answers 404 when mainline.site is empty rather than returning an index of nothing.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["site"],
+      "properties": {
+        "site": {
+          "description": "mainline.site, ordered by (site_code, site_id).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "site_id", "site_code"],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "site_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "site_code": { "$ref": "#/$defs/site_code" }
+          }
+        },
+        "permit": {
+          "description": "mainline.permit for the chosen site, ordered by (opened_at, permit_id).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "permit_id",
+            "ref_name",
+            "external_ref",
+            "state",
+            "gate_epoch",
+            "open_blocking"
+          ],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "permit_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "ref_name": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "external_ref": { "type": ["string", "null"], "maxLength": 256 },
+            "state": { "$ref": "common.schema.json#/$defs/subject_state" },
+            "gate_epoch": { "$ref": "common.schema.json#/$defs/gate_epoch" },
+            "open_blocking": { "$ref": "common.schema.json#/$defs/counter" }
+          }
+        },
+        "blocking_check": {
+          "description": "The OPEN obligation on the chosen permit, ordered by (materialised_at, check_id). `count` is how many OPEN checks that permit has, so a reader can see a choice was made among several.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "check_id",
+            "subject_kind",
+            "permit_id",
+            "cr_id",
+            "clause_uuid",
+            "commit_id",
+            "precursor_event_id"
+          ],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "check_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "subject_kind": { "$ref": "common.schema.json#/$defs/subject_kind" },
+            "permit_id": { "$ref": "#/$defs/nullable_uuid" },
+            "cr_id": { "$ref": "#/$defs/nullable_uuid" },
+            "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+            "commit_id": { "$ref": "common.schema.json#/$defs/commit_id" },
+            "precursor_event_id": { "$ref": "#/$defs/nullable_uuid" }
+          }
+        },
+        "clause": {
+          "description": "mainline.clause at the chosen site, ordered by (activity_root, clause_uuid). head_gen and head_label come from a LEFT JOIN onto mainline.clause_version at the clause's own head_commit: null means no version row exists at that commit, which is the exact condition under which GET /v1/clauses/{uuid}/versions/{commit} answers 404. The index reports it rather than letting a caller discover it by being refused.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "clause_uuid",
+            "activity_root",
+            "head_commit",
+            "head_gen",
+            "head_label"
+          ],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "clause_uuid": { "$ref": "common.schema.json#/$defs/uuid" },
+            "activity_root": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "head_commit": { "$ref": "common.schema.json#/$defs/commit_id" },
+            "head_gen": { "type": ["integer", "null"], "minimum": 0 },
+            "head_label": { "type": ["string", "null"], "maxLength": 256 }
+          }
+        },
+        "event": {
+          "description": "mainline.event at the chosen site, ordered by (occurred_at, event_id).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "event_id", "external_ref", "kind", "severity_gate"],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "event_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "external_ref": { "type": ["string", "null"], "maxLength": 256 },
+            "kind": { "$ref": "common.schema.json#/$defs/event_kind" },
+            "severity_gate": { "$ref": "common.schema.json#/$defs/severity" }
+          }
+        },
+        "change_request": {
+          "description": "mainline.change_request at the chosen site, ordered by (opened_at, cr_id).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "cr_id", "ref_name", "external_ref", "state"],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "cr_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "ref_name": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "external_ref": { "type": ["string", "null"], "maxLength": 256 },
+            "state": { "$ref": "common.schema.json#/$defs/subject_state" }
+          }
+        },
+        "recall_run": {
+          "description": "mainline_meas.recall_run for the chosen permit, ordered by (started_at, run_id).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "run_id", "policy_version", "index_generation"],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "run_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "policy_version": { "type": "string", "minLength": 1, "maxLength": 64 },
+            "index_generation": {
+              "$comment": "a NAME, not a number: mainline_meas.recall_run.index_generation is the corpus index generation label the run read against, and demo_permit.sql seeds it as 'g1'.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        },
+        "exposure_receipt": {
+          "description": "mainline.exposure_receipt for the chosen permit, ordered by (issued_at, receipt_id). Scoped to the permit deliberately: a receipt whose subject is a change request has a NULL permit_id, exposure.schema.json requires permit_id, and the read answers 409 for such a row — so offering one here would be offering an identifier that cannot be rendered.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "receipt_id", "subject_kind", "expires_at"],
+          "properties": {
+            "count": { "$ref": "#/$defs/count" },
+            "receipt_id": { "$ref": "common.schema.json#/$defs/uuid" },
+            "subject_kind": { "$ref": "common.schema.json#/$defs/subject_kind" },
+            "expires_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+          }
+        }
+      }
+    },
+    "count": {
+      "description": "How many rows satisfied the same predicate the chosen row was chosen from — count(*) OVER (), evaluated before LIMIT, in the same statement and the same snapshot. It is carried so that a reader can see a choice was made among several rather than believing the index found exactly one. Chipped `derived` in provenance: nobody wrote this number into a column.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "absence": {
+      "description": "A subject that was looked for and not found. Carries no identifier, because there is none to carry.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject", "relation", "reason"],
+      "properties": {
+        "subject": {
+          "description": "The key this subject would have occupied in `subjects`.",
+          "enum": [
+            "permit",
+            "blocking_check",
+            "clause",
+            "event",
+            "change_request",
+            "recall_run",
+            "exposure_receipt"
+          ]
+        },
+        "relation": {
+          "description": "The relation the subject is absent from, as the database's own to_regclass resolved it. When to_regclass returned NULL the value is the name that was LOOKED FOR followed by '(no such relation)' — 'the table holds no such row' and 'this cluster has no such table' are different sentences and the payload says whichever is true.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "reason": {
+          "description": "Why it is absent, in words. This is the one member of the payload the database did not produce, and it is prose for the reason that there is no row to speak for itself. It names the predicate that returned nothing — and, when the subject is anchored on another that is itself missing, says that it was not looked for and which anchor failed.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      }
+    },
+    "nullable_uuid": {
+      "oneOf": [{ "$ref": "common.schema.json#/$defs/uuid" }, { "type": "null" }]
+    },
+    "site_code": {
+      "description": "An opaque site code. Constrained only to the unreserved-token alphabet src/data/resources.ts admits in an addressed slot, because a value that could carry a separator could address a different resource than the one asked for.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._~-]+$"
+    }
+  }
+}

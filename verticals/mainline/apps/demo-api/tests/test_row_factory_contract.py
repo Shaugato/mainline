@@ -179,6 +179,16 @@ _EXPECTED_CONVENTIONS: dict[str, str] = {
     "retry.py": "silent",
     "scenario.py": "position",
     "static_site.py": "silent",
+    # ADDED 2026-08-15 with the demo subject index, which is exactly the decision this
+    # table exists to force. `name` is measured, not inherited: `subjects._row` does
+    # `dict(conn.execute(...).fetchone())` and every value is then taken by COLUMN NAME —
+    # `row["site_id"]`, `row["count"]` — off a connection whose row factory `db.py` sets.
+    # Not one reading site indexes. That is the correct verdict as well as the current
+    # one: nine of this module's ten statements select several columns and one selects a
+    # window aggregate beside them, so reading by position would make the payload's
+    # meaning depend on the order the SELECT list happens to be written in, and reordering
+    # a SELECT list is the kind of edit nobody reviews twice.
+    "subjects.py": "name",
     "transitions.py": "position",
 }
 

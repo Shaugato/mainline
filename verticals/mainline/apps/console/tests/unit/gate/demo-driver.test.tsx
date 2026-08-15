@@ -25,6 +25,24 @@
  *      not the demo's own and requiring the screen to show what was planted — a module
  *      carrying literals would keep printing `23514` and pass every test that expected it.
  *
+ * ── FOUR MORE, ADDED WITH THE STAGED REVEAL (2026-08-15) ─────────────────────────
+ *
+ * `docs/leads/demo-story-plan.md` R11 and R12 let the four beats be revealed one after
+ * another and fix what that reveal may not become. §7–§11 hold the parts a screenshot
+ * cannot check:
+ *
+ *   5. RUN ALL IS THE PRIMARY CONTROL — exactly one, and it is the one that reveals every
+ *      beat (§5 of the plan). Asserted over the DOM order, which is the tab order.
+ *   6. THE ORDER IS THE PAYLOAD'S ORDINAL, carried into the stylesheet as a step index.
+ *   7. EVERY DURATION ON SCREEN IS THE PAYLOAD'S OWN `elapsed_ms`. The fixture's elapsed
+ *      values are deliberately not the reveal's steps, so a panel that printed its own
+ *      pacing would produce a string this file compares against and rejects.
+ *   8. THE REVEAL OBEYS THE EVIDENCE REGISTER — read out of the STYLESHEET as bytes: one
+ *      `--tp-duration-evidence` per step, no literal duration, `prefers-reduced-motion`
+ *      cancels it outright, print cancels it outright, and the fill mode leaves the
+ *      resting panel complete. Plus the register's import boundary over the whole
+ *      directory: no `motion`, no `@react-three/*`.
+ *
  * ── WHY THE PROSE IS READ AS SOURCE AND NOT AS AN EXPORT ─────────────────────────
  *
  * `DECLARATION_GAP` is deliberately not exported: `react-refresh/only-export-components`
@@ -40,6 +58,8 @@ import { describe, expect, it } from 'vitest';
 
 import { RESOURCES } from '../../../src/data/resources';
 import { TransportError, type MainlineTransport } from '../../../src/data/transport';
+import { EVIDENCE_CEILING_MS } from '../../../src/design/motion';
+import { REVEAL_STEP_MS } from '../../../src/features/gate/beats';
 import {
   DEMO_GATE_RUN,
   DeclarationGapPanel,
@@ -51,6 +71,7 @@ import { GateTransportContext } from '../../../src/features/gate/transport-conte
 import { REPO_ROOT, nodeFs } from '../data/_support';
 
 const MODULE = 'src/features/gate/DemoDriver.tsx';
+const STYLESHEET = 'src/features/gate/demo-driver.module.css';
 
 // ── Reading the module as bytes ────────────────────────────────────────────
 
@@ -358,7 +379,17 @@ describe('the four controls are one composition, not two code paths', () => {
  * So this fixture plants codes no beat of this demo can produce. If any of them fails to
  * reach the screen, or if the real ones appear beside them, the exhibits are not coming
  * from the payload.
+ *
+ * ── THE ELAPSED VALUES ARE PLANTED FOR THE SAME REASON ───────────────────────────
+ *
+ * `ELAPSED` below is four different numbers, none of them a multiple of the reveal step.
+ * The staged reveal spaces the beats by `REVEAL_STEP_MS`, and the failure mode R11 exists
+ * to prevent is a panel that prints its own pacing where the payload's measurement
+ * belongs — four identical numbers a reader would take for evidence. Values shaped like
+ * the ones the live URL actually returned make that substitution impossible to miss.
  */
+const ELAPSED: Readonly<Record<number, number>> = { 1: 0.011, 2: 527.051, 3: 472.401, 4: 392.347 };
+
 function plantedRun(): GateRunData {
   const beat = (
     ordinal: number,
@@ -378,7 +409,7 @@ function plantedRun(): GateRunData {
     constraint_source: constraintSource,
     message: `PLANTED MESSAGE FOR BEAT ${ordinal}`,
     matched_expectation: true,
-    elapsed_ms: ordinal,
+    elapsed_ms: ELAPSED[ordinal] ?? ordinal,
     statement: `SELECT ${ordinal}`,
     observed: { planted_ordinal: ordinal },
     note: null,
@@ -571,5 +602,376 @@ describe('the persistence check shows the field the verdict keys on', () => {
     render(<GateRunReport run={plantedRun()} reveal={2} />);
     expect(screen.queryByTestId('gate-run-persistence')).toBeNull();
     expect(screen.queryByTestId('gate-run-fingerprint')).toBeNull();
+  });
+});
+
+// ── 7. RUN ALL is the primary control (plan §5) ────────────────────────────
+
+describe('what a stranger presses first', () => {
+  it('marks exactly one control primary, and it is the one that runs every beat', () => {
+    render(
+      <GateTransportContext.Provider value={idleTransport('live')}>
+        <DemoDriver />
+      </GateTransportContext.Provider>,
+    );
+
+    const primary = screen.getByTestId('demo-driver').querySelectorAll('[data-primary="true"]');
+    expect(primary).toHaveLength(1);
+    expect(primary[0]).toBe(screen.getByTestId('demo-control-all'));
+    expect(primary[0]).toHaveTextContent('RUN ALL');
+  });
+
+  it('puts it FIRST in the DOM, which is what makes it first in the tab order', () => {
+    // The plan's reading: RUN ALL tells the whole argument — refuse, refuse under a
+    // forged counter, admit on a signature — in one exchange, which is what the
+    // transaction discipline already forces. A judge has fifteen seconds; the control
+    // that carries the argument has to be the one their finger and their Tab key reach.
+    render(
+      <GateTransportContext.Provider value={idleTransport('live')}>
+        <DemoDriver />
+      </GateTransportContext.Provider>,
+    );
+
+    const buttons = [...screen.getByTestId('demo-driver').querySelectorAll('button')];
+    expect(buttons[0]).toBe(screen.getByTestId('demo-control-all'));
+  });
+
+  it('demotes nothing — all four controls are still there, in the argument’s order', () => {
+    // Making one control primary must not become a reason to hide the other three. A
+    // reader who wants one beat at a time keeps one press for each, and the three named
+    // controls keep refuse → refuse under attack → admit.
+    render(
+      <GateTransportContext.Provider value={idleTransport('live')}>
+        <DemoDriver />
+      </GateTransportContext.Provider>,
+    );
+
+    const ids = [...screen.getByTestId('demo-driver').querySelectorAll('button')].map((button) =>
+      button.getAttribute('data-testid'),
+    );
+    expect(ids).toEqual([
+      'demo-control-all',
+      'demo-control-merge',
+      'demo-control-forge',
+      'demo-control-admit',
+    ]);
+  });
+});
+
+// ── 8. The reveal is ordinal order, carried as a step index ────────────────
+
+/** The beat list items, in the order they appear in the document. */
+function beatItems(): readonly HTMLElement[] {
+  return [...screen.getByTestId('gate-run-beats').querySelectorAll('li')];
+}
+
+describe('the four beats are revealed in ordinal order', () => {
+  it('renders them in the payload’s ordinal order and numbers the steps from zero', () => {
+    render(<GateRunReport run={plantedRun()} reveal="all" />);
+
+    const items = beatItems();
+    expect(items).toHaveLength(4);
+    expect(items.map((item) => item.getAttribute('data-testid'))).toEqual([
+      'gate-run-beat-1',
+      'gate-run-beat-2',
+      'gate-run-beat-3',
+      'gate-run-beat-4',
+    ]);
+    expect(items.map((item) => item.getAttribute('data-reveal-step'))).toEqual(['0', '1', '2', '3']);
+  });
+
+  it('orders by the ordinal the payload states, not by the order the array arrived in', () => {
+    // "The beats came back in order" is an assumption; `ordinal` is a statement. A
+    // shuffled array is what a re-ordered emitter, a re-serialised frame or a merge of
+    // two captures would produce, and the reading order must survive all three.
+    const run = plantedRun();
+    const shuffled: GateRunData = { ...run, beats: [...run.beats].reverse() };
+    render(<GateRunReport run={shuffled} reveal="all" />);
+
+    expect(beatItems().map((item) => item.getAttribute('data-testid'))).toEqual([
+      'gate-run-beat-1',
+      'gate-run-beat-2',
+      'gate-run-beat-3',
+      'gate-run-beat-4',
+    ]);
+  });
+
+  it('hands the stylesheet a step INDEX and no millisecond count', () => {
+    // The component's whole contribution to the pace is an integer. Everything that
+    // turns it into time is in demo-driver.module.css, in the EVIDENCE token, which is
+    // what §10 then reads as bytes.
+    render(<GateRunReport run={plantedRun()} reveal="all" />);
+    expect(beatItems().map((item) => item.style.getPropertyValue('--beat-step'))).toEqual([
+      '0',
+      '1',
+      '2',
+      '3',
+    ]);
+  });
+
+  it('gives the SECOND refusal its own weight, by position and never by code', () => {
+    // Being refused after the counter was forged is the rarer claim, so the second
+    // refusal carries the heavier rule. The fixture's SQLSTATEs are `42501` and `P0002`,
+    // which are not the demo's own — an index chosen from a code would land on neither
+    // beat or on the wrong one.
+    render(<GateRunReport run={plantedRun()} reveal="all" />);
+    expect(beatItems().map((item) => item.getAttribute('data-refusal-index'))).toEqual([
+      null,
+      '0',
+      '1',
+      null,
+    ]);
+  });
+
+  it('stages nothing when one control reveals one beat', () => {
+    render(<GateRunReport run={plantedRun()} reveal={3} />);
+    const items = beatItems();
+    expect(items).toHaveLength(1);
+    expect(items[0]?.getAttribute('data-reveal-step')).toBe('0');
+    expect(items[0]?.style.getPropertyValue('--beat-step')).toBe('0');
+  });
+});
+
+// ── 9. Every duration on screen is the payload's ───────────────────────────
+
+describe('the durations are measurements, never the reveal’s pacing', () => {
+  it('prints each beat’s own elapsed_ms, verbatim', () => {
+    const run = plantedRun();
+    render(<GateRunReport run={run} reveal="all" />);
+
+    for (const beat of run.beats) {
+      expect(screen.getByTestId(`gate-run-beat-${beat.ordinal}-elapsed`)).toHaveTextContent(
+        `${beat.elapsed_ms} ms`,
+      );
+    }
+  });
+
+  it('prints four DIFFERENT durations, which a leaked reveal delay could not', () => {
+    const run = plantedRun();
+    render(<GateRunReport run={run} reveal="all" />);
+
+    const printed = run.beats.map(
+      (beat) => screen.getByTestId(`gate-run-beat-${beat.ordinal}-elapsed`).textContent,
+    );
+    expect(new Set(printed).size).toBe(4);
+  });
+
+  it('prints no beat’s reveal delay as though it were a duration', () => {
+    // The direct statement of the defect R11 forbids. Beat n is staged
+    // `n * REVEAL_STEP_MS` after the first; if any of those numbers reached a text node
+    // the reader would take this console's pacing for the database's measurement.
+    const run = plantedRun();
+    render(<GateRunReport run={run} reveal="all" />);
+    const report = screen.getByTestId('gate-run-report').textContent ?? '';
+
+    for (let step = 0; step < run.beats.length; step += 1) {
+      expect(report).not.toContain(`${step * REVEAL_STEP_MS} ms`);
+    }
+  });
+
+  it('labels the number with the payload’s own member name', () => {
+    // `elapsed_ms`, not "took" or "duration". A prose label is a sentence the console
+    // wrote; the member name is the payload's, and it is the one a reader can grep the
+    // contract for. Same discipline as the `observed` keys.
+    render(<GateRunReport run={plantedRun()} reveal="all" />);
+    expect(screen.getByTestId('gate-run-report')).toHaveTextContent('elapsed_ms');
+  });
+});
+
+// ── 10. The reveal obeys the EVIDENCE register (R12), read as bytes ────────
+
+/**
+ * The stylesheet, read off disk rather than through the CSS-module proxy.
+ *
+ * Vitest hashes class names, so the imported object says nothing about what was DECLARED.
+ * Every rule R12 states is a statement about the declarations, so the declarations are
+ * what gets read — the same reason `tests/unit/design/motion.test.ts` parses text instead
+ * of inspecting a stylesheet object.
+ */
+async function stylesheet(): Promise<string> {
+  const fs = await nodeFs();
+  const css = fs.readFileSync(STYLESHEET, 'utf8');
+  // A vacuous pass is the failure mode this helper has to survive: an empty read makes
+  // every assertion below iterate nothing and report green.
+  expect(css.length).toBeGreaterThan(1000);
+  return css;
+}
+
+/** CSS comments quote the law in prose; the law is about DECLARATIONS. */
+function withoutComments(css: string): string {
+  return css.replace(/\/\*[\s\S]*?\*\//g, '');
+}
+
+describe('the staged reveal obeys the register it lives in', () => {
+  it('paces every step with the EVIDENCE token and writes no duration of its own', async () => {
+    const css = withoutComments(await stylesheet());
+
+    // One step is one `--tp-duration-evidence`, and the delay is that token multiplied by
+    // the index the component set. A literal here would be a duration that survives a
+    // change to the motion policy — the same rule motion.test.ts applies to src/design.
+    expect(css).toMatch(/animation:\s*beatReveal\s+var\(--tp-duration-evidence\)/);
+    expect(css).toMatch(
+      /animation-delay:\s*calc\(\s*var\(--beat-step[^)]*\)\s*\*\s*var\(--tp-duration-evidence\)\s*\)/,
+    );
+
+    for (const declaration of css.matchAll(/animation[a-z-]*\s*:[^;}]*/gi)) {
+      expect(declaration[0], `${declaration[0]} writes a duration literal`).not.toMatch(
+        /\d+(?:\.\d+)?\s*m?s\b/,
+      );
+    }
+  });
+
+  it('declares no duration anywhere over the EVIDENCE ceiling', async () => {
+    // Wider than the reveal, deliberately: a hover transition that crept over the ceiling
+    // would break the same law from a different rule.
+    const css = withoutComments(await stylesheet());
+    for (const match of css.matchAll(
+      /(?:transition|animation)(?:-duration|-delay)?\s*:[^;}]*?(\d+(?:\.\d+)?)(ms|s)\b/gi,
+    )) {
+      const value = Number(match[1]);
+      const ms = match[2] === 's' ? value * 1000 : value;
+      expect(ms, `${match[0]} exceeds the EVIDENCE ceiling`).toBeLessThanOrEqual(
+        EVIDENCE_CEILING_MS,
+      );
+    }
+    expect(REVEAL_STEP_MS).toBeLessThanOrEqual(EVIDENCE_CEILING_MS);
+  });
+
+  it('leaves the RESTING panel complete — the fill mode holds the end state', async () => {
+    // R12: a screenshot taken at any moment is a truthful screenshot. `both` holds
+    // opacity 0 through the delay and opacity 1 for ever after, so the sequence ENDS with
+    // every beat present and stays there. A reveal without a forwards fill would snap
+    // back to invisible and make the finished panel a lie.
+    const css = withoutComments(await stylesheet());
+    expect(css).toMatch(/animation:\s*beatReveal[^;]*\bboth\b/);
+    expect(css).toMatch(/@keyframes beatReveal[\s\S]{0,120}from[\s\S]{0,60}opacity:\s*0/);
+    expect(css).toMatch(/@keyframes beatReveal[\s\S]{0,200}to[\s\S]{0,60}opacity:\s*1/);
+  });
+
+  it('animates opacity and NOTHING that moves or reflows', async () => {
+    // "Nothing moves that a screenshot could not reproduce" (docs/leads/ui.md §1.1).
+    // Layout is computed once: no transform, no height, no margin, no position in any
+    // keyframe, so no line of evidence ever slides under a reader's eye.
+    const css = withoutComments(await stylesheet());
+    const frames = /@keyframes beatReveal\s*\{[\s\S]*?\n\}/.exec(css)?.[0] ?? '';
+    expect(frames.length).toBeGreaterThan(0);
+    expect(frames).not.toMatch(/transform|translate|scale|height|width|margin|top|left|filter/i);
+  });
+
+  it('cancels itself outright under prefers-reduced-motion, delay included', async () => {
+    // tokens.css already forces every animation-duration in the document to 0.001 ms
+    // under that query — but it does NOT cancel a DELAY, so a staged beat would still
+    // have waited its turn invisibly. Killing the whole shorthand is what actually makes
+    // all four render at once.
+    const css = withoutComments(await stylesheet());
+    const block = /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[\s\S]*?\n\}\n/.exec(css)?.[0];
+    expect(block, 'demo-driver.module.css declares no reduced-motion block').toBeTruthy();
+    expect(block).toMatch(/\.beat\s*\{[^}]*animation:\s*none/);
+  });
+
+  it('cancels itself on paper too, so a printed exhibit is never missing a beat', async () => {
+    // A print job can be issued while the sequence is still staging. A page that came out
+    // with two of four beats missing would be an exhibit with evidence removed from it by
+    // a stylesheet (D14).
+    const css = withoutComments(await stylesheet());
+    const print = /@media print\s*\{[\s\S]*$/.exec(css)?.[0] ?? '';
+    expect(print).toMatch(/\.beat\s*\{[^}]*animation:\s*none/);
+  });
+});
+
+// ── 11. The register's import boundary, over the whole directory ───────────
+
+describe('the gate feature imports no animation library', () => {
+  const GATE_SOURCES = import.meta.glob<string>('/src/features/gate/**/*.{ts,tsx}', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
+
+  it('globbed the directory it thinks it globbed', () => {
+    // A glob that matched nothing would walk an empty collection and report the boundary
+    // intact while checking no file at all.
+    const paths = Object.keys(GATE_SOURCES);
+    expect(paths.length).toBeGreaterThanOrEqual(10);
+    expect(paths).toContain('/src/features/gate/DemoDriver.tsx');
+    expect(paths).toContain('/src/features/gate/beats.ts');
+    expect(paths).toContain('/src/features/gate/last-run.ts');
+  });
+
+  it('imports neither motion nor @react-three/* anywhere under src/features/gate', () => {
+    // D9 and docs/leads/ui.md §1.1: EVIDENCE may not reach a DOM-animation package or a
+    // GPU one. The staged reveal is the obvious moment somebody would reach for one, so
+    // the boundary is restated here beside the reveal rather than left to the domain-wide
+    // walk alone.
+    const offenders: string[] = [];
+    for (const [path, source] of Object.entries(GATE_SOURCES)) {
+      for (const match of source.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
+        const specifier = match[1] ?? '';
+        if (/^motion(?:\/|$)/.test(specifier) || specifier.startsWith('@react-three/')) {
+          offenders.push(`${path} imports ${specifier}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});
+
+// ── 12. Both sentences are on the page ─────────────────────────────────────
+
+describe('the panel says what the reveal is', () => {
+  it('keeps the transaction paragraph exactly as it was', async () => {
+    // R11 permits a sentence BESIDE this paragraph and does not permit an edit to it.
+    // The clauses below are the load-bearing ones: one transaction, a savepoint per write
+    // beat, a rollback, and the reason a browser cannot drive the beats separately.
+    render(
+      <GateTransportContext.Provider value={idleTransport('live')}>
+        <DemoDriver />
+      </GateTransportContext.Provider>,
+    );
+    const driver = await screen.findByTestId('demo-driver');
+
+    for (const clause of [
+      'The four beats share ONE',
+      'transaction, each write beat fenced by its own',
+      'and the whole transaction is rolled back',
+      'cannot be driven one HTTP call at a time from a browser',
+      'the payload carries the evidence for that rather than the claim',
+    ]) {
+      expect(driver, clause).toHaveTextContent(clause);
+    }
+  });
+
+  it('says in one sentence that the reveal is presentation over a completed exchange', async () => {
+    render(
+      <GateTransportContext.Provider value={idleTransport('live')}>
+        <DemoDriver />
+      </GateTransportContext.Provider>,
+    );
+
+    const note = await screen.findByTestId('demo-reveal-note');
+    // It has to carry three things: that the order is a reading aid, that the beats were
+    // produced by one exchange, and that the number beside each beat is that beat's own
+    // measurement rather than the reveal's pace.
+    expect(note).toHaveTextContent('reading aid');
+    expect(note).toHaveTextContent('single exchange');
+    expect(note).toHaveTextContent('elapsed_ms');
+    expect(note).toHaveTextContent('rather than the pace of this reveal');
+
+    // One sentence, as the ruling says. A full stop that is not the last character would
+    // be a second one.
+    const sentence = (note.textContent ?? '').trim();
+    expect(sentence.endsWith('.')).toBe(true);
+    expect(sentence.slice(0, -1)).not.toContain('.');
+  });
+
+  it('is beside the transaction paragraph rather than instead of it', async () => {
+    render(
+      <GateTransportContext.Provider value={idleTransport('live')}>
+        <DemoDriver />
+      </GateTransportContext.Provider>,
+    );
+    const note = await screen.findByTestId('demo-reveal-note');
+    const previous = note.previousElementSibling;
+    expect(previous?.textContent).toContain('The four beats share ONE');
   });
 });

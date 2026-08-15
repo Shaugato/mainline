@@ -17,6 +17,19 @@
  * `unlisted` renders as **not established** rather than as zero when the source cannot
  * enumerate itself. "No smuggled files were found" and "we cannot look" are different
  * sentences and only one of them is true of a static host.
+ *
+ * ── THE ONE DISTINCTION A LAY READER WILL NOT MAKE UNAIDED (2026-08-15) ──────────
+ *
+ * That distinction was already correct on this screen and already rendered in bold. What it
+ * was missing was a sentence saying what the difference IS, in ordinary words, for a reader
+ * who has never had to make it. `docs/leads/two-audience-ux-plan.md` R6 requires it and
+ * `src/features/evidence/source.ts` states the reason it exists at all: the difference
+ * between "none found" and "not established" is the whole difference between honesty and
+ * reassurance, and a reader who cannot tell them apart reads the second as the first — the
+ * exact misreading this console exists to refuse.
+ *
+ * The sentence explains; it does not soften and it does not fill. `unlisted === null` still
+ * renders as **not established**, and no count on this screen moved by one.
  */
 
 import { type ReactNode } from 'react';
@@ -25,6 +38,7 @@ import { Counter, ProvenanceChip } from '../../design/primitives';
 
 import styles from './evidence.module.css';
 import type { Coverage } from './model';
+import { Gloss } from './Plain';
 
 function Cell({
   value,
@@ -50,6 +64,12 @@ export function CoveragePanel({ coverage }: { readonly coverage: Coverage }): Re
   const unlisted = coverage.unlisted;
   return (
     <div data-testid="evidence-coverage">
+      <Gloss>
+        <em>Coverage</em> is how much of the capture was actually checked here, and how much was
+        not. The numbers below are the ones this browser produced; the line under them is the
+        same numbers added up, so that the parts and the whole cannot quietly stop agreeing.
+      </Gloss>
+
       <ul className={styles.counters}>
         <Cell
           value={coverage.filesDeclared}
@@ -121,6 +141,15 @@ export function CoveragePanel({ coverage }: { readonly coverage: Coverage }): Re
         )}{' '}
         An unlisted file is never served by the transport; it is reported because a file nobody
         checked should not be in an evidence directory at all.
+      </p>
+
+      <p className={styles.establishedNote} data-testid="evidence-not-established-note">
+        <strong>&ldquo;None&rdquo; and &ldquo;not established&rdquo; are different answers, and
+        only one of them is reassuring.</strong> <em>None</em> means the check ran and came back
+        empty. <em>Not established</em> means the check could not be run at all, so nobody knows
+        — here, because the place these files are served from answers for a file you name and
+        will not hand over a list of what it holds. Where you see <em>not established</em> on
+        this screen, read it as <em>nobody looked</em>, never as <em>nothing was found</em>.
       </p>
     </div>
   );

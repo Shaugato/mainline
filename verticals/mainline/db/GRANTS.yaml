@@ -29,12 +29,49 @@
 #   were a privilege would be reading a control that does not exist — which is exactly the failure
 #   mode DM-7 says the probe, not the matrix, has to catch.
 #
+# THE TWO LOGIN ROLES, AND WHY THEY ARE IN THIS FILE AS OF 2026-08-15
+#   Every role above `mainline_api` is NOLOGIN and is reached by GRANT plus SET ROLE. Two are not.
+#   `mainline_api` is the identity the Lambda behind the public demo Function URL connects as, and
+#   that Function URL is `authorization_type = NONE` by the founder's explicit choice — so
+#   `mainline_api` is, precisely, WHAT AN ANONYMOUS CALLER ON THE INTERNET EXECUTES AS. `mainline_judge`
+#   is the read-only credential handed to judges.
+#
+#   Until today neither was declared in any document. Their whole privilege surface was five Python
+#   tuples in `scripts/deploy/cloud_roles.py`, and that copy drifted: THIRTEEN relations the shipping
+#   demo-api queries were absent from it, and each one surfaced as an HTTP 500 in front of a reader,
+#   one request at a time (`evidence/deploy/LIVE.md`). They were repaired by hand against the live
+#   cluster and never in the repository, so re-provisioning a fresh cluster from that script would
+#   have reproduced every one of those outages. That is the defect this section closes: not eight
+#   grants, but the fact that the most exposed role in the system was declared nowhere at all.
+#
+#   `cloud_roles.py` no longer carries its own copy. It DERIVES `API_READ`, `API_GATE_READ`,
+#   `API_WRITE`, `AUDIT_VIEWS` and `API_MEMBERSHIPS` from the rows below, so the drift is now
+#   unrepresentable rather than merely detectable. Two consequences bind anyone editing this file:
+#
+#     * A row's `why:` is not decoration. `cloud_roles.py::_why` reads `why`, then `note`, then
+#       `purpose`, and prints it beside the statement in the operator's terminal. A log line saying
+#       "SELECT on mainline.cr_event" still has to say that it exists because a trigger branches on
+#       `subject_kind`; that sentence lives here now, and deleting it blinds the deploy log.
+#     * A `SELECT` row may carry `demand: gate_chain`. It changes NO grant. It records that the
+#       read exists for the merge transaction's trigger cascade rather than for any screen, and it
+#       is what sorts the object into `API_GATE_READ` instead of `API_READ`.
+#
+#   NO PASSWORD, NO SECRET AND NO DSN EVER APPEARS IN THIS FILE. The credential lifecycle belongs to
+#   `cloud_roles.py`, which generates a password, prints it once, and writes it nowhere. A matrix is
+#   a public document about reach; a credential is not, and the two must never share a file.
+#
+#   AND THE STANDING WARNING APPLIES DOUBLE HERE. An over-grant on a NOLOGIN agent role is a
+#   weakness. An over-grant on `mainline_api` is a weakness reachable by anyone with the URL, so
+#   every row below cites the file and line that demands it. A row that cannot cite one does not
+#   belong to this login, and "it might be needed later" is not a citation.
+#
 # ──────────────────────────────────────────────────────────────────────────────────────────────
 # CONTRACT FOR `trappoint-migrate grants apply`  (dm-runner implements; this file is the schema)
 #
 #   apply_order is authoritative and each phase is idempotent:
 #     1. roles              CREATE ROLE IF NOT EXISTS <name> WITH [NO]LOGIN
-#     2. memberships        GRANT <role> TO <member>          (empty here, deliberately)
+#     2. memberships        GRANT <role> TO <member>          (see §2 — three rows, all for
+#                                                              mainline_api, none for the owner)
 #     3. schema_privileges  GRANT <privs> ON SCHEMA <s> TO <role>
 #     4. table_privileges   GRANT <privs> ON TABLE <s>.<t> TO <role>
 #     5. schema_wide        GRANT <privs> ON ALL TABLES IN SCHEMA <s> TO <role>
@@ -73,9 +110,14 @@ apply_order:
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # 1. ROLES
-#    `login: false` everywhere. Every principal reaches a role by GRANT plus SET ROLE, never by
-#    logging in as it, because CURRENT_USER is the RLS scope token (§11.3) and a role that can be
-#    logged in as directly is a role whose scope a credential holder chooses.
+#    `login: false` for every role of §11.2. Every principal reaches those by GRANT plus SET ROLE,
+#    never by logging in as one, because CURRENT_USER is the RLS scope token (§11.3) and a role that
+#    can be logged in as directly is a role whose scope a credential holder chooses.
+#
+#    THE TWO EXCEPTIONS ARE AT THE END OF THIS LIST and are exceptions on purpose: a deployed
+#    service has to connect as something. They are `login: true`, they hold no DDL, they hold no
+#    DELETE, and they are the only two rows in this file that correspond to a credential that
+#    exists — which is why the reasoning attached to them is longer than for anything above.
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 
 roles:
@@ -181,16 +223,103 @@ roles:
       doing epistemics — it stops "I'll sign what Dave signed", and it is what M10's
       peer-prediction channel structurally requires.
 
+  # ── THE TWO LOGINS. Read the header block before editing either. ───────────────────────────
+  #
+  # ORDERING HAZARD, recorded because declaring these roles here is what creates it.
+  # `grants apply` phase 1 now issues `CREATE ROLE IF NOT EXISTS mainline_api LOGIN` — with NO
+  # PASSWORD, because this file never carries one. cloud_roles.py sets a password only when it
+  # CREATES the login or when `--rotate` says so, precisely so that re-running it cannot invalidate
+  # the credential the Lambda is already using and take the demo down. Those two rules compose
+  # badly in one order and only one: on a FRESH SECURE cluster, `grants apply` before
+  # cloud_roles.py leaves a login that exists, so cloud_roles.py reports "already exists, password
+  # left alone" and mints nothing — a LOGIN role no one holds a credential for. It is not a
+  # vulnerability (a passwordless login cannot authenticate to a secure cluster) but it is a
+  # deployment that looks finished and is not. It is not live today: deploy.sh runs cloud_chain.py
+  # then seed_demo.py and invokes cloud_roles.py out of band, and `grants apply` is not pointed at
+  # the demo cluster at all. Anyone wiring `grants apply` into the deploy must run cloud_roles.py
+  # FIRST, or pass `--rotate` and re-publish the secret. The fix is an order, not an edit here.
+  - name: mainline_api
+    login: true
+    created_by: "scripts/deploy/cloud_roles.py (CREATE USER … WITH LOGIN PASSWORD, generated there)"
+    purpose: >
+      THE IDENTITY THE PUBLIC DEMO EXECUTES AS. The Lambda behind the demo Function URL connects
+      as this role, and that Function URL is `authorization_type = NONE` by the founder's explicit
+      choice, so this row describes what an anonymous caller on the internet can reach. It holds
+      what the demo's three beats require and no more: SELECT on the corpus the read resources
+      show, SELECT on the relations the merge transaction's trigger cascade touches, the handful
+      of writes those beats actually issue, EXECUTE on the merge procedure, and membership in the
+      three roles whose row-level-security policies make those statements see anything at all.
+      It holds no DDL, no DELETE, and nothing whatever in mainline_qa.
+    why_it_is_narrow: >
+      For comparison, the admin role on the deployed cluster holds ALL on 417 objects. The endpoint
+      runs as this role and not that one, and the difference between those two sentences is the
+      entire security argument for exposing a database-backed demo without authentication.
+
+  - name: mainline_judge
+    login: true
+    created_by: "scripts/deploy/cloud_roles.py (CREATE USER … WITH LOGIN PASSWORD, generated there)"
+    purpose: >
+      Read-only, for the judges. SELECT on the fourteen mainline_audit views and on NOTHING else in
+      the cluster. It additionally holds USAGE — and only USAGE — on the three schemas those views
+      traverse, which is a right to NAME a schema and not a right to read anything in it; see the
+      measured note on its schema_privileges rows, because that behaviour is not what the
+      documentation led us to expect and the evidence is worth more than the assurance.
+      Explicitly NOT mainline_qa, ever (S14): without USAGE that schema is not even nameable, which
+      is a stronger position than a revoked SELECT.
+
 # ══════════════════════════════════════════════════════════════════════════════════════════════
-# 2. MEMBERSHIPS — deliberately empty.
+# 2. MEMBERSHIPS — three rows, and NOT ONE OF THEM NAMES mainline_owner.
 #    Nobody is a member of mainline_owner. That is what "unassumable" means, and it is asserted by
 #    test_mi_foundation.py::test_mainline_owner_is_unassumable rather than merely intended here.
-#    Human and service principals are granted their roles by the provisioning service account,
-#    which is the only alterable authority in the grant graph (§11.3); those grants are per
-#    deployment and live in infra/, not in this file.
+#    Human principals are still granted their roles by the provisioning service account, which is
+#    the only alterable authority in the grant graph (§11.3); those grants are per deployment and
+#    live in infra/, not in this file.
+#
+#    WHY ROLE MEMBERSHIP AND NOT ONLY GRANTS — the paragraph that cost a deploy to learn.
+#    Four tables carry FORCE ROW LEVEL SECURITY (RLS-MATRIX.yaml: mainline.permit,
+#    mainline.change_request, mainline.disposition, mainline_meas.standing), and under FORCE
+#    *"if RLS is enabled but no policies apply to a given combination of user and SQL statement,
+#    access is denied by default."* A bare `GRANT SELECT ON mainline.permit` therefore buys ZERO
+#    ROWS, SILENTLY — which is the worst failure an audit surface can have, because it is
+#    indistinguishable from a clean site. The policies are written `TO <role>`, and a policy matches
+#    any MEMBER of that role. So mainline_api is made a member of exactly three.
+#
+#    MEASURED on a freshly migrated database: `information_schema.table_privileges` for agent_gate,
+#    svc_disposition and auditor_ro returns NO ROWS. These three carry POLICY SCOPE and no table
+#    privilege, so relying on inheritance for the privileges would have produced a login that can
+#    see nothing and a demo that fails in front of a judge. The memberships below are for RLS SCOPE;
+#    every privilege mainline_api holds is granted to it DIRECTLY in §3 and §4.
+#
+#    NOTE FOR THE ORCHESTRATOR, recorded rather than worked around: this section was `[]` until
+#    2026-08-15, and `tests/integration/schema/test_mi_foundation.py:716` asserts
+#    `matrix["memberships"] == []` with the reason "mainline_owner must remain unassumable". That
+#    assertion is broader than its own stated reason and these rows make it fail. The narrowed
+#    assertion that preserves the claim exactly is:
+#        assert not [m for m in matrix["memberships"] if m["role"] == "mainline_owner"]
+#    W2 does not own that file and has not edited it. Reported, not hidden, and not routed around
+#    by hiding these rows in a section `grants apply` would ignore — cloud_roles.py::DERIVED_SECTIONS
+#    reads `memberships` and refuses any section absent from apply_order, so a documentation-only
+#    home for them would put the deploy script and `grants apply` out of step on one file.
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 
-memberships: []
+memberships:
+  - role: auditor_ro
+    member: mainline_api
+    why: >
+      RLS SCOPE, NOT PRIVILEGE. Carries the `fleet_scope` policies on mainline.permit and
+      mainline.change_request and `disposition_service_read` on mainline.disposition. Without it the
+      permit the whole demo is about returns zero rows under FORCE ROW LEVEL SECURITY, and returns
+      them silently.
+  - role: agent_gate
+    member: mainline_api
+    why: >
+      RLS SCOPE, NOT PRIVILEGE. Carries `service_read`, `gate_insert` and `gate_write` — the merge
+      transaction. This is the membership the demo's headline beat runs inside.
+  - role: svc_disposition
+    member: mainline_api
+    why: >
+      RLS SCOPE, NOT PRIVILEGE. Carries `gate_write` (the counter decrement) and
+      `disposition_insert`. Those three roles are the principals the demo impersonates, one per beat.
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # 3. SCHEMA PRIVILEGES
@@ -283,6 +412,84 @@ schema_privileges:
     schemas: [mainline, mainline_meas]
     privileges: [USAGE]
     since: "0003"
+
+  # ── mainline_api ───────────────────────────────────────────────────────────────────────────
+  - role: mainline_api
+    schemas: [mainline, mainline_meas, mainline_audit, mainline_ops]
+    privileges: [USAGE]
+    since: "0006"
+    why: >
+      USAGE is the prerequisite for every table privilege in §4 and buys no row by itself.
+      mainline_ops is here for the same open coupling that puts agent_gate there: the outbox
+      triggers fire as the INVOKING role, so the login that drives the merge needs to reach
+      mainline_ops.outbox. mainline_qa is absent and is additionally REVOKED on every provisioning
+      run (S14) — the absence of a grant and a revocation are different claims and this login
+      carries both.
+
+  - role: mainline_api
+    schemas: [trappoint]
+    privileges: [USAGE]
+    since: "bootstrap"
+    since_note: >
+      NOT A MIGRATION. Schema `trappoint` is created by the migration RUNNER's bootstrap
+      (packages/trappoint-migrate/src/trappoint_migrate/bootstrap.py:78), before any numbered file
+      runs, so no `since:` in the 0001-0271 sequence would be true. A four-digit number here would
+      be an invented citation and would produce a misleading warning on a partially-migrated
+      cluster; the honest value names the thing that actually creates it.
+    why: >
+      THE GRANT THAT WAS MISSING WHILE AN EXECUTE GRANT SAT UNUSABLE. `/v1/health` reads
+      trappoint.schema_attestation, trappoint.schema_migration and trappoint.deploy_chain
+      (health.py:153,157,163) and the refusal path calls trappoint.explain_refusal
+      (refusal.py:141, `SELECT trappoint.explain_refusal(%s, %s, %s, %s)`; the function is created
+      by migration 0119a). USAGE is the right to NAME the schema: without it the EXECUTE grant on
+      explain_refusal is unusable and every read above is 42501. Recorded hand-granted against the
+      live cluster on 2026-08-14 in evidence/deploy/LIVE.md and granted by no code in this
+      repository until now.
+    hazard_measured_2026_08_15: >
+      THIS IS THE FIRST ROW IN THIS SECTION WHOSE SCHEMA CAN BE ABSENT, and one consumer does not
+      survive that. The file header's contract says a row whose object is absent is SKIPPED WITH A
+      WARNING. `trappoint_migrate.grants.apply(allow_missing=True)` honours it (3F000 is in
+      _MISSING_OBJECT_SQLSTATES) and `scripts/chain/apply_chain.py --grants` passes that flag, so
+      the real tool is correct. The SECOND implementation of the same contract —
+      test_mi_foundation.py::apply_grants_matrix — guards `table_privileges` with `_table_exists`
+      and `schema_wide` with `_schema_has_tables` but applies `schema_privileges` unguarded, and its
+      `foundation` fixture builds a database from band files 0001-0023 only, which never create
+      schema trappoint. Measured on CockroachDB v26.2.5: `GRANT USAGE ON SCHEMA trappoint` against
+      such a database returns `3F000 unknown schema "trappoint"`. The fix is the guard that section
+      already has for the other two — it belongs to that file's owner, not to W2, and it is
+      reported rather than dodged by dropping a grant the deployed login genuinely holds.
+
+  # ── mainline_judge ─────────────────────────────────────────────────────────────────────────
+  - role: mainline_judge
+    schemas: [mainline_audit]
+    privileges: [USAGE]
+    since: "0004"
+    why: "The judge's entire read surface is the fourteen views in this schema. See §4."
+
+  - role: mainline_judge
+    schemas: [mainline, mainline_meas, mainline_ops]
+    privileges: [USAGE]
+    since: "0006"
+    why: >
+      TRAVERSAL ONLY — USAGE here, and no table privilege in any of the three. MEASURED, AND NOT
+      WHAT THE DOCUMENTATION LED US TO EXPECT (CockroachDB CCL v26.2.5, local single node,
+      2026-08-10). A view runs its underlying query with its OWNER's table privileges — that is the
+      fourth trap RLS-MATRIX.yaml names, and it holds — but the SCHEMA USAGE check is made against
+      the INVOKER regardless:
+        with USAGE on mainline_audit only:
+          SELECT count(*) FROM mainline_audit.v_open_gate_summary
+            -> 42501  user mainline_judge does not have USAGE privilege on schema mainline
+        with USAGE additionally on mainline, mainline_meas, mainline_ops:
+          SELECT count(*) FROM mainline_audit.v_open_gate_summary   -> OK, rows=1
+          SELECT count(*) FROM mainline.permit
+            -> 42501  user mainline_judge does not have SELECT privilege on relation permit
+      So the judge needs USAGE on the schemas its views TRAVERSE and gets no table privilege in any
+      of them. USAGE is the right to name a schema; it is not the right to read anything in it, and
+      the second probe is the evidence rather than the assurance. mainline_qa is NOT in this list
+      and never will be: without USAGE the schema is not even nameable, which is a stronger position
+      than a revoked SELECT. `cloud_roles.py::_judge_revocation_schemas` DERIVES the re-revocation
+      set from exactly this shape — every schema the judge holds USAGE on and has no table privilege
+      in — so splitting this row from the mainline_audit row above is load-bearing, not cosmetic.
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # 4. TABLE PRIVILEGES — the matrix proper.
@@ -401,6 +608,324 @@ table_privileges:
   - {role: mainline_auditor, object: mainline_meas.external_attestation, privileges: [INSERT], since: "0089",
      why: "S13. The entire write surface of the Managed MCP connector, which is itself insert-only, one statement per call, 16 384 chars, 20 s, 10 KiB response. The role that certifies the books has no write path to them."}
 
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  # mainline_api — THE ANONYMOUS PUBLIC ENDPOINT'S LOGIN. Read the header block before editing.
+  #
+  # `evidence:` is the file and line in the shipping demo-api source
+  # (verticals/mainline/apps/demo-api/src/mainline_demo_api/) that demands the row, measured on
+  # 2026-08-15 by a sweep over that tree. Where a row carries `census_note:` instead, the static
+  # sweep found NO reference and the row is carried across from the privilege set the live login
+  # already holds — that is the granted-but-never-demanded direction of W1's census, recorded here
+  # rather than quietly dropped, because removing a grant the deployed demo may be relying on is a
+  # bigger change than this worker is entitled to make and the census is what should decide it.
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+
+  # ── the read surface · the gated subject and its record ────────────────────────────────────
+  - {role: mainline_api, object: mainline.permit,               privileges: [SELECT, UPDATE], since: "0050",
+     evidence: "reads.py, gate_run.py, transitions.py — the subject of every screen",
+     why: "The gated subject. UPDATE is the merge's own state transition; the counters are trigger-maintained and the trigger refuses a client-supplied value (P2). Readable only because of the auditor_ro membership — FORCE RLS makes a bare SELECT here return zero rows."}
+  - {role: mainline_api, object: mainline.permit_event,         privileges: [SELECT, INSERT], since: "0059",
+     evidence: "transitions.py — the permit's append-only event chain",
+     why: "The hash-chained event log the permit's history is read from and appended to."}
+  - {role: mainline_api, object: mainline.blocking_check,       privileges: [SELECT, UPDATE], since: "0058",
+     evidence: "reads.py, gate_run.py — the obligation the gate refuses on",
+     why: "The obligation itself. UPDATE is the disposition beat closing a check; INSERT is deliberately NOT held — S1 says the role that disposes of an obligation may not manufacture it, and this login drives the disposition beat."}
+  - {role: mainline_api, object: mainline.disposition,          privileges: [SELECT, INSERT], since: "0066",
+     evidence: "transitions.py — the disposition beat",
+     why: "A disposition is a plain INSERT projected by fn_disposition_project; this schema has no disposition PROCEDURE, so INSERT plus the disposition_insert policy IS the grant that means 'may sign a disposition'. Recording that absence is better than granting EXECUTE on a routine that does not exist."}
+  - {role: mainline_api, object: mainline.merge_record,         privileges: [SELECT, INSERT], since: "0071",
+     evidence: "gate_run.py — the admission beat's record",
+     why: "What an admitted merge leaves behind."}
+  - {role: mainline_api, object: mainline.refusal_ledger,       privileges: [SELECT, INSERT], since: "0071c",
+     evidence: "refusal.py, gate_run.py — every refusal is written down",
+     why: "The refusal is a product output, not an error: it is appended here and read back as the exhibit."}
+  - {role: mainline_api, object: mainline.boundary_certificate, privileges: [SELECT], since: "0057",
+     evidence: "reads.py — the boundary the permit was issued against"}
+  - {role: mainline_api, object: mainline.exposure_receipt,     privileges: [SELECT], since: "0061",
+     evidence: "reads.py, transitions.py — the receipt the gate issues",
+     census_note: "transitions.py:891 issues INSERT INTO mainline.exposure_receipt and this row grants SELECT only. That is R4b of the lead plan, OPEN: either the path is unreachable from the deployed surface or it is a 42501 waiting for the first judge who drives it. NO GRANT IS ADDED HERE until W1's census or W4's probe establishes which — an unreachable code path and a missing privilege look identical from a test's side and are different findings."}
+  - {role: mainline_api, object: mainline.exposure_line,        privileges: [SELECT], since: "0062",
+     evidence: "reads.py — the receipt's lines",
+     census_note: "transitions.py:969 issues INSERT INTO mainline.exposure_line and this row grants SELECT only. Same open finding as exposure_receipt above (R4b). Not closed by guessing."}
+
+  # ── the read surface · the corpus the obligation points at ─────────────────────────────────
+  - {role: mainline_api, object: mainline.site,             privileges: [SELECT], since: "0020a",
+     evidence: "reads.py — site scope and the custody screen's site_code"}
+  - {role: mainline_api, object: mainline.clause,           privileges: [SELECT], since: "0028",
+     evidence: "reads.py, defeaters.py — the clause identity the diff screen addresses"}
+  - {role: mainline_api, object: mainline.clause_version,   privileges: [SELECT], since: "0029",
+     evidence: "reads.py — clause content at a commit; the diff screen's subject"}
+  - {role: mainline_api, object: mainline.event,            privileges: [SELECT], since: "0033",
+     evidence: "reads.py — the incident events blame is drawn from"}
+  - {role: mainline_api, object: mainline.blame_edge,       privileges: [SELECT], since: "0037",
+     evidence: "reads.py — the blame edges themselves"}
+  - {role: mainline_api, object: mainline.clause_blame_closure,  privileges: [SELECT], since: "0038",
+     evidence: "reads.py — the closure every gate reads"}
+  - {role: mainline_api, object: mainline.clause_blame_current,  privileges: [SELECT], since: "0039",
+     evidence: "reads.py — the current-blame VIEW over the closure"}
+  - {role: mainline_api, object: mainline.commit_obj,       privileges: [SELECT], since: "0024",
+     evidence: "reads.py — the commit the clause version is pinned at"}
+  - {role: mainline_api, object: mainline.signing_credential,   privileges: [SELECT], since: "0022",
+     evidence: "reads.py — the credential a signature is verified against"}
+  # ── resolved by W1's census, 2026-08-15 · four kept on trigger evidence, three REMOVED ────────
+  #
+  # These five rows arrived here with a `census_note:` deferring the question to the census. The
+  # census then RAN — two agreeing extraction legs over 40 relations — and refused the deferral,
+  # correctly: `census_note:` is a promise to decide, not a decision. Each was therefore traced to
+  # the trigger that reaches it, by reading the function bodies and then asking which table each
+  # trigger is attached to. That second question is the one that settles it, because a trigger only
+  # runs as mainline_api if mainline_api issues the statement that fires it.
+  - {role: mainline_api, object: mainline.permit_clause,    privileges: [SELECT], since: "0052", demand: gate_chain,
+     evidence: "0115_fn_permit_merge_gate.sql:92 `FROM mainline.permit_clause cited`, fired by `permit_merge_gate BEFORE UPDATE ON mainline.permit` (0130:38); also 0140c_fn_cbm_gate_permit.sql:113,126",
+     why: "The merge gate re-derives the cited clause set rather than trusting a stored column, and mainline_api is the role whose UPDATE of mainline.permit fires it. Without this SELECT the headline beat dies inside the trigger."}
+  - {role: mainline_api, object: mainline.cbm_account,      privileges: [SELECT], since: "0049c", demand: gate_chain,
+     evidence: "0140c_fn_cbm_gate_permit.sql:116 `FROM mainline.cbm_account a`, fired by `z_cbm_gate BEFORE UPDATE ON mainline.permit` (0145c:85)",
+     why: "Recall of the arithmetic is a precondition of the merge — the CBM gate reads the account as the invoking role on the same UPDATE that drives the demo's admission beat."}
+  - role: mainline_api
+    object: mainline.person
+    privileges: [SELECT]
+    since: "0021"
+    demand: gate_chain
+    evidence: "0102_fn_disposition_project.sql:154,173 `FROM mainline.person pr`, fired by `disposition_project BEFORE INSERT ON mainline.disposition` (0122:29)"
+    why: >
+      The disposition beat INSERTs into mainline.disposition and that trigger projects the signer
+      from mainline.person as the invoking role. THIS IS A PER-NAMED-PERSON RELATION REACHABLE FROM
+      AN ANONYMOUS ENDPOINT and it stays only because the cascade genuinely requires it — it is the
+      row in this file a reviewer should ask about first, and the narrower fix is SECURITY DEFINER
+      on fn_disposition_project, not a quiet deletion here that would break the third beat.
+  - {role: mainline_api, object: mainline_meas.recall_policy, privileges: [SELECT], since: "0080", demand: gate_chain,
+     evidence: "0102_fn_disposition_project.sql:200 `FROM mainline_meas.recall_policy rp`, fired by `disposition_project BEFORE INSERT ON mainline.disposition` (0122:29); also 0112_fn_recall_policy_anchored.sql:61",
+     why: "Same trigger as mainline.person above: the disposition projection reads the anchored policy as the invoking role."}
+  #
+  # REMOVED 2026-08-15 — three grants this login held and cannot justify. An over-grant on an
+  # authorization_type = NONE endpoint is a defect, not a safety margin, so these are deleted rather
+  # than annotated. Each was traced the same way and failed the same test — the trigger that reads
+  # it fires on a statement mainline_api never issues:
+  #
+  #   mainline.doc               No demo-api statement. No function or trigger in 0100-0199 names
+  #                              it. Its only other reference is 0150_v_safe_direction_current.sql,
+  #                              a VIEW — and a view runs its query with its OWNER's privileges, so
+  #                              that reference demands nothing of the invoker.
+  #   mainline.commit_edge       No demo-api statement. Read by 0140a_fn_cbm_account_guard.sql:180
+  #                              and 0140b_fn_residue_project.sql:92 — but those fire on
+  #                              `BEFORE INSERT ON mainline.cbm_account` (0145a:79) and
+  #                              `BEFORE INSERT ON mainline.identity_residue` (0145b:67), and this
+  #                              login holds INSERT on neither.
+  #   mainline_meas.recall_candidate
+  #                              No demo-api statement. Its only trigger, 0139_trg_candidate_project
+  #                              :44, is `BEFORE INSERT ON mainline_meas.recall_candidate` itself —
+  #                              it protects the writer (agent_recaller) and says nothing about a
+  #                              reader. Nothing in the merge or disposition cascade reads it.
+  #
+  # If Leg B's probe shows the deployed beats need any of the three, that is the finding and the row
+  # comes back WITH the 42501 that demanded it. It does not come back on a hunch.
+
+  # ── the read surface · custody, and the lattices that make an illegal value unrepresentable ─
+  - {role: mainline_api, object: mainline.ledger_checkpoint,  privileges: [SELECT], since: "0075",
+     evidence: "reads.py — the custody screen's checkpoint and its signed note"}
+  - {role: mainline_api, object: mainline.cosignature,        privileges: [SELECT], since: "0076",
+     evidence: "reads.py — the cosignatures over the checkpoint"}
+  - {role: mainline_api, object: mainline.subject_transition, privileges: [SELECT], since: "0017a",
+     evidence: "reads.py, transitions.py — the legal-transition lattice"}
+  - {role: mainline_api, object: mainline.clearance_legal,    privileges: [SELECT], since: "0018a",
+     evidence: "transitions.py — the clearance lattice"}
+
+  # ── the read surface · the recall pass and what it declined to surface ──────────────────────
+  - {role: mainline_api, object: mainline_meas.recall_run,       privileges: [SELECT], since: "0081",
+     evidence: "reads.py — the pass that found the precursor"}
+  - {role: mainline_api, object: mainline_meas.silence_receipt,  privileges: [SELECT], since: "0083",
+     evidence: "reads.py — what the pass declined to surface (SEC-0)"}
+  # mainline_meas.recall_policy moved to the census-resolved block below (it is a trigger read, not
+  # a screen read). mainline_meas.recall_candidate was REMOVED — see that block for the evidence.
+
+  # ── the GATE TRIGGER CHAIN · `demand: gate_chain` ───────────────────────────────────────────
+  #
+  # These SELECTs exist for the merge transaction's trigger cascade, NOT for any screen, which is
+  # why a source grep does not find most of them and why they are marked. Every trigger function in
+  # migrations 0100-0149 executes as the INVOKING role — none is SECURITY DEFINER, and the note at
+  # the foot of this file records that as an open coupling rather than hiding it — so the merge
+  # needs SELECT on relations no demo screen ever displays.
+  #
+  # DISCOVERED BY RUNNING IT, NOT BY READING THE SCHEMA. The method was a loop: run the three beats
+  # as mainline_api, parse the 42501, grant exactly the named privilege on the named relation,
+  # repeat until the beats produced their real outcomes. Guessing this list from the ARCHITECTURE
+  # would have produced a login that fails in the middle of the demo's second beat, in front of a
+  # judge, with a privilege error. The marker changes NO grant — it only sorts the object into
+  # API_GATE_READ rather than API_READ, so the deploy log says which of the two reasons applies.
+  - {role: mainline_api, object: mainline.change_request,       privileges: [SELECT, UPDATE], since: "0051", demand: gate_chain,
+     evidence: "migrations 0101_fn_check_materialised.sql and 0103_fn_disposition_close.sql both name mainline.change_request",
+     why: "fn_disposition_close and fn_check_materialised branch on subject_kind and touch the change-request arm EVEN WHEN THE SUBJECT IS A PERMIT. That is why a permit-only demo needs the change-request relations at all, and it is the single least guessable fact in this block."}
+  - {role: mainline_api, object: mainline.cr_clause,            privileges: [SELECT], since: "0053", demand: gate_chain,
+     evidence: "migrations 0116_fn_cr_merge_gate.sql, 0140d_fn_cbm_gate_cr.sql",
+     why: "Same trigger branch as change_request above."}
+  - {role: mainline_api, object: mainline.cr_event,             privileges: [SELECT], since: "0060", demand: gate_chain,
+     evidence: "migrations 0106_fn_cr_event_chain.sql, 0118_proc_merge_change_request.sql",
+     why: "Same trigger branch as change_request above. A log line reading 'SELECT on mainline.cr_event' must still say that it exists because a trigger branches on subject_kind, which is why this sentence is here rather than in a comment the deploy log cannot reach."}
+  - {role: mainline_api, object: mainline.identity_residue,     privileges: [SELECT], since: "0049", demand: gate_chain,
+     evidence: "migrations 0140a_fn_cbm_account_guard.sql, 0140c_fn_cbm_gate_permit.sql, 0145b_trg_residue_project.sql",
+     why: "Read by the gate's identity re-derivation."}
+  - {role: mainline_api, object: mainline.override_ledger,      privileges: [SELECT, INSERT], since: "0068", demand: gate_chain,
+     evidence: "migrations 0102_fn_disposition_project.sql, 0103_fn_disposition_close.sql",
+     why: "The gate reads it during the cascade; the disposition beat appends to it when a check is cleared by override."}
+  - {role: mainline_api, object: mainline.disposition_citation, privileges: [SELECT, INSERT], since: "0067", demand: gate_chain,
+     evidence: "migration 0102_fn_disposition_project.sql",
+     why: "Read by the cascade; written by the disposition beat, which cites what it relied on."}
+
+  # The remaining four gate-chain rows rest on BEHAVIOURAL evidence only, and that is stated rather
+  # than dressed up. Each was granted because running the three beats as mainline_api produced a
+  # 42501 naming it — the discovery loop recorded above, which is stronger evidence than any grep
+  # because it is the cluster's own answer. But a 2026-08-15 static sweep found NO reference to any
+  # of them in the demo-api source, and none in the 0100-0149 function band either. Both facts are
+  # recorded so W1's granted-but-never-demanded direction and W4's probe can settle it. Do not
+  # delete these on the strength of the sweep alone: the sweep is the weaker instrument here.
+  - {role: mainline_api, object: mainline.permit_boundary,      privileges: [SELECT], since: "0055", demand: gate_chain,
+     evidence: "BEHAVIOURAL ONLY — the 42501 discovery loop in cloud_roles.py. Static sweep 2026-08-15: referenced by no demo-api file and by no migration except 0055 which creates it.",
+     why: "Believed to be read by the merge gate when re-deriving the boundary rather than trusting the stored column. Candidate over-grant; W1/W4 decide."}
+  - {role: mainline_api, object: mainline.permit_slice,         privileges: [SELECT], since: "0056", demand: gate_chain,
+     evidence: "BEHAVIOURAL ONLY — as permit_boundary. Static sweep 2026-08-15: referenced by no demo-api file and by no migration except 0056 which creates it.",
+     why: "Believed to be read by the merge gate's slice check. Candidate over-grant; W1/W4 decide."}
+  - {role: mainline_api, object: mainline.unwitnessed_debt,     privileges: [SELECT], since: "0077", demand: gate_chain,
+     evidence: "BEHAVIOURAL ONLY. Static sweep 2026-08-15: named by 0162_v_ledger_health.sql, which is a VIEW and therefore runs with its OWNER's table privileges — so that reference does NOT demand this grant.",
+     why: "Believed to be read by the cascade — custody debt is a gate input. Candidate over-grant; W1/W4 decide."}
+  - {role: mainline_api, object: mainline.mechanism_predicate,  privileges: [SELECT], since: "0065", demand: gate_chain,
+     evidence: "BEHAVIOURAL ONLY. Static sweep 2026-08-15: named by 0070a_disposition_predicate_fk.sql, which is a FOREIGN KEY — an FK check is not performed with the invoking role's privileges, so that reference does NOT demand this grant.",
+     why: "Believed to be read by the cascade's predicate evaluation. Candidate over-grant; W1/W4 decide."}
+
+  # ── the write path that is not also a read ──────────────────────────────────────────────────
+  - {role: mainline_api, object: mainline.ledger_intake, privileges: [INSERT], since: "0072",
+     evidence: "gate_run.py — merge_permit appends the merge to the custody log in the same transaction",
+     why: "INSERT AND NOT SELECT, matching agent_relay's shape: the demo's admission beat writes an audit trail or it does not happen at all, and a writer that cannot read cannot be induced to exfiltrate."}
+  - role: mainline_api
+    object: mainline_ops.outbox
+    privileges: [SELECT, INSERT]
+    since: "0099"
+    evidence: "gate_run.py:245 `SELECT count(*) FROM mainline_ops.outbox`"
+    why: >
+      INSERT because fn_check_materialised and fn_disposition_close insert into it AS WHOEVER
+      CALLED THEM — the open coupling at the foot of this file, in its most exposed form: an
+      anonymous endpoint's login needs a write privilege in mainline_ops purely because a trigger
+      function is not SECURITY DEFINER. If dm-functions-triggers takes that decision, this row and
+      the mainline_ops entry in this role's schema_privileges both go away.
+    added_2026_08_15: >
+      SELECT IS NEW AND IS BEYOND THE ELEVEN THE LEAD PLAN LISTS. gate_run.py:245 reads this
+      relation and cloud_roles.py granted INSERT only; evidence/deploy/LIVE.md records
+      `mainline_ops.outbox SELECT` among the privileges hand-granted against the live cluster on
+      2026-08-14. It is the same class as R4b — a missing VERB rather than a missing relation — and
+      it is exactly the case a relation-level census would miss.
+
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  # THE RELATIONS THE SHIPPING APP QUERIES THAT NO CODE IN THIS REPOSITORY GRANTED (R4)
+  #
+  # Each was granted BY HAND against the live cluster on 2026-08-14 and never in the repository, so
+  # re-provisioning a fresh cluster from cloud_roles.py would have reproduced every outage. These
+  # rows are what makes that false. `evidence:` is the demo-api file and line that demands each one.
+  #
+  # The lead plan's R4 names eleven. A sweep of the demo-api tree on 2026-08-15 found THIRTEEN of
+  # this class: the eleven, plus `mainline_meas.agent_action` (below) and the SELECT on
+  # `mainline_ops.outbox` (above). Both extras are corroborated by evidence/deploy/LIVE.md's own
+  # record of what was hand-granted, and both are marked `added_2026_08_15:` so the difference from
+  # the plan is visible rather than smuggled in.
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+
+  - {role: mainline_api, object: mainline.control_failure,  privileges: [SELECT], since: "0035",
+     evidence: "reads.py:1239, reads.py:1478",
+     why: "The control failures an incident event decomposes into — the evidence arm of the blame path."}
+  - {role: mainline_api, object: mainline.defeater_option,  privileges: [SELECT], since: "0064",
+     evidence: "defeaters.py:38, defeaters.py:99, defeaters.py:120, gate_run.py:56, gate_run.py:60, gate_run.py:586, gate_run.py:773, reads.py:783, reads.py:966, transitions.py:1074",
+     why: "THE MOST-REFERENCED MISSING GRANT — ten call sites, including the whole of defeaters.py and the gate-run beat itself. This is the vocabulary a signature has to pin: without SELECT here the headline screen cannot say what would have changed the answer."}
+  - {role: mainline_api, object: mainline.delta_witness,    privileges: [SELECT], since: "0049a",
+     evidence: "reads.py:1101, reads.py:1143, reads.py:1202",
+     why: "The witness to a delta between as-documented and as-operated."}
+  - {role: mainline_api, object: mainline.event_edge,       privileges: [SELECT], since: "0034",
+     evidence: "reads.py:1247, reads.py:1479",
+     why: "The edges between incident events; read alongside control_failure on the same screen."}
+  - {role: mainline_api, object: mainline.ledger_leaf,      privileges: [SELECT], since: "0073",
+     evidence: "reads.py:1518, reads.py:1553, reads.py:1757, reads.py:1767",
+     why: "RFC 6962 leaves. The custody screen recomputes an inclusion proof from these; without SELECT it can show a checkpoint and prove nothing about it."}
+  - {role: mainline_api, object: mainline.ledger_node,      privileges: [SELECT], since: "0074",
+     evidence: "reads.py:1527, reads.py:1759",
+     why: "RFC 6962 interior nodes. Same proof, same screen."}
+  - {role: mainline_api, object: mainline.receipt_expiry,   privileges: [SELECT], since: "0063",
+     evidence: "reads.py:982, reads.py:1062, reads.py:1076 (JOINed onto the receipt)",
+     why: "When an exposure receipt stops being current. Read as a JOIN, which is why a scan that only follows FROM would miss it."}
+  - {role: mainline_api, object: mainline_meas.silence_ledger, privileges: [SELECT], since: "0084",
+     evidence: "reads.py:1779, reads.py:1988",
+     counsel_gated: true,
+     why: "G0 (DM-17). The gate is WHO MAY READ IT; that it is written is not negotiable (SEC-0). This row is that gate being opened for the demo's read surface, and it is the one row in this block a reviewer should weigh hardest, because what a system declined to surface is the most sensitive thing it records."}
+  - role: mainline_api
+    object: mainline_meas.agent_action
+    privileges: [SELECT]
+    since: "0089"
+    evidence: "reads.py:2282 — `FROM mainline_meas.agent_action` in _AGENT_ACTION_SQL, served by read_audit() for GET /v1/audit"
+    why: >
+      The agent call log: which agent, which tool, which model, what it was given, what it produced,
+      and whether it was refused. The audit screen's bottom half.
+    added_2026_08_15: >
+      BEYOND THE ELEVEN THE LEAD PLAN LISTS, and measured rather than assumed. The plan's R4 set
+      omits it; the sweep finds it referenced by the agent call log that GET /v1/audit returns, and
+      evidence/deploy/LIVE.md records `mainline_meas.agent_action SELECT` among the privileges
+      hand-granted against the live cluster on 2026-08-14. Omitting it would ship a matrix that
+      reproduces an outage on the Audit screen — one of the screens currently reported broken — so
+      it is included, cited, and flagged rather than silently conformed to the plan's count.
+  - {role: mainline_api, object: trappoint.deploy_chain,      privileges: [SELECT], since: "cloud_chain",
+     since_note: "NOT A MIGRATION — created by scripts/deploy/cloud_chain.py:194. health.py:90 states this outright: a database built by `trappoint migrate up` instead has no such table, and health.py handles the 42P01.",
+     evidence: "health.py:163, health.py:166, health.py:169",
+     why: "GET /v1/health reports deploy_chain files/applied/failed/retried from here. This is the 271/271 a judge reads first; without SELECT the health check cannot substantiate its own headline number."}
+  - {role: mainline_api, object: trappoint.schema_attestation, privileges: [SELECT], since: "bootstrap",
+     since_note: "NOT A MIGRATION — created by packages/trappoint-migrate/src/trappoint_migrate/bootstrap.py:121, before any numbered file runs.",
+     evidence: "health.py:153",
+     why: "The newest fingerprint, which is what /v1/health publishes as schema_fingerprint — the claim that the deployed schema is the schema in the repository."}
+  - {role: mainline_api, object: trappoint.schema_migration,   privileges: [SELECT], since: "bootstrap",
+     since_note: "NOT A MIGRATION — created by packages/trappoint-migrate/src/trappoint_migrate/bootstrap.py:83.",
+     evidence: "health.py:157",
+     why: "migrations_applied. On the deployed cluster this table is EMPTY BY DESIGN (health.py:36) because the chain is applied by cloud_chain.py; the read must still succeed, because 'empty' and '42501' are different answers and only one of them is honest."}
+
+  # ── the audit surface, enumerated · ALSO GRANTED TO mainline_judge below ────────────────────
+  # Fourteen views by name rather than `ON ALL TABLES IN SCHEMA`, because a wildcard would silently
+  # pick up whatever a later migration adds — and the whole point of these two logins is that their
+  # reach is a closed list somebody reviewed. cloud_roles.py::AUDIT_VIEWS is DERIVED from exactly
+  # these rows (mainline_audit.* with SELECT), and scripts/deploy/judge_access.py compares its own
+  # copy against that one at provision time and refuses when they differ.
+  # Reached by name through a helper in reads.py, which asks information_schema which views exist
+  # and reports whatever arrives (reads.py::read_audit) rather than asserting a column list it does
+  # not own — so a source grep finds the SCHEMA here, not the individual view names.
+  - {role: mainline_api, object: mainline_audit.v_cbm_ledger,                  privileges: [SELECT], since: "0151"}
+  - {role: mainline_api, object: mainline_audit.v_open_gate_summary,           privileges: [SELECT], since: "0156"}
+  - {role: mainline_api, object: mainline_audit.v_weakenings_without_disposition, privileges: [SELECT], since: "0157"}
+  - {role: mainline_api, object: mainline_audit.v_blame_coverage,              privileges: [SELECT], since: "0158"}
+  - {role: mainline_api, object: mainline_audit.v_disposition_coverage,        privileges: [SELECT], since: "0159"}
+  - {role: mainline_api, object: mainline_audit.v_silence_summary,             privileges: [SELECT], since: "0160"}
+  - {role: mainline_api, object: mainline_audit.v_recall_conservation,         privileges: [SELECT], since: "0161"}
+  - {role: mainline_api, object: mainline_audit.v_ledger_health,               privileges: [SELECT], since: "0162"}
+  - {role: mainline_api, object: mainline_audit.v_fixity_coverage,             privileges: [SELECT], since: "0163"}
+  - {role: mainline_api, object: mainline_audit.v_agent_actions,               privileges: [SELECT], since: "0164"}
+  - {role: mainline_api, object: mainline_audit.v_gate_latency_daily,          privileges: [SELECT], since: "0165"}
+  - {role: mainline_api, object: mainline_audit.v_txn_restart_daily,           privileges: [SELECT], since: "0166"}
+  - {role: mainline_api, object: mainline_audit.v_unused_indexes,              privileges: [SELECT], since: "0167"}
+  - {role: mainline_api, object: mainline_audit.v_changefeed_health,           privileges: [SELECT], since: "0168"}
+
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  # mainline_judge — SELECT on the fourteen audit views and on NOTHING ELSE IN THE CLUSTER.
+  #
+  # There is no second list. This block is the judge login's entire table-privilege surface, which
+  # is the property the published credential claims and which scripts/deploy/judge_access.py's
+  # negative probes assert as 42501 rather than trusting the absence of a grant.
+  # ════════════════════════════════════════════════════════════════════════════════════════════
+  - {role: mainline_judge, object: mainline_audit.v_cbm_ledger,                  privileges: [SELECT], since: "0151"}
+  - {role: mainline_judge, object: mainline_audit.v_open_gate_summary,           privileges: [SELECT], since: "0156"}
+  - {role: mainline_judge, object: mainline_audit.v_weakenings_without_disposition, privileges: [SELECT], since: "0157"}
+  - {role: mainline_judge, object: mainline_audit.v_blame_coverage,              privileges: [SELECT], since: "0158"}
+  - {role: mainline_judge, object: mainline_audit.v_disposition_coverage,        privileges: [SELECT], since: "0159"}
+  - {role: mainline_judge, object: mainline_audit.v_silence_summary,             privileges: [SELECT], since: "0160"}
+  - {role: mainline_judge, object: mainline_audit.v_recall_conservation,         privileges: [SELECT], since: "0161"}
+  - {role: mainline_judge, object: mainline_audit.v_ledger_health,               privileges: [SELECT], since: "0162"}
+  - {role: mainline_judge, object: mainline_audit.v_fixity_coverage,             privileges: [SELECT], since: "0163"}
+  - {role: mainline_judge, object: mainline_audit.v_agent_actions,               privileges: [SELECT], since: "0164"}
+  - {role: mainline_judge, object: mainline_audit.v_gate_latency_daily,          privileges: [SELECT], since: "0165"}
+  - {role: mainline_judge, object: mainline_audit.v_txn_restart_daily,           privileges: [SELECT], since: "0166"}
+  - {role: mainline_judge, object: mainline_audit.v_unused_indexes,              privileges: [SELECT], since: "0167"}
+  - {role: mainline_judge, object: mainline_audit.v_changefeed_health,           privileges: [SELECT], since: "0168"}
+
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # 5. SCHEMA-WIDE PRIVILEGES — `GRANT … ON ALL TABLES IN SCHEMA`.
 #    Used ONLY for SELECT, and never on mainline_qa, whose views are enumerated by name because a
@@ -515,7 +1040,7 @@ denials:
   - roles: [agent_ingestor, agent_cartographer, agent_projector, agent_recaller, agent_gate,
             svc_disposition, agent_patroller, agent_sequencer, agent_relay, agent_fleet,
             agent_assay, mainline_auditor, auditor_ro, quality_assurance, subject_access,
-            site_reader, fleet_hse, signer]
+            site_reader, fleet_hse, signer, mainline_api, mainline_judge]
     forbidden: [CREATE]
     scope: "every schema"
     expect_sqlstate: "42501"
@@ -523,18 +1048,64 @@ denials:
       THE APPLICATION ROLE HOLDS NO DDL. Without this, a compromised agent could
       `DROP TRIGGER permit_merge_gate` and the central invariant would evaporate with no
       schema-change record. This is the denial that matters most and the one a reviewer should
-      check first.
+      check first. mainline_api and mainline_judge are on this list as of 2026-08-15: an anonymous
+      caller on a public Function URL executes as the first of them, so "holds no DDL" is the load-
+      bearing sentence about it. test_mi_foundation.py::test_no_application_role_holds_ddl already
+      probes every role this file declares, so both are asserted by construction.
   - roles: [agent_ingestor, agent_cartographer, agent_projector, agent_recaller, agent_gate,
             svc_disposition, agent_patroller, agent_sequencer, agent_relay, agent_fleet,
             agent_assay, mainline_auditor, auditor_ro, quality_assurance, subject_access,
-            site_reader, fleet_hse, signer, mainline_migrator]
+            site_reader, fleet_hse, signer, mainline_migrator, mainline_api, mainline_judge]
     forbidden: [DELETE]
     scope: "every table in every schema"
     expect_sqlstate: "42501"
     why: >
-      MI01, layer one of three. No role in this matrix holds DELETE on anything. Permitted deletion
-      is a reviewed two-person job performed by a break-glass identity that writes a
-      destruction_record; it is not a privilege any standing role carries.
+      MI01, layer one of three. No role in this matrix holds DELETE on anything — including the two
+      logins, which is why a demo login that could delete would be the only principal in the system
+      that can. Permitted deletion is a reviewed two-person job performed by a break-glass identity
+      that writes a destruction_record; it is not a privilege any standing role carries.
+
+  # ── the two logins ──────────────────────────────────────────────────────────────────────────
+  - roles: [mainline_api, mainline_judge]
+    forbidden: [SELECT, INSERT, UPDATE, DELETE, USAGE]
+    scope: "every object in schema mainline_qa, and the schema itself"
+    expect_sqlstate: "42501"
+    why: >
+      S14, AND THE ONE DENIAL IN THIS FILE THAT IS ALSO ENFORCED BY REVOCATION. Per-named-person
+      detail exists only in mainline_qa. Neither login is granted anything there, ever, and
+      cloud_roles.py additionally issues `REVOKE ALL ON SCHEMA mainline_qa` and `REVOKE ALL ON ALL
+      TABLES IN SCHEMA mainline_qa` for both on EVERY provisioning run — §7's reasoning exactly: a
+      migration runs once, drift happens continuously. The judge pack's envelope names mainline_qa
+      as never-issued and `cloud_roles.py --verify` asserts 42501 on it for both logins rather than
+      trusting that the absence of a grant is the absence of reach. Without USAGE the schema is not
+      even nameable, which is a stronger position than a revoked SELECT.
+  - role: mainline_judge
+    forbidden: [SELECT]
+    scope: "every table in schemas mainline, mainline_meas and mainline_ops"
+    expect_sqlstate: "42501"
+    why: >
+      The judge holds USAGE on those three schemas and no table privilege in any of them. USAGE is
+      the right to NAME a schema so its mainline_audit views can traverse it; it is not the right to
+      read anything in it. MEASURED, not assumed — `SELECT count(*) FROM mainline.permit` as
+      mainline_judge returns 42501 while `SELECT count(*) FROM mainline_audit.v_open_gate_summary`
+      returns rows, on the same connection. cloud_roles.py re-asserts this as a REVOKE on every run
+      and derives the schema set from this matrix rather than restating it.
+  - role: mainline_judge
+    forbidden: [INSERT, UPDATE, DELETE]
+    scope: "every object in every schema, including mainline_audit"
+    expect_sqlstate: "42501"
+    why: >
+      Read-only means read-only. The judge login has no write path anywhere in the cluster — not
+      even to the fourteen views it can read, which are views and not tables.
+  # NOTE ON WHAT IS *NOT* DENIED TO mainline_api, AND WHY THE OBVIOUS DENIALS ARE ABSENT.
+  # Two further denials were drafted for this login and REMOVED BEFORE COMMIT because measurement
+  # showed both were false: "no INSERT on mainline.blocking_check" (S1) and "no SELECT on
+  # mainline.ledger_intake" (agent_relay's shape). mainline_api is a MEMBER of agent_gate,
+  # svc_disposition and auditor_ro, and in a PostgreSQL-family grant graph a member INHERITS the
+  # privileges of the role it is a member of — not only its RLS policy scope. Writing either denial
+  # would have put a claim in this file that the probe would immediately falsify, which is the one
+  # thing a denials block must never contain. See the MEMBERSHIP INHERITANCE block at the foot of
+  # this file for the measured consequence and for who owns the decision.
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # OPEN COUPLING, RECORDED RATHER THAN HIDDEN — mainline_ops.outbox and trigger execution identity
@@ -545,13 +1116,96 @@ denials:
 #   svc_disposition and agent_fleet appear there above. That is four extra grants and one extra
 #   schema USAGE per writer, and it widens each role slightly.
 #
+#   AS OF 2026-08-15 IT ALSO WIDENS THE PUBLIC ENDPOINT'S LOGIN, which is what makes this note
+#   stop being a tidy piece of bookkeeping. mainline_api is now the fourth row on the outbox: an
+#   anonymous caller's identity holds INSERT in an infrastructure schema for no reason of its own,
+#   purely because a trigger function was never declared SECURITY DEFINER. That is the strongest
+#   argument yet for taking the alternative below.
+#
 #   The alternative is to declare the outbox trigger functions SECURITY DEFINER owned by
 #   mainline_owner, at which point no application role needs any privilege in mainline_ops at all.
 #   That is almost certainly the better shape, and it is dm-functions-triggers' call to make,
 #   because it is a property of the function definitions in band 0130-0199 and not of this matrix.
-#   If they take it, delete the three `mainline_ops.outbox` rows and the two `mainline_ops` schema
-#   USAGE rows above, and the probe will start asserting 42501 on them instead.
+#   If they take it, delete the FOUR `mainline_ops.outbox` rows (agent_gate, svc_disposition,
+#   agent_fleet, mainline_api) and drop mainline_ops from the schema USAGE rows that exist only to
+#   reach it, and the probe will start asserting 42501 on them instead. Counted on 2026-08-15:
+#   4 outbox rows, and 7 rows carrying `mainline_ops` USAGE — of which mainline_migrator (DDL),
+#   agent_sequencer (sequencer_lease) and mainline_judge (view traversal only) are there for other
+#   reasons and STAY.
 #
 #   Recorded here because a grant that exists to work around an unmade decision, with no note
 #   saying so, is indistinguishable from a grant somebody needed.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# MEMBERSHIP INHERITANCE — MEASURED 2026-08-15, OPEN, AND THE MOST IMPORTANT THING ON THIS PAGE
+#
+#   §2 grants mainline_api membership in auditor_ro, agent_gate and svc_disposition FOR RLS SCOPE.
+#   A membership does not carry only policy scope. In a PostgreSQL-family grant graph a member
+#   INHERITS the privileges of the role it is a member of, so on any cluster where this matrix has
+#   been applied, mainline_api's EFFECTIVE reach is the union of §4's enumerated rows and:
+#
+#     SELECT on ALL TABLES IN mainline        (auditor_ro, agent_gate, svc_disposition schema_wide)
+#     SELECT on ALL TABLES IN mainline_meas   (auditor_ro schema_wide)
+#     INSERT on blocking_check, permit_event, cr_event, merge_record, exposure_receipt,
+#            exposure_line, boundary_certificate, ledger_intake, mainline_ops.outbox   (agent_gate)
+#     INSERT/UPDATE on permit and change_request                                       (agent_gate)
+#     INSERT/UPDATE on disposition, INSERT on disposition_citation and override_ledger
+#                                                                              (svc_disposition)
+#
+#   FOUR CONSEQUENCES, EACH OF WHICH BELONGS TO SOMEBODY:
+#
+#   1. The careful enumeration in §4 is the login's DIRECT reach, not its effective reach. On the
+#      deployed cloud cluster the two are the same, because `trappoint migrate grants apply` has
+#      never been run there (lead plan R3) and so auditor_ro/agent_gate/svc_disposition hold no
+#      table privileges at all — `information_schema.table_privileges` for those three returns NO
+#      ROWS, which is the measurement cloud_roles.py's docstring already records. That is exactly
+#      why the thirteen missing grants above showed up as HTTP 500s instead of being masked: the
+#      memberships were buying scope and nothing else. Apply the matrix and the two diverge.
+#
+#   2. THE PROBE MUST ACCOUNT FOR IT. Leg B connects as the role and asserts 42501 where the matrix
+#      does not name. A pair the matrix does not name for mainline_api may still SUCCEED through
+#      inheritance, and a probe that treats that as a defect will report a false red — while a
+#      probe that quietly tolerates it certifies nothing. The negative direction has to be computed
+#      against the TRANSITIVE closure of the grant graph, not against §4's rows.
+#
+#   3. IT DECIDES R4b, AND NOT BY GUESSING. transitions.py:891 issues INSERT INTO
+#      mainline.exposure_receipt and transitions.py:969 issues INSERT INTO mainline.exposure_line,
+#      while §4 grants this login SELECT on both. Those INSERTs succeed on a matrix-applied cluster
+#      through agent_gate's rows above, and would return 42501 on the deployed cluster where the
+#      matrix has never been applied. So R4b is not "unreachable path vs missing privilege" — it is
+#      a privilege that exists by one route and not the other, which is a third answer neither the
+#      census nor the probe would produce alone. NO GRANT IS ADDED FOR IT HERE; recording which
+#      route supplies it is the finding, and closing it is the census's and the probe's call.
+#
+#   4. SEPARATION OF DUTIES IS UNIONED IN THIS ONE LOGIN. S1 says the role that disposes of an
+#      obligation may not manufacture it, and the matrix keeps agent_gate and svc_disposition apart
+#      to make that true. mainline_api is a member of BOTH, so for the demo login the separation
+#      does not hold. That is inherent to one credential driving all three beats — cloud_roles.py
+#      says as much, "the three principals the demo impersonates, one per beat" — but it has never
+#      been written down as a consequence, and an anonymous Function URL is where it matters most.
+#      The narrower shape, if it is wanted, is SECURITY DEFINER policy functions or per-beat logins;
+#      both are decisions above this file. RECORDED, NOT QUIETLY ACCEPTED.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# WHY THERE IS NO `EXECUTE` ROW IN §4, THOUGH BOTH ROUTINES ARE REAL
+#
+#   mainline_api must EXECUTE two routines: `mainline.merge_permit` (the demo's first beat is a
+#   CALL of it, gate_run.py:169) and `trappoint.explain_refusal` (refusal.py:141). Neither appears
+#   as a table_privileges row, deliberately and for two independent reasons:
+#
+#     * §4 renders `GRANT <privs> ON TABLE <object>`. An EXECUTE row there would emit
+#       `GRANT EXECUTE ON TABLE mainline.merge_permit`, which is not the statement anybody wants.
+#     * This file's identifier grammar is lower_snake with at most one dot
+#       (trappoint_migrate.grants._QUALIFIED), so it can spell `mainline.merge_permit` and it
+#       CANNOT spell `mainline.merge_permit(UUID, BYTES, STRING, STRING, JSONB, BYTES, INT2, BYTES)`
+#       — and CockroachDB needs the argument list to disambiguate an overload.
+#
+#   So the signatures live in `cloud_roles.py::ROUTINE_SIGNATURES` and the grants are issued there.
+#   That module already refuses, rather than silently dropping, an EXECUTE row this matrix names
+#   whose signature it cannot spell — so adding one here without adding the signature there is a
+#   loud failure and not a missing grant. What this file DOES carry is the prerequisite that was
+#   missing until today: `USAGE ON SCHEMA trappoint` in §3, without which the EXECUTE grant on
+#   explain_refusal was present and unusable.
 # ══════════════════════════════════════════════════════════════════════════════════════════════

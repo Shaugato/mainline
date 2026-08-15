@@ -348,3 +348,139 @@ One related observation, reported rather than acted on (the file is not mine):
 `mainline.cosignature` but **not** `ledger_leaf`, `ledger_node` or `ledger_intake`. The
 deployment's own evidence of what it seeded will therefore not show the four leaves. Adding
 those three names would make the census cover the ledger it now carries.
+
+---
+
+---
+
+# ADDENDUM — 2026-08-15 · The fix that never reached the cloud
+
+**Worker:** W4 (every-screen wave). **Date:** 2026-08-15. **HEAD:** `e88b8b6` (tree dirty).
+**Files changed:** `verticals/mainline/db/seeds/demo/demo_world.sql` §8 only, and the
+console's `src/verify/{checkpoint,ledger}.ts` + `src/features/custody/**`.
+**Ruling followed:** `docs/leads/screens-work-plan.md` §2.6.
+
+Everything above this line was true of the FILE on the day it was written and is still true.
+None of it was ever true of the deployed database, and that is what this addendum is about.
+
+## 8 · Three findings, measured against the live URL before anything was changed
+
+`GET https://…lambda-url.ap-southeast-1.on.aws/v1/ledger?site_code=dec0de00-0001-…-000000000001`
+→ **HTTP 200, 10 751 B**, read 2026-08-15. It served **three** checkpoints, at `tree_size`
+1, 2 and 4.
+
+### 8.1 · The removed row was never removed from a database — **SEED**
+
+§1 above records the defect and §2 records the repair. The repair deleted an INSERT from a
+file. It could not delete a row, because every insert in §8 is guarded by `NOT EXISTS` and
+nothing in the chain has ever issued a `DELETE`. So a database seeded before 2026-08-14 got
+the two good checkpoints inserted *beside* the bad one.
+
+Reproduced from the preimage, not taken on trust:
+
+```
+SHA-256("mainline-demo/ledger/root/1")
+  = 74f0845f11c5992bb6e69ba250d899975fc73d551b1eeab96a8502eaca508c8f
+  = exactly the root_hash the live URL served for tree_size 1
+SHA-256("mainline-demo/ledger/logsig/1")
+  = 3a9818c7e73c0a7eda9d10e3b2430ad2731bae651d81f09b674c4826bef359bb
+  = base64 OpgYx+c8Cn7anRDjskMK0nMbrmUdgfCbZ0xIJr7zWbs=
+  = exactly the log_sig_b64 the live URL served for tree_size 1
+```
+
+The row is not inert. `read_ledger` emitted an inclusion proof for `seq 0` against
+`tree_size = 1`, and a browser recomputing it got the true leaf-0 hash `032980be…` against a
+recorded root of `74f0845f…`. The `1 → 2` consistency proof was anchored on the same
+fiction. **Two of the four red checks on the custody screen were that one row.**
+
+§8.4 of the seed now retires it, written as a predicate over the defect —
+`root_hash = digest('mainline-demo/ledger/root/' || tree_size)` **and** the root appears
+nowhere in `mainline.ledger_node` — rather than as a delete of a known key. There is no
+blanket `DELETE` and no `tree_size = 1` literal. The cosignature goes first, because
+`mainline.cosignature` has a foreign key onto the checkpoint (migration 0076) and the live
+database carried one at `tree_size = 1`.
+
+### 8.2 · The note's root line was hex where the frozen spec says base64 — **SEED**
+
+`spec/wire/checkpoint.md` v1.0 (frozen 2026-08-07) §3: line 3 of the note is *base64 of the
+32-byte RFC 6962 Merkle Tree Hash*. §7.5 prints the same root both ways so the two cannot be
+confused. This seed wrote `encode(n.hash, 'hex')`.
+
+That is not a cosmetic difference, and it is why it went unnoticed: **every hex character is
+also a base64 character**, so a 64-character hex root decodes cleanly — to 48 bytes. A
+conformant parser refuses it on the length, and the console's did, which meant
+`log_signature` reported FAILED for a reason that had nothing to do with a signature.
+
+The fix is `encode(n.hash, 'base64')`. The value did not change and no digest was typed;
+this is the same `n.hash` in the alphabet the frozen spec names. Verified independently:
+
+```
+base64 v13D5bJFio5XjbmEHJaQJ7uzdDDxP8uBEkoTd3tQ0JE= → 32 bytes
+  → bf5dc3e5b2458a8e578db9841c969027bbb37430f13fcb81124a13777b50d091 = the tree_size 2 root
+base64 SbIlJgI/STLI29jNLfG8IuYSz43fQHaNhLngfQlJiYM= → 32 bytes
+  → 49b22526023f4932c8dbd8cd2df1bc22e612cf8ddf40768d84b9e07d09498983 = the tree_size 4 root
+```
+
+**What was NOT done, and the reasoning matters more than the change.** The note still carries
+no `canon:` extension line, and adding one was considered and refused. `canon_src_sha256` is a
+named placeholder (§5 above), and promoting a placeholder into the note's *signed text* would
+turn a labelled column into a signed assertion. It would also have turned check 10 green
+through the existing `unpinned` path with no console change at all — which is exactly why it
+was the tempting move and exactly why it is the wrong one. The console owes that verdict, and
+§8.4 below is where it pays it.
+
+### 8.3 · Two checks were reported FAILED that were never attemptable — **CONSOLE**
+
+`src/verify/config.ts` has always said what should happen: *"`source: 'none'` is a
+first-class outcome … the seal is amber — never green, and never red, because a checkpoint
+nobody could check has not been accused of anything."* The contract was not honoured, because
+the note was refused at PARSE time and the anchor question was never reached.
+
+`checkpoint.ts` now raises `UnsignedNoteError` — a subclass of `NoteFormatError`, so every
+existing `catch` behaves exactly as before — in the one case where the note TEXT parses in
+full and carries no signature line. `verifyNote` maps it to a new `unsigned` verdict; check 4
+maps that to a named SKIP; check 10 separates "the note will not parse" (a finding) from "the
+note names no canonicaliser and this reader pins none" (two silences, and no comparison).
+
+**The bar is narrow and it is pinned by a test.** `tests/unit/verify/checkpoint-unsigned.test.ts`
+asserts, over the SAME §7.5 note in every case, that a signature which does not verify is
+`failed`, that a note whose text does not parse is `malformed`, that an unsigned checkpoint
+beside a failing one does not launder it, and that check 10 is a FINDING the moment this
+reader pins a value. `tests/vectors/checkpoint.json`'s `no-blank-line` case moved from
+`malformed` to `unsigned`; `spec/wire/checkpoint.md` §10 does **not** require a rejection
+there — its item 6 lists exactly four refusals and this is none of them.
+
+## 9 · The falsification — the same 2×2 the ledger seeding used
+
+A green screen proves nothing unless the same screen goes red when the defect is present. Run
+against `w_W4` (271 migrations, 0 failures) with the built `dist/` served through
+`scripts/deploy/local_furl.py`, read out of a real Chromium's DOM:
+
+| state of `mainline_demo` | what `#/custody` rendered |
+|---|---|
+| the stale `tree_size = 1` row planted back, verbatim from `8e6a195` | **"verification FAILED. 4 check(s) FAILED in this browser; 6 were not run."** — `inclusion_proof`, `consistency_proof_every_pair`, `log_signature`, `canonicaliser_identity` |
+| the seed re-applied, so §8.4 runs | **7 pass / 0 fail / 8 not run**, overall AMBER |
+
+The first row is the founder's screenshot, reproduced from a database rather than from a
+description. **Note what stays red in it:** `log_signature` and `canonicaliser_identity` fail
+again with the stale row present, because that row's note carries the hex root and will not
+parse. The reclassification in §8.3 did not widen `malformed` into a skip — a malformed note
+still goes red, and the planted state is the proof.
+
+Idempotence, read back out of the database: apply → plant → apply → apply gives checkpoints
+`{2, 4}` and cosignatures `{2, 4}` at every step after the second, and the third apply changes
+nothing. On a database that never carried the defect, both `DELETE`s remove zero rows.
+
+## 10 · What is still owed, and by whom
+
+* **The cloud still carries the stale row.** Nothing here was deployed; no `terraform apply`,
+  no Lambda update, no SSM write. `mainline_demo` will keep serving three checkpoints, a hex
+  root line and a red custody seal until the ORCHESTRATOR re-runs
+  `scripts/deploy/seed_demo.py` against it. That run is what makes §8.4 take effect, and it is
+  the only step of this change that is not already proved.
+* **`tests/ci/test_demo_seed_is_frozen.py` will go red**, for the third time and for the same
+  reason as §7 above: the file's bytes moved and the freeze is not mine to re-measure. §7's
+  ruling stands unchanged — the re-baseline belongs in the commit that carries the seed change,
+  and the four-part negative control in that file's docstring runs BEFORE the constant is
+  touched. This section is the sentence that control asks for: what changed is one `DELETE`
+  pair and one `encode()` alphabet; no credential line moved; and the reason is written above.

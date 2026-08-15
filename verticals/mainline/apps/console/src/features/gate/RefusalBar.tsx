@@ -29,11 +29,42 @@
  * The `none` state is not an empty state. Before anything has been attempted the
  * database has refused nothing, and saying so is a stronger claim than a blank band:
  * this screen shows refusals that happened, and only those.
+ *
+ * ── `constraint_source` IS AN EXHIBIT, NOT ONLY A WARNING (R7) ────────────────────
+ *
+ * The band used to render `constraint_source` only when it was `parsed`, as the weakened
+ * notice below. A reader of a REPORTED refusal therefore had no way to see that it was
+ * reported — the strongest thing this payload says about its own constraint name was
+ * legible only by its absence. `docs/leads/demo-story-plan.md` R7 requires the band to
+ * show *the constraint, the SQLSTATE and the `constraint_source`*, so the value is now a
+ * fact of its own, rendered verbatim in all three of its states:
+ *
+ *   `reported`  the driver's diagnostics carried the name.
+ *   `parsed`    it was recovered from the message text — the weakened notice still fires.
+ *   *absent*    the emitter stated neither. `spec/wire/refusal.md` makes the member
+ *               optional, and an absent member is NOT `reported`: it is rendered as
+ *               undeclared, because the alternative is this console upgrading a silence
+ *               into the stronger of the two claims.
+ *
+ * ── WHY THERE IS A SCOPE ─────────────────────────────────────────────────────────
+ *
+ * A four-beat gate run refuses TWICE — once on ancestry and once after the projected
+ * counter was forged — and both belong on the screen, so one page can carry more than one
+ * band. `scope` suffixes this component's test identifiers so two bands are addressable
+ * apart. It defaults to `null`, which renders every identifier exactly as it renders
+ * today; the primary band never passes one.
  */
 
 import { type ReactNode } from 'react';
 
-import { ConstraintName, Digest, Mono, Sqlstate } from '../../design/primitives';
+import {
+  ConstraintName,
+  Digest,
+  Disclosure,
+  Gloss,
+  Mono,
+  Sqlstate,
+} from '../../design/primitives';
 
 import styles from './gate.module.css';
 import { ProvenanceSlot } from './ProvenanceSlot';
@@ -60,6 +91,12 @@ export interface RefusalBarProps {
   readonly state: RefusalBarState;
   /** The invoke envelope's `provenance` list, for the chips beside the verbatim values. */
   readonly provenance: readonly ProvenanceEntry[] | undefined;
+  /**
+   * Suffix for this band's test identifiers, when a page carries more than one band.
+   * `null` — the default, and what the primary band always passes — leaves every
+   * identifier byte-identical to what it was before this prop existed.
+   */
+  readonly scope?: string | null;
 }
 
 function Fact({
@@ -77,13 +114,16 @@ function Fact({
   );
 }
 
-export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
+export function RefusalBar({ state, provenance, scope = null }: RefusalBarProps): ReactNode {
+  /** Identifiers are unchanged when unscoped; a second band on the page gets its own. */
+  const id = (name: string): string => (scope === null ? name : `${name}-${scope}`);
+
   if (state.kind === 'none') {
     return (
       <section
         className={styles.refusalBar}
         data-state="none"
-        data-testid="refusal-bar"
+        data-testid={id('refusal-bar')}
         aria-label="Refusal"
       >
         <span className={styles.refusalKicker}>no attempt — nothing has been refused</span>
@@ -101,7 +141,7 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
       <section
         className={styles.refusalBar}
         data-state="attempting"
-        data-testid="refusal-bar"
+        data-testid={id('refusal-bar')}
         aria-label="Refusal"
         aria-busy="true"
       >
@@ -115,7 +155,7 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
       <section
         className={styles.refusalBar}
         data-state="committed"
-        data-testid="refusal-bar"
+        data-testid={id('refusal-bar')}
         aria-label="Refusal"
       >
         <span className={styles.refusalKicker}>committed — the gate was open</span>
@@ -135,7 +175,7 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
       <section
         className={styles.refusalBar}
         data-state="retry"
-        data-testid="refusal-bar"
+        data-testid={id('refusal-bar')}
         aria-label="Refusal"
       >
         <span className={styles.refusalKicker}>undecided — SQLSTATE 40001</span>
@@ -153,7 +193,7 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
       <section
         className={styles.refusalBar}
         data-state="defect"
-        data-testid="refusal-bar"
+        data-testid={id('refusal-bar')}
         role="alert"
         aria-label="Refusal"
       >
@@ -173,7 +213,7 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
       <section
         className={styles.refusalBar}
         data-state="failed"
-        data-testid="refusal-bar"
+        data-testid={id('refusal-bar')}
         role="alert"
         aria-label="Refusal"
       >
@@ -196,9 +236,10 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
     <section
       className={styles.refusalBar}
       data-state="refused"
-      data-testid="refusal-bar"
+      data-testid={id('refusal-bar')}
       data-constraint={refusal.constraint}
       data-sqlstate={refusal.sqlstate}
+      data-constraint-source={refusal.constraint_source ?? 'undeclared'}
       role="alert"
       aria-label="Refusal"
     >
@@ -207,11 +248,33 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
       </span>
 
       <div className={styles.refusalHead}>
+        {/*
+          R8: the gloss goes BESIDE the exact string, never instead of it and never
+          inside the same element. `ConstraintName` and `Sqlstate` render the database's
+          own words, verbatim, in the mono face; `Gloss` sets the console's sentence next
+          to them in the sans face, so a reader can see at a glance which words are
+          whose. The SQLSTATE gloss is a lookup in the closed table `design/glossary.ts`
+          holds — it says what the CODE names, and an unmodelled code gets no sentence
+          rather than an invented one.
+        */}
         <span className={styles.refusalConstraintSlot}>
-          <ConstraintName name={refusal.constraint} tone="refuse" data-testid="refusal-constraint" />
+          <Gloss term="constraint" layout="stack" data-testid={id('gloss-constraint')}>
+            <ConstraintName
+              name={refusal.constraint}
+              tone="refuse"
+              data-testid={id('refusal-constraint')}
+            />
+          </Gloss>
         </span>
         <span className={styles.refusalSqlstateSlot}>
-          <Sqlstate code={refusal.sqlstate} tone="refuse" showClass data-testid="refusal-sqlstate" />
+          <Gloss sqlstate={refusal.sqlstate} layout="stack" data-testid={id('gloss-sqlstate')}>
+            <Sqlstate
+              code={refusal.sqlstate}
+              tone="refuse"
+              showClass
+              data-testid={id('refusal-sqlstate')}
+            />
+          </Gloss>
         </span>
       </div>
 
@@ -222,10 +285,31 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
         <Fact label="sqlstate">
           <ProvenanceSlot provenance={provenance} pointer="/refusal/sqlstate" />
         </Fact>
+        {/*
+          HOW THE CONSTRAINT NAME ABOVE WAS OBTAINED — rendered in every case, not only
+          the weak one. An absent member is `undeclared` and never `reported`: the
+          emitter said nothing, and a console that filled that silence with the stronger
+          of the two claims would be manufacturing the very distinction C-4 exists to
+          preserve.
+        */}
+        <Fact label="constraint_source">
+          {refusal.constraint_source === undefined ? (
+            <span
+              className={styles.chipUndeclared}
+              data-testid={id('refusal-constraint-source-absent')}
+            >
+              <span>not stated by the emitter</span>
+            </span>
+          ) : (
+            <Mono data-testid={id('refusal-constraint-source')}>
+              {refusal.constraint_source}
+            </Mono>
+          )}
+        </Fact>
       </div>
 
       {parsed ? (
-        <p className={styles.weakened} data-testid="refusal-parsed">
+        <p className={styles.weakened} data-testid={id('refusal-parsed')}>
           <strong>WEAKENED DIAGNOSIS.</strong> <Mono>constraint_source</Mono> is{' '}
           <Mono>parsed</Mono>: the constraint name above was recovered from the message text, not
           reported by the driver&rsquo;s diagnostics. <Mono>spec/wire/refusal.md</Mono> C-4 requires
@@ -233,41 +317,53 @@ export function RefusalBar({ state, provenance }: RefusalBarProps): ReactNode {
         </p>
       ) : null}
 
-      <pre className={styles.refusalMessage} data-testid="refusal-message">
+      <pre className={styles.refusalMessage} data-testid={id('refusal-message')}>
         {refusal.message}
       </pre>
 
       <div className={styles.facts}>
         <Fact label="subject">
-          <Mono data-testid="refusal-subject">
+          <Mono data-testid={id('refusal-subject')}>
             {refusal.subject_kind} {refusal.subject_id}
           </Mono>
         </Fact>
         <Fact label="gate_epoch">
-          <Mono data-testid="refusal-gate-epoch">{refusal.gate_epoch}</Mono>
+          <Mono data-testid={id('refusal-gate-epoch')}>{refusal.gate_epoch}</Mono>
           <ProvenanceSlot provenance={provenance} pointer="/gate_epoch" />
         </Fact>
         <Fact label="diagnosis">
-          <Mono data-testid="refusal-diagnosis">{refusal.diagnosis}</Mono>
-        </Fact>
-        <Fact label="probe_calls">
-          <Mono>{refusal.probe_calls}</Mono>
-        </Fact>
-        <Fact label="observed_at">
-          <Mono>{refusal.observed_at}</Mono>
-        </Fact>
-        <Fact label="spec_version">
-          <Mono>{refusal.spec_version}</Mono>
-        </Fact>
-        {refusal.profile === undefined ? null : (
-          <Fact label="profile">
-            <Mono>{refusal.profile}</Mono>
-          </Fact>
-        )}
-        <Fact label="refusal_id">
-          <Mono>{refusal.refusal_id}</Mono>
+          <Mono data-testid={id('refusal-diagnosis')}>{refusal.diagnosis}</Mono>
         </Fact>
       </div>
+
+      <Gloss term="gate-epoch" layout="stack">
+        <Mono>gate_epoch</Mono>
+      </Gloss>
+
+      <Disclosure
+        summary="Show the identifiers for this exact refusal — the ones a report would cite"
+        data-testid={id('refusal-identifiers')}
+      >
+        <div className={styles.facts}>
+          <Fact label="probe_calls">
+            <Mono>{refusal.probe_calls}</Mono>
+          </Fact>
+          <Fact label="observed_at">
+            <Mono>{refusal.observed_at}</Mono>
+          </Fact>
+          <Fact label="spec_version">
+            <Mono>{refusal.spec_version}</Mono>
+          </Fact>
+          {refusal.profile === undefined ? null : (
+            <Fact label="profile">
+              <Mono>{refusal.profile}</Mono>
+            </Fact>
+          )}
+          <Fact label="refusal_id">
+            <Mono>{refusal.refusal_id}</Mono>
+          </Fact>
+        </div>
+      </Disclosure>
     </section>
   );
 }

@@ -41,6 +41,7 @@ import { REPO_ROOT, nodeFs } from './_support';
 
 const SPEC_REFUSAL = `${REPO_ROOT}spec/wire/refusal.schema.json`;
 const DEMO_API_GATE_RUN = `${REPO_ROOT}verticals/mainline/apps/demo-api/contracts/gate-run.schema.json`;
+const DEMO_API_SUBJECTS = `${REPO_ROOT}verticals/mainline/apps/demo-api/contracts/subjects.schema.json`;
 
 type Json = unknown;
 
@@ -161,6 +162,22 @@ describe('contracts', () => {
       'gate-run.schema.json',
       DEMO_API_GATE_RUN,
       'Re-copy it from verticals/mainline/apps/demo-api/contracts/gate-run.schema.json; ' +
+        'never edit either side to make them agree.',
+    );
+  });
+
+  it('contracts/subjects.schema.json is identical to the demo API’s, both directions', async () => {
+    // The demo API OWNS this one too: it serves GET /v1/demo/subjects against it from
+    // `subjects.py`. The console reads that payload to learn which permit, site, clause
+    // and commit a deployment actually seeded, so if the two documents drift the console
+    // refuses the answer to the question "which subject?" and five screens open on an
+    // absence — which is honest, and is still the demo not working.
+    //
+    // Same asymmetry as gate-run: argue about the ORIGINAL, then re-copy.
+    await expectVerbatimCopy(
+      'subjects.schema.json',
+      DEMO_API_SUBJECTS,
+      'Re-copy it from verticals/mainline/apps/demo-api/contracts/subjects.schema.json; ' +
         'never edit either side to make them agree.',
     );
   });

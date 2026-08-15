@@ -56,6 +56,20 @@ that was real, was visible, and is now shut is evidence the process works, and a
 who does not know which defect an assertion prevents will eventually weaken it. Both
 halves of the original defect are still falsifiable from here — delete the route and
 direction 1 fails; delete the ``declare()`` and direction 3 fails naming the row.
+
+THE EIGHTEENTH ROUTE, 2026-08-15, AND WHY IT OPENS NO GAP
+---------------------------------------------------------
+``GET /v1/demo/subjects`` — :mod:`mainline_demo_api.subjects` — was added because the
+console had no way to ASK which subjects a database carries, and so shipped identifiers in
+its own source (``BLK-07``, a clause and a commit) that the deployed kernel answers 404
+for. It landed on **both** sides in the same wave: ``resources.ts`` declares it,
+``envelope.SCHEMA_IDS`` names its contract, ``reads.READS`` implements it, and
+``app.ROUTES`` routes it.
+
+So the counts below moved from 17 to 18 and the tolerance did **not** move: direction 3 is
+still plain set equality with no permitted exception. Raising a count and loosening the
+comparison in the same edit is how a gap gets a bigger number in front of it; only the
+count moved here, and the two counts are still written twice so that they have to agree.
 """
 
 from __future__ import annotations
@@ -77,11 +91,18 @@ DEMO_ROUTE: tuple[str, str] = ("POST", "/v1/demo/gate-run")
 #: The dispatcher key ``transitions.handle_transition`` branches on.
 DEMO_KEY = "demo_gate_run"
 
+#: The demo's read-only subject index, added 2026-08-15 on both sides at once. Named here
+#: rather than counted, for the same reason ``DEMO_ROUTE`` is: an equality between two
+#: eighteen-member sets says nothing about WHICH eighteen.
+SUBJECTS_ROUTE: tuple[str, str] = ("GET", "/v1/demo/subjects")
+SUBJECTS_KEY = "demo_subjects"
+
 #: One number, written twice, because the two tables it counts are maintained by two
 #: different people in two different languages. They must be equal; that they are equal
 #: is the assertion, and a single shared constant would have made it unfalsifiable.
-_EXPECTED_ROUTE_COUNT = 17
-_CONSOLE_ROUTE_COUNT = 17
+#: 17 until 2026-08-15, 18 since ``demo_subjects``.
+_EXPECTED_ROUTE_COUNT = 18
+_CONSOLE_ROUTE_COUNT = 18
 
 
 def _event(method: str, path: str, body: str | None = None) -> dict[str, Any]:
@@ -242,15 +263,17 @@ def _console_declared() -> set[tuple[str, str]]:
     return {(m.group("method"), m.group("template")) for m in _DECLARE.finditer(text)}
 
 
-def test_the_table_and_the_console_declaration_are_the_same_seventeen() -> None:
-    """``declared == routed``, both seventeen, with NO permitted exception.
+def test_the_table_and_the_console_declaration_are_the_same_eighteen() -> None:
+    """``declared == routed``, both eighteen, with NO permitted exception.
 
     Until 2026-08-14 this pinned ``routed - declared == {DEMO_ROUTE}``: an exact set, so a
     second undeclared route failed, but one named row was still allowed through. The
     console declared that row on 2026-08-14, so the exception was collapsed to empty
-    instead of the count being raised around it. Equality of the two SETS is what is
-    asserted; the two counts are asserted beside it because a set cannot see a duplicate
-    row in ``app.ROUTES`` and a shadowed duplicate is unreachable.
+    instead of the count being raised around it. On 2026-08-15 ``demo_subjects`` was added
+    to both tables in one wave, so the count moved to eighteen and the tolerance stayed at
+    zero. Equality of the two SETS is what is asserted; the two counts are asserted beside
+    it because a set cannot see a duplicate row in ``app.ROUTES`` and a shadowed duplicate
+    is unreachable.
 
     It fails in both directions, which is the point. A route this API serves and the
     console does not declare is the 404-in-front-of-a-judge defect this file was opened
@@ -265,13 +288,56 @@ def test_the_table_and_the_console_declaration_are_the_same_seventeen() -> None:
     assert routed - declared == set(), f"routed but not declared: {sorted(routed - declared)}"
     assert declared - routed == set(), f"declared but not routed: {sorted(declared - routed)}"
     assert declared == routed
-    # Named, not merely counted: this is the row the file exists for, and an equality
+    # Named, not merely counted: these are the rows the file exists for, and an equality
     # between two empty sets would satisfy every assertion above it.
     assert DEMO_ROUTE in declared, (
         f"{DEMO_ROUTE[0]} {DEMO_ROUTE[1]} is routed by this API and the console no longer "
         "declares it, so the demo driver is back to rendering the not-addressable panel"
     )
     assert DEMO_ROUTE in routed
+    assert SUBJECTS_ROUTE in declared and SUBJECTS_ROUTE in routed, (
+        "GET /v1/demo/subjects is missing from one of the two tables, so either the console "
+        "cannot ask which subjects exist or it asks and gets no_route — and every screen is "
+        "back to carrying its subject's identifier in its own source"
+    )
+
+
+def test_the_subject_index_resolves_to_its_own_key_and_takes_no_parameters() -> None:
+    """The eighteenth route, and the two properties that make it an index rather than a query.
+
+    No path parameter and no query parameter: the question is "which subjects does this
+    database carry", and a caller who could filter it would be choosing the answer.
+    ``reads._DECLARED_PARAMS`` declares the empty pair and ``reads.check_request`` enforces
+    it, so ``?site_code=OTHER`` is a 400 that names the declared set rather than a filter
+    silently ignored.
+    """
+    from mainline_demo_api import reads, subjects
+
+    matched, params, other = app.route(*SUBJECTS_ROUTE)
+    assert matched is not None, "GET /v1/demo/subjects routed nowhere"
+    assert matched.key == SUBJECTS_KEY == subjects.SUBJECTS_RESOURCE
+    assert params == {}
+    assert other is False
+    assert reads._DECLARED_PARAMS[SUBJECTS_KEY] == ((), ())
+
+
+def test_the_subject_index_is_a_read_in_every_table_that_names_a_read() -> None:
+    """Four tables, one key, and nothing in the language makes them agree.
+
+    ``app.ROUTES`` routes it, ``reads._DECLARED_PARAMS`` declares its parameters,
+    ``reads.READS`` implements it and ``envelope.SCHEMA_IDS`` names its contract. The
+    failure that this catches is the one this whole file was opened for, one table over: a
+    key present in three of the four is a route that 404s, a 400 that names no contract, or
+    a read nothing can address, depending on which one is missing.
+    """
+    from mainline_demo_api import envelope, reads, subjects
+
+    assert SUBJECTS_KEY == subjects.SUBJECTS_RESOURCE
+    assert SUBJECTS_KEY in {r.key for r in app.ROUTES}
+    assert SUBJECTS_KEY in reads._DECLARED_PARAMS
+    assert SUBJECTS_KEY in reads.READS
+    assert envelope.SCHEMA_IDS[SUBJECTS_KEY] == subjects.SUBJECTS_SCHEMA_ID
+    assert f"{envelope.CONTRACT_BASE}subjects.schema.json" == subjects.SUBJECTS_SCHEMA_ID
 
 
 def test_the_transcribed_contract_id_is_the_one_the_handler_actually_stamps() -> None:

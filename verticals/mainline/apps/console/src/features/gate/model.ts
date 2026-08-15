@@ -530,6 +530,164 @@ export function openChecks(checks: readonly BlockingCheck[] | null): readonly Bl
   return checks === null ? [] : checks.filter((check) => check.open);
 }
 
+// ── The plain-language band ────────────────────────────────────────────────
+
+/**
+ * THE HEADINGS, AFTER R7.
+ *
+ * `docs/leads/two-audience-ux-plan.md` R7 overrules two console-composed headings because
+ * they are console jargon rather than kernel vocabulary, and nothing verbatim is lost by
+ * changing them: *"The weld"* becomes *"What the database checks before it will merge"*,
+ * and *"Irreducible reason set"* becomes *"Why it refused — the smallest set of
+ * reasons"*. The word **weld** survives as the section's FULL-DETAIL subtitle and in the
+ * source comments — the diagram is still the weld, and the file still calls it that — and
+ * `mus` in the payload is untouched.
+ *
+ * They are constants rather than literals in three components so that a rename cannot
+ * half-land, and so `tests/unit/gate/plain.test.tsx` can assert the rendered heading is
+ * the ruled one.
+ */
+export const WELD_TITLE = 'What the database checks before it will merge';
+export const WELD_SUBTITLE = 'the weld — every projected counter under the CHECK that reads it';
+export const REASON_SET_TITLE = 'Why it refused — the smallest set of reasons';
+
+/** A verbatim quotation of the database's own prose, with the member it was read from. */
+export interface PlainQuote {
+  /** What the reader is about to read, in the reader's words. Console prose. */
+  readonly label: string;
+  /** The database's text, VERBATIM. Never re-worded, never truncated (D18). */
+  readonly text: string;
+  /** The payload member it came from, so the quotation can be checked. */
+  readonly field: string;
+}
+
+export interface PlainBandModel {
+  readonly heading: string;
+  /** At most three. Every clause points at a field named in {@link PlainBandModel.basis}. */
+  readonly sentences: readonly string[];
+  /**
+   * The demonstration seed's own SYNTHETIC marker, verbatim, or `null` when no payload on
+   * this screen carries one.
+   */
+  readonly marker: string | null;
+  readonly markerField: string | null;
+  readonly quotes: readonly PlainQuote[];
+  /** The members the sentences were built from, in order, for the FULL-DETAIL source line. */
+  readonly basis: readonly string[];
+}
+
+export interface PlainBandInput {
+  readonly permitId: string;
+  readonly permit: Permit | null;
+  readonly checks: readonly BlockingCheck[] | null;
+  readonly ancestry: AncestryData | null;
+}
+
+/**
+ * The seed's own disclosure prefix.
+ *
+ * `db/seeds/demo/demo_world.sql` §preamble states the rule this reads:
+ * *"free text opens with `SYNTHETIC —` (title, narrative, message, attribution)"*. So the
+ * marker is a property of the TEXT the database returned, and finding it is a check over
+ * that text — not a code branch, not a deployment assumption, and not something the
+ * console may supply when the text does not carry it. R5: where the seed's own text
+ * already starts `SYNTHETIC —`, render it verbatim and do not re-word it.
+ */
+const SYNTHETIC_PREFIX = 'SYNTHETIC';
+
+function carriesSyntheticMarker(text: string | null | undefined): text is string {
+  return typeof text === 'string' && text.trimStart().startsWith(SYNTHETIC_PREFIX);
+}
+
+/** Every text on this screen that could carry the seed's marker, with its member path. */
+function markerCandidates(input: PlainBandInput): readonly PlainQuote[] {
+  const found: PlainQuote[] = [];
+
+  (input.checks ?? []).forEach((check, index) => {
+    const title = check.precursor?.title ?? null;
+    if (carriesSyntheticMarker(title)) {
+      found.push({
+        label: 'What the record says happened',
+        text: title,
+        field: `blocking_checks.checks[${index}].precursor.title`,
+      });
+    }
+  });
+
+  (input.ancestry?.blame_edges ?? []).forEach((edge, index) => {
+    const attribution = edge.attribution ?? null;
+    if (carriesSyntheticMarker(attribution)) {
+      found.push({
+        label: 'Why this rule is the one this permit relies on',
+        text: attribution,
+        field: `clause_ancestry.blame_edges[${index}].attribution`,
+      });
+    }
+  });
+
+  return found;
+}
+
+/**
+ * The three sentences a first-time reader meets, and the marker above them.
+ *
+ * **Every clause points at a field.** R7's test for an added sentence is *can I point at
+ * the field it came from?* — so the count comes off `permit.counters.open_blocking` and
+ * nowhere else, the subject line comes off `permit.external_ref`, and the quotations are
+ * the database's own prose rendered verbatim. Nothing here evaluates a predicate, decides
+ * whether a merge should have been refused, or predicts what the control will do (D5).
+ *
+ * The permit-absent branch is not a fallback. It states which nothing this is — the read
+ * has not landed — and it deliberately shows no count rather than a zero, because a zero
+ * nobody read is the reassuring default this console refuses everywhere else.
+ */
+export function plainGateBand(input: PlainBandInput): PlainBandModel {
+  const { permit, permitId } = input;
+  const subject = permit === null ? permitId : permit.external_ref;
+  const basis: string[] = [permit === null ? 'no permit payload' : 'permit.external_ref'];
+
+  const sentences: string[] = [
+    `A permit is a written authorisation for one specific piece of work, and this screen is ` +
+      `about one of them: ${subject}.`,
+  ];
+
+  if (permit === null) {
+    sentences.push(
+      'An obligation is something that must be answered before that authorisation is allowed to ' +
+        'take effect; the permit read has not landed on this screen, so no count is shown here ' +
+        'rather than a zero.',
+    );
+    basis.push('no permit payload');
+  } else {
+    const open = permit.counters.open_blocking;
+    sentences.push(
+      'An obligation is something that must be answered before that authorisation is allowed to ' +
+        `take effect, and the database keeps a running total of them in a column: it reads ` +
+        `${open} still open against this permit.`,
+    );
+    basis.push('permit.counters.open_blocking');
+  }
+
+  sentences.push(
+    'Nothing under this band is the console’s wording: press the one control on this screen and ' +
+      'the database either refuses the merge and prints the name of the rule it broke, or it ' +
+      'commits — and whichever it does is what you will read below.',
+  );
+  basis.push('POST /v1/permits/{permit_id}/merge');
+
+  const quotes = markerCandidates(input);
+  const first = quotes[0] ?? null;
+
+  return {
+    heading: 'What this screen is about',
+    sentences,
+    marker: first === null ? null : first.text,
+    markerField: first === null ? null : first.field,
+    quotes,
+    basis,
+  };
+}
+
 /** Formats an RFC 3339 instant as a UTC date, with the instant kept verbatim beside it. */
 export function utcDate(instant: string): string {
   const parsed = Date.parse(instant);

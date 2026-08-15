@@ -7,7 +7,7 @@ A Lambda invocation already *is* a function call with a dict argument. Bolting M
 front of FastAPI would translate that dict into an HTTP request so a framework could
 parse it back into a dict — three dependencies and a cold-start penalty to arrive where
 we started. ``handler(event, context)`` is the server, and the routing table below is
-seventeen regexes compiled once at import.
+eighteen regexes compiled once at import.
 
 ONE ORIGIN, TWO SURFACES
 ------------------------
@@ -137,7 +137,9 @@ _log = logging.getLogger("mainline_demo_api")
 # a ceiling installed by the first invocation would leave the cold one unbounded.
 logbudget.install()
 
-#: Cache-Control for the twelve reads. Ten seconds is long enough for CloudFront to
+#: Cache-Control for the thirteen reads — the console's twelve and the demo's subject
+#: index, which is cacheable for exactly the same reason and by the same argument.
+#: Ten seconds is long enough for CloudFront to
 #: absorb a room full of judges refreshing at once and short enough that the gate
 #: surface still looks live after a transition. The three-beat demo drives POSTs, which
 #: are never cached, so nothing a judge *does* is ever served stale.
@@ -177,7 +179,7 @@ class Route:
 
 
 def _routes() -> tuple[Route, ...]:
-    """Build the seventeen routes: sixteen console resources plus the demo driver's own.
+    """Build the eighteen routes: sixteen console resources plus the demo's own two.
 
     **Sixteen are transcribed from** ``console/src/data/resources.ts`` — twelve GETs and
     the four kernel POSTs. Those four POST templates are here even though this
@@ -205,6 +207,23 @@ def _routes() -> tuple[Route, ...]:
     keeps telling that truth until the console domain closes its half.
     ``tests/test_routes_gate_run.py`` pins the difference between the two tables to
     exactly this one endpoint, so a *second* undeclared route is still a failure.
+
+    **The eighteenth is** ``GET /v1/demo/subjects``, added 2026-08-15, and it exists because
+    the console could not open a screen on a subject without already knowing the subject's
+    identifier. Every read route above takes that identifier in its path and ``/v1/audit``
+    is aggregate-first — across all fourteen views it carries ``site_id`` and a commit
+    prefix and never a ``permit_id``, a ``check_id`` or a ``clause_uuid``. So a screen had
+    to be handed its subject by a human or carry one in its own source, and it carried one:
+    ``CustodyScreen.tsx``'s ``DEFAULT_SITE_CODE = 'BLK-07'`` and ``ClauseDiffScreen.tsx``'s
+    clause-and-commit pair are ``404`` against the live URL today, because no seed in this
+    repository ever wrote them.
+
+    :mod:`mainline_demo_api.subjects` answers it entirely out of ``SELECT``s — not one
+    identifier in that module is a Python constant, and ``tests/test_subjects.py`` parses
+    the module to keep it that way. Unlike ``demo_gate_run`` it is an ordinary read in every
+    other respect: ``resources.ts`` declares it, ``envelope.SCHEMA_IDS`` names its contract,
+    ``reads.READS`` carries its implementation, and the dispatch below reaches it with no
+    branch of its own. So the two tables are the same **eighteen** again.
     """
     return (
         Route("GET", "/v1/permits/{permit_id}", "permit"),
@@ -227,6 +246,10 @@ def _routes() -> tuple[Route, ...]:
         # resolved by `scenario.from_env()`, because a judge must not be able to point
         # the demo driver at somebody else's row.
         Route("POST", "/v1/demo/gate-run", "demo_gate_run"),
+        # The eighteenth. No path parameter and no query parameter either: the answer is
+        # "which subjects does this database carry", and a caller who could filter it
+        # would be choosing the answer to the question they asked.
+        Route("GET", "/v1/demo/subjects", "demo_subjects"),
     )
 
 
@@ -545,9 +568,8 @@ def handler(  # noqa: PLR0911, PLR0912 - one return per HTTP status, and the sta
             type(exc).__name__.lower(),
             exc.detail,
             resource=matched.key,
-            # `.get` for the same reason as the 501 below: seventeen routes, sixteen
-            # contracts in SCHEMA_IDS. A missing entry must degrade to `null` in the
-            # body, not to a KeyError inside an except-clause.
+            # `.get` for the same reason as the 501 below: a missing entry must degrade to
+            # `null` in the body, not to a KeyError inside an except-clause.
             schema_id=SCHEMA_IDS.get(matched.key),
         )
     except psycopg.Error as exc:

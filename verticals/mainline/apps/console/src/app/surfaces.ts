@@ -16,6 +16,29 @@
  *
  * `DECLARED_SURFACES` below is not a route table — it is the console's list of
  * PROMISES. Nothing here can make a surface exist; it only makes an absence nameable.
+ *
+ * ── WHAT A STALE PROMISE LIST COSTS, MEASURED ────────────────────────────────────
+ *
+ * It is also, for anything that has been built, the NAVIGATION'S source of truth: the
+ * title, the order and the register a reader sees come from the entry here, never from
+ * the feature module's own descriptor. So a surface that ships without an entry is not
+ * merely uncatalogued — `buildRegistry` files it as a self-registered stranger at
+ * `UNDECLARED_ORDER_BASE`, titled with its bare directory name and badged `unknown`.
+ * That is the correct rendering of "nobody promised this", and on 2026-08-15 it was
+ * being served to judges for two surfaces that were fully built and shipping: the live
+ * console's sidebar ended with a row reading `diff` and a row reading `evidence`, each
+ * carrying the sentence "This surface registered itself and is not in the console's
+ * promise list." Neither sentence was false. Both were the promise list being stale.
+ *
+ * The rule that fell out of it, and that `surfaces.test.ts` now enforces: every
+ * `surface.tsx` under a `src/features/<id>/` directory has an entry here, and its title,
+ * path, order and milestone agree with the module's own descriptor. Adding the entry is
+ * how a surface stops being a stranger; there is no other way, and there is deliberately
+ * no central route table to add it to.
+ *
+ * (The glob pattern itself is not written out in this comment on purpose: the two
+ * characters in the middle of it close a block comment. That cost this file a build
+ * once; the note is the fix staying fixed.)
  */
 
 import type { ComponentType } from 'react';
@@ -35,6 +58,23 @@ export interface SurfaceDescriptor {
   readonly Component: ComponentType;
 }
 
+/**
+ * Where a promise whose module has not landed waits in the navigation.
+ *
+ * A dead end sitting ABOVE seven working screens is a navigation that spends a judge's
+ * first two clicks on cards saying "not built yet". A dead end DELETED from the promise
+ * list is worse: the console then reads as though the screen had never been promised,
+ * which is the one thing this file exists to prevent (see the header). So the card stays,
+ * word for word, and the ORDER moves — into this band, below every screen that carries
+ * data and above the undeclared strangers at `UNDECLARED_ORDER_BASE`.
+ *
+ * The band is where a promise WAITS, not where the screen belongs. The worker who lands
+ * `src/features/<id>/surface.tsx` moves its entry back into the running order in the same
+ * change; `surfaces.test.ts` asserts that every entry in this band is in fact module-less,
+ * so an entry left behind after its module lands is red rather than merely untidy.
+ */
+export const UNBUILT_ORDER_BASE = 900;
+
 /** What the console promised, before anybody built it. */
 export interface DeclaredSurface {
   readonly id: string;
@@ -51,6 +91,17 @@ export interface DeclaredSurface {
 
 const DECLARED = [
   {
+    id: 'overview',
+    path: '/overview',
+    title: 'Overview — what this refuses, and why',
+    register: 'evidence',
+    order: 5,
+    milestone: 'K5',
+    owner: 'ui/console-on-ramp',
+    promise:
+      'The way in, in plain language: what the system refuses, why a refusal is the deliverable rather than a failure, and two worked cases a reader can follow end to end — each one addressing the screens below with the subjects this demo actually carries, so that every precise sentence on those screens is one click away and none of them had to be made vaguer.',
+  },
+  {
     id: 'gate',
     path: '/gate',
     title: 'Gate — the refusal',
@@ -62,26 +113,15 @@ const DECLARED = [
       'The permit branch with the refusal bar: the constraint name and the SQLSTATE the database reported, the minimal unsatisfiable subset, the nearest admissible alternative, and the six projected counters that welded the gate shut.',
   },
   {
-    id: 'ancestry',
-    path: '/ancestry',
-    title: 'Ancestry — the blame walk',
+    id: 'diff',
+    path: '/diff',
+    title: 'Diff — what “weakened” meant',
     register: 'evidence',
-    order: 20,
-    milestone: 'K3',
-    owner: 'ui/ancestry-layout-ribbon',
-    promise:
-      'One deterministic layout, two renderers. The ribbon is the printable exhibit form and the default; the dimensional walk is a lazy chunk in the MEMORY register that carries no fact the ribbon lacks.',
-  },
-  {
-    id: 'disposition',
-    path: '/disposition',
-    title: 'Disposition — the signature',
-    register: 'evidence',
-    order: 30,
+    order: 15,
     milestone: 'K5',
-    owner: 'ui/disposition-lattice-modal',
+    owner: 'ui/gate-refusal-screen',
     promise:
-      'A person being made to sign. Lattice-driven fields, a per-check defeater vocabulary with no global "not applicable", the reading-floor meter, and a countersigner field that appears because the clearance lattice requires it — not because a flag turned it on.',
+      'Both texts of the clause the refusal named, side by side at two commits, with the control-bearing delta marked: what "weakened" meant, as an edit somebody made, at a commit somebody can name.',
   },
   {
     id: 'custody',
@@ -93,6 +133,17 @@ const DECLARED = [
     owner: 'ui/verifier-custody-room',
     promise:
       'The gap-free ledger, its checkpoint signature and its inclusion and consistency proofs — all recomputed in this browser from the same bytes the offline verifier consumes.',
+  },
+  {
+    id: 'evidence',
+    path: '/evidence',
+    title: 'Evidence — the bundle',
+    register: 'evidence',
+    order: 45,
+    milestone: 'K5',
+    owner: 'ui/evidence-view',
+    promise:
+      'The console auditing its own inputs: every file a capture bundle declares, the SHA-256 this browser recomputed for each one, and the manifest digest they add up to — or, when no bundle was consulted at all, that fact in words rather than a blank.',
   },
   {
     id: 'audit',
@@ -126,6 +177,38 @@ const DECLARED = [
     owner: 'ui/propagation-silence-ledger',
     promise:
       'Every precursor the recall declined to surface, with its arithmetic: the score, the threshold, the universe it was drawn from, and whether exhaustion could be certified at all.',
+  },
+
+  // ── Promised, not built. See UNBUILT_ORDER_BASE above ────────────────────────────
+  //
+  // These two entries are unchanged in substance from the day they were written: same
+  // ids, paths, titles, registers, milestones, owners and promises, so the NOT-BUILT-YET
+  // card still names who owes each screen and what it owed. Only `order` moved, and it
+  // moved for a reason that is about the reader rather than about the code: at 20 and 30
+  // they were the second and third things a judge clicked, ahead of every screen that
+  // carries data. Below the working screens, and marked in the navigation before the
+  // click is spent, the same promise costs nobody a click and is still on the record.
+  {
+    id: 'ancestry',
+    path: '/ancestry',
+    title: 'Ancestry — the blame walk',
+    register: 'evidence',
+    order: UNBUILT_ORDER_BASE,
+    milestone: 'K3',
+    owner: 'ui/ancestry-layout-ribbon',
+    promise:
+      'One deterministic layout, two renderers. The ribbon is the printable exhibit form and the default; the dimensional walk is a lazy chunk in the MEMORY register that carries no fact the ribbon lacks.',
+  },
+  {
+    id: 'disposition',
+    path: '/disposition',
+    title: 'Disposition — the signature',
+    register: 'evidence',
+    order: UNBUILT_ORDER_BASE + 10,
+    milestone: 'K5',
+    owner: 'ui/disposition-lattice-modal',
+    promise:
+      'A person being made to sign. Lattice-driven fields, a per-check defeater vocabulary with no global "not applicable", the reading-floor meter, and a countersigner field that appears because the clearance lattice requires it — not because a flag turned it on.',
   },
 ] as const satisfies readonly DeclaredSurface[];
 

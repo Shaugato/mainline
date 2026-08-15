@@ -128,16 +128,46 @@ function sha256Hex(bytes: Buffer): string {
  * all has passed the same integrity gate the untouched one does. Serving a substitution
  * WITHOUT re-sealing is asserted separately, and must produce no claims at all.
  */
+/**
+ * The request line a `ledger` read with NO `site_code` resolves to.
+ *
+ * It is the read that asks the kernel to name its own site, and it is what a judge's cold
+ * arrival at `#/custody` performs on the live deployment — where `GET /v1/demo/subjects`
+ * answers 404 and nobody on this plan may redeploy to change that.
+ */
+const UNQUALIFIED_LEDGER_KEY = 'GET /v1/ledger';
+const UNQUALIFIED_LEDGER_PATH = 'frames/GET-unqualified-ledger.json';
+
 async function serveLedger(
   page: Page,
   envelope: unknown,
-  options: { readonly reseal?: boolean; readonly flipOneByte?: boolean } = {},
+  options: {
+    readonly reseal?: boolean;
+    readonly flipOneByte?: boolean;
+    /** Also answer `GET /v1/ledger`, so an unaddressed arrival can learn its subject. */
+    readonly alsoUnqualified?: boolean;
+  } = {},
 ): Promise<void> {
   const reseal = options.reseal ?? true;
 
   let frameBytes = Buffer.from(
     JSON.stringify({
       ...LEDGER_FRAME.frame,
+      response: {
+        ...LEDGER_FRAME.frame.response,
+        body_b64: Buffer.from(JSON.stringify(envelope), 'utf8').toString('base64'),
+      },
+    }),
+    'utf8',
+  );
+
+  // The SAME envelope, under the unqualified key — which is what the live route does: asked
+  // with no filter it answers with the site this deployment holds, and `data.site_code` is
+  // that name. Nothing here writes a site code down.
+  const unqualifiedBytes = Buffer.from(
+    JSON.stringify({
+      ...LEDGER_FRAME.frame,
+      key: UNQUALIFIED_LEDGER_KEY,
       response: {
         ...LEDGER_FRAME.frame.response,
         body_b64: Buffer.from(JSON.stringify(envelope), 'utf8').toString('base64'),
@@ -153,7 +183,18 @@ async function serveLedger(
       ? { ...entry, sha256: sha256Hex(frameBytes), bytes: frameBytes.byteLength }
       : entry,
   );
-  const manifestBytes = Buffer.from(JSON.stringify({ ...manifest, files: sealed }, null, 2), 'utf8');
+  const files =
+    options.alsoUnqualified === true
+      ? [
+          ...sealed,
+          {
+            path: UNQUALIFIED_LEDGER_PATH,
+            sha256: sha256Hex(unqualifiedBytes),
+            bytes: unqualifiedBytes.byteLength,
+          },
+        ]
+      : sealed;
+  const manifestBytes = Buffer.from(JSON.stringify({ ...manifest, files }, null, 2), 'utf8');
 
   if (options.flipOneByte === true) {
     // AFTER sealing, and length-preserving, so the transport's byte-length guard cannot
@@ -169,6 +210,9 @@ async function serveLedger(
 
   await page.route(`**${EVIDENCE_BUNDLE_BASE}manifest.json`, (route) => fulfil(route, manifestBytes));
   await page.route(`**${EVIDENCE_BUNDLE_BASE}${framePath}`, (route) => fulfil(route, frameBytes));
+  await page.route(`**${EVIDENCE_BUNDLE_BASE}${UNQUALIFIED_LEDGER_PATH}`, (route) =>
+    fulfil(route, unqualifiedBytes),
+  );
 }
 
 async function openCustody(page: Page, query = ''): Promise<void> {
@@ -359,6 +403,62 @@ test.describe('the custody surface', () => {
     const chain = page.getByTestId('custody-chain');
     await expect(chain.locator('[data-level]')).toHaveCount(4);
     await expect(page.getByTestId('chain-count-L0')).toContainText('not visible from here');
+  });
+
+  test('a cold arrival with no query string renders the ledger, not a 404', async ({ page }) => {
+    await serveLedger(page, VECTOR.envelope, { alsoUnqualified: true });
+    await page.clock.install({ time: FIXED_CLOCK });
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    // No `?site=`, no `?permit=`, nothing. This is the click a judge makes from the nav.
+    await page.goto(`/?${CINEMA}#/custody`);
+
+    await expect(page.getByTestId('custody-surface')).toBeVisible();
+    await expect(page.getByTestId('custody-no-subject')).toHaveCount(0);
+    await expect(page.getByTestId('custody-site-origin')).toHaveAttribute('data-origin', 'ledger');
+    // The site is the one the payload named about itself, read back from the vector.
+    await expect(page.getByTestId('custody-surface')).toContainText(SITE);
+  });
+
+  test('the screen opens with the ruled definition of custody', async ({ page }) => {
+    await serveLedger(page, VECTOR.envelope);
+    await openCustody(page);
+
+    // Written out ONCE here, deliberately, for the reason the split-view test gives: this
+    // is the tier that proves a reader of the PAGE meets it, and a spec that imported the
+    // sentence from `src/design/glossary.ts` would assert only that the source equals itself.
+    const band = page.getByTestId('custody-plain-band');
+    await expect(band).toBeVisible();
+    await expect(band).toContainText(
+      'Proof that a record has not been altered since it was written down.',
+    );
+  });
+
+  test('the signature check reads SKIPPED with its reason, and is never green', async ({ page }) => {
+    await serveLedger(page, VECTOR.envelope);
+    await page.clock.install({ time: FIXED_CLOCK });
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    // No ?log_vkey= at all, which is what `.env.demo` ships.
+    await page.goto(`/?${CINEMA}#/custody?site=${SITE}`);
+    await expect(page.getByTestId('custody-surface')).toBeVisible();
+
+    const cell = page.getByTestId('custody-signature-state');
+    await expect(cell).toHaveAttribute('data-state', 'skipped');
+    await expect(cell).toContainText('SKIPPED — this build carries no log key');
+    await expect(page.getByTestId('seal-log_signature')).toHaveAttribute('data-state', 'unverified');
+  });
+
+  test('PLAIN collapses the hash tables and FULL DETAIL opens them', async ({ page }) => {
+    await serveLedger(page, VECTOR.envelope);
+    await openCustody(page);
+
+    // Collapsed, but IN THE DOM: the value is still there for a text search and a printout.
+    const table = page.getByTestId('recomputation-leaf_hash_recomputation');
+    const leaf = VECTOR.envelope.data.leaves[0];
+    await expect(table).toContainText(leaf?.leaf_hash_hex ?? 'missing');
+    await expect(table).toBeHidden();
+
+    await openCustody(page, '&detail=full');
+    await expect(page.getByTestId('recomputation-leaf_hash_recomputation')).toBeVisible();
   });
 
   test('the surface has no serious or critical accessibility defect', async ({ page }) => {

@@ -27,7 +27,7 @@
 
 import { type ReactNode } from 'react';
 
-import { Sqlstate } from '../../../design/primitives';
+import { Disclosure, Sqlstate } from '../../../design/primitives';
 import { readUnreachable, type UnreachableProbe } from '../model';
 import styles from '../audit.module.css';
 
@@ -54,6 +54,19 @@ export function ReachPanel({
     <>
       <section className={styles.section} aria-label="Schemas that must be unreachable">
         <h3 className={styles.sectionTitle}>What the audit account cannot reach</h3>
+
+        {/*
+          * The plain sentence, above the table, because it changes what the table IS.
+          * A reader who does not already know that `mainline_qa` holds per-named-person
+          * measures reads this panel as a list of database names; a reader who does reads it
+          * as the assertion the whole screen turns on.
+          */}
+        <p className={styles.prose} data-testid="unreachable-plain">
+          Some tables in this system hold measures about named people — how long someone took to
+          decide, how often a control was missing when they signed. No automated agent is ever
+          given an account that can read them, on any tier, ever. This panel is where that promise
+          is either demonstrated or shown not to have been tested.
+        </p>
 
         <div className={styles.limit} data-testid="unreachable-reading">
           <span className={styles.limitTitle}>
@@ -125,30 +138,38 @@ export function ReachPanel({
           </p>
         </div>
 
-        <div className={styles.tableWrap}>
-          <table className={styles.table} data-testid="attestation-shape">
-            <caption>
-              mainline_meas.external_attestation — the columns an attestor supplies, and the two
-              the database supplies for them.
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">column</th>
-                <th scope="col">what it carries</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ATTESTATION_COLUMNS.map((column) => (
-                <tr key={column.name}>
-                  <th scope="row" className={styles.cell}>
-                    {column.name}
-                  </th>
-                  <td>{column.note}</td>
+        {/*
+          * A column list, so R6 collapses it in PLAIN and opens it in FULL DETAIL. Every
+          * column and every note is unchanged and in the DOM in both modes; what changes is
+          * whether a reader who came here to learn that the console cannot write has to scroll
+          * past eight column definitions to find out that it cannot.
+          */}
+        <Disclosure summary="Show the eight columns an outside attestor would fill in">
+          <div className={styles.tableWrap}>
+            <table className={styles.table} data-testid="attestation-shape">
+              <caption>
+                mainline_meas.external_attestation — the columns an attestor supplies, and the two
+                the database supplies for them.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">column</th>
+                  <th scope="col">what it carries</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {ATTESTATION_COLUMNS.map((column) => (
+                  <tr key={column.name}>
+                    <th scope="row" className={styles.cell}>
+                      {column.name}
+                    </th>
+                    <td>{column.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Disclosure>
       </section>
     </>
   );

@@ -19,18 +19,46 @@
  * into the most restrictive register, and sorts it after every promise. That is the right
  * outcome and no file of another worker's needs editing to get it.
  *
+ * ── HOW THIS SCREEN LEARNS WHICH CLAUSE, AND WHY IT NO LONGER CARRIES ONE ─────────
+ *
+ * Until 2026-08-15 this module held two constants naming a clause and a commit, under a
+ * docstring calling them *"the address the capture bundle carries"*. They were not that.
+ * Measured against the live URL, each answered **404**: no seed in this repository has
+ * ever written either, and the capture bundle does not carry them either. A judge clicking
+ * `diff` got the kernel's not-found. The two values are recorded, once, in
+ * `docs/leads/screens-work-plan.md` §2.3 — not here, where the next reader could copy one.
+ *
+ * They are DELETED rather than corrected. A better constant fails the same way against the
+ * next deployment, because a clause identifier in a console file is a claim about a row
+ * this console did not write. The address now comes from one of two places and nowhere
+ * else: `#/diff?clause=…&commit=…`, which always wins, or the kernel's own subject index
+ * (`src/data/demo-subjects.ts`, `GET /v1/demo/subjects`). When neither names a clause, the
+ * screen says so and asks for nothing.
+ *
+ * The two travel TOGETHER. A clause with no commit addresses no version, so one without
+ * the other is treated as no address at all rather than as half a request.
+ *
  * ── STATES, AND THERE IS NO BLANK ONE ────────────────────────────────────────────
  *
- * idle    — no transport has been composed. Says so, names what is missing, and names
- *           who owes it. This is the state on `main` today and it is not an error.
- * loading — a status message.
- * refused — the kernel's refusal payload, verbatim (D18).
- * failed  — the transport's own failure text, verbatim. Never "something went wrong".
- * ready   — the panel.
+ * no source   — no transport has been composed. Says so, names what is missing, and names
+ *               who owes it. This is the state on `main` today and it is not an error.
+ * no subject  — nothing named a clause version to read: no `?clause=`/`?commit=`, and the
+ *               subject index did not supply one. Names the route it asked and what came
+ *               back, verbatim.
+ * loading     — a status message.
+ * refused     — the kernel's refusal payload, verbatim (D18).
+ * failed      — the transport's own failure text, verbatim. Never "something went wrong".
+ * ready       — the panel.
  */
 
 import { type ReactNode } from 'react';
 
+import {
+  addressSubject,
+  subjectAbsence,
+  useDemoSubjects,
+  type SubjectAddressShape,
+} from '../../data/demo-subjects';
 import { useResource } from '../../data/useResource';
 import { useRoute } from '../../app/router';
 import { SURFACE_REGISTRY } from '../../app/surfaces';
@@ -45,23 +73,46 @@ import { useDiffTransport } from './transport-context';
 
 type ClauseData = ClauseResponse['data'];
 
+/** `#/diff?clause=<uuid>&commit=<hex>`. */
+export const CLAUSE_PARAM = 'clause';
+export const COMMIT_PARAM = 'commit';
+
 /**
- * The address the capture bundle carries.
+ * What this surface asks the subject index for.
  *
- * An ADDRESS, not data: it selects which row to ask for and asserts nothing about what
- * comes back. `#/diff?clause=…&commit=…` overrides both. It is spelled out here rather
- * than left blank so that a demo URL with no query string still asks a real question.
+ * It reads TWO members and reports the absence against `clause_uuid`, because a clause
+ * with no head commit is the case the index expresses by nulling both — and naming one
+ * member is more useful to a reader than naming a pair.
  */
-const DEMO_CLAUSE = '018f3a30-2200-7d10-9f31-0c9a4e77bb02';
-const DEMO_COMMIT = '5f916282a2a3e5765f916282a2a3e5765f916282a2a3e5765f916282a2a3e576';
+const ADDRESS: SubjectAddressShape = {
+  noun: 'clause version',
+  member: 'clause_uuid',
+  subjectKey: 'clause',
+  example: `#/diff?${CLAUSE_PARAM}=<uuid>&${COMMIT_PARAM}=<hex>`,
+};
+
+/**
+ * A path value that satisfies `resources.ts`'s unreserved-token rule while the read is
+ * disabled. It is never sent: `useResource` performs no exchange when `enabled` is false.
+ * The same device, for the same reason, as `useGateData`'s `PLACEHOLDER`.
+ */
+const UNADDRESSED = 'unaddressed';
 
 function NoTransport({
   clauseUuid,
   commitId,
 }: {
-  readonly clauseUuid: string;
-  readonly commitId: string;
+  readonly clauseUuid: string | null;
+  readonly commitId: string | null;
 }): ReactNode {
+  const addressed = clauseUuid !== null && commitId !== null;
+  const requestLine = addressed
+    ? `GET /v1/clauses/${clauseUuid}/versions/${commitId}`
+    : 'GET /v1/clauses/{clause_uuid}/versions/{commit_id}';
+  const which = addressed
+    ? ''
+    : ' It does not know which clause version that is: the address is not in the URL, and with ' +
+      'no transport there is nothing to ask the kernel’s subject index either.';
   return (
     <div className={styles.absence} data-testid="diff-no-transport">
       <p className={styles.absenceHead}>NO BYTES</p>
@@ -70,10 +121,7 @@ function NoTransport({
           This console has no transport composed, so nothing has been requested and nothing is
           being shown. The surface would ask for{' '}
           <code className={styles.mono}>clause_version</code> at{' '}
-          <code className={styles.mono}>
-            GET /v1/clauses/{clauseUuid}/versions/{commitId}
-          </code>
-          .
+          <code className={styles.mono}>{requestLine}</code>.{which}
         </p>
         <p>
           A replay transport needs a verified <code className={styles.mono}>EvidenceBundle</code>
@@ -103,13 +151,61 @@ export function ClauseDiffScreen({
   const contextTransport = useDiffTransport();
   const active = transport === undefined ? contextTransport : transport;
 
-  const clause = clauseUuid ?? route.params.get('clause') ?? DEMO_CLAUSE;
-  const commit = commitId ?? route.params.get('commit') ?? DEMO_COMMIT;
+  const index = useDemoSubjects(active);
+  const clauseAddress = addressSubject(
+    clauseUuid ?? route.params.get(CLAUSE_PARAM),
+    index,
+    (subjects) => subjects.clauseUuid,
+  );
+  const commitAddress = addressSubject(
+    commitId ?? route.params.get(COMMIT_PARAM),
+    index,
+    (subjects) => subjects.commitId,
+  );
 
-  const { state } = useResource<ClauseData>(active, {
-    resource: 'clause_version',
-    path: { clause_uuid: clause, commit_id: commit },
-  });
+  // Together or not at all — a clause with no commit addresses no version.
+  const addressed = clauseAddress.value !== null && commitAddress.value !== null;
+  const clause = addressed ? clauseAddress.value : null;
+  const commit = addressed ? commitAddress.value : null;
+
+  const { state } = useResource<ClauseData>(
+    active,
+    {
+      resource: 'clause_version',
+      path: { clause_uuid: clause ?? UNADDRESSED, commit_id: commit ?? UNADDRESSED },
+    },
+    { enabled: addressed },
+  );
+
+  // The transport question is answered before the subject question, because "nobody gave
+  // this console a source" is the more fundamental absence: with no transport there is
+  // nothing to ask the subject index either, and two panels saying so would be one too
+  // many.
+  if (active === null) {
+    return <NoTransport clauseUuid={clause} commitId={commit} />;
+  }
+
+  if (clause === null || commit === null) {
+    const absence = subjectAbsence(index, ADDRESS);
+    return (
+      <div className={styles.absence} data-testid="diff-no-subject" data-index={index.status}>
+        <p className={styles.absenceHead}>{absence.kicker}</p>
+        <div className={styles.absenceBody}>
+          {absence.paragraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+          <p>
+            {absence.override} <Mono>{absence.example}</Mono>
+          </p>
+          {absence.detail !== null && (
+            <pre className={styles.text} data-testid="diff-subject-index-detail">
+              {absence.detail}
+            </pre>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (state.status === 'idle') {
     return <NoTransport clauseUuid={clause} commitId={commit} />;

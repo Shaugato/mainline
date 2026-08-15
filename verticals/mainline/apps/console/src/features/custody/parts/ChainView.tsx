@@ -9,8 +9,8 @@
  * and it cannot drift from the data because every cell is derived in `model.ts`.
  *
  * L0 renders as PRESENT-BUT-UNSEEN rather than being omitted. `ledger_intake` exists; it
- * is simply not part of the `ledger` read contract, and a chain drawn without it would
- * teach a reader that the sequencer has no input stage.
+ * is not part of the `ledger` read contract, and a chain drawn without it would teach a
+ * reader that the sequencer has no input stage.
  */
 
 import { type ReactNode } from 'react';

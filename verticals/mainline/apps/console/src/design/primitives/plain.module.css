@@ -1,0 +1,257 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * THE PLAIN-LANGUAGE PRIMITIVES — PlainBand, Disclosure, Gloss.
+ *
+ * These three carry the console's own PROSE, which makes this the mirror image of
+ * `verbatim.module.css`. There the mono face says "the database said this"; here the sans
+ * face says "we wrote this". A reader can tell the two apart at a glance without reading
+ * a word of either, and ruling R8 makes that distinction load-bearing: a gloss goes BESIDE
+ * a verbatim value, never inside it, and must be visually distinguishable as console prose.
+ *
+ * Four rules hold across every selector in this file:
+ *
+ *   • Existing tokens only. No token is added, no colour is added, no hex is written.
+ *     `primitives-css.test.ts` holds this file to the same contrast contract as every
+ *     other stylesheet in the design package.
+ *   • **Nothing transitions and nothing animates.** This is the EVIDENCE register law
+ *     (`docs/leads/ui.md` §1.1): no easing over 160 ms, and nothing moves that a
+ *     screenshot could not reproduce. The cheapest way to obey a ceiling is to declare no
+ *     duration at all, so there is not one in this file.
+ *   • A disclosure's children are in the DOM in both modes. Collapse is the UA's
+ *     `<details>` behaviour, which clips the PAINT — the text stays selectable, findable
+ *     and printable, exactly as `verbatim.module.css` argues for the digest's ellipsis.
+ *   • Print restores everything. An exhibit that omits the half a reader collapsed is an
+ *     exhibit that says less than the screen did.
+ */
+
+/* ── PlainBand ────────────────────────────────────────────────────────────────── */
+
+/*
+ * The band above a surface: at most three sentences, in the reader's words, before the
+ * screen's own vocabulary starts.
+ *
+ * It is a RAISED panel on the page ground rather than an inset well, because an inset
+ * well is this console's shape for a verbatim payload and the band is the opposite of one.
+ */
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  padding: var(--tp-space-4);
+  margin-bottom: var(--tp-space-4);
+  background: var(--tp-bg-raised);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+}
+
+.bandHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+}
+
+.bandKicker {
+  color: var(--tp-ink-faint);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tp-tracking-caps);
+}
+
+/*
+ * The SYNTHETIC slot (R5).
+ *
+ * It sits in the HEAD, not at the end of the prose, because the seed's own disclosure is
+ * that every row corresponds to nobody — and a marker a reader meets after the narrative
+ * is a marker that arrives too late to change how the narrative was read.
+ */
+.bandMarker {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tp-space-1);
+}
+
+.bandSentences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.bandSentence {
+  margin: 0;
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  max-width: 72ch;
+}
+
+/*
+ * The second and third sentences are supporting, and are set in the supporting ink. The
+ * first is the one a reader who reads nothing else will read, so it keeps primary ink.
+ */
+.bandSentence:not(:first-child) {
+  color: var(--tp-ink-dim);
+}
+
+/* ── Disclosure ───────────────────────────────────────────────────────────────── */
+
+/*
+ * A native <details>. No custom widget, no aria-expanded to keep in sync, no key handler
+ * to get wrong — the UA gives keyboard operation, the expanded state and the accessible
+ * name for free, and find-in-page opens a closed one.
+ */
+.disclosure {
+  margin: var(--tp-space-3) 0;
+  border: var(--tp-hairline) solid var(--tp-rule);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-sunken);
+}
+
+/*
+ * The UA marker is suppressed and replaced by TEXT the component renders.
+ *
+ * A disclosure triangle is a glyph three browsers draw three ways, and this console's
+ * screenshots are meant to be comparable. The word "show" / "hide" is the same nine pixels
+ * everywhere, prints, and survives a photocopy.
+ */
+.summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  padding: var(--tp-space-2) var(--tp-space-3);
+  color: var(--tp-ink);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  font-weight: var(--tp-weight-medium);
+  cursor: pointer;
+  list-style: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::marker {
+  content: '';
+}
+
+/*
+ * The affordance, in words. `[open]` swaps which word shows; both are always in the DOM so
+ * neither is a state a reader has to infer from a rotation.
+ */
+.affordance {
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-regular);
+  text-transform: uppercase;
+  letter-spacing: var(--tp-tracking-caps);
+  white-space: nowrap;
+}
+
+.summaryLabel {
+  min-width: 0;
+}
+
+.panel {
+  padding: 0 var(--tp-space-3) var(--tp-space-3);
+  border-top: var(--tp-hairline) solid var(--tp-rule);
+}
+
+/*
+ * The disclosure carries a one-line note about WHAT is inside it, for a reader deciding
+ * whether to open it. It is console prose and is set as such.
+ */
+.summaryNote {
+  color: var(--tp-ink-faint);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+}
+
+/* ── Gloss ────────────────────────────────────────────────────────────────────── */
+
+/*
+ * R8, as CSS: the kernel's string keeps the mono face untouched, and the gloss beside it
+ * is unmistakably ours.
+ *
+ * The gloss is ALWAYS in the DOM and always painted. It is not a tooltip, not a `title=`,
+ * not a hover reveal and not a popover — all four of those are states a screenshot cannot
+ * reproduce, and three of them are states a keyboard alone cannot reach. Plain text beside
+ * the value costs a line and is readable by everything.
+ */
+.glossPair {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.glossPair[data-layout='stack'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+}
+
+.glossSubject {
+  min-width: 0;
+}
+
+/*
+ * Dimmer, smaller, and in the SANS face. All three signals say the same thing at once,
+ * because colour alone is not available to every reader and size alone is not available to
+ * a photocopy.
+ */
+.glossText {
+  color: var(--tp-ink-dim);
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  max-width: 68ch;
+}
+
+/*
+ * The em-dash lead-in, so the gloss reads as an aside rather than as part of the value it
+ * sits next to. Rendered by the component as text, not as generated content — a reader
+ * copying the line gets the dash.
+ */
+.glossLead {
+  color: var(--tp-ink-faint);
+}
+
+/* ── Print ────────────────────────────────────────────────────────────────────── */
+
+@media print {
+  /*
+   * An exhibit prints everything. A disclosure the reader left closed is a paint state,
+   * not a fact about the record, so paper gets both halves.
+   *
+   * Two selectors because two engines hide it two ways: the modern `::details-content`
+   * pseudo-element carries `content-visibility: hidden`, and older engines set
+   * `display: none` on the non-summary children. An engine that does not understand one
+   * of these drops that rule alone and keeps the other.
+   */
+  .disclosure::details-content {
+    content-visibility: visible;
+    block-size: auto;
+  }
+
+  .disclosure > *:not(summary) {
+    display: block;
+  }
+
+  .affordance {
+    display: none;
+  }
+
+  .band,
+  .disclosure {
+    border-color: var(--tp-rule-strong);
+  }
+}

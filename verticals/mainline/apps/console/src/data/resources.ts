@@ -220,6 +220,27 @@ const DECLARED: readonly ResourceDescriptor[] = Object.freeze([
     'kernel',
     'The four-beat demo run against the seeded permit — read, refused, refused under a forged counter, admitted — inside ONE serializable transaction that is rolled back.',
   ),
+  // THIS IS THE ONE READ THAT ANSWERS "WHICH SUBJECT", AND IT TAKES NO PARAMETER EITHER.
+  //
+  // Every other GET above is addressed by an identifier the caller already holds. Nothing
+  // told the console where to get one: `/v1/audit` is aggregate-first and names no
+  // permit_id, so five surfaces either opened on nothing or opened on an identifier
+  // somebody had typed into a `.tsx` constant — which 404s the first time a deployment
+  // seeds a different history, and did, on the live URL, on three separate screens.
+  //
+  // The repair is not a better constant. It is this read: the kernel SELECTs the
+  // identifiers back out of the demo tables and the console addresses what it is told.
+  // `src/data/demo-subjects.ts` is the only caller, it caches the answer for the session,
+  // and it degrades to a named absence rather than to a literal when the route is not
+  // there — an older deployment answers 404 here and every surface says so in words.
+  declare(
+    'demo_subjects',
+    'GET',
+    '/v1/demo/subjects',
+    `${C}subjects.schema.json`,
+    'kernel',
+    'Which subjects this deployment actually seeded, read back out of the demo tables — one identifier per addressed slot, null where the row is absent, and never a value the console invented.',
+  ),
 ]);
 
 export const RESOURCES: ReadonlyMap<string, ResourceDescriptor> = Object.freeze(
@@ -241,6 +262,7 @@ export const RESOURCE_KEYS = [
   'clause_ancestry',
   'clause_version',
   'demo_gate_run',
+  'demo_subjects',
   'disposition',
   'exposure_receipt',
   'ledger',

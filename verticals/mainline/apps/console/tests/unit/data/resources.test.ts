@@ -21,16 +21,45 @@ import {
 const PERMIT_ID = '018f3a2f-1104-7c88-b3aa-77c1de40e2b1';
 
 describe('the resource catalogue', () => {
-  it('declares seventeen resources, and the seventeenth is the demo gate run', () => {
-    // The count is asserted as an EXACT number rather than a floor. A floor would admit
-    // an eighteenth resource arriving unannounced, and the whole point of this module is
+  it('declares eighteen resources; the eighteenth is the demo subject index', () => {
+    // The count is asserted as an EXACT number rather than a floor. A floor would admit a
+    // nineteenth resource arriving unannounced, and the whole point of this module is
     // that the console's read surface is a closed, declared set — `resolveRequest` refuses
     // anything not on it, so a resource nobody noticed being added is a request nobody
     // reviewed being sendable.
-    expect(RESOURCES.size).toBe(17);
-    expect(RESOURCE_KEYS.length).toBe(17);
+    //
+    // MOVING THIS NUMBER IS THE REVIEW. It went 17 → 18 on 2026-08-15 for `demo_subjects`,
+    // `GET /v1/demo/subjects`. The decision behind it: five surfaces addressed subjects
+    // that no seed in this repository has ever carried — `BLK-07`, `DEMO_CLAUSE`,
+    // `DEMO_COMMIT` — and each answered 404 on the live URL. A console cannot hold a
+    // correct identifier, because an identifier in a console file is a claim about a row
+    // the console did not write; it can only ask. This is that read, and it is the only
+    // one in the catalogue whose answer is other identifiers.
+    expect(RESOURCES.size).toBe(18);
+    expect(RESOURCE_KEYS.length).toBe(18);
     expect([...RESOURCES.keys()]).toContain('demo_gate_run');
+    expect([...RESOURCES.keys()]).toContain('demo_subjects');
   });
+
+  it('gives the subject index no path parameter and no query, like the demo run', () => {
+    // Same guarantee as `demo_gate_run`, and it matters for the same reason: the Function
+    // URL is `authorization_type = NONE`, so a parameter here would let a stranger point
+    // the index at a database region it was never meant to describe. There is exactly one
+    // demo history per deployment and the kernel resolves it server-side.
+    const subjects = resourceOrThrow('demo_subjects');
+    expect(subjects.method).toBe('GET');
+    expect(subjects.template).toBe('/v1/demo/subjects');
+    expect(subjects.pathParams).toEqual([]);
+    expect(subjects.queryParams).toEqual([]);
+    expect(subjects.owner).toBe('kernel');
+    expect(subjects.schemaId).toBe(
+      'https://console.mainline.trappoint.org/contracts/1.0/subjects.schema.json',
+    );
+  });
+
+  // The "no identifier may appear in a console source file" rule is asserted over the
+  // actual files, in `tests/unit/data/demo-subjects.test.ts`, where the resolver that
+  // replaced those identifiers lives.
 
   it('makes DemoDriver’s not-declared panel unreachable', () => {
     // `src/features/gate/DemoDriver.tsx` gates its whole render on exactly this

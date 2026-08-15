@@ -30,11 +30,13 @@
 import { fromBase64, toHex } from './bytes';
 import { canonicalise } from './jcs';
 import {
+  UnsignedNoteError,
   compareCanonSource,
   parseNote,
   parseVerificationKey,
   verifyNote,
   type CheckpointResult,
+  type ParsedNote,
   type VerificationKey,
 } from './checkpoint';
 import { NO_ANCHOR, type VerifierConfig } from './config';
@@ -139,8 +141,23 @@ export interface Recomputed {
   readonly inputBytes: number;
   /** What this browser computed, lowercase hex. */
   readonly computed: string;
-  /** What the payload claimed, lowercase hex. */
+  /**
+   * What the payload claimed, lowercase hex — or EMPTY when the payload carries nothing to
+   * compare this against.
+   *
+   * The empty case is not a hole to be tidied. A checkpoint does not publish a digest of its
+   * own note, so the SHA-256 of the note text is a value a reader can reproduce and a value
+   * the payload never asserted. Writing the computed digest into both columns would be this
+   * console marking its own homework in the one table whose whole purpose is to let a reader
+   * mark it instead.
+   */
   readonly claimed: string;
+  /**
+   * Whether `computed` and `claimed` agree.
+   *
+   * Meaningless when `claimed` is empty, and rendered as "nothing to compare" rather than as
+   * a disagreement: a row nobody could compare has not disagreed with anything.
+   */
   readonly agrees: boolean;
 }
 
@@ -578,6 +595,18 @@ async function checkConsistency(oracle: Sha256Oracle, payload: LedgerPayload): P
 
 // ── Check 4 — the log signature ────────────────────────────────────────────
 
+/**
+ * The `Recomputed.input` label check 4 files each checkpoint's note-text digest under.
+ *
+ * Exported because `CustodyScreen` renders that digest in the checkpoint panel and has to
+ * find the row again. It used to find it with `input.endsWith(String(tree_size))`, which
+ * matched `tree_size 2` from a row about tree size 12 and picked whichever came first. A
+ * shared function is the same coupling made checkable by the compiler.
+ */
+export function noteTextInput(treeSize: number): string {
+  return `note text of the checkpoint at tree_size ${treeSize}`;
+}
+
 async function checkLogSignature(
   oracle: Sha256Oracle,
   payload: LedgerPayload,
@@ -612,13 +641,32 @@ async function checkLogSignature(
     });
     results.push(result);
     recomputations.push({
-      algorithm: 'SHA-256(note text) — the bytes the ECDSA P-256 signature covers',
-      input: `checkpoint at tree_size ${checkpoint.tree_size}`,
+      algorithm:
+        result.verdict === 'verified'
+          ? 'SHA-256(note text) — the exact bytes the ECDSA P-256 signature was checked over'
+          : 'SHA-256(note text) — the exact bytes a checkpoint signature would cover',
+      input: noteTextInput(checkpoint.tree_size),
       inputBytes: new TextEncoder().encode(result.note?.signedText ?? checkpoint.note).byteLength,
       computed: result.signedTextSha256,
-      claimed: result.note?.rootHex ?? checkpoint.root_hex,
-      agrees: result.verdict === 'verified',
+      claimed: '',
+      agrees: false,
     });
+    /*
+     * The root the NOTE states against the root the ROW records, whenever the note parsed —
+     * including when nothing signed it. This comparison needs no key, and it can only ever
+     * make the verdict worse: it is how a row that disagrees with its own body is caught
+     * before anyone asks who signed the body.
+     */
+    if (result.note !== null) {
+      recomputations.push({
+        algorithm: "the note's own root line, base64-decoded, against the root the row records",
+        input: `root line at tree_size ${checkpoint.tree_size}`,
+        inputBytes: result.note.rootBytes.byteLength,
+        computed: result.note.rootHex,
+        claimed: checkpoint.root_hex,
+        agrees: result.note.rootHex === checkpoint.root_hex,
+      });
+    }
     if (result.note !== null && result.note.rootHex !== checkpoint.root_hex) {
       return {
         id: 4,
@@ -672,6 +720,23 @@ async function checkLogSignature(
       offline: true,
     };
   }
+  /*
+   * AFTER `failed` and AFTER `malformed`, and the order is the whole safeguard.
+   *
+   * One checkpoint carrying a signature that does not verify still fails the check for every
+   * checkpoint in the payload, and one note that will not parse still fails it — an unsigned
+   * neighbour cannot launder either. Only when NO note in the payload was refused and no note
+   * was accused does an unsigned note become what it is: a check that could not be attempted.
+   */
+  const unsigned = results.find((result) => result.verdict === 'unsigned');
+  if (unsigned !== undefined) {
+    return skip(
+      4,
+      'log_signature',
+      `${unsigned.reason}\n\n${config.sourceNote}`,
+      recomputations,
+    );
+  }
   const skipped = results.find((result) => result.verdict === 'skipped');
   if (skipped !== undefined) {
     return skip(4, 'log_signature', `${skipped.reason}\n\n${config.sourceNote}`, recomputations);
@@ -701,25 +766,39 @@ function checkCanonIdentity(payload: LedgerPayload, config: VerifierConfig): Che
     return skip(10, 'canonicaliser_identity', 'the payload carries no checkpoints.');
   }
   const findings: string[] = [];
+  const unnamed: number[] = [];
   let unpinned = false;
 
   for (const checkpoint of payload.checkpoints) {
-    // Declared without an initialiser, for the same reason as `capability.ts`'s webgl2
-    // probe: both arms below assign, so an `= null` here is written and never read.
-    // The `null` that matters is the one the catch chooses — "the note did not parse,
-    // therefore this checkpoint names no canonicaliser" — and check 10's whole job is
-    // to report that. A silent default in front of it made the two indistinguishable.
-    let noteCanon: string | null;
+    /*
+     * THREE OUTCOMES, AND UNTIL 2026-08-15 THIS COLLAPSED THEM INTO TWO.
+     *
+     * The old code caught every parse failure into `noteCanon = null` and reported the same
+     * finding for a note that will not parse and for a note that parses and names no
+     * canonicaliser. Those are different facts. The first is a malformed checkpoint and stays
+     * a FINDING; the second is an absence, and an absence this reader cannot compare against
+     * anything — because it pins nothing either — is a check that was never attemptable.
+     *
+     * `UnsignedNoteError` carries its parsed text, so a note nobody signed is read for its
+     * extension lines exactly like a signed one. Whether a canon line is COVERED by a
+     * signature is check 4's question, and check 4 is answering it two entries above.
+     */
+    let parsed: ParsedNote | null;
     try {
-      noteCanon = parseNote(checkpoint.note).extensions.get('canon') ?? null;
-    } catch {
-      noteCanon = null;
+      parsed = parseNote(checkpoint.note);
+    } catch (error) {
+      parsed = error instanceof UnsignedNoteError ? error.note : null;
     }
-    if (noteCanon === null) {
+    if (parsed === null) {
       findings.push(
-        `the checkpoint at tree_size ${checkpoint.tree_size} carries no parseable canon: ` +
-          'extension line, so the code that produced its leaves is not named in the signed bytes.',
+        `the checkpoint at tree_size ${checkpoint.tree_size} carries a note that will not parse, ` +
+          'so the code that produced its leaves is not named in bytes anyone can read.',
       );
+      continue;
+    }
+    const noteCanon = parsed.extensions.get('canon') ?? null;
+    if (noteCanon === null) {
+      unnamed.push(checkpoint.tree_size);
       continue;
     }
     const comparison = compareCanonSource(noteCanon, config.canonSrcSha256);
@@ -735,6 +814,23 @@ function checkCanonIdentity(payload: LedgerPayload, config: VerifierConfig): Che
     }
   }
 
+  /*
+   * A READER THAT PINNED A VALUE AND GOT NOTHING TO COMPARE IT WITH HAS A FINDING.
+   *
+   * This is the line that keeps the reclassification narrow. Absence is only ever a SKIP when
+   * this console pinned nothing either — two silences, and no question was asked. The moment
+   * VITE_MAINLINE_CANON_SHA256 is set, the reader HAS asked which canonicaliser produced these
+   * leaves, and a checkpoint that answers nothing has failed to answer.
+   */
+  if (unnamed.length > 0 && config.canonSrcSha256 !== null) {
+    findings.push(
+      `this console pins canonicaliser ${config.canonSrcSha256}, and the checkpoint(s) at ` +
+        `tree_size ${unnamed.join(', ')} carry no canon: extension line to compare it against. ` +
+        'A pin is a question about which code produced these leaves, and these checkpoints do ' +
+        'not answer it.',
+    );
+  }
+
   if (findings.length > 0) {
     return {
       id: 10,
@@ -745,6 +841,27 @@ function checkCanonIdentity(payload: LedgerPayload, config: VerifierConfig): Che
       recomputations: [],
       offline: true,
     };
+  }
+  if (unnamed.length > 0) {
+    const rows = payload.checkpoints
+      .filter((checkpoint) => unnamed.includes(checkpoint.tree_size))
+      .map((checkpoint) => `tree_size ${checkpoint.tree_size} → ${checkpoint.canon_src_sha256}`)
+      .join('; ');
+    return skip(
+      10,
+      'canonicaliser_identity',
+      `the checkpoint(s) at tree_size ${unnamed.join(', ')} carry no canon: extension line, so ` +
+        'their note text names no canonicaliser — and this console pins none either. There are ' +
+        'two silences here and no comparison between them, so nothing has been checked and ' +
+        'nothing has been found. It is NOT a finding against the log: spec/wire/checkpoint.md ' +
+        '§4 makes the canon: line an extension, and a checkpoint that omits an extension has ' +
+        'broken no rule.\n\n' +
+        `The checkpoint ROW does carry a value (${rows}), and it is shown on this screen. Read ` +
+        'it as a column and not as evidence: no signature covers it, this reader pinned nothing ' +
+        'to compare it against, and a value compared against itself proves nothing. Set ' +
+        'VITE_MAINLINE_CANON_SHA256 from spec/custody/canon-registry.yaml and publish ' +
+        'checkpoints carrying a canon: line to turn this into a comparison.',
+    );
   }
   if (unpinned) {
     return skip(

@@ -1,0 +1,207 @@
+/*
+ * SPDX-FileCopyrightText: 2026 MAINLINE contributors
+ * SPDX-License-Identifier: FSL-1.1-ALv2
+ *
+ * The overview surface. EVIDENCE register (docs/leads/ui.md §1.1): no motion, no depth,
+ * no gradient, nothing a screenshot could not reproduce. There is no `transition` and no
+ * `animation` on this sheet, deliberately — the screen that explains what the console
+ * refuses must be the screen a still image tells the whole truth about.
+ *
+ * A measure of ~78ch throughout. This is the one surface a non-specialist reads as prose
+ * rather than scans as a table, and prose set across a 1400px viewport is prose nobody
+ * finishes.
+ */
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-5);
+  min-width: 0;
+}
+
+/* ── The opening ────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  max-width: 78ch;
+}
+
+.kicker {
+  margin: 0;
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-dim);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--tp-step-3);
+  font-weight: var(--tp-weight-strong);
+  line-height: var(--tp-leading-tight);
+  color: var(--tp-ink);
+}
+
+.standfirst {
+  margin: 0;
+  font-size: var(--tp-step-1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-faint);
+}
+
+/* ── One worked case ────────────────────────────────────────────────────── */
+
+.useCase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  max-width: 78ch;
+  padding-top: var(--tp-space-4);
+  border-top: var(--tp-hairline) solid var(--tp-rule);
+}
+
+.useCaseKicker {
+  margin: 0;
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-faint);
+}
+
+.useCaseTitle {
+  margin: 0;
+  font-size: var(--tp-step-2);
+  font-weight: var(--tp-weight-medium);
+  line-height: var(--tp-leading-tight);
+  color: var(--tp-ink);
+}
+
+.subhead {
+  margin: var(--tp-space-2) 0 0;
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-dim);
+}
+
+.prose {
+  margin: 0;
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--tp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+}
+
+.listItem {
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+}
+
+/* ── The doors ──────────────────────────────────────────────────────────── */
+
+.doors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  margin-top: var(--tp-space-2);
+}
+
+/*
+ * A door is a link that looks like a control, and it is drawn with the refusal accent
+ * because the screen behind it is where the refusal is. It is a plain `<a href>` with a
+ * real address, so it opens in a new tab, copies, prints and works with JavaScript
+ * disabled — a deep link that needs a click handler is not a deep link.
+ */
+.door {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  padding: var(--tp-space-3);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-left: 2px solid var(--tp-refuse);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+  color: var(--tp-ink);
+  text-decoration: none;
+}
+
+.door:hover {
+  border-color: var(--tp-refuse);
+  background: var(--tp-bg-inset);
+}
+
+.door:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.doorLabel {
+  font-weight: var(--tp-weight-medium);
+}
+
+.doorSubject {
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The same box, with no link in it and a reason where the link would be.
+ *
+ * It is deliberately the same SIZE as a working door: a reader scanning the page sees that
+ * something was owed here and was not delivered, rather than seeing nothing at all.
+ */
+.doorAbsent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  padding: var(--tp-space-3);
+  border: var(--tp-hairline) dashed var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-sunken);
+}
+
+.doorAbsentLabel {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  color: var(--tp-ink-dim);
+}
+
+.doorAbsentReason {
+  margin: 0;
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink-dim);
+}
+
+.verbatim {
+  margin: 0;
+  padding: var(--tp-space-2);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+  background: var(--tp-bg-inset);
+  border-radius: var(--tp-radius);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

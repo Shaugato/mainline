@@ -106,8 +106,8 @@ STATEMENT_REF_CAP: Final = 32
 #: Resource key → the ``$id`` of the contract governing its ``data``.
 #:
 #: TRANSCRIBED, NOT DERIVED, from ``console/src/data/resources.ts``, and it is a
-#: transcription of the console's **seventeen** ``declare()`` calls — twelve reads and
-#: five POSTs. Six of the twelve reads name a file whose stem is not their key
+#: transcription of the console's **eighteen** ``declare()`` calls — thirteen reads and
+#: five POSTs. Six of the reads name a file whose stem is not their key
 #: (``change_request`` → ``change-request``, ``blocking_checks`` → ``blocking-check``,
 #: ``exposure_receipt`` → ``exposure``, ``clause_version`` → ``clause``,
 #: ``clause_ancestry`` → ``ancestry``, ``recall_run`` → ``recall-run``), so any rule that
@@ -146,6 +146,12 @@ SCHEMA_IDS: Final[Mapping[str, str]] = {
     "merge_permit": f"{CONTRACT_BASE}invoke.schema.json",
     "suspend_permit": f"{CONTRACT_BASE}invoke.schema.json",
     "demo_gate_run": f"{CONTRACT_BASE}gate-run.schema.json",
+    # Declared by the console on 2026-08-15 and served by :mod:`subjects`. Unlike
+    # ``demo_gate_run`` this one IS emitted through :func:`read_envelope` — it is a GET, it
+    # is in ``reads.READS``, and this entry is what lets that happen. It exists because the
+    # console addresses seven surfaces by identifier and had no way to learn one, so three
+    # screens shipped identifiers nobody had seeded and answered 404 on the live URL.
+    "demo_subjects": f"{CONTRACT_BASE}subjects.schema.json",
 }
 
 #: ``envelope.schema.json`` — ``resource`` pattern.

@@ -107,18 +107,23 @@ def _declared_query_params() -> dict[str, list[str]]:
     return out
 
 
-def test_the_console_declares_seventeen_resources() -> None:
+def test_the_console_declares_eighteen_resources() -> None:
     """Guards the parser itself: if the regex stops matching, every test below passes vacuously.
 
     Sixteen until 2026-08-14, when the console declared ``demo_gate_run`` and closed the
     gap that left ``POST /v1/demo/gate-run`` reachable by ``curl`` and not from the
-    artefact a judge drives. The GET count is UNCHANGED at twelve, and it is asserted here
-    rather than assumed: the seventeenth resource is a POST, so a change that moved the
-    total without moving the split is the one this second line can still see.
+    artefact a judge drives. That seventeenth resource is a POST, and the GET count stayed
+    at twelve.
+
+    Eighteen since 2026-08-15, when the console declared ``demo_subjects`` —
+    ``GET /v1/demo/subjects``, the read that tells a screen which identifier to address.
+    That one moves the GET count to **thirteen**, and the split is asserted line by line
+    rather than folded into the total precisely so that a change which moved the total
+    without moving the split is still visible here.
     """
     declared = _declared()
-    assert len(declared) == 17, [entry["key"] for entry in declared]
-    assert sum(1 for entry in declared if entry["method"] == "GET") == 12
+    assert len(declared) == 18, [entry["key"] for entry in declared]
+    assert sum(1 for entry in declared if entry["method"] == "GET") == 13
     assert sum(1 for entry in declared if entry["method"] == "POST") == 5
 
 
@@ -176,8 +181,14 @@ def test_every_contract_id_resolves_to_a_committed_file() -> None:
     assert not missing, f"emitted schema ids with no contract file: {missing}"
 
 
-def test_reads_implements_exactly_the_twelve_gets() -> None:
-    """The twelve GET keys, no more and no fewer. W4 owns the five POSTs."""
+def test_reads_implements_exactly_the_declared_gets() -> None:
+    """Every GET key the console declares, no more and no fewer. W4 owns the five POSTs.
+
+    Twelve until 2026-08-15 and thirteen since, when ``demo_subjects`` was declared. The
+    assertion is deliberately NOT a count: it is the set, so a thirteenth GET that this API
+    does not implement, and an implementation the console does not declare, both fail here
+    and both name the key.
+    """
     gets = {entry["key"] for entry in _declared() if entry["method"] == "GET"}
     assert set(reads.READS) == gets
 
@@ -195,26 +206,34 @@ def test_routes_match_the_console_path_templates() -> None:
     While that was true this test pinned the exception as an EXACT set difference,
     ``routed - declared == {demo_route}``, so a *second* undeclared route still failed.
     With the console declaring it the exception was collapsed, not enlarged: the
-    assertion is now plain set equality, which permits no undeclared route at all. That
-    is a ratchet up. Reverting either half of the 2026-08-14 change fails it, and the
-    failure names the row in whichever direction it went missing.
+    assertion became plain set equality, which permits no undeclared route at all.
+
+    **2026-08-15 added an eighteenth row to both tables in the same wave:**
+    ``GET /v1/demo/subjects``, the demo's subject index, which exists because the console
+    had no way to ASK which subjects a database carries and so shipped identifiers
+    (``BLK-07``, a clause and a commit) that the deployed kernel answers 404 for. It is
+    routed here, declared there, and implemented in ``reads.READS`` — so the assertion
+    stays plain set equality, which permits no undeclared route and no unrouted
+    declaration. That is the strongest form and nothing in this wave weakened it.
 
     The two set assertions are joined by a COUNT over the list, because ``app.ROUTES`` is a
     list and the sets above cannot see a duplicate in it: two identical ``Route`` rows
     collapse into one member and every assertion below would still hold while ``route()``
-    resolved to whichever came first. 17 declared = 17 routed, re-derived here rather than
-    remembered — ``test_the_console_declares_seventeen_resources`` pins the 17.
+    resolved to whichever came first. 18 declared = 18 routed, re-derived here rather than
+    remembered — ``test_the_console_declares_eighteen_resources`` pins the 18.
     """
     demo_route = ("POST", "/v1/demo/gate-run")
+    subjects_route = ("GET", "/v1/demo/subjects")
     declared = {(entry["method"], entry["template"]) for entry in _declared()}
     routed = {(route.method, route.template) for route in app.ROUTES}
     assert declared - routed == set(), f"declared but not routed: {sorted(declared - routed)}"
     assert routed - declared == set(), f"routed but not declared: {sorted(routed - declared)}"
     assert declared == routed
     assert demo_route in declared, "the console has stopped declaring the demo endpoint"
+    assert subjects_route in declared, "the console has stopped declaring the subject index"
     pairs = [(route.method, route.template) for route in app.ROUTES]
     duplicated = sorted(pair for pair in routed if pairs.count(pair) > 1)
-    assert len(pairs) == len(declared) == 17, (
+    assert len(pairs) == len(declared) == 18, (
         f"app.ROUTES holds {len(pairs)} rows for {len(routed)} distinct (method, template) "
         f"pairs; a duplicate is unreachable and hides the row it shadows: {duplicated}"
     )
@@ -1126,8 +1145,18 @@ def test_the_only_third_party_import_in_the_read_spine_is_psycopg() -> None:
 
 
 def test_every_read_is_addressable_and_named_consistently() -> None:
-    """A route's key must have an implementation, and an implementation must have a route."""
+    """A route's key must have an implementation, and an implementation must have a route.
+
+    ``demo_subjects`` is in every one of the three tables — routed, implemented, contracted
+    — with no exemption, which is why this is still a plain equality. The two lines at the
+    end name it, because an equality between three consistent sets would still hold if the
+    subject index had never been added to any of them.
+    """
+    from mainline_demo_api import subjects
+
     get_keys = {route.key for route in app.ROUTES if route.method == "GET"}
     assert get_keys == set(reads.READS)
     for key in reads.READS:
         assert key in envelope.SCHEMA_IDS
+    assert subjects.SUBJECTS_RESOURCE in get_keys
+    assert reads.READS[subjects.SUBJECTS_RESOURCE] is reads.read_demo_subjects

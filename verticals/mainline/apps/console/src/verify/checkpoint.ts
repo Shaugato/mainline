@@ -94,13 +94,30 @@ export interface VerificationKey {
   readonly trust: KeyTrust;
 }
 
-export type CheckpointVerdict = 'verified' | 'failed' | 'malformed' | 'skipped';
+/**
+ * `unsigned` is the narrow verdict added on 2026-08-15, and the bar for it is absolute.
+ *
+ * It means: the note TEXT parsed — origin, tree size, a 32-byte root, well-formed extension
+ * lines — and there is no signature on it at all. Nothing signed those bytes, so there is
+ * nothing to verify and nothing to accuse, and `src/verify/config.ts` already says what that
+ * must produce: *a checkpoint nobody could check has not been accused of anything*.
+ *
+ * It is NOT the verdict for a note that will not parse (`malformed`), and it is NOT the
+ * verdict for a note carrying a signature that does not verify (`failed`, forever). Widening
+ * it to either would turn the one check on this screen that can catch a forged checkpoint
+ * into a check that shrugs.
+ */
+export type CheckpointVerdict = 'verified' | 'failed' | 'malformed' | 'skipped' | 'unsigned';
 
 export interface CheckpointResult {
   readonly verdict: CheckpointVerdict;
   /** Verbatim, rendered without paraphrase. Empty exactly when `verified`. */
   readonly reason: string;
-  /** Null when the note could not be parsed. Never populated from unverified bytes. */
+  /**
+   * Null when the note could not be parsed at all. Populated — with `signatures: []` — on
+   * `unsigned`, so the surface can show what the bytes say while the verdict says nobody
+   * vouched for them.
+   */
   readonly note: ParsedNote | null;
   /** Names of keys whose signature verified. */
   readonly verifiedBy: readonly string[];
@@ -108,7 +125,14 @@ export interface CheckpointResult {
   readonly ignored: readonly string[];
   /** The trust status of the key that carried the verdict, when there was one. */
   readonly trust: KeyTrust | null;
-  /** SHA-256 of the signed bytes, lowercase hex. Displayed beside the seal. */
+  /**
+   * SHA-256 of the note text, lowercase hex. Displayed beside the seal.
+   *
+   * On `verified` these are the bytes a signature was checked over. On `unsigned` they are
+   * the bytes a signature WOULD cover and none does, which is why every surface that renders
+   * this value has to render the verdict next to it: the digest of an unsigned note is a true
+   * statement about bytes and not a statement about anybody's key.
+   */
   readonly signedTextSha256: string;
 }
 
@@ -119,6 +143,29 @@ export class NoteFormatError extends Error {
   }
 }
 
+/**
+ * The note text parsed and nothing signed it.
+ *
+ * A SUBCLASS of `NoteFormatError` on purpose: every existing `catch (error)` in this console
+ * keeps behaving exactly as it did, and only a caller that asks for the distinction gets it.
+ * The parsed text rides along on `note` — with an empty `signatures` array, which is not a
+ * claim that signatures were checked but the literal count of lines that were there.
+ *
+ * Reaching `note.treeSize` off this error is reading unverified note text, and spec §6 step 7
+ * forbids treating that as data. The two callers that do it — check 4's root/tree-size
+ * cross-check and check 10's canon lookup — can only ever turn a verdict WORSE with it, never
+ * better, which is the same licence `verdict: 'skipped'` has always had.
+ */
+export class UnsignedNoteError extends NoteFormatError {
+  readonly note: ParsedNote;
+
+  constructor(message: string, note: ParsedNote) {
+    super(message);
+    this.name = 'UnsignedNoteError';
+    this.note = note;
+  }
+}
+
 // ── Parsing ────────────────────────────────────────────────────────────────
 
 const ORIGIN_LINE = /^[^\s+]+$/;
@@ -126,12 +173,28 @@ const TREE_SIZE_LINE = /^(0|[1-9][0-9]*)$/;
 const EXTENSION_LINE = /^([a-z][a-z0-9.]*): (.+)$/;
 const SIGNATURE_LINE = new RegExp(`^${EM_DASH} ([^\\s]+) ([A-Za-z0-9+/]+={0,2})$`);
 
+const NO_SIGNATURE_SECTION =
+  'this checkpoint carries no signature at all. Its note text parses — origin, tree size and a ' +
+  '32-byte root — and after it there is no signature line, so no key has made any statement ' +
+  'about these bytes. Nothing here has been verified and nothing has been accused: a ' +
+  'checkpoint nobody could check is not a checkpoint that failed. A signature that was ' +
+  'present and did not verify would be a finding, and would be reported as one.';
+
 /**
  * Split a note into signed text and signature lines, then parse both.
  *
  * Throws `NoteFormatError` for anything malformed. The caller turns that into a
  * `malformed` verdict, which is deliberately NOT the same as `failed`: a note that will
  * not parse has not been accused of carrying a bad signature.
+ *
+ * Throws the `UnsignedNoteError` subclass for the one case where the text is WELL FORMED and
+ * carries no signature line. That case is separated out because it is the only one in which a
+ * caller can honestly report SKIP, and separating it is not a softening: the text still has to
+ * parse in full — origin, decimal tree size, a root that base64-decodes to exactly 32 bytes,
+ * and extension lines in `<name>: <value>` form. A note that fails ANY of those is malformed
+ * and stays malformed, which is what keeps `no-blank-line` in `tests/vectors/checkpoint.json`
+ * on the malformed path: strip the empty line out of the §7.5 note and its em-dash signature
+ * line becomes note-text line 7, where it is not an extension line and never parses.
  */
 export function parseNote(note: string): ParsedNote {
   if (note.includes('\r')) {
@@ -143,16 +206,46 @@ export function parseNote(note: string): ParsedNote {
 
   const separator = note.lastIndexOf('\n\n');
   if (separator < 0) {
-    throw new NoteFormatError(
-      'the note has no empty line, so it has no signature section. The note text is ' +
-        'separated from the signatures by the LAST empty line (spec §2). Unverified note ' +
-        'text is not data, so a note with no signatures is refused rather than displayed.',
+    let text: ParsedNote;
+    try {
+      text = parseNoteText(note);
+    } catch (error) {
+      throw new NoteFormatError(
+        'the note has no empty line, so it has no signature section (spec §2) — and read as ' +
+          'note text on its own it does not parse either: ' +
+          (error instanceof Error ? error.message : String(error)) +
+          ' Unverified note text is not data, so this note is refused rather than displayed.',
+      );
+    }
+    throw new UnsignedNoteError(
+      `${NO_SIGNATURE_SECTION} There is no empty line in it, and the note text is separated ` +
+        'from the signatures by the LAST empty line (spec §2).',
+      text,
     );
   }
 
   const signedText = note.slice(0, separator + 1);
   const signatureBlock = note.slice(separator + 2);
+  const text = parseNoteText(signedText);
+  const signatures = parseSignatureBlock(signatureBlock);
+  if (signatures.length === 0) {
+    throw new UnsignedNoteError(
+      `${NO_SIGNATURE_SECTION} The empty line that opens the signature section is there and ` +
+        'nothing follows it.',
+      text,
+    );
+  }
+  return { ...text, signatures };
+}
 
+/**
+ * The note TEXT alone: everything up to and including its final newline, no signatures.
+ *
+ * Split out of `parseNote` so that "these bytes are not a note" and "these bytes are a note
+ * nobody signed" can be told apart. Returns a `ParsedNote` with `signatures: []`, which the
+ * two callers fill in or leave empty; it is never returned to the outside world by itself.
+ */
+function parseNoteText(signedText: string): ParsedNote {
   for (const character of signedText) {
     const code = character.codePointAt(0) ?? 0;
     if (code < 0x20 && character !== '\n') {
@@ -235,14 +328,31 @@ export function parseNote(note: string): ParsedNote {
     extensions.set(name, match[2] ?? '');
   }
 
+  return {
+    signedText,
+    origin,
+    treeSize,
+    rootHex: toHex(rootBytes),
+    rootBytes,
+    extensions,
+    signatures: [],
+  };
+}
+
+/**
+ * The signature lines after the separator.
+ *
+ * An EMPTY block returns an empty array rather than throwing. That is the one behavioural
+ * change here and it moves a decision rather than removing one: `parseNote` raises
+ * `UnsignedNoteError` for the empty case, so the same input still stops, still carries a
+ * reason, and now carries a reason that says which of the two things happened.
+ */
+function parseSignatureBlock(signatureBlock: string): NoteSignature[] {
   const signatures: NoteSignature[] = [];
   const rawSignatureLines = signatureBlock.split('\n');
   const trailing = rawSignatureLines.pop();
   if (trailing !== '') {
     throw new NoteFormatError('the last signature line does not end in a newline');
-  }
-  if (rawSignatureLines.length === 0) {
-    throw new NoteFormatError('the note carries no signature lines');
   }
   for (const line of rawSignatureLines) {
     const match = SIGNATURE_LINE.exec(line);
@@ -273,7 +383,7 @@ export function parseNote(note: string): ParsedNote {
     });
   }
 
-  return { signedText, origin, treeSize, rootHex: toHex(rootBytes), rootBytes, extensions, signatures };
+  return signatures;
 }
 
 // ── The verifier key ───────────────────────────────────────────────────────
@@ -431,6 +541,11 @@ export interface VerifyNoteOptions {
  *   • if ANY signature from a KNOWN key fails, the whole note is rejected;
  *   • if NO signature from a known key verified, the note is rejected. "Ignored" is not
  *     "passed", and a note nobody could check is not a note that checked out.
+ *
+ * The fourth rule, added 2026-08-15, sits UNDER all three and does not soften any of them: a
+ * note carrying no signature line at all never reaches them. There is no line to ignore, no
+ * known key to fail, and nothing to reject — so the verdict is `unsigned`, and the three
+ * rules above still govern every note that does carry a signature.
  */
 export async function verifyNote(options: VerifyNoteOptions): Promise<CheckpointResult> {
   const { keys, oracle } = options;
@@ -446,6 +561,23 @@ export async function verifyNote(options: VerifyNoteOptions): Promise<Checkpoint
   try {
     parsed = parseNote(options.note);
   } catch (error) {
+    /*
+     * `unsigned` is decided HERE, before the key question and before the WebCrypto question,
+     * because it does not depend on either. A note nobody signed is unsigned whether or not
+     * this reader holds a key, and reporting "no key configured" about a note with no
+     * signature line would name the wrong gap.
+     */
+    if (error instanceof UnsignedNoteError) {
+      return {
+        verdict: 'unsigned',
+        reason: error.message,
+        note: error.note,
+        verifiedBy: [],
+        ignored: [],
+        trust: null,
+        signedTextSha256: toHex(await oracle.digest(utf8(error.note.signedText))),
+      };
+    }
     return {
       verdict: 'malformed',
       reason: error instanceof Error ? error.message : String(error),

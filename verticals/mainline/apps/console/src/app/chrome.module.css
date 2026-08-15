@@ -23,10 +23,57 @@
 }
 
 .cell {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: var(--tp-space-2);
   min-width: 0;
+}
+
+/*
+ * THE PLAIN SENTENCE.
+ *
+ * Every cell owes the reader one sentence saying what it is about, and a `title=`
+ * attribute is not that sentence: it is invisible on a phone, invisible to a keyboard,
+ * unreliable to a screen reader and absent from print. So the sentence is a real text
+ * node, in the accessibility tree at all times via the clip-rect technique (`display:
+ * none` and `visibility: hidden` would take it away from screen readers too, which is
+ * the opposite of the point), and it is REVEALED to the eye by focus or hover.
+ *
+ * The cell carries `tabindex="0"`, so a keyboard reaches it. `:focus-within` rather than
+ * `:focus` alone so the reveal survives focus landing on anything the cell might hold
+ * later. Nothing here is a control, and the strip still contains nothing pressable.
+ */
+.plain {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cell:hover .plain,
+.cell:focus-within .plain {
+  position: absolute;
+  top: calc(100% + var(--tp-space-1));
+  left: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: min(48ch, 90vw);
+  height: auto;
+  margin: 0;
+  padding: var(--tp-space-2);
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  background: var(--tp-bg-raised);
+  border: 1px solid var(--tp-rule-strong);
+  color: var(--tp-ink);
+  font-size: var(--tp-step--1, 13px);
 }
 
 .label {
@@ -85,5 +132,20 @@
   .chrome {
     position: static;
     border-bottom: 1px solid #000;
+  }
+
+  /*
+   * On paper there is no hover and no focus. An exhibit whose explanations only exist
+   * behind a pointer is an exhibit that says less than the screen did, so every plain
+   * sentence prints.
+   */
+  .plain {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
   }
 }

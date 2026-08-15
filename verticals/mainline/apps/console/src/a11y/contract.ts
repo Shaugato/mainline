@@ -548,6 +548,42 @@ export const SURFACE_OPERATIONS: readonly SurfaceOperations[] = [
       'Hear the PER honest-limit sentence in full.',
     ],
   },
+
+  // ── Added when the promise list stopped being stale (2026-08-15) ─────────────────
+  //
+  // `diff` and `evidence` had shipped for weeks without an entry in `DECLARED_SURFACES`,
+  // and `overview` is the on-ramp the console gained the same day. The bijection test in
+  // `tests/unit/a11y/contract.test.ts` is what made that visible here: a surface cannot
+  // be promised without somebody writing down what it means to operate it without a
+  // mouse or a screen, so these three rows are the cost of those three promises. They
+  // are written as operations a browser spec could attempt, not as aspirations.
+  //
+  // This list is unordered — the contract is the bijection, not the sequence.
+  {
+    surface: 'overview',
+    operations: [
+      'Read what the system refuses, and why that refusal is the deliverable, before meeting a single identifier.',
+      'Follow either worked case from its first sentence to the screen carrying its evidence, by keyboard alone.',
+      'Reach every deep link as a link whose text names the surface it opens, rather than as an icon or a colour.',
+      'Hear that a plain-language sentence is a summary, and reach the precise sentence it summarises.',
+    ],
+  },
+  {
+    surface: 'diff',
+    operations: [
+      'Read both texts of the clause, at both commits, as selectable text in the mono face.',
+      'Hear which side is the earlier commit and which is the later, in words, before reading either.',
+      'Reach every control-bearing change by keyboard and hear it announced as added, removed or unchanged.',
+    ],
+  },
+  {
+    surface: 'evidence',
+    operations: [
+      'Read every declared file with its expected digest and its recomputed digest, as selectable text.',
+      'Hear each file verdict as verified, failed or not checked, in words, never as a colour or a tick.',
+      'Hear that no bundle was consulted at all, when that is the case, rather than meeting an empty table.',
+    ],
+  },
 ];
 
 export function operationsFor(surface: string): SurfaceOperations | null {

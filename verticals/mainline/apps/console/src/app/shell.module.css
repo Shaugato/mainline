@@ -23,10 +23,21 @@
 
 /* ── Navigation ─────────────────────────────────────────────────────────── */
 
-.nav {
+/*
+ * The rail carries the navigation AND the detail control, because they are one thing: the
+ * control changes what every link beside it says, and a reader has to be able to see both
+ * without moving their eyes across the screen.
+ */
+.rail {
   flex: 0 0 auto;
   width: 15rem;
+  min-width: 0;
   border-right: 1px solid var(--tp-rule);
+  display: flex;
+  flex-direction: column;
+}
+
+.nav {
   padding: var(--tp-space-4) 0;
 }
 
@@ -36,11 +47,16 @@
   padding: 0;
 }
 
+/*
+ * A column, not a row. The marker below is a sentence rather than a badge, and a row that
+ * pushed it to the right edge would truncate it at the first narrow viewport — which is
+ * precisely where a reader is most likely to click a dead end by accident.
+ */
 .navLink {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--tp-space-2);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--tp-space-1);
   padding: var(--tp-space-2) var(--tp-space-3);
   color: var(--tp-ink-dim);
   text-decoration: none;
@@ -59,11 +75,17 @@
   background: var(--tp-bg-raised);
 }
 
-/* A surface that is not built says so in the navigation, before the click is spent. */
+/*
+ * A surface that is not built says so in the navigation, before the click is spent.
+ *
+ * The title used to be struck through as well. It is not any more, and the reason is a
+ * claim rather than a taste: a line through a title reads as WITHDRAWN, and none of these
+ * promises has been withdrawn. The marker below says what is true — the screen has not
+ * landed and a named milestone owes it — and the dimmed ink is the only other signal the
+ * row needs.
+ */
 .navLink[data-status='declared-missing'] .navTitle {
   color: var(--tp-ink-faint);
-  text-decoration: line-through;
-  text-decoration-color: var(--tp-rule-strong);
 }
 
 .navTitle {
@@ -71,12 +93,114 @@
   overflow-wrap: anywhere;
 }
 
-.navPending {
-  flex: 0 0 auto;
-  color: var(--tp-warn);
+/*
+ * The marker is the width of the row and it uses words. A 10px badge reading `K3` was
+ * legible only to somebody who already knew what was behind the link; this is for the
+ * reader who does not. Severity is carried by the text first and the accent second —
+ * `severity-not-colour-alone` (src/a11y/audit.ts) is the gate, and the words are what
+ * survives a monochrome print of the screen.
+ */
+.navMarker {
+  align-self: stretch;
   border: 1px solid var(--tp-warn);
-  padding: 0 4px;
-  font-size: 10px;
+  padding: 1px 4px;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.navMarkerLabel {
+  color: var(--tp-warn);
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.navMarkerDetail {
+  color: var(--tp-ink-dim);
+}
+
+/*
+ * The exact address a link opens — FULL DETAIL only, and a sibling of the link rather than
+ * a child of it. Inside the anchor it would join the link's accessible name, so a screen
+ * reader would hear a UUID read out before the screen's title on every one of ten rows.
+ */
+.navAddress {
+  margin: 0;
+  padding: 0 var(--tp-space-3) var(--tp-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navAddressHref {
+  font-family: var(--tp-mono);
+  font-size: 11px;
+  color: var(--tp-ink-dim);
+  overflow-wrap: anywhere;
+}
+
+.navAddressNote {
+  font-size: 11px;
+  color: var(--tp-ink-faint);
+  overflow-wrap: anywhere;
+}
+
+/* ── The detail control ─────────────────────────────────────────────────── */
+
+/*
+ * Two links, one of them current. EVIDENCE register: no transition, no motion, and the
+ * current choice is carried by the word plus a border rather than by colour alone
+ * (`src/a11y/audit.ts` — severity-not-colour-alone).
+ */
+.detailControl {
+  margin-top: auto;
+  padding: var(--tp-space-3);
+  border-top: 1px solid var(--tp-rule);
+}
+
+.detailLabel {
+  display: block;
+  color: var(--tp-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  margin-bottom: var(--tp-space-2);
+}
+
+.detailChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tp-space-2);
+}
+
+.detailChoice {
+  border: 1px solid var(--tp-rule-strong);
+  padding: 2px 8px;
+  color: var(--tp-ink-dim);
+  text-decoration: none;
+  font-size: var(--tp-step-0);
+}
+
+.detailChoice:hover,
+.detailChoice:focus-visible {
+  color: var(--tp-ink);
+  background: var(--tp-bg-raised);
+}
+
+.detailChoice[aria-current='true'] {
+  color: var(--tp-ink);
+  border-color: var(--tp-ink);
+  background: var(--tp-bg-raised);
+  font-weight: 600;
+}
+
+.detailNote {
+  margin: var(--tp-space-2) 0 0;
+  color: var(--tp-ink-faint);
+  font-size: 11px;
+}
+
+.detailNote code {
+  font-family: var(--tp-mono);
 }
 
 /* ── Main ───────────────────────────────────────────────────────────────── */
@@ -237,10 +361,13 @@
     flex-direction: column;
   }
 
-  .nav {
+  .rail {
     width: auto;
     border-right: none;
     border-bottom: 1px solid var(--tp-rule);
+  }
+
+  .nav {
     padding: var(--tp-space-2) 0;
   }
 
@@ -248,10 +375,14 @@
     display: flex;
     flex-wrap: wrap;
   }
+
+  .detailControl {
+    margin-top: 0;
+  }
 }
 
 @media print {
-  .nav {
+  .rail {
     display: none;
   }
 

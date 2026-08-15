@@ -33,7 +33,7 @@ import { type ReactNode } from 'react';
 
 import { Digest, Mono, ProvenanceChip } from '../../design/primitives';
 
-import { boundaryPairOf, boundarySane, PER_LIMIT_SENTENCE } from './model';
+import { boundaryPairOf, boundarySane, PER_BOUND_GLOSS, PER_LIMIT_SENTENCE } from './model';
 import { ProvenanceSlot } from './ProvenanceSlot';
 import type { ProvenanceEntry } from './provenance';
 import styles from './silence.module.css';
@@ -206,6 +206,16 @@ export function PerPanel({ receipt, provenance }: PerPanelProps): ReactNode {
       <pre className={styles.verbatim} data-testid="per-bound-statement">
         {receipt.bound.statement}
       </pre>
+      {/*
+        THE GLOSS SITS BESIDE THE SENTENCE, NEVER INSIDE IT (R8).
+        The `<pre>` above is the payload's own string in the mono face and this console does
+        not touch it. This paragraph is ours, in the prose face, one element down — so a
+        reader can see which words are whose, and a reader copying the well gets the
+        emitter's sentence and nothing of ours mixed into it.
+      */}
+      <p className={styles.prose} data-testid="per-bound-gloss">
+        {PER_BOUND_GLOSS}
+      </p>
 
       <dl className={styles.facts}>
         <dt>bound.index_generation</dt>

@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_PATH, hrefFor, normalisePath, parseRoute } from '../../../src/app/router';
-import { buildRegistry } from '../../../src/app/surfaces';
+import { SURFACE_REGISTRY, buildRegistry } from '../../../src/app/surfaces';
 
 const ENTRIES = buildRegistry({});
 
@@ -24,10 +24,51 @@ describe('hrefFor', () => {
 });
 
 describe('parseRoute', () => {
-  it('resolves an empty hash to the default surface — the refusal', () => {
+  it('resolves an empty hash to the default surface', () => {
     const route = parseRoute('', '', ENTRIES);
     expect(route.path).toBe(DEFAULT_PATH);
-    expect(route.surfaceId).toBe('gate');
+    expect(route.surfaceId).toBe('overview');
+  });
+
+  /**
+   * THE FIRST FIFTEEN SECONDS, AS AN ASSERTION.
+   *
+   * `DEFAULT_PATH` used to be `/gate`, and the bare URL therefore opened on
+   * `NO SUBJECT ADDRESSED — address a permit by its identifier #/gate?permit=<uuid>`,
+   * because `GateSurfaceRoot` renders ONE subject and does not choose one for a reader.
+   * That rule is right and stays; what moved is the landing.
+   *
+   * Two properties, and the second is the one that could rot silently: the landing must
+   * resolve to a surface the registry actually carries, and it must not be a surface whose
+   * own doctrine is to refuse to pick a subject. A future worker who points `DEFAULT_PATH`
+   * back at such a screen gets a red test rather than a judge meeting an empty headline.
+   */
+  it('lands on a screen that needs no identifier typed into the address bar', () => {
+    const route = parseRoute('', '', ENTRIES);
+    // Resolved against the LIVE glob, not against `buildRegistry({})`: the question is
+    // whether a module is on disk behind the landing, and an empty module map answers
+    // `declared-missing` for every surface in the console.
+    const landing = SURFACE_REGISTRY.find((entry) => entry.id === route.surfaceId);
+
+    expect(
+      landing,
+      `DEFAULT_PATH is ${DEFAULT_PATH}, which no registered surface claims. The bare URL ` +
+        'would render "No surface at this address".',
+    ).toBeDefined();
+
+    expect(
+      route.surfaceId,
+      'the Gate renders the gate of ONE subject and does not choose one for you ' +
+        '(GateSurfaceRoot). Landing there means a stranger opening the bare URL is asked ' +
+        'to type a UUID they do not have. Point DEFAULT_PATH at a screen that builds its ' +
+        'own addressed doors instead — do NOT give the Gate a default permit.',
+    ).not.toBe('gate');
+
+    // Not `declared-missing`: a landing that is a NOT-BUILT-YET card is a first screen
+    // that names the milestone that owes it and shows a judge nothing else.
+    expect(landing?.status, `${route.surfaceId}: the landing surface has no module`).toBe(
+      'loadable',
+    );
   });
 
   it('resolves a surface path', () => {

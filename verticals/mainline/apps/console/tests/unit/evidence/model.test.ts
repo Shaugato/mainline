@@ -32,6 +32,7 @@ import {
   resourceForRequestKey,
   resourcesWithoutFrame,
   summarise,
+  transportCaveat,
   type DigestState,
   type InventoryRow,
 } from '../../../src/features/evidence/model';
@@ -274,8 +275,21 @@ describe('resourcesWithoutFrame', () => {
     // comment: D7 requires every LIVE request to have a REPLAY counterpart, and the
     // repair is to capture the frame, never to stop counting the gap. Deleting the entry
     // here would make the console quietly claim a replay it cannot perform.
+    //
+    // `demo_subjects` JOINED THE SAME LIST ON 2026-08-15, for the same reason and by the
+    // same rule. `GET /v1/demo/subjects` is the read that tells the console which subjects
+    // this deployment actually seeded, so that five surfaces stop opening on UUIDs somebody
+    // typed into a `.tsx` constant. It is declared in `src/data/resources.ts`; the
+    // committed bundle predates it and carries no frame for it. Counting it is this
+    // screen's whole job — the alternative is a console that offers a REPLAY it cannot
+    // perform and says nothing.
     const gaps = resourcesWithoutFrame(buildInventory(manifest()));
-    expect(gaps.map((gap) => gap.key)).toEqual(['change_request', 'demo_gate_run', 'suspend_permit']);
+    expect(gaps.map((gap) => gap.key)).toEqual([
+      'change_request',
+      'demo_gate_run',
+      'demo_subjects',
+      'suspend_permit',
+    ]);
     for (const gap of gaps) {
       expect(gap.purpose.length).toBeGreaterThan(20);
       expect(['GET', 'POST']).toContain(gap.method);
@@ -318,5 +332,60 @@ describe('LIMITS — the honesty panel is data so a test can hold it', () => {
     const joined = LIMITS.map((limit) => `${limit.claim} ${limit.why}`).join('\n').toLowerCase();
     expect(joined).toContain('custody');
     expect(joined).toContain('provenance, not truth');
+  });
+
+  /**
+   * LIMITS used to assert, unconditionally, that a matching digest establishes "that every
+   * screen in this console was produced from them". On the LIVE deployment no other screen
+   * has read a bundle byte, so that half of the sentence was false wherever it mattered
+   * most — on the screen whose subject is provenance. It is now a question the limit names
+   * and hands to the transport note rather than an answer it asserts.
+   */
+  it('makes no unconditional claim about where the OTHER screens got their bytes', () => {
+    const joined = LIMITS.map((limit) => `${limit.claim} ${limit.why}`).join('\n');
+    expect(joined).not.toContain('every screen in this console was produced from them');
+    expect(joined).toContain('a question about the transport');
+  });
+});
+
+/**
+ * The transport caveat — the sentence that was FALSE on the deployed console.
+ *
+ * `VITE_MAINLINE_API_BASE:"/"` is compiled into the live artefact and the transport reports
+ * `mode: 'live'`, so no other screen has read a bundle byte. This screen nevertheless
+ * opened by asserting that every one of them had. The three branches below are held to the
+ * same standard: no sentence is vaguer than it was, `unknown` is not smoothed into either
+ * answer, and the REPLAY branch still carries the original claim verbatim because in REPLAY
+ * it is exactly true.
+ */
+describe('transportCaveat — whose bytes are on the other screens', () => {
+  it('carries the original claim, word for word, in the mode where it holds', () => {
+    expect(transportCaveat('replay').body).toContain(
+      'Every byte on every other screen came from a file listed below',
+    );
+  });
+
+  it('denies it in LIVE, and says what the audit still establishes', () => {
+    const live = transportCaveat('live');
+    expect(live.headline).toContain('Not one byte below is on them');
+    expect(live.body).toContain('establishes nothing about the bytes');
+    // Denying the claim is not the same as apologising for the audit. The verdict below is
+    // worth what it always was; what it is not is evidence about somebody else's bytes.
+    expect(live.body).toContain('these files are the bytes that were sealed');
+  });
+
+  it('refuses to guess when nobody has told it the mode', () => {
+    const unknown = transportCaveat('unknown');
+    expect(unknown.headline).toContain('has not been established here');
+    expect(unknown.body).not.toContain('Every byte on every other screen');
+  });
+
+  it('states a mode and two non-trivial sentences in every branch', () => {
+    for (const mode of ['live', 'replay', 'unknown'] as const) {
+      const caveat = transportCaveat(mode);
+      expect(caveat.mode, mode).toBe(mode);
+      expect(caveat.headline.trim().length, mode).toBeGreaterThan(40);
+      expect(caveat.body.trim().length, mode).toBeGreaterThan(140);
+    }
   });
 });

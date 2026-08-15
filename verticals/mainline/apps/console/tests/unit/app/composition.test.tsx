@@ -268,6 +268,52 @@ describe('with an API base', () => {
     await screen.findByTestId('source-badge');
     expect(screen.queryByTestId('source-switch')).toBeNull();
   });
+
+  /**
+   * The shell has to be able to ASK which subjects exist, because its navigation now opens
+   * each surface on one. The render prop is the boundary that already exists between this
+   * module and the shell, so the transport crosses THERE rather than through a seventh
+   * context — and it must be the SAME object the six surface contexts were given, or the
+   * shell's subject index would be an answer about a source nobody is looking at.
+   */
+  it('hands the shell the same transport it hands every surface context', async () => {
+    let handed: MainlineTransport | null | undefined;
+    render(
+      <HonestyProvider>
+        <Composition env={{ VITE_MAINLINE_API_BASE: API_BASE }} params={new URLSearchParams()}>
+          {(chrome, transport) => {
+            handed = transport;
+            return (
+              <>
+                {chrome}
+                <Probe />
+              </>
+            );
+          }}
+        </Composition>
+      </HonestyProvider>,
+    );
+
+    await waitFor(() => {
+      expect(seen.gate).not.toBeNull();
+    });
+    expect(handed).toBe(seen.gate);
+  });
+
+  it('hands the shell null when the build carries no source, never a stand-in', () => {
+    let handed: MainlineTransport | null | undefined;
+    render(
+      <HonestyProvider>
+        <Composition env={{}} params={new URLSearchParams()}>
+          {(_chrome, transport) => {
+            handed = transport;
+            return null;
+          }}
+        </Composition>
+      </HonestyProvider>,
+    );
+    expect(handed).toBeNull();
+  });
 });
 
 // ── 4. Replay, with a verifier that refuses ────────────────────────────────
@@ -374,8 +420,19 @@ describe('switching modes', () => {
 
     // A verdict about a bundle nobody is looking at any more is a verdict the chrome
     // must not keep displaying. Nothing has been verified on the live path, and the
-    // ugliest honest state is the correct one.
-    expect(screen.getByTestId('chrome-seal')).toHaveTextContent('NOT VERIFIED');
+    // ugliest honest state is the correct one — but the ugliest honest state is now
+    // stated rather than implied: under LIVE the bundle verifier does not run at all, so
+    // the cell says THAT instead of "NOT VERIFIED", which reads as a failure that has not
+    // occurred. The assertions below are the properties that must survive the wording:
+    // no green tick, the slot still marked `unset`, and no lingering failure panel.
+    const sealCell = screen.getByTestId('chrome-seal');
+    expect(sealCell).toHaveTextContent('NOT RUN (no bundle in LIVE)');
+    expect(sealCell.textContent ?? '').not.toMatch(/verified in this browser/i);
+    expect(sealCell.closest('[data-provenance]')).toHaveAttribute('data-provenance', 'unset');
+    expect(sealCell.closest('[data-tone]')).toHaveAttribute('data-tone', 'warn');
+    expect(screen.getByTestId('honesty-note-seal').textContent ?? '').toContain(
+      'nothing here has passed and nothing here has failed',
+    );
     expect(screen.queryByTestId('replay-verification-failed')).toBeNull();
   });
 });

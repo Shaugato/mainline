@@ -108,6 +108,12 @@ def _requests(seed: dict[str, str]) -> dict[str, tuple[dict[str, str], dict[str,
         "recall_run": ({"run_id": seed["run_id"]}, {}),
         "propagation": ({"lesson_id": _LESSON_ID}, {}),
         "audit": ({}, {}),
+        # The subject index, declared by the console on 2026-08-15. No path parameter and
+        # no query parameter, and that is the contract rather than an omission: it answers
+        # "which subjects does this database carry", and a caller who could filter the
+        # answer would be choosing it. Note it takes NOTHING from `seed` — every identifier
+        # it returns is one the read SELECTs for itself, which is the whole point of it.
+        "demo_subjects": ({}, {}),
     }
 
 

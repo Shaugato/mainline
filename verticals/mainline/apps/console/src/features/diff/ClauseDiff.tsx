@@ -33,6 +33,26 @@
  * D5: this component computes no gate condition. It never derives `control_delta`, never
  * decides whether an obligation should exist, and never colours a verdict it worked out
  * itself — `weaken` is rendered because the column says `weaken`.
+ *
+ * ── TWO READERS, ONE PANEL (2026-08-15) ──────────────────────────────────────────
+ *
+ * `docs/leads/two-audience-ux-plan.md` R6: the panel opens with sentences a site supervisor
+ * can read, and every exact thing that was already on it is one deliberate, permanent click
+ * away. **Nothing was deleted and no sentence got vaguer.** What changed is the order a
+ * reader meets things in, and which of them start collapsed:
+ *
+ *   always open — the delta verdict and its provenance chips, every finding, every stated
+ *                 absence (`NO DIFF — …`, `WITNESS UNAVAILABLE`, `NO WITNESSES`), the
+ *                 changes no witness accounts for, and the STAGED badge. R6 forbids
+ *                 collapsing any of these and this panel collapses none of them.
+ *   one click   — the two commit fingerprints, the canonical text and its unified diff, the
+ *                 anchor table, the Control Assertion Tuple pointers, the witness rows and
+ *                 the column-by-column table. R6 names each of these as collapsible, they
+ *                 are all still in the DOM in both states, and they all print open.
+ *
+ * The one thing that would have been easier and is forbidden: summarising a collapsed table
+ * in the sentence above it. A summary of a digest is a worse digest, so the plain sentences
+ * say what the reader is about to look AT and never what it says.
  */
 
 import { type ReactNode } from 'react';
@@ -40,6 +60,7 @@ import { type ReactNode } from 'react';
 import { RegisterFrame, StagedBadge, Digest } from '../../design/primitives';
 import styles from './diff.module.css';
 import type { ClauseDiffModel } from './model';
+import { Disclosure, Gloss, PlainBand } from './parts/Plain';
 import {
   AnchorResidueView,
   CatDeltaView,
@@ -133,12 +154,39 @@ export function ClauseDiff({ model, staged }: ClauseDiffProps): ReactNode {
         )}
       </header>
 
-      <div className={styles.commits}>
-        <Digest value={model.versionCommit} label="this version" />
-        {model.parentCommit === null ? null : (
-          <Digest value={model.parentCommit} label="ancestor" />
-        )}
-      </div>
+      <PlainBand label="What a clause version is, in plain words">
+        <p className={styles.plainLead}>
+          A clause is the written rule a permit has to satisfy. Every time someone edits it, the
+          database keeps the wording from before the edit and the wording from after it as two
+          separate versions, and this panel opens one of them.
+        </p>
+        <p className={styles.plainLead}>
+          What you can read below: the exact wording held against this version, what an edit
+          changed if there is an earlier version to change from, and the word the database
+          recorded for what that change did to the controls.
+        </p>
+        <p className={styles.plainLead}>
+          The two are kept apart on purpose. Anything this browser worked out is marked as worked
+          out here; anything the database said is quoted and never re-worded.
+        </p>
+      </PlainBand>
+
+      <Disclosure
+        summary="Show the exact fingerprint of each version"
+        testId="diff-commits-disclosure"
+      >
+        <Gloss>
+          A fingerprint is a short code worked out from the bytes of a version. Change one
+          character of the wording and the code changes completely, which is how two people can
+          establish they are looking at the same version without comparing the text word by word.
+        </Gloss>
+        <div className={styles.commits}>
+          <Digest value={model.versionCommit} label="this version" />
+          {model.parentCommit === null ? null : (
+            <Digest value={model.parentCommit} label="ancestor" />
+          )}
+        </div>
+      </Disclosure>
 
       <DeltaVerdictBar verdict={model.verdict} severity={model.severity} />
 

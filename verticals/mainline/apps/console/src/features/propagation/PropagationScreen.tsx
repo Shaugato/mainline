@@ -18,9 +18,10 @@
  * projection would be none of those things.
  */
 
-import { type ReactNode } from 'react';
+import { Suspense, lazy, type ReactNode } from 'react';
 
 import { Mono, RegisterFrame, StagedBadge } from '../../design/primitives';
+import { glossFor } from '../../design/glossary';
 import type { ResourceState } from '../../data/useResource';
 
 import { ConflictList } from './ConflictList';
@@ -36,6 +37,45 @@ export interface PropagationScreenProps {
   readonly state: ResourceState<PropagationData>;
   /** True when no transport was provided at all — a different nothing from a failure. */
   readonly noSource: boolean;
+}
+
+/**
+ * The plain-language walkthrough (R9), in its own chunk.
+ *
+ * Lazy because prose is the cheapest thing to move off a critical path and the most
+ * expensive thing to leave on one — `budgets.json` is a ceiling this wave does not raise,
+ * and the evidentiary shell carries none of this. `Suspense fallback={null}` because a
+ * spinner where an introduction is about to appear is worse than the introduction arriving
+ * a frame late; every precise section of the screen is already painted underneath it.
+ */
+const UseCaseTwo = lazy(async () => {
+  const module = await import('./UseCaseTwo');
+  return { default: module.UseCaseTwo };
+});
+
+/**
+ * The heading, and the walkthrough that has no numbers to show.
+ *
+ * Used by the four renderings that hold no payload. The walkthrough still appears — it is
+ * what tells a reader what this screen is FOR, which is the question somebody who has just
+ * met a failure panel most needs answered — and it prints no figures, because there are
+ * none and inventing one is the move this repository does not make.
+ */
+function Opening({
+  lessonId,
+  absence,
+}: {
+  readonly lessonId: string;
+  readonly absence: string;
+}): ReactNode {
+  return (
+    <>
+      <Heading lessonId={lessonId} />
+      <Suspense fallback={null}>
+        <UseCaseTwo view={null} absence={absence} staged={false} />
+      </Suspense>
+    </>
+  );
 }
 
 function Shell({
@@ -88,7 +128,10 @@ export function PropagationScreen({
   if (noSource) {
     return (
       <Shell lessonId={lessonId}>
-        <Heading lessonId={lessonId} />
+        <Opening
+          lessonId={lessonId}
+          absence="No transport was provided to this surface, so no read was attempted."
+        />
         <section className={styles.panel} data-testid="propagation-no-source">
           <h2 className={styles.sectionTitle}>no source</h2>
           <p className={styles.prose}>
@@ -105,7 +148,7 @@ export function PropagationScreen({
   if (state.status === 'idle' || state.status === 'loading') {
     return (
       <Shell lessonId={lessonId}>
-        <Heading lessonId={lessonId} />
+        <Opening lessonId={lessonId} absence="The read is still in flight." />
         <p className={styles.panel} role="status" data-testid="propagation-loading">
           Reading <Mono>GET /v1/lessons/{lessonId}/propagation</Mono>…
         </p>
@@ -116,7 +159,7 @@ export function PropagationScreen({
   if (state.status === 'failed') {
     return (
       <Shell lessonId={lessonId}>
-        <Heading lessonId={lessonId} />
+        <Opening lessonId={lessonId} absence={`The read did not complete: ${state.failure}.`} />
         <section className={styles.failure} data-testid="propagation-failed">
           <h2 className={styles.failureTitle}>the read did not complete: {state.failure}</h2>
           <pre className={styles.verbatim}>{state.detail}</pre>
@@ -132,7 +175,10 @@ export function PropagationScreen({
   if (state.status === 'refused') {
     return (
       <Shell lessonId={lessonId}>
-        <Heading lessonId={lessonId} />
+        <Opening
+          lessonId={lessonId}
+          absence={`The database refused this read, under ${state.refusal.constraint}.`}
+        />
         <section className={styles.failure} data-testid="propagation-refused">
           <h2 className={styles.failureTitle}>the database refused this read</h2>
           <p className={styles.prose}>
@@ -160,14 +206,32 @@ export function PropagationScreen({
     <Shell lessonId={lessonId}>
       <Heading lessonId={lessonId} />
 
+      {/*
+        THE STAGED BADGE IS LOAD-BEARING AND IS NEVER COLLAPSED.
+        R6 forbids PLAIN hiding a STAGED badge, and this is the screen where that ruling
+        earns its keep: `reads.py::read_propagation` stages this resource IN FULL, because
+        `mainline.lesson`, `mainline.propagation` and `mainline.merge_conflict` are produced
+        by no migration in this repository. So the badge, the plain sentence under it and
+        the emitter's verbatim note are all in the open flow, in both readings of this
+        screen, above every number they qualify.
+      */}
       {envelope.staged ? (
         <div data-testid="propagation-staged">
           <StagedBadge what="hand-authored demonstration payload — no cluster produced these rows" />
+          <p className={styles.prose} data-testid="propagation-staged-plain">
+            In plain words: these rows come from a fixture, not from the live database.{' '}
+            {glossFor('staged')} Everything below is real console behaviour over a payload the
+            demo API composed, and the emitter&apos;s own note saying so is next.
+          </p>
           {(envelope.staged_note ?? null) === null ? null : (
             <pre className={styles.verbatim}>{envelope.staged_note}</pre>
           )}
         </div>
       ) : null}
+
+      <Suspense fallback={null}>
+        <UseCaseTwo view={view} absence={null} staged={envelope.staged} />
+      </Suspense>
 
       <LessonPanel lesson={view.lesson} provenance={provenance} />
 

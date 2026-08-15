@@ -409,3 +409,74 @@
     break-inside: avoid;
   }
 }
+
+/* ── The use-case walkthrough (R9) ───────────────────────────────────────── */
+
+/*
+ * The plain-language half of use case 2, above everything the screen computed.
+ *
+ * A RAISED panel on the page ground, which is this console's shape for console prose;
+ * an inset well is reserved for a verbatim payload and this is the opposite of one. It
+ * is an `aside`, not a `section`, because it introduces the evidence rather than being
+ * evidence — and a screen reader landing on it should be told which of the two it is.
+ *
+ * Nothing here moves. EVIDENCE register (`docs/leads/ui.md` §1.1): no transition, no
+ * duration, nothing a screenshot could fail to reproduce.
+ */
+.useCase {
+  display: block;
+  max-width: 78ch;
+  margin: var(--tp-space-4) 0;
+  padding: var(--tp-space-4);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  background: var(--tp-bg-raised);
+}
+
+.useCaseKicker {
+  display: block;
+  margin: 0 0 var(--tp-space-2);
+  color: var(--tp-ink-faint);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-medium);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+}
+
+.useCaseSteps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-3);
+  margin: var(--tp-space-3) 0 0;
+  padding-left: var(--tp-space-4);
+}
+
+.useCaseStep {
+  color: var(--tp-ink);
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+}
+
+.useCaseLink {
+  color: var(--tp-ink);
+  text-decoration: underline;
+}
+
+@media print {
+  .useCase {
+    break-inside: avoid;
+  }
+}
+
+/*
+ * The receipt's own bounding sentence, and the console's gloss beside it.
+ *
+ * The sentence keeps the verbatim well and the mono face; the gloss is set as prose,
+ * so a reader can see at a glance which words are the payload's and which are ours.
+ * R8: beside, never inside.
+ */
+.useCaseBound {
+  margin-top: var(--tp-space-4);
+  padding-top: var(--tp-space-3);
+  border-top: var(--tp-hairline) solid var(--tp-rule);
+}

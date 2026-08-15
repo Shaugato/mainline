@@ -103,6 +103,43 @@
   font-size: var(--tp-step--1);
 }
 
+/*
+ * ── The R9 on-ramp, ABOVE the band ──────────────────────────────────────────
+ *
+ * `docs/leads/demo-story-plan.md` R9: the lead is ADDITIVE and nothing precise is deleted
+ * or softened. It is drawn to read as a lead-in to the band directly beneath it rather
+ * than as a panel of its own — the same refuse accent on the left edge, no fill of its
+ * own, and no border on the side that faces the band. A reader's eye should go from this
+ * paragraph into the constraint name without crossing two frames.
+ *
+ * It is set in the SANS face at body size, because it is the console's sentence. Every
+ * value the database emitted stays in the mono face, in the band below. Nothing here
+ * transitions or transforms: the EVIDENCE register's law is that a screenshot taken at any
+ * moment is a truthful screenshot (ui.md §1.1).
+ */
+.refusalLead {
+  border-left: var(--tp-space-1) solid var(--tp-refuse);
+  border-radius: var(--tp-radius) 0 0 var(--tp-radius);
+  padding: var(--tp-space-3) var(--tp-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-2);
+  max-width: 78ch;
+}
+
+/*
+ * The plain sentence at the top of a reason-set panel. It sits above the exact one, which
+ * keeps `.panelNote`'s dimmer treatment — so the on-ramp reads first and the precise
+ * statement reads as the reference it is, rather than the two competing.
+ */
+.plainLead {
+  font-size: var(--tp-step-0);
+  line-height: var(--tp-leading-body);
+  color: var(--tp-ink);
+  margin: 0;
+  max-width: 68ch;
+}
+
 /* ── Shared furniture ────────────────────────────────────────────────────── */
 
 .panel {
@@ -436,6 +473,122 @@
   color: var(--tp-ink-dim);
 }
 
+/* ── The plain-language on-ramp ──────────────────────────────────────────── */
+
+/*
+ * R7 renames the heading and keeps the word: the subtitle under
+ * "What the database checks before it will merge" is the section's old name, so an
+ * engineer who knows this screen as "the weld" still finds it by that name.
+ */
+.weldSubtitle {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-ink-faint);
+  margin: 0;
+}
+
+/*
+ * The SYNTHETIC marker (R5). Drawn as a warning rather than as decoration, because
+ * "this record corresponds to nobody" is the single most important sentence on a
+ * demonstration screen — and it is a permanent slot, so the ABSENT rendering has to be
+ * visibly a different statement rather than a quieter version of the same one.
+ */
+.synthetic {
+  display: inline-flex;
+  align-items: baseline;
+  border: var(--tp-hairline) solid var(--tp-warn);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-2);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-strong);
+  color: var(--tp-warn);
+}
+
+.syntheticAbsent {
+  display: inline-flex;
+  align-items: baseline;
+  border: var(--tp-hairline) dashed var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: 0 var(--tp-space-2);
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-ink-dim);
+}
+
+/* Where a quoted line was read from. Faint, mono, and never the claim itself. */
+.sourceLine {
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-faint);
+  line-height: var(--tp-leading-body);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.plainBasis {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tp-space-1);
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  color: var(--tp-ink-dim);
+}
+
+/* ── The address form, on the panel that has no subject ──────────────────── */
+
+.addressForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tp-space-2) var(--tp-space-3);
+}
+
+.addressLabel {
+  font-size: var(--tp-step--1);
+  letter-spacing: var(--tp-tracking-caps);
+  text-transform: uppercase;
+  font-weight: var(--tp-weight-medium);
+  color: var(--tp-ink-faint);
+}
+
+.addressInput {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step-0);
+  color: var(--tp-ink);
+  background: var(--tp-bg-inset);
+  border: var(--tp-hairline) solid var(--tp-rule-strong);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-2) var(--tp-space-3);
+  min-width: 32rem;
+  max-width: 100%;
+}
+
+.addressInput:focus-visible,
+.addressButton:focus-visible {
+  outline: var(--tp-focus-width) solid var(--tp-focus);
+  outline-offset: var(--tp-focus-offset);
+}
+
+.addressButton {
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  font-weight: var(--tp-weight-strong);
+  color: var(--tp-ink);
+  background: var(--tp-bg-sunken);
+  border: var(--tp-hairline) solid var(--tp-ink);
+  border-radius: var(--tp-radius);
+  padding: var(--tp-space-2) var(--tp-space-4);
+  cursor: pointer;
+}
+
 /* ── The attempt control ─────────────────────────────────────────────────── */
 
 .attempt {
@@ -455,8 +608,33 @@
   border-radius: var(--tp-radius);
   padding: var(--tp-space-2) var(--tp-space-4);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--tp-space-1);
+  text-align: left;
   /* Under the EVIDENCE ceiling. Colour only; nothing moves. */
   transition: background-color var(--tp-duration-evidence) linear;
+}
+
+/*
+ * R7: the control gains a label that says what pressing it DOES, and keeps the exact
+ * method and path beside it — never instead of it. Both are inside the button, so the
+ * accessible name carries both and a screenshot of the control alone still names the
+ * request a judge could re-issue with curl.
+ */
+.attemptLabel {
+  font-family: var(--tp-sans);
+  font-size: var(--tp-step-0);
+  font-weight: var(--tp-weight-strong);
+}
+
+.attemptWire {
+  font-family: var(--tp-mono);
+  font-size: var(--tp-step--1);
+  font-weight: var(--tp-weight-regular);
+  color: var(--tp-ink-dim);
+  overflow-wrap: anywhere;
 }
 
 .attemptButton:hover:not(:disabled) {
@@ -494,9 +672,19 @@
   }
 
   .refusalBar,
+  .refusalLead,
   .panel,
   .item,
   .weldRow {
     break-inside: avoid;
+  }
+
+  /*
+   * A lead and the band it leads into are ONE exhibit and must not be torn across a page
+   * break: a printed refusal whose plain-language paragraph sits on the previous sheet is
+   * a refusal a reader has to reassemble before they can tender it (D14).
+   */
+  .refusalLead {
+    break-after: avoid;
   }
 }

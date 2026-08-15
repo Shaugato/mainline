@@ -18,8 +18,8 @@ import { type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { HonestyProvider } from '../../../src/app/HonestyProvider';
-import { useHonesty } from '../../../src/app/honesty';
-import type { BundleSource } from '../../../src/data/bundle';
+import { useHonesty, type TransportMode } from '../../../src/app/honesty';
+import { FetchBundleSource, type BundleSource } from '../../../src/data/bundle';
 import { contractRegistry } from '../../../src/data/contracts';
 import { EvidenceScreen } from '../../../src/features/evidence/EvidenceScreen';
 import { resolveDigestOracle, type DigestOracle } from '../../../src/features/evidence/digest';
@@ -51,7 +51,11 @@ function intact(): BundleSource {
   return new OpaqueMemorySource('test:fixtures/bundles/blk-07', bundleFiles());
 }
 
-function view(source: BundleSource | null, oracle: DigestOracle | null = ORACLE): ReactNode {
+function view(
+  source: BundleSource | null,
+  oracle: DigestOracle | null = ORACLE,
+  transport: TransportMode = 'unknown',
+): ReactNode {
   return (
     <EvidenceScreen
       source={source}
@@ -60,6 +64,7 @@ function view(source: BundleSource | null, oracle: DigestOracle | null = ORACLE)
       clock={CLOCK}
       params={new URLSearchParams()}
       env={{}}
+      transport={transport}
     />
   );
 }
@@ -141,11 +146,15 @@ describe('the intact bundle', () => {
     const gaps = await screen.findByTestId('evidence-gaps');
     // Three since 2026-08-14: `demo_gate_run` became the seventeenth declared resource so
     // the console could address the demo beat, and the bundle carries no frame for
-    // `POST /v1/demo/gate-run`. The count is asserted exactly, so a gap that is silently
-    // dropped from the screen fails here rather than disappearing from a judge's view.
-    expect(gaps.querySelectorAll('li')).toHaveLength(3);
+    // `POST /v1/demo/gate-run`. FOUR since 2026-08-15: `demo_subjects` — the read that
+    // tells the console which subjects this deployment actually seeded — is declared and
+    // the committed bundle, which predates it, captured no frame for it either. The count
+    // is asserted exactly, so a gap that is silently dropped from the screen fails here
+    // rather than disappearing from a judge's view.
+    expect(gaps.querySelectorAll('li')).toHaveLength(4);
     expect(gaps.querySelector('[data-resource="change_request"]')).not.toBeNull();
     expect(gaps.querySelector('[data-resource="demo_gate_run"]')).not.toBeNull();
+    expect(gaps.querySelector('[data-resource="demo_subjects"]')).not.toBeNull();
     expect(gaps.querySelector('[data-resource="suspend_permit"]')).not.toBeNull();
   });
 
@@ -196,6 +205,98 @@ describe('a manifest the console cannot read', () => {
     expect(card).toHaveTextContent('transport refuses such a bundle');
     expect(screen.queryByTestId('evidence-inventory')).toBeNull();
   });
+
+  /**
+   * The 404, which is the failure that remains once resolution works.
+   *
+   * The screen must say WHAT IT ASKED FOR and WHAT CAME BACK — an absolute URL and a
+   * verbatim status line — because "could not read manifest.json" sends a reader hunting
+   * for a missing file while `GET https://…/bundle/manifest.json → HTTP 404 Not Found`
+   * tells them whether the artefact is wrong or the address is.
+   */
+  it('prints the absolute request and the verbatim status when the manifest 404s', async () => {
+    const source = new FetchBundleSource('./bundle/', () =>
+      Promise.resolve(new Response('', { status: 404, statusText: 'Not Found' })),
+    );
+    mount(view(source));
+
+    const card = await screen.findByTestId('evidence-unusable');
+    expect(card).toHaveTextContent('Could not read manifest.json');
+
+    const detail = screen.getByTestId('evidence-unusable-detail');
+    expect(detail).toHaveTextContent(`GET ${source.id}manifest.json → HTTP 404 Not Found`);
+
+    // The Source line is the ABSOLUTE location that was requested, not './bundle/'.
+    const printed = screen.getByTestId('evidence-unusable-source');
+    expect(printed).toHaveTextContent(source.id);
+    expect(source.id.startsWith('http')).toBe(true);
+
+    // And nothing on the page claims a seal it did not earn.
+    expect(screen.queryByTestId('evidence-inventory')).toBeNull();
+    expect(screen.queryByTestId('evidence-seal')).toBeNull();
+    expect(document.body.textContent).not.toContain('Invalid base URL');
+  });
+});
+
+/**
+ * WHOSE BYTES ARE ON THE OTHER SCREENS.
+ *
+ * The live deployment compiles `VITE_MAINLINE_API_BASE:"/"`, the transport reports
+ * `mode: 'live'`, and this screen nevertheless opened with *"Every byte on every other
+ * screen came from a file listed below"*. On the surface whose subject is provenance that
+ * is a must-not-claim violation, not a wording preference.
+ */
+describe('the transport note', () => {
+  it('does NOT claim the other screens read this bundle when the transport is LIVE', async () => {
+    mount(view(intact(), ORACLE, 'live'));
+    await screen.findByTestId('evidence-seal');
+
+    const note = screen.getByTestId('evidence-transport-note');
+    expect(note).toHaveAttribute('data-mode', 'live');
+    expect(note).toHaveTextContent('Not one byte below is on them');
+    expect(note).toHaveTextContent('establishes nothing about the bytes');
+
+    // The false sentence is nowhere on the page — not in the standfirst, not in LIMITS.
+    expect(document.body.textContent).not.toContain(
+      'Every byte on every other screen came from a file listed below',
+    );
+  });
+
+  it('keeps the original claim, verbatim, in REPLAY — where it is exactly true', async () => {
+    mount(view(intact(), ORACLE, 'replay'));
+    await screen.findByTestId('evidence-seal');
+    const note = screen.getByTestId('evidence-transport-note');
+    expect(note).toHaveAttribute('data-mode', 'replay');
+    expect(note).toHaveTextContent('Every byte on every other screen came from a file listed below');
+  });
+
+  it('says the mode is not established rather than picking one', async () => {
+    mount(view(intact(), ORACLE, 'unknown'));
+    await screen.findByTestId('evidence-seal');
+    const note = screen.getByTestId('evidence-transport-note');
+    expect(note).toHaveAttribute('data-mode', 'unknown');
+    expect(note).toHaveTextContent('has not been established here');
+  });
+
+  it('takes the mode from the honesty chrome when no prop overrides it', async () => {
+    // The chrome's `transport` slot is filled by the composition root from
+    // `transport.describe().mode`, off the object that holds the bytes. This screen reads
+    // it and publishes none of its own.
+    render(
+      <HonestyProvider initial={{ transport: 'live' }}>
+        <EvidenceScreen
+          source={intact()}
+          oracle={ORACLE}
+          registry={contractRegistry()}
+          clock={CLOCK}
+          params={new URLSearchParams()}
+          env={{}}
+        />
+      </HonestyProvider>,
+    );
+    await screen.findByTestId('evidence-seal');
+    expect(screen.getByTestId('evidence-transport-note')).toHaveAttribute('data-mode', 'live');
+  });
 });
 
 describe('what reaches the honesty chrome (D16)', () => {
@@ -234,10 +335,22 @@ describe('what reaches the honesty chrome (D16)', () => {
         <Probe />
       </>,
     );
-    await waitFor(() => {
-      expect(screen.getByTestId('probe')).toHaveTextContent('failed|');
-    });
-  });
+    /*
+     * The wait is explicit because the assertion is about the SETTLED value and the
+     * intermediate one is legitimate: the screen publishes `verifying` while the digests are
+     * being recomputed, and under a fully parallel suite that hashing shares a machine with
+     * every other crypto test in the tier. At the default one second this case failed
+     * intermittently on `verifying|null|hashing the files this bundle lists` — a true reading
+     * of a screen that had not finished. Nothing about what is asserted changes; only how
+     * long the test is willing to wait for the arithmetic it is asserting on.
+     */
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('probe')).toHaveTextContent('failed|');
+      },
+      { timeout: 10_000 },
+    );
+  }, 15_000);
 
   it('publishes `unverified` — never `failed` — when there is no oracle', () => {
     mount(

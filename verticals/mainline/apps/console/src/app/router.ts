@@ -32,8 +32,44 @@ export interface Route {
   readonly raw: string;
 }
 
-/** Where a bare `#` or an empty hash lands. The refusal is the first thing shown. */
-export const DEFAULT_PATH = '/gate';
+/**
+ * Where a bare `#` or an empty hash lands.
+ *
+ * ── WHY THIS IS NOT `/gate` ANY MORE (2026-08-15) ────────────────────────────────
+ *
+ * It was `/gate`, and the comment above it read *"the refusal is the first thing shown"*.
+ * That was the intent and it was not what happened. `GateSurfaceRoot` renders the gate of
+ * ONE subject and — correctly, by its own doctrine — **does not choose one for you**. A
+ * bare URL carries no `?permit=`, so the first thing a stranger saw was not a refusal but
+ * `NO SUBJECT ADDRESSED — address a permit by its identifier #/gate?permit=<uuid>`: an
+ * instruction to type a UUID they do not have, on the headline screen, in the first three
+ * seconds. Measured on the live Function URL today.
+ *
+ * There are two ways to fix that and only one of them is honest. Giving the Gate a default
+ * permit would delete the rule that makes it trustworthy — a screen that picks a subject
+ * for you is a screen that can pick the flattering one — so the rule stays, verbatim, and
+ * the LANDING moves instead. `docs/leads/demo-story-plan.md` R2 rules exactly that.
+ *
+ * ── WHY `/overview` AND NOT A NEW `/start` ───────────────────────────────────────
+ *
+ * `demo-story-plan.md` R2 names the destination `/start` and asks for it to be built. It
+ * was written against `e88b8b6`; by the time it was executed the every-screen wave had
+ * already landed `src/features/overview/` — order 5, above the gate, promised in
+ * `DECLARED_SURFACES`, and covering point for point what R2 asks a landing screen to
+ * carry: one plain-language headline about what the system refuses, an orientation line,
+ * and addressed doors to the gate, custody and silence. Its doors are addressed with
+ * identifiers the kernel named at `GET /v1/demo/subjects` rather than with literals, which
+ * is the stronger form of the same requirement.
+ *
+ * Building `/start` beside it would put TWO on-ramps in a navigation whose defect was that
+ * a judge could not find one, so the landing points at the on-ramp that exists. The rest of
+ * R2 — the Gate keeps its rule, every navigation link becomes an addressed deep link — is
+ * unchanged and already holds (`src/app/subjects.ts`).
+ *
+ * The value is a path, not a surface id, for `parseRoute`'s benefit: an id would have to be
+ * resolved against a registry this module deliberately does not import.
+ */
+export const DEFAULT_PATH = '/overview';
 
 export function normalisePath(path: string): string {
   const rooted = path.startsWith('/') ? path : `/${path}`;

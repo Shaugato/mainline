@@ -28,24 +28,36 @@ import { useEffect, useMemo, type ReactNode } from 'react';
 
 import { useHonestyPublisher, type SealState } from '../../app/honesty';
 import { useResource } from '../../data/useResource';
-import { Digest, ProvenanceChip, RegisterFrame, StagedBadge, VerificationSeal } from '../../design/primitives';
+import {
+  Digest,
+  Disclosure,
+  Gloss,
+  Mono,
+  PlainBand,
+  ProvenanceChip,
+  RegisterFrame,
+  StagedBadge,
+  VerificationSeal,
+  labelFor,
+  productWord,
+} from '../../design/primitives';
 import { useVerification } from '../../verify/useVerification';
 import { resolveVerifierConfig } from '../../verify/config';
-import { PER_BOUND, type LedgerPayload } from '../../verify/ledger';
+import { PER_BOUND, noteTextInput, type LedgerPayload } from '../../verify/ledger';
 
+import type { SiteOrigin } from './CustodyRoot';
 import styles from './custody.module.css';
-import { chainLayers, overallSeal, quorumShape, tally } from './model';
+import { chainLayers, custodyVerdict, overallSeal, quorumShape, signatureReading, tally } from './model';
 import { ChainView } from './parts/ChainView';
 import { CheckList } from './parts/CheckList';
 import { CheckpointPanel } from './parts/CheckpointPanel';
+import { FindingsBand } from './parts/FindingsBand';
 import { WitnessPanel } from './parts/WitnessPanel';
 import {
   useCustodyConfig,
   useCustodyTransport,
   useCustodyVerifier,
 } from './transport-context';
-
-export const DEFAULT_SITE_CODE = 'BLK-07';
 
 function NoSource(): ReactNode {
   return (
@@ -63,10 +75,99 @@ function NoSource(): ReactNode {
   );
 }
 
+// ── The words on this page ─────────────────────────────────────────────────
+
+/**
+ * The ruled definition, read out of `src/design/glossary.ts` rather than retyped.
+ *
+ * R7 fixes one sentence per product word and requires it to be used IDENTICALLY on every
+ * screen. Retyping it here would give this screen its own copy to drift, so the sentence
+ * is fetched at module scope and the fetch failing is a loud module-evaluation error —
+ * which `SurfaceHost` already renders as a NOT-BUILT-YET card naming the import failure.
+ * A screen that silently opened without its own definition would be the exact regression
+ * this band exists to prevent.
+ */
+const CUSTODY_WORD = productWord('custody');
+if (CUSTODY_WORD === null) {
+  throw new Error(
+    'CustodyScreen: src/design/glossary.ts carries no product word "custody". R7 fixes one ' +
+      'sentence per product word and requires every screen to use it identically; this screen ' +
+      'will not compose a replacement, because a second sentence for the same word is how two ' +
+      'screens come to teach a reader two different vocabularies.',
+  );
+}
+
+/**
+ * Bound at module scope, where the throw above has already narrowed it.
+ *
+ * TypeScript's control-flow narrowing does not reach INTO a function body from a
+ * module-level guard — a closure could be called before the guard in principle — so the
+ * value is pinned here rather than re-asserted with `!` at the point of use. The guard
+ * stays the mechanism; this is only how the component reads its result.
+ */
+const CUSTODY_SENTENCE: string = CUSTODY_WORD.sentence;
+
+/**
+ * The terms this page uses that `glossary.ts` does not carry.
+ *
+ * Both are ledger vocabulary that R7's table does not reach, so their sentences are written
+ * here — beside the term and never instead of it (R8), in exactly the shape `Gloss` gives
+ * the terms the glossary does hold. They are candidates for `glossary.ts` the moment that
+ * file's owner wants them; until then this is the honest place for them, because the
+ * alternative is a reader meeting `tree_size` with nothing beside it.
+ */
+const LOCAL_GLOSSES: readonly { readonly term: string; readonly sentence: string }[] = [
+  {
+    term: 'checkpoint',
+    sentence:
+      'a signed statement of what the whole log looked like at one moment — how many entries it ' +
+      'held, and one number standing for all of them.',
+  },
+  {
+    term: 'tree_size',
+    sentence: 'how many entries the log held when that statement was made.',
+  },
+];
+
+/** The glossary keys this screen's own words come from, in the order a reader meets them. */
+const GLOSSED_HERE: readonly string[] = [
+  'custody',
+  'seal',
+  'inclusion-proof',
+  'consistency-proof',
+  'canonicalisation',
+  'transport',
+  'staged',
+  'provenance-chip',
+  'corpus-root',
+];
+
+/**
+ * `siteCode` IS REQUIRED, and it is answered by the kernel rather than by a constant.
+ *
+ * Until 2026-08-15 this component exported a default site code and `CustodyRoot` fell back
+ * to it whenever `?site=` was absent — which is every arrival from the navigation. It was a
+ * fixture string no seed in this repository has ever written, it answered `HTTP 404` against
+ * the live kernel, and a default is exactly how it stayed invisible: the screen always had
+ * an answer to "which site?", so nobody upstream was ever forced to have one. The value is
+ * recorded in `docs/leads/screens-work-plan.md` §2.2 and appears in no source file.
+ *
+ * A required prop moves that question to the caller, where `CustodyRoot` answers it from the
+ * address, from the subject index, or from the ledger naming its own site. Replacing the old
+ * literal with a luckier literal would rebuild the same defect with a value that happens to
+ * work today.
+ *
+ * `siteOrigin` travels with it because WHICH of those three named the subject is a fact the
+ * reader is owed, not an implementation detail: a site a reader typed and a site a database
+ * volunteered are different epistemic situations, exactly as a build-time key and a key out
+ * of a query string are.
+ */
 export function CustodyScreen({
-  siteCode = DEFAULT_SITE_CODE,
+  siteCode,
+  siteOrigin,
 }: {
-  readonly siteCode?: string;
+  readonly siteCode: string;
+  readonly siteOrigin: SiteOrigin;
 }): ReactNode {
   const transport = useCustodyTransport();
   const suppliedVerifier = useCustodyVerifier();
@@ -106,6 +207,18 @@ export function CustodyScreen({
   const info = verification.status === 'settled' ? verification.info : null;
   const counts = tally(report);
   const at = report?.at ?? '';
+  const signature = signatureReading(report, config);
+
+  /*
+   * THE RED, GIVEN A SUBJECT — and given one from the report, never instead of it.
+   *
+   * `overallSeal` still carries the verifier's own summary word for word and still says
+   * FAILED; the tally above still counts every check. This adds the sentence a judge needs
+   * next: WHICH checks disagreed, and WHICH of this payload's checkpoints they disagreed
+   * about — the attribution being a join between a row's `claimed` digest and a checkpoint's
+   * `root_hex`, not a parse of any prose. See `model.ts`.
+   */
+  const verdict = custodyVerdict(report, payload);
 
   /*
    * The honesty chrome's seal (D16) is published from HERE, because this is the only
@@ -134,6 +247,47 @@ export function CustodyScreen({
   return (
     <RegisterFrame register="evidence" as="section" label="Custody" data-testid="custody-surface">
       <div className={styles.surface}>
+        <PlainBand
+          kicker="custody, in plain words"
+          data-testid="custody-plain-band"
+          sentences={[
+            `Custody — ${CUSTODY_SENTENCE}`,
+            'This page takes the record kept for one site and re-does the arithmetic behind that ' +
+              'proof here, in your own browser, from the bytes it was handed a moment ago — not ' +
+              'on our servers, and not by asking us.',
+            'Each claim below is marked one of three ways: re-done here and it agreed, re-done ' +
+              'here and it DISAGREED, or never attempted at all — and a claim nobody could ' +
+              'attempt is shown as loudly as one that failed.',
+          ]}
+        >
+          <Disclosure
+            summary="Show what each word on this page means"
+            note="the exact terms stay; this adds a sentence beside each one"
+            data-testid="custody-glossary"
+          >
+            <ul className={styles.plainList}>
+              {GLOSSED_HERE.map((key) => (
+                <li key={key}>
+                  <Gloss term={key} layout="stack">
+                    <Mono>{labelFor(key) ?? key}</Mono>
+                  </Gloss>
+                </li>
+              ))}
+              {LOCAL_GLOSSES.map((entry) => (
+                <li key={entry.term}>
+                  {/*
+                    * These two are not in `glossary.ts`, so `Gloss` would render the term with
+                    * nothing beside it and mark itself `data-gloss-missing`. The sentence is
+                    * written out here instead, in its own element beside the term exactly as
+                    * R8 requires — never inside it, and never in place of it.
+                    */}
+                  <Mono>{entry.term}</Mono> <span className={styles.chainPurpose}>— {entry.sentence}</span>
+                </li>
+              ))}
+            </ul>
+          </Disclosure>
+        </PlainBand>
+
         <header className={styles.header}>
           <div className={styles.headerTop}>
             <span className={styles.kicker}>custody · the chain</span>
@@ -144,14 +298,84 @@ export function CustodyScreen({
             ) : null}
           </div>
 
-          <p className={styles.prose}>
-            Nothing on this screen is the database&rsquo;s word. Every seal below is the result
-            of arithmetic this browser performed on the bytes it was served: RFC 8785
-            canonicalisation, RFC 6962 leaf, node, inclusion and consistency hashing, and the
-            ECDSA P-256 signature over the checkpoint note. The recomputations are shown, and a
-            stranger can run the same arithmetic offline with{' '}
-            <code>pipx run trappoint-verify</code>.
+          {/*
+            * IMMEDIATELY UNDER THE SEAL, because the seal is what a stranger reads first and a
+            * red with no subject is what this band exists to end. It renders only once the
+            * worker has answered — before that the section below already says, in words, that
+            * nothing has been recomputed yet.
+            */}
+          <FindingsBand verdict={verdict} />
+
+          {/*
+            * WHO NAMED THIS SITE — visible in both reading modes, because it is provenance.
+            *
+            * R6 forbids PLAIN from hiding a provenance chip, and this is one: it is the same
+            * distinction the verifier config draws between a key compiled into the build and a
+            * key out of a query string. A site a reader typed is their assertion; a site the
+            * kernel volunteered is the database's. Neither is this console's.
+            */}
+          <p className={styles.detail} data-testid="custody-site-origin" data-origin={siteOrigin}>
+            <strong>Which site, and who said so. </strong>
+            {siteOrigin === 'address'
+              ? 'This site was named in the address of this page, by whoever wrote the link.'
+              : siteOrigin === 'index'
+                ? 'This site was named by the kernel, at GET /v1/demo/subjects, which reports the ' +
+                  'identifiers this deployment actually seeded.'
+                : 'This site was named by the ledger itself: GET /v1/ledger, asked with no ' +
+                  'site_code at all, answered with the site it holds. Nothing about it is written ' +
+                  'into this console.'}{' '}
+            <span className={styles.chainPurpose}>
+              No identifier on this screen is a value this console carries in its own source. A
+              console that named a row would be making a claim about a database it did not write.
+            </span>
           </p>
+
+          {/*
+            * The list used to end "...and the ECDSA P-256 signature over the checkpoint note",
+            * flat, as though all four had run. Three of them always do. The fourth runs only
+            * when a checkpoint carries a signature AND this reader holds a key out of band, and
+            * on this demo log neither is true — so the sentence was crediting this browser with
+            * work it had not done, on the screen whose subject is what was actually done. The
+            * claim is not softened: what each check did or did not do is stated per check
+            * below, verbatim, and the tally two lines down counts the ones that did not run.
+            *
+            * It is now inside a disclosure rather than above the fold, and NOT ONE WORD of it
+            * changed. R6: PLAIN collapses canonicalisation detail and the RFC citations into a
+            * labelled control; it never removes them, and FULL DETAIL opens them all at once.
+            */}
+          <Disclosure
+            summary="Show exactly what arithmetic ran here, and which published standards it follows"
+            data-testid="custody-arithmetic-detail"
+          >
+            <p className={styles.prose}>
+              Nothing on this screen is the database&rsquo;s word. Every seal below is the result
+              of arithmetic this browser performed on the bytes it was served: RFC 8785
+              canonicalisation, and RFC 6962 leaf, node, inclusion and consistency hashing. The
+              ECDSA P-256 signature over the checkpoint note is checked too — whenever a
+              checkpoint carries one and a verification key reached this page from outside the
+              payload; where it did not, the check below says so in words rather than going quiet
+              or going red. The recomputations are shown, and a stranger can run the same
+              arithmetic offline with <code>pipx run trappoint-verify</code>.
+            </p>
+          </Disclosure>
+
+          {/*
+            * THE SIGNATURE CHECK, NAMED. Amber, never green and never red — R4.
+            *
+            * `.env.demo` ships VITE_MAINLINE_LOG_VKEY empty, so on the demo build this check
+            * cannot be attempted and the honest word for that is SKIPPED. It is derived from the
+            * report and the config rather than written down, because a branch that printed the
+            * skip sentence unconditionally would print it on a build that DOES carry a key.
+            */}
+          <div className={styles.limit} data-testid="custody-signature-state" data-state={signature.state}>
+            <span className={styles.limitTitle}>checkpoint signature — {signature.headline}</span>
+            <p className={styles.detail}>{signature.detail}</p>
+            <p className={styles.chainPurpose}>
+              A signature check that was not attempted is not a failure and is not a pass. It is a
+              gap in what you are being shown, and this page names it rather than leaving the space
+              blank or filling it with a tick.
+            </p>
+          </div>
 
           <dl className={styles.facts}>
             <div className={styles.fact}>
@@ -177,6 +401,19 @@ export function CustodyScreen({
               <dd className={styles.factValue}>{at === '' ? 'not yet' : at}</dd>
             </div>
           </dl>
+
+          {/*
+            * The glosses sit OUTSIDE the definition list rather than inside its rows: a `div`
+            * inside a `dl` may contain only `dt` and `dd`, and console prose smuggled into a
+            * `dd` would also be prose sharing an element with a measured value, which R8
+            * forbids for exactly the reason it reads badly here.
+            */}
+          <p className={styles.chainPurpose} data-testid="custody-facts-gloss">
+            Three numbers, never two: how many claims were re-done here and agreed, how many were
+            re-done and disagreed, and how many were never attempted at all. Offline means a check
+            needs no access to our database and no cooperation from us — a stranger with these bytes
+            and a laptop reaches the same answer.
+          </p>
 
           {info === null || info.transportNote === '' ? null : (
             <p className={styles.detail} data-testid="verifier-transport-note">
@@ -247,8 +484,19 @@ export function CustodyScreen({
                 </p>
               ) : (
                 <>
+                  {/*
+                    * The verifier's own sentence, verbatim, exactly as it has always been —
+                    * it is what reaches the honesty chrome and it is not this screen's to
+                    * rewrite. The line under it points at the band that names the same
+                    * finding; naming and quoting are different jobs and both are done.
+                    */}
                   <p className={styles.detail} data-testid="custody-summary">
                     {report.summary}
+                  </p>
+                  <p className={styles.chainPurpose} data-testid="custody-summary-pointer">
+                    That is the verifier&rsquo;s own sentence, verbatim. Which checks those were,
+                    and which checkpoint each disagreement was measured against, is named in the
+                    band under the seal at the top of this page.
                   </p>
                   <CheckList checks={report.checks} at={report.at} />
                 </>
@@ -259,12 +507,15 @@ export function CustodyScreen({
               <CheckpointPanel
                 key={`${checkpoint.site_code}-${checkpoint.tree_size}`}
                 checkpoint={checkpoint}
-                signedTextSha256={
+                noteTextSha256={
                   report?.checks
                     .find((check) => check.name === 'log_signature')
-                    ?.recomputations.find((entry) =>
-                      entry.input.endsWith(String(checkpoint.tree_size)),
+                    ?.recomputations.find(
+                      (entry) => entry.input === noteTextInput(checkpoint.tree_size),
                     )?.computed ?? ''
+                }
+                signatureStatus={
+                  report?.checks.find((check) => check.name === 'log_signature')?.status ?? null
                 }
               />
             ))}

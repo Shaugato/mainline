@@ -21,10 +21,16 @@
 import { type ReactNode } from 'react';
 
 import { Digest, Sqlstate } from '../../../design/primitives';
-import { tallyCalls, type McpCall } from '../model';
+import { tallyCalls, type EmptinessReason, type McpCall } from '../model';
 import styles from '../audit.module.css';
 
-export function CallLog({ calls }: { readonly calls: readonly McpCall[] }): ReactNode {
+export function CallLog({
+  calls,
+  emptiness,
+}: {
+  readonly calls: readonly McpCall[];
+  readonly emptiness: EmptinessReason;
+}): ReactNode {
   const tally = tallyCalls(calls);
 
   return (
@@ -89,10 +95,32 @@ export function CallLog({ calls }: { readonly calls: readonly McpCall[] }): Reac
           </thead>
           <tbody>
             {calls.length === 0 ? (
+              /*
+               * R3, at the one place on this screen where the zero is total.
+               *
+               * `mainline_meas.agent_action` held no rows when this payload was built, so there
+               * is nothing to list. The console's own sentence says what that zero is and is
+               * not; the kernel's sentence about the connection that produced the payload is
+               * quoted beneath it, verbatim, so a reader can see the deployment fact for
+               * themselves rather than being told a cause this payload never asserted.
+               */
               <tr>
                 <td colSpan={9}>
-                  No call was carried. An empty log is a claim that nothing was recorded, not a
-                  claim that nothing ran.
+                  <p className={styles.detail} data-testid="calls-empty">
+                    <strong>No rows — </strong>
+                    {emptiness.category} An empty log is a claim that nothing was recorded, not a
+                    claim that nothing ran.
+                  </p>
+                  {emptiness.quoted.map((sentence) => (
+                    <pre className={styles.statement} key={sentence} data-testid="calls-empty-probe">
+                      {sentence}
+                    </pre>
+                  ))}
+                  {emptiness.unquoted === null ? null : (
+                    <p className={styles.detail} data-testid="calls-empty-unquoted">
+                      {emptiness.unquoted}
+                    </p>
+                  )}
                 </td>
               </tr>
             ) : (

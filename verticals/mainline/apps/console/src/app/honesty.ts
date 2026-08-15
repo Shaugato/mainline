@@ -10,9 +10,19 @@
  * bundle digest and the server clock. The shell owns none of those facts and therefore
  * asserts none of them.
  *
- * The default for every slot is `unknown`, and `unknown` renders as the word "unknown"
- * with a visible "unset" marker. A slot nobody filled must look like a slot nobody
- * filled — never like a reassuring green tick that happens to be the initial state.
+ * The default for every slot is `unknown`, and it renders with a visible "unset" marker.
+ * A slot nobody filled must look like a slot nobody filled — never like a reassuring
+ * green tick that happens to be the initial state.
+ *
+ * **The marker is the invariant; the WORD is the chrome's to choose.** `HonestyChrome`
+ * renders `unknown` as the literal word only where "the console tried to establish this
+ * and could not" is the true and complete answer. Three slots are not in that situation
+ * under a live transport — no bundle was opened, so none was consulted; the bundle
+ * verifier does not run, so it has not failed; and no GT-15 attestation existed at build
+ * time, so this artefact selected neither capture path. Those three render a sentence
+ * naming the fact instead. The state below does not change and the `unset` provenance
+ * does not change: nothing here has been established either way, and the strip still
+ * says so.
  */
 
 import { createContext, useCallback, useContext } from 'react';

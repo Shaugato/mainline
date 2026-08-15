@@ -145,24 +145,160 @@ export interface BundleSource {
   read(path: string, signal?: AbortSignal): Promise<Uint8Array>;
 }
 
+/**
+ * This document's own base URL, or `null` when the environment has none.
+ *
+ * `document.baseURI` first, because a page carrying a `<base href>` means it: the console
+ * is built with `base: './'` so that it runs from a bucket root, from a sub-path and from
+ * `file://`, and `baseURI` is the one value that already accounts for all three.
+ * `window.location.href` is the fallback for a document that has not been given one.
+ *
+ * Both are read through `typeof` guards rather than assumed, because this module is also
+ * type-checked and unit-tested outside a browser, and a `ReferenceError` thrown while
+ * CONSTRUCTING a source would take the whole surface down instead of producing the
+ * failure state the surface is built to render.
+ */
+export function documentBaseUrl(): string | null {
+  const fromDocument = typeof document === 'undefined' ? '' : document.baseURI;
+  if (fromDocument !== '') return fromDocument;
+  const fromWindow = typeof window === 'undefined' ? '' : window.location.href;
+  return fromWindow === '' ? null : fromWindow;
+}
+
+/** The absolute base a `FetchBundleSource` requests against, or the reason there is none. */
+export interface BundleBase {
+  /** Absolute, with a trailing slash. `null` when no base could be formed. */
+  readonly url: string | null;
+  /** What the caller configured, verbatim, with the trailing slash added. */
+  readonly configured: string;
+  /** Why `url` is `null`. Rendered verbatim; never a summary. `null` when it is not. */
+  readonly why: string | null;
+}
+
+/**
+ * Resolve a configured bundle location into the absolute base every read uses.
+ *
+ * THE DEFECT THIS EXISTS TO CLOSE, stated plainly because it shipped. `new URL(path,
+ * base)` REQUIRES an absolute `base`; a relative one raises `Failed to construct 'URL':
+ * Invalid base URL` before any request is attempted. The demo artefact compiles
+ * `VITE_MAINLINE_BUNDLE_URL:'./bundle/'` — relative on purpose, so the built console names
+ * no hostname — and on 2026-08-15 the deployed Evidence screen therefore rendered that
+ * exception where an inventory belonged. The bytes were on the wire the whole time:
+ * `GET /bundle/manifest.json` answered 200 with 8 435 B from the same origin.
+ *
+ * Resolution happens ONCE, in the constructor, so every caller gets it and so the value a
+ * reader sees as `Source:` is the value that was actually requested rather than the value
+ * somebody configured. Those two differing without saying so is the same class of defect
+ * one layer down.
+ *
+ * **This can only ever turn a relative location into a SAME-ORIGIN one, and it changes no
+ * origin policy.** An absolute location is parsed on its own and the document base is
+ * never consulted for it — the operator who set `VITE_MAINLINE_BUNDLE_URL` at build time
+ * is the operator who built the artefact. The separate question of what a QUERY STRING may
+ * name is decided before this function is ever reached, by
+ * `src/features/evidence/source.ts:refuseRelativePath`, and that ordering is a security
+ * property with a test of its own.
+ *
+ * A location that cannot be resolved yields `url: null` and a `why`, never a throw and
+ * never a repair. A base this cannot form is one the reader has to see.
+ */
+export function resolveBundleBase(configured: string, base: string | null): BundleBase {
+  const withSlash = configured.endsWith('/') ? configured : `${configured}/`;
+
+  try {
+    // Absolute already. No base is needed, so none is consulted.
+    return { url: new URL(withSlash).toString(), configured: withSlash, why: null };
+  } catch {
+    // Relative. That is the normal case for this build; fall through to the document base.
+  }
+
+  if (base === null) {
+    return {
+      url: null,
+      configured: withSlash,
+      why:
+        `"${withSlash}" is a relative location and this environment exposes no base URL to ` +
+        'resolve it against — no `document.baseURI` and no `window.location.href`. A relative ' +
+        'string is not a legal base for `new URL`, so no request can be addressed from it.',
+    };
+  }
+
+  try {
+    return { url: new URL(withSlash, base).toString(), configured: withSlash, why: null };
+  } catch (error) {
+    return {
+      url: null,
+      configured: withSlash,
+      why: `"${withSlash}" could not be resolved against "${base}": ${String(error)}`,
+    };
+  }
+}
+
 /** Reads a bundle served as static files. The demo URL's normal case. */
 export class FetchBundleSource implements BundleSource {
+  /**
+   * The absolute base every read is addressed under — what was REQUESTED, not what was
+   * configured. The evidence surface prints this as `Source:`, and a reader comparing a
+   * screenshot against a `curl` needs the two to be the same string.
+   *
+   * It falls back to the configured value only when no base could be formed at all, in
+   * which case every `read` rejects with the reason and nothing is ever fetched.
+   */
   readonly id: string;
-  private readonly baseUrl: string;
+  private readonly base: BundleBase;
   private readonly fetchImpl: typeof fetch;
 
   constructor(baseUrl: string, fetchImpl?: typeof fetch) {
-    this.baseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-    this.id = this.baseUrl;
+    this.base = resolveBundleBase(baseUrl, documentBaseUrl());
+    this.id = this.base.url ?? this.base.configured;
     this.fetchImpl = fetchImpl ?? globalThis.fetch.bind(globalThis);
   }
 
+  /** The absolute URL a bundle-relative path is requested at. Throws with the reason. */
+  private urlFor(path: string): string {
+    const base = this.base.url;
+    if (base === null) {
+      throw new Error(
+        `${path} could not be addressed. ${this.base.why ?? 'no reason was recorded, which is itself a defect'}`,
+      );
+    }
+    try {
+      return new URL(path, base).toString();
+    } catch (error) {
+      throw new Error(`${path} is not a legal path under ${base}: ${String(error)}`);
+    }
+  }
+
+  /**
+   * One read, and a failure that names the request and the answer.
+   *
+   * Every rejection here carries the ABSOLUTE URL that was requested and, for a response,
+   * its verbatim status line. `audit.ts` puts this message on screen unedited, so "the
+   * manifest could not be read" has to arrive as `GET https://…/bundle/manifest.json →
+   * HTTP 404 Not Found` rather than as a sentence a reader cannot act on.
+   */
   async read(path: string, signal?: AbortSignal): Promise<Uint8Array> {
-    const url = new URL(path, this.baseUrl).toString();
+    const url = this.urlFor(path);
     const init: RequestInit = signal === undefined ? {} : { signal };
-    const response = await this.fetchImpl(url, init);
+
+    let response: Response;
+    try {
+      response = await this.fetchImpl(url, init);
+    } catch (error) {
+      // An abort is supersession, not a failure, and its identity is preserved so the
+      // callers that check for it keep working.
+      if (signal?.aborted === true) {
+        throw error instanceof Error ? error : new Error(String(error));
+      }
+      throw new Error(`GET ${url} → the request did not complete: ${String(error)}`);
+    }
+
     if (!response.ok) {
-      throw new Error(`GET ${url} → HTTP ${response.status}`);
+      const status =
+        response.statusText === ''
+          ? String(response.status)
+          : `${response.status} ${response.statusText}`;
+      throw new Error(`GET ${url} → HTTP ${status}`);
     }
     return new Uint8Array(await response.arrayBuffer());
   }

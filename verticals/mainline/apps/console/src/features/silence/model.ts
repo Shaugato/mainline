@@ -63,6 +63,29 @@ import type {
 export const PER_LIMIT_SENTENCE =
   'PER proves exhaustion of the retrieval that ran, not of the corpus.';
 
+/**
+ * THE GLOSS. It sits BESIDE the sentence above, never in place of it (R8).
+ *
+ * The bounding sentence is exact and it is also, for a first-time reader, eleven words of
+ * vocabulary they have not been given: *exhaustion*, *retrieval*, *corpus*. A reader who
+ * cannot decode it will read past it, and reading past it is precisely how the stronger
+ * claim — "nothing was withheld" — gets made on our behalf by somebody else.
+ *
+ * So the sentence is rendered verbatim, in the mono face, in its own verbatim well, and
+ * this restates the same boundary in the reader's words next to it. It does not widen the
+ * claim by a millimetre: "did not hold back what it found" and "looked everywhere" are two
+ * different promises, and this gloss names both in order to say which one is being made.
+ *
+ * It is a constant beside `PER_LIMIT_SENTENCE`, and for the same reason: a rewording is a
+ * deliberate edit to a named export rather than a copy edit inside a component, and a CI
+ * grep has one target. `PerPanel` and the use-case walkthrough render this same string, so
+ * the two cannot drift.
+ */
+export const PER_BOUND_GLOSS =
+  'In plain words: this proves the search that ran did not hold back anything it found at or ' +
+  'above the threshold. It does not prove the search looked everywhere. Those are two ' +
+  'different promises, and the receipt is deliberately making only the first one.';
+
 // ── Conservation: the identity the reader can add up ─────────────────────────────
 
 export interface ConservationTerm {

@@ -160,12 +160,12 @@
     },
     {
       "id": "no-blank-line",
-      "note": "A note with no empty line has no signature section, and unverified note text is not data.",
+      "note": "A note with no empty line has no signature section: nothing signed these bytes. Until 2026-08-15 this vector expected `malformed`, and the reclassification to `unsigned` is docs/leads/screens-work-plan.md section 2.6(b) — a checkpoint nobody could check has not been accused of anything, which is what src/verify/config.ts already said and checkpoint.ts did not do. spec/wire/checkpoint.md section 10 does NOT require a rejection here: its item 6 lists exactly four refusals (leading-zero tree size, root not 32 bytes, an empty extension line, and U+002D or U+2013 for U+2014) and this is none of them. THE BAR STAYS NARROW. The text still has to parse in full, and a note carrying a signature that does not verify is `failed` forever - see resigned-body-different-key-spoofed-id, single-byte-mutation-of-the-root-line, and tests/unit/verify/checkpoint-unsigned.test.ts, which pins both edges against this very note.",
       "trust": [
         "A"
       ],
       "full_note": "mainline.example/site/BLK-07\n5\nAMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=\ncanon: 1 260ed37ddc610f1fb94ddce98998fe4ae5ce883698ad5c7033839cd258dcd659\ndrand: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971 31088494 7d045d05caf218eff9f7bafe0acb452b94a8c369d138ce23c4807b4b62ce46c7\nnist: 2.0 2.29255654 d7a6237ed272c6c48bfa16552709fa2c564448e263906af4ba6a740aacef3cd40431e945cdfcfc855f321c14056ac89a94b47b50472cc92aab890ceafa42baad\n",
-      "expect": "malformed",
+      "expect": "unsigned",
       "expect_reason_contains": "empty line"
     },
     {

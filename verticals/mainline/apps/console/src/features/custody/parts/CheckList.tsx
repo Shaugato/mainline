@@ -17,11 +17,23 @@
  * SKIP is styled as loudly as FAIL, in the warn accent rather than the neutral one,
  * because `spec/custody/checks.yaml` says so in its own header: *a verifier that quietly
  * passes because it did not look is the single worst artefact this domain could ship*.
+ *
+ * ── WHAT PLAIN COLLAPSES HERE, AND WHAT IT MAY NOT ──────────────────────────────
+ *
+ * The recomputation table is a wall of 64-character hex, and it is the single most
+ * valuable thing on the screen to a reader who can use it and the single most alienating
+ * to one who cannot. So in PLAIN it starts collapsed behind a control that says what is
+ * inside it, and in FULL DETAIL it starts open (R6). It is in the DOM either way: a text
+ * search finds it, a keyboard reaches it, and `@media print` opens every one of them.
+ *
+ * The seal, the check name, the provenance chip and the verifier's `detail` — which is a
+ * kernel-side string written for the person who has to act on it — are NEVER collapsed, in
+ * either mode. Those are the finding; the table is the working.
  */
 
 import { type ReactNode } from 'react';
 
-import { ProvenanceChip, VerificationSeal } from '../../../design/primitives';
+import { Disclosure, ProvenanceChip, VerificationSeal } from '../../../design/primitives';
 import type { CheckResult, Recomputed } from '../../../verify/ledger';
 import { sealFor } from '../model';
 import styles from '../custody.module.css';
@@ -55,7 +67,14 @@ function RecomputationTable({
             <tr
               key={`${row.input}-${index}`}
               className={styles.row}
-              data-agrees={row.agrees ? 'true' : 'false'}
+              /*
+               * Three states, not two. A row whose `claimed` is empty is one this browser
+               * computed and the payload never asserted — the SHA-256 of a note text is the
+               * standing example, because a checkpoint does not publish a digest of itself.
+               * Rendering that as DISAGREES would print a red word about an agreement nobody
+               * ever proposed, which on this screen is worse than printing nothing.
+               */
+              data-agrees={row.claimed === '' ? 'uncompared' : row.agrees ? 'true' : 'false'}
             >
               <th scope="row">
                 {row.algorithm}
@@ -64,8 +83,12 @@ function RecomputationTable({
               </th>
               <td className={styles.verdictCell}>{row.inputBytes}</td>
               <td className={styles.hash}>{row.computed}</td>
-              <td className={styles.hash}>{row.claimed}</td>
-              <td className={styles.verdictCell}>{row.agrees ? 'agrees' : 'DISAGREES'}</td>
+              <td className={styles.hash}>
+                {row.claimed === '' ? 'nothing carried to compare' : row.claimed}
+              </td>
+              <td className={styles.verdictCell}>
+                {row.claimed === '' ? 'not compared' : row.agrees ? 'agrees' : 'DISAGREES'}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -112,7 +135,13 @@ export function CheckList({
               {check.bounded}
             </p>
           )}
-          <RecomputationTable rows={check.recomputations} checkName={check.name} />
+          {check.recomputations.length === 0 ? null : (
+            <Disclosure
+              summary={`Show the ${check.recomputations.length} exact digit-by-digit comparison(s) behind this verdict`}
+            >
+              <RecomputationTable rows={check.recomputations} checkName={check.name} />
+            </Disclosure>
+          )}
         </li>
       ))}
     </ol>

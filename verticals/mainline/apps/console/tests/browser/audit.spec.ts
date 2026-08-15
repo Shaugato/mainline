@@ -263,6 +263,81 @@ test.describe('the audit surface', () => {
     );
   });
 
+  test('an empty aggregate says WHY it is empty, and quotes the kernel for it', async ({ page }) => {
+    const envelope = decodeEnvelope();
+    const first = envelope.data.views[0];
+    expect(first).toBeDefined();
+    if (first !== undefined) {
+      envelope.data.views[0] = { ...first, rows: [], limits: { ...first.limits, rows_returned: 0 } };
+    }
+    // The probe the live payload carries, verbatim — measured against the live URL on
+    // 2026-08-15. It is set here rather than read from the fixture so this test asserts that
+    // the SCREEN quotes whatever the payload said, not that two fixtures agree.
+    const probe =
+      "not probed by the demo API: it connects as the demo's own read role, not as the " +
+      'Managed-MCP service account, so a refusal here would answer a different question than ' +
+      'the one this field asks';
+    envelope.data.unreachable = [
+      { schema_name: 'mainline_qa', probe, outcome: 'not_probed', sqlstate: null },
+    ];
+
+    await serveAudit(page, envelope);
+    await openAudit(page);
+
+    const empty = page.getByTestId(`empty-${first?.view ?? ''}`);
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText('No rows');
+    await expect(empty).toContainText('a fact about this deployment and not about any record');
+    // The kernel's own sentence, unchanged. R8: rendered verbatim, never paraphrased.
+    // `.first()` because the payload may carry more than one probe and each gets its own
+    // block; the assertion is that the FIRST one is reproduced byte for byte.
+    await expect(page.getByTestId(`empty-probe-${first?.view ?? ''}`).first()).toHaveText(probe);
+
+    // And the row count is still zero. R3: the zero is true and is never filled.
+    await expect(page.getByTestId(`caps-${first?.view ?? ''}`)).toContainText('0 row(s)');
+  });
+
+  test('an empty call log says why, rather than leaving a blank', async ({ page }) => {
+    const envelope = decodeEnvelope();
+    envelope.data.calls = [];
+
+    await serveAudit(page, envelope);
+    await openAudit(page);
+
+    const empty = page.getByTestId('calls-empty');
+    await expect(empty).toBeVisible();
+    await expect(empty).toContainText('a fact about this deployment and not about any record');
+    await expect(empty).toContainText('not a claim that nothing ran');
+    await expect(page.getByTestId('call-total')).toHaveText('0');
+  });
+
+  test('the caps are stated in one plain sentence with the exact numbers kept', async ({ page }) => {
+    const envelope = decodeEnvelope();
+    const first = envelope.data.views[0];
+    expect(first).toBeDefined();
+
+    await serveAudit(page, envelope);
+    await openAudit(page);
+
+    const caps = page.getByTestId(`caps-${first?.view ?? ''}`);
+    await expect(caps).toBeVisible();
+    await expect(caps).toContainText('The read-only account that asked this question is allowed');
+    await expect(caps).toContainText(String(first?.limits.row_cap ?? -1));
+    await expect(caps).toContainText(String(first?.limits.byte_cap ?? -1));
+    await expect(caps).toContainText(String(first?.limits.bytes_returned ?? -1));
+  });
+
+  test('the screen opens with a plain band that names no undefined term', async ({ page }) => {
+    const envelope = decodeEnvelope();
+    await serveAudit(page, envelope);
+    await openAudit(page);
+
+    const band = page.getByTestId('audit-plain-band');
+    await expect(band).toBeVisible();
+    await expect(band).toContainText('Every question an automated agent asks this database');
+    await expect(band).toContainText('never a claim that nothing exists');
+  });
+
   test('the surface has no serious or critical accessibility defect', async ({ page }) => {
     const envelope = decodeEnvelope();
     await serveAudit(page, envelope);

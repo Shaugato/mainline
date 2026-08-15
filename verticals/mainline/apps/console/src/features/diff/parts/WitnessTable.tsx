@@ -31,6 +31,7 @@ import { type ReactNode } from 'react';
 import { ProvenanceChip } from '../../../design/primitives';
 import styles from '../diff.module.css';
 import type { WitnessBinding } from '../model';
+import { Disclosure, Gloss } from './Plain';
 
 const STATE_WORD: Readonly<Record<string, string>> = {
   bound: 'corroborated',
@@ -60,6 +61,15 @@ export function WitnessTable({ binding }: { readonly binding: WitnessBinding }):
         </span>
       </div>
 
+      <Gloss>
+        A <em>witness</em> is a row the database wrote at the same moment as the edit, naming one
+        field that changed and saying, in its own words, why. It is the only thing on this screen
+        that gives a reason: everything else here is either the wording itself or arithmetic this
+        browser did over it. <em>Minimal</em> above says whether the database claims these rows
+        are the smallest set that accounts for the change; <strong>not established</strong> means
+        it made no such claim, which is not the same as claiming they are not.
+      </Gloss>
+
       {binding.availability === 'unavailable' ? (
         <div className={styles.absence}>
           <p className={styles.absenceHead}>WITNESS UNAVAILABLE</p>
@@ -84,44 +94,58 @@ export function WitnessTable({ binding }: { readonly binding: WitnessBinding }):
           <div className={styles.chips}>
             <ProvenanceChip kind="db:column" detail="mainline.delta_witness" />
           </div>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <caption className={styles.caption}>
-                Every row below was written by the database in the same transaction as the
-                clause version. Nothing in this table was composed by the console.
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">rule_id</th>
-                  <th scope="col">field</th>
-                  <th scope="col">from_repr</th>
-                  <th scope="col">to_repr</th>
-                  <th scope="col">note</th>
-                  <th scope="col">this browser</th>
-                </tr>
-              </thead>
-              <tbody>
-                {binding.witnesses.map((bound, index) => (
-                  <tr key={`${bound.witness.rule_id}-${bound.witness.field}-${index}`}>
-                    <th scope="row" className={styles.mono}>
-                      {bound.witness.rule_id}
-                    </th>
-                    <td className={styles.mono}>{bound.witness.field}</td>
-                    <td className={styles.mono}>{bound.witness.from_repr}</td>
-                    <td className={styles.mono}>{bound.witness.to_repr}</td>
-                    <td>{bound.witness.note}</td>
-                    <td>
-                      <span className={styles.state} data-state={bound.state}>
-                        {STATE_WORD[bound.state] ?? bound.state}
-                      </span>
-                      <span className={styles.visuallyHidden}>. </span>
-                      <p className={styles.note}>{bound.bindingNote}</p>
-                    </td>
+          {/*
+           * The ROWS collapse; the three states above never do.
+           *
+           * WITNESS UNAVAILABLE and NO WITNESSES are stated absences, and R6 forbids
+           * collapsing one — a reader who does not click must still be told that the
+           * database said nothing, and told that it is different from the database saying
+           * there is nothing. Only the populated table is behind the click, and it is
+           * verbatim on both sides of it.
+           */}
+          <Disclosure
+            summary="Show the database’s own reasons, row by row"
+            testId="diff-witness-disclosure"
+          >
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <caption className={styles.caption}>
+                  Every row below was written by the database in the same transaction as the
+                  clause version. Nothing in this table was composed by the console.
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">rule_id</th>
+                    <th scope="col">field</th>
+                    <th scope="col">from_repr</th>
+                    <th scope="col">to_repr</th>
+                    <th scope="col">note</th>
+                    <th scope="col">this browser</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {binding.witnesses.map((bound, index) => (
+                    <tr key={`${bound.witness.rule_id}-${bound.witness.field}-${index}`}>
+                      <th scope="row" className={styles.mono}>
+                        {bound.witness.rule_id}
+                      </th>
+                      <td className={styles.mono}>{bound.witness.field}</td>
+                      <td className={styles.mono}>{bound.witness.from_repr}</td>
+                      <td className={styles.mono}>{bound.witness.to_repr}</td>
+                      <td>{bound.witness.note}</td>
+                      <td>
+                        <span className={styles.state} data-state={bound.state}>
+                          {STATE_WORD[bound.state] ?? bound.state}
+                        </span>
+                        <span className={styles.visuallyHidden}>. </span>
+                        <p className={styles.note}>{bound.bindingNote}</p>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Disclosure>
         </>
       )}
     </section>

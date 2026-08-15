@@ -62,6 +62,8 @@ __all__ = [
     "NotFound",
     "ReadError",
     "Unrepresentable",
+    "check_request",
+    "read_demo_subjects",
     "read_resource",
 ]
 
@@ -193,7 +195,26 @@ _DECLARED_PARAMS: Final[Mapping[str, tuple[tuple[str, ...], tuple[str, ...]]]] =
     "recall_run": (("run_id",), ()),
     "propagation": (("lesson_id",), ()),
     "audit": ((), ()),
+    # THE THIRTEENTH, declared by the console on 2026-08-15. ``GET /v1/demo/subjects`` is
+    # the demo's subject index — :mod:`subjects` builds it — and it takes NO path parameter
+    # and NO query parameter. That is the contract, not an omission: the question it answers
+    # is "which subjects does this database carry", and a caller who could filter the answer
+    # would be choosing it. ``?site_code=OTHER`` is therefore a 400 naming the declared
+    # (empty) set, exactly as it is for a resource that declares two and was sent a third.
+    "demo_subjects": ((), ()),
 }
+
+
+def check_request(resource: str, params: Mapping[str, str], query: Mapping[str, str]) -> None:
+    """Public entry to :func:`_check_request`, for a resource implemented outside :data:`READS`.
+
+    :mod:`mainline_demo_api.subjects` is such a resource. It could have reached the private
+    name — nothing in Python stops it — and then the parameter contract would have had a
+    caller that a rename could not see. This is the seam, named, so that the set of things
+    allowed to declare a ``/v1`` resource's parameters is exactly the set of things that
+    call a public function in this module.
+    """
+    _check_request(resource, params, query)
 
 
 def _check_request(resource: str, params: Mapping[str, str], query: Mapping[str, str]) -> None:
@@ -2421,8 +2442,33 @@ def read_audit(
 
 ReadFn = Callable[[psycopg.Connection[Any], Mapping[str, str], Mapping[str, str]], dict[str, Any]]
 
-#: Resource key → implementation. Exactly the twelve GETs of
+
+def read_demo_subjects(
+    conn: psycopg.Connection[Any], params: Mapping[str, str], query: Mapping[str, str]
+) -> dict[str, Any]:
+    """``GET /v1/demo/subjects`` — implemented in :mod:`subjects`, delegated to from here.
+
+    THE IMPORT IS INSIDE THE FUNCTION AND IT IS BREAKING A REAL CYCLE, not a stylistic
+    one. ``subjects`` imports THIS module — for :class:`NotFound` and
+    :func:`check_request`, because a ``/v1`` resource implemented elsewhere must still
+    refuse the parameters it does not declare through the one table that declares them —
+    so a module-scope import here would be the other half of the cycle. Deferring it to
+    call time is the documented shape ``ruff.toml`` permits for exactly this reason.
+
+    The delegation exists rather than the entry pointing straight at
+    ``subjects.read_subjects`` for the same reason: naming that function in the table below
+    would require importing the module at the top of this file.
+    """
+    from . import subjects
+
+    return subjects.read_subjects(conn, params, query)
+
+
+#: Resource key → implementation. Exactly the thirteen GETs of
 #: ``console/src/data/resources.ts``; ``tests/test_envelope.py`` asserts the set matches.
+#: The thirteenth, ``demo_subjects``, was declared by the console on 2026-08-15 and is the
+#: demo's own subject index — the read that tells a screen which identifier to address,
+#: which is what three screens were carrying in their own source and answering 404 for.
 READS: Final[Mapping[str, ReadFn]] = {
     "permit": read_permit,
     "change_request": read_change_request,
@@ -2436,6 +2482,7 @@ READS: Final[Mapping[str, ReadFn]] = {
     "recall_run": read_recall_run,
     "propagation": read_propagation,
     "audit": read_audit,
+    "demo_subjects": read_demo_subjects,
 }
 
 

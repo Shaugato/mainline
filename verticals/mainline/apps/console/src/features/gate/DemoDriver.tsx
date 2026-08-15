@@ -16,6 +16,43 @@
  * because `mainline.fn_permit_merge_gate` RE-DERIVES the open count instead of trusting
  * the column. The third one matters too: a gate that always refuses is broken, not safe.
  *
+ * ── RUN ALL IS THE PRIMARY CONTROL (`docs/leads/demo-story-plan.md` §5) ──────────
+ *
+ * It is first in the list and first in the tab order, and the three named controls keep
+ * their argument order underneath it. The lead's reading is that RUN ALL tells the whole
+ * argument — refuse, refuse under a forged counter, admit on a signature — in ONE
+ * exchange, which is what the transaction discipline below already forces; the ordering
+ * therefore embraces a constraint instead of apologising for it. The other three are not
+ * demoted and not hidden: a reader who wants one beat at a time still has one press for
+ * each.
+ *
+ * ── THE REVEAL IS PRESENTATION, AND SAYS SO (R11) ───────────────────────────────
+ *
+ * The four beats arrive TOGETHER. They cannot arrive any other way — see the transaction
+ * discipline below — so showing them one after another is a READING AID over a completed
+ * exchange, never a re-enactment of it, and the panel states that in one sentence beside
+ * the paragraph that states the transaction discipline.
+ *
+ * Two consequences, both structural rather than remembered:
+ *
+ *   • **The staging is CSS.** `src/features/gate/beats.ts` computes a step INDEX per
+ *     beat; `demo-driver.module.css` turns it into a delay expressed as
+ *     `--tp-duration-evidence`, under the EVIDENCE ceiling, and cancels itself entirely
+ *     under `prefers-reduced-motion`. No timer advances any value in this module.
+ *   • **Every duration on screen is the payload's.** `elapsedText` reads
+ *     `beat.elapsed_ms` and takes a beat rather than a number, so no call site can hand
+ *     it a reveal delay. Measured on the live URL: the four beats reported `0.011`,
+ *     `527.051`, `472.401` and `392.347` ms — four different numbers, which is exactly
+ *     what a uniform reveal delay printed in their place would have destroyed.
+ *
+ * ── WHAT THIS MODULE PUBLISHES ──────────────────────────────────────────────────
+ *
+ * Two things, both only after an exchange has RETURNED, and both the payload's own
+ * values verbatim: the subject the run drove (`src/features/gate/addressing.ts`, so the
+ * gate surface can open on the permit a run named), and the whole completed payload
+ * (`src/features/gate/last-run.ts`, Contract B — the screen below this panel subscribes
+ * and does its own adapting). This module is the producer for both and consumes neither.
+ *
  * ── WHY FOUR CONTROLS AND ONE ENDPOINT ───────────────────────────────────────────
  *
  * `docs/deploy/gate-run-contract.md` §2 pins the transaction discipline: the four beats
@@ -47,16 +84,55 @@
  * `src/features/gate` is EVIDENCE (`docs/leads/ui.md` §1.1): mono for anything the
  * database emitted, no easing over 160 ms, nothing that moves that a screenshot could not
  * reproduce, no `motion`, no `@react-three/*`. Styles are in `demo-driver.module.css`.
+ *
+ * R12 adds the reveal's own share of that law, and each clause is checked by
+ * `tests/unit/gate/demo-driver.test.tsx` rather than remembered: each step is one
+ * `--tp-duration-evidence`, `prefers-reduced-motion` renders all four beats at once, and
+ * the RESTING state after the sequence is the complete panel — so a screenshot taken at
+ * any moment is a truthful screenshot rather than a frame of something in flight.
  */
 
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 
 import { RESOURCES } from '../../data/resources';
 import { useResource } from '../../data/useResource';
-import { ConstraintName, Mono, Sqlstate } from '../../design/primitives';
+import { ConstraintName, Disclosure, Mono, Sqlstate } from '../../design/primitives';
 
+import { publishGateRunSubject } from './addressing';
+import {
+  clauseIdFromRun,
+  elapsedText,
+  revealPlan,
+  type BeatCue,
+  type GateRunPermitRow,
+  type GateRunPersistence,
+  type GateRunData,
+  type Reveal,
+} from './beats';
 import styles from './demo-driver.module.css';
+import { publishLastGateRun } from './last-run';
 import { useGateTransport } from './transport-context';
+
+/**
+ * The payload's shape, re-exported from where it now lives.
+ *
+ * `src/features/gate/beats.ts` owns these declarations so that a subscriber to Contract B
+ * can name the payload without importing this lazily-loaded component chunk. They are
+ * re-exported here because several suites and another worker's module already import them
+ * from this path, and moving a type is not a reason to make anybody else edit a file.
+ */
+export type {
+  BeatCue,
+  GateRunBeat,
+  GateRunData,
+  GateRunFingerprint,
+  GateRunPermitRow,
+  GateRunPersistence,
+  GateRunSelfEvidence,
+  GateRunSubject,
+  GateRunTransaction,
+  Reveal,
+} from './beats';
 
 // ── The resource, and the files that must name it ──────────────────────────
 
@@ -120,154 +196,7 @@ const DECLARATION_GAP: readonly string[] = [
     'operator sets it. That refusal is the honest answer and this console renders it as one.',
 ];
 
-// ── The payload ────────────────────────────────────────────────────────────
-
-/**
- * A STRUCTURAL reading of `gate-run.schema.json`, not a re-declaration of it.
- *
- * The normative contract is `verticals/mainline/apps/demo-api/contracts/gate-run.schema.json`
- * (`$id` `…/contracts/1.0/gate-run.schema.json`) and it is enforced by the transport, in
- * `finishExchange`, before any of this renders. What is declared here is only the subset
- * this screen reads — the same discipline `src/app/refusal.ts` applies to the refusal wire
- * payload, and for the same reason: a component that re-declares a whole contract is a
- * second copy of it that can drift.
- */
-export interface GateRunBeat {
-  readonly ordinal: number;
-  readonly name: string;
-  readonly label: string;
-  readonly expected: { readonly outcome: string; readonly sqlstate?: string; readonly constraint?: string };
-  readonly outcome: string;
-  readonly sqlstate: string | null;
-  readonly constraint: string | null;
-  readonly constraint_source: 'reported' | 'parsed' | 'absent' | null;
-  readonly message: string | null;
-  readonly matched_expectation: boolean;
-  readonly elapsed_ms: number;
-  readonly statement: string | null;
-  readonly observed: Readonly<Record<string, unknown>>;
-  readonly note: string | null;
-}
-
-export interface GateRunTransaction {
-  readonly isolation: string;
-  readonly disposition: string;
-  readonly opened_logical_timestamp: string;
-  readonly closed_logical_timestamp: string | null;
-  readonly single_transaction: boolean;
-  readonly savepoints: readonly string[];
-  readonly retry_sqlstate: string | null;
-  readonly canonicalisation: string;
-}
-
-export interface GateRunSubject {
-  readonly subject_kind: string;
-  readonly subject_id: string;
-  readonly external_ref: string;
-  readonly state: string;
-  readonly head_seq: number;
-  readonly gate_epoch: number;
-  readonly open_blocking: number;
-  readonly open_blocking_derived: number;
-  readonly blocking_check_id: string | null;
-  readonly exposure_receipt_id: string | null;
-  readonly site_code: string;
-}
-
-/**
- * The permit row's own columns, as a fingerprint reads them. `null` when the subject was
- * absent at that end of the run.
- *
- * These columns are here rather than a count because BEAT 3 IS A COLUMN EDIT: it forces
- * `open_blocking` to zero out of band, which moves nothing a `count(*)` can see. A
- * persistence check made only of counts would report `identical: true` over the one write
- * this demo exists to talk about.
- */
-export interface GateRunPermitRow {
-  readonly state: string;
-  readonly head_seq: number;
-  readonly gate_epoch: number;
-  readonly open_blocking: number;
-  readonly unmet_floor_count: number;
-  readonly countersigned_count: number;
-  readonly merged_commit: string | null;
-}
-
-export interface GateRunFingerprint {
-  /** Every table the four beats can write, counted WHOLE — unscoped, deliberately. */
-  readonly row_counts: Readonly<Record<string, number>>;
-  /** The same question asked of THIS permit only. */
-  readonly subject_row_counts: Readonly<Record<string, number>>;
-  readonly permit_row: GateRunPermitRow | null;
-}
-
-/**
- * The run-scoped readings `self_persisted` is computed from — carried in the payload, the
- * contract says, "so that a reader can recompute the verdict rather than take it".
- * Rendering them is what makes that sentence true of this screen as well.
- */
-export interface GateRunSelfEvidence {
-  readonly minted_disposition_id: string | null;
-  readonly minted_disposition_rows_after_rollback: number;
-  readonly subject_row_counts_before: Readonly<Record<string, number>>;
-  readonly subject_row_counts_after: Readonly<Record<string, number>>;
-  readonly permit_row_identical: boolean;
-}
-
-/**
- * WIDENED 2026-08-14 — the contract moved and this reading had not.
- *
- * `gate-run.schema.json` requires eight members here: `before`, `after`, `identical`,
- * `self_persisted`, `self_evidence`, `concurrent_writes`, `tables`, `note`. This
- * interface declared three, and the three it declared were led by the one the contract's
- * own `persistence_check` description says the verdict does NOT key on:
- *
- *   `identical` is a statement about THE DATABASE — every one of those tables, counted
- *   whole. `self_persisted` is the statement about THIS RUN, and it is what the verdict
- *   keys on, because a whole-table count cannot distinguish "I persisted something" from
- *   "somebody else did".
- *
- * A screen that showed only `identical` therefore showed the wrong field with a straight
- * face: a busy shared cluster makes `identical` false for reasons that have nothing to do
- * with the run in front of the reader. Nothing was removed to fix that — `identical` is
- * still on screen, beside the field it was standing in for, and `concurrent_writes` names
- * the other caller's tables rather than letting the reader guess.
- */
-export interface GateRunPersistence {
-  readonly before: GateRunFingerprint;
-  readonly after: GateRunFingerprint;
-  readonly identical: boolean;
-  readonly self_persisted: boolean;
-  readonly self_evidence: GateRunSelfEvidence;
-  /**
-   * `null` when `identical` is true. Otherwise the tables whose unscoped count moved
-   * while this run was open, each as `[before, after]` — ANOTHER caller's rows, reported
-   * rather than blamed on the run.
-   */
-  readonly concurrent_writes: Readonly<Record<string, readonly [number, number]>> | null;
-  readonly tables: readonly string[];
-  readonly note: string;
-}
-
-export interface GateRunData {
-  readonly schema_id: string;
-  readonly run_id: string;
-  readonly generated_at: string;
-  readonly outcome: string;
-  readonly verdict: string;
-  readonly failures: readonly string[];
-  readonly persisted: boolean;
-  readonly elapsed_ms: number;
-  readonly transaction: GateRunTransaction;
-  readonly subject: GateRunSubject;
-  readonly beats: readonly GateRunBeat[];
-  readonly persistence_check: GateRunPersistence;
-}
-
 // ── The controls ───────────────────────────────────────────────────────────
-
-/** Which beats a control reveals. `all` is every beat plus the run's own witnesses. */
-export type Reveal = 2 | 3 | 4 | 'all';
 
 interface Control {
   readonly id: string;
@@ -275,13 +204,36 @@ interface Control {
   readonly label: string;
   /** What this beat was WRITTEN against. Compared on screen against what came back. */
   readonly expectation: string;
+  /**
+   * The one control a stranger should press first. Exactly one entry carries it, and
+   * `tests/unit/gate/demo-driver.test.tsx` asserts both that it is exactly one and that
+   * it is the one that reveals every beat.
+   */
+  readonly primary?: true;
 }
 
 /**
- * Fixed order, and the order is the argument. Refuse; refuse under attack; admit. A demo
- * that showed the admission first would be a demo about a database that says yes.
+ * RUN ALL leads; the three named controls keep the argument's order underneath it.
+ *
+ * The order of the last three is unchanged and is still the argument — refuse; refuse
+ * under attack; admit. A demo that showed the admission first would be a demo about a
+ * database that says yes.
+ *
+ * What changed is what comes BEFORE them (`docs/leads/demo-story-plan.md` §5): the whole
+ * argument is one exchange, because the transaction discipline below makes it one, and
+ * the control that performs that exchange should be the one a stranger reaches first.
+ * The three named controls each perform the same exchange and show one beat of it, so
+ * nothing is lost by putting them second — and a reader who wants one beat at a time is
+ * one press away from it either way.
  */
 const CONTROLS: readonly Control[] = Object.freeze([
+  {
+    id: 'all',
+    reveal: 'all',
+    label: 'RUN ALL',
+    expectation: 'all four beats, one transaction, rolled back — with the evidence for both claims',
+    primary: true,
+  },
   {
     id: 'merge',
     reveal: 2,
@@ -301,13 +253,92 @@ const CONTROLS: readonly Control[] = Object.freeze([
     label: 'SIGN A DISPOSITION AND MERGE',
     expectation: 'expect ADMITTED — 00000, with a server-computed clearance digest',
   },
+]);
+
+// ── USE CASE 1, IN WORDS: "the obvious tamper does not work" ───────────────
+
+/**
+ * THE WALKTHROUGH.
+ *
+ * `docs/leads/two-audience-ux-plan.md` R9 selects two use cases this platform can
+ * demonstrate live, against a real database, in front of a judge. This is the first of
+ * them, and these paragraphs are the plain-language half of it: what is about to be
+ * attempted, how to read what comes back, and why the MIDDLE beat is the product.
+ *
+ * ── WHY THIS IS PROSE AND NOT A NARRATION OF THE RESULT ──────────────────────────
+ *
+ * Every sentence here describes the DEMONSTRATION — what the four beats do, which is a
+ * fact about `docs/deploy/gate-run-contract.md` and about the statements the beats send.
+ * Not one of them describes what came back. That is R8, and it is the same discipline
+ * this module already documents about itself: there is no branch anywhere below that
+ * picks a sentence from a SQLSTATE, from a constraint name or from an outcome, and
+ * `tests/unit/gate/demo-driver.test.tsx` reads the file to prove it. What happened is
+ * shown by the beats themselves, in the database's own words, underneath.
+ *
+ * The paragraphs are data rather than JSX so the walkthrough can be asserted as a whole —
+ * a count, and a check that no code literal leaked into it — rather than scraped out of a
+ * render.
+ */
+interface WalkthroughStep {
+  readonly id: string;
+  readonly title: string;
+  readonly body: string;
+}
+
+const WALKTHROUGH: readonly WalkthroughStep[] = Object.freeze([
   {
-    id: 'all',
-    reveal: 'all',
-    label: 'RUN ALL',
-    expectation: 'all four beats, one transaction, rolled back — with the evidence for both claims',
+    id: 'attempt',
+    title: 'What is about to be attempted',
+    body:
+      'The demonstration is built around one permit that still has an obligation against it — ' +
+      'something that has to be answered before a permit is allowed to take effect. Beat 1 reads ' +
+      'that subject and shows the counts the database holds. Beat 2 asks the database to merge ' +
+      'the permit anyway, and what came back is printed below in the database\u2019s own words, ' +
+      'with the name of the rule beside it.',
+  },
+  {
+    id: 'tamper',
+    title: 'The middle beat is the product',
+    body:
+      'The check the database runs is instant because it reads a running total kept in a column ' +
+      'rather than counting the rows every time. Beat 3 forces that total to zero out of band — ' +
+      'exactly what a disarmed projector or a careless UPDATE leaves behind — so the check is now ' +
+      'satisfied and would admit the merge. It is refused anyway, because the function re-derives ' +
+      'the count from the rows instead of trusting the column, and beat 3 below is where you read ' +
+      'what the database actually did.',
+  },
+  {
+    id: 'admit',
+    title: 'The fourth beat matters too',
+    body:
+      'Beat 4 records one signature against the open obligation and asks again. A gate that always ' +
+      'refuses is broken, not safe — so a demonstration that stopped after the refusals would be ' +
+      'showing you a wall rather than a gate, and beat 4 below is where you check that the gate ' +
+      'opens once the obligation has actually been answered.',
+  },
+  {
+    id: 'nothing-kept',
+    title: 'Nothing you press is kept',
+    body:
+      'All four beats run inside one transaction that is rolled back, so pressing these controls ' +
+      'writes nothing to the database and fifty people can press them at once. The panel does not ' +
+      'ask you to take that on faith: the run reports the row counts and the permit row it read ' +
+      'before and after itself, and you can compare them below.',
   },
 ]);
+
+function Walkthrough(): ReactNode {
+  return (
+    <div className={styles.walkthrough} data-testid="demo-walkthrough">
+      {WALKTHROUGH.map((step) => (
+        <section className={styles.walkthroughStep} key={step.id} data-step={step.id}>
+          <h3 className={styles.walkthroughTitle}>{step.title}</h3>
+          <p className={styles.driverProse}>{step.body}</p>
+        </section>
+      ))}
+    </div>
+  );
+}
 
 // ── The driver ─────────────────────────────────────────────────────────────
 
@@ -337,6 +368,54 @@ export function DemoDriver(): ReactNode {
     [reload],
   );
 
+  /*
+   * SELF-ADDRESSING, WITH NO NEW ROUTE AND NO DEPLOY.
+   *
+   * A run answers with the subject it drove. Publishing it lets the gate surface
+   * below open on that permit even where `GET /v1/demo/subjects` is not deployed —
+   * measured 2026-08-15: the live URL answers that read 404 and this one 200. Nothing is
+   * published until an exchange has RETURNED, and what is published is the payload's own
+   * identifiers, verbatim; the surface says on the page that it learned them this way
+   * rather than presenting them as its own choice.
+   *
+   * `state` is the whole dependency deliberately: the effect must re-run when a second
+   * press replaces one answer with another, and `useResource` returns a new state object
+   * for each.
+   */
+  const answered = state.status === 'ready' ? state.data : null;
+  useEffect(() => {
+    if (answered === null) return;
+    publishGateRunSubject({
+      permitId: answered.subject.subject_id,
+      blockingCheckId: answered.subject.blocking_check_id,
+      clauseId: clauseIdFromRun(answered.beats),
+      externalRef: answered.subject.external_ref,
+      runId: answered.run_id,
+    });
+  }, [answered]);
+
+  /*
+   * CONTRACT B — the completed run, published for the screen below this panel.
+   *
+   * `docs/leads/demo-story-plan.md` §7.1: this module is the PRODUCER and
+   * `src/features/gate/last-run.ts` is the channel. The payload goes across VERBATIM,
+   * including each refusing beat's whole refusal object; a consumer adapts it in its own
+   * module and this one has no opinion about how.
+   *
+   * A SECOND effect rather than a line in the one above, because the two publications
+   * answer different questions and are read by different screens: one says WHICH SUBJECT
+   * this console is now about, the other says WHAT HAPPENED to it. A single effect would
+   * make either one impossible to remove without reasoning about the other.
+   *
+   * Nothing is published while a run is in flight, and nothing is published for a
+   * transport failure or an endpoint refusal — `null` on that channel means NO COMPLETED
+   * RUN, which is the only state the subscriber's un-pressed rendering is true of.
+   */
+  useEffect(() => {
+    if (answered === null) return;
+    publishLastGateRun(answered);
+  }, [answered]);
+
   if (transport === null) {
     return (
       <section className={styles.absent} data-testid="demo-driver-no-source">
@@ -357,13 +436,27 @@ export function DemoDriver(): ReactNode {
   return (
     <section className={styles.driver} data-testid="demo-driver">
       <div className={styles.driverHead}>
-        <h2 className={styles.driverTitle}>Drive the gate</h2>
+        <h2 className={styles.driverTitle}>See the database refuse, and then refuse a tamper</h2>
+        <Walkthrough />
         <p className={styles.driverProse}>
           Each control performs one <Mono>POST /v1/demo/gate-run</Mono> and shows the beat it names.
           The four beats share ONE <Mono>SERIALIZABLE</Mono> transaction, each write beat fenced by
           its own <Mono>SAVEPOINT</Mono>, and the whole transaction is rolled back — so they are
           produced together and cannot be driven one HTTP call at a time from a browser. Nothing you
           press here persists, and the payload carries the evidence for that rather than the claim.
+        </p>
+        {/*
+          R11, in one sentence and on the page rather than in a comment. It sits BESIDE the
+          paragraph above, which is unchanged: that one states the transaction discipline,
+          this one states what the console does with a result that discipline delivers all
+          at once. Both have to be readable at the same time, which is why this is a
+          sibling paragraph and not an edit to that one.
+        */}
+        <p className={styles.driverProse} data-testid="demo-reveal-note">
+          The beats below appear one after another as a reading aid, not as a replay: they were all
+          produced by the single exchange above, and the <Mono>elapsed_ms</Mono> printed beside each
+          one is that beat&apos;s own measurement from the payload rather than the pace of this
+          reveal.
         </p>
       </div>
 
@@ -374,6 +467,7 @@ export function DemoDriver(): ReactNode {
             type="button"
             className={styles.control}
             data-testid={`demo-control-${control.id}`}
+            data-primary={control.primary === true ? 'true' : undefined}
             aria-pressed={reveal === control.reveal}
             onClick={() => {
               press(control.reveal);
@@ -470,6 +564,27 @@ export function DeclarationGapPanel({
 
 // ── The report ─────────────────────────────────────────────────────────────
 
+/**
+ * THE REPORT.
+ *
+ * The reading mode is the shell's and every `Disclosure` below reads it from
+ * `DetailModeContext` — R6, and `src/app/detail-mode.ts` says why it is not threaded.
+ * What PLAIN folds away here is the run's own WITNESS TABLES: the transaction's
+ * savepoints, the before/after fingerprint, the row counts, the statement each beat
+ * sent. The verdict, `persisted`, every beat, every SQLSTATE, every constraint name,
+ * every verbatim message and the weakened-diagnosis notice are visible in both modes,
+ * always.
+ *
+ * ── THE ONE THING THE LIST DOES THAT LOOKS LIKE A TRICK, AND IS NOT ──────────────
+ *
+ * `key={run.run_id}` on the `<ol>`. A CSS animation runs when an element ENTERS the
+ * document, so a second press that reused the same list elements would leave the reveal
+ * playing once and never again — the second reader of the same screen would see a
+ * different screen from the first. The run identifier is the payload's own, one per
+ * exchange, so keying on it makes each answered run a new list and each press behave like
+ * the last. It is not a remount for its own sake and it is not a cache buster; it is the
+ * identity of the thing being shown.
+ */
 export function GateRunReport({
   run,
   reveal,
@@ -477,7 +592,7 @@ export function GateRunReport({
   readonly run: GateRunData;
   readonly reveal: Reveal;
 }): ReactNode {
-  const beats = reveal === 'all' ? run.beats : run.beats.filter((beat) => beat.ordinal === reveal);
+  const cues = revealPlan(run.beats, reveal);
 
   return (
     <div data-testid="gate-run-report" data-verdict={run.verdict} data-reveal={String(reveal)}>
@@ -504,27 +619,32 @@ export function GateRunReport({
         </ul>
       )}
 
-      <ol className={styles.beatList} data-testid="gate-run-beats">
-        {beats.map((beat) => (
-          <Beat key={beat.ordinal} beat={beat} />
+      <ol className={styles.beatList} data-testid="gate-run-beats" key={run.run_id}>
+        {cues.map((cue) => (
+          <Beat key={cue.beat.ordinal} cue={cue} />
         ))}
       </ol>
 
       {reveal === 'all' && (
         <>
-          <Facts
-            testId="gate-run-transaction"
-            title="the transaction"
-            entries={[
-              ['isolation', run.transaction.isolation],
-              ['disposition', run.transaction.disposition],
-              ['opened', run.transaction.opened_logical_timestamp],
-              ['closed', run.transaction.closed_logical_timestamp ?? '—'],
-              ['savepoints', run.transaction.savepoints.join(' ')],
-              ['retry sqlstate', run.transaction.retry_sqlstate ?? '—'],
-              ['canonicalisation', run.transaction.canonicalisation],
-            ]}
-          />
+          <Disclosure
+            summary="Show the transaction this run opened, and the savepoint it fenced each write with"
+            data-testid="gate-run-transaction-disclosure"
+          >
+            <Facts
+              testId="gate-run-transaction"
+              title="the transaction"
+              entries={[
+                ['isolation', run.transaction.isolation],
+                ['disposition', run.transaction.disposition],
+                ['opened', run.transaction.opened_logical_timestamp],
+                ['closed', run.transaction.closed_logical_timestamp ?? '—'],
+                ['savepoints', run.transaction.savepoints.join(' ')],
+                ['retry sqlstate', run.transaction.retry_sqlstate ?? '—'],
+                ['canonicalisation', run.transaction.canonicalisation],
+              ]}
+            />
+          </Disclosure>
           <Facts
             testId="gate-run-subject"
             title="the subject, as the run opened"
@@ -557,48 +677,82 @@ export function GateRunReport({
               ['note', run.persistence_check.note],
             ]}
           />
-          <Facts
-            testId="gate-run-persistence-self"
-            title="how self_persisted was computed — recompute it, do not take it"
-            entries={[
-              [
-                'minted disposition',
-                run.persistence_check.self_evidence.minted_disposition_id ?? '—',
-              ],
-              [
-                'rows carrying it after the rollback',
-                String(
-                  run.persistence_check.self_evidence.minted_disposition_rows_after_rollback,
-                ),
-              ],
-              [
-                'permit row identical',
-                String(run.persistence_check.self_evidence.permit_row_identical),
-              ],
-            ]}
-          />
-          <BeforeAfter
-            testId="gate-run-fingerprint"
-            title="the fingerprint those readings were taken from"
-            rows={fingerprintRows(run.persistence_check)}
-          />
+          <Disclosure
+            summary="Show the row counts and the permit row this run compared against itself, before and after"
+            data-testid="gate-run-fingerprint-disclosure"
+          >
+            <Facts
+              testId="gate-run-persistence-self"
+              title="how self_persisted was computed — recompute it, do not take it"
+              entries={[
+                [
+                  'minted disposition',
+                  run.persistence_check.self_evidence.minted_disposition_id ?? '—',
+                ],
+                [
+                  'rows carrying it after the rollback',
+                  String(
+                    run.persistence_check.self_evidence.minted_disposition_rows_after_rollback,
+                  ),
+                ],
+                [
+                  'permit row identical',
+                  String(run.persistence_check.self_evidence.permit_row_identical),
+                ],
+              ]}
+            />
+            <BeforeAfter
+              testId="gate-run-fingerprint"
+              title="the fingerprint those readings were taken from"
+              rows={fingerprintRows(run.persistence_check)}
+            />
+          </Disclosure>
         </>
       )}
     </div>
   );
 }
 
-function Beat({ beat }: { readonly beat: GateRunBeat }): ReactNode {
+/**
+ * ONE BEAT, and the three attributes that carry the reading order into the stylesheet.
+ *
+ * `--beat-step` is the only value this component hands to CSS, and it is an INDEX — 0, 1,
+ * 2, 3. The stylesheet multiplies it by `--tp-duration-evidence` to get a delay, so the
+ * pace of the reveal is declared in one place, in the token the EVIDENCE register already
+ * publishes, and no millisecond count is written in TypeScript or read by a reader.
+ *
+ * `data-refusal-index` is the beat's position among the refusals of this run. The
+ * stylesheet gives the SECOND refusal a heavier rule than the first, because being
+ * refused after the counter was forged is the rarer and stronger claim — and it does that
+ * from a POSITION, never from a code. No sentence anywhere below is chosen by a SQLSTATE,
+ * a constraint name or an outcome; D18, and `tests/unit/gate/demo-driver.test.tsx` reads
+ * this file to prove it.
+ *
+ * `elapsed_ms` is labelled with the payload's own member name rather than a prose label,
+ * for the reason the `Observed` docstring gives, and its value is the payload's number
+ * with nothing done to it.
+ */
+function Beat({ cue }: { readonly cue: BeatCue }): ReactNode {
+  const { beat } = cue;
   const tone = beat.outcome === 'refused' ? 'refuse' : 'neutral';
 
   return (
-    <li className={styles.beat} data-outcome={beat.outcome} data-testid={`gate-run-beat-${beat.ordinal}`}>
+    <li
+      className={styles.beat}
+      data-outcome={beat.outcome}
+      data-reveal-step={cue.stepIndex}
+      data-refusal-index={cue.refusalIndex ?? undefined}
+      style={{ '--beat-step': cue.stepIndex } as CSSProperties}
+      data-testid={`gate-run-beat-${beat.ordinal}`}
+    >
       <div className={styles.beatHead}>
         <span className={styles.beatOrdinal}>beat {beat.ordinal}</span>
         <span className={styles.beatName}>{beat.name}</span>
         <span className={styles.beatOutcome} data-outcome={beat.outcome}>
           {beat.outcome.toUpperCase()}
         </span>
+        <span className={styles.metaKey}>elapsed_ms</span>
+        <Mono data-testid={`gate-run-beat-${beat.ordinal}-elapsed`}>{elapsedText(beat)}</Mono>
         {!beat.matched_expectation && (
           <span className={styles.mismatch} data-testid={`gate-run-beat-${beat.ordinal}-mismatch`}>
             did not match its expectation ({beat.expected.outcome})
@@ -643,10 +797,12 @@ function Beat({ beat }: { readonly beat: GateRunBeat }): ReactNode {
       <Observed observed={beat.observed} ordinal={beat.ordinal} />
 
       {beat.statement !== null && beat.statement !== '' && (
-        <details className={styles.statement}>
-          <summary>the statement this beat sent</summary>
+        <Disclosure
+          summary="Show the exact statement this beat sent to the database"
+          data-testid={`gate-run-beat-${beat.ordinal}-statement`}
+        >
           <pre className={styles.verbatim}>{beat.statement}</pre>
-        </details>
+        </Disclosure>
       )}
 
       {beat.note !== null && beat.note !== '' && <p className={styles.note}>{beat.note}</p>}

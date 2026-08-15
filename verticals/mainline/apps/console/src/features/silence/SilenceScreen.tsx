@@ -20,7 +20,7 @@
  * different person about a different job.
  */
 
-import { type ReactNode } from 'react';
+import { Suspense, lazy, type ReactNode } from 'react';
 
 import { Mono, RegisterFrame, StagedBadge } from '../../design/primitives';
 
@@ -40,6 +40,23 @@ export interface SilenceScreenProps {
   /** True when no transport was provided at all — a different nothing from a failure. */
   readonly noSource: boolean;
 }
+
+/**
+ * The plain-language walkthrough (R9), in its own chunk.
+ *
+ * Lazy, for the reason the propagation screen states in the same words: prose is the
+ * cheapest thing to move off a critical path. `Suspense fallback={null}` because the
+ * screen underneath is already complete without it — the walkthrough introduces the
+ * arithmetic, it does not stand in for any of it.
+ *
+ * It renders in EVERY rendering of this screen, including the four that hold no payload,
+ * because "what is this screen for" is the question a reader who has just met a failure
+ * panel most needs answered. With no payload it prints no figures at all.
+ */
+const UseCaseTwo = lazy(async () => {
+  const module = await import('./UseCaseTwo');
+  return { default: module.UseCaseTwo };
+});
 
 function Shell({
   children,
@@ -72,6 +89,32 @@ function Heading({ permitId }: { readonly permitId: string }): ReactNode {
         permit <Mono>{permitId}</Mono>
       </p>
     </header>
+  );
+}
+
+/**
+ * The heading, and the walkthrough above whatever the screen has to report.
+ *
+ * The walkthrough reads its numbers off the same model the screen holds and prints none
+ * when there are none, so this one component serves the four renderings that carry no
+ * payload as well as the one that does.
+ */
+function Opening({
+  permitId,
+  model,
+  noSource,
+}: {
+  readonly permitId: string;
+  readonly model: SilenceModel;
+  readonly noSource: boolean;
+}): ReactNode {
+  return (
+    <>
+      <Heading permitId={permitId} />
+      <Suspense fallback={null}>
+        <UseCaseTwo model={model} noSource={noSource} />
+      </Suspense>
+    </>
   );
 }
 
@@ -108,7 +151,7 @@ export function SilenceScreen({ permitId, model, noSource }: SilenceScreenProps)
   if (noSource) {
     return (
       <Shell permitId={permitId}>
-        <Heading permitId={permitId} />
+        <Opening permitId={permitId} model={model} noSource={noSource} />
         <section className={styles.panel} data-testid="silence-no-source">
           <h2 className={styles.sectionTitle}>no source</h2>
           <p className={styles.prose}>
@@ -126,7 +169,7 @@ export function SilenceScreen({ permitId, model, noSource }: SilenceScreenProps)
   if (silence.status === 'idle' || silence.status === 'loading') {
     return (
       <Shell permitId={permitId}>
-        <Heading permitId={permitId} />
+        <Opening permitId={permitId} model={model} noSource={noSource} />
         <p className={styles.panel} role="status" data-testid="silence-loading">
           Reading <Mono>GET /v1/permits/{permitId}/silence</Mono>…
         </p>
@@ -137,7 +180,7 @@ export function SilenceScreen({ permitId, model, noSource }: SilenceScreenProps)
   if (silence.status === 'failed') {
     return (
       <Shell permitId={permitId}>
-        <Heading permitId={permitId} />
+        <Opening permitId={permitId} model={model} noSource={noSource} />
         <section className={styles.failure} data-testid="silence-failed">
           <h2 className={styles.failureTitle}>the read did not complete: {silence.failure}</h2>
           <pre className={styles.verbatim}>{silence.detail}</pre>
@@ -153,7 +196,7 @@ export function SilenceScreen({ permitId, model, noSource }: SilenceScreenProps)
   if (silence.status === 'refused') {
     return (
       <Shell permitId={permitId}>
-        <Heading permitId={permitId} />
+        <Opening permitId={permitId} model={model} noSource={noSource} />
         <section className={styles.failure} data-testid="silence-refused">
           <h2 className={styles.failureTitle}>the database refused this read</h2>
           <p className={styles.prose}>
@@ -182,14 +225,34 @@ export function SilenceScreen({ permitId, model, noSource }: SilenceScreenProps)
     <Shell permitId={permitId}>
       <Heading permitId={permitId} />
 
+      {/*
+        THE STAGED BADGE, AND THE SCOPE OF WHAT IT COVERS.
+        R6 forbids PLAIN hiding a STAGED badge, so it is in the open flow above every number
+        it qualifies, in both readings of this screen. The badge is a claim about the WHOLE
+        payload and the emitter's note below it is narrower — it names the one required
+        value no column produced and lists the columns that produced the rest. Both are on
+        screen, and the plain sentence between them sends a reader to the note rather than
+        deciding the question here: the emitter knows which of its own values came from a
+        column and this console does not.
+      */}
       {envelope.staged ? (
         <div data-testid="silence-staged">
           <StagedBadge what="hand-authored demonstration payload — no recall run produced these rows" />
+          <p className={styles.prose} data-testid="silence-staged-plain">
+            In plain words: at least one value in this payload was not produced by a column in
+            the database, so the whole payload is marked rather than part of it. The emitter&apos;s
+            own note is next, and it names exactly which value that is and which columns
+            produced the rest — read it before reading any number on this screen as measured.
+          </p>
           {(envelope.staged_note ?? null) === null ? null : (
             <pre className={styles.verbatim}>{envelope.staged_note}</pre>
           )}
         </div>
       ) : null}
+
+      <Suspense fallback={null}>
+        <UseCaseTwo model={model} noSource={noSource} />
+      </Suspense>
 
       {model.runData === null ? (
         <section className={styles.panel} data-testid="conservation-unavailable">

@@ -33,7 +33,16 @@ import { type ReactNode } from 'react';
 import { ProvenanceChip } from '../../../design/primitives';
 import styles from '../diff.module.css';
 import type { ClauseDiffModel, Finding } from '../model';
+import { Gloss } from './Plain';
 
+/**
+ * The verdict bar is NEVER collapsed.
+ *
+ * R6 lists what PLAIN may hide and a verdict with its provenance chips is not on it. The
+ * gloss beneath it is console prose in its own element (R8) — the five words the enum can
+ * take are quoted from `contracts/common.schema.json#/$defs/control_delta`, so the sentence
+ * cannot drift from the column it explains without the contract changing first.
+ */
 export function DeltaVerdictBar({
   verdict,
   severity,
@@ -42,35 +51,51 @@ export function DeltaVerdictBar({
   readonly severity: ClauseDiffModel['severity'];
 }): ReactNode {
   return (
-    <div className={styles.verdict} data-testid="delta-verdict">
-      <span className={styles.verdictLabel}>control_delta</span>
-      <code className={styles.verdictValue} data-delta={verdict.delta}>
-        {verdict.delta}
-      </code>
-      <ProvenanceChip kind="db:column" detail="clause_version.control_delta" />
+    <>
+      <div className={styles.verdict} data-testid="delta-verdict">
+        <span className={styles.verdictLabel}>control_delta</span>
+        <code className={styles.verdictValue} data-delta={verdict.delta}>
+          {verdict.delta}
+        </code>
+        <ProvenanceChip kind="db:column" detail="clause_version.control_delta" />
 
-      <span className={styles.verdictLabel}>basis</span>
-      <code className={styles.mono}>{verdict.basis}</code>
-      <ProvenanceChip kind="db:column" detail="clause_version.delta_basis" />
+        <span className={styles.verdictLabel}>basis</span>
+        <code className={styles.mono}>{verdict.basis}</code>
+        <ProvenanceChip kind="db:column" detail="clause_version.delta_basis" />
 
-      {verdict.model === null ? null : (
-        <>
-          <span className={styles.verdictLabel}>model</span>
-          <code className={styles.mono}>{verdict.model}</code>
-          {verdict.promptVersion === null ? null : (
-            <code className={styles.mono}>{verdict.promptVersion}</code>
-          )}
-        </>
-      )}
+        {verdict.model === null ? null : (
+          <>
+            <span className={styles.verdictLabel}>model</span>
+            <code className={styles.mono}>{verdict.model}</code>
+            {verdict.promptVersion === null ? null : (
+              <code className={styles.mono}>{verdict.promptVersion}</code>
+            )}
+          </>
+        )}
 
-      <span className={styles.verdictLabel}>sev_max</span>
-      <code className={styles.mono}>
-        {severity.parentSevMax === null
-          ? String(severity.versionSevMax)
-          : `${severity.parentSevMax} → ${severity.versionSevMax}`}
-      </code>
-      <ProvenanceChip kind="db:column" detail="clause_version.sev_max — projected, never chosen" />
-    </div>
+        <span className={styles.verdictLabel}>sev_max</span>
+        <code className={styles.mono}>
+          {severity.parentSevMax === null
+            ? String(severity.versionSevMax)
+            : `${severity.parentSevMax} → ${severity.versionSevMax}`}
+        </code>
+        <ProvenanceChip
+          kind="db:column"
+          detail="clause_version.sev_max — projected, never chosen"
+        />
+      </div>
+      <Gloss>
+        <strong>control_delta</strong> is the database&rsquo;s own word for what this edit did to
+        the rule&rsquo;s controls. It can only be one of five:{' '}
+        <code className={styles.mono}>introduce</code>,{' '}
+        <code className={styles.mono}>strengthen</code>,{' '}
+        <code className={styles.mono}>restate</code>, <code className={styles.mono}>weaken</code>{' '}
+        or <code className={styles.mono}>remove</code>. This console did not choose it and cannot
+        change it; <strong>basis</strong> is how the database arrived at it, and{' '}
+        <strong>sev_max</strong> is how bad the worst event behind this rule was, on the scale the
+        record itself carries.
+      </Gloss>
+    </>
   );
 }
 

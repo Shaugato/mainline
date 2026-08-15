@@ -34,6 +34,15 @@
  * Never edit either copy here. Edit the original, then re-copy byte for byte — the
  * drift tests are structural, so a reformat passes them and still makes the two files
  * disagree about what a reader is looking at.
+ *
+ * A THIRD document joined them on 2026-08-15, on exactly the same terms:
+ *
+ *   * `subjects.schema.json` ← `verticals/mainline/apps/demo-api/contracts/subjects.schema.json`.
+ *     It governs `GET /v1/demo/subjects`, the read that tells the console which subjects a
+ *     deployment actually seeded (`src/data/demo-subjects.ts`) — the read that exists so
+ *     that no surface has to carry an identifier of its own. The demo API owns the route,
+ *     emits the payload from `subjects.py`, and therefore owns the contract; this is the
+ *     copy, and it is checked against the original the same way the two above are.
  */
 
 import ancestryRaw from '../../contracts/ancestry.schema.json?raw';
@@ -54,6 +63,7 @@ import propagationRaw from '../../contracts/propagation.schema.json?raw';
 import recallRunRaw from '../../contracts/recall-run.schema.json?raw';
 import refusalRaw from '../../contracts/refusal.schema.json?raw';
 import silenceRaw from '../../contracts/silence.schema.json?raw';
+import subjectsRaw from '../../contracts/subjects.schema.json?raw';
 
 import type { SchemaDocument } from './schema';
 import { SchemaRegistry } from './schema';
@@ -81,6 +91,7 @@ export const CONTRACT_SOURCES: readonly (readonly [string, string])[] = Object.f
   ['recall-run.schema.json', recallRunRaw],
   ['refusal.schema.json', refusalRaw],
   ['silence.schema.json', silenceRaw],
+  ['subjects.schema.json', subjectsRaw],
 ] as const);
 
 /** The `$id` of the specification-owned refusal contract, carried here verbatim. */

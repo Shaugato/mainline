@@ -401,6 +401,13 @@ WHERE NOT EXISTS (
 -- That is not a decoration to be tidied. `docs/decisions/demo-ledger-seeding.md` records the
 -- ruling and the evidence. This section now seeds a REAL four-leaf log.
 --
+-- AND UNTIL 2026-08-15 THAT PARAGRAPH WAS TRUE OF THIS FILE AND FALSE OF THE DEPLOYMENT.
+-- Removing the insert removed the row from every database seeded from scratch afterwards and
+-- from no database that already held it, because §8 inserts under `NOT EXISTS` guards and
+-- nothing here deleted anything. The deployed `mainline_demo` was still serving the row on
+-- 2026-08-15. §8.4 below is the statement that retires it, and it is written as a predicate
+-- over the defect rather than as a delete of a known key.
+--
 -- ⚠ EVERY HASH BELOW IS COMPUTED BY THE DATABASE. NOT ONE IS TYPED.
 --
 -- This is the whole point, and it is the rule this repository has already been burned for
@@ -679,14 +686,89 @@ SELECT 'dec0de00-0001-4000-8000-000000000001', 2, 0,
       WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND level = 2 AND idx = 0
    );
 
--- 8.4 · THE TWO CHECKPOINTS
+-- 8.4 · THE REMOVAL OF THE SELF-NAMING CHECKPOINT
+--
+-- WHY A SEED FILE CONTAINS A `DELETE`, WHICH IS THE ONE IN THIS REPOSITORY.
+--
+-- The defect this section's preamble describes as "removed on 2026-08-14" was removed FROM THIS
+-- FILE and never removed from a database. Every insert in §8 is guarded by `NOT EXISTS` and
+-- nothing in the chain has ever deleted a superseded checkpoint, so re-running the seed against
+-- a database that already carried the `tree_size = 1` row inserted the two good checkpoints
+-- BESIDE it and left it standing. Measured against the deployed Function URL on 2026-08-15,
+-- `GET /v1/ledger` served three checkpoints — at `tree_size` 1, 2 and 4 — and the one at 1 was
+-- still the hash of a string naming itself.
+--
+-- It is not inert. The reader emits an inclusion proof for `seq 0` against `tree_size = 1`, and
+-- a browser that recomputes it gets the true leaf-0 hash `032980be…` against a recorded root of
+-- `74f0845f…`; the `1 → 2` consistency proof is anchored on the same fiction. Two of the four
+-- red checks on the custody screen were that single row.
+--
+-- WHAT THIS STATEMENT MAY DELETE, STATED AS A PREDICATE RATHER THAN AS AN INTENTION.
+--
+-- Only a checkpoint whose `root_hash` IS `digest('mainline-demo/ledger/root/' || tree_size)` —
+-- a root that commits to nothing but its own name — AND whose root appears nowhere in
+-- `mainline.ledger_node`. The first clause is the signature of the defect. The second is the
+-- clause that makes this safe to run forever: a checkpoint whose root is a node the appender
+-- built is a checkpoint over real leaves, and no such row can match. There is no blanket
+-- `DELETE`, no `tree_size = 1` literal, and no `WHERE` that would widen if the demo grew a
+-- fifth leaf. On a database that never carried the defect — every fresh apply — both statements
+-- delete zero rows, which is what makes them idempotent.
+--
+-- The cosignature goes first because `mainline.cosignature` has
+-- `FOREIGN KEY (site_code, tree_size) REFERENCES mainline.ledger_checkpoint` (migration 0076),
+-- so deleting the checkpoint under a live cosignature is `23503` and aborts the batch. It is
+-- narrowed by the SAME predicate, re-stated against the checkpoint it belongs to, so it can
+-- never reach a cosignature over a checkpoint this file is keeping.
+--
+-- §9's `anchored_tree_size = 1` survives the removal: migration 0112 asks for
+-- `cp.tree_size >= anchored_size` over a checkpoint that is admissible AND cosigned, and the
+-- checkpoints at 2 and 4 are both, so the recall policy's anchor is satisfied by the rows that
+-- commit to leaves rather than by the row that commits to nothing.
+
+DELETE FROM mainline.cosignature AS c
+ WHERE c.site_code = 'dec0de00-0001-4000-8000-000000000001'
+   AND EXISTS (
+     SELECT 1
+       FROM mainline.ledger_checkpoint AS cp
+      WHERE cp.site_code = c.site_code
+        AND cp.tree_size = c.tree_size
+        AND cp.root_hash = digest('mainline-demo/ledger/root/' || cp.tree_size::STRING, 'sha256')
+        AND NOT EXISTS (
+          SELECT 1 FROM mainline.ledger_node AS n
+           WHERE n.site_code = cp.site_code AND n.hash = cp.root_hash
+        )
+   );
+
+DELETE FROM mainline.ledger_checkpoint AS cp
+ WHERE cp.site_code = 'dec0de00-0001-4000-8000-000000000001'
+   AND cp.root_hash = digest('mainline-demo/ledger/root/' || cp.tree_size::STRING, 'sha256')
+   AND NOT EXISTS (
+     SELECT 1 FROM mainline.ledger_node AS n
+      WHERE n.site_code = cp.site_code AND n.hash = cp.root_hash
+   );
+
+-- 8.5 · THE TWO CHECKPOINTS
 --
 -- `root_hash` is SELECTED from `mainline.ledger_node`, so the checkpoint commits to the tree the
 -- appender actually built. The note `body` is the C2SP tlog-checkpoint text, and `tree_size` and
 -- the root are redundant with it ON PURPOSE: a verifier parses the note and compares, and a
 -- disagreement is a finding. That redundancy is only worth having when the note is BUILT from
--- the same expression the column is, which is why `encode(n.hash, 'hex')` appears twice here and
--- no hex literal appears at all.
+-- the same expression the column is, which is why `encode(n.hash, ...)` appears in both places
+-- and no digest literal appears at all.
+--
+-- THE ROOT LINE IS BASE64, AND UNTIL 2026-08-15 IT WAS HEX. `spec/wire/checkpoint.md` (v1.0,
+-- frozen 2026-08-07) §3 fixes line 3 of the note as "base64 of the 32-byte RFC 6962 Merkle Tree
+-- Hash at that size", and §7.5's worked example prints the same root both ways so the two
+-- cannot be confused: `00c5dddf…` in hex, `AMXd34nRXfv5+yNJ4K2tvMSlExtmEq38ha0N8gBdNZ4=` in
+-- base64. This seed wrote the hex spelling, which is not a C2SP note at all: every hex character
+-- is also a base64 character, so a 64-character hex root DECODES — to 48 bytes, not 32 — and a
+-- conformant parser refuses it on the length. The console's own parser did, and the refusal
+-- arrived before any signature question was reached, so `log_signature` was reported FAILED for
+-- a reason that had nothing to do with a signature.
+--
+-- The value did not change and no digest was typed: this is the same `n.hash`, re-encoded into
+-- the alphabet the frozen spec names. `docs/decisions/demo-ledger-seeding.md` §8 records the
+-- measurement.
 
 INSERT INTO mainline.ledger_checkpoint (
   site_code, tree_size, root_hash, body, beacon, log_sig, canon_src_sha256, admissible, issued_at
@@ -696,7 +778,7 @@ SELECT
   2,
   n.hash,
   'mainline/dec0de00-0001-4000-8000-000000000001' || chr(10) || '2' || chr(10)
-    || encode(n.hash, 'hex') || chr(10),
+    || encode(n.hash, 'base64') || chr(10),
   '{"synthetic": true, "drand_round": 2, "nist_pulse": 2,
     "source": "verticals/mainline/db/seeds/demo/demo_world.sql"}'::JSONB,
   digest('mainline-demo/ledger/logsig/2', 'sha256'),
@@ -718,7 +800,7 @@ SELECT
   4,
   n.hash,
   'mainline/dec0de00-0001-4000-8000-000000000001' || chr(10) || '4' || chr(10)
-    || encode(n.hash, 'hex') || chr(10),
+    || encode(n.hash, 'base64') || chr(10),
   '{"synthetic": true, "drand_round": 4, "nist_pulse": 4,
     "source": "verticals/mainline/db/seeds/demo/demo_world.sql"}'::JSONB,
   digest('mainline-demo/ledger/logsig/4', 'sha256'),
@@ -732,7 +814,7 @@ FROM mainline.ledger_node n
       WHERE site_code = 'dec0de00-0001-4000-8000-000000000001' AND tree_size = 4
    );
 
--- 8.5 · THE WITNESS COSIGNATURES
+-- 8.6 · THE WITNESS COSIGNATURES
 --
 -- One per checkpoint. `fn_recall_policy_anchored` requires the anchor to sit inside a checkpoint
 -- that is BOTH admissible AND cosigned, so a checkpoint without its cosignature would refuse §9.

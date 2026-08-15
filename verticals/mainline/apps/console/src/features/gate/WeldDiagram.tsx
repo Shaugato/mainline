@@ -43,12 +43,19 @@
 
 import { type ReactNode } from 'react';
 
-import { ConstraintName, Counter, Mono, RegisterFrame } from '../../design/primitives';
+import {
+  ConstraintName,
+  Counter,
+  Disclosure,
+  Gloss,
+  Mono,
+  RegisterFrame,
+} from '../../design/primitives';
 
 import styles from './gate.module.css';
 import { ProvenanceSlot } from './ProvenanceSlot';
 import { pointer, type ProvenanceEntry } from './provenance';
-import type { CounterState, WeldCounter, WeldDiagramModel } from './model';
+import { WELD_SUBTITLE, WELD_TITLE, type CounterState, type WeldCounter, type WeldDiagramModel } from './model';
 import type { BlockingCheck, Permit } from '../../data/types.generated';
 
 const STATE_WORD: Readonly<Record<CounterState, string>> = Object.freeze({
@@ -146,12 +153,18 @@ export function WeldDiagram({ weld, permit, provenance, checks }: WeldDiagramPro
   const certificate = permit.boundary_certificate ?? null;
 
   return (
-    <RegisterFrame
-      register="instrument"
-      as="section"
-      label="The weld — projected counters and the CHECK that reads each"
-      data-testid="weld"
-    >
+    <RegisterFrame register="instrument" as="section" label={WELD_TITLE} data-testid="weld">
+      {/*
+        R7 renames the HEADING and keeps the word. "The weld" is console jargon and it is
+        not a first sentence; it is also the right word for what this diagram draws, so it
+        survives as the subtitle here and in this file's own docstring and comments.
+      */}
+      <p className={styles.weldSubtitle} data-testid="weld-subtitle">
+        {WELD_SUBTITLE}
+      </p>
+      <Gloss term="projection" layout="stack" data-testid="gloss-projection">
+        <Mono>projected counter</Mono>
+      </Gloss>
       <p className={styles.panelNote}>
         Every number below is a column a trigger wrote onto <Mono>mainline.permit</Mono> from an
         authoritative table — never from a writer, and never from this console (P2 / I02). The
@@ -192,7 +205,12 @@ export function WeldDiagram({ weld, permit, provenance, checks }: WeldDiagramPro
                     than being reconstructed
                   </p>
                 ) : (
-                  <pre className={styles.weldPredicate}>{row.predicate}</pre>
+                  <Disclosure
+                    summary="Show the exact check the database ran"
+                    data-testid={`weld-predicate-${row.constraint}`}
+                  >
+                    <pre className={styles.weldPredicate}>{row.predicate}</pre>
+                  </Disclosure>
                 )}
               </div>
 

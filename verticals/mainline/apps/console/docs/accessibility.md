@@ -220,6 +220,25 @@ it means to operate it without a mouse or a screen.
 - Hear every score together with its threshold and its policy version.
 - Hear the PER honest-limit sentence in full.
 
+#### `overview`
+
+- Read what the system refuses, and why that refusal is the deliverable, before meeting a single identifier.
+- Follow either worked case from its first sentence to the screen carrying its evidence, by keyboard alone.
+- Reach every deep link as a link whose text names the surface it opens, rather than as an icon or a colour.
+- Hear that a plain-language sentence is a summary, and reach the precise sentence it summarises.
+
+#### `diff`
+
+- Read both texts of the clause, at both commits, as selectable text in the mono face.
+- Hear which side is the earlier commit and which is the later, in words, before reading either.
+- Reach every control-bearing change by keyboard and hear it announced as added, removed or unchanged.
+
+#### `evidence`
+
+- Read every declared file with its expected digest and its recomputed digest, as selectable text.
+- Hear each file verdict as verified, failed or not checked, in words, never as a colour or a tick.
+- Hear that no bundle was consulted at all, when that is the case, rather than meeting an empty table.
+
 <!-- /GENERATED:operations -->
 
 ---
