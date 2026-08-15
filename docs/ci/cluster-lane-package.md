@@ -570,6 +570,79 @@ INPUT tree *before* the strip, not the served tree; the served tree is **1,274,7
 > number to watch, because a console growth past it puts the origin's own entry chunk over its
 > own ceiling.
 
+> **§4 ANNOTATED A THIRD TIME, 2026-08-15 — A FOURTH CONSOLE IS PACKAGED, THE CEILING STILL
+> DOES NOT MOVE, AND THE HEADROOM IS DOWN TO 1,087 B.** Every figure in the annotation above
+> stays and is SUPERSEDED as a *current* reading: it is the correct dated record of
+> `sha256 6802872f…`. This annotation adds a dated column and nothing else.
+>
+> **The artefact, named by digest**: `out/lambda/mainline-demo-api-arm64.zip`,
+> `sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22`, built from HEAD
+> `f0ba767` `--console-transport live` with `MAINLINE_BUILD_ID=f0ba767`, read out of its own
+> central directory on 2026-08-15. **It has not been applied and nothing was redeployed to
+> measure it** — the Function URL is still answering with `sha256 12fcba7a…` and its
+> `assets/index-DzVoV1YM.js`.
+>
+> | quantity | **the package of record** (`6802872f…`), the annotation above | **the package of record** (`7c97b532…`), read 2026-08-15 | Δ |
+> |---|---|---|---|
+> | `web/` as packed | 114 entries, 1,308,536 B | **138 entries, 1,524,990 B** | +24 / +216,454 |
+> | `web/` identity after the strip | 57 entries, 1,012,812 B | **69 entries, 1,177,977 B** | +12 / +165,165 |
+> | `.gz` siblings written | 57 files, 295,724 B | **69 files, 347,013 B** | +12 / +51,289 |
+> | source maps in the package | 0 | **0** | — |
+> | largest identity object | `assets/index-BH5dfAvF.js`, 457,123 B | **`assets/index-LoN3Sn_L.js`, 490,950 B** | +33,827 |
+> | largest gzipped sibling | `…BH5dfAvF.js.gz`, 129,400 B | **`…LoN3Sn_L.js.gz`, 138,177 B** | +8,777 |
+> | 2nd largest identity | `assets/surface-0lG8KzXw.js`, 51,266 B | **`assets/surface-BD2Wh4U2.js`, 67,049 B** | +15,783 |
+> | `web/index.html` / `.gz` | 4,655 B / 2,122 B | **4,655 B / 2,120 B** | 0 / −2 |
+> | identity objects over the 139,264 B ceiling | 1 | **1** | 0 |
+>
+> **The growth is not drift and is not a defect.** The console gained **seven working screens,
+> a plain-language on-ramp on every screen, and a new `GET /v1/demo/subjects` endpoint**
+> (commit `9c902e0`). **Both the identity length and the file COUNT moved this time** — 57 → 69
+> objects — which is what distinguishes a console that gained screens from one that gained
+> weight, and both from §3.3's CSS-module story where only the hash moved.
+>
+> **Count them in the ARCHIVE.** The build's sidecar records `web_before` at 96 entries — the
+> tree as the console build left it, before 27 source maps (3,179,550 B) were stripped and
+> before a `.gz` was written beside every compressible object. 96 is a true number about a tree
+> this origin never serves; 138 is the tree that deploys.
+>
+> **What the ceiling does about it, under ruling R10**: nothing, and that is the ruling rather
+> than an omission. `DEFAULT_MAX_RESPONSE_BYTES` stands at `136 * 1024 = 139,264`, **not raised
+> and not lowered** — `git diff` on `static_site.py` shows no change to it — and what is
+> asserted against the tree is the straddle, interface I3 and exactly-one-refusal:
+>
+> ```
+> straddle   0 < 138,177 < 139,264 < 490,950                          HOLDS
+> I3         138,177 ≤ 139,264 < 1.20 × 138,177 = 165,812.4           HOLDS
+> refusals   identity objects over 139,264 : 1 of 69                  HOLDS
+>            today that object is assets/index-LoN3Sn_L.js, 490,950 B
+> headroom   139,264 − 138,177 = 1,087 gzipped bytes   (it was 9,864)
+>            = 0.78 % of the ceiling                   <- THE NUMBER WITH TEETH
+> ratio      139,264 / 138,177 = 1.008                 (it was 1.076)
+> ```
+>
+> **WHAT 1,087 BYTES BUYS, SAID PLAINLY.** When `g` passes the ceiling this origin answers
+> **413 for its own entry JavaScript** to every client. `GET /` still returns 200 and the
+> 4,655 B shell; the shell asks for its one module and gets a JSON problem document; the reader
+> sees a **blank page**. That is a total outage of the demo URL, with the origin reporting
+> itself healthy throughout. **The remedy is a smaller or split entry chunk, never a larger
+> ceiling** — at 0.78 % the temptation to round 139,264 up one 8 KiB step will look like
+> housekeeping, and it is the move that put this constant at 2 MiB and then at 512 KiB.
+>
+> **A guard now goes red before the cliff rather than at it.**
+> `test_static_site.py::_MINIMUM_HEADROOM_BYTES` is 1,024 B, so the next console growth
+> exceeding **63 gzipped bytes** fails this lane while the origin is still serving every object
+> it has. It was falsified before it was trusted: a planted violation turned the declaration
+> test, the end-to-end tree test and all five falsification cases red, and the plant was
+> reverted.
+>
+> **The derivation is provenance, and its gap is widening.** Over this package the arithmetic
+> emits `floor(1.10 × 138,177) = 151,994 → 19 × 8,192 = 155,648`; it emitted 147,456 over the
+> package before it. **155,648 is recorded and refused.** The ratio falling **1.076 → 1.008**
+> is the *safe* direction for the `1.20` ratchet — which guards against the ratio climbing,
+> where a ceiling refuses nothing — but 1.008 is also how little room is left, which is what
+> the headroom line above is for.
+
+
 ### The ceiling does not move, and it did not need to
 
 `136 * 1024 = 139,264` is authoritative and stays. Re-derived from the fresh measurement
@@ -661,10 +734,14 @@ So the honest sequence is:
 > repository already owns a bundle budget
 > (`verticals/mainline/apps/console/scripts/check-budgets.ts`).
 >
-> **The tripwire that replaces it, and it has teeth:** `139,264 − g` is the gzipped headroom,
-> and it is **9,864 B** measured on the package of record. A console growth larger than that
-> puts `g` above the ceiling and the origin answers **413** to its own entry chunk. The
-> assertion that catches it is `_assert_i3`'s lower half, not the derivation.
+> **The tripwire that replaces it, and it has teeth:** `139,264 − g` is the gzipped headroom.
+> It was **9,864 B** when this was written and is **1,087 B — 0.78 %** on the package of record
+> as of §4's third annotation (`sha256 7c97b532…`, `g = 138,177`). A console growth larger
+> than that puts `g` above the ceiling and the origin answers **413 to its own entry
+> JavaScript**, for every browser, which is a blank page and a total demo outage rather than a
+> slow one. `_assert_i3`'s lower half catches the crossing; since 2026-08-15
+> `test_static_site.py::_MINIMUM_HEADROOM_BYTES = 1024` catches the **approach**, so the lane
+> goes red 63 bytes of growth before the outage rather than after it.
 
 Those constants belong to no worker in this wave (`docs/leads/lane-honest-plan.md` §3
 enumerates six owners and neither test file is among them), so this page is where the work

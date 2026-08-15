@@ -266,6 +266,50 @@ RESPONSE_BYTES_ENV: Final = "MAINLINE_MAX_RESPONSE_BYTES"
 #: leaves the flood multiplier at 433,396 B and makes the 124,127 B row of the cost model a
 #: number no attacker has to accept.
 #:
+#: ── RE-MEASURED 2026-08-15. THE VALUE DID NOT MOVE AND MAY NOT. ───────────────────────
+#:
+#: Everything above this line is the derivation as it stood over the **2026-08-13** tree, and
+#: it is kept because it is how ``136 * 1024`` was CHOSEN. It is no longer a description of
+#: what ships. The tree that ships is ``out/lambda/mainline-demo-api-arm64.zip``,
+#: ``sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22``, built from
+#: HEAD ``f0ba767`` ``--console-transport live`` with ``MAINLINE_BUILD_ID=f0ba767``, read from
+#: the zip's central directory::
+#:
+#:     web/ entries                    138 files   1,524,990 B
+#:       identity objects               69 files   1,177,977 B
+#:       .gz siblings                   69 files     347,013 B   one per identity object
+#:       source maps                     0 files           0 B   stripped by default
+#:     largest identity object                      490,950 B   assets/index-LoN3Sn_L.js
+#:     second-largest identity object                67,049 B   assets/surface-BD2Wh4U2.js
+#:     largest .gz sibling                          138,177 B   the same object, compressed
+#:
+#: Still exactly ONE identity object over the ceiling, still zero siblings over it, so every
+#: sentence above about WHAT this constant refuses remains true of the tree that ships; only
+#: the names and the byte counts moved, and they moved because seven console screens were
+#: shipped on purpose. **The constant is byte-identical to what it has always been** — the
+#: derivation over today's tree would emit 155,648, and that number is recorded here as what
+#: changed rather than proposed as what this should become. Ruling **R10**
+#: (``docs/leads/reconcile-constants-plan.md`` §1) demotes the derivation to dated provenance
+#: and keeps the live law as the straddle plus interface I3.
+#:
+#: **THE HEADROOM IS NOW 1,087 BYTES — 0.78 %.** ``139,264 - 138,177``. It was 9,864 on the
+#: package before this one and 15,087 before that. **Read what crossing it costs, because the
+#: failure is invisible from outside:** when the compressed entry chunk passes this ceiling,
+#: :func:`serve` answers **413 for the console's own entry JavaScript** — to *every* client,
+#: not only the ones refusing compression, because the gzip representation is the one every
+#: browser takes and it would now be over the bound. ``GET /`` still answers 200 with the
+#: 4,655 B shell. The shell asks for its single module. It gets a JSON problem document. The
+#: reader is looking at a **blank page**, and this origin logs a healthy day.
+#:
+#: **The remedy is a smaller or split entry chunk. Raising this constant is not available.**
+#: At 0.78 % the next 8 KiB step will present itself as arithmetic housekeeping — the formula
+#: even agrees — and that is precisely the move that put this constant at 2 MiB and then at
+#: 512 KiB, twice producing a ceiling above everything it governed.
+#: ``verticals/mainline/apps/console/scripts/check-budgets.ts`` is where a bundle-size budget
+#: belongs. ``tests/test_static_site.py::_MINIMUM_HEADROOM_BYTES`` is 1,024 B, so the next
+#: growth past 63 gzipped bytes goes red in CI while this origin is still serving everything
+#: it has; it was falsified with a planted violation before it was trusted.
+#:
 #: WHY THE PREVIOUS VALUE IS GONE. This constant read ``512 * 1024`` and the comment here
 #: said *"and it binds"*. **It did not.** That arithmetic was measured over the packer's
 #: 75-file PRE-STRIP input tree, where the single object 512 KiB refused was the 1,554,168 B

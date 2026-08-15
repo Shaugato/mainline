@@ -22,8 +22,8 @@ inside the dict:
   and its §0.5 compressed row prices thirty days of egress off the sibling's byte count
   alone — a figure that is only true if those bytes reach the socket as themselves rather
   than as their envelope, which is the premise this file exists to prove. (That row was
-  modelled at ``g = 124,127`` B, a console two rebuilds back; the package described below
-  puts **129,400** B on the wire. Re-pricing the row is the cost pages' work and belongs to
+  modelled at ``g = 124,127`` B, a console several rebuilds back; the package described below
+  puts **138,177** B on the wire. Re-pricing the row is the cost pages' work and belongs to
   whoever owns them — what is asserted here is the premise, not the price.)
 
 So this file runs the real emulator (``scripts/deploy/local_furl.py``), over a real TCP
@@ -37,20 +37,23 @@ WHAT IT SERVES: THE DEPLOYED TREE, OUT OF THE BUILT ARTEFACT
 The web root is unpacked from ``out/lambda/mainline-demo-api-arm64.zip`` — the package that
 deploys — and **not** from ``console/dist``. The two are different trees and confusing them
 is how the previous ceiling came to be wrong (`docs/leads/cost-finish-plan.md` §0.3 F2):
-``console/dist`` carries eighteen source maps and **zero** ``.gz`` siblings, while the
-artefact carries zero maps and 57 siblings. A compression test run against the input tree
-would find nothing to negotiate and pass by having nothing to do.
+``console/dist`` carries source maps and **zero** ``.gz`` siblings, while the artefact
+carries zero maps and 69 siblings. A compression test run against the input tree would find
+nothing to negotiate and pass by having nothing to do. The zip's own manifest names the same
+split: ``web_before`` is 96 entries as the console build left it, ``web_after_strip`` is 69
+once 27 source maps (3,179,550 B) are gone, and ``web_after_gzip_siblings`` is 138 once every
+compressible object has its pair. **Every count in this file is the last of those three.**
 
 WHICH BUILD THESE NUMBERS DESCRIBE, AND WHY THEY MOVED
 -------------------------------------------------------
 Every size below was read out of that zip's **central directory** on **2026-08-15** — no
 unpacking, so they are the packaged sizes rather than whatever a checkout happens to hold.
 The package read is ``out/lambda/mainline-demo-api-arm64.zip``, ``sha256
-6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b``, packed
-``--console-transport live`` with ``MAINLINE_BUILD_ID=b822fdc``. Its ``web/`` tree is 114
-entries / 1,308,536 B, its entry chunk is ``assets/index-BH5dfAvF.js`` (``sha256
-e30bd39b395bad68…``), and it carries 57 identity objects / 1,012,812 B, 57 ``.gz`` siblings
-/ 295,724 B and zero source maps.
+7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22``, packed from HEAD
+``f0ba767`` ``--console-transport live`` with ``MAINLINE_BUILD_ID=f0ba767`` and
+``VITE_MAINLINE_API_BASE=/``. Its ``web/`` tree is 138 entries / 1,524,990 B, its entry chunk
+is ``assets/index-LoN3Sn_L.js`` (``sha256 7eb3ec715dc3113c…``), and it carries 69 identity
+objects / 1,177,977 B, 69 ``.gz`` siblings / 347,013 B and zero source maps.
 
 **THAT ZIP IS THE SUBJECT OF EVERY NUMBER BELOW, AND IT IS NOT YET WHAT THE FUNCTION URL
 SERVES.** The last reading of the wire — ``evidence/deploy/judge-walk.json``, produced by
@@ -65,31 +68,42 @@ sentence about "the origin" — is the wording rule of
 `docs/leads/reconcile-constants-plan.md` §3, which was written after exactly this
 confusion.
 
-**WHAT MOVED, AND WHY (2026-08-15).** Until this re-record the constants named the console
-before this one — ``assets/index-DzVoV1YM.js``, 433,564 B identity / 124,177 B gzipped,
-siblings totalling 289,437 B, ``index.html.gz`` at 2,123 B, packed in ``sha256
-12fcba7a…dfbcc27``. Then ``demo_gate_run`` and its contract were declared, the console's
-``src/data/contracts.ts`` began importing ``gate-run.schema.json?raw`` (+23,559 B in the
-entry chunk), and the packer rebuilt the console LIVE. A Vite chunk name **is** a content
-hash, so the entry chunk renamed itself and every one of the thirty cases in this file
-**errored in fixture setup**, reporting the declared object at ``-1`` — this file's own word
-for *not in the package at all*. That is this file behaving correctly — a ratchet whose
-subject moved — and the answer is to move the declaration to the new measurement and name
-the build, which is what the block below does. It is emphatically **not** to delete the
-file, skip it, soften the fixture into a silent skip, or list it as known-red
-(`docs/leads/package-and-verify-plan.md` ruling **R9**;
+**WHAT MOVED, AND WHY (2026-08-15, THE SECOND RE-RECORD OF THAT DAY).** Until this
+re-record the constants named the console before this one — ``assets/index-BH5dfAvF.js``,
+457,123 B identity / 129,400 B gzipped, 57 siblings totalling 295,724 B, ``index.html.gz`` at
+2,122 B, packed in ``sha256 6802872f…aaed2738``. Then the console gained **seven working
+screens, a plain-language on-ramp on every screen, and a new ``GET /v1/demo/subjects``
+endpoint** (commit ``9c902e0``), and the packer rebuilt it LIVE from HEAD ``f0ba767``. A Vite
+chunk name **is** a content hash, so the entry chunk renamed itself and every one of the
+thirty-odd cases in this file **errored in fixture setup**, reporting the declared object at
+``-1`` — this file's own word for *not in the package at all*. That is this file behaving
+correctly — a ratchet whose subject moved — and the answer is to move the declaration to
+the new measurement and name the build, which is what the block below does. It is
+emphatically **not** to delete the file, skip it, soften the fixture into a silent skip, or
+list it as known-red (`docs/leads/package-and-verify-plan.md` ruling **R9**;
 `docs/decisions/response-ceiling-authoritative-tree.md` §9.4).
 
 **WHAT DID NOT MOVE: THE CEILING.** ``static_site.DEFAULT_MAX_RESPONSE_BYTES`` is still
-139,264 B (``136 * 1024``), and no worker in this wave opens the module that declares it.
-Ruling **R10** (`docs/leads/reconcile-constants-plan.md` §1) keeps it there and demotes the
-derivation ``ceil(floor(1.10·g)/8192)·8192`` to a dated record of how 139,264 was *chosen*
-in the first place. The live law is interface **I3** plus the straddle plus
-exactly-one-refusal, and all three are measured true over the package above:
-``0 < 129,400 < 139,264 < 457,123``, with exactly one identity object of the 57 refused.
+139,264 B (``136 * 1024``); ``git diff`` on that module shows no change to it. Ruling **R10**
+(`docs/leads/reconcile-constants-plan.md` §1) keeps it there and demotes the derivation
+``ceil(floor(1.10·g)/8192)·8192`` to a dated record of how 139,264 was *chosen* in the first
+place. The live law is interface **I3** plus the straddle plus exactly-one-refusal, and all
+three are measured true over the package above:
+``0 < 138,177 < 139,264 < 490,950``, with exactly one identity object of the 69 refused.
 The straddle assertion in this file is therefore unchanged in **form**; only its two
-measured endpoints moved. **9,864 gzipped bytes of headroom remain** (139,264 - 129,400,
-down from 15,087) before the origin would 413 its own entry chunk.
+measured endpoints moved.
+
+**WHAT THIS RE-RECORD COSTS, AND IT IS THE ONE PARAGRAPH HERE WORTH READING TWICE: 1,087
+gzipped bytes of headroom remain** (139,264 - 138,177), down from 9,864 and before that
+15,087. That is **0.78 %**. When it reaches zero this origin answers **413 for ``ENTRY_PATH``
+to every browser on earth**: ``GET /`` still returns 200 and the 4,655 B shell, the shell
+asks for its one module, receives a JSON problem document, and the judge is looking at a
+**blank page**. That is a total outage of the demo URL — not a slow demo, no demo — with
+the origin reporting itself healthy throughout, because the only request that fails is the
+one no human types. The remedy is a smaller or split entry chunk. Raising the ceiling is
+refused by R10 and would be the third time that constant was loosened to fit the tree it is
+supposed to bound. ``test_static_site._MINIMUM_HEADROOM_BYTES`` goes red at 1,024 B so the
+warning arrives in CI instead of on the wire.
 
 The same property holds going forward: these are re-asserted against the staged files before
 any request is sent, so the next rebuild that changes the bundle fails here saying which
@@ -132,15 +146,16 @@ ARTEFACT: Final = REPO_ROOT / "out" / "lambda" / "mainline-demo-api-arm64.zip"
 #: The entry bundle: the object that dominates this origin's egress and the one the whole
 #: cost argument turns on.
 #:
-#: **WAS** ``/assets/index-DzVoV1YM.js``, 433,564 B identity / 124,177 B gzipped.
-#: **IS** ``/assets/index-BH5dfAvF.js``, **457,123** B identity / **129,400** B gzipped —
-#: +23,559 B and +5,223 B respectively.
+#: **WAS** ``/assets/index-BH5dfAvF.js``, 457,123 B identity / 129,400 B gzipped.
+#: **IS** ``/assets/index-LoN3Sn_L.js``, **490,950** B identity / **138,177** B gzipped —
+#: +33,827 B and +8,777 B respectively.
 #: **WHICH BUILD:** ``out/lambda/mainline-demo-api-arm64.zip``,
-#: ``sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b``, packed
-#: ``--console-transport live`` with ``MAINLINE_BUILD_ID=b822fdc``; both figures read from
-#: that zip's central directory on 2026-08-15, entry chunk ``sha256 e30bd39b395bad68…``.
-#: **WHY THESE ARE MEASUREMENTS AND NOT FLOORS:** nobody in this repository chose 457,123 or
-#: 129,400 — a compiler emitted them, and because a Vite chunk name is a content hash the
+#: ``sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22``, packed from
+#: HEAD ``f0ba767`` ``--console-transport live`` with ``MAINLINE_BUILD_ID=f0ba767``; both
+#: figures read from that zip's central directory on 2026-08-15, entry chunk
+#: ``sha256 7eb3ec715dc3113c…``.
+#: **WHY THESE ARE MEASUREMENTS AND NOT FLOORS:** nobody in this repository chose 490,950 or
+#: 138,177 — a compiler emitted them, and because a Vite chunk name is a content hash the
 #: *name* is a measurement too. Ruling **R1** (restated at
 #: `docs/leads/reconcile-constants-plan.md` §1.1) makes a content-hashed filename a
 #: legitimate constant only where the build is reproducible, and that gate is satisfied
@@ -153,68 +168,90 @@ ARTEFACT: Final = REPO_ROOT / "out" / "lambda" / "mainline-demo-api-arm64.zip"
 #: and is read as one, which is why they are declared here and re-checked against the staged
 #: tree before a single request is sent.
 #:
+#: **WHICH OF THE TWO MOVES ON A RE-RELEASE — worth stating once instead of re-deriving it
+#: every time this file goes red.** ``vite.config.ts`` inlines ``__MAINLINE_BUILD_ID__``, so
+#: the git short SHA reaches the emitted bytes: a build-id-only re-release moves ``ENTRY_PATH``
+#: and nudges ``ENTRY_GZIP_BYTES`` by a handful of bytes while leaving ``ENTRY_IDENTITY_BYTES``
+#: exactly where it was. So when this file next fails, read the identity figure first. If it
+#: moved, the console really changed and the straddle and the headroom both need re-checking;
+#: if only the name and the gzip figure moved, it was a re-release and nothing that bounds
+#: anything was touched.
+#:
+#: **``ENTRY_GZIP_BYTES`` NOW SITS 1,087 B UNDER THE CEILING — 0.78 %.** Read
+#: ``test_an_identity_get_of_the_entry_bundle_is_refused_because_the_ceiling_binds`` for what
+#: happens when it crosses; the short version is that this origin starts answering 413 for the
+#: console's own JavaScript and a judge gets a blank page.
+#:
 #: They agree, to the byte, with what
 #: `verticals/mainline/apps/demo-api/tests/test_response_contract.py` declares for the same
 #: two quantities (`_LARGEST_WEB_OBJECT_BYTES`, `_LARGEST_SERVED_OBJECT_BYTES`) and with
 #: `test_static_site.py`'s `_LARGEST_IDENTITY_BYTES` / `_LARGEST_SERVED_WIRE_BYTES`. Three
 #: modules, one tree, one set of numbers — the property that broke on 2026-08-14, when this
-#: file alone still described the previous console, and again today, when this file was the
-#: last of the three to be re-recorded.
-ENTRY_PATH: Final = "/assets/index-BH5dfAvF.js"
-ENTRY_IDENTITY_BYTES: Final = 457_123
-ENTRY_GZIP_BYTES: Final = 129_400
+#: file alone still described the previous console.
+ENTRY_PATH: Final = "/assets/index-LoN3Sn_L.js"
+ENTRY_IDENTITY_BYTES: Final = 490_950
+ENTRY_GZIP_BYTES: Final = 138_177
 
-#: What the same 129,400 B costs *inside the envelope*. ``base64`` packs 3 bytes into 4
-#: characters and pads the remainder, so 129,400 = 3 x 43,133 + **1** becomes
-#: 4 x 43,134 = 172,536 characters ending in ``==`` (a remainder of 1 takes two pad
-#: characters).
+#: What the same 138,177 B costs *inside the envelope*. ``base64`` packs 3 bytes into 4
+#: characters and pads the remainder, so 138,177 = 3 x 46,059 + **0** becomes
+#: 4 x 46,059 = 184,236 characters ending in **no** ``=`` at all (a remainder of 0 takes no
+#: pad characters).
 #:
-#: **WAS 165,572**, for the previous bundle's 124,177 = 3 x 41,392 + **1** — the same
-#: remainder, hence the same two pad characters and the same rounded ratio.
-#: **IS 172,536**, measured over ``out/lambda/mainline-demo-api-arm64.zip``
-#: ``sha256 6802872f…aaed2738`` (``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``).
+#: **WAS 172,536**, for the previous bundle's 129,400 = 3 x 43,133 + **1**, which took two
+#: pad characters. **IS 184,236**, measured over ``out/lambda/mainline-demo-api-arm64.zip``
+#: ``sha256 7c97b532…41022d22`` (``--console-transport live``, ``MAINLINE_BUILD_ID=f0ba767``).
+#:
+#: **THE PADDING CLASS CHANGED WITH THIS BUILD AND THAT IS NOT COSMETIC.** ``n mod 3`` went
+#: from 1 to 0, so this envelope carries no ``=`` where the last one carried two, and the
+#: rounded inflation ratio therefore reads **1.3333** where it read 1.3334 for the previous
+#: two bundles. Nothing about the claim moved: ``4·ceil(n/3)`` is exact in both cases, and the
+#: bound asserted below in integers (``3·chars >= 4·n`` and ``3·chars <= 4·n + 8``) holds with
+#: its LEFT end attained here where its right end was attained before. A reader who expected
+#: 1.3334 to be a constant of nature would have been reading a property of one remainder.
+#:
 #: **WHY A MEASUREMENT:** it is a pure function of ``ENTRY_GZIP_BYTES`` — ``4·ceil(n/3)``,
 #: asserted as that identity below — so it moves when and only when the sibling this build
 #: emitted moves. A derived reading of a build, never a limit anybody set. **This is the
 #: number that must never reach a meter, a ceiling or a bill**, and the whole point of the
 #: socket is that it is not the number that reaches the client.
-ENTRY_ENVELOPE_CHARS: Final = 172_536
+ENTRY_ENVELOPE_CHARS: Final = 184_236
 
-#: The padding the envelope adds and AWS strips: 172,536 less 129,400.
+#: The overhead the envelope adds and AWS strips: 184,236 less 138,177.
 #:
-#: **WAS 41,395** (165,572 - 124,177); **IS 43,136**, over arm64.zip
-#: ``sha256 6802872f…aaed2738``, ``--console-transport live``,
-#: ``MAINLINE_BUILD_ID=b822fdc``. **WHY A MEASUREMENT:** it is the difference of the two
+#: **WAS 43,136** (172,536 - 129,400); **IS 46,059**, over arm64.zip
+#: ``sha256 7c97b532…41022d22``, ``--console-transport live``,
+#: ``MAINLINE_BUILD_ID=f0ba767``. **WHY A MEASUREMENT:** it is the difference of the two
 #: numbers above and of nothing else, so it is a reading of this build's envelope rather
 #: than a threshold. Declared beside the two numbers it is the difference of, because the
 #: test that asserts it is asserting that nobody is billed for it.
-ENTRY_ENVELOPE_PADDING: Final = 43_136
+ENTRY_ENVELOPE_PADDING: Final = 46_059
 
 #: ``index.html`` is the second object every judge fetches and, unlike the entry bundle,
 #: **both** of its representations are under the ceiling. That makes it the only place a
 #: refusal of compression can be proved as a 200-with-identity-bytes rather than inferred
 #: from a 413, which is why the ``q=0`` and token-matching cases below use it.
 #:
-#: **The identity size did NOT move: 4,655 B before and after**, which is the one fixed
-#: point in this file and is what lets the negotiation cases be read as being about
-#: negotiation rather than about a moving object. It is unchanged for a reason worth
-#: writing down: ``index.html`` names the chunks it preloads, this rebuild renamed both of
-#: them (``index-DzVoV1YM.js`` → ``index-BH5dfAvF.js``, ``index-C498vmEA.css`` →
-#: ``index-DAuZRgAW.css``), and a Vite content hash is a fixed-width field — so the file's
-#: **bytes** changed while its **length** did not.
+#: **The identity size STILL has not moved: 4,655 B across three consecutive packages**,
+#: which is the one fixed point in this file and is what lets the negotiation cases be read
+#: as being about negotiation rather than about a moving object. It is unchanged for a reason
+#: worth writing down and now demonstrated twice: ``index.html`` names the chunks it preloads,
+#: each rebuild renamed both of them (``index-BH5dfAvF.js`` → ``index-LoN3Sn_L.js``,
+#: ``index-DAuZRgAW.css`` → ``index-CEBovcJa.css``), and a Vite content hash is a fixed-width
+#: field — so the file's **bytes** change while its **length** does not. Seven new screens did
+#: not add a line to the shell because every one of them is lazily routed.
 #:
-#: Its sibling therefore moved, and moved *downwards*: **WAS 2,123, IS 2,122** — one byte
-#: SMALLER — measured 2026-08-15 from the central directory of
-#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``
-#: (``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``). **WHY A MEASUREMENT AND
+#: Its sibling therefore moved, and moved *downwards* again: **WAS 2,122, IS 2,120** — two
+#: bytes SMALLER — measured 2026-08-15 from the central directory of
+#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7c97b532…41022d22``
+#: (``--console-transport live``, ``MAINLINE_BUILD_ID=f0ba767``). **WHY A MEASUREMENT AND
 #: NOT A FLOOR:** it is whatever DEFLATE emitted for 4,655 changed bytes; compressing
-#: different bytes of the same length can produce a shorter stream, and a number that can
-#: fall by one on a rename was never anybody's bound. It is also the smallest real
+#: different bytes of the same length can produce a shorter stream, and a number that falls
+#: by one or two on a rename was never anybody's bound. It is also the smallest real
 #: re-record in this file, which is exactly the kind of drift a declared constant exists to
-#: make visible — nothing else in this repository would have noticed one byte.
+#: make visible — nothing else in this repository would have noticed two bytes.
 INDEX_PATH: Final = "/index.html"
 INDEX_IDENTITY_BYTES: Final = 4_655
-INDEX_GZIP_BYTES: Final = 2_122
+INDEX_GZIP_BYTES: Final = 2_120
 
 #: Sent verbatim by :meth:`_Emulator.request` when a case wants the header genuinely
 #: absent. ``http.client`` volunteers ``Accept-Encoding: identity`` unless told not to, and
@@ -227,45 +264,49 @@ _ABSENT: Final = object()
 #:
 #: ``docs/deploy/lambda-bundle.md``, ``static_site``'s module docstring and the L3 row of
 #: ``docs/deploy/COST-BOUND.md`` all publish these two numbers, and every one of them is a
-#: statement about **57** objects rather than about the two this file names by hand. The
+#: statement about the whole set rather than about the two this file names by hand. The
 #: two named ones were chosen because they are the extremes — the object the ceiling
 #: refuses in identity, and the object every judge fetches first — and proving negotiation
 #: for the extremes is not proving it for the set. These constants are read out of the
 #: built artefact's central directory by the sweep below.
 #:
-#: **57 is unchanged and 289,437 B is not.** The console emitted the same number of chunks
-#: before and after — 57 identity objects, 57 siblings, no orphans — so the count held while
-#: the total moved.
+#: **THIS TIME BOTH MOVED, AND THE COUNT MOVING IS THE LOUDER OF THE TWO.** The previous
+#: re-record held ``SIBLING_COUNT`` at 57 across a rebuild and moved only the total, which is
+#: what "the console gained bytes" looks like. Here the count went **57 → 69**: seven working
+#: screens, an on-ramp on each, and a ``/v1/demo/subjects`` endpoint arrived as twelve more
+#: lazily-loaded chunks and their CSS. A count that moves means the SHAPE of the site changed,
+#: not just its size, and it is exactly the event this pair is declared to force somebody to
+#: look at rather than absorb.
 #:
-#: **WAS 289,437 B; IS 295,724 B**, +6,294. **WHICH BUILD:**
-#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``,
-#: ``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``, summed 2026-08-15 from that
-#: zip's central directory and equal to `test_response_contract._SIBLING_BYTES` for the same
-#: tree. **WHY A MEASUREMENT:** it is the sum of 57 compressor outputs. 5,223 B of the +6,294
-#: is the entry chunk's own sibling (124,177 → 129,400), measured directly; the remaining
-#: 1,071 B is somewhere in the other 56 and **this worker does not attribute it
-#: object-by-object, because the previous package is not in the tree to diff against** — the
-#: only other zip in ``out/`` is the stale x86_64 one, which carries a console *two* rebuilds
-#: back and would answer a different question. Saying which objects moved without that diff
-#: would be inventing a cause. What is asserted below is the total, which was summed. Nobody
-#: set it and nothing is permitted or refused by it — the object that *is* refused is refused
-#: by the ceiling, which did not move.
+#: **WAS 57 / 295,724 B; IS 69 / 347,013 B**, +12 objects and +51,289 B. **WHICH BUILD:**
+#: ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7c97b532…41022d22``, packed from HEAD
+#: ``f0ba767`` ``--console-transport live`` with ``MAINLINE_BUILD_ID=f0ba767``, summed
+#: 2026-08-15 from that zip's central directory and equal to
+#: `test_response_contract._SIBLING_BYTES` for the same tree. **WHY A MEASUREMENT:** it is the
+#: sum of 69 compressor outputs. 8,777 B of the +51,289 is the entry chunk's own sibling
+#: (129,400 → 138,177), measured directly; the rest is spread across the twelve new objects
+#: and the sixty-eight others, and **this worker does not attribute it object-by-object,
+#: because the previous package is not in the tree to diff against** — the only other zip in
+#: ``out/`` is the stale x86_64 one, which carries a console several rebuilds back and would
+#: answer a different question. Saying which objects moved without that diff would be
+#: inventing a cause. What is asserted below is the total, which was summed. Nobody set it and
+#: nothing is permitted or refused by it — the object that *is* refused is refused by the
+#: ceiling, which did not move.
 #:
-#: ``SIBLING_COUNT`` is a different kind of constant and is deliberately NOT re-measured: it
-#: is asserted at 57 because a count that survives a rebuild while the total does not is the
-#: normal shape of this pair, and a count that moved would mean an object stopped shipping or
-#: stopped being compressed — a different conversation, and one this test should force rather
-#: than absorb.
+#: **COUNT THEM IN THE ARCHIVE.** The zip manifest's ``web_before`` is 96 entries, the tree as
+#: the console build left it: 27 source maps still in, no ``.gz`` written yet. After the strip
+#: it is 69 identity objects, and after the packer writes a sibling beside each it is 138
+#: ``web/`` entries. Only the last of those is the tree a request can reach.
 #:
-#: The same sibling total is published outside this file — `docs/deploy/lambda-bundle.md` §4,
-#: `static_site`'s module docstring, and the L3 row of `docs/deploy/COST-BOUND.md`. **The
+#: The same sibling inventory is published outside this file — `docs/deploy/lambda-bundle.md`
+#: §4, `static_site`'s module docstring, and the L3 row of `docs/deploy/COST-BOUND.md`. **The
 #: artefact is authoritative and the documents are derived**, so the number enforced below is
 #: the zip's. As of this measurement `docs/deploy/lambda-bundle.md` still carries
 #: ``57 | 289 312`` at line 215, and the same figure inside its 114-entry arithmetic at line
-#: 209 — the console *two* rebuilds back. That page is not this worker's file, so it is
+#: 209 — a console several rebuilds back. That page is not this worker's file, so it is
 #: reported to the lead rather than edited here.
-SIBLING_COUNT: Final = 57
-SIBLING_TOTAL_BYTES: Final = 295_724
+SIBLING_COUNT: Final = 69
+SIBLING_TOTAL_BYTES: Final = 347_013
 
 
 # ── Loading the two things under test ───────────────────────────────────────────────
@@ -446,7 +487,7 @@ def _admitting_limiter() -> Iterator[None]:
 def test_a_gzip_accepting_get_puts_the_sibling_bytes_and_only_those_on_the_wire(
     emulator: _Emulator, web_root: Path
 ) -> None:
-    """**The proof this file exists for.** 129,400 bytes off a socket, not 172,536.
+    """**The proof this file exists for.** 138,177 bytes off a socket, not 184,236.
 
     Four claims in one exchange, and the last is the one no dict test can make:
 
@@ -456,15 +497,15 @@ def test_a_gzip_accepting_get_puts_the_sibling_bytes_and_only_those_on_the_wire(
        compressed answer to the next client that asked for identity — the classic gzip
        cache-poisoning bug, which breaks the page for exactly the clients least able to
        say so;
-    3. the body is **exactly** the 129,400 wire bytes, so the base64 envelope was decoded
+    3. the body is **exactly** the 138,177 wire bytes, so the base64 envelope was decoded
        and its 33 % never reached the socket; and
-    4. those bytes inflate to the byte-for-byte 457,123 B original, so what was saved was
+    4. those bytes inflate to the byte-for-byte 490,950 B original, so what was saved was
        transport and not content.
 
-    **Both figures were re-measured 2026-08-15** — 124,177 → 129,400 on the wire and
-    433,564 → 457,123 inflated — from ``out/lambda/mainline-demo-api-arm64.zip``
-    ``sha256 6802872f…aaed2738`` (``--console-transport live``,
-    ``MAINLINE_BUILD_ID=b822fdc``). They are what the compiler emitted and the compressor
+    **Both figures were re-measured 2026-08-15** — 129,400 → 138,177 on the wire and
+    457,123 → 490,950 inflated — from ``out/lambda/mainline-demo-api-arm64.zip``
+    ``sha256 7c97b532…41022d22`` (``--console-transport live``,
+    ``MAINLINE_BUILD_ID=f0ba767``). They are what the compiler emitted and the compressor
     produced for this build, not thresholds: the claim being proved is the *equality of the
     socket and the sibling*, which is a property of the serving path and is indifferent to
     how large either number is.
@@ -497,42 +538,39 @@ def test_the_envelope_is_a_third_larger_than_the_wire_and_the_wire_is_what_arriv
     """The 33 % gap, measured on both sides of the boundary in one test.
 
     The handler's dict and the socket are asked for the same object and their answers are
-    compared: the dict carries 172,536 base64 characters, the socket carries 129,400 bytes,
+    compared: the dict carries 184,236 base64 characters, the socket carries 138,177 bytes,
     and the ratio is 4/3 to the character. That ratio is the entire hazard interface **I2**
     names — a meter, a ceiling or an invoice computed on the left-hand number over-states
     this origin's egress by a third — and this is the assertion that says which of the two
     numbers is the one AWS bills.
 
-    **THE ROUNDED RATIO DID NOT MOVE, AND IT WAS STILL RE-DERIVED RATHER THAN LEFT STANDING
-    (2026-08-15).** It reads 1.3334 after a rebuild that moved every other figure in this
-    file, and that is arithmetic rather than luck. Base64 packs three bytes into four
-    characters and pads the remainder, so the encoded length is ``4·ceil(n/3)`` and the ratio
-    is a function of ``n mod 3`` alone:
+    **THE ROUNDED RATIO MOVED THIS TIME — 1.3334 → 1.3333 — AND NOTHING IS WRONG.** It had
+    held across two rebuilds and a reader could be forgiven for having filed it as a constant
+    of nature. It is not: base64 packs three bytes into four characters and pads the
+    remainder, so the encoded length is ``4·ceil(n/3)`` and the ratio is a function of
+    ``n mod 3`` **alone**:
 
-        n = 124,177 (previous)  n mod 3 = 1 → 2 pads → 165,572/124,177 = 1.33335481 → 1.3334
-        n = 129,400 (this one)  n mod 3 = 1 → 2 pads → 172,536/129,400 = 1.33335394 → 1.3334
+        n = 124,177             n mod 3 = 1 → 2 pads → 165,572/124,177 = 1.33335481 → 1.3334
+        n = 129,400 (previous)  n mod 3 = 1 → 2 pads → 172,536/129,400 = 1.33335394 → 1.3334
+        n = 138,177 (this one)  n mod 3 = 0 → 0 pads → 184,236/138,177 = 1.33333333 → 1.3333
 
-    Both sit in ``[4/3, 4/3 + 8/(3n)]``, which is what "a third larger" means exactly, and
-    the upper end is *attained* when the remainder is 1 — which is why both of these bundles
-    round up. The bound is asserted below **as a bound**, so the claim survives the next
-    re-record without anybody having to decide what a decimal should say; the rounded value
-    is kept beside it because it is the number a human reads, and it is written here with the
-    division that produces it. A figure that happens to land on its old value is still a new
-    measurement of a new build: 1.3334 here is ``172,536/129,400`` over
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``, not the
-    surviving decimal of a bundle that no longer ships.
+    All three sit in ``[4/3, 4/3 + 8/(3n)]``, which is what "a third larger" means exactly.
+    The UPPER end is attained when the remainder is 1, which is why the first two rounded up;
+    the LOWER end is attained exactly when the remainder is 0, which is why this one does not
+    round up at all — ``3 x 184,236 == 4 x 138,177`` on the nose. The bound is asserted below
+    **as a bound**, which is precisely why this re-record needed no thought about what the
+    inequality should say: only the decimal beside it moved. The rounded value is kept because
+    it is the number a human reads, written with the division that produces it.
 
-    **ONE ASSERTION CHANGED SHAPE ON 2026-08-15 AND IT IS NOT A NUMBER (reported to the
-    lead).** The bound used to be evaluated in binary floating point. Because the upper end
-    is *attained* whenever ``n mod 3 == 1``, and 129,400 is such an ``n``, the comparison
-    reduced to whether ``172,536/129,400`` and ``4/3 + 8/(3·129,400)`` round to the same
-    double — they do not, and the assertion failed by one unit in the last place against an
-    envelope that is exactly ``4·ceil(n/3)`` characters. The previous bundle had the same
-    remainder and happened to round the other way. The inequalities are now multiplied out
-    and asserted over exact integers (``3·chars >= 4·n`` and ``3·chars <= 4·n + 8``), which
-    is the same statement with the approximation removed: strictly no weaker, and no longer
-    dependent on which of two thirds a CPU rounds up. This is the one edit in this file that
-    is not a re-measurement, and it is recorded here rather than made quietly.
+    **THE ASSERTION SHAPE THAT MADE THAT PAINLESS WAS AN EDIT MADE ON 2026-08-15 AND IS WORTH
+    KEEPING.** The bound was once evaluated in binary floating point. Because an end of the
+    interval is *attained* whenever ``n mod 3`` is 1 or 0, the comparison reduced to whether
+    two unrepresentable thirds round to the same double — at n = 129,400 they did not, and
+    the assertion failed by one unit in the last place against an envelope that is exactly
+    ``4·ceil(n/3)`` characters. The inequalities are multiplied out and asserted over exact
+    integers (``3·chars >= 4·n`` and ``3·chars <= 4·n + 8``): the identical mathematical
+    statement with the approximation removed, and the reason today's build — which attains
+    the other end of the same interval — passes without anybody touching it.
     """
     from mainline_demo_api import app
 
@@ -568,14 +606,17 @@ def test_the_envelope_is_a_third_larger_than_the_wire_and_the_wire_is_what_arriv
     # WRITTEN IN EXACT INTEGERS SINCE 2026-08-15, AND THAT IS A CORRECTION, NOT A RELAXATION.
     # These two inequalities were previously asserted as
     # `4/3 <= len(envelope)/len(wire) <= 4/3 + 8/(3n)` in binary floating point. At
-    # n = 129,400 the right-hand bound is ATTAINED EXACTLY — n mod 3 == 1, so
+    # n = 129,400 the RIGHT-hand bound was ATTAINED EXACTLY — n mod 3 == 1, so
     # 3 x 172,536 == 4 x 129,400 + 8 — and the comparison then came down to which way two
     # unrepresentable thirds happened to round. It failed by one unit in the last place
-    # against a build that satisfies the claim perfectly. The previous bundle had the same
-    # remainder and passed; that was luck, and luck is not a control. Multiplying the
+    # against a build that satisfies the claim perfectly. Today's build attains the OTHER end:
+    # n = 138,177 has n mod 3 == 0, so 3 x 184,236 == 4 x 138,177 exactly and the LEFT-hand
+    # bound is the tight one. Two consecutive packages have now landed on opposite attained
+    # boundaries of this interval, which is as clear a demonstration as this file will ever
+    # get that the integer form is load-bearing rather than fastidious. Multiplying the
     # denominators out asserts the IDENTICAL mathematical statement over exact integers, so
-    # nothing that used to be refused is now accepted — the attained boundary is decided by
-    # arithmetic instead of by rounding. The float form is what drifted; the bound is not.
+    # nothing that used to be refused is now accepted. The float form is what drifted; the
+    # bound is not.
     assert 3 * len(envelope) >= 4 * len(wire), (
         f"the envelope is shorter than 4·ceil(n/3) for n = {len(wire)}: {len(envelope)} "
         "characters, so it is not a base64 encoding of those bytes at all"
@@ -584,8 +625,11 @@ def test_the_envelope_is_a_third_larger_than_the_wire_and_the_wire_is_what_arriv
         f"the envelope is longer than 4·ceil(n/3) for n = {len(wire)}: {len(envelope)} "
         "characters. Anything above this is padding nobody asked for, or a second encoding."
     )
-    # Then the value a human reads, re-derived in the docstring above: 172,536/129,400.
-    assert round(inflation, 4) == 1.3334, f"the envelope overhead moved: {inflation}"
+    # Then the value a human reads, re-derived in the docstring above: 184,236/138,177,
+    # which is 4/3 EXACTLY because n mod 3 == 0. It read 1.3334 for the two bundles before
+    # this one, both of which had remainder 1; the decimal is a property of the remainder and
+    # not of this repository.
+    assert round(inflation, 4) == 1.3333, f"the envelope overhead moved: {inflation}"
     assert len(envelope) - len(wire) == ENTRY_ENVELOPE_PADDING, (
         f"{ENTRY_ENVELOPE_PADDING} characters of base64 padding that AWS strips and nobody "
         "is billed for. A ceiling or a metric applied to the envelope would count them."
@@ -611,24 +655,33 @@ def test_an_identity_get_of_the_entry_bundle_is_refused_because_the_ceiling_bind
     The brief this file was written to allows either outcome and requires the true one to
     be asserted and named. The true one is **413**, and it follows from arithmetic rather
     than from preference: the ceiling in force is 139,264 B (``136 KiB``) and the identity
-    entry bundle is 457,123 B, so it is 3.28x over (``457,123 / 139,264 = 3.2824``). Every
+    entry bundle is 490,950 B, so it is 3.53x over (``490,950 / 139,264 = 3.5253``). Every
     browser that will ever load this console sends ``Accept-Encoding: gzip`` and is served;
-    a client that refuses compression while asking for a 457 KB bundle is exactly the caller
+    a client that refuses compression while asking for a 490 KB bundle is exactly the caller
     a *wire* ceiling exists for, and ``curl`` without ``--compressed`` is the one that will
     meet it.
 
     **THE MULTIPLE MOVED BECAUSE THE NUMERATOR DID (2026-08-15).** It was 3.1133
-    (``433,564 / 139,264``) and is 3.2824 (``457,123 / 139,264``), measured over
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``
-    (``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``). **The denominator is
-    unchanged and is not a measurement**: ruling **R10**
-    (`docs/leads/reconcile-constants-plan.md` §1) keeps
+    (``433,564 / 139,264``), then 3.2824 (``457,123 / 139,264``), and is 3.5253
+    (``490,950 / 139,264``), measured over ``out/lambda/mainline-demo-api-arm64.zip``
+    ``sha256 7c97b532…41022d22`` (``--console-transport live``,
+    ``MAINLINE_BUILD_ID=f0ba767``). **The denominator is unchanged and is not a measurement**:
+    ruling **R10** (`docs/leads/reconcile-constants-plan.md` §1) keeps
     ``static_site.DEFAULT_MAX_RESPONSE_BYTES`` at 139,264 and demotes the derivation that
     first chose it to provenance, leaving interface **I3** and the straddle as the live law.
-    Both still hold: ``129,400 <= 139,264 < 457,123``, and 139,264 < 1.20 x 129,400.
+    Both still hold: ``138,177 <= 139,264 < 490,950``, and 139,264 < 1.20 x 138,177.
+
+    **BUT READ THE FIRST OF THOSE TWO AGAIN.** ``138,177 <= 139,264`` now clears by **1,087
+    bytes — 0.78 %**, where it cleared by 9,864 on the package before this one. This test is
+    the socket-level statement of what the console loses when that reaches zero: the object
+    at ``ENTRY_PATH`` starts answering 413 to *every* client rather than only to the ones
+    refusing compression, ``GET /`` keeps returning its 200 and its shell, and the page a
+    judge opens is blank. Nothing in the origin's own logs distinguishes that from a healthy
+    day. The fix is a smaller entry chunk; raising 139,264 to make the inequality comfortable
+    again is the move R10 exists to refuse.
 
     The straddle is asserted before the status, so this stays a **ratchet**: if somebody
-    raises the ceiling above 457,123 the first assertion fails naming the flood multiplier
+    raises the ceiling above 490,950 the first assertion fails naming the flood multiplier
     that came back, instead of the second one quietly starting to expect a 200.
     """
     from mainline_demo_api import static_site
@@ -685,7 +738,7 @@ def test_an_identity_get_of_the_index_is_served_whole_so_the_ceiling_is_not_a_wa
 
 
 def test_the_sibling_has_no_url_of_its_own(emulator: _Emulator, web_root: Path) -> None:
-    """``/assets/index-BH5dfAvF.js.gz`` is a 404 **even though the file is right there**.
+    """``/assets/index-LoN3Sn_L.js.gz`` is a 404 **even though the file is right there**.
 
     That is the whole content of interface **I1**'s naming rule, and it is why this asserts
     the file exists first: a 404 from a path that happens to be missing would prove nothing.
@@ -694,9 +747,9 @@ def test_the_sibling_has_no_url_of_its_own(emulator: _Emulator, web_root: Path) 
 
     The property is *"a ``.gz`` sibling has no URL of its own"*; the object it is proved
     against is whichever chunk this build emitted, and today that is
-    ``assets/index-BH5dfAvF.js`` (**was** ``assets/index-DzVoV1YM.js``, renamed by the
-    2026-08-15 LIVE rebuild packed in
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``). The name is
+    ``assets/index-LoN3Sn_L.js`` (**was** ``assets/index-BH5dfAvF.js``, renamed by the
+    2026-08-15 LIVE rebuild from HEAD ``f0ba767`` packed in
+    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7c97b532…41022d22``). The name is
     read from ``ENTRY_PATH`` rather than typed here, so this sentence is the only place in
     this test the measurement appears, and the assertion below cannot go stale independently
     of the constant.
@@ -820,14 +873,14 @@ def test_head_carries_no_body_and_the_same_headers_as_the_get(emulator: _Emulato
     """A ``HEAD`` that disagreed with its ``GET`` would be a lie told by the cheaper method.
 
     ``content-length`` is the number the matching ``GET`` would deliver — RFC 9110 §9.3.2 —
-    so on the negotiated path it is the **sibling's** 129,400 and not the identity object's
-    457,123, and the body is empty. The header sets are compared as sets rather than one by
+    so on the negotiated path it is the **sibling's** 138,177 and not the identity object's
+    490,950, and the body is empty. The header sets are compared as sets rather than one by
     one so a header that appears on only one of the two methods fails here rather than in a
     browser's cache six months later.
 
-    **Both figures were re-measured 2026-08-15** (124,177 → 129,400, 433,564 → 457,123) from
-    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 6802872f…aaed2738``,
-    ``--console-transport live``, ``MAINLINE_BUILD_ID=b822fdc``. They are measurements of
+    **Both figures were re-measured 2026-08-15** (129,400 → 138,177, 457,123 → 490,950) from
+    ``out/lambda/mainline-demo-api-arm64.zip`` ``sha256 7c97b532…41022d22``,
+    ``--console-transport live``, ``MAINLINE_BUILD_ID=f0ba767``. They are measurements of
     what this build emits, not limits: the claim under test is that ``HEAD`` and ``GET``
     agree, and it would be the same claim at any pair of sizes. They are quoted at all
     because a ``HEAD`` that announced the *identity* length on a negotiated response would
@@ -867,7 +920,7 @@ def test_head_is_refused_exactly_where_the_get_is(emulator: _Emulator) -> None:
     assert head_body == b""
 
 
-# ── (f) All 57 siblings, and not just the two this file names ───────────────────────
+# ── (f) All 69 siblings, and not just the two this file names ───────────────────────
 
 
 def _inventory(web_root: Path) -> list[tuple[str, int, int]]:
@@ -889,49 +942,53 @@ def _inventory(web_root: Path) -> list[tuple[str, int, int]]:
     ]
 
 
-def test_the_shipped_set_is_57_siblings_of_295_724_bytes_with_no_orphan_and_no_gap(
+def test_the_shipped_set_is_69_siblings_of_347_013_bytes_with_no_orphan_and_no_gap(
     web_root: Path,
 ) -> None:
     """The published inventory, measured against the artefact that deploys.
 
-    **THIS TEST WAS RENAMED ON 2026-08-15 AND THE RENAME IS PART OF THE RE-RECORD.** It read
-    ``…_of_289_437_bytes_…`` immediately before this edit, and ``…_of_289_312_bytes_…`` at
-    commit ``3933b97`` — the same number this file's constants have now moved twice, because
-    both re-records were uncommitted when this one began. A test name that embeds a
+    **THIS TEST WAS RENAMED AGAIN AND THE RENAME IS PART OF THE RE-RECORD.** It read
+    ``…_is_57_siblings_of_295_724_bytes_…`` immediately before this edit, ``…_of_289_437_…``
+    before that, and ``…_of_289_312_…`` at commit ``3933b97``. A test name that embeds a
     measurement is a claim like any other, and a name left standing after the measurement
     moved is a lie that ``-q`` output repeats on every run — so the name moves with the
-    number rather than being left to rot. Nothing outside this file referenced any of the
-    three names (checked by grep across the repository), so no required list, lane
-    declaration or document lost a member; if one ever does, the name still moves and the
-    reference is corrected with it, never the other way round.
+    number rather than being left to rot. **The count is now in the name too**, because this
+    is the first of these re-records in which the object COUNT moved and not only the total,
+    and a name that carried only the byte figure would have hidden the more interesting half.
+    Nothing outside this file references any of the four names — checked by grep across the
+    repository, where the only hits are historical ``qa/*.xml`` run artefacts — so no
+    required list, lane declaration or document lost a member; if one ever does, the name
+    still moves and the reference is corrected with it, never the other way round.
 
     The sibling inventory is published in three places outside this file:
     ``docs/deploy/lambda-bundle.md`` §4, ``static_site``'s module docstring, and the L3 row
     of ``docs/deploy/COST-BOUND.md``. Until this control existed those were three copies of
     one unverified sentence.
 
-    **WAS 289,437 B; IS 295,724 B**, +6,294, measured 2026-08-15 by summing the ``.gz``
-    entries in the central directory of ``out/lambda/mainline-demo-api-arm64.zip``
-    ``sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b``, packed
-    ``--console-transport live`` with ``MAINLINE_BUILD_ID=b822fdc``. **It is a measurement
-    and not a floor**: it is the sum of what the compressor produced for the 57 objects this
-    build emitted, and no request is permitted or refused by it — the one refusal in this
-    package is made by the ceiling, which did NOT move (ruling R10). As of this measurement
-    ``docs/deploy/lambda-bundle.md:209,215`` still carries ``57 | 289 312``, the console two
-    rebuilds back; that page is not this worker's file and is reported to the lead rather
-    than edited here. **The number this test enforces is the artefact's, not any
-    document's.** Four properties, each of which breaks a different published claim if it
+    **WAS 57 / 295,724 B; IS 69 / 347,013 B**, +12 objects and +51,289 B, measured
+    2026-08-15 by summing the ``.gz`` entries in the central directory of
+    ``out/lambda/mainline-demo-api-arm64.zip``
+    ``sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22``, packed from
+    HEAD ``f0ba767`` ``--console-transport live`` with ``MAINLINE_BUILD_ID=f0ba767``. **It is
+    a measurement and not a floor**: it is the sum of what the compressor produced for the 69
+    objects this build emitted, and no request is permitted or refused by it — the one
+    refusal in this package is made by the ceiling, which did NOT move (ruling R10). As of
+    this measurement ``docs/deploy/lambda-bundle.md:209,215`` still carries ``57 | 289 312``,
+    a console several rebuilds back; that page is not this worker's file and is reported to
+    the lead rather than edited here. **The number this test enforces is the artefact's, not
+    any document's.** Four properties, each of which breaks a different published claim if it
     moves:
 
-    1. **57 identity objects**, so the count in the docs is the count in the zip — and this
-       one is *asserted rather than re-measured*: it survived the rebuild, and a count that
-       moved would mean an object stopped shipping or stopped being compressed;
+    1. **69 identity objects**, so the count in the docs is the count in the zip — and this
+       one really did move (57 → 69), which is what it looks like when a console gains
+       screens rather than bytes; a count that moves the other way would mean an object
+       stopped shipping or stopped being compressed;
     2. **every one of them has a ``.gz`` beside it** — one identity object without a
        sibling is one object served uncompressed to every browser, and the L3 saving is
        over-claimed by its identity size;
     3. **no orphan ``.gz``** — a sibling whose identity object was dropped is 100 % dead
        weight, since interface I1 gives it no URL of its own and nothing can ever reach it;
-    4. **295,724 B of siblings in total**, the number this package actually carries.
+    4. **347,013 B of siblings in total**, the number this package actually carries.
 
     A rebuild that legitimately changes the console moves these numbers. That is a cost
     change and has to be read as one: re-measure, then move the constants here **and** the
@@ -970,12 +1027,12 @@ def test_the_shipped_set_is_57_siblings_of_295_724_bytes_with_no_orphan_and_no_g
 def test_every_one_of_the_57_siblings_reaches_the_wire_and_none_of_them_has_a_url(
     emulator: _Emulator, web_root: Path
 ) -> None:
-    """**The control that discharges the claim.** All 57, over the socket, both directions.
+    """**The control that discharges the claim.** All 69, over the socket, both directions.
 
     The rest of this file proves negotiation for two objects. The sentence the cost model
     and the bundle page publish is about the whole set — *the siblings are what every real
-    browser receives* — and a set proved at its two extremes is a set with 55 untested
-    members. Three exchanges per object, 171 in all:
+    browser receives* — and a set proved at its two extremes is a set with 67 untested
+    members. Three exchanges per object, 207 in all:
 
     * ``Accept-Encoding: gzip`` on the **identity** URL answers 200 with
       ``content-encoding: gzip``, ``vary: accept-encoding`` and the sibling's bytes exactly;
@@ -984,7 +1041,7 @@ def test_every_one_of_the_57_siblings_reaches_the_wire_and_none_of_them_has_a_ur
     * the **media type is the identity object's**, asserted against the identity response
       for the same path rather than against this module's own table — a ``.js.gz`` served
       as ``application/gzip`` is a module a browser refuses to run;
-    * ``<path>.gz`` is a **404** for all 57, so the sibling never acquires a second name, a
+    * ``<path>.gz`` is a **404** for all 69, so the sibling never acquires a second name, a
       second cache entry or a way to hand a browser gzip it was never told to inflate.
 
     The ceiling is consulted rather than assumed: an object whose identity representation
@@ -995,7 +1052,7 @@ def test_every_one_of_the_57_siblings_reaches_the_wire_and_none_of_them_has_a_ur
     quietly with one fewer comparison.
 
     The limiter is refilled between exchanges via its documented harness seam, and it still
-    runs on every one of the 171: the per-IP bucket is 50 tokens and this file's own
+    runs on every one of the 207: the per-IP bucket is 50 tokens and this file's own
     ``_admitting_limiter`` fixture only refills between *cases*, so without this the sweep
     would fail as a 429 for a reason that has nothing to do with compression. Nothing here
     disables it — ``ratelimit.reset()`` refills, it does not bypass.
@@ -1069,7 +1126,7 @@ def test_every_one_of_the_57_siblings_reaches_the_wire_and_none_of_them_has_a_ur
     assert len(refused_identity) == 1 and refused_identity == [ENTRY_PATH.lstrip("/")], (
         f"{len(refused_identity)} objects are over the {ceiling} B ceiling in identity "
         f"({refused_identity}); one is expected, the entry bundle. Every gzip "
-        "representation is under it, which is what makes all 57 siblings reachable — if a "
+        "representation is under it, which is what makes all 69 siblings reachable — if a "
         "sibling ever goes over, that object stops being servable at all and the L3 row of "
         "the cost model is no longer a bound anybody can rely on."
     )

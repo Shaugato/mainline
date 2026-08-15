@@ -196,11 +196,30 @@ FORBIDDEN_SCHEMAS: tuple[str, ...] = ("mainline_qa",)
 #: how to spell is a refusal, never a silently dropped grant.
 ROUTINE_SIGNATURES: dict[str, str] = {
     "mainline.merge_permit": "(UUID, BYTES, STRING, STRING, JSONB, BYTES, INT2, BYTES)",
+    "trappoint.explain_refusal": "(STRING, UUID, STRING, JSONB)",
 }
 
-#: Granted unconditionally to ``mainline_api`` because the demo's first beat is a ``CALL`` of it.
-#: One statement, not a list — see ``gate_probe`` below, which is the evidence that it works.
-API_ROUTINES: tuple[str, ...] = ("mainline.merge_permit",)
+#: Granted unconditionally to ``mainline_api``. Both are CALLed by the demo on paths a judge
+#: reaches, and neither may be left to a default.
+#:
+#: ``trappoint.explain_refusal`` ADDED 2026-08-15, and it is a DECLARATION catching up with a
+#: cluster rather than a new privilege. ``refusal.py:141`` calls it on every refusal — which is
+#: the demo's whole subject — and the grant is already held on CockroachDB Cloud, verified:
+#: ``EXECUTE`` on ``trappoint.explain_refusal(text, uuid, text, jsonb)``. Nothing in this
+#: repository said so, so ``test_every_routine_the_demo_api_calls_holds_execute_from_some_
+#: authority_here`` was correctly red against a database that would have answered.
+#:
+#: THAT ASYMMETRY IS THE POINT AND IT COST FIVE OUTAGES IN ONE EVENING. A privilege the cluster
+#: holds and the repository does not declare survives until somebody rebuilds the database from
+#: this tree, and then vanishes — the mirror of the failure that put five ``42501``s in front of
+#: the live URL, each found one HTTP request at a time. The test refuses to read "the cluster
+#: happens to allow it" as an authority, and it is right to: an undeclared grant is a fact about
+#: one database, not about this product.
+#:
+#: The signature is spelled in this table for the reason the header gives — CockroachDB needs the
+#: argument list to disambiguate an overload, and a routine the matrix names that this table
+#: cannot spell is a refusal rather than a silently dropped grant.
+API_ROUTINES: tuple[str, ...] = ("mainline.merge_permit", "trappoint.explain_refusal")
 
 #: Where the authority lives, relative to the repository root.
 GRANTS_MATRIX_RELPATH = Path("verticals") / "mainline" / "db" / "GRANTS.yaml"

@@ -702,9 +702,10 @@ declaring test files still carry the **deployed** package's numbers.
 >
 > **Do not read `119,158 ≤ g ≤ 126,604` anywhere on this page as a live constraint.** It is
 > retired as one. The live law is the straddle, interface I3 and exactly-one-refusal — all
-> three measured true against the package of record in §0.5 — and the live *warning* is that
-> section's headroom line: **9,864 gzipped bytes** remain before the origin would 413 its own
-> entry chunk.
+> three measured true against the package of record, which is now **§0.6's** (`7c97b532…`)
+> and no longer §0.5's — and the live *warning* is that section's headroom line: **1,087
+> gzipped bytes** remain before the origin would 413 its own entry chunk. §0.5's 9,864 is
+> SUPERSEDED and describes the package before this one.
 
 **What it would do to the published residual, if the ceiling were raised to admit it.** Rows
 R1/R3/R4/R6 are priced from the gzip sibling, so they scale by `129,404 ÷ 124,177 = 1.042093`:
@@ -731,6 +732,14 @@ differently is a change to that decision, not to this ceiling. Whichever way it 
 ---
 
 ## 0.5 · THE PACKAGE OF RECORD IS A LIVE-TRANSPORT BUILD — measured 2026-08-15, and the ceiling did not move
+
+> **SUPERSEDED 2026-08-15 by §0.6, later the same day.** Every figure in this section is a
+> correct, dated reading of `sha256 6802872f…` and is preserved as that. It is **not** the
+> package of record any more: a second LIVE build (`sha256 7c97b532…`, HEAD `f0ba767`) is,
+> and its entry chunk is `assets/index-LoN3Sn_L.js` at 490,950 B / **138,177 B** on the wire.
+> In particular the headroom line below reads 9,864 and the live figure is **1,087**. Read
+> §0.6 for anything current; read this for what the previous package measured. The ceiling is
+> 139,264 B in both, unchanged.
 
 **Recorded 2026-08-15 by W4 (cost-and-latency pages).** §0.4 predicted this section and named
 the figure it would carry; the prediction was taken over a scratch `--console-transport both`
@@ -855,6 +864,154 @@ in-window, USD 564 / 30 d unattended, against ~229,805 unbounded.**
   better console and is legitimate work on its own merits; it is not a remedy this ceiling
   requires, and re-cutting the artefact to make a formula come out is the same error as
   re-cutting the formula, pointed the other way.
+
+---
+
+## 0.6 · A SECOND LIVE BUILD SUPERSEDES §0.5 — measured 2026-08-15, the ceiling still did not move, and the headroom is now 1,087 B
+
+**Recorded 2026-08-15. §0.5's package of record is SUPERSEDED and every figure in it now
+describes the package before this one.** §0.5 is left standing as the dated record of
+`sha256 6802872f…` — it is not a rewrite target — and this section is the live one.
+
+**What changed in the product, not in the arithmetic.** The console gained **seven working
+screens, a plain-language on-ramp on every screen, and a new `GET /v1/demo/subjects`
+endpoint** (commit `9c902e0`). That is a deliberate change to what ships, so the entry chunk
+grew and — a Vite chunk name being a content hash — renamed itself. Every byte figure below
+moved because of that; nothing below was chosen.
+
+**The artefact, named by digest** because a path is not an identity:
+`out/lambda/mainline-demo-api-arm64.zip`,
+`sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22`, built from HEAD
+`f0ba767` `--console-transport live` with `MAINLINE_BUILD_ID=f0ba767` and
+`VITE_MAINLINE_API_BASE=/`. Read with `zipfile` over the **central directory**'s `web/`
+entries, never from `console/dist`.
+
+### The package of record, measured — a dated column beside §0.5's, not a rewrite of it
+
+| | the package §0.5 recorded (`6802872f…`) | **the package of record (`7c97b532…`), measured 2026-08-15** | Δ |
+|---|---:|---:|---:|
+| `web/` entries | 114 | **138** | +24 |
+| `web/` bytes | 1,308,536 | **1,524,990** | +216,454 |
+| identity objects | 57 / 1,012,812 B | **69 / 1,177,977 B** | +12 / +165,165 |
+| `.gz` siblings | 57 / 295,724 B | **69 / 347,013 B** | +12 / +51,289 |
+| source maps in the package | 0 / 0 B | **0 / 0 B** | 0 |
+| entry chunk, identity | 457,123 B `index-BH5dfAvF.js` | **490,950 B `index-LoN3Sn_L.js`** | +33,827 |
+| **entry chunk, on the wire — `g`** | **129,400 B** | **138,177 B** | **+8,777 B, +6.78 %** |
+| 2nd largest identity | `surface-0lG8KzXw.js`, 51,266 B | **`surface-BD2Wh4U2.js`, 67,049 B** | +15,783 |
+| `index.html` / `index.html.gz` | 4,655 B / 2,122 B | **4,655 B / 2,120 B** | 0 / −2 |
+| identity objects over the 139,264 B ceiling | 1 | **1** | 0 |
+
+**The object count moved this time and in §0.5 it did not.** 57 → 69 is what a console that
+gained *screens* looks like; 0 → 0 with only bytes moving is what a console that gained
+*weight* looks like. Both are legitimate and they are different events, which is why the row
+is here.
+
+**Count these in the ARCHIVE.** The build's own sidecar records `web_before` at **96** entries
+— the tree as the console build left it, before 27 source maps (3,179,550 B) were stripped
+and before a `.gz` was written beside every compressible object. 96 is a true number about a
+tree this origin never serves. 138 is the tree that deploys, and only the second one is what a
+ceiling governs.
+
+### The one distinction worth stating once instead of re-editing every release
+
+`vite.config.ts` inlines `__MAINLINE_BUILD_ID__`, so the git short SHA reaches the emitted
+bytes. Across a build-id-only re-release **every filename moves and every identity size does
+not**; the gzipped figures move by a handful of bytes because DEFLATE is a function of the
+content. So when a figure on this page next disagrees with an artefact:
+
+* **an identity size moved** → the console really changed. Re-check the straddle and the
+  headroom, and read this as a cost change.
+* **only names and gzip totals moved** → it was a re-release. Nothing that bounds anything was
+  touched.
+
+This release was the first kind, and both times §0.5's table had to be re-read to tell.
+
+### The ceiling: unchanged, and now clearing by 0.78 %
+
+**Ruling R10 still governs.** `DEFAULT_MAX_RESPONSE_BYTES` is `136 * 1024 == 139,264`,
+byte-identical; `git diff` on
+`verticals/mainline/apps/demo-api/src/mainline_demo_api/static_site.py` shows no change to it.
+Properties first, measurements second, each against `7c97b532…` on 2026-08-15:
+
+* **The ceiling refuses exactly one identity object of the tree it governs.** Measured: **1 of
+  69** — twelve objects joined the tree and not one came near the bound. Today that object is
+  `assets/index-LoN3Sn_L.js` at **490,950 B**, in a package that **is on no origin**: nothing
+  has been applied or redeployed, and the Function URL is still answering with
+  `assets/index-DzVoV1YM.js` in `REPLAY`.
+* **The straddle holds**, `0 < g < C < I`. Measured: `0 < 138,177 < 139,264 < 490,950`.
+* **Interface I3 holds in both halves.** Measured:
+  `138,177 ≤ 139,264 < 1.20 × 138,177 = 165,812.4`.
+* **The derivation is provenance, and the gap is widening.** Over the package of record the
+  arithmetic emits `floor(1.10 × 138,177) = 151,994 → 19 × 8,192 = 155,648` — it emitted
+  147,456 over §0.5's package. **That is not the ceiling and it is not a proposal to make it
+  one.** A cost bound is not raised so a formula agrees.
+
+### THE NUMBER WITH TEETH, AND IT IS NOW SMALL
+
+```
+headroom = 139,264 − 138,177 = 1,087 gzipped bytes     (it was 9,864, and 15,087 before that)
+         = 0.78 % of the ceiling
+```
+
+**Say plainly what crossing it costs, because nothing about the failure is visible from
+outside.** When `g` passes `C`, this origin answers **413 for its own entry JavaScript** to
+every client, not only to the ones refusing compression. `GET /` still returns 200 and the
+4,655 B shell. The shell asks for its single module. It receives a JSON problem document. The
+judge is looking at a **blank page** — a total outage of the demo URL, with the origin
+reporting itself healthy throughout, because the only request that fails is the one no human
+types.
+
+**The remedy is a smaller or split entry chunk. It is never a larger ceiling.** At 0.78 %,
+rounding 139,264 up one 8 KiB step will present itself as arithmetic housekeeping; it is the
+move that put this constant at 2 MiB and then at 512 KiB, and R10 refuses it.
+`verticals/mainline/apps/console/scripts/check-budgets.ts` is where a bundle-size budget
+belongs.
+
+**A guard now fires before the cliff rather than at it.**
+`verticals/mainline/apps/demo-api/tests/test_static_site.py::_MINIMUM_HEADROOM_BYTES` is
+1,024 B, so the next console growth exceeding **63 gzipped bytes** turns CI red while this
+origin is still serving every object it has. It was falsified before it was trusted: planting
+a violation turned both the declaration test and the end-to-end tree test red, and the plant
+was reverted. I3's lower half still catches the crossing itself; this catches the approach.
+
+**The I3 ratio moved `1.121` → `1.076` → `1.008`.** For the `1.20` ratchet that is the safe
+direction — it guards against a ratio *climbing* into a ceiling that refuses nothing. What
+1.008 additionally means is that there is almost nothing left between the tree and the bound,
+which the ratchet structurally cannot say and the headroom line above does. The compression
+cut moved with it: `490,950 / 138,177 = 3.5531` against `3.5326`.
+
+### What this does to §0.1 — nothing yet, and exactly this much on the day it deploys
+
+**The package of record has not been deployed**, so §0.1 is unchanged and is still priced from
+the tree that is answering. Rows R1/R3/R4/R6 are priced from the gzip sibling, so on the day
+this package is deployed they scale by `138,177 ÷ 124,177 = 1.112741` against the published
+column — not by §0.5's `1.042061`, which was computed for a package that has been superseded:
+
+| row | published | at 138,177 B | survives at published precision? |
+|---|---:|---:|---|
+| R1 — paced residual, 24 h | $5.44 | $6.0533 | **no** — rounds to $6.05 |
+| R3 — unattended 30 d | **$564.04** | $627.63 | **no** — the standing "564/30 d" becomes 628 |
+| R4 — in-window floor, 60 s | **$1.60** | $1.7804 | **no** — rounds to $1.78 |
+| R6 — per minute of detection lag | **$1.6022 / min** | $1.7828 / min | **no** — the standing USD 1.60/min becomes 1.78 |
+
+**No figure in §0.1 was retyped.** That table is a lookup into `cost-model.json`, the JSON is
+authoritative, and the day this package deploys the model is re-run rather than the prose
+edited. **The standing residual is therefore unchanged and is restated as such: USD 1.60 / min
+in-window, USD 564 / 30 d unattended.**
+
+### Three things this section deliberately does not say
+
+* **It does not say the ceiling was re-derived.** It was not. The line
+  `DEFAULT_MAX_RESPONSE_BYTES: Final = 136 * 1024` is byte-identical and `git diff` on
+  `static_site.py` shows no change to it. What that file *did* gain is a dated re-measurement
+  of the tree the constant governs, beside the constant, saying that the value did not move
+  and that the headroom is now 1,087 B — the comment, not the number.
+* **It does not propose 155,648.** That arithmetic is recorded because it is what changed, and
+  recording it is how a reader can check that it was refused rather than quietly taken.
+* **It does not call the larger entry chunk a defect.** Seven working screens and an on-ramp
+  on each are the product, and `docs/deploy/console-build.md` records why. What it *does* say
+  is that the next one has 1,087 bytes to fit in, and that a code-split is now the cheapest
+  way to buy room — cheaper than any argument about the ceiling.
 
 ---
 

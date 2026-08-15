@@ -164,11 +164,13 @@ input to them. It does not move.**
 > **SUPERSEDED AS A LIVE DERIVATION, 2026-08-15, by ruling R10 (§10). The number is not
 > superseded; its tense is.** The arithmetic above is preserved as the dated record of how
 > 139,264 was **chosen**, over `g = 124,177` in package `12fcba7a…`. Over the package that
-> ships today (`sha256 6802872f…`, `g = 129,400`) the same formula emits **147,456**, and
+> ships today (`sha256 7c97b532…`, `g = 138,177`) the same formula emits **155,648**, and
 > R10 declines to follow it: the ceiling is **kept** by the invariant it was always for —
-> `0 < 129,400 < 139,264 < 457,123`, exactly one identity object refused — rather than
+> `0 < 138,177 < 139,264 < 490,950`, exactly one identity object refused — rather than
 > re-emitted by the formula. **The ceiling itself did not move by one byte.** §10 is the
-> ruling and the argument; §10.6 carries the number that now warns instead of the window.
+> ruling and the argument; **§11 is the current package of record** and carries the number
+> that now warns instead of the window: **1,087 gzipped bytes of headroom**, down from the
+> 9,864 §10.6 recorded against the package before this one.
 
 ### 2.2 · The declarations that follow, and the arithmetic for each
 
@@ -181,19 +183,23 @@ figure in it was read out of that zip's central directory by `w5-decision-record
 2026-08-15, not copied from a plan, and it is what the code declares under ruling **R10**
 (§10).
 
-| declaration | ~~was (input tree)~~ | was (deployed, 2026-08-14) | was (package `12fcba7a…`, 2026-08-15) | **is (package of record `6802872f…`)** | derivation |
-|---|---|---|---|---|---|
-| `_LARGEST_WEB_OBJECT` | ~~`assets/index-BjAGxrVJ.js.map`~~ | `assets/index-BjAGxrVJ.js` | `assets/index-DzVoV1YM.js` | **`assets/index-BH5dfAvF.js`** | `max(identity)` over the zip |
-| `_LARGEST_WEB_OBJECT_BYTES` | ~~1,554,168~~ | 433,396 | 433,564 | **457,123** | same |
-| `_LARGEST_SERVED_OBJECT_BYTES` | ~~433,396~~ | 124,127 | 124,177 | **129,400** | `max(sibling)`; every object has one |
-| `_WIDEST_SERVED_IDENTITY` | ~~—~~ | `assets/surface-Csi7pmRe.js` | `assets/surface-BcxWkbKu.js` | **`assets/surface-0lG8KzXw.js`** | second-largest identity |
-| `_WIDEST_SERVED_IDENTITY_BYTES` | ~~—~~ | 51,266 | 51,266 | **51,266** | unchanged across all three builds |
-| `_REFUSED_BY_THE_CEILING` | ~~`('…js.map',)`~~ | `('assets/index-BjAGxrVJ.js',)` | `('assets/index-DzVoV1YM.js',)` | **`('assets/index-BH5dfAvF.js',)`** | identity objects `> 139,264` |
-| headroom | ~~90,892~~ | 15,137 | 15,087 | **9,864** | `ceiling − largest served` |
-| cut | ~~3.586~~ | 3.4916 | 3.4915 | **3.5326** | `largest identity / largest served` |
-| tree totals | ~~`(75, 3,571,990)`~~ | `(114, 1,274,342)` | `(114, 1,274,743)` | **`(114, 1,308,536)`** | central directory |
-| `.gz` sibling total | ~~0~~ | 289,312 | 289,437 | **295,724** | central directory |
-| I3 ratio | ~~—~~ | 1.122 | 1.121 | **1.076** | `ceiling / largest served` |
+| declaration | ~~was (input tree)~~ | was (deployed, 2026-08-14) | was (`12fcba7a…`) | was (`6802872f…`) | **is (package of record `7c97b532…`, HEAD `f0ba767`)** | derivation |
+|---|---|---|---|---|---|---|
+| `_LARGEST_WEB_OBJECT` | ~~`assets/index-BjAGxrVJ.js.map`~~ | `assets/index-BjAGxrVJ.js` | `assets/index-DzVoV1YM.js` | `assets/index-BH5dfAvF.js` | **`assets/index-LoN3Sn_L.js`** | `max(identity)` over the zip |
+| `_LARGEST_WEB_OBJECT_BYTES` | ~~1,554,168~~ | 433,396 | 433,564 | 457,123 | **490,950** | same |
+| `_LARGEST_SERVED_OBJECT_BYTES` | ~~433,396~~ | 124,127 | 124,177 | 129,400 | **138,177** | `max(sibling)`; every object has one |
+| `_WIDEST_SERVED_IDENTITY` | ~~—~~ | `assets/surface-Csi7pmRe.js` | `assets/surface-BcxWkbKu.js` | `assets/surface-0lG8KzXw.js` | **`assets/surface-BD2Wh4U2.js`** | second-largest identity |
+| `_WIDEST_SERVED_IDENTITY_BYTES` | ~~—~~ | 51,266 | 51,266 | 51,266 | **67,049** | held across three builds, moved on the fourth |
+| `_REFUSED_BY_THE_CEILING` | ~~`('…js.map',)`~~ | `('assets/index-BjAGxrVJ.js',)` | `('assets/index-DzVoV1YM.js',)` | `('assets/index-BH5dfAvF.js',)` | **`('assets/index-LoN3Sn_L.js',)`** | identity objects `> 139,264` |
+| headroom | ~~90,892~~ | 15,137 | 15,087 | 9,864 | **1,087** — 0.78 % | `ceiling − largest served` |
+| cut | ~~3.586~~ | 3.4916 | 3.4915 | 3.5326 | **3.5531** | `largest identity / largest served` |
+| tree totals | ~~`(75, 3,571,990)`~~ | `(114, 1,274,342)` | `(114, 1,274,743)` | `(114, 1,308,536)` | **`(138, 1,524,990)`** | central directory |
+| identity objects | ~~75~~ | 57 | 57 | 57 | **69** | central directory, after the map strip |
+| `.gz` sibling total | ~~0~~ | 289,312 | 289,437 | 295,724 | **347,013** | central directory |
+| I3 ratio | ~~—~~ | 1.122 | 1.121 | 1.076 | **1.008** | `ceiling / largest served` |
+
+**Read the headroom row down the page.** 15,137 → 15,087 → 9,864 → **1,087**. That is the only
+row here whose direction matters on its own, and §11.2 says what reaching zero costs.
 
 **`DEFAULT_MAX_RESPONSE_BYTES` does not appear in this table**, and that is the point of the
 table: every row above is a description of an artefact, and the ceiling is a consequence of
@@ -675,6 +681,9 @@ Recording only the arguments that support a ruling is how a ruling stops being c
   **9,864 B of gzipped headroom remain** is the live warning that replaces R4's derivation
   window in every document. No document may carry `119,158 ≤ g ≤ 126,604` as a live
   constraint again; it is provenance now (§2.1).
+  **— SUPERSEDED 2026-08-15 by §11.2: that growth happened. `g` is 138,177 and the headroom is
+  1,087 B, 0.78 %. The bullet above is kept as the reading of `6802872f…`; the live figure is
+  §11.2's, and §11.3 records the guard that now goes red at 1,024 B rather than at zero.**
 
 ### 10.7 · §9's figures, CORRECTED — §9 measured a build that did not ship
 
@@ -770,3 +779,126 @@ deleted, skipped, exempted or given a `continue-on-error`.
   silently *re-chosen*, while I3 is asserted against **today's** tree. Two constants, two
   assertions, and a reviewer can tell them apart at a glance — the shape is mandated in
   `docs/leads/reconcile-constants-plan.md` §1.6.
+
+---
+
+## 11 · SECOND RE-RECORD, 2026-08-15 — a seven-screen console, the same ceiling, and 1,087 bytes of headroom
+
+**Recorded 2026-08-15, after §10.** §10's package of record (`sha256 6802872f…`) is
+**SUPERSEDED**. §§1–10 are preserved as written — nothing there is struck, and every figure in
+them remains a correct dated reading of the package it names. This section is the live one.
+
+**Artefact of record:** `out/lambda/mainline-demo-api-arm64.zip`,
+`sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22`, built from HEAD
+`f0ba767` `--console-transport live` with `MAINLINE_BUILD_ID=f0ba767` and
+`VITE_MAINLINE_API_BASE=/`. Every number below was read out of that zip's **central
+directory** — never from `console/dist` — with the `zipfile` one-liner §2 publishes.
+
+**What changed, and it is a product change rather than drift.** The console gained **seven
+working screens, a plain-language on-ramp on every screen, and a new `GET /v1/demo/subjects`
+endpoint** (commit `9c902e0`). Twelve more lazily-loaded chunks and their CSS shipped with it.
+
+### 11.1 · The invariant, re-measured
+
+```
+g (largest served, gzipped)  =   138,177   web/assets/index-LoN3Sn_L.js.gz
+I (largest identity)         =   490,950   web/assets/index-LoN3Sn_L.js
+                                           sha256 7eb3ec715dc3113c…
+C (ceiling, UNCHANGED)       =   139,264   = 136 * 1024
+
+STRADDLE      0 < 138,177 < 139,264 < 490,950                        HOLDS
+I3 lower      138,177 <= 139,264   (the origin serves its own site)  HOLDS
+I3 upper      139,264 < 1.20 x 138,177 = 165,812.4                   HOLDS
+EXACTLY ONE   identity objects over 139,264:  1 of 69                HOLDS
+              .gz siblings over 139,264:      0 of 69
+
+DERIVATION    floor(1.10 x 138,177)          = 151,994
+              ceil(151,994 / 8,192) x 8,192  = 19 x 8,192 = 155,648  != 139,264
+```
+
+**`DEFAULT_MAX_RESPONSE_BYTES` did not move and was not opened.** `git diff` on
+`verticals/mainline/apps/demo-api/src/mainline_demo_api/static_site.py` shows no change to it.
+155,648 is recorded because it is what changed; it is **not** a proposal.
+
+### 11.2 · THE NUMBER WITH TEETH — 1,087 B, and what crossing it costs
+
+```
+headroom = 139,264 − 138,177 = 1,087 gzipped bytes     (it was 9,864, and 15,087 before that)
+         = 0.78 % of the ceiling
+```
+
+**When `g` passes `C`, this origin answers 413 for its own entry JavaScript** — to every
+client, not only to the ones refusing compression, because the compressed representation is
+the one every browser takes and it would now be over the bound. `GET /` still returns 200 and
+the 4,655 B shell. The shell asks for its single module. It receives a JSON problem document.
+The reader is looking at a **blank page**.
+
+That is a **total outage of the demo URL**, not a degradation, and the origin reports itself
+healthy throughout because the only request that fails is the one no human types. The demo URL
+is the submission.
+
+**The remedy is a smaller or split entry chunk. It is never a larger ceiling.** At 0.78 %,
+rounding 139,264 up one 8 KiB step will present itself as arithmetic housekeeping — 155,648 is
+right there in §11.1 and the formula would agree. It is the same move that put this constant
+at 2 MiB and then at 512 KiB, and §10.2 refuses it in terms that do not weaken with the margin.
+
+### 11.3 · A guard that fires before the cliff, and it was falsified before it was trusted
+
+`_assert_i3`'s lower half catches the crossing — but only once it has happened, and by then the
+offending build is sitting in `out/lambda/` waiting to be applied. Added 2026-08-15:
+
+* **`verticals/mainline/apps/demo-api/tests/test_static_site.py::_MINIMUM_HEADROOM_BYTES = 1024`**
+  and `_assert_headroom(ceiling, largest_served)`, asserted both against the declaration and
+  against the widest response the end-to-end sweep actually got back off the real code.
+* **Why 1,024.** It must be strictly below today's 1,087 or it is red on arrival and says
+  nothing about the future, and well above zero or it fires only after the cliff. 1,024 is the
+  round number in that window — 63 B under the live measurement — so the next console growth
+  adding more than 63 gzipped bytes to the entry chunk goes red in CI while this origin is
+  still serving every object it has.
+* **It is not available to be lowered**, and neither is the ceiling raised to clear it. Both
+  buy a green by widening the thing that is supposed to bite.
+* **Falsified.** Planting a violation (raising the minimum one byte above the measured
+  headroom) turned `test_the_live_law_holds_over_the_tree_that_ships_today`,
+  `test_serving_the_deployed_package_derives_the_ceiling_end_to_end` and all five cases of
+  `test_the_headroom_guard_refuses_the_margins_it_is_meant_to_refuse` red, with the outage
+  message quoted above. The plant was reverted. A guard nobody has seen go red is decoration.
+* Its own falsification pins the margins that must raise, including **`g == C` exactly** — the
+  state one byte from a blank page, which `_assert_i3` calls fine and this does not.
+
+### 11.4 · What moves on a re-release and what does not — stated once, not re-edited forever
+
+`vite.config.ts` inlines `__MAINLINE_BUILD_ID__`, so the git short SHA reaches the emitted
+bytes. Across a build-id-only re-release **every filename moves and every identity size does
+not**; gzipped figures move by a handful of bytes because DEFLATE is a function of content.
+So when a figure in this repository next disagrees with an artefact:
+
+* **an identity size moved** → the console really changed. Re-check the straddle and the
+  headroom, and read it as a cost change.
+* **only names and gzipped totals moved** → a re-release. Nothing that bounds anything moved.
+
+This release was the first kind. So was the one before it. The distinction is worth keeping
+because the second kind will happen and should cost one line, not a re-measurement.
+
+### 11.5 · Count them in the ARCHIVE
+
+The build's own sidecar records three different true numbers for "the console":
+
+```
+web_before              96 entries   as the console build left it, maps still in, no .gz
+web_after_strip         69 entries   27 source maps (3,179,550 B) removed
+web_after_gzip_siblings 138 entries  one .gz written beside every compressible object
+```
+
+**Only the last is the tree a request can reach**, and it is the only one a ceiling governs.
+Reading a count off `console/dist` is how the 512 KiB ceiling came to refuse nothing (§3).
+
+### 11.6 · Reproducibility — improved, and still not complete
+
+§10 recorded that the shipping filename was not reproducible from git because the console
+source was uncommitted. **That half is fixed:** this package was built from HEAD `f0ba767` and
+`git diff --stat HEAD -- verticals/mainline/apps/console` is empty at the time of measurement.
+**What is still missing is a run.** `scripts/deploy/console_repro.py` has not been executed
+against this source, and `evidence/deploy/console-repro.json` records an older console's 3/3.
+So `index-LoN3Sn_L.js` is reproducible-in-principle, not reproduced-in-fact, and every
+re-recorded constant still names the artefact by **digest** rather than resting on a content
+hash. Do not upgrade that sentence without re-running the tool.

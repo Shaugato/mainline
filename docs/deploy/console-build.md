@@ -151,13 +151,15 @@ that chunk exactly; it read REPLAY because the deploy ran the Phase-1 command, n
 the build varies.
 
 > **CORRECTED 2026-08-15 — the package at `out/lambda/mainline-demo-api-arm64.zip` is no
-> longer that one.** It is `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`,
-> packed `--console-transport live` with `MAINLINE_BUILD_ID=b822fdc`, and its entry chunk is
-> `assets/index-BH5dfAvF.js`, **457,123 B**, `sha256 e30bd39b395bad68…`. That chunk is not
-> emitted by either run in the table above, because it was **not built from HEAD** — see the
-> reproducibility caveat two subsections below. The sentence above is about the committed
-> source and the object the walk recorded; it is not a claim about what the zip on disk holds
-> today.
+> longer that one, and has since been replaced a second time.** It is
+> `sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22`, packed from HEAD
+> `f0ba767` `--console-transport live` with `MAINLINE_BUILD_ID=f0ba767`, and its entry chunk is
+> `assets/index-LoN3Sn_L.js`, **490,950 B**, `sha256 7eb3ec715dc3113c…`. (Between the two it
+> was `sha256 6802872f…` with `assets/index-BH5dfAvF.js` at 457,123 B, `MAINLINE_BUILD_ID=
+> b822fdc`.) Neither chunk is emitted by any run in the table above. The sentence above is
+> about the committed source and the object the walk recorded; it is not a claim about what
+> the zip on disk holds today — and it is not a claim about the origin either, which is still
+> answering with `assets/index-DzVoV1YM.js` because nothing has been redeployed.
 
 #### The tree digests moved and this document does not say why — HANDED ON
 
@@ -227,15 +229,21 @@ no such import. **That import is the +23,559 B** between 433,564 and 457,123.
   at two different sources. That is what ruling **R1**'s gate asked for, and it is satisfied,
   which is why `docs/decisions/response-ceiling-authoritative-tree.md` may treat the byte
   constants as measurements of a build.
-* **What is NOT proven:** that `assets/index-BH5dfAvF.js` is reproducible, **because the
-  source it was built from is not committed**. It becomes provable the moment the console
-  work is committed, and until then any document that needs to identify that artefact must
-  name it by **package digest** (`sha256 6802872f…`) rather than by content hash.
+* **What is NOT proven, UPDATED 2026-08-15:** the older form of this bullet said
+  `assets/index-BH5dfAvF.js` was not reproducible *because its source was not committed*.
+  **That half is fixed.** The current package of record, `sha256 7c97b532…`, was built from
+  HEAD `f0ba767` and `git diff --stat HEAD -- verticals/mainline/apps/console` is empty, so
+  the source of `assets/index-LoN3Sn_L.js` **is** in git. What is still missing is a **run**:
+  `console_repro.py` has not been executed against it, and
+  `evidence/deploy/console-repro.json` still records an older console's 3/3. So that chunk is
+  reproducible-in-principle, not reproduced-in-fact, and any document identifying the artefact
+  must still name it by **package digest** (`sha256 7c97b532…`) rather than by content hash.
+  Do not upgrade this bullet without re-running the tool.
 * `evidence/deploy/console-repro.json` records `"worktree_matches_committed": true`,
   `measured_at` 2026-08-15T02:44:52+1000. That was measured **before** the console work
-  reached the worktree and is **stale in that respect**; the `git diff --stat` above is the
-  current reading. The file is **not regenerated here** — regenerating it is a build, and the
-  safe form of that build is the `--out`-to-scratch probe above.
+  reached the worktree, so it is stale as a reading of *these* bytes even though its claim is
+  now independently true of HEAD. The file is **not regenerated here** — regenerating it is a
+  build, and the safe form of that build is the `--out`-to-scratch probe above.
 
 #### The two recorded hashes at 433,564 B — which one is wrong, and why
 
@@ -291,13 +299,23 @@ seventeenth declared resource and the `gate-run.schema.json` contract:
 worktree Phase 2, 2026-08-14      assets/index-CSYj1JjN.js   457,037 B identity   129,371 B gzip(9)
 package 12fcba7a…, 2026-08-14     assets/index-DzVoV1YM.js   433,564 B identity   124,177 B gzip(9)
 package 6802872f…, 2026-08-15     assets/index-BH5dfAvF.js   457,123 B identity   129,400 B gzip(9)
+package 7c97b532…, 2026-08-15     assets/index-LoN3Sn_L.js   490,950 B identity   138,177 B gzip(9)
 ```
 
 The gzip figure is produced by the packer's own method — `zlib.compressobj(9, DEFLATED,
 -MAX_WBITS)` plus an 18-byte container. Against package `12fcba7a…` it reproduced
-`web/assets/index-DzVoV1YM.js.gz` at exactly 124,177 B; the third row is read straight out of
-the central directory of the package of record, where `web/assets/index-BH5dfAvF.js.gz` is
-**129,400 B**.
+`web/assets/index-DzVoV1YM.js.gz` at exactly 124,177 B; the last two rows are read straight out
+of the central directory of the package they name, and the **package of record is now the
+fourth row** — `sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22`,
+built from HEAD `f0ba767` with `MAINLINE_BUILD_ID=f0ba767`, where
+`web/assets/index-LoN3Sn_L.js.gz` is **138,177 B**. It carries the seven-screen console
+(commit `9c902e0`) and 69 identity objects where the row above it carries 57.
+
+**Read the identity column down that block rather than the filenames.** A build-id-only
+re-release moves every name here and leaves every identity size alone, because
+`vite.config.ts` inlines `__MAINLINE_BUILD_ID__` into the emitted bytes and a Vite content hash
+is a fixed-width field. When a name moves and the identity size does not, nothing about the
+console changed. When both move — as they did on the last two rows — the console really did.
 
 > **Two provenance notes, 2026-08-15, so nobody re-derives these from thin air.** The
 > `worktree Phase 2` figures are **not in `evidence/deploy/console-repro.json` today** — that
@@ -321,19 +339,36 @@ may. What the ruling settled is that the **derivation window was never the law**
 the straddle and interface I3, and over the package of record they hold, measured:
 
 ```
-g = 129,400   C = 139,264 (UNCHANGED)   I = 457,123
-0 < 129,400 < 139,264 < 457,123          straddle HOLDS
-139,264 < 1.20 x 129,400 = 155,280       I3 HOLDS, ratio 1.076
-exactly one of 57 identity objects is refused by the ceiling
+g = 138,177   C = 139,264 (UNCHANGED)   I = 490,950
+0 < 138,177 < 139,264 < 490,950          straddle HOLDS
+139,264 < 1.20 x 138,177 = 165,812.4     I3 HOLDS, ratio 1.008
+exactly one of 69 identity objects is refused by the ceiling
 ```
 
-`DEFAULT_MAX_RESPONSE_BYTES` did not move: it is `136 * 1024 = 139,264`, as it was. The
-derivation `ceil(floor(1.10·g)/8192)·8192` is now **dated provenance** — the record of how
-139,264 was chosen, over `g = 124,177` — and **`119,158 ≤ g ≤ 126,604` is no longer a live
-constraint on this build or on any document.** The number that warns instead is the
-headroom: **9,864 gzipped bytes remain** before `g` would exceed the ceiling and the origin
-would 413 its own entry chunk. A console change that adds more than that to the entry chunk's
-**gzipped** size is the one that has to be discussed before it is packed.
+*(Over the previous package of record, `sha256 6802872f…`, the same block read
+`g = 129,400 / I = 457,123`, ratio 1.076, one of 57. Only the measurements moved.)*
+
+`DEFAULT_MAX_RESPONSE_BYTES` did not move: it is `136 * 1024 = 139,264`, as it was, and
+`git diff` on `static_site.py` shows no change to it. The derivation
+`ceil(floor(1.10·g)/8192)·8192` is now **dated provenance** — the record of how 139,264 was
+chosen, over `g = 124,177` — and **`119,158 ≤ g ≤ 126,604` is no longer a live constraint on
+this build or on any document.**
+
+**The number that warns instead is the headroom, and it is now 1,087 gzipped bytes — 0.78 %**
+(`139,264 − 138,177`; it was 9,864 over `6802872f…` and 15,087 before that). **Say what
+crossing it costs**: when `g` exceeds the ceiling this origin answers **413 for its own entry
+JavaScript**, to every client rather than only to the ones refusing compression. `GET /` still
+returns 200 and the 4,655 B shell, the shell asks for its single module, it receives a JSON
+problem document, and the reader is looking at a **blank page**. That is a total outage of the
+demo URL with the origin reporting itself healthy throughout.
+
+**So a console change adding more than 1,087 bytes to the entry chunk's gzipped size has to be
+discussed before it is packed — and the remedy is a code-split, never a larger ceiling.** Since
+2026-08-15 `test_static_site.py::_MINIMUM_HEADROOM_BYTES = 1024` makes that conversation happen
+in CI: the next growth past **63 gzipped bytes** goes red while this origin is still serving
+every object it has. The guard was falsified before it was trusted — a planted violation turned
+the declaration test, the end-to-end tree test and its own five falsification cases red, and
+the plant was reverted.
 
 #### Every build input, and where it comes from
 

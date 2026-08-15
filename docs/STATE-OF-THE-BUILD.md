@@ -44,7 +44,7 @@ a local database in the same state.
 | of those 59 modified | **20 differ from `HEAD` in line endings only** (`git diff HEAD` sees 39 files, `git status` sees 59). See §2.4 |
 | local CockroachDB | CCL **v26.2.5** on `127.0.0.1:26257` |
 | interpreter | `D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe` — pytest 9.1.1, ruff 0.16.1, node v24.14.0 (`uv` is not on PATH) |
-| **package in the deploy path** | `out/lambda/mainline-demo-api-arm64.zip`, `sha256 6802872f805740dd1a7de891eca7a8d1cf6c11f5eb5b639aec5677f5d78ae13b`, 7,721,537 B, built **`--console-transport live`**, `MAINLINE_BUILD_ID=b822fdc`. **Untouched by this verification — read, never rebuilt.** |
+| **package in the deploy path** | **SUPERSEDED 2026-08-15:** `out/lambda/mainline-demo-api-arm64.zip` is now `sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22`, 7,837,370 B, built from HEAD `f0ba767` **`--console-transport live`**, `MAINLINE_BUILD_ID=f0ba767` — the seven-screen console. This verification read `sha256 6802872f…` (7,721,537 B, `MAINLINE_BUILD_ID=b822fdc`) and **rebuilt nothing**; §4.1a and §7 carry the newer artefact's figures. |
 | **package on the origin** | `sha256 12fcba7a…` — the **REPLAY** build the founder opened. Still what the Function URL answers with. |
 
 **Those last two rows are the whole shape of this page.** They are two different artefacts and
@@ -510,6 +510,49 @@ two.
 
 ## 4 · THE ARTEFACT — read from the archive, not from the source tree
 
+> **SUPERSEDED IN PART, 2026-08-15 — the artefact was rebuilt after this verification ran, and
+> §4.1's declared column has been re-recorded to match it.** Everything below is a correct,
+> dated reading of `sha256 6802872f…` (`MAINLINE_BUILD_ID=b822fdc`) and is kept as that
+> record. **The package in the deploy path is now**
+> `sha256 7c97b532ea9016fadc2be8ddd2c9e95b28820758e38d0439916940cd41022d22`, built from HEAD
+> `f0ba767` `--console-transport live` with `MAINLINE_BUILD_ID=f0ba767`, carrying seven new
+> console screens, an on-ramp on every screen and a `GET /v1/demo/subjects` endpoint. Its
+> figures are in **§4.1a** immediately below and in **§7**; `docs/deploy/COST-BOUND.md` §0.6 is
+> the full cost record. **The ceiling is 139,264 B in both and was not touched.**
+>
+> **Neither package is on the origin.** Nothing has been applied and nothing redeployed, so
+> §8's readings still describe the `12fcba7a…` REPLAY build the Function URL is answering with.
+
+### 4.1a · The re-recorded constants against the NEW archive (2026-08-15, second build)
+
+`zipfile` over the **central directory** of `out/lambda/mainline-demo-api-arm64.zip`,
+`sha256 7c97b532…`. Left column is what the three declaring test modules carry after the
+re-record; right column is what the archive holds.
+
+| | declared | measured in the zip | |
+|---|---:|---:|:--|
+| `web/` entries | 138 | **138** | ✓ |
+| `web/` bytes | 1,524,990 | **1,524,990** | ✓ |
+| identity objects | 69 / 1,177,977 B | **69 / 1,177,977 B** | ✓ |
+| `.gz` siblings | 69 / 347,013 B | **69 / 347,013 B** | ✓ |
+| largest identity | `assets/index-LoN3Sn_L.js` 490,950 B | **`assets/index-LoN3Sn_L.js` 490,950 B** | ✓ |
+| largest sibling — `g` | `…LoN3Sn_L.js.gz` 138,177 B | **`…LoN3Sn_L.js.gz` 138,177 B** | ✓ |
+| second identity | `assets/surface-BD2Wh4U2.js` 67,049 B | **`assets/surface-BD2Wh4U2.js` 67,049 B** | ✓ |
+| `index.html` / `index.html.gz` | 4,655 B / 2,120 B | **4,655 B / 2,120 B** | ✓ |
+| refused by the ceiling | `("assets/index-LoN3Sn_L.js",)` | **exactly that one, 1 of 69** | ✓ |
+| `.gz` siblings over the ceiling | — | **0** | ✓ (interface I1) |
+| entry chunk digest | `sha256 7eb3ec71…` | **`7eb3ec715dc3113ce00acccf5156a6f55f950ba27fc68412908a3561ff0eeea6`** | ✓ |
+
+**Count them in the ARCHIVE.** The build's sidecar records `web_before` at **96** entries — the
+tree as the console build left it, before 27 source maps (3,179,550 B) were stripped and before
+a `.gz` was written beside every compressible object. 96 is a true number about a tree this
+origin never serves; 138 is the tree that deploys.
+
+**What moved and what did not — the distinction worth stating once.** `vite.config.ts` inlines
+`__MAINLINE_BUILD_ID__`, so a build-id-only re-release moves every **filename** and leaves every
+**identity size** where it was. This release moved both, which is how you can tell the console
+really changed rather than being re-stamped.
+
 ### 4.1 · The constants against the zip's own central directory
 
 `zipfile` over `out/lambda/mainline-demo-api-arm64.zip`, `sha256 6802872f…`. Left column is
@@ -620,7 +663,10 @@ the moved figures — `COST-BOUND.md`, `LATENCY.md`, `RUNBOOK.md`, `console-buil
 (`12fcba7a…`, `index-DzVoV1YM.js`, REPLAY, 433,564 / 124,177) and the package of record
 (`6802872f…`, `index-BH5dfAvF.js`, LIVE, 457,123 / 129,400), never mixed. R4's derivation
 window `119,158 ≤ g ≤ 126,604` is explicitly retired in every page that held it and replaced
-by the live warning: **9,864 gzipped bytes of headroom remain**.
+by the live warning — which read **9,864 gzipped bytes of headroom remain** when this was
+written and, after the 2026-08-15 rebuild those pages have since been re-recorded against,
+reads **1,087**. The framing is unchanged and only the package of record moved:
+`7c97b532…`, `index-LoN3Sn_L.js`, LIVE, 490,950 / 138,177.
 
 **THE ONE FAILURE.** `evidence/deploy/APPLIED.md` — the document a reader opens *first* to find
 out what is deployed, and the document `SWEPT_DOCS` was widened to cover — was updated in three
@@ -644,6 +690,51 @@ redeploy.
 ---
 
 ## 7 · THE INVARIANT — measured, not quoted
+
+> **RE-MEASURED 2026-08-15 against the rebuilt artefact.** The block that follows is preserved
+> as the dated reading of `sha256 6802872f…`; the live one is here. `sha256 7c97b532…`, HEAD
+> `f0ba767`, `MAINLINE_BUILD_ID=f0ba767`:
+>
+> ```
+> CEILING  DEFAULT_MAX_RESPONSE_BYTES = 139,264 = 136 * 1024        <- UNMOVED, file untouched
+> g        largest served, gzipped    = 138,177   assets/index-LoN3Sn_L.js.gz
+> I        largest identity           = 490,950   assets/index-LoN3Sn_L.js
+>
+> STRADDLE   0 < 138,177 < 139,264 < 490,950                              HOLDS
+> I3 lower   138,177 <= 139,264        (the origin can serve its own site) HOLDS
+> I3 upper   139,264 < 1.20 x 138,177 = 165,812.4                          HOLDS
+> EXACTLY 1  identity objects at or over 139,264 : 1 of 69                 HOLDS
+> I1         .gz siblings at or over 139,264     : 0 of 69                 HOLDS
+>
+> ratio      139,264 / 138,177 = 1.008      (was 1.076, and 1.121)
+> headroom   139,264 - 138,177 = 1,087 B    (was 9,864 B)     <- THE NUMBER WITH TEETH
+>            = 0.78 % of the ceiling
+> DERIVATION floor(1.10 x 138,177) = 151,994 -> 19 x 8,192 = 155,648 != 139,264
+> ```
+>
+> **WHAT 1,087 BYTES BUYS, SAID PLAINLY.** When `g` passes `C` this origin answers **413 for
+> its own entry JavaScript** to every client, not only to the ones refusing compression.
+> `GET /` still returns 200 and the 4,655 B shell; the shell asks for its single module and
+> receives a JSON problem document; the reader gets a **blank page**. That is a total outage of
+> the demo URL — not a slow demo, no demo — with the origin reporting itself healthy
+> throughout. **The remedy is a smaller or split entry chunk, never a larger ceiling**; at
+> 0.78 % the temptation to round 139,264 up one 8 KiB step will look like housekeeping, and it
+> is the move that put this constant at 2 MiB and then at 512 KiB.
+>
+> **A guard now fires before the cliff rather than at it.**
+> `test_static_site.py::_MINIMUM_HEADROOM_BYTES` is 1,024 B, so the next console growth
+> exceeding **63 gzipped bytes** turns CI red while this origin is still serving every object
+> it has. It was falsified before it was trusted — a planted violation turned both the
+> declaration test and the end-to-end tree test red, and the plant was reverted. I3's lower
+> half still catches the crossing itself; this catches the approach.
+>
+> **Reproducibility — the caveat below has improved and has not gone away.** The console source
+> for this build **is committed**: it was built from HEAD `f0ba767` and
+> `git diff --stat HEAD -- verticals/mainline/apps/console` is empty, where the previous
+> package's console was 14 uncommitted files. What is still missing is a *run*:
+> `console_repro.py` has not been executed against this source, so `index-LoN3Sn_L.js` is
+> reproducible-in-principle and not reproduced-in-fact, and every re-recorded constant still
+> names the artefact by **digest** rather than resting on a content hash.
 
 ```
 CEILING  DEFAULT_MAX_RESPONSE_BYTES = 139,264 = 136 * 1024        <- UNMOVED, file untouched
