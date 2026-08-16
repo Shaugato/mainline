@@ -30,7 +30,7 @@ Binding: `docs/demo/film-recut-plan.md` §2 and §3 (rulings **R-3** and **R-6**
 **THE ONE-LINE SUMMARY OF THIS REVISION.** The naming block was **50 s in four cards**. It is
 now **22 s in three cards**. **Not one service, feature, label, caveat, concession, evidence
 path or URL left the screen.** The 28 s came out of *dwell*, out of *speech* (82 spoken words →
-36), and out of *running two sequential cards in parallel*. Every overlay block in §2, §3, §4
+34), and out of *running two sequential cards in parallel*. Every overlay block in §2, §3, §4
 and §5 below carries the same content it carried at 50 s; where a line moved, it moved because
 the line **wrapped differently**, never because it was cut. §0.4 states the four things that
 were genuinely lost, in numbers, because a compression that claims to have cost nothing is a
@@ -66,10 +66,15 @@ totalling 22 s**, replacing `c1`..`c4`. The card ids are `k1`, `k2`, `k3`.
 | new | title | dur | replaces | spoken |
 |---|---|---:|---|---:|
 | `k1` | THE LOOP | **6 s** | `c1` (12 s) | **10 w** |
-| `k2` | THE STACK — AWS ∥ CockroachDB | **10 s** | `c2` + `c3` (30 s) | **16 w** |
+| `k2` | THE STACK — AWS ∥ CockroachDB | **10 s** | `c2` + `c3` (30 s) | **14 w** |
 | `k3` | THE LIMIT, THE RAIL, THE URLS | **6 s** | `c4` (8 s) | **10 w** |
-| **naming block** | | **22 s** | **50 s** | **36 w** |
+| **naming block** | | **22 s** | **50 s** | **34 w** |
 | `end` | end card | 2 s | unchanged | 0 |
+
+**The `spoken` column is what is DELIVERED, and it is not the budget.** `k2` delivers 14 against a
+budget of 16 because `D35`'s cleared replacement is 14 words (§3.4.0). Under-running a budget is
+free; `BEATS.yaml` says so in its own words, and neither `vo_word_budget` nor `close_words` moves
+because of it.
 
 **THE MEASUREMENT THIS FILE IS OBLIGED TO STATE FIRST.** `BEATS.yaml` is the timing authority
 and W1 owns it. **As of this writing the committed `BEATS.yaml` still carries the pre-re-cut
@@ -150,46 +155,53 @@ I have printed it.**
 → 22 s. The obvious way to hit it is to delete lines. The way taken here is to let the eye keep
 its pace and take the seconds out of the mouth and out of the sequence.
 
-| | old close | new close |
-|---|---:|---:|
-| cards | 4 | **3** |
-| duration | 50 s | **22 s** |
-| spoken words | 82 | **36** |
-| **words per second** | **1.64** | **1.64** |
+| | old close | new close, first draft | **new close, after `D35`** |
+|---|---:|---:|---:|
+| cards | 4 | 3 | **3** |
+| duration | 50 s | 22 s | **22 s** |
+| spoken words | 82 | 36 | **34** |
+| **words per second** | **1.64** | 1.64 | **1.55** |
 
 ```
-old:  82 w ÷ 50 s = 1.640 w/s
-new:  36 w ÷ 22 s = 1.636 w/s      →  1.64 w/s to two decimals
+old:         82 w ÷ 50 s = 1.640 w/s
+first draft: 36 w ÷ 22 s = 1.636 w/s      →  1.64 w/s to two decimals
+after D35:   34 w ÷ 22 s = 1.545 w/s      →  1.55 w/s to two decimals
 ```
 
-**The reading pace a judge's eye needs does not move.** The block still runs far below the
-demo's 1.88 w/s and below `BEATS.yaml`'s 1.9 w/s assumption, for the same reason it always did:
-the on-screen text is doing the naming, and a voice reading a list *over* a list gives a judge
-two things to parse and lets him finish neither. **A close that had been compressed in content
-would show up here as a rising w/s. It does not.**
+**The reading pace a judge's eye needs moves DOWN, and the direction is the whole argument.** The
+block still runs far below the demo's 1.88 w/s and below `BEATS.yaml`'s 1.9 w/s assumption, for
+the same reason it always did: the on-screen text is doing the naming, and a voice reading a list
+*over* a list gives a judge two things to parse and lets him finish neither. **A close that had
+been compressed in content would show up here as a rising w/s. It does not, and after `D35` it is
+0.09 w/s further from doing so.**
 
-**And the third decimal is stated rather than rounded away**: `1.640 → 1.636`, a change of
-**−0.004 w/s**. The new close is very slightly *slower* than the old one, not faster. A
-compression of content would have moved that number the other way.
+**The third decimal is stated rather than rounded away, in both steps**: `1.640 → 1.636` was a
+change of **−0.004 w/s**; `1.636 → 1.545` is a further **−0.091 w/s**. The close is *slower* than
+the 50 s version at every stage, never faster. A compression of content would have moved that
+number the other way, and `D35` — which put twelve spoken words back into the Bedrock claim and
+took eleven out of a sentence that was false about the card — moved it further in the safe
+direction while making the block **more** true, not less.
 
 Per card, against `BEATS.yaml`'s 1.9 w/s assumption:
 
 | card | spoken words | at 1.9 w/s | block dur | air at tail |
 |---|---:|---:|---:|---:|
 | `k1` | 10 | 5.3 s | 6 s | 0.7 s |
-| `k2` | 16 | 8.4 s | 10 s | 1.6 s |
+| `k2` | **14** | **7.4 s** | 10 s | **2.6 s** |
 | `k3` | 10 | 5.3 s | 6 s | 0.7 s |
-| **total** | **36** | **18.9 s** | **22 s** | **3.1 s** |
+| **total** | **34** | **17.9 s** | **22 s** | **4.1 s** |
 
 Two things this table says that the old one could not:
 
 * **The block no longer contains a budget overrun.** The 50 s close carried `C4` at 16 words in
   a 15-word budget and 8.4 s of speech in an 8 s block — a declared **−0.4 s**. Every card here
   is under its block. **The compression removed the file's only arithmetic defect.**
-* **The proportion of silence is preserved.** Old: 6.9 s of air in 50 s = **0.138 s of air per
-  block-second**. New: 3.1 s in 22 s = **0.139**. Marginally more. What is lost is *absolute*
-  dwell — 6.9 s of silence becomes 3.1 s — **not** the ratio of voice to silence, and the
-  absolute loss is stated as a cost in §0.4 rather than smuggled past this table.
+* **The proportion of silence is preserved, and `D35` widened it.** Old: 6.9 s of air in 50 s =
+  **0.138 s of air per block-second**. First draft: 3.1 s in 22 s = **0.139**. After `D35`: 4.1 s
+  in 22 s = **0.186**. What is lost is *absolute* dwell — 6.9 s of silence becomes 4.1 s —
+  **not** the ratio of voice to silence, and the absolute loss is stated as a cost in §0.4 rather
+  than smuggled past this table. The extra second lands in `k2`, which is the card a judge is
+  most likely to pause on, and it is not spent: it is air.
 
 **The single cleanest trade in the revision**, and it is worth naming on its own: the sentence
 *"We measure deliberation and never threshold it"* moves **from the mouth to the screen, where
@@ -251,7 +263,7 @@ genuinely lost and a reader who cannot find them in this file has been misled.**
 |---|---|---|---|
 | 1 | **Dwell on `k1`, the block whose primary axis is `agentic_memory_design`.** | 12 s → **6 s**. The time a judge has to sit with STORE / RETRIEVE / ACT halves. | `film-recut-plan.md` §2.3 COST 1 calls this "the sharpest thing in this plan" and it is |
 | 2 | **Rail adjacency.** | 118 → **24** clause-seconds; four annotations become one index | §0.3 above |
-| 3 | **The spoken scale concession.** `C3` said *"One cluster, one region, and no scale claim"* **out loud**. `k2`'s 16 words do not. | 22 spoken words → 16, and the concession is one of the six | §3.4.1 — and the concession is **still on screen, verbatim, full width, in `k2`'s strap**, and **still on the rail in `k3`** |
+| 3 | **The spoken scale concession.** `C3` said *"One cluster, one region, and no scale claim"* **out loud**. `k2`'s 14 words do not. | 22 spoken words → 14, and the concession is one of the six | §3.4.1 — and the concession is **still on screen, verbatim, full width, in `k2`'s strap**, and **still on the rail in `k3`** |
 | 4 | **`k2`'s type is smaller than either card it replaces.** Parallelism halves the sequence; it does not halve the glyphs. | `k2` ≈ **83 %** of `C3`'s type size, ≈ **66 %** of `C2`'s — arithmetic measured in §4.1.1 | §0.5, with the binding consequence: **no line may be added to `k2`** |
 
 Item 3 is the one I would argue about if there were room to. The 50 s cut's §4.2 — `C3`'s
@@ -261,6 +273,13 @@ thing that makes the other twenty-one words believable."* I still think that is 
 and there is no honest 16-word sentence that does all three. **The mitigation is that the
 concession is the card's closing strap in full width, and the rail repeats it six seconds
 later** — it is read twice and heard never, where it used to be read twice and heard once.
+
+**`D35` did not reopen this, and the two seconds it freed are not spendable on it.** The
+replacement line runs 14 words, which leaves 2.6 s of air in `k2` rather than 1.6 s — but the
+concession is 10 words and the card's air is not a word budget: adding a third clause to a
+sentence whose job is already two things is how the Bedrock claim gets compressed again. **The
+air stays air.** If the film lead wants the concession heard, the seconds come from the 8 s bank
+and from a ruling by W1, not from this card's silence.
 
 ### 0.5 · THE CARD GEOMETRY OF `k2` — measured, because "will it fit" is an arithmetic question
 
@@ -575,15 +594,51 @@ the box rules are straight without a renderer having to justify them.
 | **Amazon Bedrock** · not in this request path | not in this path | `evidence/aws/probe/bedrock-probe.json`, `evidence/aws/probe/raw-haiku-converse.json` (a live `bedrock-runtime:Converse` against `au.anthropic.claude-haiku-4-5-20251001-v1:0` in `ap-southeast-2`), `evidence/aws/embeddings/manifest.json` (Titan v2, 2,060 vectors of width 1,024), `evidence/deploy/aws-live.json`; census row `evidence/tool-usage/aws-services.json` → `rows.aws_bedrock_runtime` / `rows.aws_bedrock_embeddings`, both `EXERCISED` |
 | residency, stated as the split | — | `docs/demo/research/r6-honesty.md` A1 and the scanner rule `MNC-02-residency`: the cluster is `aws-ap-southeast-1` (Singapore); only Bedrock inference is `ap-southeast-2` (Sydney) |
 
-### 3.4 · Spoken — 16 words, for the whole card
+### 3.4 · Spoken — 14 words, for the whole card, against a 16-word budget
 
 **This is the only spoken line in `k2`.** It covers both halves, because the card is one card.
 
-> **"Everything here is either in that request or in the apply. Bedrock — not in this path."**
+> **"Every line says which. Bedrock is exercised in this repository — not in this path."**
 
-**16 words · 8.4 s at 1.9 w/s in a 10 s block · 1.6 s of air.** The dash is a real pause, not a
-comma: the last five words are the sentence a judge does not expect, and they need the silence
-in front of them.
+**14 words · 7.4 s at 1.9 w/s in a 10 s block · 2.6 s of air.** The dash is a real pause, not a
+comma: the last four words are the half a judge does not expect, and they need the silence in
+front of them. **The four words in front of the dash are the half that makes them credible**, and
+that is the whole of `D35` — see §3.4.0.
+
+#### 3.4.0 · `D35` — WHY THIS LINE CHANGED, AND WHAT THE OLD ONE LOST
+
+**`CLAIMS-CLEARANCE.md` row `N22` was filed before this line existed and fired on it exactly, and
+`D35` in §12.9 is the REFUSE.** The first draft of this section read:
+
+> ~~"Everything here is either in that request or in the apply. Bedrock — not in this path."~~
+
+**The compression took the Bedrock claim down to a bare denial.** *"is exercised in this
+repository"* went out of the mouth while staying on the card in capitals, and the two halves are
+not separable: **Bedrock IS exercised in this repository, and it IS not in this request path.**
+A denial with its positive half removed under-states what was built, and a card that only denies
+reads as a card hiding something — `N22`'s own words. The qualifier cannot simply be dropped
+either: without *"not in this path"* the sentence over-states what the film shows. `r6-honesty.md`
+A6's `TRUE INSTEAD` carries both halves in one clause and so does the line above.
+
+**And the first sentence was carrying a second, separate defect.** *"Everything here is either in
+that request or in the apply"* is `CLAIMS-CLEARANCE.md` §7.6's open **REWORD**: the overlay carries a **third** group
+(`IN THIS DATABASE, EARLIER`), and §7.7/§7.8 move two more rows out of the first two — so
+*"either… or…"* was false about three of the card's rows rather than one. **`"Every line says
+which"`** is row `N20`, cleared, four words, and it is true of a card with any number of groups
+because it is a claim about the **labels** rather than about the count.
+
+**Both halves of the replacement were already cleared, separately, before the replacement
+existed:** `N20` (*"Every line says which."*, 4 w) and `N21` (*"Bedrock is exercised in this
+repository — not in this path."*, 10 w, carried forward from `K5` to the character). **No new
+claim is made here; two cleared ones are put back together.** `D35`'s own supplied replacement is
+this sentence verbatim and this file adopts it without amendment — inventing a third wording to
+hit a word count is how a cleared line becomes an uncleared one.
+
+**The cost, stated: the card's spoken line is now 14 words against a 16-word budget**, so the
+close delivers **34** rather than 36 and reads at **1.55 w/s** rather than 1.64. §0.2 carries the
+corrected arithmetic and the direction it moves in. **A budget is a ceiling** — `BEATS.yaml` says
+so in its own words — so `k2`'s `vo_word_budget: 16` and `close_words: 36` are unchanged and
+correct; what changed is what is delivered against them.
 
 **The service names and the feature names are not read aloud** — they are on screen, larger than
 they would be in speech, and a judge reads a list faster than anyone can say it. The VO's whole
@@ -595,15 +650,20 @@ job is **to tell him the list has a rule, and to say the Bedrock line out loud.*
 |---|---:|---|
 | 50 s `C2` | 24 | *"Everything here is either in that request or in the apply that created it. Bedrock is exercised in this repository — not in this path."* |
 | 50 s `C3` | 22 | *"Two refusals, two SQLSTATEs, one SERIALIZABLE transaction. The enum in that predicate is ours. One cluster, one region, and no scale claim."* |
-| 22 s `k2` | **16** | *"Everything here is either in that request or in the apply. Bedrock — not in this path."* |
+| 22 s `k2`, first draft — **refused at `D35`** | 16 | ~~*"Everything here is either in that request or in the apply. Bedrock — not in this path."*~~ |
+| 22 s `k2`, **as it stands** | **14** | *"Every line says which. Bedrock is exercised in this repository — not in this path."* |
 
 * **`"that created it"` came out of the mouth and is still on the screen**, verbatim, as the
   group heading `AWS · IN THE APPLY THAT CREATED IT`, with `24 created · 0 changed · 0
   destroyed` under it. **The screen cashes out the jargon.** This is the pattern of the whole
   revision: a phrase that is already printed larger than it can be spoken is not spoken.
-* **`"is exercised in this repository"` came out of the mouth and is still on the screen**, in
-  the box, in capitals: `EXERCISED IN THIS REPOSITORY.` The spoken form keeps the half a judge
-  will not predict — *"Bedrock — not in this path."*
+* **`"is exercised in this repository"` is back in the mouth, and it never left the screen** —
+  it is in the box, in capitals: `EXERCISED IN THIS REPOSITORY.` **The first draft of this
+  revision took it out of the mouth and that was the one place the compression cost content**
+  rather than delivery; §3.4.0 is the finding and `D35` is the row. The spoken form now carries
+  the half a judge will not predict *and* the half that makes it credible.
+* **`"Everything here is either in that request or in the apply"` came out**, and what replaced
+  it is shorter and truer of the card as built: the overlay has three labelled groups, not two.
 * **`C3`'s sentence is not spoken at all.** Its three assertions are on screen and none is lost:
   two SQLSTATEs are in §4.1's left group beside their constraint and function; `SERIALIZABLE`
   is in the same group; the enum-inside-the-predicate is the third sweep landing (§3.5); and the
@@ -637,7 +697,7 @@ in this request.` column. **That cap and that order are inherited unchanged.**
 | 3.0 s | `P0001`, beside `mainline.fn_permit_merge_gate` | CockroachDB |
 | 4.8 s | the enum **inside the predicate** — `'merged':::mainline.subject_state` | CockroachDB |
 | 6.8 s | the three `It did not run in this request.` lines, held to the out-point | CockroachDB |
-| 8.4 – 10.0 s | no sweep; card whole; 1.6 s of air | — |
+| 7.4 – 10.0 s | no sweep; card whole; **2.6 s of air** (was 1.6 s before `D35` shortened the line) | — |
 
 **Everything else on the card is pause material by design**, which is what "confirm them
 quickly" means for a list this long.
@@ -650,11 +710,20 @@ quickly" means for a list this long.
    half is read, not swept; the CockroachDB half is swept, not spoken. Each half gets exactly
    one channel and they do not fight.
 2. **Landing 4 is timed to sit under the spoken Bedrock line, and that is the point of the whole
-   card.** At `6.8 s` the voice says *"Bedrock — not in this path"* over the left half while the
+   card.** At `6.8 s` the voice is on *"— not in this path"* over the left half while the
    sweep lands on *"It did not run in this request."* three times down the right half. **Those
    are the same sentence, in two vocabularies, about two vendors, at the same instant.** It is
    the one moment the parallelism buys something the sequence could not, and it is the editorial
    reason to run the halves together rather than merely the budgetary one.
+
+   **The alignment survived `D35` and it is checkable rather than asserted**, at the file's own
+   1.9 w/s: *"Every line says which."* is 4 w ≈ **2.1 s**, so it clears by `2.1 s`; *"Bedrock is
+   exercised in this repository"* is 6 w ≈ **3.2 s**, landing the em-dash pause at about `5.4 s`;
+   *"not in this path"* is 4 w ≈ **2.1 s**, running from roughly `5.8 s` to `7.9 s` once the dash
+   is paid for. **Landing 4 at `6.8 s` falls inside the denial rather than in front of it**, which
+   is a tighter fit than the refused line gave — that one only reached *"not in this path"* at
+   about `5.8 s` after eleven words of preamble. **If the take drifts, the sweep moves to the
+   voice; the voice never moves to the sweep.**
 
 ---
 
@@ -1215,9 +1284,12 @@ concessions to the lead rather than to the clock.**
 **What replaces it is a plain record of what rank 4 costs, so nobody executes it thinking it is
 free.** If `k3` goes 6 s → 4 s:
 
-* **the film loses its last spoken line entirely.** The close drops to 26 spoken words over
-  20 s = **1.30 w/s**, and the last thing a judge *hears* becomes `k2`'s *"Bedrock — not in this
-  path."* That is a good sentence, and it is not the sentence the film was built to end on;
+* **the film loses its last spoken line entirely.** The close drops to 24 spoken words over
+  20 s = **1.20 w/s**, and the last thing a judge *hears* becomes the tail of `k2`'s Bedrock
+  line — *"— not in this path."* That is a good sentence, and it is not the sentence the film was
+  built to end on. **After `D35` it is a slightly better sentence to end on than it was**, because
+  the clause in front of it now says what Bedrock *is*, so the film's last spoken second is no
+  longer a denial standing on its own;
 * **`k3`'s screen is unchanged** — all three limit lines, all four rail entries, both URLs —
   but a four-line rail arriving whole with three lines of limit and two URLs now has **four
   seconds** and no voice under it. §0.3's clause-seconds fall from 24 to **16**;

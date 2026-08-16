@@ -3,16 +3,31 @@ SPDX-FileCopyrightText: 2026 MAINLINE contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# CLICKS-CR — the screen actions for B9, B10 and B11
+# CLICKS-CR — the pre-flight, the frame rules and the field paths for B9 and B10
 
-**Worker W6** · the film blocks for use case two · cr-gate-route wave · 2026-08-16
-**Owns:** the operator actions for **B9, B10, B11 only.** `docs/demo/film/CLICKS.md` owns
-`B0`…`B8` and is not edited by this worker.
+**Worker W6** · the film blocks for use case two · cr-gate-route wave · 2026-08-16 ·
+**reconciled to the two-block decomposition 2026-08-16**
 **Live origin:** `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`
 **Surface filmed:** `<origin>/operator.html#/change` — the **Management of change** screen.
-**Voice:** [`VO-DEMO-CR.md`](VO-DEMO-CR.md) · **clearance:** [`CLAIMS-CLEARANCE-CR.md`](CLAIMS-CLEARANCE-CR.md)
+**Voice:** [`VO-DEMO-CR.md`](VO-DEMO-CR.md) §1, which itself inherits its words from
+[`VO-DEMO.md`](VO-DEMO.md) §1 · **clearance:** [`CLAIMS-CLEARANCE-CR.md`](CLAIMS-CLEARANCE-CR.md)
 
-**`claim_hygiene.py --check` verdict** for this file is recorded once, for all three files
+> ### WHAT THIS FILE OWNS, AND WHAT IT STOPPED OWNING
+>
+> **`docs/demo/film/CLICKS.md` §5 is the choreography of record for `B9` and `B10`.** When this
+> file was written it declared that it owned the operator actions for `B9`, `B10` and `B11` and
+> that `CLICKS.md` owned `B0`…`B8` — **that ownership line went stale the same day**, because
+> `CLICKS.md` landed full `B9` and `B10` sections of its own, written against a read chain it
+> **measured twice against the live origin** (its M14) and against the two-block spine.
+>
+> **Two click documents describing one stretch of film is the same defect as two voice documents
+> describing it, and it is resolved the same way.** `VO-DEMO-CR.md` §0.3 carries the ruling and the
+> reasons. **What this file owns and is worth keeping for:** the frame rule in §3 and the evidence
+> trap in §3.1, the field-path tables in §4, the executable pre-flight in §5, and the stop-the-take
+> list in §6. **Where the two disagree about a cursor, `CLICKS.md` wins and this file is wrong.**
+> §4 records the one place they still do disagree rather than hiding it.
+
+**`claim_hygiene.py --check` verdict** for this file is recorded once, for the `-CR` files
 together, in `CLAIMS-CLEARANCE-CR.md` §6, with its exit code. Re-run it after any edit —
 "not scanned" and "passed" are different results.
 
@@ -51,7 +66,7 @@ does not exist. §5 is the executable pre-flight that settles it on the day, and
 
 ## 1 · WHAT DOES NOT CHANGE FROM `CLICKS.md`
 
-These three blocks are shot **inside the same unbroken take** as `B0`…`B8`. Every setting in
+These two blocks are shot **inside the same unbroken take** as `B0`…`B8`. Every setting in
 `CLICKS.md` §1 was chosen before the red light and is not touched again: a dock change, a zoom
 change or a window resize inside the take reflows the page underneath a claim, and a viewer cannot
 tell that from an edit.
@@ -62,7 +77,7 @@ Four things stay in frame from the first frame to the last, exactly as `CLICKS.m
    cropped, never covered.
 2. **The taskbar clock.**
 3. **DevTools**, docked right, Network panel selected, **Preserve log ON** — so the `B1` request
-   and the `B9` request are both in the list, in order, for the whole of these three blocks.
+   and the change-request attempt are both in the list, in order, for the whole of these two blocks.
 4. **The synthetic watermark**, in the page's own words or in the burned-in strap, per
    `CLICKS.md` §1.4.
 
@@ -133,7 +148,7 @@ were answering `404`.
 > merge beat and from nothing else.** Until that run exists, there is no value and there is no
 > frame.
 
-The film's standing frame rules still apply to all three blocks, unchanged:
+The film's standing frame rules still apply to both blocks, unchanged:
 
 * **Every value on screen arrived over HTTP in this page load.** No fixture, no seeded constant, no
   fallback object, no default. When a read does not land, the screen renders an **absence** — never
@@ -146,12 +161,17 @@ The film's standing frame rules still apply to all three blocks, unchanged:
 
 ---
 
-## 4 · THE THREE BLOCKS
+## 4 · THE TWO BLOCKS
 
-### B9 · THE OTHER WAY IN — `[2:04]` · 10 s
+> **`CLICKS.md` §5 `B9` and `B10` carry the cursor path, the click numbers and the keystroke
+> timings.** What is below is the **frame** each block must compose and the **field path** every
+> value in it is read from — the half of the job that document does not do, and the half a
+> pre-flight can actually check.
 
-**Voice:** *"Then change the rule instead."* ·hold 0.3· *"Same paragraph. Same incident behind it.
-This request asks to edit it."*
+### B9 · THE OTHER WAY IN — `[2:04]` · 12 s
+
+**Voice:** *"Fine. Then don't use the clause — change it."* ·hold 0.4· *"Same paragraph. Same
+incident behind it. This request asks to edit it."* — `VO-DEMO.md` §1 `B9`, inherited.
 
 #### 4.1 · The frame at the top of the block
 
@@ -176,42 +196,75 @@ this is a second refusal rather than the same memory reaching a second subject, 
 says the wave should be abandoned rather than shot. **This is a condition on the shot, checked in
 pre-flight, not a thing to notice in the edit.**
 
-#### 4.2 · The actions
+#### 4.2 · The actions — **`CLICKS.md` §5 `B9` is the version of record**
 
-| # | t | action | what must happen on screen |
-|---|---|---|---|
-| 1 | `+0.0` | **no cursor movement** while *"Then change the rule instead"* is spoken | the composed frame, still. The objection is spoken over a screen that is not doing anything, which is what makes it read as the viewer's thought rather than as a demo step. |
-| 2 | `+2.6` | during the ·hold 0.3· and under *"Same paragraph"*, the caret is already in `Proposed wording` — the founder types **the last few words only** | characters appear in the `<textarea>`. **No provenance chip appears beside them**, because nothing typed carries one. The placeholder is gone the instant the first key lands, which is what stops a still frame reading it as a stored value. |
-| 3 | `+5.5` | cursor moves to **`Compare with clause of record`**, single left click | the browser-side comparison renders, **labelled as computed in the browser**. Left side is the real returned clause text; right side is what was just typed. Nothing on the right has a chip. |
-| 4 | `+7.4` | cursor moves to **`Approve change`**, single left click — this lands under *"This request asks to edit it"* | **exactly one new row in the Network panel**, a `POST`, pending. The real promise, the real pending state. **No `setTimeout`, no synthetic spinner, no cutaway.** |
+`CLICKS.md` spends all twelve seconds as: cursor to the app bar (`2:04–2:05.5`), **Click 5 — the
+module switch** (`2:05.5`), the four-read paint it measured at ≈ 3.5 s warm (`2:05.5–2:09`), a
+wheel scroll to the clause of record and the `Proposed wording` box (`2:09–2:10.5`), a click into
+the textarea (`2:10.5–2:11`), and **the proposed wording typed on camera** (`2:11–2:16`).
 
-**The pre-typing convention, and it is `B0`'s.** `CLICKS.md` §1.5 step 3 pre-types the fields that
-are not typed on camera and leaves the last few words of one field for the take. The proposed
-wording is handled identically: pre-typed except its tail, tail typed in action 2. A page reload
-clears it, so this is the last pre-flight step that a refresh can undo.
+**Three notes this file adds and `CLICKS.md` does not contradict:**
 
-**If the recut ladder's rank 1 fires (`B9` 10 s → 8 s):** actions 2 and 3 are dropped and the block
-**arrives on the proposed wording already composed and already compared.** Action 4 moves under
-*"behind it"* and still covers the round trip. Nothing else changes.
+* **The typing cannot be pre-typed, and that is a measurement rather than a preference.**
+  `CLICKS.md` measured that the textarea is destroyed and re-created empty when `B9` mounts the
+  screen, so **the wording is typed on camera or it is not on screen at all.** The pre-typing
+  convention `CLICKS.md` §1.5 step 3 uses for `B0`'s other fields **does not reach this box.**
+* **No provenance chip appears beside the typed characters**, because nothing typed carries one,
+  and the placeholder is gone the instant the first key lands — which is what stops a still frame
+  reading the proposal as a stored value.
+* **`Compare with clause of record` is not clicked**, and `CLICKS.md` records it as a trade rather
+  than a prohibition: it is a real shipped control, it makes no request, and it is the single best
+  show-don't-tell asset on that screen — **and there is no room for it**, because `B9`'s last five
+  seconds are the typing. **This file's earlier action table clicked it at `+5.5` inside a 10 s
+  block.** That was one of the two documents' disagreements and it is resolved against this file.
+
+> ### ⚠ THE ONE PLACE THE TWO CLICK DOCUMENTS STILL DISAGREE — recorded, not resolved here
+>
+> **This file put `Approve change` at `+7.4` inside `B9`, under *"This request asks to edit it."*
+> `CLICKS.md` puts it at `2:17` as Click 6, one second inside `B10`**, with the pending state
+> running to `2:18.5` and the refusal painting from `2:18.5`. **Both cannot be shot.**
+>
+> It matters because `B10`'s first spoken word is *"Refused."* at `2:16`: under `CLICKS.md`'s
+> placement the refusal has not landed when that word is said, which R-K forbids, and R-9 requires
+> the request to be narrated **while it is in flight**. Under this file's placement the press sits
+> inside a block `CLICKS.md` measured as having no spare second. **Owner: the film lead, with W1
+> for the seconds and W2 for the words.** `VO-DEMO-CR.md` §1 carries the same open item with both
+> candidate fixes priced. **Nothing in this wave settles it by choosing quietly.**
 
 **MUST NOT DO:** narrate the typing, or say anything that gives the typed words the status of data.
 **MUST NOT DO:** press `Approve change` twice. **MUST NOT DO:** open a second tab.
 
 ---
 
-### B10 · REFUSED AGAIN — `[2:14]` · 6 s
+### B10 · REFUSED AGAIN — THE MIRROR — `[2:16]` · 12 s
 
-**Voice:** *"Refused. **23514** again — a different CHECK, guarding the change."*
+**Voice:** *"Refused. Same **SQLSTATE** — a different constraint guards edits."* ·hold 0.6·
+***"You can't just use the clause. You can't quietly edit it away."*** — `VO-DEMO.md` §1 `B10`,
+inherited. **The block runs refusal → hold → mirror without a boundary in it**, which is
+`VO-DEMO-CR.md` §0.3's ruling and the reason its two frames are described together below.
 
 #### 4.3 · The actions
+
+**`CLICKS.md` §5 `B10` is the version of record.** Its shape, in one line: the press and its real
+pending state, then the refusal painting from `2:18.5`, then the cursor **pointing** down the
+refusal band without clicking or selecting (`2:18.5–2:22`), then travelling left and up to the
+three prompt cards without leaving the frame (`2:22–2:26`), then **stopping** for the mirror
+(`2:26–2:28`).
 
 | # | t | action | what must happen on screen |
 |---|---|---|---|
 | 1 | `+0.0` | **nothing.** The founder's hands leave the mouse. | the answer lands. The Network row goes from pending to its status. The refusal band composes itself from the response. |
-| 2 | `+2.0` | cursor rests — does not click — beside the constraint name | the name is legible and its label says which payload field it is |
+| 2 | `+2.5` | cursor rests — does not click, does not select text — beside the constraint name | the name is legible and its label says which payload field it is |
+| 3 | `+6.0` | **one movement, slow, and it stops** — to the three defeater prompts, **with the refusal band still in frame** | both in one frame. If they will not both fit at the take's geometry, §5.5's ruling applies. |
+| 4 | `+10.0` | **nothing.** No cursor movement, no click, no hover, for the rest of the block. | the frame holds through the mirror and through the silence after it |
 
 **There is no click in this block.** The only correct operator action while a refusal is being read
 is to stop moving.
+
+**The silence at the tail is a scripted element with a duration, not a pause an editor may
+tighten.** It is where a viewer works out what just happened, and a viewer who works it out
+themselves is a viewer who believes it. **MUST NOT DO:** cut to the close over the mirror line. The
+close card lifts into the hold, after the last word, or the hold is not a hold.
 
 #### 4.4 · The frame, and every value's field path
 
@@ -252,25 +305,30 @@ no gap dressed as a pass.
 answered something other than what it was written against still returns its verdict, and showing it
 is the whole discipline. A beat is never declared successful because it did not raise.
 
----
+#### 4.5 · ⚠ THE MIRROR'S SPOKEN LINE — the correction this file owed
 
-### B11 · THE MIRROR — `[2:20]` · 8 s
+**This file's `B11` section carried, as its `Voice:` line, a sentence the film's own registers
+bar.** The block is gone and so is the line; both are printed here rather than deleted, because a
+correction nobody can see is a correction nobody can check.
 
-**Voice:** *"You can't use the clause."* ·hold 0.4· ***"You can't quietly edit it away either."***
-·hold 1.3·
+**Before:**
 
-#### 4.5 · The actions
+> ~~**Voice:** *"You can't use the clause."* ·hold 0.4· ***"You can't quietly edit it away
+> either."***~~
 
-| # | t | action | what must happen on screen |
-|---|---|---|---|
-| 1 | `+0.0` | one scroll — **slow, one gesture, and it stops** — bringing the defeater prompts into frame **with the refusal band still visible** | both in one frame. If they will not both fit at the take's geometry, §5.5's ruling applies. |
-| 2 | `+2.2` | **nothing.** No cursor movement, no click, no hover, for the rest of the block. | the frame holds through the mirror line and through the 1.3 s of silence after it |
+**After — `VO-DEMO.md` §1 `B10`'s tail, cleared at `CLAIMS-CLEARANCE.md` `D32` and `D33`:**
 
-**The silence is a scripted element with a duration, not a pause an editor may tighten.** It is
-where a viewer works out what just happened, and a viewer who works it out themselves is a viewer
-who believes it.
+> **Voice:** *"You can't **just** use the clause. You can't **quietly** edit it away."*
 
-#### 4.6 · The frame
+**Why the old first half is barred, and it is a frame problem as much as a claim problem.**
+`B7` shows the permit **ISSUED** on that same clause thirty seconds earlier, once its obligation
+was answered. The unscoped sentence is therefore contradicted by the film it is spoken in — and
+this document is the one that decides what is in the frame, so it is the document with the least
+excuse for it. **Both scope words are load-bearing:** *just* says the clause is usable but not
+unanswered; *quietly* says it is editable but not unanswered. **MUST NOT DO:** shoot a take in
+which either adverb is missing — the take goes, not the line.
+
+#### 4.6 · The frame at the tail of the block
 
 | on screen | field path (**PENDING**) |
 |---|---|
@@ -311,13 +369,13 @@ GET  /operator.html                              → the approve control is enab
 **MEASURED TODAY, AND THE FIRST TWO DO NOT HOLD.** `evidence/deploy/cr-gate-live.json`:
 `cr_gate_run_probe.status` = **404**; `cr_blocking_checks.status` = **404**;
 `why_unanswerable.declared_path_count` = **17**; `why_unanswerable.cr_blocking_checks_declared` =
-**false**; the file closes `verdict: "UNANSWERABLE"`, `exit_code: 2`. **These three blocks cannot
+**false**; the file closes `verdict: "UNANSWERABLE"`, `exit_code: 2`. **These two blocks cannot
 be shot today.** W5's own sentence for why that is a different finding from a gate that failed to
 refuse is at `why_unanswerable.this_is_not_a_gate_that_failed_to_refuse`, and this file does not
 soften it.
 
 **If all three do not hold, use case two is NO-GO** and `docs/demo/film-recut-plan.md` §6 is the
-fully specified path — `B9`, `B10` and `B11` are never added, `B8` is restored to 10 s, and the
+fully specified path — `B9` and `B10` are never added, `B8` is restored to 10 s, and the
 film runs `2:32`, comfortably legal, with every service and feature still named. That is a
 legitimate outcome and not a failure.
 
@@ -375,9 +433,11 @@ that one slow scroll brings the three prompts into frame **with the refusal band
 **If they will not both fit, the fix is the dock, never the zoom.** Narrow the DevTools panel to
 widen the page, exactly as `CLICKS.md` §1.3 rules — lowering the zoom loses the legibility floor
 `CLICKS.md` §1.2 measured, at which the SQLSTATE value itself falls below readable. **If it still
-will not fit, `B11` holds the refusal band and the prompts are reached by a second slow scroll
-inside the 1.3 s hold — and the hold moves to the close.** It is never solved by cropping the
-refusal out from under a sentence that refers to it.
+will not fit, `B10` holds the refusal band through its first sentence and the prompts are reached
+by a second slow movement inside the 0.6 s hold — and the tail silence moves to the close.** It is
+never solved by cropping the refusal out from under a sentence that refers to it. **`CLICKS.md`
+§5 `B10` is stricter and it wins: if the refusal and the three prompts will not compose in one
+frame, `B10` does not shoot.**
 
 ---
 
@@ -394,5 +454,7 @@ Pre-committed, so nobody weighs a beat against the rubric at 02:00.
 | 5 | **a staged, mocked or hard-coded refusal, in any form** | the contest's Functionality requirement says the project must function as depicted in the video. A staged beat is a rules violation, not merely a dishonesty. |
 | 6 | **the `SYNTHETIC —` prefix cropped out of the clause text** | it is never cropped to make a frame prettier. |
 
+| 7 | **either mirror adverb missing from the take** — *just*, *quietly* | §4.5. Without them the sentence is contradicted by `B7`, which the same film shows thirty seconds earlier. R-7, and the refusal is final. |
+
 **A `40001` serialisation retry is not on this list.** It is pressed again on camera, the retry is
-not cut out, and it costs its own seconds out of the film's margin — never out of `B11`.
+not cut out, and it costs its own seconds out of the film's margin — never out of `B10`'s mirror.

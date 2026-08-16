@@ -1048,10 +1048,13 @@ Three things decide the section, and the second was not in anybody's brief:
    and one of them live.** The ten are four mirror-line variants R-7 orders filed, two sentences
    the frame would contradict, three compressions of the close that would cost content rather than
    delivery, and one on-screen value **no route that answers returns** — none of the ten is in any
-   script, and they are here so nobody improvises one at 02:00. **The eleventh is in the delivered
+   script, and they are here so nobody improvises one at 02:00. **The eleventh was in the delivered
    `VO-CLOSE.md`:** row D35, `k2`'s only spoken line, which compressed the Bedrock sentence to a
    bare denial and landed on a REFUSE row filed before it existed. Its replacement is two words
-   shorter than the line it replaces and is already cleared.
+   shorter than the line it replaces and was already cleared. **`D35` is DISCHARGED as of
+   2026-08-16 — §12.9.1 row C — and a twelfth REFUSE has been filed since this paragraph was
+   written: N9 is superseded and the unscoped *"you can't use the clause"* is now barred in its own
+   right, which makes five refused mirror variants rather than four.**
 2. **`DEMO-INC-0001` is not on the change screen, and R-5 is therefore unsatisfied today.** Counted
    in the rendered DOM of the deployed origin: **zero occurrences.** R-5 is not a preference — its
    own words are that without both identifiers in the frame, use case two is a second refusal, the
@@ -1144,10 +1147,10 @@ picks.
 
 | # | line | verdict | family checked | authority |
 |---|---|---|---|---|
-| N9 | *"You can't use the clause."* | ✓ | A8 · A12 | The film has spent two minutes proving exactly this, on camera, twice. It asserts nothing new. |
+| N9 | *"You can't use the clause."* | **✗ SUPERSEDED** | A8 · A12 | **This row's ✓ is withdrawn, by the sheet that filed it, at D32.** It cleared the sentence for asserting nothing new — and that reading missed the film: **`b7` shows the permit ISSUED on that same clause thirty seconds later**, once its obligation was answered, so the unscoped form is contradicted by this film inside this film. **The cleared wording is D32's** — *"You can't **just** use the clause."* — and `just` gives the first half the scope discipline `quietly` gives the second. **MUST NOT SAY:** the unscoped form, in any block, in any fallback, as an ad-lib or as a cut-ladder shortening. **This is the fifth bar** and it stands beside §12.4's four. |
 | N10 | **"You can't quietly edit it away either."** | ✓ | **R-7 · A5 · MNC-06's scope discipline** | **CLEARED, and cleared only with the adverb.** The scope word carries the entire truth of the sentence, exactly as `here` does in the rubber-stamp limit at row K9. The clause **can** be edited — by disposing of the obligation first — and *quietly* is what makes the sentence a statement about **unanswered** edits rather than about edits. **Every variant that drops it is REFUSED at §12.4, and that refusal is final.** |
-| N11 | *"You can't use the clause. You can't edit it away either — not without answering the question first."* (substitute A) | ✓⃝ | R-7 | Cleared as a claim: the trailing clause carries the scope that the dropped adverb was carrying. **CONDITION — timing, and it is not this sheet's to waive:** 17 words in an 8 s window is **2.13 w/s**, over every rate ceiling in the kit. `CLAIMS-CLEARANCE-CR.md` §2 row 14 prices it at 11 s. **A substitute nobody has counted is a substitute that overruns the beat after it.** |
-| N12 | *"Use it, or edit it. Not without answering the question first."* (substitute B) | ✓ | R-7 | Cleared, and it fits the window as written. Keeps both halves of the mirror and carries the scope in a clause rather than an adverb. **This is the substitute to reach for if the adverb has to go.** |
+| N11 | *"You can't use the clause. You can't edit it away either — not without answering the question first."* (substitute A) | **✗ RETIRED** | R-7 | Cleared, when filed, on the reading that the trailing clause carries the scope the dropped adverb was carrying — **and its FIRST half is the unscoped sentence N9 and D32 refuse**, which this row did not catch and which the trailing clause does not reach. **Retired on the claim.** It is also retired on the arithmetic it was conditioned on: 17 words in the old 8 s `B11` was **2.13 w/s**, and in the two-block shape it must sit behind the refusal sentence in one 12 s block — `9 + 17 = 26 w` = **2.17 w/s**, worse. **Both halves have to be right; this substitute never had a right first half.** Use N12. |
+| N12 | *"Use it, or edit it. Not without answering the question first."* (substitute B) | ✓ | R-7 | Cleared, and **re-priced against the two-block shape and still fitting**: behind the refusal sentence in one 12 s `b10` it is `9 + 11 = 20 w` = **1.67 w/s**, identical to the line of record. Keeps both halves of the mirror and carries the scope in a clause rather than an adverb. **This is the substitute to reach for if an adverb has to go**, and it is the **only** surviving one — N11 is retired. **It is a substitute and never a co-primary:** taking it is announced before the take. |
 | N13 | *"…not without answering the question first."* used **alone**, without the first half | **~** | R-7 · R-4 | **REWORD — §12.6.2.** On its own it answers a question the audience has not been asked; the mirror is a **pair**, and half a mirror is a claim about editing with no claim about using beside it. Keep both halves in whichever form is taken. |
 
 ### 12.3.4 · Two sentences the second use case must never end on
@@ -1190,7 +1193,7 @@ by the film lead without argument.**
 | # | line | verdict | family | authority |
 |---|---|---|---|---|
 | B19 | **F-8 NO-GO, amended:** *"…Open blocking: one. The approve control is disabled, and it prints its own reason: one blocking obligation outstanding, and the constraint that holds it closed, with its predicate. There is no merge route for it yet — the screen says so and lists the routes that exist — so I'm telling you about it rather than driving it."* | ✓ | **A13.5 · R-I · A17.1** | Every clause is reading C: the count is `counters.open_blocking 1`; the control is constructed `disabled` with `aria-disabled="true"`; its reason string is measured verbatim; the constraint and predicate render beneath it; and the `404` with its seventeen declared routes is on the same screen. **This row supersedes the quoted form in §5 row B8**, which stays cleared and is now the shorter version of the same true sentence. **A first draft said *"the constraint that will refuse the merge"*; it was changed to *"holds it closed"* before this row was written**, because the first is a claim about a run that has not happened and the second is a claim about a predicate in the frame. |
-| B20 | **F-8 GO form:** *"Refused. Twenty-three five one four again — a different CHECK, guarding the change. ·hold· You can't use the clause. You can't quietly edit it away either."* | ✓⃝ | **R-7 · A7 · A8** | The mirror with its adverb (N10), the constraint claim a judge can check in the frame (N7), and the SQLSTATE read off the take. **CONDITION: the R-11 gate passes, all six.** Under NO-GO this line does not exist, because the refusal it narrates cannot be produced. |
+| B20 | **F-8 GO form:** *"Refused. Twenty-three five one four again — a different CHECK, guarding the change. ·hold· You can't **just** use the clause. You can't **quietly** edit it away."* | ✓⃝ | **R-7 · A7 · A8** | The mirror with **both** scope words (N10 for `quietly`, D32 for `just`), the constraint claim a judge can check in the frame (N7), and the SQLSTATE read off the take. **CONDITION: the R-11 gate passes, all six.** Under NO-GO this line does not exist, because the refusal it narrates cannot be produced. **AMENDED 2026-08-16 — the row as first filed cleared an unscoped first half** (*"you can't use the clause"*, no scope word), which is **refused** at D32: `b7` shows the permit issued on that clause thirty seconds earlier, so the flat form is contradicted by the film it is spoken in. `FALLBACKS.md` F-8's GO form now carries the scoped pair and its `NEVER` list carries the fifth bar. **The clearance is on the amended line only; the wording this row used to quote is not cleared and never was.** |
 | B21 | **F-17:** *"That authorisation table is read against the permit's obligation, not the change request's — the screen says so itself, right there. The change request's own obligation isn't reachable from any route this deployment declares, so nothing on this screen claims anything about it."* | ✓ | **A17.1 fabricated exhibit** | A paraphrase of the screen's own two sentences, in the founder's register, pointing at them. It is the answer to the one question that surface invites, and it is stronger than silence: **the software already refuses the claim, and saying so out loud is the disclosure-before-discovery habit §0 is built on.** |
 
 ---
@@ -1209,13 +1212,23 @@ is a refusal somebody edits around.**
 | **X2** | **MUST NOT SAY:** *"The database won't let anyone edit the rule."* | Adds **anyone**, which is a claim about every caller and every code path. A cluster admin drops a constraint and it succeeds — the film shows one doing it. What they cannot do is drop it unobserved. **Tamper-evident, never tamper-proofing**, and §3 answer two is the rehearsed form. |
 | **X3** | **MUST NOT SAY:** *"The memory is immutable."* | Nothing here is immutable. `mainline.clause_blame_closure` is append-only and generation-versioned — *superseded, never deleted* — which is a claim about **how** it changes, not about it never changing. What the gate refuses is a **transition** while a counter and a re-derivation disagree; that is a condition on a change, not an absence of change. The word also invites a permanence claim the ledger's own `NOT VERIFIED` chip refuses. |
 | **X4** | **MUST NOT SAY:** *"You can't edit it."* | The scope word is the whole sentence. Without it the claim is about editing; with it the claim is about editing **unanswered**, which is what the kernel enforces. This is the same failure `here` prevents in the rubber-stamp limit, and it is the one most likely to happen — because it is the shortest, and 02:00 reaches for the shortest. |
+| **X5** — added 2026-08-16 | **MUST NOT SAY:** *"You can't use the clause."* with no scope word — **the mirror's FIRST half, which R-7's list did not cover and which two delivered files shipped** | **This one is refused for a reason the other four are not: the film disproves it on camera.** `b7`, thirty seconds before the mirror, shows the permit **ISSUED** on that same clause once its obligation was answered — so the flat sentence contradicts a frame the viewer has already watched, and a judge who noticed would conclude the narration does not describe the product. That is worse than any of X1–X4, which are merely over-claims. **TRUE INSTEAD:** *"You can't **just** use the clause"* (D32). `just` gives the first half the scope discipline `quietly` gives the second, and the pair then says one thing: **the question comes first, whichever way you come at the clause.** N9's ✓ is withdrawn; N11 is retired for carrying this half. |
 
-> **TRUE INSTEAD, and only these two:** **"You can't quietly edit it away either."** — or, if the
-> adverb reads oddly on the day, **"not without answering the question first."**
+> **TRUE INSTEAD, and only these two forms:** **"You can't just use the clause. You can't quietly
+> edit it away."** — or, if an adverb reads oddly on the day, the pair as
+> **"Use it, or edit it. Not without answering the question first."** (N12), which is the only
+> surviving substitute.
 >
 > **This refusal is final.** Plan §9 states that W2 and W3 draft and **W6 clears**, and that this
-> worker's REFUSE is not appealable to a rewrite. A fifth variant invented on the night is refused
+> worker's REFUSE is not appealable to a rewrite. A sixth variant invented on the night is refused
 > by the standing rule at the head of §12.3 and does not need a row of its own.
+>
+> **X5 is the row this section owes an admission for.** R-7 instructed four refusals and four were
+> filed, correctly and pre-emptively — **against the half of the mirror that had an adverb.** The
+> half without one was cleared at N9 on the reasoning that it *"asserts nothing new"*, and that
+> reasoning walked past `b7`. **Two delivered files shipped the unscoped sentence as a PRIMARY
+> line** before it was caught. **A refusal list is only as good as the half of the sentence it was
+> pointed at**, and this one was pointed at one half.
 
 **And two more, refused for a different reason**, endorsing `CLAIMS-CLEARANCE-CR.md` §4 rows R4 and
 R5 without restating them: *"and there is no way through"* (N15 above) and *"the same debt blocks
@@ -1276,13 +1289,19 @@ stronger for saying both.
 
 ### 12.6.2 · REWORD — half a mirror is not a mirror
 
-**Location:** any cut that drops *"You can't use the clause."* to save a second. **Owner: W2.**
+**Location:** any cut that drops *"You can't **just** use the clause."* to save a second.
+**Owner: W2.**
 
 The mirror is a **pair**, and the pair is the wave's entire reason for existing: the film has
 proved the first half on camera for two minutes, and the second half only lands as a *mirror* if
 the first is said beside it. Alone, *"not without answering the question first"* answers a question
 the audience has not been asked. **Both halves, in whichever form is taken** — and if the seconds
 are not there, take substitute B, which carries both halves in 11 words.
+
+**Amended 2026-08-16.** This location read *"You can't use the clause"* when it was written, which
+is the unscoped form **X5** and **D32** refuse. **A cut that restores the sentence must restore the
+scoped one** — dropping the beat's last four seconds is a cut, dropping its scope word is a
+rewrite, and this section only ever governed the first.
 
 ### 12.6.3 · REWORD — `k1`'s referent moves when `b9`/`b10` are inserted
 
@@ -1397,7 +1416,7 @@ filed before it existed.
 | D32 | `VO-DEMO.md` B10: *"You can't **just** use the clause."* | ✓ | **CLEARED, and it is better than the wording this sheet cleared at N9.** The bare *"You can't use the clause"* is absolute, and the film's own `b7` disproves it on camera — the permit **is** admitted once the obligation is answered. **`just` gives the first half the same scope discipline `quietly` gives the second**, so the mirror is now scoped on both sides. An improvement found by its author, recorded as one. |
 | D33 | `VO-DEMO.md` B10: *"You can't **quietly** edit it away."* (without *"either"*) | ✓ | **The adverb survives, which is the only thing §12.4 refuses over.** Dropping *either* costs the explicit tie to the previous sentence; the parallel construction carries it, and D32's *just* now carries it harder. Cleared. **All four §12.4 refusals stand against any future edit of this line.** |
 | D34 | `VO-CLOSE.md` `k1`: *"The incident. The retrieval. Ten seconds later, the obligation. Refused."* | ✓ | **A5 clean, and it moots §12.6.3.** Four fragments landing on three columns; *incident* and *retrieval* are **nouns**, so nothing is narrated as happening now; the year is dropped, which A3 can only welcome; and *"Refused."* names what the judge watched under either cut, so the referent problem §12.6.3 raised **cannot arise in this wording.** §12.6.3 is therefore **moot as delivered** and is kept for the case where anybody restores the longer form. |
-| D35 | `VO-CLOSE.md` `k2`: *"Everything here is either in that request or in the apply. **Bedrock — not in this path.**"* | **✗** | **REFUSE — row N22, filed before this line existed, fires on it exactly.** The Bedrock sentence has been compressed to a **bare denial**: *"is exercised in this repository"* is gone, and that positive half is what makes the denial credible and is the strongest twelve words in the block. A card that only denies reads as a card hiding something. **And the first sentence is §7.6's open REWORD, undischarged** — the overlay carries a third group, and §7.7/§7.8 move two more rows out of the first two, so *"either… or…"* is false about three of the card's rows rather than one. **Replacement, 14 words, inside the 16-word budget:** **"Every line says which. Bedrock is exercised in this repository — not in this path."** That is N20 + N21, both already cleared, and it costs two words fewer than the line it replaces. |
+| D35 | `VO-CLOSE.md` `k2`: *"Everything here is either in that request or in the apply. **Bedrock — not in this path.**"* | **✗ → DISCHARGED 2026-08-16** | **DISCHARGED: `VO-CLOSE.md` §3.4 now reads the replacement below, verbatim and unamended, and §3.4.0 records the finding in the file that carries the line. §12.9.1 row C is the discharge record. The REFUSE stands against the wording quoted in this row, which is no longer in the tree.** · **REFUSE — row N22, filed before this line existed, fires on it exactly.** The Bedrock sentence has been compressed to a **bare denial**: *"is exercised in this repository"* is gone, and that positive half is what makes the denial credible and is the strongest twelve words in the block. A card that only denies reads as a card hiding something. **And the first sentence is §7.6's open REWORD, undischarged** — the overlay carries a third group, and §7.7/§7.8 move two more rows out of the first two, so *"either… or…"* is false about three of the card's rows rather than one. **Replacement, 14 words, inside the 16-word budget:** **"Every line says which. Bedrock is exercised in this repository — not in this path."** That is N20 + N21, both already cleared, and it costs two words fewer than the line it replaces. |
 | D36 | `VO-CLOSE.md` `k3`: *"Nothing here separates a considered disposition from a rubber stamp."* | ✓ | **Row N23 exactly, with the scope word `here` intact**, and N24 confirmed: *"We measure deliberation and never threshold it"* has moved to the screen in its sanctioned form. Six spoken words saved, zero content lost. |
 | D37 | `ONSCREEN-TEXT.yaml` `b10.lattice.rows` | **~** | **REWORD — one gap in an otherwise exemplary file.** Its `source` reads `GET /v1/checks/{check_id}/disposition`, unbound. **On the deployed screen today that read is made against `dec0de00-0007-…`, the PERMIT's check**, because the change request's own obligation is not addressable — and the deployment prints its own sentence saying so. The five rows are **identical either way**, since the lattice is keyed by virulence, which is exactly what makes the substitution invisible. **Add the deployed screen's own disclosure to this id as a required companion string**, in the form O25 clears and N14 refuses the spoken version of. |
 
@@ -1410,6 +1429,54 @@ four of this section's conclusions independently and in some places further:
 `b10.defeater.different_vocabulary` carries `must_not_claim`: **the vocabulary is act-specific, and
 it was not generated in this request.** **Four writers reaching the same rulings from four
 directions is the strongest evidence in this file that the rulings are right.**
+
+---
+
+## 12.9.1 · **WHAT WAS DISCHARGED, 2026-08-16 — three film defects, and what stayed open**
+
+**Filed by the worker who made the edits, which is the same conflict §12.3.6 declares and it is
+declared again here rather than assumed forgiven.** Every row below names the file that changed and
+the row that already cleared the wording, so a later reader can check the discharge against a
+clearance rather than against this paragraph.
+
+| # | defect | discharged how | authority for the new wording |
+|---|---|---|---|
+| **A** | **The block collision.** `BEATS.yaml`, `VO-DEMO.md`, `CLICKS.md`, `ONSCREEN-TEXT.yaml`, `FALLBACKS.md` and `SPINE.md` encoded **two** blocks (`b9` 12 s + `b10` 12 s); `VO-DEMO-CR.md` and `CLICKS-CR.md` encoded **three** (`B9` 10 + `B10` 6 + `B11` 8). Both totalled 24 s, so `total_s: 172` held either way and no arithmetic caught it. | **RULED: two blocks. `B11` does not exist.** `VO-DEMO-CR.md` §0.3 carries the ruling and its three reasons; the deciding one is `CLICKS.md`'s **measured** read chain (≈ 3.5 s warm / ≈ 6 s cold) plus its measurement that the proposed-wording box is re-created empty on mount, which makes a 10 s `B9` unshootable. The `-CR` files were reconciled **and made subordinate** — `VO-DEMO.md` §1 owns the words, `CLICKS.md` §5 owns the cursors — so the same pair cannot drift again. | this sheet's own N2/N5–N8 for the `-CR` wordings that survive as alternates; `BEATS.yaml` for every duration |
+| **B** | **A barred claim in a primary line.** `VO-DEMO-CR.md` `B11`'s primary opened *"You can't use the clause."*, unscoped — the sentence `b7` disproves on camera thirty seconds earlier. `CLICKS-CR.md` `B11` and `FALLBACKS.md` F-8's GO form carried the same half. | **REPLACED** with `VO-DEMO.md` `B10`'s scoped pair — *"You can't **just** use the clause. You can't **quietly** edit it away."* — in all three files. **N9 is superseded, N11 is retired, N12 survives re-priced**, and the **fifth bar** is added to `VO-DEMO-CR.md`'s R-7 list, to `FALLBACKS.md` F-8's `NEVER`, and to `CLICKS-CR.md` §6 as a stop-the-take condition. | **D32** (`just`) and **D33** / **N10** (`quietly`), both already ✓ on this sheet |
+| **C** | **`D35`, undischarged.** `VO-CLOSE.md` `k2` had been compressed to a bare denial — *"Bedrock — not in this path"* — losing *"is exercised in this repository"*, the positive half that makes the denial credible and that the card still carries in full. | **REPLACED** with **"Every line says which. Bedrock is exercised in this repository — not in this path."** — adopted **verbatim** from D35's supplied wording, with no amendment, because a variant invented to hit a word count is an uncleared variant. `VO-CLOSE.md` §3.4.0 is the finding; §0.1, §0.2, §0.4 and §3.5 carry the corrected arithmetic. | **N20** + **N21**, both already ✓, and `r6-honesty.md` **A6**'s `TRUE INSTEAD`, which carries both halves in one clause |
+
+**The one place `D35`'s replacement costs something, stated rather than absorbed.** It is **14
+words against a 16-word budget**, so the close delivers **34** rather than 36 and reads at
+**1.55 w/s** rather than 1.64. `BEATS.yaml`'s `vo_word_budget: 16` and `close_words: 36` are
+**unchanged and still correct** — a budget is a ceiling and under-running one is free. The direction
+of the rate is the safe one: a close compressed in *content* would read **faster**, and this one
+reads slower than it did and slower than the 50 s cut it replaces.
+
+**Three things were NOT discharged, and each is left as a written open item rather than closed
+quietly.**
+
+1. **`D31` — *"a different constraint guards edits"*.** Still **`~ REWORD`**. The supplied
+   replacement *"guards the change"* is one word longer on the page, and `VO-DEMO.md` §2 has
+   already priced `b10` at 21 words running **1.13 s against 0.95 s of slack** — so taking it
+   re-prices the mirror's hold. **Owner: W2, with W1 for the seconds.** `VO-DEMO-CR.md`'s own
+   alternate already uses the corrected object and is cleared at N7/N8, so the two files converge
+   the moment it lands. **The wording was not propagated into a second file in the meantime**,
+   which would have doubled the row rather than discharged it.
+2. **Where the press lands.** `CLICKS.md` §5 puts **Click 6 at `2:17`**, inside `b10`;
+   `CLICKS-CR.md` put it inside `b9`. `b10`'s first spoken word is *"Refused."* at `2:16`, so
+   under the first placement the value is spoken before it is on screen — which **R-K forbids** —
+   and **R-9** requires each mutating request to be narrated while it is in flight. Both fixes
+   spend something and both are priced in `VO-DEMO-CR.md` §1. **Owner: the film lead.** **This is
+   not a documentation defect and it is not fixed by choosing one quietly.**
+3. **`cut_ladder` rank 1 is not executable as written.** It buys 4 s by arriving on the proposed
+   wording *"already composed"*, and the same `CLICKS.md` measurement that decided defect A says
+   the box is empty when the screen mounts. The step can buy a **shorter typed string**, never a
+   pre-composed one. Recorded in `BEATS.yaml` and in `VO-DEMO-CR.md` §5. **Owner: W1.
+   Re-ordering a pre-committed ladder is a rehearsal decision, never a documentation edit.**
+
+**No assertion was weakened, no floor was lowered, and no register row was softened to let a
+sentence through.** Every replacement above is a wording this sheet had **already** cleared before
+the defect was found; the work was putting cleared wordings where uncleared ones had been.
 
 ---
 

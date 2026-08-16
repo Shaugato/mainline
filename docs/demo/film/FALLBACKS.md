@@ -392,6 +392,13 @@ how the day feels.** Under **GO** the change request is *driven* and refused on 
 Under **NO-GO** it is *told*, read-only, in a `b8` restored to 10 s — which is what F-8 has always
 been, and the read-only cut is now **stronger** than when this block was first written.
 
+> **`b9`/`b10` — TWO blocks, and the collision that made that a question is closed.**
+> `docs/demo/cr-gate-route-plan.md` §R9 named the same 24 s as **three** — `B9` 10 s + `B10` 6 s +
+> `B11` 8 s — and `VO-DEMO-CR.md` and `CLICKS-CR.md` were written to it. **Resolved 2026-08-16 in
+> favour of two**, on `CLICKS.md`'s measured read chain; the ruling is `VO-DEMO-CR.md` §0.3.
+> **This file already carried `b9`/`b10` and nothing in it moved for the ruling.** What did move
+> is the GO form's spoken mirror, below, which had a barred first half.
+
 ---
 
 #### F-8 · NO-GO FORM — told, never driven. **This is the default and it is a legitimate film.**
@@ -453,20 +460,32 @@ enabling the approve control in front of nothing.
 > **SAY — only what the frame carries, and the mirror is the last sentence:**
 >
 > **"Refused. Twenty-three five one four again — a different CHECK, guarding the change.
-> ·hold· You can't use the clause. You can't quietly edit it away either."**
+> ·hold· You can't **just** use the clause. You can't **quietly** edit it away."**
+
+**BOTH HALVES OF THE MIRROR CARRY A SCOPE WORD AND NEITHER IS DECORATION.** This block's first
+draft read *"You can't use the clause"*, unscoped, and that form is **refused** — see the NEVER
+list below and `CLAIMS-CLEARANCE.md` `D32`. Under **GO** this sentence is said in a demo where
+`b7` has already shown the permit **ISSUED** on that same clause, thirty seconds earlier, once its
+obligation was answered; the unscoped form is therefore contradicted by the thing the listener
+just watched. **`just` scopes the first half exactly as `quietly` scopes the second**, and the two
+scopes point at one fact: **the question comes first, whichever way you come at the clause.**
 
 **DO.** Read the constraint name off the screen, not off this page — `cr_gate_closed_when_merged`
 is the **CHECK**; `cr_merge_gate` is the **trigger**; `mainline.fn_cr_merge_gate` is the trigger's
 **function**, and a `P0001` names the third, never the first. Keep the shared clause and the
 shared precursor legible in the same frame (R-5). Say `persisted: false` off the payload.
 
-**NEVER.** **MUST NOT SAY** any variant of the mirror that drops the scope word — *"the clause
+**NEVER.** **MUST NOT SAY** any variant of the mirror that drops a scope word — *"the clause
 cannot be changed"* · *"the database won't let anyone edit the rule"* · *"the memory is
-immutable"* · *"you can't edit it."* All four are **REFUSE** rows in `CLAIMS-CLEARANCE.md` §12.4
-and the refusal is final. **TRUE INSTEAD:** *"you can't **quietly** edit it away"*, or *"not
-without answering the question first."* Never speak `blood_major` and never speak a severity for
-this obligation — `severity` is not returned by any route that answers today (M17). Never say
-*"and there is no way through"*: there are three, they are on screen, and each demands a citation.
+immutable"* · *"you can't edit it"* · **and *"you can't use the clause"* with no scope word.**
+The first four are **REFUSE** rows `X1`–`X4` in `CLAIMS-CLEARANCE.md` §12.4; **the fifth is `X5`
+in the same section, filed 2026-08-16 with `D32` behind it**, and it is the one this block itself
+got wrong before it was corrected. All five refusals are final. **TRUE INSTEAD:** *"you can't **just** use the clause"* and *"you can't **quietly** edit
+it away"* — or, if an adverb reads oddly on the day, the whole pair as *"Use it, or edit it. Not
+without answering the question first."* (`N12`). Never speak `blood_major` and never speak a
+severity for this obligation — `severity` is not returned by any route that answers today (M17).
+Never say *"and there is no way through"*: there are three, they are on screen, and each demands a
+citation.
 
 ---
 

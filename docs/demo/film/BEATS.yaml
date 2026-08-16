@@ -85,6 +85,32 @@
 # `b10`'s SQLSTATE is `23514` — the same one `b2` carries, from a DIFFERENT
 # constraint. That is the whole point of the beat and it is not a typo.
 #
+# ── THE BLOCK COLLISION, CLOSED 2026-08-16 — THIS FILE WINS AND NOTHING HERE MOVED ──
+# `docs/demo/cr-gate-route-plan.md` §R9 named the 24 s of use case two as THREE blocks —
+# B9 10 s + B10 6 s + B11 8 s — and `VO-DEMO-CR.md` and `CLICKS-CR.md` were written to it.
+# This file, `VO-DEMO.md`, `CLICKS.md`, `ONSCREEN-TEXT.yaml`, `FALLBACKS.md` and `SPINE.md`
+# encode TWO, `b9` 12 s and `b10` 12 s. BOTH TOTAL 24 s, so `total_s: 172` held under either
+# and no arithmetic check in this file could ever have caught it. What it broke is the
+# RECORDING: the founder records voice first, then picture, then matches them, so a block
+# boundary is a place he stops and starts — and two documents disagreeing about how many
+# boundaries exist is a session that cannot be run.
+#
+# RESOLVED IN FAVOUR OF TWO. `b11` does not exist. The ruling and its three reasons are in
+# `VO-DEMO-CR.md` §0.3, and the deciding reason is a MEASUREMENT rather than this file's
+# seniority: `CLICKS.md` M14 timed the change screen's four sequential reads at ~3.5 s warm
+# and ~6 s cold, and measured that the proposed-wording textarea is destroyed and re-created
+# empty when the screen mounts — so the wording cannot be pre-typed and `b9` cannot be shot
+# in 10 s. NOT ONE `t`, `dur`, `vo_word_budget` OR LADDER STEP IN THIS FILE CHANGED, which
+# is the whole reason this note is a note and not a revision.
+#
+# ONE CONSEQUENCE THIS FILE OWES AND HAS NOT PAID: `cut_ladder` rank 1 takes `b9` from 12 s
+# to 8 s by arriving on the proposed wording "already composed", and the same `CLICKS.md`
+# measurement says that is not reachable — the box is empty when the screen mounts. The step
+# can buy a SHORTER TYPED STRING; it cannot buy a pre-composed one. `b9` at 8 s is tight and
+# is re-checked against that measurement before the step is executed. RECORDED, NOT SILENTLY
+# RE-RANKED: re-ordering a pre-committed ladder is a decision for the film lead at rehearsal,
+# never a documentation edit made at 02:00.
+#
 # ── HOW TO CHECK THE ARITHMETIC BY HAND, IN TWO SUBTRACTIONS ──────────────────
 # Every beat carries `t`, `dur` and `ends`, where `ends = t + dur`. The list is
 # contiguous and gapless, so:
@@ -125,10 +151,22 @@ budget:
   # 286 / 148 = 1.932 w/s  — OVER the 1.9 assumption, and `b0b` is the entire cause.
   #                          See `b0b_rate_defect` below. Without b0b the demo is
   #                          258 words over 140 s = 1.843 w/s, comfortably under.
-  #  36 /  22 = 1.636 w/s  — the close. Identical to two decimals to the 50 s
-  #                          close's deliberate 1.64 w/s: THE READING PACE IS NOT
-  #                          COMPRESSED AT ALL. That is the proof that 50 s -> 22 s
-  #                          is a compression of delivery and not of content.
+  #  36 /  22 = 1.636 w/s  — the close, AT BUDGET. Identical to two decimals to the
+  #                          50 s close's deliberate 1.64 w/s: THE READING PACE IS
+  #                          NOT COMPRESSED AT ALL. That is the proof that
+  #                          50 s -> 22 s is a compression of delivery, not content.
+  #                          AS DELIVERED IT IS SLOWER STILL: `VO-CLOSE.md` §3.4
+  #                          landed `k2` at 14 words rather than 16 when it
+  #                          discharged CLAIMS-CLEARANCE.md's `D35` — the Bedrock
+  #                          sentence had been compressed to a bare denial and the
+  #                          cleared replacement restores "is exercised in this
+  #                          repository" beside "not in this path" in 14 words. The
+  #                          close therefore DELIVERS 34 / 22 = 1.545 w/s. The
+  #                          BUDGET below does not move: a budget is a ceiling, this
+  #                          file says so in its own words, and under-running one is
+  #                          free. The direction is the safe one — a close
+  #                          compressed in CONTENT would read faster, and this one
+  #                          reads slower than both the 50 s cut and its own budget.
   # 322 / 170 = 1.894 w/s  — the film's average across everything but the silent
   #                          end card. Still under the assumption.
 

@@ -242,13 +242,20 @@ timing_source:
   the_rule_that_still_stands: >-
     The agreement above is a reading taken once. BEATS.yaml remains the authority: if it
     moves again, this file is the one that is wrong and this file is the one that changes.
-  block_id_collision_recorded: >-
-    docs/demo/film/VO-DEMO-CR.md §0.3 names the same 24 s as THREE blocks — B9, B10, B11 —
-    under docs/demo/cr-gate-route-plan.md §R9, while film-recut-plan.md §4 names TWO, b9
-    and b10. This file follows the recut plan's two-block shape because that is the shape
-    its owner was briefed on, and records the collision rather than hiding it. Under
-    EITHER shape nothing before b9 renumbers, which is the property both plans require.
-    See todo.T-7.
+  block_id_collision_resolved: >-
+    RESOLVED 2026-08-16, IN FAVOUR OF TWO BLOCKS, WHICH IS THE SHAPE THIS FILE ALREADY
+    CARRIED. The collision was: docs/demo/cr-gate-route-plan.md §R9 named the same 24 s as
+    THREE blocks — B9 10 s + B10 6 s + B11 8 s — and VO-DEMO-CR.md and CLICKS-CR.md obeyed
+    it, while film-recut-plan.md §4 named TWO, b9 12 s and b10 12 s, and BEATS.yaml,
+    VO-DEMO.md, CLICKS.md, FALLBACKS.md, SPINE.md and this file encoded that. Both totalled
+    24 s, so 2:52 held either way and no arithmetic check could catch it; what it broke is
+    the recording session, because the founder records voice first and then picture and a
+    block boundary is a place he stops and starts. THE RULING AND ITS REASONS ARE IN
+    docs/demo/film/VO-DEMO-CR.md §0.3, and the deciding reason is a measurement rather than
+    a preference: CLICKS.md M14 timed the change screen's read chain at ~3.5 s warm and
+    ~6 s cold and measured that the proposed-wording textarea is destroyed and re-created
+    empty on mount, so b9 cannot be shot in 10 s. B11 does not exist. Nothing in this file
+    changed as a consequence, which is the point of recording it here. See todo.T-7.
 
 vocabulary:
   kind: [watermark, lower_third, overlay, ui_label, payload_value]
@@ -2784,13 +2791,20 @@ beats:
         source: issue/ActionBar.ts, unchanged since b2
         on_frame: only if the cut returns to the permit screen, which this cut does not
         ruling: >-
-          Recorded because the mirror line in the voice-over — *you can't use the clause,
-          you can't quietly edit it away either* — asserts both halves and only one is on
+          Recorded because the mirror line in the voice-over — *you can't JUST use the
+          clause, you can't QUIETLY edit it away* — asserts both halves and only one is on
           screen in b10. The first half was on screen continuously from 0:30 to 2:04 and the
           film relies on the viewer's memory of it, which is legitimate; what would NOT be
           legitimate is a split-screen assembled after the fact to make the two refusals
           look simultaneous. They were not simultaneous. They are two requests, minutes
           apart, and the cut says so by being a cut.
+        scope_words_amended: >-
+          This row quoted the mirror WITHOUT its first scope word until 2026-08-16. The
+          unscoped form is barred at CLAIMS-CLEARANCE.md D32 and X5, because b7 shows the
+          permit ISSUED on that clause at 1:46 — so the viewer's memory the paragraph above
+          relies on is a memory of the clause being refused AND then admitted, which is
+          exactly what `just` scopes and what the flat sentence contradicts. No string on
+          screen changed; the quotation of the spoken line did.
 
   # ══ THE CLOSE ═══════════════════════════════════════════════════════════════════════
   # k1-k3 overlay text is W3's and is reproduced here VERBATIM so that one file carries
@@ -3581,21 +3595,37 @@ todo:
 
   - id: T-7
     what: Which id scheme the second use case ships under — two blocks or three.
-    status: OPEN. Recorded rather than decided, because it is not this file's to decide.
+    status: >-
+      CLOSED 2026-08-16. TWO BLOCKS — b9 12 s at 2:04, b10 12 s at 2:16. B11 does not
+      exist. This file needed no change; it already carried that shape.
     the_collision: >-
-      `docs/demo/cr-gate-route-plan.md` §R9 names the material B9 · B10 · B11 over 10 + 6 +
-      8 s, and `docs/demo/film/VO-DEMO-CR.md` is written to it. `docs/demo/film-recut-plan.md`
-      §4 names the same 24 s b9 · b10 at 12 + 12 s. Two plans, two id schemes, one stretch
-      of film. VO-DEMO-CR.md §0.3 raised it first and this file confirms it.
-    what_this_file_did: >-
-      Followed the two-block shape, because that is the shape its owner was briefed on and
-      the shape the film lead's plan carries. Under EITHER choice nothing before b9
-      renumbers, which is the property both plans actually require.
-    what_would_change_here_under_three: >-
-      `b10` splits: the refusal rows stay in the second block and the mirror's frame
-      requirements — `the_one_frame_this_beat_must_produce` and the three defeater rows —
-      move to the third. No string changes; the `beat_id` on some of them does.
-    resolved_by: the film lead, in BEATS.yaml, and everyone else inherits it.
+      `docs/demo/cr-gate-route-plan.md` §R9 named the material B9 · B10 · B11 over 10 + 6 +
+      8 s, and `docs/demo/film/VO-DEMO-CR.md` and `CLICKS-CR.md` were written to it.
+      `docs/demo/film-recut-plan.md` §4 named the same 24 s b9 · b10 at 12 + 12 s. Two
+      plans, two id schemes, one stretch of film. VO-DEMO-CR.md §0.3 raised it first and
+      this file confirmed it. Both totalled 24 s, so the film's arithmetic held under
+      either and could not detect the disagreement.
+    why_it_had_to_be_decided: >-
+      The founder records voice first, then picture, then matches them. A block boundary is
+      a place he stops and starts, so two documents disagreeing about how many boundaries
+      exist is a recording session that cannot be run — whatever the total is.
+    the_ruling_and_where_it_lives: >-
+      `docs/demo/film/VO-DEMO-CR.md` §0.3, with three reasons. The deciding one is a
+      measurement and not a preference: CLICKS.md M14 timed the change screen's four
+      sequential reads at ~3.5 s warm and ~6 s cold, and CLICKS.md separately measured that
+      the moc-proposed-text textarea is destroyed and re-created empty when the screen
+      mounts — so the proposed wording cannot be pre-typed and b9 cannot be shot in 10 s.
+      Second, the three-block shape's own sanctioned substitute did not fit its own 8 s
+      window (17 w = 2.13 w/s). Third, a boundary between the refusal and the mirror puts a
+      hand-matched join exactly where the scripted hold lives. The case FOR three blocks —
+      shorter blocks are cheaper to re-take — is recorded in that section as a real cost
+      the ruling accepts, not as a point waved away.
+    what_changed_elsewhere: >-
+      VO-DEMO-CR.md and CLICKS-CR.md were reconciled to two blocks and made subordinate for
+      words and cursors respectively — VO-DEMO.md §1 owns the spoken lines, CLICKS.md §5
+      owns the choreography — so the same two documents cannot drift again word by word
+      after being reconciled block by block.
+    resolved_by: the film lead's spine, BEATS.yaml, which already encoded it.
 
   - id: T-8
     what: The attempt control's own label on the change screen.

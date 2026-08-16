@@ -13,11 +13,13 @@ path is ever added to a scanner's sweep list, the scanner must PRINT that it ski
 so "not scanned" is never read as "passed".
 -->
 
-# VO-DEMO-CR.md — the three spoken blocks for use case two
+# VO-DEMO-CR.md — the companion sheet for use case two's TWO spoken blocks
 
-**Worker W6** · the film blocks for use case two · cr-gate-route wave · 2026-08-16
-**Binding plan:** `docs/demo/cr-gate-route-plan.md` §R9 (this file's existence, its block ids, its
-budget and its register), and §R3 / §R10 for what the run is allowed to claim.
+**Worker W6** · the film blocks for use case two · cr-gate-route wave · 2026-08-16 ·
+**reconciled to the two-block decomposition 2026-08-16**
+**Binding plan:** `docs/demo/cr-gate-route-plan.md` §R9 (this file's existence, its budget and its
+register), and §R3 / §R10 for what the run is allowed to claim. **Its three-block id scheme is
+superseded** — see §0.3.
 **Read in full before a line was written:** `docs/demo/film/VO-DEMO.md` (format and register),
 `docs/demo/film/SPINE.md` §0 (word counting) and §4 (per-beat prohibitions),
 `docs/demo/film-recut-plan.md` §§2, 4, 5 (the seconds these blocks are spending and R-5, R-7, R-10),
@@ -29,13 +31,27 @@ right to: a commit id cannot be chosen in advance.
 **Clearance:** every sentence below is cleared line by line in
 [`CLAIMS-CLEARANCE-CR.md`](CLAIMS-CLEARANCE-CR.md), which also carries this wave's
 `claim_hygiene.py --check` transcript and its exit code. Screen actions are in
-[`CLICKS-CR.md`](CLICKS-CR.md).
+[`CLICKS.md`](CLICKS.md) §5 `B9`/`B10`; [`CLICKS-CR.md`](CLICKS-CR.md) is the companion pre-flight,
+frame-rule and field-path sheet for the same two blocks.
 
-**Delivered: 38 spoken words over 24 s = 1.58 w/s across the three blocks.** No block exceeds
-1.70 w/s. §2 prices every second of the silence.
+> ### THIS FILE DOES NOT OWN THE WORDS, AND THAT IS THE FIX FOR THE DEFECT IT SHIPPED WITH
+>
+> **`VO-DEMO.md` §1 is the spoken script of record for `B0`…`B10`.** The lines printed in §1 below
+> are **inherited from it, verbatim**, so that the two documents cannot drift word by word the way
+> they drifted block by block. **If this file and `VO-DEMO.md` ever disagree about a spoken word,
+> `VO-DEMO.md` wins and this file is wrong** — the same precedence `BEATS.yaml` has over both of
+> them for timing, applied to the mouth instead of the clock.
+>
+> **What this file does own, and what it is worth keeping for:** the numbers register in §6 (every
+> on-screen value bound to the field path it is re-derived from), the three-object trap in §1's
+> boxed note and §6.4, the extra prohibitions in §3, the assumptions in §4 that must hold on the
+> day, and the sanctioned alternates — each priced, each cleared, none of them a second primary.
+
+**Delivered: 40 spoken words over 24 s = 1.67 w/s across the two blocks**, inherited from
+`VO-DEMO.md` §2. No block exceeds 1.70 w/s. §2 prices every second of the silence.
 
 **THIS FILE RENUMBERS NOTHING.** `B0`…`B8` keep their ids, their durations and their words. The
-film lead splices these three blocks after `B8` and `BEATS.yaml` remains the timing authority
+film lead splices **two** blocks after `B8` and `BEATS.yaml` remains the timing authority
 (`SPINE.md` §0: where the two disagree, `BEATS.yaml` wins and the prose file is wrong).
 
 ---
@@ -56,11 +72,11 @@ Identical conventions to `VO-DEMO.md` §0, restated so this file can be read on 
 `SPINE.md` §0's rule, applied unchanged: **a word is a run of letters between spaces; a hyphenated
 compound counts once; dashes, em dashes and punctuation are not words.** `VO-DEMO.md` §0 adds the
 case this file needs: **`23514` is one word on the page** and about two and a half words of time in
-the mouth, because it is read digit by digit — *two three five one four*. That is why B10 is
-written at 1.50 w/s and not at the ceiling; §2 prices it.
+the mouth, because it is read digit by digit — *two three five one four*. That is why `B10` is
+written well under the ceiling; §2 prices it.
 
 `cr_gate_closed_when_merged` is one word on the page and roughly three words of time in the mouth.
-It is **not spoken in the primary read** — it is on screen — and §1's B10 note says why, with the
+It is **not spoken in the primary read** — it is on screen — and §1's `B10` note says why, with the
 alternate line that speaks it if the film lead pays the second.
 
 ### 0.2 · The in-points are DERIVED, and R9's `[2:00]` is a pre-`B0b` figure
@@ -70,62 +86,118 @@ alternate line that speaks it if the film lead pays the second.
 09:37 to insert `B0b · WHY IT MATTERS`, 8 s at `[0:12]`, and every timecode after it moved by 8 s
 without any file being told. `film-recut-plan.md` §1.1 measures the same thing independently.
 
-Arithmetic, from `VO-DEMO.md`'s own durations plus `film-recut-plan.md` §2.1's `b8 10 → 6`:
+Arithmetic, from `BEATS.yaml`'s own durations, which include `film-recut-plan.md` §2.1's `b8 10 → 6`:
 
 ```
 B0 12 + B0b 8 + B1 10 + B2 14 + B3 18 + B4 10 + B5 16 + B6 18 + B7 12 + B8 6   = 124 s  → B9  at 2:04
-B9 10                                                                          = 134 s  → B10 at 2:14
-B10 6                                                                          = 140 s  → B11 at 2:20
-B11 8                                                                          = 148 s  → close at 2:28
+B9 12                                                                          = 136 s  → B10 at 2:16
+B10 12                                                                         = 148 s  → close at 2:28
 close 22 + end card 2                                                          = 172 s  = 2:52
 ```
 
 **172 s is exactly `film-recut-plan.md` §2.1's target** — `172 ≤ 172` target, `< 174` hard stop,
-`< 180` ceiling. These three blocks cost **24 s**, which is the middle of R9's `22–26 s` band and
-the exact figure the recut budget reserved.
+`< 180` ceiling. These two blocks cost **24 s**, which is the middle of R9's `22–26 s` band and
+the exact figure the recut budget reserved. **The 24 s did not change when the decomposition did**
+— that is the property that made the collision survivable and it is why nothing downstream moved.
 
 **A consequence worth stating rather than discovering.** If `B8` is **not** cut to 6 s, the film
 runs `128 + 24 + 22 + 2 = 176 s`, which is **past the 174 s hard stop.** These blocks and the `B8`
 re-time are one decision, not two.
 
-The three candidate in-point sets, so nobody has to redo this at 02:00:
+The candidate in-point sets, so nobody has to redo this at 02:00:
 
-| assumption | B9 | B10 | B11 |
-|---|---|---|---|
-| `B0b` present, `B8` = 6 s — **the plan of record** | `[2:04]` | `[2:14]` | `[2:20]` |
-| `B0b` present, `B8` = 10 s (over the hard stop) | `[2:08]` | `[2:18]` | `[2:24]` |
-| pre-`B0b` spine, `B8` = 10 s — R9's `[2:00]` | `[2:00]` | `[2:10]` | `[2:16]` |
+| assumption | B9 | B10 |
+|---|---|---|
+| `B0b` present, `B8` = 6 s — **the spine of record** | `[2:04]` | `[2:16]` |
+| `B0b` present, `B8` = 10 s (over the hard stop) | `[2:08]` | `[2:20]` |
+| pre-`B0b` spine, `B8` = 10 s — R9's `[2:00]` | `[2:00]` | `[2:12]` |
 
-**The durations in the headers are mine and they are what this file owns. The in-points are
-derived and `BEATS.yaml` is their authority.**
+**Neither the durations nor the in-points are this file's any more.** `BEATS.yaml` is the authority
+for both and §0.3 is why.
 
-### 0.3 · The block ids, and the collision the film lead must resolve
+### 0.3 · ⚖ THE BLOCK COLLISION — **RESOLVED, in favour of TWO blocks**
 
-`docs/demo/cr-gate-route-plan.md` §R9 names these blocks **B9, B10, B11**, and this file obeys it.
-`docs/demo/film-recut-plan.md` §4 independently drafts **two** blocks called `b9` and `b10` covering
-the same 24 s of the same material. **Two plans, two id schemes, one stretch of film.** Recorded
-here rather than left for `BEATS.yaml` to discover: if the film lead adopts the two-block shape,
-this file's B9 and B10 fold together and B11 keeps the mirror; if the lead adopts three, the recut
-plan's `b9`/`b10` ids are the ones that move. **Nothing before B9 renumbers under either choice**,
-which is the property both plans actually require.
+**The defect, stated before the ruling.** `docs/demo/cr-gate-route-plan.md` §R9 named **three**
+blocks — `B9` 10 s + `B10` 6 s + `B11` 8 s — and this file and `CLICKS-CR.md` obeyed it.
+`docs/demo/film-recut-plan.md` §4 independently drafted **two** — `b9` 12 s + `b10` 12 s — and
+`BEATS.yaml`, `VO-DEMO.md`, `CLICKS.md`, `ONSCREEN-TEXT.yaml`, `FALLBACKS.md` and `SPINE.md`
+encoded that. Both shapes total 24 s, so **2:52 held either way** and the arithmetic never caught
+it. **What it broke is the recording session.** The founder records **voice first, then picture,
+then matches them**, so a block boundary is a place he stops, breathes and starts again — and two
+documents describing different numbers of stops is a session he cannot run. The earlier text of
+this section left the choice open. **Leaving it open was the defect; this is the ruling.**
+
+> ## **RULING · TWO BLOCKS. `B9` = 12 s at `[2:04]`, `B10` = 12 s at `[2:16]`.**
+> **`B11` does not exist.** This file's former `B9` becomes `B9`; its former `B10` and `B11`
+> become the two halves of one `B10`, which is the shape `BEATS.yaml` already encodes.
+
+**The three reasons, in the order they decided it. The first is a measurement and it is the one
+that actually settles it.**
+
+1. **`B9` at 10 s is under-budget against something already measured, and the measurement is not
+   this worker's.** `CLICKS.md` M14 timed the change screen's read chain **twice against the live
+   origin**: four sequential awaited `GET`s, **≈ 3.5 s warm and ≈ 6 s cold**, painting the page in
+   four visible stages. `CLICKS.md` §5 also measured that the `moc-proposed-text` textarea is
+   **destroyed and re-created empty when the screen mounts**, so the proposed wording **cannot be
+   pre-typed** — it is typed on camera or it is not on screen at all. `B9` must therefore hold: the
+   module switch, ≈ 3.5 s of read chain nobody may cut away from, a scroll to the clause, and the
+   typing. `CLICKS.md`'s own choreography spends all twelve seconds on exactly that — travel and
+   module switch `2:04–2:05.5`, the four-read paint `2:05.5–2:09`, the scroll `2:09–2:10.5`, the
+   click into the box `2:10.5–2:11`, the typing `2:11–2:16` — and its `B8` note says in terms that
+   *"B9's read chain needs every one of its own 12 seconds (M14)."* **Ten does not fit**, and the
+   same measurement is what voids the cut ladder's rank-1 saving on `b9`. A decomposition that
+   starts by over-running its first block is not a decomposition, whatever it totals.
+2. **The three-block shape's own sanctioned substitute does not fit its own window, and this file
+   said so before the ruling existed.** §1's `SUBSTITUTE A` is **17 w in an 8 s block = 2.13 w/s**,
+   over every rate ceiling in the kit, and this file priced it at **11 s** — three seconds that do
+   not exist. A block that cannot hold its own cleared alternate is the more fragile of the two
+   shapes, and fragility is what a re-take ladder is supposed to remove.
+3. **Voice-first costs a join at every boundary, and the last 24 s is where a join is most
+   expensive.** The honest case *for* three blocks is real and is recorded rather than waved away:
+   **shorter blocks are easier to re-take**, and a fluffed 6 s block costs 6 s to redo instead of
+   12. Against that: every boundary is a **sync point matched by hand afterwards**, and the
+   three-block shape puts one of those between the refusal sentence and the mirror — which is
+   precisely where the `·hold·` lives, and a hold whose two sides come from two takes is a hold
+   that will not sound like a hold. **The two-block shape keeps the refusal and the mirror in one
+   recorded breath and pays for it with a longer re-take.** The film's last spoken line and its
+   scripted silence are worth more than the retake margin, and there is no margin after `B10`
+   anyway: the close begins.
+
+**And one reason that is not a merit and is recorded as not being one.** Two blocks is also the
+cheaper edit — five documents already carry it against two that do not. **That is not why**; if the
+measurement in reason 1 had gone the other way the five would have moved. It is recorded so nobody
+later reads convenience into the ruling.
+
+**Nothing before `B9` renumbers**, which was the one property both plans required and the only
+reason this collision was recoverable at all.
 
 ---
 
-## 1 · THE SCRIPT
+## 1 · THE SCRIPT — TWO BLOCKS, AND THE WORDS ARE `VO-DEMO.md`'s
 
-### B9 · THE OTHER WAY IN — `[2:04]` · 10 s · **17 w** · **1.70 w/s**
+**Every line printed in this section is inherited verbatim from `VO-DEMO.md` §1.** It is reprinted
+here so this sheet can be read on its own at 02:00, **not** so it can be edited here. A word
+changed below and not there is a defect of exactly the kind §0.3 exists to close.
 
-> "Then change the rule instead." ·hold 0.3· "Same paragraph. Same incident behind it. This
-> request asks to edit it."
+### B9 · THE OTHER WAY IN — `[2:04]` · 12 s · **20 w** · **1.67 w/s**
+
+> "Fine. Then don't use the clause — change it. ·hold 0.4· Same paragraph. Same incident behind
+> it. This request asks to edit it."
 
 **This block exists to say the judge's own objection out loud before the judge has to.** The film
 has spent two minutes proving a clause under blame cannot be *used*. The obvious next thought —
 *fine, so couldn't somebody just rewrite the rule?* — is currently invited and never answered. The
 seeded world has answered it since the day it was seeded and nothing has ever surfaced it.
 
-**"Then change the rule instead" is spoken as the objection, not as an instruction.** It is the
-sentence a sceptical viewer is already forming. Say it in their voice — flat, slightly impatient —
-and then answer it.
+**"Fine." is spoken as the objection, not as an instruction.** It is the sentence a sceptical
+viewer is already forming. Say it in their voice — flat, slightly impatient — and then answer it.
+
+> **SANCTIONED ALTERNATE, four words shorter, cleared at `CLAIMS-CLEARANCE.md` `N2` and at
+> `CLAIMS-CLEARANCE-CR.md` row 1** — *"Then change the rule instead."* in place of *"Fine. Then
+> don't use the clause — change it."* It is this file's original opener and the clearance sheet's
+> own words are *"the same objection, four words shorter; both forms are cleared, the film lead
+> picks one."* **It is an alternate and not a second primary:** taking it takes `B9` to 17 w /
+> 12 s = 1.42 w/s, which is more air, not less time.
 
 **"Same paragraph. Same incident behind it." is the whole axis-one claim and it is two fragments
 long.** `film-recut-plan.md` R-5 requires the shared clause and the shared precursor `DEMO-INC-0001`
@@ -146,30 +218,59 @@ clause of record rendered verbatim with its `SYNTHETIC —` prefix intact and it
 the clause identifier and `DEMO-INC-0001` both legible (R-5). The founder finishes typing the tail
 of the proposed wording on camera, into the screen's own `Proposed wording` box, **carrying no
 provenance chip** — the same convention B0 uses for the work description, and the reason a judge
-can tell a human's proposal from a database claim in one look. Then the press. `CLICKS-CR.md` B9
-has the cursor path.
+can tell a human's proposal from a database claim in one look. **`CLICKS.md` §5 `B9` is the cursor
+path of record**; `CLICKS-CR.md` §4 is its pre-flight and field-path companion.
 
 **Delivery:** flat, and do not let the objection sound like a straw man. A viewer who has thought of
 it and hears it dismissed stops believing the next twenty seconds. Say it as if it were a good
 point, because it is one.
 
-**The press lands under the last sentence, exactly as B1's does.** *"This request asks to edit it"*
-is five words and covers the round trip; if the trip runs long the ·hold absorbs it and B10 starts
-late; if it runs short, B10 starts on time and the answer is already there. **The founder says
-nothing about how long it took** — the screen's own elapsed labels do that, and they are labelled
-whose clock they are.
+> ### ⚠ **OPEN ITEM, NOT SETTLED HERE, AND NOT MINE TO SETTLE — WHERE THE PRESS LANDS**
+>
+> **This file used to state that the press lands under `B9`'s last sentence, exactly as `B1`'s
+> does.** `CLICKS.md` §5 — the choreography of record, written against a read chain it measured
+> twice — puts **Click 6 at `2:17`**, which is one second **inside `B10`**, with the pending state
+> running to `2:18.5` and the refusal painting from `2:18.5`. **Those two placements are not
+> compatible and this sheet does not get to pick.**
+>
+> **Why it matters rather than being a detail.** `B10`'s first spoken word is *"Refused."* at its
+> in-point. Under `CLICKS.md`'s placement the refusal has not landed when that word is said, which
+> R-K forbids — a value is spoken while it is on screen or it is not spoken — and R-9 requires each
+> mutating request to be narrated **while it is in flight**. Under this file's former placement the
+> press sits inside `B9`, which `CLICKS.md` measured as having no spare second to give it.
+>
+> **The two candidate resolutions, costed, neither taken here.** (a) Move Click 6 back into `B9`
+> and re-time `B9`'s typing — `CLICKS.md` M14 says the read chain is ≈ 3.5 s warm and cannot be
+> compressed, so this spends the typing, which R-2 makes load-bearing. (b) Start `B10`'s line
+> ≈ 2.5 s after its in-point — 20 words in the remaining ≈ 9.5 s is **2.11 w/s**, over every rate
+> ceiling in this kit, so it costs words rather than seconds. **Owner: the film lead, with W1 for
+> the seconds and W2 for the words.** Recorded rather than quietly resolved, because either fix
+> spends something and neither is a documentation edit.
 
 ---
 
-### B10 · REFUSED AGAIN — `[2:14]` · 6 s · **9 w** · **1.50 w/s**
+### B10 · REFUSED AGAIN — THE MIRROR — `[2:16]` · 12 s · **20 w** · **1.67 w/s**
 
-> "Refused. **23514** again — a different CHECK, guarding the change."
+> "Refused. Same **SQLSTATE** — a different constraint guards edits. ·hold 0.6· You can't
+> **just** use the clause. You can't **quietly** edit it away."
 
-**"Again" is the whole word.** A judge who heard `23514` at B2 hears the same SQLSTATE from a
-different table, over a different subject kind, refusing a different act. That is the mirror
-arriving as a fact before B11 says it as a sentence.
+**This one block carries what the three-block shape split across two.** Its first sentence is the
+second refusal; its last two are the mirror. §0.3 rules that they belong in one recorded breath,
+and the `·hold 0.6·` between them is the seam that a block boundary would have turned into a join.
 
-**"A different CHECK" is a claim a judge can check in the frame, and it must be true in the frame.**
+**"Same" is the whole word, and "again" is its alternate's.** A judge who heard `23514` at B2 hears
+the same SQLSTATE from a different table, over a different subject kind, refusing a different act.
+**That is the mirror arriving as a fact before §1.1 says it as a sentence** — which is the strongest
+argument for the two of them being one block: the fact and the sentence are six seconds apart, and
+a boundary between them is a boundary through the middle of one idea.
+
+**"A different constraint" is a claim a judge can check in the frame, and it must be true in the
+frame.** The word *constraint* is used and the word *gate* is not: `B5`'s refusal is a procedural
+guard MAINLINE wrote, this one is a declarative CHECK the database enforces, and the distinction
+`B5` protects is protected here by using the other word. The alternate below says **CHECK** for the
+same reason. **MUST NOT SAY:** *"the same constraint"* — it is a different one, and that is the
+point.
+
 The permit's refusal named `gate_closed_when_issued`; this one names `cr_gate_closed_when_merged` —
 a different constraint, on a different table, with its own predicate. Both are on screen at the
 moment the word *different* is said.
@@ -186,70 +287,109 @@ moment the word *different* is said.
 > this wave's on-screen text. `CLICKS-CR.md` §3 re-states it against the frame.
 
 **The constraint name is NOT spoken here, and that is a decision with a price.** B2 already did the
-*"named by the database"* move for the permit, and doing it twice costs about two seconds that B11
-needs more. The name is on screen, in the payload's own field, for the whole block.
+*"named by the database"* move for the permit, and doing it twice costs about two seconds the
+mirror needs more. The name is on screen, in the payload's own field, for the whole block.
 
-**Alternate line, only if the film lead pays 2 s out of the recut plan's 8 s bank** — B10 at 8 s:
+**One word IS spoken that the three-block draft did not speak: `SQLSTATE` itself.** `VO-DEMO.md` §0
+prices it at roughly two words of mouth-time for one word on the page and §2 buys the ≈ 0.5 s out
+of `B10`'s slack. It is said while `23514` is on screen, which is the value it names (R-K).
 
-> "Refused. **23514** again — a different CHECK, **cr_gate_closed_when_merged**, guarding the change
-> itself." (**11 w** · 1.38 w/s)
+> **SANCTIONED ALTERNATE for this sentence, cleared at `CLAIMS-CLEARANCE.md` `N7`/`N8` and at
+> `CLAIMS-CLEARANCE-CR.md` rows 8–11** — *"Refused. **23514** again — a different CHECK,
+> guarding the change."* (9 w), and the +2 s form that also speaks
+> **`cr_gate_closed_when_merged`** (11 w). **They name the constraint's object more precisely than
+> the line of record does**, which is the substance of `CLAIMS-CLEARANCE.md`'s open `~ REWORD`
+> `D31` against `VO-DEMO.md`'s *"guards edits"*. **`D31` is not discharged here and this sheet does
+> not discharge it by preferring its own wording** — that would put two live primaries back in the
+> film, which is the defect §0.3 just closed. It is W2's row, in W2's file, and when it lands these
+> two documents converge further rather than diverging.
 
 **MUST NOT SAY:** *"the same constraint refused it"* — it is a different constraint and the frame
 shows both names. **MUST NOT SAY:** *"the database refused the edit"* — what was refused is the
-merge of the change request; the edit can still be made, by answering the obligation first, and
-B11's scope word is what keeps that true.
+merge of the change request; the edit can still be made, by answering the obligation first, and the
+mirror's scope words are what keep that true.
 
-**On screen:** the refusal band — the SQLSTATE, the constraint name, the constraint source, the
-database's own predicate, and `open_blocking` beside it — every value read from the response that
-just landed, with the four `cr_*` CHECK constraints the change-request read already returns. The
-gate transcript panel beneath renders the beat's own `statement` and `label` verbatim.
-`CLICKS-CR.md` B10 fixes the frame; §6 of this file fixes where every one of those values comes
-from.
+**On screen for the first sentence:** the refusal band — the SQLSTATE, the constraint name, the
+constraint source, the database's own predicate, and `open_blocking` beside it — every value read
+from the response that just landed, with the four `cr_*` CHECK constraints the change-request read
+already returns. The gate transcript panel beneath renders the beat's own `statement` and `label`
+verbatim. `CLICKS.md` §5 `B10` fixes the frame; §6 of this file fixes where every one of those
+values comes from.
 
-**Delivery: level, and shorter than it wants to be.** The lift belongs to B11 and there is only one
-of those left in the film.
+#### 1.1 · THE MIRROR — the second half of `B10`, and the one line here that can go wrong
 
----
+> "You can't **just** use the clause. You can't **quietly** edit it away." ·hold, to the close·
 
-### B11 · THE MIRROR — `[2:20]` · 8 s · **12 w** · **1.50 w/s**
+**`film-recut-plan.md` R-7 rules on exactly this failure and the ruling is adopted whole**, with
+the fifth bar this file's first draft dropped:
 
-> "You can't use the clause." ·hold 0.4·
+> **MUST NOT SAY:** *"the clause cannot be changed"* · *"the database won't let anyone edit the rule"* · *"the memory is immutable"* · *"you can't edit it"* · **and *"you can't use the clause"* with no scope word.**
+
+##### 1.1.1 · ⚠ THE FIFTH BAR — the one this file itself broke, and the correction
+
+**Before, and it was this block's PRIMARY line:**
+
+> ~~"You can't use the clause." ·hold 0.4· "You can't quietly edit it away either."~~
+
+**After, and it is `VO-DEMO.md` B10's, cleared at `CLAIMS-CLEARANCE.md` `D32` and `D33`:**
+
+> **"You can't just use the clause. You can't quietly edit it away."**
+
+**What was wrong with the old first half, and it is not a matter of taste.** This file transcribed
+R-7's bar list as **four** items and **dropped the fifth — the one its own primary line violated.**
+**`B7` shows the permit ISSUED on that same clause thirty seconds earlier**, once its obligation
+was properly answered, and the film shows it happening rather than asserting it. So the unscoped
+sentence is **contradicted by this film, inside this film**, and a judge who noticed would conclude
+the narration does not match the product — which is a worse finding than the sentence it came from.
+`CLAIMS-CLEARANCE.md` `D32` records the same reasoning and clears the scoped form as an
+improvement: *"`just` gives the first half the same scope discipline `quietly` gives the second."*
+
+**Both halves now carry a scope word and neither is decoration.** *Just*: the clause **is** usable —
+the audience watched it become usable — but not without the obligation being answered. *Quietly*:
+the clause **can** be edited, by disposing of the obligation first, which is exactly what the three
+defeater questions on screen are for. **The two scopes point at one fact: the question comes first,
+whichever way you come at the clause.** Every variant that drops either is filed as a **REFUSE** row
+in `CLAIMS-CLEARANCE.md` §12.4 and `CLAIMS-CLEARANCE-CR.md` §4, which is the job R-7 assigns.
+
+**`either` came out and its loss is priced rather than waved through.** It made the tie between the
+two sentences explicit; the parallel *"You can't … You can't …"* carries it, and `D33` clears the
+drop on exactly that ground. **The word that came in is `just`, and the arithmetic did not ask for
+it — the honesty did.**
+
+##### 1.1.2 · The two substitutes, re-evaluated against a 12 s block rather than an 8 s one
+
+**Both were written for the retired 8 s `B11` and both had to be re-priced when the block changed.
+Neither is adopted, and here is why each is not.**
+
+> **SUBSTITUTE A — 17 w, and it is now further out of reach than it was.** "You can't use the
+> clause. ·hold 0.4· You can't edit it away either — not without answering the question first."
 >
-> **"You can't quietly edit it away either."**
+> At 8 s it read **2.13 w/s**, over every rate ceiling in this kit, and this file priced it at 11 s.
+> **In the merged 12 s block it is worse, not better:** it must sit behind the refusal sentence, so
+> the block would carry `9 + 17 = 26 w` in 12 s = **2.17 w/s**. **REJECTED on arithmetic** — and
+> separately, **its first half is the barred unscoped form**, so §1.1.1 refuses it on the claim as
+> well. `CLAIMS-CLEARANCE.md` `N11` cleared it as a *claim* under R-7's older reading and
+> conditioned it on a timing nobody had counted; the timing is now counted and it does not hold.
+
+> **SUBSTITUTE B — 11 w, cleared at `N12`, and it survives the re-pricing.** "Use it, or edit it.
+> ·hold 0.4· Not without answering the question first."
 >
-> ·hold 1.3·
-
-**This is the sentence the wave exists for and it is the one line here that can go wrong.**
-`film-recut-plan.md` R-7 rules on exactly this failure and the ruling is adopted verbatim:
-
-> **MUST NOT SAY:** *"the clause cannot be changed"* · *"the database won't let anyone edit the rule"* · *"the memory is immutable"* · *"you can't edit it."*
-
-**The scope word `quietly` is doing all the work, and dropping it turns a true sentence into a false
-one.** The clause **can** be edited — by disposing of the obligation first, which is exactly what
-the three defeater questions on screen are for. Every variant that drops the adverb is filed as a
-**REFUSE** row in `CLAIMS-CLEARANCE-CR.md` §4, which is the job R-7 assigns.
-
-**If the adverb reads oddly on the day**, R-7's own sanctioned substitute is *"not without answering
-the question first"* — and it **does not fit this window.** Counted the way §0.1 counts:
-
-> **SUBSTITUTE A — 17 w.** "You can't use the clause. ·hold 0.4· You can't edit it away either —
-> not without answering the question first."
+> Behind the refusal sentence the block carries `9 + 11 = 20 w` in 12 s = **1.67 w/s**, identical to
+> the line of record. It keeps both halves of the mirror, carries the scope in a clause instead of
+> two adverbs, and costs the bank nothing. **It remains the substitute to reach for if an adverb
+> reads oddly on the day** — and it is a **substitute**, not a co-primary: taking it is a decision
+> announced before the take, never a thing discovered in the edit.
 >
-> **17 w in 8 s is 2.13 w/s, which is over every rate ceiling in this kit.** It is shot at
-> **11 s** — 1.55 w/s, 8.9 s of speech, the 0.4 hold inside and **1.7 s after the mirror**, which
-> is the shape the line needs — and the 3 s comes out of `film-recut-plan.md` §2.1's 8 s bank.
-> At 10 s it reads 1.70 w/s and the trailing hold collapses to 0.7 s; at 9 s there is no hold at
-> all. **Stated rather than quietly met**, because meeting it at 8 s would break the ceiling.
+> **Why the line of record is preferred over it, on the merits and not by seniority.** The parallel
+> *"You can't … You can't …"* is the shape that makes the sentence read as a **mirror** rather than
+> as advice, and `B9` opened on the objection in the viewer's own voice — so the block that answers
+> it wants a denial, not an instruction. *"Use it, or edit it"* is an imperative whose negation
+> arrives only in the fragment after it, and a listener who mishears the second fragment has heard
+> permission. **The scoped denial cannot be mis-parsed that way.**
 
-> **SUBSTITUTE B — 11 w, and it fits the 8 s window as written.** "Use it, or edit it."
-> ·hold 0.4· "Not without answering the question first."
->
-> 1.38 w/s, 5.8 s of speech, **1.8 s after the mirror** — a wider hold than the primary's. It keeps
-> both halves of the mirror, it carries the scope in a clause instead of an adverb, and it costs
-> the bank nothing. **This is the substitute to reach for if the adverb has to go and the seconds
-> are not there.**
-
-Both are cleared, on the same terms as the primary, in `CLAIMS-CLEARANCE-CR.md` §2 rows 14 and 14b.
+`N13` still governs both: **half a mirror is not a mirror.** *"…not without answering the question
+first"* used **alone** answers a question the audience has not been asked. **Both halves, in
+whichever form is taken.**
 
 **The silence after the line is scripted. Do not fill it.** Same rule as B5, for the same reason: a
 viewer who works out the mirror themselves is a viewer who believes it. This is the last spoken
@@ -261,60 +401,75 @@ through is **shown** — the three live defeater prompts are on screen beside th
 the walking through it is not. **MUST NOT SAY:** *"and there is no way through"* — there are three,
 they are on screen, and each demands a citation.
 
-**On screen:** the refusal still in frame, and beside it the three defeater prompts as the
-disposition read returned them, verbatim, under the screen's own legend
+**On screen for the mirror:** the refusal still in frame, and beside it the three defeater prompts
+as the disposition read returned them, verbatim, under the screen's own legend
 *"Ways this obligation could be answered — each requires a citation"* — each a question, none of
-them an escape hatch, and no *"not applicable"* option, because the vocabulary contains none. The
-clearance lattice beside them. Shared clause and shared precursor still legible (R-5).
+them an escape hatch, and **no *"not applicable"* option, because the shipped vocabulary does not
+carry one.** The clearance lattice beside them. Shared clause and shared precursor still legible
+(R-5).
 
-**Delivery:** drop the pace and the volume, once. Then stop.
+**Delivery:** the first sentence flat and slightly bored — this is the second time, and the second
+time should sound routine, because routine is the claim. Then the hold. Then drop the pace and the
+volume, once, through the mirror. Then stop. **Do not lean on `quietly` or on `just`.** Both have to
+be audible, not underlined; a founder who presses them turns a measurement into a boast.
 
 ---
 
 ## 2 · THE ARITHMETIC, AND WHAT EVERY SECOND OF SILENCE BUYS
 
+**Re-derived for the two-block shape, not patched.** The table this replaces read `B9 10 s / B10
+6 s / B11 8 s` and `38 w`, and every one of those figures described a decomposition §0.3 retired.
+The window and delivered columns are `VO-DEMO.md` §2's, which is `BEATS.yaml`'s.
+
 | block | window | delivered | w/s over the window | speech at 1.9 w/s | silence | what the silence buys |
 |---|---|---:|---:|---:|---:|---|
-| B9 | 10 s | **17 w** | 1.70 | 8.9 s | 1.1 s | the 0.3 hold, and the last words cover the round trip |
-| B10 | 6 s | **9 w** | 1.50 | 4.7 s | 1.3 s | pays for saying `23514` digit by digit (≈ 0.8 s) |
-| B11 | 8 s | **12 w** | 1.50 | 6.3 s | 1.7 s | the 0.4 hold inside, then 1.3 s after the mirror |
-| | **24 s** | **38 w** | **1.58** | **20.0 s** | **4.0 s** | |
+| B9 | 12 s | **20 w** | 1.67 | 10.5 s | 1.5 s | the 0.4 hold on the click, and 1.1 s for the typed proposal to settle |
+| B10 | 12 s | **20 w** | 1.67 | 10.5 s | 1.5 s | the 0.6 mirror hold, and ≈ 0.5 s for the spoken `SQLSTATE` |
+| | **24 s** | **40 w** | **1.67** | **21.1 s** | **2.9 s** | |
+
+**The two blocks deliver 40 words where the three delivered 38, in the same 24 seconds** — 1.67 w/s
+against 1.58. **That is a real cost of the ruling and it is stated rather than buried:** the
+two-block shape is 0.09 w/s faster and carries 1.1 s less silence. It is affordable because 1.67 is
+well under the kit's 1.95 ceiling and under `BEATS.yaml`'s 1.9 assumption, and because the silence
+that went is *distributed* air rather than either of the two named holds, both of which survive at
+full length. **What it buys is in §0.3 reason 3: the mirror and its hold are in one recorded take.**
 
 The two right-hand columns are rounded to a tenth and the totals are the sums of the **unrounded**
-values, which is why the columns add to 19.9 and 4.1 and the totals read 20.0 and 4.0 — the same
-convention, for the same reason, as `VO-DEMO.md` §2's slack column.
+values — the same convention, for the same reason, as `VO-DEMO.md` §2's slack column.
 
 **1.9 w/s is the speech rate `VO-DEMO.md` §2 measured across the delivered demo** (213 words ÷
 112.1 s of speech). Every figure in the two right-hand columns is derived from it, not observed;
 they are budgets and are labelled as budgets, per `film-recut-plan.md` §8 rule 8.
 
-**B10's 1.3 s of silence is not 1.3 s of air.** `VO-DEMO.md` §0 prices a spoken SQLSTATE at about
-two and a half words of time for one word on the page, so `23514` eats roughly 0.8 s of it and B10
-lands with about half a second in hand. That is the whole reason the block is nine words and not
-eleven.
+**B10's 1.5 s of silence is not 1.5 s of air.** `VO-DEMO.md` §0 prices a spoken SQLSTATE at about
+two and a half words of time for one word on the page, so the spoken word `SQLSTATE` eats roughly
+0.5 s of it and the block lands with about a second in hand — which is what pays the 0.6 s mirror
+hold. That is the whole reason `B10` is twenty words and not twenty-two, and `VO-DEMO.md` §2 shows
+the working: **at 21 words the hold and the surcharge run 1.13 s against 0.95 s of slack**, and the
+hold would have had to shorten to fit.
 
 **Why these blocks read slower than the demo's 1.78 w/s, stated rather than hidden.** Four things
 in 24 seconds buy silence and every one of them is load-bearing: the proposed wording being typed
 on camera (B9), a real round trip that must be spoken over and never cut away from (B9 into B10),
-a SQLSTATE read digit by digit (B10), and a scripted hold after the mirror (B11). The close runs
-at a deliberate 1.64 w/s for the same class of reason; 1.58 across three blocks carrying all four
-is in family, not slack.
+a SQLSTATE read digit by digit (B10), and a scripted hold before the mirror (B10). The close runs
+at a deliberate 1.55 w/s for the same class of reason; 1.67 across two blocks carrying all four is
+in family, not slack.
 
 **The one second worth buying, if the film lead has it.** `film-recut-plan.md` §2.1 banks 8 s of
-the 32 recovered. **The single best second in that bank is B11 going 8 s → 9 s**, which takes the
-hold after the mirror from 1.3 s to 2.3 s — the duration `VO-DEMO.md` gives B5's hold, which is the
-only other line in this film that is allowed to land in silence. Total becomes 173 s, still inside
-the 174 s hard stop with 1 s of margin. **This is a recommendation to the film lead and not a
-change to this file's budget**, which is 24 s.
+the 32 recovered. **The single best second in that bank is `B10` going 12 s → 13 s**, which takes
+the hold after the mirror out toward the 2.3 s `VO-DEMO.md` gives `B5` — the only other line in this
+film that is allowed to land in silence. Total becomes 173 s, still inside the 174 s hard stop with
+1 s of margin. **This is a recommendation to the film lead and not a change to this file's budget**,
+which is 24 s, and `BEATS.yaml` is the only file that may take it.
 
-**A block that cannot be written at or under 1.95 w/s is not written.** B10 at 6 s could carry 11
-words on paper; it carries 9, because two of those words are a SQLSTATE and a beat that reads at
-budget on paper and overruns in the mouth steals the second from the beat after it — and the beat
-after B10 is the mirror.
+**A block that cannot be written at or under 1.95 w/s is not written.** That rule is what retired
+the three-block shape's `B9` (§0.3 reason 1) and what retires `SUBSTITUTE A` in the merged block
+(§1.1.2): a beat that reads at budget on paper and overruns in the mouth steals the second from the
+beat after it — and the beat after `B10` is the close, which has no margin at all.
 
 ---
 
-## 3 · WHAT THESE THREE BLOCKS NEVER DO
+## 3 · WHAT THESE TWO BLOCKS NEVER DO
 
 Everything in `VO-DEMO.md` §3 still binds. These are the additional ones this material can
 actually trip over.
@@ -329,16 +484,17 @@ actually trip over.
   named no year; these blocks say *"same incident"* and name no more than B3 already did.
 * **Never narrates the retrieval in the present tense.** **MUST NOT SAY:** *"watch it remember"* · *"the system just retrieved the incident and blocked the change."* The recall already ran; what is on screen is its record. The only present tense in this film is the re-derivation on a button press, which really executes.
 * **Never speaks a timing, a byte count, a digest, a commit id or a uuid.** Not a millisecond, not
-  a round trip, not a *"fast"*. `23514` is the **only** kernel-produced value spoken across all
-  three blocks. Everything else is on screen with its own label, and §6 says where each comes from.
+  a round trip, not a *"fast"*. `23514` is the **only** kernel-produced value spoken across both
+  blocks. Everything else is on screen with its own label, and §6 says where each comes from.
 * **Never calls the second refusal the same constraint as the first**, and never puts the trigger's
   name where the CHECK's belongs. B10's boxed note is the whole rule.
 * **Never claims defence in depth.** **MUST NOT SAY:** *"drop the constraint and the trigger still refuses"* — this wave proves one direction on one subject, and the unwelding matrix has never executed in CI.
 * **Never says the word tamper-proof.** **MUST NOT SAY:** *"tamper-proof"* in any form — tamper-evident, never proofing, and split-view resistance is not claimed anywhere in this film.
 * **Never dresses the second run's fourth beat up as a second peak.** The CR run's projection-drift
   beat is in the payload and on screen in the transcript panel; **it is not narrated.** Speaking a
-  second `P0001` twenty seconds after B5 does not double B5, it halves it. `CLICKS-CR.md` B10 keeps
-  it visible and unspoken, which is the same treatment B8 gives the beats it does not read out.
+  second `P0001` twenty seconds after B5 does not double B5, it halves it. `CLICKS.md` §5 `B10` and
+  `CLICKS-CR.md` §4 both keep it visible and unspoken, which is the same treatment B8 gives the
+  beats it does not read out.
 * **Never says the product's name inside the demo.** It is earned in the close, as it always was.
 
 ---
@@ -354,8 +510,8 @@ is cut rather than kept**, and `CLICKS-CR.md` §5 carries the executable form of
    independent: `cr-gate-route-plan.md` §0.2, `film-recut-plan.md` §1.3, and W5's own transcript at
    `evidence/deploy/cr-gate-live.json`, which closes on `verdict: "UNANSWERABLE"` and `exit_code: 2`
    for exactly this reason. **There is currently no way to attempt the edit and be refused**, which
-   is the whole of what this wave builds. Without it, B9–B11 are not shot; `film-recut-plan.md` §6
-   is the fully specified NO-GO and it is a legitimate outcome.
+   is the whole of what this wave builds. Without it, B9 and B10 are not shot; `film-recut-plan.md`
+   §6 is the fully specified NO-GO and it is a legitimate outcome.
 2. **The approve control on the Management-of-change screen drives that endpoint.** In the shipped
    bundle the control is hard-disabled and wired to nothing, deliberately and correctly
    (`verticals/mainline/apps/console/src/operator/change/absence.ts:408-454` renders the
@@ -373,32 +529,50 @@ is cut rather than kept**, and `CLICKS-CR.md` §5 carries the executable form of
    carry them is the one that `404`s. **If R-5 does not hold, B9's *"Same incident behind it"* is
    cut**, and `film-recut-plan.md` R-5 says the wave should be abandoned rather than shot without
    it.
-5. **The three defeater prompts are on screen through B11** (R-4). Without them, B11's mirror is a
-   refusal with no way through beside it, which is the reading `film-recut-plan.md` §2.3 COST 3
-   warns about. The block is still shot; the delivery note about *showing* the way through comes
-   out, because nothing is showing it.
+5. **The three defeater prompts are on screen through `B10`'s second half** (R-4). Without them,
+   the mirror is a refusal with no way through beside it, which is the reading
+   `film-recut-plan.md` §2.3 COST 3 warns about. The block is still shot; the delivery note about
+   *showing* the way through comes out, because nothing is showing it.
 6. **`B8` is cut to 6 s.** §0.2's arithmetic. Without it the film is past the hard stop.
 7. **The close lands at 22 s.** These 24 s are the seconds the naming close returns.
 
 ---
 
-## 5 · THE SCOPE-CUT LADDER FOR THESE THREE BLOCKS
+## 5 · THE SCOPE-CUT LADDER FOR THESE TWO BLOCKS
 
-`film-recut-plan.md` §5 owns the film's ladder; this is only the part of it that reaches this file,
-restated so nobody improvises at 02:00.
+**Re-derived for the two-block shape.** The table this replaces cut `B9` `10 → 8` and `B11`'s hold
+`8 → 7`; neither block exists in those durations any more. **`BEATS.yaml`'s `cut_ladder` is the
+executable form and this is only the part of it that reaches this file** — the film's ladder is
+`VO-DEMO.md` §5, which prints the line to read after every step.
 
-| # | cut | from → to | saves | the line after |
-|---|---|---|---|---|
-| **1** | **B9's typing** — arrive on the proposed wording already composed | 10 s → 8 s | 2 s | **11 w** · 1.38 w/s — *"Then change the rule instead. ·hold 0.3· Same paragraph. Same incident behind it."* The last sentence goes; the press moves under *"behind it"* and still covers the trip. |
-| **2** | **B11's hold** | 8 s → 7 s | 1 s | unchanged words, **12 w** · 1.71 w/s, **0.3 s** after the mirror. **This is the last second to take and it should be the first one given back.** |
+| rank in `BEATS.yaml` | cut | from → to | saves | film after | the line after |
+|---|---|---|---|---|---|
+| **1** | **`B9`'s typing** — arrive on the proposed wording already composed | 12 s → 8 s | 4 s | 168 s | **14 w** · 1.75 w/s — *"Fine. Then don't use the clause — change it. Same paragraph, same incident behind it."* The last sentence goes; `R-2` and `R-5` both still bind. |
+| **5** | **`B10`'s hold and its technical sentence** | 12 s → 8 s | 4 s | 155 s | **13 w** · 1.63 w/s — *"Refused. You can't just use the clause. You can't quietly edit it away."* **The mirror does not go and neither scope word goes.** |
 
-**RULING ADOPTED FROM `film-recut-plan.md` R-10 · USE CASE TWO IS ATOMIC.** **B9 may never be cut
-without B11.** A setup with no answer is worse than neither: it spends ten seconds raising the
-judge's question and never answers it. If the cut must go further than the two rows above, **drop
-B9, B10 and B11 together — all 24 s — and restore `B8` to 10 s**, which is a net −20 s and leaves
-the film as one clean use case rather than one and a half.
+**Ranks 2, 3 and 4 do not touch these blocks** (`B6`, `B7`, `k3`) and are in `BEATS.yaml` and
+`VO-DEMO.md` §5.
 
-**B10 is never cut.** It is six seconds and it is the only place the second refusal exists.
+> ### ⚠ RANK 1 IS NOT EXECUTABLE AS WRITTEN, AND THE FINDING IS NOT THIS FILE'S
+>
+> `CLICKS.md` measured that the `moc-proposed-text` textarea is **destroyed and re-created empty
+> when the change screen mounts**, so there is no path by which that box holds text before `B9`
+> begins: **the wording is typed on camera or it is not on screen at all.** Rank 1's saving is
+> *"arrive on it composed"*, which that measurement forbids. What rank 1 can actually buy is a
+> **shorter typed string**, not a pre-composed one — and `B9`'s 12 s already contains ≈ 3.5 s of
+> read chain it cannot compress. **`b9` at 8 s is tight and should be re-checked against the
+> measurement before anybody executes the step at 02:00.** Recorded here because this file's own
+> §0.3 rests on the same measurement; **owner: W1, in `BEATS.yaml`.**
+
+**RULING ADOPTED FROM `film-recut-plan.md` R-10 · USE CASE TWO IS ATOMIC.** **No step may take
+`B10` below 8 s, and `B9` may never be cut without `B10`.** A setup with no answer is worse than
+neither: it spends 8–12 seconds raising the judge's question and never answers it. If the cut must
+go past rank 5, **drop `B9` and `B10` together — all 24 s — and restore `B8` to 10 s**, which is a
+net −20 s and leaves the film as one clean use case rather than one and a half.
+
+**The mirror is never cut, at any rank.** It is the last two sentences of `B10` and it is the only
+place the second half of this film's claim is made. **A cut that reaches it is not a cut, it is a
+rewrite, and R-7 forbids it.**
 
 **If the live origin is down on the day, none of this applies.** The film is not made against a
 mock: it is postponed, or filmed against the local node and **said to be local, on screen**, which
@@ -507,17 +681,17 @@ today**, which is why every one of these is `PENDING` rather than sourced.
 | # | value | block | where it will come from |
 |---|---|---|---|
 | S1 | **the SQLSTATE — the one value spoken** | **B10** | the CR run's merge beat, **never `gate_run_summary`** (§6.1) |
-| P1 | the CHECK's name **as the refusal reports it** | B10, B11 | the same beat's `constraint`, cross-read against M8 |
+| P1 | the CHECK's name **as the refusal reports it** | B10, through the mirror | the same beat's `constraint`, cross-read against M8 |
 | P2 | `constraint_source` | B10 | the same beat's refusal. **If it reads `parsed` rather than `reported`, the on-screen label says `parsed`.** A weaker diagnosis stays on screen; `B5` set that precedent and it is why the film is believed. |
-| P3 | the refusal's own message | B10, B11 | the same beat |
+| P3 | the refusal's own message | B10, through the mirror | the same beat |
 | P4 | the re-derived open count beside the projected one | B10 | the run's read beat |
 | P5 | the projection-drift beat's SQLSTATE and message — **on screen, never narrated** | B10 | that beat. **It will name `mainline.fn_cr_merge_gate`, not `mainline.fn_permit_merge_gate`** — §6.1 again. |
 | P6 | the kernel-procedure beat, **if it was shipped at all** | B10 | `cr-gate-route-plan.md` §R3 makes it conditional and drops it if the deployed cluster answers a privilege error rather than a gate refusal. **A privilege error is not a gate refusal and is never presented as one.** |
 | P7 | `verdict` | B10 | the run |
-| P8 | `persisted`, `self_persisted`, `isolation`, `single_transaction`, the two logical timestamps | B11 tail | the run |
+| P8 | `persisted`, `self_persisted`, `isolation`, `single_transaction`, the two logical timestamps | B10 tail | the run |
 | P9 | per-beat elapsed | B9, B10 | the run — **on screen with its label, never in a sentence** |
-| P10 | the obligation's severity, origin and virulence | B9, B11 | the CR blocking-checks read. **`cr_blocking_checks_declared` reads `false` today**, so this is not merely unmeasured — the route does not exist. |
-| P11 | the three defeater prompts and the clearance lattice | B11 | the disposition read. **It is not in `cr-gate-live.json` today** — W5 recorded the CR path and the route table, not that read. |
+| P10 | the obligation's severity, origin and virulence | B9, B10 | the CR blocking-checks read. **`cr_blocking_checks_declared` reads `false` today**, so this is not merely unmeasured — the route does not exist. |
+| P11 | the three defeater prompts and the clearance lattice | B10, from the mirror's frame | the disposition read. **It is not in `cr-gate-live.json` today** — W5 recorded the CR path and the route table, not that read. |
 | P12 | the clause's printed label and its canonical text | B9 | the clause-version read. **Also not in `cr-gate-live.json` today.** |
 
 **A row that is still `PENDING` on the day the film is cut is a row whose value does not go on
@@ -549,9 +723,18 @@ screen — is right and sufficient, **and I considered spending two seconds of t
 sentence naming them**, something like *"three questions, each demanding a citation."* I did not
 write it, for a reason worth recording rather than leaving as a gap: B6 already spoke that sentence
 about the permit's defeaters, in the film's warmest beat, and saying it again twenty seconds later
-would trade B11's silence for a repetition. **The silence after the mirror is worth more than a
-second explanation of a screen the judge is looking at.** If the film lead disagrees, the two
+would trade the mirror's silence for a repetition. **The silence after the mirror is worth more than
+a second explanation of a screen the judge is looking at.** If the film lead disagrees, the two
 seconds exist in the bank and the sentence is cleared as a variant in `CLAIMS-CLEARANCE-CR.md` §4.
+
+**And a second, added when this file was reconciled to the two-block shape, because it is a cost
+this worker's own ruling imposes.** §0.3 reason 3 grants that shorter blocks are easier to re-take,
+and the two-block shape gives that up: a fluffed mirror now costs a twelve-second re-take rather
+than an eight-second one, and the block it is inside also contains the film's second SQLSTATE.
+**I still think the ruling is right** — the measurement in reason 1 decides it before taste gets a
+vote, and a hold assembled from two takes is a worse defect than a long re-take. **But the founder
+should know, before the red light, that `B10` is the most expensive block in the film to get
+wrong**, and it should be the one he rehearses most and shoots first if he shoots out of order.
 
 **Nothing else.** Every ruling that reached this file — R-2, R-4, R-5, R-7, R-10 from the recut
 plan, R3, R9 and R10 from the cr-gate route plan — made these blocks shorter and easier to defend.

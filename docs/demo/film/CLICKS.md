@@ -70,6 +70,24 @@ end-point below matches it exactly (`0 / 12 / 20 / 30 / 44 / 62 / 72 / 88 / 106 
 with no click in them at all, which is not a coincidence: the beats that may never be cut are
 the beats where the only correct operator action is to stop moving.
 
+> **THIS FILE IS THE CHOREOGRAPHY OF RECORD FOR `B9` AND `B10`, AND THAT WAS SETTLED ON
+> 2026-08-16.** `docs/demo/film/CLICKS-CR.md` was written earlier the same day against a
+> **three**-block shape — `B9` 10 s + `B10` 6 s + `B11` 8 s — from
+> `docs/demo/cr-gate-route-plan.md` §R9, and declared that it owned the operator actions for all
+> three. **Two click documents describing one stretch of film is the same defect as two voice
+> documents describing it.** The block collision is resolved in favour of two blocks
+> (`VO-DEMO-CR.md` §0.3, decided on **M14 above** and on the pre-typing measurement in §1.5), and
+> **`CLICKS-CR.md` is now the companion sheet** — pre-flight, frame rules, field paths and the
+> stop-the-take list — with cursors, click numbers and keystroke timings inherited from §5 here.
+>
+> **One disagreement between them is open and is NOT resolved by this note: where the press
+> lands.** §5 `B10` puts **Click 6 at `2:17`**, one second inside `B10`; `CLICKS-CR.md` put it
+> inside `B9`, under *"This request asks to edit it."* `B10`'s first spoken word is *"Refused."*
+> at `2:16`, so under this file's placement the value is spoken before it is on screen, which
+> R-K forbids, and R-9 requires the request to be narrated **while it is in flight**. Both
+> candidate fixes are priced in `VO-DEMO-CR.md` §1 and both spend something. **Owner: the film
+> lead, with W1 for the seconds and W2 for the words.**
+
 ---
 
 ## 1 · THE TAKE — everything fixed before the red light, and never changed inside it

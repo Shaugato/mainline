@@ -198,10 +198,19 @@ look. **b3 and b5 are the two beats no cut may reach.**
 ceiling `180` s.
 
 **The two use cases are mirror images and the film's shape is that mirror.** B0–B8: you cannot
-**use** a clause a past incident's blame reaches. B9–B10: you cannot quietly **edit away** that
-same clause either. They share a clause version and a precursor, and **R-5 requires both to be
-legible in the same frame as the second refusal** — without that, B9 and B10 are merely a second
+**just** use a clause a past incident's blame reaches. B9–B10: you cannot quietly **edit away**
+that same clause either. They share a clause version and a precursor, and **R-5 requires both to
+be legible in the same frame as the second refusal** — without that, B9 and B10 are merely a second
 refusal and the trade this revision makes is a straight loss. See §5.
+
+**Use case two is TWO blocks and that was a live disagreement until 2026-08-16.**
+`docs/demo/cr-gate-route-plan.md` §R9 named the same 24 s as three — `B9` 10 s + `B10` 6 s +
+`B11` 8 s — and `VO-DEMO-CR.md` and `CLICKS-CR.md` were written to it. Both shapes totalled 24 s,
+so the film's arithmetic held either way and no check in the kit could have caught it; **what it
+broke is the recording**, because the founder records voice first and then picture and a block
+boundary is a place he stops and starts. **Resolved in favour of two**, on `CLICKS.md`'s measured
+read chain. `VO-DEMO-CR.md` §0.3 is the ruling. **This file already carried two and nothing in it
+moved for the ruling** — only the B10 prohibition below gained its fifth item.
 
 **One in-point moved that nobody should read past:** the close now begins at `2:28`, not `2:00`.
 Any document still in-pointing the naming block at `2:00` is describing the pre-revision film.
@@ -312,12 +321,15 @@ staged refusal is a rules violation and not merely a dishonesty.
   *"watch the same debt block the change request"*; the blame closure already ran, exactly as B3
   says.
 * **B10** — must not say *"the clause cannot be changed"*, must not say *"the database won't let
-  anyone edit the rule"*, must not say *"the memory is immutable"*, and must not say *"you can't
-  edit it"*. **All four are false.** The clause **can** be edited — by disposing of the
-  obligation first, which is exactly what the three defeaters on screen are for. The true
-  sentence is *"you can't **quietly** edit it away"*, or, if the adverb reads oddly on the day,
-  *"not without answering the question first"*. **The scope word is doing all the work and
-  dropping it converts a true statement into a false one.** Must not speak the virulence value
+  anyone edit the rule"*, must not say *"the memory is immutable"*, must not say *"you can't
+  edit it"*, and — added 2026-08-16 — must not say *"you can't use the clause"* with no scope
+  word. **All five are false.** The clause **can** be edited — by disposing of the
+  obligation first, which is exactly what the three defeaters on screen are for; and it **can** be
+  used, which is what B7 shows on camera thirty seconds earlier, once the obligation is answered.
+  The true sentences are *"you can't **just** use the clause"* and *"you can't **quietly** edit it
+  away"*, or, if an adverb reads oddly on the day, the pair as *"Use it, or edit it. Not without
+  answering the question first"*. **Each scope word is doing all the work of its own half and
+  dropping either converts a true statement into a false one.** Must not speak the virulence value
   — it is a column on screen and never in the mouth, because saying it aloud edges toward
   inventing an injury. Must not end on the refusal alone: **the three live defeater prompts are
   on screen or the beat does not run**, because use case two has no admission to mirror B7 with

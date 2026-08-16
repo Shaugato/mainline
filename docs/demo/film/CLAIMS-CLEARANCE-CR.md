@@ -16,12 +16,24 @@ actual scan, its finding count and its exit code. If this path is ever added to 
 list, the scanner must PRINT that it skipped this file, so "not scanned" is never read as "passed".
 -->
 
-# CLAIMS CLEARANCE — CR — the line-by-line audit of B9, B10 and B11
+# CLAIMS CLEARANCE — CR — the line-by-line audit of use case two's two blocks
 
-**Worker W6** · the film blocks for use case two · cr-gate-route wave · audited 2026-08-16 (UTC)
+**Worker W6** · the film blocks for use case two · cr-gate-route wave · audited 2026-08-16 (UTC) ·
+**re-headed 2026-08-16 when the block collision closed in favour of TWO blocks**
 **Audits, exclusively:** `docs/demo/film/VO-DEMO-CR.md`, `docs/demo/film/CLICKS-CR.md`, and this
 file. **`CLAIMS-CLEARANCE.md` is not edited by this worker** and continues to own `B0`…`B8`, the
 close, and the other five film documents.
+
+> **`B11` DOES NOT EXIST.** The 24 s of use case two ships as **`B9` 12 s + `B10` 12 s**, which is
+> what `BEATS.yaml` always encoded. Rows below that read `B11` audit **the tail of `B10`** — the
+> mirror — and are re-labelled where they were touched. The ruling and its reasons are in
+> `VO-DEMO-CR.md` §0.3; §8 of this sheet carries the consequences for its own verdict.
+>
+> **Two rows of this sheet did not survive that re-read, and both were mine.** Row 12 cleared the
+> mirror's unscoped first half and row 14 cleared a substitute built on it. **Both are withdrawn**
+> — see §2 — because `B7` shows the permit **ISSUED** on that clause thirty seconds earlier, which
+> row 12's reasoning never reached. `CLAIMS-CLEARANCE.md` files it as **X5**, the fifth refused
+> mirror variant, beside the four R-7 ordered.
 **Registers read in full before a row was written:** `docs/demo/research/r6-honesty.md` Part A
 (A1–A17), `docs/submission/MUST-NOT-CLAIM.md` (fourteen families plus the three repeated ones),
 `docs/demo/film/CLAIMS-CLEARANCE.md` §§1–2 for the method, `docs/demo/film-recut-plan.md` §4.3 and
@@ -31,26 +43,37 @@ R-7, and `docs/demo/cr-gate-route-plan.md` §§R3, R9, R10.
 
 ## THE VERDICT, FIRST
 
-**3 spoken lines and 2 cleared substitutes · 48 audited rows · 42 CLEAR · 0 REWORD · 5 REFUSE ·
-1 scanner verdict — and every REFUSE row is a variant that was never written into the script.**
+**2 spoken lines and 1 surviving substitute · 50 audited rows · 41 CLEAR · 0 REWORD · 8 REFUSE ·
+1 scanner verdict — and THREE of the eight REFUSE rows exist because this sheet cleared a sentence
+it should have refused.** (`49` clearance rows + `1` scanner verdict. Counted by verdict marker,
+not by memory: §2 carries 25 rows — 23 CLEAR, 2 REFUSE — §4 carries 6 REFUSE, §5 carries 18 CLEAR.)
 
-> ## THE THREE BLOCKS AS WRITTEN MAY BE SHOT. THEY CANNOT BE SHOT YET, AND THAT IS NOT A CLAIMS DEFECT.
+> ## THE TWO BLOCKS AS WRITTEN MAY BE SHOT. THEY CANNOT BE SHOT YET, AND THAT IS NOT A CLAIMS DEFECT.
 
 Two separate things, and the second is the one that decides whether there is a film:
 
 1. **Nothing in `VO-DEMO-CR.md` or `CLICKS-CR.md` claims more than its evidence carries** — on the
    condition that every value in §5's register is re-derived from the filmed run before the take.
-   The five REFUSE rows in §4 are **pre-emptive**: three are the variants of B11's mirror that drop
-   the scope word, filed under `film-recut-plan.md` R-7's explicit instruction to file a REFUSE
-   against every one of them, and two more are sentences that would contradict the frame they are
-   spoken over. None of the five is in the script; they are here so that nobody improvises one at
-   02:00.
+   Five of the eight REFUSE rows are **pre-emptive**: three (`R1`–`R3`) are the variants of the
+   mirror that drop the adverb, filed under `film-recut-plan.md` R-7's explicit instruction to file
+   a REFUSE against every one of them, and two more (`R4`, `R5`) are sentences that would contradict
+   the frame they are spoken over. **None of those five is in the script**; they are here so that
+   nobody improvises one at 02:00.
 
-   **One finding of my own, and it is arithmetic rather than a claim.** R-7's sanctioned substitute
-   for B11 is **17 words**, which is `2.13 w/s` in the 8 s window B11 is budgeted at — over every
-   rate ceiling in this kit. It is cleared as a claim and **constrained as a timing** at §2 row 14,
-   and a second substitute that fits the window as written is cleared at row 14b. A substitute
-   nobody had counted is a substitute that gets read at 02:00 and overruns the beat after it.
+   **The other three are not pre-emptive, and this sheet says so in its own verdict rather than in
+   a footnote.** Rows 12 and 14 **cleared a sentence that shipped as a primary line and had to be
+   replaced** — *"You can't use the clause"*, unscoped — and `R3b` is the bar that should have been
+   filed beside `R1`–`R3` and was not. **R-7 ordered four refusals and four were filed, all against
+   the half of the mirror that carries an adverb; the half without one was cleared without being
+   walked past `B7`.** The correction is row 12b and `CLAIMS-CLEARANCE.md` **X5** / **D32**. **A
+   refusal list is only as good as the half of the sentence it was pointed at.**
+
+   **One finding of my own that survives intact, and it is arithmetic rather than a claim.** R-7's
+   sanctioned substitute A is **17 words**, which was `2.13 w/s` in the retired 8 s window — over
+   every rate ceiling in this kit — and is **2.17 w/s** behind the refusal sentence in the merged
+   12 s block. It is **retired** at §2 row 14 on the claim as well. Substitute B, cleared at row
+   14b, fits under either shape and is now the only one. A substitute nobody had counted is a
+   substitute that gets read at 02:00 and overruns the beat after it.
 2. **The attempt these blocks narrate cannot be made against the deployment today, and that is now
    three independent measurements rather than two.** `cr-gate-route-plan.md` §0.2,
    `film-recut-plan.md` §1.3, and — landing while this sheet was being written —
@@ -163,10 +186,11 @@ is the artefact, not an argument.
 | 9 | B10 | *"guarding the change"* | ✓ | A8 · over-claiming the predicate | The CHECK is on the change-request row and its predicate is in frame. It says what the constraint is attached to, and nothing about what else it can or cannot stop. **MUST NOT SAY:** *"the database refused the edit"* — what was refused is the merge; the edit can still be made by answering the obligation first. |
 | 10 | B10 | — *the constraint name is not spoken in the primary read* | ✓ | A14 · delivery | The name is on screen with its field label for the whole block. Speaking it costs about two seconds the mirror needs more. The 8 s alternate that speaks it is cleared as row 11. |
 | 11 | B10 alt | *"a different CHECK, **cr_gate_closed_when_merged**, guarding the change itself."* | ✓ | A8 · A14 | Same clearance as rows 8–9, **on the condition that the name spoken is the one `data.beats[name="merge"].constraint` returned on the filmed run** — not the trigger name, not the function name. §5's boxed row is the whole of this condition. |
-| 12 | B11 | *"You can't use the clause."* | ✓ | A8 · A9 defence in depth | Restates what the film already proved on camera at `B2`: a permit relying on this clause was refused while an obligation was open. It is a statement about this gate and this counter, and it makes no claim about any other code path. |
-| 13 | B11 | *"You can't **quietly** edit it away either."* | ✓ | **A9 · A10 tamper-evidence · the R-7 family** | **The scope word carries the entire claim.** The clause *can* be edited — by disposing of the obligation first, which is exactly what the three defeater prompts in frame are for. What cannot be done is doing it **without the obligation being answered**, which is what the refusal in the same frame just demonstrated. Cleared **only** with the adverb; every variant without it is REFUSED at §4. |
-| 14 | B11 sub A | *"You can't use the clause. ·hold 0.4· You can't edit it away either — not without answering the question first."* | ✓ | same | `film-recut-plan.md` R-7's own sanctioned substitute, cleared on the same terms: the scope moves from an adverb to a clause and the claim is identical. **Cleared as a CLAIM and constrained as a TIMING — 17 w, which is 2.13 w/s in an 8 s window and over every rate ceiling in this kit.** It is shot at **11 s**, paid from the recut plan's 8 s bank. `VO-DEMO-CR.md` B11 has the arithmetic. |
-| 14b | B11 sub B | *"Use it, or edit it. ·hold 0.4· Not without answering the question first."* | ✓ | same | Same scope, carried by a clause, **11 w · 1.38 w/s — it fits the 8 s window with a 1.8 s hold and costs the bank nothing.** It keeps both halves of the mirror. Cleared on the same terms as row 13: what it denies is doing either **without the obligation being answered**, which is what the refusal in the same frame just demonstrated. |
+| 12 | B10 tail | *"You can't use the clause."* | **✗ SUPERSEDED 2026-08-16** | A8 · A9 defence in depth | **This row's ✓ is withdrawn by the worker who filed it.** It cleared the sentence against `B2` — a permit relying on this clause was refused while an obligation was open — and **it did not walk past `B7`, which it should have.** `B7` shows that same permit **ISSUED** on that same clause thirty seconds before the mirror, once its obligation was answered, so the unscoped sentence is contradicted by the film it is spoken in. **MUST NOT SAY:** the unscoped form, in any block or fallback. **TRUE INSTEAD:** *"You can't **just** use the clause."* — `CLAIMS-CLEARANCE.md` **D32** and **X5**. |
+| 12b | B10 tail | *"You can't **just** use the clause."* | ✓ | A8 · A12 · R-7 | The replacement, and the line of record. **`just` scopes the first half exactly as `quietly` scopes the second**, so the mirror is scoped on both sides and neither scope is decoration: the clause **is** usable, and the audience watched it become usable — **not** without the obligation being answered. Cleared at `CLAIMS-CLEARANCE.md` D32 as an improvement on the wording this sheet had cleared at row 12. |
+| 13 | B10 tail | *"You can't **quietly** edit it away."* | ✓ | **A9 · A10 tamper-evidence · the R-7 family** | **The scope word carries the entire claim.** The clause *can* be edited — by disposing of the obligation first, which is exactly what the three defeater prompts in frame are for. What cannot be done is doing it **without the obligation being answered**, which is what the refusal in the same frame just demonstrated. Cleared **only** with the adverb; every variant without it is REFUSED at §4. **`either` dropped, cleared at `CLAIMS-CLEARANCE.md` D33:** the parallel construction carries the tie, and row 12b's `just` carries it harder. |
+| 14 | B10 sub A | *"You can't use the clause. ·hold 0.4· You can't edit it away either — not without answering the question first."* | **✗ RETIRED 2026-08-16** | same | **Retired on the claim, and separately on the arithmetic.** On the claim: **its first half is the unscoped sentence row 12 and `CLAIMS-CLEARANCE.md` X5 refuse**, and the trailing clause does not reach back over it. On the arithmetic: it was priced at 11 s against the retired 8 s `B11`, and in the merged 12 s `B10` it must sit behind the refusal sentence — `9 + 17 = 26 w` = **2.17 w/s**, over every rate ceiling in this kit. **A substitute has to be right in both halves.** |
+| 14b | B10 sub B | *"Use it, or edit it. ·hold 0.4· Not without answering the question first."* | ✓ | same | Same scope, carried by a clause. **Re-priced for the two-block shape and it still fits:** behind the refusal sentence in one 12 s block it is `9 + 11 = 20 w` = **1.67 w/s**, identical to the line of record. It keeps both halves of the mirror. Cleared on the same terms as row 13: what it denies is doing either **without the obligation being answered**, which the refusal in the same frame just demonstrated. **It is now the ONLY surviving substitute**, and it is a substitute rather than a co-primary — the line of record's parallel denial cannot be mis-parsed as permission, and an imperative can. |
 | 15 | all | — *no timing of the system is spoken* | ✓ | A2 latency · MNC 2 | Not a millisecond, not a round trip, not a *"fast"*. **MUST NOT SAY:** *"it refuses in milliseconds"* — this repository holds no p50, no p99 and no load profile. Per-beat elapsed is on screen with its own label saying whose clock it is. |
 | 16 | all | — *no digest, commit id, uuid or byte count is spoken* | ✓ | A14 · `HYG-sha-literal` | None appears in any spoken line. `VO-DEMO-CR.md` §3 states the ban; §6 registers every on-screen value to a field path instead. |
 | 17 | all | — *`blood_major` is never spoken, and no severity is spoken for this obligation* | ✓ | A3 · R-F | `film-recut-plan.md` §4.3 rules it. Saying an injury-shaped word aloud edges toward inventing a casualty to move an audience. `B3` already spent the film's one spoken *severity four*, where the seed-versus-projection pairing is on screen to check it. |
@@ -203,8 +227,8 @@ work that landed since, and **its first ground is still standing.** So:
   earlier. At that point the subject is genuinely driven on camera, which is the only thing A13.5
   was ever objecting to.
 * **Even then, the banned sentence itself is not adopted.** *"Watch the same…"* is a present-tense
-  imperative about a retrieval and it trips A5 independently of A13.5. The cleared line is B11's,
-  which speaks in no tense about the recall at all.
+  imperative about a retrieval and it trips A5 independently of A13.5. The cleared line is the
+  mirror at `B10`'s tail, which speaks in no tense about the recall at all.
 
 **This is the only standing prohibition this sheet touches, and it is narrowed rather than
 waived.**
@@ -221,9 +245,12 @@ drops the scope word."* Here they are, with what makes each false.
 | R1 | **MUST NOT SAY:** *"You can't edit the clause."* · *"The clause cannot be changed."* | It **can** be changed — by disposing of the obligation first. The three defeater prompts in the same frame are the mechanism for doing exactly that, so the sentence is contradicted by the picture it is spoken over. |
 | R2 | **MUST NOT SAY:** *"The database won't let anyone edit the rule."* | Adds *anyone*, which is a claim about every caller and every code path. A cluster admin can drop a constraint; what they cannot do is do it unobserved. Tamper-evident, never tamper-proof. |
 | R3 | **MUST NOT SAY:** *"The memory is immutable."* | Nothing here is immutable. The gate refuses a **transition** while a counter and a re-derivation disagree with the state being written; it is a condition on a change, not an absence of change. |
+| **R3b** — added 2026-08-16, **and it is the one this sheet cleared by mistake** | **MUST NOT SAY:** *"You can't use the clause."* with no scope word — the mirror's **first** half | R-7's instruction was to refuse every variant that drops the scope word, and R1–R3 above discharge it **for the second half only**, because that is the half whose scope is an adverb. **The first half's scope is `just`, and this sheet cleared the sentence without it at row 12.** It is false in the plainest possible way: **`B7` shows the permit ISSUED on that clause thirty seconds earlier**, on camera, once the obligation was answered — so the flat sentence is contradicted by a frame the viewer has already watched. **TRUE INSTEAD:** *"You can't **just** use the clause."* (row 12b, `CLAIMS-CLEARANCE.md` D32 / X5). |
 
-**The cleared form is row 13 of §2 and it keeps the adverb**: *"You can't quietly edit it away
-either."* **The sanctioned substitute is row 14** if the adverb reads oddly on the day.
+**The cleared form is rows 12b and 13 of §2 and it keeps BOTH scope words**: *"You can't **just**
+use the clause. You can't **quietly** edit it away."* **The sanctioned substitute is row 14b** —
+the only surviving one — if an adverb reads oddly on the day. **Row 14's substitute A is retired**,
+because its first half is R3b.
 
 **Two more, refused for a different reason.**
 
@@ -327,11 +354,11 @@ Pre-committed, in order, so nobody weighs one against the rubric at 02:00.
 
 | # | condition | if it fails |
 |---|---|---|
-| **1** | **The attempt is reachable and it refuses.** `POST /v1/demo/cr-gate-run` answers `200` with `persisted: false` measured from its own fingerprint. **MEASURED TODAY: `404`** (`cr_gate_run_probe.status`). | **NO-GO as things stand.** `film-recut-plan.md` §6 is fully specified: B9/B10/B11 are never added, `B8` is restored to 10 s, the film runs `2:32`, and every service and feature is still named. A legitimate outcome. |
+| **1** | **The attempt is reachable and it refuses.** `POST /v1/demo/cr-gate-run` answers `200` with `persisted: false` measured from its own fingerprint. **MEASURED TODAY: `404`** (`cr_gate_run_probe.status`). | **NO-GO as things stand.** `film-recut-plan.md` §6 is fully specified: `B9` and `B10` are never added, `B8` is restored to 10 s, the film runs `2:32`, and every service and feature is still named. A legitimate outcome. |
 | **2** | **`GET /v1/change-requests/{cr_id}/blocking-checks` answers `200`.** **MEASURED TODAY: `404`, and `cr_blocking_checks_declared` reads `false`** — not declared, not merely unanswered. The change screen probes it. | the screen is filmed **only** in the state that renders clean, or not at all — never scrolled past fast so the absence does not register. |
 | **3** | **The approve control drives that endpoint and nothing else.** | the press does not exist. **MUST NOT DO:** point it at the permit's merge route to make the screen work — that route drives a different subject and a button that refused a different record would be a prop. |
 | **4** | **R-5 holds in frame:** the shared clause identifier and the precursor are legible beside the refusal. **Half is measured and holds** — `subjects.body.data.clause_uuid` is the identifier `B3` shows. **Half is not** — the precursor rides on the read that is not declared. | B9's *"Same incident behind it"* is cut, and `film-recut-plan.md` R-5 says the wave is abandoned rather than shot without it. |
-| **5** | **The three defeater prompts are in frame through B11.** | B11 is still shot; the delivery note about showing the way through comes out, because nothing is showing it. |
+| **5** | **The three defeater prompts are in frame through `B10`'s mirror.** | `B10` is still shot; the delivery note about showing the way through comes out, because nothing is showing it. |
 | **6** | **Every `PENDING` row in §5 has been re-derived from the filmed run.** | that value does not go on camera. |
 | **7** | **`B8` is cut to 6 s and the close lands at 22 s.** | the film runs past the 174 s hard stop. `VO-DEMO-CR.md` §0.2 has the arithmetic. |
 
@@ -342,13 +369,34 @@ this wave's to close. The demo guard's `423 Locked` stays.
 
 ---
 
-## 8 · DISSENT, RECORDED AND NOT ACTED ON
+## 8 · THE DISSENT THAT BECAME A RULING, AND WHAT IT COST THIS SHEET
 
-**One, and it is about the id scheme rather than a claim.** `cr-gate-route-plan.md` §R9 names these
-blocks **B9, B10, B11**; `film-recut-plan.md` §4 independently drafts **two** blocks called `b9` and
-`b10` over the same 24 s of the same material. Both plans are live, both are right about what the
-material has to do, and **`BEATS.yaml` cannot carry both id schemes.** This worker followed the
-binding plan and wrote three, and records the collision here and at `VO-DEMO-CR.md` §0.3 rather
-than leaving `BEATS.yaml` to discover it. **Nothing before B9 renumbers under either choice**,
-which is the property both plans actually require, so the collision is a naming decision for the
-film lead and not a defect in either plan.
+**It was filed here as a dissent about an id scheme and it was not one.** `cr-gate-route-plan.md`
+§R9 named these blocks **B9, B10, B11**; `film-recut-plan.md` §4 independently drafted **two**,
+`b9` and `b10`, over the same 24 s of the same material. This worker followed the binding plan,
+wrote three, recorded the collision, and called it *"a naming decision for the film lead and not a
+defect in either plan."*
+
+**That last sentence was wrong and it is the finding of this section.** The founder records
+**voice first, then picture, then matches them**, so a block boundary is not a name — **it is a
+place he stops recording and starts again.** Two documents disagreeing about how many boundaries
+exist is a recording session that cannot be run, whatever the totals are, and both shapes totalled
+24 s precisely so that no arithmetic check anywhere in the kit could ever have caught it. **A
+collision that only a human reading two documents side by side can find is not a naming decision;
+it is a defect that was left open under a label that made it sound optional.**
+
+**RESOLVED 2026-08-16, in favour of TWO blocks.** `VO-DEMO-CR.md` §0.3 carries the ruling and its
+three reasons. The deciding one belongs to another worker's measurement rather than to either
+plan's seniority: `CLICKS.md` timed the change screen's four sequential reads at **≈ 3.5 s warm and
+≈ 6 s cold** and measured that the proposed-wording box is **destroyed and re-created empty when
+the screen mounts** — so the wording cannot be pre-typed and `B9` cannot be shot in 10 s. **The
+case FOR three blocks is real and is recorded in that section rather than dismissed:** shorter
+blocks are cheaper to re-take, and the ruling gives that up deliberately to keep the refusal, the
+hold and the mirror inside one recorded breath.
+
+**What it cost this sheet, stated plainly.** Two of its rows did not survive the re-read — row 12
+and row 14 — and both had cleared the mirror's **unscoped first half**. **The three-block shape
+and the two-block shape were therefore never equal in honesty**, whatever the arithmetic said,
+because this file transcribed R-7's bar list as four items and dropped the fifth: the one its own
+primary line broke. **That is worth more as a lesson than the ruling is:** a pre-emptive refusal
+list is only as good as the half of the sentence it was pointed at.

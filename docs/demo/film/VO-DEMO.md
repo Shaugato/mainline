@@ -55,6 +55,26 @@ twenty-seven went and why. **Every duration and every word budget below is read 
 >    you cannot quietly edit it away either. **R-7 governs that second sentence and W6 refuses
 >    any variant that drops the scope word.**
 
+> **THE BLOCK COLLISION IS CLOSED AND THIS FILE'S SHAPE IS THE ONE THAT SHIPPED.**
+> `docs/demo/cr-gate-route-plan.md` §R9 named the same 24 s as **three** blocks — `B9` 10 s +
+> `B10` 6 s + `B11` 8 s — and `VO-DEMO-CR.md` and `CLICKS-CR.md` were written to it, while this
+> file, `BEATS.yaml`, `CLICKS.md`, `ONSCREEN-TEXT.yaml`, `FALLBACKS.md` and `SPINE.md` carried
+> **two**. Both totalled 24 s, so 2:52 held either way and the arithmetic never caught it; what
+> it broke is the recording, because the founder records **voice first, then picture, then
+> matches them** and a block boundary is a place he stops and starts. **Resolved 2026-08-16 in
+> favour of two. `B11` does not exist.** The ruling and its three reasons are in
+> `VO-DEMO-CR.md` §0.3 and the deciding one is `CLICKS.md`'s measured read chain, not this
+> file's seniority. **Nothing in this file changed for it.**
+>
+> **And a consequence for this file that is stated rather than fixed here:** §1 `B10`'s spoken
+> line stands as delivered, and `CLAIMS-CLEARANCE.md` `D31` — a **`~ REWORD`**, *"guards
+> **edits**"* naming the merge's object imprecisely, replacement supplied as *"guards the
+> change"* — **is still open.** It is not discharged in the reconciliation, because the
+> replacement is one word longer on the page and §2 has already priced this beat at 21 words
+> running **1.13 s against 0.95 s of slack**. Taking it costs a re-price of `B10`'s hold and
+> that is W2's call with W1's seconds, not a tidy-up. **A documented open item beats a quiet
+> edit that breaks a beat's own arithmetic.**
+
 ---
 
 ## 0 · HOW TO READ THIS FILE
