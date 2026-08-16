@@ -1,0 +1,12 @@
+cluster       CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)
+database      w_qr_gate_refusal_proof
+chain         271/271 applied, 0 failed, 53.273s
+reached 0115  True
+unproduced    (none) — every relation this tree references has a producer
+PROJECTION    10/10 held · open_blocking 0->1 · gate_epoch 0->1 · outbox 'check_opened' severity 4 (client supplied 0)
+REFUSAL       REFUSED [23514] gate_closed_when_issued (reported)
+DRIFT         REFUSED [P0001] mainline.fn_permit_merge_gate (parsed)
+ADMISSION     ADMITTED [00000]
+caveats       (none) — nothing in this run is unproven-but-tolerated
+VERDICT       PROVEN
+evidence      D:\CoackroachDBxAWS\mainline\evidence\gate-refusal\proof-20260816T151248Z.json

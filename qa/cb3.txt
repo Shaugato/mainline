@@ -1,0 +1,58 @@
+[36mvite v7.1.12 [32mbuilding for demo...[36m[39m
+transforming...
+[32m✓[39m 267 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                                 [39m[1m[2m  4.75 kB[22m[1m[22m[2m │ gzip:   2.12 kB[22m
+[2mdist/[22m[32moperator.html                              [39m[1m[2m  5.10 kB[22m[1m[22m[2m │ gzip:   2.21 kB[22m
+[2mdist/[22m[32m.vite/manifest.json                        [39m[1m[2m 10.67 kB[22m[1m[22m[2m │ gzip:   1.42 kB[22m
+[2mdist/[22m[32massets/worker-CdMYWUil.js                  [39m[1m[2m 43.71 kB[22m[1m[22m
+[2mdist/[22m[35massets/RegisterFrame-0hfz22sH.css          [39m[1m[2m  0.64 kB[22m[1m[22m[2m │ gzip:   0.32 kB[22m
+[2mdist/[22m[35massets/Counter-CZyoSoUO.css                [39m[1m[2m  1.66 kB[22m[1m[22m[2m │ gzip:   0.65 kB[22m
+[2mdist/[22m[35massets/StagedBadge-BK6AyFId.css            [39m[1m[2m  2.02 kB[22m[1m[22m[2m │ gzip:   0.55 kB[22m
+[2mdist/[22m[35massets/Disclosure-DHTiDpbM.css             [39m[1m[2m  2.66 kB[22m[1m[22m[2m │ gzip:   0.77 kB[22m
+[2mdist/[22m[35massets/Mono-BavKIzRY.css                   [39m[1m[2m  2.69 kB[22m[1m[22m[2m │ gzip:   0.86 kB[22m
+[2mdist/[22m[35massets/surface-eG6cXcX1.css                [39m[1m[2m  3.22 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
+[2mdist/[22m[35massets/surface-oi_k7Qh8.css                [39m[1m[2m  4.49 kB[22m[1m[22m[2m │ gzip:   1.05 kB[22m
+[2mdist/[22m[35massets/surface-CDgsvHG-.css                [39m[1m[2m  5.71 kB[22m[1m[22m[2m │ gzip:   1.23 kB[22m
+[2mdist/[22m[35massets/surface-BxnNI-uH.css                [39m[1m[2m  6.81 kB[22m[1m[22m[2m │ gzip:   1.49 kB[22m
+[2mdist/[22m[35massets/surface-Cyr52YNU.css                [39m[1m[2m  7.03 kB[22m[1m[22m[2m │ gzip:   1.37 kB[22m
+[2mdist/[22m[35massets/surface-apL5fNPM.css                [39m[1m[2m  7.52 kB[22m[1m[22m[2m │ gzip:   1.50 kB[22m
+[2mdist/[22m[35massets/surface-DmmSaZCo.css                [39m[1m[2m  7.52 kB[22m[1m[22m[2m │ gzip:   1.71 kB[22m
+[2mdist/[22m[35massets/surface-DT-7mZjK.css                [39m[1m[2m 12.14 kB[22m[1m[22m[2m │ gzip:   2.06 kB[22m
+[2mdist/[22m[35massets/index-CEBovcJa.css                  [39m[1m[2m 23.95 kB[22m[1m[22m[2m │ gzip:   4.62 kB[22m
+[2mdist/[22m[35massets/operator-D8s_r_O9.css               [39m[1m[2m 33.69 kB[22m[1m[22m[2m │ gzip:   6.99 kB[22m
+[2mdist/[22m[36massets/ConstraintName-Jhe6APB-.js          [39m[1m[2m  0.40 kB[22m[1m[22m[2m │ gzip:   0.28 kB[22m[2m │ map:     2.55 kB[22m
+[2mdist/[22m[36massets/modulepreload-polyfill-B5Qt9EMX.js  [39m[1m[2m  0.77 kB[22m[1m[22m[2m │ gzip:   0.44 kB[22m[2m │ map:     0.12 kB[22m
+[2mdist/[22m[36massets/RegisterFrame-CaJ60GpL.js           [39m[1m[2m  0.84 kB[22m[1m[22m[2m │ gzip:   0.48 kB[22m[2m │ map:     3.49 kB[22m
+[2mdist/[22m[36massets/Sqlstate-DASPlHTe.js                [39m[1m[2m  1.05 kB[22m[1m[22m[2m │ gzip:   0.61 kB[22m[2m │ map:     5.65 kB[22m
+[2mdist/[22m[36massets/VerificationSeal-BQV9ZhEZ.js        [39m[1m[2m  1.12 kB[22m[1m[22m[2m │ gzip:   0.56 kB[22m[2m │ map:     5.28 kB[22m
+[2mdist/[22m[36massets/useResource-DtOYjeME.js             [39m[1m[2m  1.19 kB[22m[1m[22m[2m │ gzip:   0.67 kB[22m[2m │ map:     7.87 kB[22m
+[2mdist/[22m[36massets/last-run-BEaw704E.js                [39m[1m[2m  1.57 kB[22m[1m[22m[2m │ gzip:   0.78 kB[22m[2m │ map:    15.59 kB[22m
+[2mdist/[22m[36massets/HonestyChrome.plain-Ci85pDGM.js     [39m[1m[2m  1.59 kB[22m[1m[22m[2m │ gzip:   0.84 kB[22m[2m │ map:     4.59 kB[22m
+[2mdist/[22m[36massets/Disclosure-BERlr2E-.js              [39m[1m[2m  1.79 kB[22m[1m[22m[2m │ gzip:   0.94 kB[22m[2m │ map:     8.59 kB[22m
+[2mdist/[22m[36massets/PlainBand-DWcONQOs.js               [39m[1m[2m  1.99 kB[22m[1m[22m[2m │ gzip:   0.93 kB[22m[2m │ map:    12.26 kB[22m
+[2mdist/[22m[36massets/Counter-CNHDV2sW.js                 [39m[1m[2m  2.14 kB[22m[1m[22m[2m │ gzip:   1.07 kB[22m[2m │ map:    16.51 kB[22m
+[2mdist/[22m[36massets/StagedBadge-DauHMNw2.js             [39m[1m[2m  2.85 kB[22m[1m[22m[2m │ gzip:   1.28 kB[22m[2m │ map:    14.34 kB[22m
+[2mdist/[22m[36massets/demo-subjects-DGLIAoyG.js           [39m[1m[2m  3.46 kB[22m[1m[22m[2m │ gzip:   1.62 kB[22m[2m │ map:    22.31 kB[22m
+[2mdist/[22m[36massets/UseCaseTwo-DWLwfMrd.js              [39m[1m[2m  4.05 kB[22m[1m[22m[2m │ gzip:   1.81 kB[22m[2m │ map:    10.55 kB[22m
+[2mdist/[22m[36massets/onramp-BxOeTz_H.js                  [39m[1m[2m  4.58 kB[22m[1m[22m[2m │ gzip:   1.81 kB[22m[2m │ map:    11.90 kB[22m
+[2mdist/[22m[36massets/UseCaseTwo-CXBxOhxW.js              [39m[1m[2m  5.12 kB[22m[1m[22m[2m │ gzip:   2.13 kB[22m[2m │ map:    11.94 kB[22m
+[2mdist/[22m[36massets/Mono-DiWw2stJ.js                    [39m[1m[2m  8.44 kB[22m[1m[22m[2m │ gzip:   3.43 kB[22m[2m │ map:    33.28 kB[22m
+[2mdist/[22m[36massets/surface-DsK5du3G.js                 [39m[1m[2m 10.88 kB[22m[1m[22m[2m │ gzip:   4.33 kB[22m[2m │ map:    27.61 kB[22m
+[2mdist/[22m[36massets/DemoDriver-DZN7gr0X.js              [39m[1m[2m 17.30 kB[22m[1m[22m[2m │ gzip:   5.95 kB[22m[2m │ map:    75.48 kB[22m
+[2mdist/[22m[36massets/surface-Jj9tVUHy.js                 [39m[1m[2m 26.13 kB[22m[1m[22m[2m │ gzip:   7.78 kB[22m[2m │ map:    80.70 kB[22m
+[2mdist/[22m[36massets/surface-BxKGPYwc.js                 [39m[1m[2m 32.23 kB[22m[1m[22m[2m │ gzip:   9.80 kB[22m[2m │ map:   107.12 kB[22m
+[2mdist/[22m[36massets/surface-DgSiUTzO.js                 [39m[1m[2m 36.50 kB[22m[1m[22m[2m │ gzip:  12.19 kB[22m[2m │ map:   129.46 kB[22m
+[2mdist/[22m[36massets/surface-BIzBVk06.js                 [39m[1m[2m 37.62 kB[22m[1m[22m[2m │ gzip:  11.24 kB[22m[2m │ map:   117.53 kB[22m
+[2mdist/[22m[36massets/surface-UnUpnEfh.js                 [39m[1m[2m 39.46 kB[22m[1m[22m[2m │ gzip:  12.13 kB[22m[2m │ map:   136.37 kB[22m
+[2mdist/[22m[36massets/surface-yYHhrlyl.js                 [39m[1m[2m 47.75 kB[22m[1m[22m[2m │ gzip:  13.94 kB[22m[2m │ map:   165.25 kB[22m
+[2mdist/[22m[36massets/surface-BVNfaNcc.js                 [39m[1m[2m 67.09 kB[22m[1m[22m[2m │ gzip:  18.30 kB[22m[2m │ map:   244.35 kB[22m
+[2mdist/[22m[36massets/operator-C7FDTjCb.js                [39m[1m[2m108.86 kB[22m[1m[22m[2m │ gzip:  33.24 kB[22m[2m │ map:   550.77 kB[22m
+[2mdist/[22m[36massets/index-B2eNn6gR.js                   [39m[1m[33m491.00 kB[39m[22m[2m │ gzip: 138.58 kB[22m[2m │ map: 1,719.43 kB[22m
+[33m
+(!) Some chunks are larger than 200 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 3.20s[39m

@@ -1,0 +1,51 @@
+build_lambda: repo      /d/CoackroachDBxAWS/mainline
+build_lambda: python    /d/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe (CPython 3.13.14, pip 26.2.1)
+build_lambda: arch      arm64
+build_lambda: platform  manylinux_2_28_aarch64
+build_lambda: psycopg   3.3.4
+build_lambda: console   /d/CoackroachDBxAWS/mainline/verticals/mainline/apps/console/dist
+build_lambda: transport live (declared; the packer refuses a dist that does otherwise)
+build_lambda: bundle    /d/CoackroachDBxAWS/mainline/verticals/mainline/apps/console/fixtures/bundles/demo-cloud
+build_lambda: out       /d/CoackroachDBxAWS/mainline/out/lambda/mainline-demo-api-arm64.zip
+build_lambda: packer    sha256 773de524274915554c6038e2d33d3c16d4e46000b75bd400858c95c93b236825
+build_lambda:           build_lambda.ps1 prints the same digest, or the two have drifted
+build_lambda: preflight ok: handler package, console dist/ and evidence bundle are all present, and dist/ carries the declared --console-transport live
+build_lambda: wheels    wheelhouse (reused)
+build_lambda: pip install --target /d/CoackroachDBxAWS/mainline/out/lambda/stage-arm64 --no-index --find-links /d/CoackroachDBxAWS/mainline/out/lambda/wheels-arm64 ...
+Looking in links: d:/CoackroachDBxAWS/mainline/out/lambda/wheels-arm64
+Processing .\out\lambda\wheels-arm64\psycopg-3.3.4-py3-none-any.whl
+Processing .\out\lambda\wheels-arm64\psycopg_binary-3.3.4-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
+Installing collected packages: psycopg-binary, psycopg
+
+Successfully installed psycopg-3.3.4 psycopg-binary-3.3.4
+build_lambda: stage     D:/CoackroachDBxAWS/mainline/out/lambda/stage-arm64
+build_lambda: copy      D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/demo-api/src/mainline_demo_api -> mainline_demo_api/
+build_lambda: copy      D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/console/dist -> web/
+build_lambda: copy      D:/CoackroachDBxAWS/mainline/verticals/mainline/apps/console/fixtures/bundles/demo-cloud -> web/bundle/
+build_lambda: files     292
+build_lambda:   mainline_demo_api                 18 entries      620640 bytes
+build_lambda:   psycopg                           85 entries      713024 bytes
+build_lambda:   psycopg-3.3.4.dist-info            4 entries       12064 bytes
+build_lambda:   psycopg_binary                    10 entries     8093535 bytes
+build_lambda:   psycopg_binary-3.3.4.dist-info     5 entries       16806 bytes
+build_lambda:   psycopg_binary.libs               16 entries    15673536 bytes
+build_lambda:   web                              154 entries     1901755 bytes
+build_lambda: unzipped  27031360 bytes (25.78 MB) of 262144000 (250 MB) allowed
+build_lambda: zipped    8032312 bytes (7.66 MB) of 52428800 (50 MB) allowed
+build_lambda: maps      stripped
+build_lambda: web         106 entries    5209517 bytes  as the console and the bundle left it
+build_lambda:              77 entries    1470940 bytes  after the source-map strip (-29 files, -3738577 bytes)
+build_lambda:             154 entries    1901755 bytes  with the .gz siblings (+77 files, +430815 bytes)
+build_lambda: wire      largest identity     491004 bytes  web/assets/index-B2eNn6gR.js
+build_lambda:           largest gzipped      138074 bytes  web/assets/index-B2eNn6gR.js.gz
+build_lambda:           1 gz object(s) above 65536 bytes
+build_lambda: console   declared  --console-transport live
+build_lambda: console   effective live, replay  (selectSource would start it LIVE, switchable true)
+build_lambda: console   literals  VITE_MAINLINE_API_BASE=/; VITE_MAINLINE_BUNDLE_URL=./bundle/; VITE_MAINLINE_LOG_VKEY=(empty)
+build_lambda: console   buildId   a25a017, unknown
+build_lambda: package   console 29 web/assets/*.js in the archive: effective live, replay (starts LIVE)
+build_lambda: sha256    a70b1e15e9cabc20904c097d5a666751728c4730f426e6062fd30a41e2004338
+build_lambda: manifest  D:/CoackroachDBxAWS/mainline/out/lambda/mainline-demo-api-arm64.zip.json
+build_lambda: check     scripts/deploy/bundle_manifest.py --strict
+bundle_manifest: mainline-demo-api-arm64.zip sha256=a70b1e15e9cabc20904c097d5a666751728c4730f426e6062fd30a41e2004338 zipped=8032312 unzipped=27031360 entries=292 VERDICT PASS
+build_lambda: ok        /d/CoackroachDBxAWS/mainline/out/lambda/mainline-demo-api-arm64.zip
