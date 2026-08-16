@@ -87,6 +87,13 @@ So the keys it drops are also written down, by name, in :data:`_NOT_A_READ`, and
 :func:`test_every_declared_key_is_either_driven_here_or_named_as_not_a_read` asserts the
 two agree exactly.
 
+**2026-08-16 added one key to each side, and the split is the whole discipline.**
+``cr_gate_run`` is a POST and joins :data:`_NOT_A_READ`; ``cr_blocking_checks`` is a GET
+and joins nothing — it is picked up by :func:`_get_keys` with no edit to this file and
+driven at the seeded ``cr_id`` like every other read. Two keys landing together is exactly
+the moment a reader is tempted to excuse both, so the second one's non-exemption is
+asserted by name rather than left to the filter.
+
 ``demo_gate_run`` is the newest member and was measured before it was admitted. The
 console declared it on 2026-08-14 as the seventeenth resource; this file was run against
 that tree and **did not go red**, because the ``method`` filter had already dropped it
@@ -99,10 +106,9 @@ payload for ``reads.read_resource`` to return, so the ``_ABSENT`` machinery abov
 apply to it. What the seed owes it is asserted where it can be: the four beats are driven
 end to end against the seeded world in ``tests/test_gate_run.py``.
 
-Naming the five is what keeps this an exemption rather than a hole. A sixth key that
-stopped being driven would have to be added to :data:`_NOT_A_READ` by somebody who typed
-its name; widening the predicate instead would excuse it, and every one after it, in
-silence.
+Naming them is what keeps this an exemption rather than a hole. A further key that stopped
+being driven would have to be added to :data:`_NOT_A_READ` by somebody who typed its name;
+widening the predicate instead would excuse it, and every one after it, in silence.
 
 Every test here needs a cluster and skips with the reason there is none.
 """
@@ -166,6 +172,22 @@ _NOT_A_READ: Final = {
     # that is rolled back. Nothing here can address it and nothing here can read it back;
     # `tests/test_gate_run.py` drives it against the seeded world instead.
     "demo_gate_run",
+    # The CHANGE REQUEST's gate run, declared 2026-08-16, and it is excused on exactly the
+    # same terms as the row above rather than on new ones: a POST with NO path parameter,
+    # governed by `cr-gate-run.schema.json`, beats inside one SERIALIZABLE transaction
+    # that is rolled back. `test_every_declared_key_is_either_driven_here_or_named_as_not_a_read`
+    # re-checks the stated reason instead of trusting it — the console must declare it a
+    # POST — and its template is asserted parameter-free below for the same reason
+    # `demo_gate_run`'s is, with one extra edge that is specific to this subject:
+    # `transitions._demo_guard` compares `subject_id` to `scenario.permit_id`, so a
+    # `{cr_id}` on a mutating route would be waved through. The parameter-free assertion
+    # below is therefore load-bearing here in a way it is not for the permit.
+    #
+    # NOTE the read that arrived in the same wave is NOT excused and must not be:
+    # `cr_blocking_checks` is a GET, the console declares it, `_get_keys()` picks it up
+    # with no edit to this file, and it is driven at the seeded `cr_id` like every other
+    # read. If it ever appears in this set, the change request has stopped being seeded.
+    "cr_gate_run",
 }
 
 
@@ -199,14 +221,16 @@ def _declarations() -> dict[str, dict[str, str]]:
 def _get_keys() -> tuple[str, ...]:
     """The resources a judge can READ, in the console's own declared order.
 
-    ``method`` is the console's, not a judgement made here: four of the five POST entries
-    are invocations of ``trappoint.*`` functions and the fifth is the demo driver, and
-    "drive the read and require a payload" is not a sentence about any of them. The five
-    are also written out by name in :data:`_NOT_A_READ`, because this filter is silent and
-    a silent filter is how a resource disappears — see
+    ``method`` is the console's, not a judgement made here: four of the six POST entries
+    are invocations of ``trappoint.*`` functions and the other two are the permit's and the
+    change request's demo drivers, and "drive the read and require a payload" is not a
+    sentence about any of them. All six are also written out by name in
+    :data:`_NOT_A_READ`, because this filter is silent and a silent filter is how a
+    resource disappears — see
     :func:`test_every_declared_key_is_either_driven_here_or_named_as_not_a_read`.
-    Filtering on a field the console declares is not an exclusion
-    list — adding a thirteenth GET adds a case here with no edit to this file.
+    Filtering on a field the console declares is not an exclusion list — a further GET
+    adds a case here with no edit to this file, which is exactly how
+    ``cr_blocking_checks`` arrived on 2026-08-16.
     """
     declared = _declarations()
     return tuple(key for key in _resource_keys() if declared[key]["method"] == "GET")
@@ -283,15 +307,29 @@ def test_every_declared_key_is_either_driven_here_or_named_as_not_a_read() -> No
             f"{declared[key]['method']}. A GET must be driven against the seed."
         )
 
-    # And the demo driver's own reason, by name, because it is the one whose exemption was
-    # decided rather than inherited: no path parameter means there is no subject for
-    # `_request` to address, seeded or _ABSENT.
-    assert "demo_gate_run" in _NOT_A_READ
-    assert _TEMPLATE_PARAM.findall(declared["demo_gate_run"]["template"]) == [], (
-        "demo_gate_run has acquired a path parameter. Its exemption here rests on the "
-        "subject being the seeded demo permit resolved server-side; a caller-supplied "
-        "subject is a different resource and needs its own decision."
+    # And the two demo drivers' own reason, by name, because theirs are the exemptions
+    # that were decided rather than inherited: no path parameter means there is no subject
+    # for `_request` to address, seeded or _ABSENT.
+    for driver in ("demo_gate_run", "cr_gate_run"):
+        assert driver in _NOT_A_READ
+        assert _TEMPLATE_PARAM.findall(declared[driver]["template"]) == [], (
+            f"{driver} has acquired a path parameter. Its exemption here rests on the "
+            "subject being the seeded demo subject resolved server-side; a caller-supplied "
+            "subject is a different resource and needs its own decision. For cr_gate_run "
+            "that is more than a contract point: transitions._demo_guard compares "
+            "subject_id to scenario.permit_id, so a {cr_id} on a mutating route would be "
+            "waved through on a Function URL with authorization_type = NONE."
+        )
+
+    # The read that landed in the same wave as cr_gate_run is NOT excused, and saying so
+    # by name is what stops the pair being excused together by somebody reading quickly.
+    assert "cr_blocking_checks" not in _NOT_A_READ, (
+        "GET /v1/change-requests/{cr_id}/blocking-checks is a READ the console declares. "
+        "It is driven at the seeded change request like every other read; excusing it "
+        "would restore exactly the silence that let change_request ship declared-but-"
+        "unseeded."
     )
+    assert declared["cr_blocking_checks"]["method"] == "GET"
 
 
 def test_every_console_read_has_an_implementation_in_this_api() -> None:

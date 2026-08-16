@@ -29,6 +29,18 @@ A derived identifier the API pinned would be the API asserting a fact about rows
 not write; reading it back means the demo describes the database it actually found, and
 says so when it finds nothing (:class:`ScenarioNotSeeded`).
 
+AND ONE SUBJECT SITS ON THE OTHER SIDE OF THAT LINE ON PURPOSE
+---------------------------------------------------------------
+The CHANGE REQUEST — the second gated subject, the one
+``POST /v1/demo/cr-gate-run`` drives — has no derivation at all.
+``db/seeds/demo/demo_world.sql`` §10 fixes its ``cr_id`` as a literal in the
+``dec0de00-…`` family and states, in the file, that the literal *"equals nothing in the
+codebase; grep for any of them under apps/demo-api/src/ finds nothing"*. Restating it here
+would make this module a second definition of a value the seed owns, which is the defect
+``tests/conftest.py`` was rewritten to delete. So it is READ — :func:`resolve_cr_id` — and
+``MAINLINE_DEMO_CR_ID`` overrides that read rather than seeding a fallback nothing seeds.
+The demo Lambda sets no such variable, and needs none.
+
 ROW SHAPE IS NOT A GLOBAL ANY MODULE MAY ASSUME
 -----------------------------------------------
 :func:`positional` lives in this module because it is the one :mod:`gate_run` and
@@ -67,6 +79,7 @@ __all__ = [
     "DEMO_NAMESPACE_URL",
     "ENV_PREFIX",
     "EXPECTED",
+    "ResolvedChangeRequest",
     "ResolvedScenario",
     "Scenario",
     "ScenarioNotSeeded",
@@ -74,6 +87,8 @@ __all__ = [
     "from_env",
     "positional",
     "resolve",
+    "resolve_change_request",
+    "resolve_cr_id",
 ]
 
 
@@ -124,6 +139,14 @@ EXPECTED: Final[Mapping[str, str]] = {
     "exposure-receipt": "01db9651-393f-5089-9aef-f38d2808f4c7",
     "recall-run": "24b9c644-dfb3-53dd-9bec-7176437b947c",
     "commit": "4fbbd371-06cf-5e02-b03a-49ce2ba5c4aa",
+    # The commit the CHANGE REQUEST's merge attempt names. Derived like every other name
+    # here, and deliberately NOT the permit's: two subjects proposing the same commit id
+    # would be a coincidence a reader could not check, and `mainline.cr_commit_sized`
+    # wants 32 bytes either way. It is never written — the merge it belongs to is refused
+    # and the whole transaction is rolled back — but a value that is never written is
+    # exactly the kind that drifts unnoticed, so it is derived and self-checked with the
+    # rest rather than typed once into `POST /v1/demo/cr-gate-run`.
+    "cr-commit": "2901ead3-5fec-575c-9869-46849f9202c2",
 }
 
 
@@ -140,6 +163,11 @@ def _selfcheck() -> None:
 
 
 _selfcheck()
+
+
+#: 32 bytes, because ``CONSTRAINT cr_commit_sized`` on ``mainline.change_request`` says 32.
+#: One uuid5 twice, exactly as the permit's :attr:`Scenario.merged_commit` is built.
+_CR_MERGED_COMMIT: Final = demo_uuid("cr-commit").bytes + demo_uuid("cr-commit").bytes
 
 
 class ScenarioNotSeeded(RuntimeError):
@@ -169,6 +197,27 @@ class Scenario:
     #: The commit the merge attempt records. 32 bytes; the demo derives it from the
     #: namespace so a replayed run and a live run name the same commit.
     merged_commit: bytes
+    #: THE SECOND GATED SUBJECT, AND THE ONE IDENTIFIER HERE THAT IS NOT DERIVED AND NOT
+    #: STATED. ``None`` means *ask the database*, and that is the default on purpose.
+    #:
+    #: Every other identifier above is ``uuid5`` of a string in this repository, so the
+    #: seeder and the API can agree without copying. The change request cannot join that
+    #: scheme: ``db/seeds/demo/demo_world.sql`` §10 fixes its ``cr_id`` as a literal in the
+    #: ``dec0de00-…`` family and says in the file why — *"chosen to equal nothing in the
+    #: codebase; grep for any of them under apps/demo-api/src/ finds nothing"*. Writing
+    #: that literal here would make this module the second definition of a value the seed
+    #: owns, which is the exact defect ``tests/conftest.py`` was rewritten to delete and
+    #: the one that put a ``23503`` in front of a judge.
+    #:
+    #: So it is READ, by :func:`resolve_cr_id`, the way :mod:`mainline_demo_api.subjects`
+    #: reads every identifier it publishes. ``MAINLINE_DEMO_CR_ID`` overrides that for a
+    #: deployment carrying more than one change request; the demo Lambda sets no such
+    #: variable and needs none, which is the other half of the reason the default is a
+    #: read and not a constant.
+    cr_id: uuid.UUID | None = None
+    #: The commit the CHANGE REQUEST's merge attempt names. 32 bytes, derived — see
+    #: ``EXPECTED['cr-commit']``. Never written: the merge it belongs to is refused.
+    cr_merged_commit: bytes = _CR_MERGED_COMMIT
 
     def as_json(self) -> dict[str, Any]:
         return {
@@ -179,6 +228,10 @@ class Scenario:
             "signer_sub": self.signer_sub,
             "countersigner_sub": self.countersigner_sub,
             "merged_commit": self.merged_commit.hex(),
+            # `null` is a fact and not an omission: it says this deployment did not name a
+            # change request and the run will ask the database which one it holds.
+            "cr_id": None if self.cr_id is None else str(self.cr_id),
+            "cr_merged_commit": self.cr_merged_commit.hex(),
         }
 
 
@@ -186,6 +239,26 @@ def _env_uuid(env: Mapping[str, str], name: str, fallback: uuid.UUID) -> uuid.UU
     raw = env.get(ENV_PREFIX + name.replace("-", "_").upper(), "").strip()
     if not raw:
         return fallback
+    try:
+        return uuid.UUID(raw)
+    except ValueError as exc:
+        raise ScenarioNotSeeded(
+            f"{ENV_PREFIX}{name.replace('-', '_').upper()}={raw!r} is not a UUID"
+        ) from exc
+
+
+def _env_uuid_or_none(env: Mapping[str, str], name: str) -> uuid.UUID | None:
+    """Read an overridable identifier that has NO derivation to fall back to.
+
+    Distinct from :func:`_env_uuid`, and the difference is the whole point: an absent
+    ``MAINLINE_DEMO_PERMIT_ID`` falls back to a ``uuid5`` both halves of the demo can
+    recompute, while an absent ``MAINLINE_DEMO_CR_ID`` has nothing to fall back TO — the
+    seed fixes that identifier as a literal. ``None`` is therefore the honest answer and
+    it means "ask the database", not "use the default".
+    """
+    raw = env.get(ENV_PREFIX + name.replace("-", "_").upper(), "").strip()
+    if not raw:
+        return None
     try:
         return uuid.UUID(raw)
     except ValueError as exc:
@@ -211,6 +284,8 @@ def from_env(env: Mapping[str, str] | None = None) -> Scenario:
             src.get(ENV_PREFIX + "COUNTERSIGNER_SUB", "").strip() or "demo.countersigner"
         ),
         merged_commit=demo_uuid("commit").bytes + demo_uuid("commit").bytes,
+        cr_id=_env_uuid_or_none(src, "cr_id"),
+        cr_merged_commit=_CR_MERGED_COMMIT,
     )
 
 
@@ -347,5 +422,224 @@ def resolve(conn: psycopg.Connection[Any], scenario: Scenario | None = None) -> 
         open_derived=int(open_derived),
         check_id=check_id,
         receipt_id=receipt_id,
+        site_code=site_code,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# the second gated subject
+#
+# THE SAME TWO QUESTIONS, ASKED OF A SUBJECT WHOSE IDENTIFIER CANNOT BE DERIVED.
+#
+# `resolve` above answers "what does the database say about the permit this deployment
+# names". The permit is NAMED by a uuid5 both the seed and the API recompute. The change
+# request is not: `demo_world.sql` §10 fixes `cr_id` as a literal and states, in the file,
+# that the literal appears nowhere under `apps/demo-api/src/`. So the question splits in
+# two and both halves are asked of the database:
+#
+#   `resolve_cr_id`          — WHICH change request. A read, refusing rather than
+#                              choosing when the answer is not exactly one row.
+#   `resolve_change_request` — WHAT the database says about it, in ONE statement, for the
+#                              same reason `_RESOLVE_SQL` is one statement: two would let
+#                              a concurrent write land between them and produce a
+#                              description of a subject that never existed.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+@dataclass(frozen=True, slots=True)
+class ResolvedChangeRequest:
+    """The change request as the database has it, plus the obligation the gate turns on.
+
+    ``open_blocking`` is the PROJECTED counter — the column ``fn_check_materialised``
+    wrote — and ``open_derived`` is the same quantity re-derived by the anti-join
+    ``mainline.fn_cr_merge_gate`` itself performs over ``blocking_check`` LEFT JOIN
+    ``disposition``. They are carried separately and never reconciled here, for the reason
+    :class:`ResolvedScenario` gives: a gate that trusts the first is a gate one ``UPDATE``
+    disarms, and demonstrating that is the entire point of the run these feed.
+    """
+
+    scenario: Scenario
+    cr_id: uuid.UUID
+    external_ref: str
+    ref_name: str
+    target_ref: str
+    state: str
+    head_seq: int
+    gate_epoch: int
+    open_blocking: int
+    open_conflicts: int
+    open_residue: int
+    merged_commit: str | None
+    open_derived: int
+    #: The single open obligation the CR gate turns on, or ``None`` when none is open.
+    check_id: uuid.UUID | None
+    #: ``mainline.blocking_check.severity`` (0-5), ``virulence`` and ``origin`` for that
+    #: obligation, all three PROJECTED by ``fn_check_project`` from the blame closure and
+    #: none of them supplied by the seed. ``None`` when there is no open obligation.
+    severity: int | None
+    virulence: str | None
+    origin: str | None
+    site_code: str
+
+    def as_json(self) -> dict[str, Any]:
+        return {
+            "subject_kind": "change_request",
+            "subject_id": str(self.cr_id),
+            "external_ref": self.external_ref,
+            "ref_name": self.ref_name,
+            "target_ref": self.target_ref,
+            "state": self.state,
+            "head_seq": self.head_seq,
+            "gate_epoch": self.gate_epoch,
+            "open_blocking": self.open_blocking,
+            "open_blocking_derived": self.open_derived,
+            "open_conflicts": self.open_conflicts,
+            "open_residue": self.open_residue,
+            "merged_commit": self.merged_commit,
+            "blocking_check_id": str(self.check_id) if self.check_id else None,
+            "severity": self.severity,
+            "virulence": self.virulence,
+            "origin": self.origin,
+            "site_code": self.site_code,
+        }
+
+
+#: EVERY change request in the database, ordered by its primary key. No predicate and no
+#: ``LIMIT``: "exactly one row" is then an assertion about the whole database rather than
+#: about whichever row a scan reached first, which is the discipline
+#: :mod:`mainline_demo_api.subjects` states and ``tests/conftest.py::_sole`` enforces for
+#: the permit. An unordered ``LIMIT 1`` over a table that grew a second row would be a coin
+#: toss made silently, on the day somebody seeded a second change request.
+_CR_SOLE_SQL: Final = "SELECT cr.cr_id FROM mainline.change_request cr ORDER BY cr.cr_id"
+
+#: One statement. The subject row, the re-derived count, and the chosen obligation's three
+#: PROJECTED columns, all read at ONE moment — see the section header above.
+_CR_RESOLVE_SQL: Final = """
+WITH open_obligation AS (
+  SELECT bc.check_id, bc.severity, bc.virulence::STRING AS virulence, bc.origin
+    FROM mainline.blocking_check bc
+   WHERE bc.cr_id = %s
+     AND NOT EXISTS (SELECT 1 FROM mainline.disposition d
+                      WHERE d.check_id = bc.check_id
+                        AND d.retracted_by IS NULL
+                        AND (d.expires_at IS NULL OR d.expires_at > now()))
+),
+chosen AS (SELECT * FROM open_obligation ORDER BY check_id LIMIT 1)
+SELECT cr.external_ref,
+       cr.ref_name,
+       cr.target_ref,
+       cr.state::STRING,
+       cr.head_seq,
+       cr.gate_epoch,
+       cr.open_blocking,
+       cr.open_conflicts,
+       cr.open_residue,
+       encode(cr.merged_commit, 'hex'),
+       (SELECT count(*) FROM open_obligation),
+       (SELECT check_id FROM chosen),
+       (SELECT severity FROM chosen),
+       (SELECT virulence FROM chosen),
+       (SELECT origin FROM chosen),
+       st.site_code
+  FROM mainline.change_request cr
+  JOIN mainline.site st ON st.site_id = cr.site_id
+ WHERE cr.cr_id = %s
+"""
+
+
+def resolve_cr_id(conn: psycopg.Connection[Any], scenario: Scenario | None = None) -> uuid.UUID:
+    """Name the change request this deployment's demo drives, without inventing one.
+
+    ``MAINLINE_DEMO_CR_ID`` wins when it is set. Otherwise the database is asked, and the
+    answer is accepted only when it is EXACTLY ONE row — not "the first one".
+
+    Raises:
+        ScenarioNotSeeded: the database holds no change request, or more than one and no
+            override says which. Both messages name the count and the variable, because
+            the two failures a stranger actually hits here are "I pointed it at the wrong
+            database" and "this cluster carries a second subject", and a message that
+            reports neither cannot tell them apart.
+    """
+    sc = scenario or from_env()
+    if sc.cr_id is not None:
+        return sc.cr_id
+    rows = positional(conn, _CR_SOLE_SQL).fetchall()
+    if len(rows) != 1:
+        raise ScenarioNotSeeded(
+            f"this database holds {len(rows)} mainline.change_request row(s) and exactly "
+            f"one is required to drive the change-request gate without choosing between "
+            f"them. The demo history is seeded by db/seeds/demo/demo_world.sql §10, which "
+            f"writes exactly one; set {ENV_PREFIX}CR_ID to name the subject if this "
+            "deployment carries more."
+        )
+    return uuid.UUID(str(rows[0][0]))
+
+
+def resolve_change_request(
+    conn: psycopg.Connection[Any],
+    scenario: Scenario | None = None,
+    *,
+    cr_id: uuid.UUID | None = None,
+) -> ResolvedChangeRequest:
+    """Read the seeded change request back out of *conn*.
+
+    Args:
+        conn: a live connection. The read joins whatever transaction is open, so a caller
+            playing beats inside one sees the same snapshot its beats will write against.
+        scenario: the identifiers to drive. Defaults to :func:`from_env`.
+        cr_id: the subject, when the caller has already named it. Supplied by
+            :mod:`mainline_demo_api.cr_gate_run` so that the reading taken BEFORE its
+            transaction and the reading taken INSIDE it are about the same row even on a
+            cluster whose change-request table grew a row between them — resolving the
+            identifier twice would let those two readings describe two subjects.
+
+    Raises:
+        ScenarioNotSeeded: no change request with that identifier, or none to choose.
+    """
+    sc = scenario or from_env()
+    subject = cr_id if cr_id is not None else resolve_cr_id(conn, sc)
+    row = positional(conn, _CR_RESOLVE_SQL, (subject, subject)).fetchone()
+    if row is None:
+        raise ScenarioNotSeeded(
+            f"no mainline.change_request with cr_id {subject} in this database. The demo "
+            f"history is seeded by db/seeds/demo/demo_world.sql §10; override the "
+            f"identifier with {ENV_PREFIX}CR_ID if this deployment seeded a different one."
+        )
+    (
+        external_ref,
+        ref_name,
+        target_ref,
+        state,
+        head_seq,
+        gate_epoch,
+        open_blocking,
+        open_conflicts,
+        open_residue,
+        merged_commit,
+        open_derived,
+        check_id,
+        severity,
+        virulence,
+        origin,
+        site_code,
+    ) = row
+    return ResolvedChangeRequest(
+        scenario=sc,
+        cr_id=subject,
+        external_ref=external_ref,
+        ref_name=ref_name,
+        target_ref=target_ref,
+        state=state,
+        head_seq=int(head_seq),
+        gate_epoch=int(gate_epoch),
+        open_blocking=int(open_blocking),
+        open_conflicts=int(open_conflicts),
+        open_residue=int(open_residue),
+        merged_commit=merged_commit,
+        open_derived=int(open_derived),
+        check_id=check_id,
+        severity=None if severity is None else int(severity),
+        virulence=virulence,
+        origin=origin,
         site_code=site_code,
     )

@@ -1279,7 +1279,15 @@ def test_the_local_retry_names_its_specification() -> None:
 
 
 def test_every_call_site_of_the_retry_is_named_and_re_attemptable() -> None:
-    """``run_transaction`` is called from exactly two places, and both are declared here.
+    """``run_transaction`` is called from exactly three places, and all three are here.
+
+    THE THIRD ARRIVED 2026-08-16 WITH ``POST /v1/demo/cr-gate-run``, and it is admitted on
+    exactly the grounds the second was: one call to ``cr_gate_run`` IS one whole transaction
+    — it rolls back whatever it was handed, opens its own, plays three beats and rolls all
+    of it back — so the retried unit is the transaction and not a statement inside one. It
+    is also safe to run more than once for the reason its payload proves rather than
+    asserts: it persists nothing, so a second attempt asks the same question of the same
+    rows. The list stays CLOSED; a fourth site still fails here.
 
     THIS ASSERTION'S EXPECTED VALUE MOVED ON 2026-08-14 UNDER ``docs/leads/ci-green-final``
     RULING R3, AND THE REASON IS THE ONE THING WORTH READING IN THIS FILE TODAY.
@@ -1321,12 +1329,13 @@ def test_every_call_site_of_the_retry_is_named_and_re_attemptable() -> None:
             for inner in ast.walk(node)
         )
     }
-    assert enclosing == {"_demo_gate_run", "handle_transition"}, (
+    assert enclosing == {"_demo_cr_gate_run", "_demo_gate_run", "handle_transition"}, (
         f"run_transaction is called from {sorted(enclosing)}. The retried unit must be a "
         "WHOLE transaction from BEGIN (spec/errors.md §2.1): `_demo_gate_run` wraps one "
-        "call to gate_run, and `handle_transition` wraps one whole committing transition. "
-        "A third call site is either a statement being retried inside somebody else's "
-        "transaction — which §2.1 forbids — or a second loop with a second taxonomy."
+        "call to gate_run, `_demo_cr_gate_run` wraps one call to cr_gate_run, and "
+        "`handle_transition` wraps one whole committing transition. A fourth call site is "
+        "either a statement being retried inside somebody else's transaction — which §2.1 "
+        "forbids — or a second loop with a second taxonomy."
     )
 
     minted = {

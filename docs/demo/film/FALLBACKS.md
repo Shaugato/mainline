@@ -17,9 +17,15 @@ list, the scanner must PRINT that it skipped this file, so "not scanned" is neve
 # FALLBACKS — what the founder says when a beat misbehaves, and the pre-flight before the red light
 
 **Worker W6** · story-and-script wave · written 2026-08-15, measurements re-read 2026-08-16
+**Amended 2026-08-16 · W6 · film re-cut wave** — F-8 rewritten for two worlds, F-9 superseded by
+its own re-measurement, F-11 tightened under R-9, F-17 and F-18 added, and §4 now carries the
+**R-11 decision gate** and the **NO-GO path** in full. Every amendment is a reading taken today
+against the live origin; the superseded rows are kept and marked, never deleted.
 **Binding on this file:** `docs/demo/story-and-script-plan.md` §4 — **R-N above all**, and
-R-C, R-E, R-F, R-I, R-J, R-K, R-L. **Research:** `r6-honesty` Parts C and D (and A4.4, A10,
-A13.2, A13.5, A17), `r5-craft` §§0.1 and 9.
+R-C, R-E, R-F, R-I, R-J, R-K, R-L; and `docs/demo/film-recut-plan.md` §§4.3, 4.4, 6 and 8 —
+**R-4, R-5, R-7, R-9, R-10** and the decision gate this file numbers **R-11**.
+**Research:** `r6-honesty` Parts C and D (and A4.4, A10, A13.2, A13.5, A17), `r5-craft` §§0.1
+and 9.
 **Live origin:** `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`
 **Siblings this file must not contradict:** `BEATS.yaml`, `SPINE.md`, `VO-DEMO.md`,
 `VO-CLOSE.md`, `CLICKS.md`, `ONSCREEN-TEXT.yaml`.
@@ -32,6 +38,11 @@ $ .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check docs/demo/film/
   claim hygiene OK
                                                                           (exit 0)
 ```
+
+**Re-run verbatim after the 2026-08-16 amendment, on the amended file** — same three lines, same
+`exit 0`. The rule is in the paragraph below and it was obeyed: *not scanned* and *passed* are
+different results, so the scan is re-run after every edit rather than inherited from the version
+before it.
 
 Recorded per plan R-B: `docs/demo/film/` is outside every `TARGET_GLOBS` entry, so this scan is
 invoked by hand and its result is pasted here rather than assumed. It is a reading of **this
@@ -84,6 +95,29 @@ it again per command, in the pre-flight block itself.
 | **M9** | `POST <origin>/v1/demo/gate-run`, **by hand** | **NOT RUN — forbidden to me** | I issued no `POST` by hand. Every payload field quoted in this file is read out of `evidence/deploy/live-gate-run.json`, `evidence/demo/operator-capture.json`, or the handler's own source. **The verdict on the day is the founder's own run, and nothing on this page substitutes for it.** |
 | **M11** | `POST <origin>/v1/demo/gate-run`, **by the pre-flight tool** | **HAPPENED — disclosed, not hidden** | `regression_guard.py` **posts to the live gate-run itself**, by design, as its `LIVE` family. Running the command r6 Part D prescribes therefore drove the live endpoint from this session. Its four `LIVE` checks all **PASS**: `health_ok ok=True`, `deploy_chain_applied 271`, **`gate_run_verdict` expected `PROVEN`, observed `PROVEN`**, `gate_run_beats` **4 beats, 0 mismatch(es)**. The endpoint is non-mutating by construction and the guard's own `SEED` family re-counted the rows afterwards — `core_counts`, `defeater_option 6`, `ledger_leaf 4`, `ledger_node 3` all matched. Nothing was written. **Said out loud because a worker who let a `POST` happen and did not mention it would be the small version of the thing this whole file is against.** |
 | **M10** | source read for exact strings | **READ, not run** | `mainline_demo_api/transitions.py` (the `423` body, verbatim), `gate_run.py` (beat-4 skip conditions and the `verdict` rule, verbatim), `retry.py` and `refusal.py` (`40001`), `contracts/gate-run.schema.json` (`outcome` enum), `operator/issue/pending.ts` (the pending clock), `scripts/deploy/local_furl.py` (the two headers), `features/custody/CustodyScreen.tsx` (the tally label), `infra/envs/demo/terraform.tfvars.example` (`api_timeout_seconds = 14`). |
+
+### 1.1 · THE RE-MEASUREMENT, 2026-08-16 — six readings, all `GET`, and one of them overturns M2
+
+**M2 is superseded and is kept above rather than deleted.** It was true when it was taken. The
+world moved, and a measurement is not edited because it aged — it is re-taken beside it, dated,
+and the two are read together. That is the same discipline `r6-honesty.md` gets in
+`CLAIMS-CLEARANCE.md` §12.
+
+| # | what | status | result, verbatim |
+|---|---|---|---|
+| **M12** | `GET <origin>/` and `GET <origin>/operator.html` | **RAN** (read-only) — **supersedes M2** | **They are no longer the same document.** `/` → `200 · 4,749 B · sha256 9bd68bcd…1fbb · <title>MAINLINE console</title>`. `/operator.html` → `200 · 5,097 B · sha256 37454502…3f2d · <title>Control of Work</title>`, loading its own entry `assets/operator-D24tzVGh.js`. **The operator surface is on the deployed origin. F-9 is no longer the state of the world** — see F-9's superseding block. |
+| **M13** | `GET <origin>/assets/operator-D24tzVGh.js` | **RAN** (read-only) | `200 · 29,906 B on the wire · 96,734 B decoded`. Strings counted in the decoded bytes: `Management of change` ×3, `Cannot approve` ×2, `blocking obligation` ×3, `moc-proposed-text` ×1, `blocking-checks` ×7, `aria-disabled` ×1. **`1 obligation outstanding` is ZERO in this asset** — it renders from a lazily-loaded chunk, which is why the pre-flight in §4 checks the **rendered DOM** and never the entry chunk. |
+| **M14** | the deployed `/operator.html#/permit` screen, rendered, read out of the DOM | **RAN** (read-only, no click) | Renders. `CONTROL OF WORK`, `DEMO-PTW-0001`, `dispositioned`, **`1 obligation outstanding`**, `Save draft`, `ISSUE ▸`, the `SYNTHETIC DEMONSTRATION — no real site, no real permit, no real person` watermark, `DEMO-INC-0001` ×2, and an origin strip reading `X-Mainline-Emulator · absent — the last response declared no emulator`. **`Which isolation point` is ZERO** — the permit screen still issues no disposition read, so **F-15 stands, re-confirmed against the deployed origin rather than against a local capture.** |
+| **M15** | the deployed `/operator.html#/change` screen, rendered, read out of the DOM | **RAN** (read-only, no click) | Renders, **and it does not break.** `MANAGEMENT OF CHANGE · DEMO-MOC-0001`, `checks_materialised`, `counters.open_blocking 1`, all four `cr_*` CHECK constraints with predicates *"read out of `pg_catalog` at request time"*, the clause of record with printed label `7.3.2(b)`, both typed boxes empty and labelled, the disabled approve control, and the 404 disclosed in place. **Full detail and the four absences in F-17.** |
+| **M16** | `GET`/`POST` against the change-request route family | **RAN** (read-only in effect: every one is a `404`, nothing was created, nothing was driven) | `GET /v1/change-requests/{cr_id}` → `200 · 3,295 B`, `state checks_materialised`, `counters.open_blocking 1`, four `cr_*` constraints with predicates. `GET …/checks` → `404`. `GET …/blocking-checks` → `404`. `GET`/`POST …/merge` → `404`. `POST /v1/demo/cr-gate-run` → `404`. Each `404` body declares the whole route table: **17 routes, and no change-request route beyond `{cr_id}` itself.** |
+| **M17** | `GET <origin>/v1/checks/dec0de00-000d-…/disposition` and `GET <origin>/v1/demo/subjects` | **RAN** (read-only) | The change request's obligation **is** reachable by that one route: `200 · 3,850 B`, three defeater prompts under one `vocab_sha256`, a five-row `blood_major` lattice, `virulence blood_major`. It returns **no `severity`, no `clause_uuid`, no `event_id` and no origin**, and `GET /v1/demo/subjects` does not enumerate it. **`blood_major` on that row is the projection's own output** — `demo_world.sql:1012` seeds `0, 'routine', 0` with the comment *"projected over by `fn_check_project`"* — so the projection is provable for this obligation from a route that answers. **`severity 4` for it is not.** |
+
+**Two `POST`s were issued by hand in this amendment and they are disclosed rather than tidied
+away:** `POST /v1/change-requests/{cr_id}/merge` and `POST /v1/demo/cr-gate-run`, both of which
+answered `404 no_route`. They were issued to establish that the route is **absent**, which is a claim this
+file makes on camera; a `404` creates nothing, drives nothing and persists nothing, and the
+declared route table in each body is the evidence. **`POST /v1/demo/gate-run` was still not run by
+hand** (M9 stands): the verdict on the day is the founder's own run.
 
 **No AWS surface was touched, no SSM parameter was written, no credential was printed, no
 `terraform` command was run, and nothing was committed.** The only file this worker authored is
@@ -351,35 +385,110 @@ exhaustion is of the retrieval that ran.
 
 ---
 
-### F-8 · "SHOW ME THE CHANGE REQUEST BLOCKING TOO"
+### F-8 · "SHOW ME THE CHANGE REQUEST BLOCKING TOO" — **WRITTEN FOR TWO WORLDS**
 
-**What it looks like.** `DEMO-MOC-0001` appears once, read-only, in B8, with `open_blocking 1`
-and its own defeater codes, and the approve control **rendered disabled with the obligation
-named as the reason**. There is no merge route for it — a `POST` to one measures `404`, and the
-`404` body declares the whole route table — and `mainline.change_request` carries no title, no
-description, no proposed text, no requester and no target clause.
-
-> **SAY:**
->
-> **"There's a second subject carrying the same clause's debt — a change request that proposes
-> to edit the clause. `open_blocking` is one, it has its own gate constraints and its own
-> defeater vocabulary, and all of that is columns we measured. There is no merge route for it
-> yet, so I'm telling you about it rather than driving it."**
-
-**DO.** Show it once, read-only, and move on. It is the film's cheapest scope cut if time runs
-long — plan §2.2 puts B8's second half first on the ladder for exactly this reason.
-
-**NEVER.** **MUST NOT SAY:** *"watch the same debt block the change request"* — nothing is
-watched, because no merge route exists. Never render a "proposed" clause string: the table
-carries none, so a plausible one would be hard-coded, and hard-coding a plausible string is the
-same class of act as reshaping a seed to match a constant. Never say the clause **was**
-rewritten — **somebody has proposed** to rewrite it, and the date on screen is `2019-03-14`.
+**This block now has two forms, and which one is live is decided by the R-11 gate in §4.2, not by
+how the day feels.** Under **GO** the change request is *driven* and refused on camera as `b9`/`b10`.
+Under **NO-GO** it is *told*, read-only, in a `b8` restored to 10 s — which is what F-8 has always
+been, and the read-only cut is now **stronger** than when this block was first written.
 
 ---
 
-### F-9 · THE OPERATOR UI DOES NOT LAND
+#### F-8 · NO-GO FORM — told, never driven. **This is the default and it is a legitimate film.**
 
-**This is not hypothetical. It is the state I measured.**
+**What it looks like, measured on the deployed origin today (M15).** `/operator.html#/change`
+renders the Management-of-Change screen for `DEMO-MOC-0001`: `state checks_materialised`,
+`counters.open_blocking 1`, **all four `cr_*` CHECK constraints with their predicates**, the
+clause of record with its printed label and its `SYNTHETIC —` prefix intact, both typed boxes
+empty and labelled as carrying no column, and the approve control **disabled**
+(`aria-disabled="true"`) rendering its own reason:
+
+```
+APPROVE CHANGE                                       (disabled)
+
+Cannot approve. 1 blocking obligation is outstanding on this change request.
+
+cr_gate_closed_when_merged
+CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))
+
+← from mainline.change_request
+```
+
+**That sentence, that constraint name and that predicate are on screen without anybody narrating
+them**, and beside them the screen renders its own *"WHY THERE IS NO APPROVE ACTION HERE"* block:
+the `404 no_route` body, the seventeen declared routes, and the two the screen would need shown
+**struck through in place**. The software discloses its own gap better than a script can.
+
+> **SAY — and this is the amended `SAY:` block, longer than the old one because the screen now
+> carries more of it:**
+>
+> **"There's a second subject carrying the same clause's debt — a change request that proposes to
+> edit the clause. Open blocking: one. The approve control is disabled, and it prints its own
+> reason: one blocking obligation outstanding, and the constraint that holds it closed, with its
+> predicate. There is no merge route for it yet — the screen says so and lists the routes that
+> exist — so I'm telling you about it rather than driving it."**
+
+**DO.** Show it once, read-only, and move on. Point at the disabled control's reason line rather
+than describing it; it is the product's own sentence and it is better than any of ours. If time
+runs long this is still the film's cheapest scope cut.
+
+**NEVER.** **MUST NOT SAY:** *"watch the same debt block the change request"* — nothing is
+watched, because no merge route exists. Never render a "proposed" clause string that came from
+anywhere but the founder's own keyboard: the table carries none, so a plausible one would be
+hard-coded, and hard-coding a plausible string is the same class of act as reshaping a seed to
+match a constant. Never say the clause **was** rewritten — **somebody has proposed** to rewrite
+it. **And never narrate the authorisation lattice on that screen as the change request's — it is
+the permit's check, and the screen says so. That is F-17 and it is the sharpest trap on this
+surface.**
+
+---
+
+#### F-8 · GO FORM — driven, and refused, as `b9`/`b10`
+
+**Live only when all six conditions of the R-11 gate in §4.2 hold.** The attempt is made against a
+**demo-safe, rolled-back** endpoint that measures its own `persisted: false` from a fingerprint it
+took, exactly as `POST /v1/demo/gate-run` does — never against a committing route, and never by
+enabling the approve control in front of nothing.
+
+> **SAY — only what the frame carries, and the mirror is the last sentence:**
+>
+> **"Refused. Twenty-three five one four again — a different CHECK, guarding the change.
+> ·hold· You can't use the clause. You can't quietly edit it away either."**
+
+**DO.** Read the constraint name off the screen, not off this page — `cr_gate_closed_when_merged`
+is the **CHECK**; `cr_merge_gate` is the **trigger**; `mainline.fn_cr_merge_gate` is the trigger's
+**function**, and a `P0001` names the third, never the first. Keep the shared clause and the
+shared precursor legible in the same frame (R-5). Say `persisted: false` off the payload.
+
+**NEVER.** **MUST NOT SAY** any variant of the mirror that drops the scope word — *"the clause
+cannot be changed"* · *"the database won't let anyone edit the rule"* · *"the memory is
+immutable"* · *"you can't edit it."* All four are **REFUSE** rows in `CLAIMS-CLEARANCE.md` §12.4
+and the refusal is final. **TRUE INSTEAD:** *"you can't **quietly** edit it away"*, or *"not
+without answering the question first."* Never speak `blood_major` and never speak a severity for
+this obligation — `severity` is not returned by any route that answers today (M17). Never say
+*"and there is no way through"*: there are three, they are on screen, and each demands a citation.
+
+---
+
+### F-9 · THE OPERATOR UI DOES NOT LAND — **SUPERSEDED 2026-08-16. IT LANDED.**
+
+> **THE STATE OF THE WORLD CHANGED AND THIS BLOCK IS NO LONGER THE STATE OF THE WORLD.** The
+> measurement below is kept exactly as it was taken on 2026-08-15, because a dated reading is not
+> rewritten because the world moved. **What replaces it is M12, M14 and M15**, taken today:
+> `/operator.html` answers `200 · 5,097 B · <title>Control of Work</title>`, **no longer
+> byte-identical to `/`** (`200 · 4,749 B · <title>MAINLINE console</title>`); it loads its own
+> entry asset; and **both screens render** — `#/permit` with `CONTROL OF WORK`, `DEMO-PTW-0001`,
+> `1 obligation outstanding`, the watermark and the origin strip, and `#/change` with the whole
+> Management-of-Change surface F-8's NO-GO form now quotes.
+>
+> **`CLAIMS-CLEARANCE.md`'s condition 1 — *"the film scored in `CLICKS.md` has no pixels on this
+> origin today"* — is CLOSED**, and §12.2 of that file carries the superseding row.
+>
+> **This block stays in the document, at full strength, for one reason: a deploy can regress.**
+> If the §4 pre-flight reads anything other than `Control of Work` **and** a rendered
+> `1 obligation outstanding`, F-9 is live again, unchanged, and everything below governs.
+
+**The 2026-08-15 measurement, kept verbatim.**
 
 `GET <origin>/operator.html` answers `200` with **4,655 bytes that are byte-identical to
 `GET <origin>/`**, and both carry `<title>MAINLINE console</title>`. The built operator entry
@@ -451,17 +560,38 @@ a stop condition, not a fallback.
 
 ---
 
-### F-11 · A SECOND `POST` ROW APPEARS THAT NOBODY SAW A REASON FOR
+### F-11 · A MUTATING REQUEST APPEARS THAT NOBODY SAW A REASON FOR — **TIGHTENED, R-9**
 
-**What it looks like.** Two `gate-run` rows in the Network panel, or one `gate-run` and one
-anything-else, with no visible failure between them.
+**What it looks like.** A row in the Network panel that no narration accounts for: a second
+`gate-run`, a `gate-run` and one anything-else, or a row that is genuinely expected but arrives
+while the founder is saying something else.
 
-**SAY:** nothing. **DO:** stop the take, and start again from pre-roll step 2. There is exactly
-one mutating request in the entire film. The exception is F-2, where the first row is on screen
-failing and the second press is the honest answer.
+> **THE RULE, IN ITS AMENDED FORM. `film-recut-plan.md` R-9 · authority: the anti-fake rules in
+> `CLICKS.md` §6, which F-11 serves.**
+>
+> **Exactly two mutating requests in the film — each narrated while it is in flight, and each
+> visible in the panel. Any third row, or either row appearing without its narration, stops the
+> take.**
 
-**NEVER** narrate over it, and never trim the extra row out in the edit — that is editing the
-thing being claimed.
+**This is a TIGHTENING and it must never be read as a loosening.** The old rule was *one* request,
+and *any* second row stopped the take. The new rule permits a second **only** because use case two
+drives a second demo-safe endpoint under `b9` — and it **adds a condition the old rule did not
+have**: a row is now a stop condition if it is *unnarrated*, even when the count is legal. At two
+requests the new rule is strictly stronger than the old one. **`b9`/`b10` do not exist unless the
+R-11 gate in §4.2 passes; under NO-GO the count reverts to one and the narration condition
+stays.** The spine field moves `one_post_per_film: true` → `posts_per_film: 2`, and the
+per-request disclosure strap becomes per-request rather than per-film (plan §4.4).
+
+**SAY:** nothing. **DO:** stop the take, and start again from pre-roll step 2.
+
+**The one exemption, unchanged and still narrow:** F-2, where the first row is **on screen
+failing** and the second press is the honest answer. A `40001` re-press is narrated by the failure
+itself, which is exactly the condition the new rule generalises.
+
+**NEVER** narrate over an unaccounted row after the fact, and never trim the extra row out in the
+edit — that is editing the thing being claimed. **And never satisfy the count by warming the
+function from the filmed tab**: a warming press in the filmed tab is a mutating row with no
+narration, which the new rule stops the take for and the old one would have too.
 
 ---
 
@@ -546,6 +676,76 @@ See §3, answer four. It is the strongest sentence in this document and it costs
 
 ---
 
+### F-17 · THE CHANGE-REQUEST OBLIGATION PANEL — the `404`, and the read that lands on the wrong check
+
+**This is the newest failure mode in the document and it is the one most likely to put a false
+sentence on camera, because nothing on screen looks broken.**
+
+**What I measured (M15), on the deployed origin, with no click.** `GET
+/v1/change-requests/{cr_id}/blocking-checks` answers **`404 · 693 B`**, and the Management-of-Change
+screen **does not break on it.** It renders the absence: the `404 no_route` body in full, the
+seventeen declared routes, the two it would need struck through in place, and its own sentence —
+
+> *"What this deployment does NOT return: the obligation's own row. Its id, the precursor that
+> raised it, its severity, its virulence and its defeater vocabulary are not reachable from any
+> declared route, so none of them is shown."*
+
+**The plan's expectation that this 404 films a broken panel is wrong, and the truth is better.**
+The panel is filmable exactly as it is, and it is a disclosure a judge can read.
+
+**But the screen then does something a founder must understand before he narrates it.** Its
+authorisation section reads
+`GET /v1/checks/dec0de00-0007-…/disposition` — **the permit's check** — and prints, in its own
+words: *"This change request's own obligation is not addressable from any declared route, so the
+read above was made against the check that is addressable. Nothing is claimed here about this
+change request's obligation."* The lattice is keyed by **virulence**, so the five rows are
+identical either way, and **that is exactly what makes the mistake invisible.**
+
+**Four things are therefore NOT on that screen today**, each verified by counting occurrences in
+the rendered DOM: `DEMO-INC-0001` (**0**), the three change-request defeater prompts (**0**), the
+check id `dec0de00-000d-…` (**0**), and any severity for that obligation (**0**).
+
+> **SAY, if the screen is filmed under NO-GO and a judge asks what the table is:**
+>
+> **"That authorisation table is read against the permit's obligation, not the change request's —
+> the screen says so itself, right there. The change request's own obligation isn't reachable
+> from any route this deployment declares, so nothing on this screen claims anything about it."**
+
+**DO.** Read the screen's own disclosure aloud rather than paraphrasing it. If the `blocking-checks`
+route lands but returns a shape the panel cannot parse, the screen falls back to exactly this
+state — **so a half-landed route looks identical to no route at all**, and the R-11 gate in §4.2
+checks the rendered panel, never the status code alone.
+
+**NEVER.** **MUST NOT SAY:** *"and there are its defeaters"* over that lattice · *"that's the
+change request's severity"* · *"the same obligation blocks both."* The first two are false about
+the read that produced the table; the third is a claim about the data model this film does not put
+on screen. **TRUE INSTEAD:** *"same clause, same precursor, two gate families"* — and only when
+both identifiers are legible in the frame (R-5). Never fill the absence with a value from the
+seed, from this file, or from the permit's screen.
+
+---
+
+### F-18 · THE R-11 GATE FAILS ON THE DAY, AND SOMEBODY WANTS TO SHOOT `b9` ANYWAY
+
+**What it looks like.** The gate in §4.2 fails on one condition — usually the last one — and the
+temptation is to shoot the block that *does* work and cut around the rest.
+
+**DO.** Take the NO-GO path in §4.3 whole. **`b9` may never be shot without `b10`** (plan R-10):
+a setup with no answer spends ten seconds raising the judge's own objection and never answers it,
+which is worse than never raising it. Restore `b8` to 10 s, keep its read-only change-request cut
+in F-8's NO-GO form, and the film is **152 s · 2:32** — twenty-eight seconds under the ceiling and
+legal in every particular.
+
+**NEVER** enable an approve control in front of an endpoint that is not there. Never point it at
+the permit's merge route — *"a button that refused a different record would be a prop"*, which is
+the deployed screen's own sentence about itself. Never add a committing route to make a beat
+work, and **never propose granting `mainline_api` INSERT**: the standing
+`transitions.materialise_checks` shortfall is open, it is the founder's call, and widening the
+write surface of an unauthenticated endpoint to buy twelve seconds of film is not a trade this
+document will make.
+
+---
+
 ## 3 · THE FOUR HARD-QUESTION ANSWERS — VERBATIM, REHEARSED, NOT PARAPHRASED
 
 These are `r6-honesty` Part C, reproduced word for word. Each is the honest answer and each is
@@ -599,6 +799,10 @@ curl -sS -X POST -H 'content-type: application/json' -d '{}' \
 
 # ── the surface you are about to film (F-9) ────────────────────────────────────────────────
 curl -sS "$URL/operator.html" | grep -o '<title>[^<]*</title>'   # must read Control of Work
+# AND THEN OPEN IT. A 200 and a title are not pixels: the permit screen's
+#   "1 obligation outstanding" renders from a lazily-loaded chunk and is NOT in the
+#   entry asset (M13), so grepping the entry asset for it fails while the screen is fine.
+#   Open  $URL/operator.html#/permit  and read the string off the screen.
 
 # ── the repository's own checkers ──────────────────────────────────────────────────────────
 $PY scripts/mi_ratchet.py report | tail -1                       # the invariant figure, never quoted
@@ -615,7 +819,7 @@ $PY verticals/mainline/demo/honesty/gen_card.py --check          # the card matc
 |---|---|---|
 | `curl … /v1/health` | **RAN** (M1) | `ok:true`, `271 / 271`, and a `server_date` from today. I read `0.711 s` from this workstation, which is the ~232 ms round trip to `ap-southeast-1` plus the handler. |
 | `curl -X POST … /v1/demo/gate-run` | **TRANSCRIBED — I issued no `POST` by hand.** The guard did, as its own `LIVE` family (M11), and it read **`PROVEN`, 4 beats, 0 mismatch(es)** this session. | Must read `PROVEN`, with four beats and `failures: []`. **A reading from this session is not a reading from the day of the shoot — run it yourself and read your own output.** If it reads `NOT PROVEN`, go to F-4 before you go anywhere near a camera. |
-| `curl … /operator.html \| grep title` | **RAN** (M2) | **Today it reads `<title>MAINLINE console</title>`, which means the operator surface is NOT on the origin.** It must read `Control of Work`. If it does not, the shoot follows F-9. |
+| `curl … /operator.html \| grep title` | **RAN** (M2, then **M12/M14 today**) | **It now reads `<title>Control of Work</title>` and both screens render (M14, M15).** M2's opposite reading is superseded and kept. It must read `Control of Work` **and** the opened `#/permit` screen must show `1 obligation outstanding` with its own eyes. If either fails, the shoot follows F-9, which is kept live for exactly that regression. **Do not check this by grepping the entry asset** — the string is not in it (M13). |
 | `mi_ratchet.py report` | **RAN** (M6) | `21 pending / 9 enforced`, exit 0. Run it to see drift; **never quote the figure on camera** (R-K). |
 | `claim_hygiene.py` | **RAN** (M4) | `claim hygiene OK`, exit 0 — **and read the `ABSENT` lines.** Four globs matched no file and the tool prints *"not scanned, and therefore not passed"* for each. That is the tool refusing to let absence read as success; do not skim past it. |
 | `claim_hygiene.py --self-test` | **RAN** (M5) | `planted 4 violation families, scanner fired on 4`, exit 0. **This is the one that matters.** A hygiene check that has never fired asserts nothing about a repository whose whole pitch is that it refuses to overclaim. |
@@ -628,6 +832,14 @@ $PY verticals/mainline/demo/honesty/gen_card.py --check          # the card matc
 **(a) A non-zero exit is not automatically a red.** Three of the commands above exit non-zero on
 this tree **for named, understood reasons**, and a founder who has not read this section will
 read them as the shoot being off. Read the reason, not the code.
+
+**(b0) If `claim_hygiene.py` ever goes red, run it again with `PYTHONIOENCODING=utf-8`.** On a
+Windows console at the default code page it **raises `UnicodeEncodeError` while printing a
+finding** whose excerpt carries a character outside `cp1252`: the findings before it print, a
+traceback lands after them, and the exit code is still `1`. **It is a printing failure, never a
+scanning failure** — measured this session while a register file was red — and a founder who reads
+that traceback as the checker being broken will draw the wrong conclusion at the wrong hour. A
+green sweep never hits it, because there is nothing to print.
 
 **(b) `claim_hygiene.py` prints `ABSENT` lines and they are not noise.** Four globs matched no
 file, and for each the tool prints *"not scanned, and therefore not passed."* That is the
@@ -678,10 +890,108 @@ camera is pointed at `docs/submission/SUBMISSION.json`** while its `demo_url` re
 
 ---
 
+## 4.2 · **R-11 · THE DECISION GATE FOR USE CASE TWO — run it before anybody records `b9`**
+
+`film-recut-plan.md` §6 states this gate in three lines. **It needs six, and the three it is
+missing are the ones today's measurements produced.** A gate that passes on `200`s and fails on
+camera is not a gate.
+
+**Run this, in this order, and read every line of output. It takes under a minute.**
+
+```bash
+cd D:/CoackroachDBxAWS/mainline
+URL=https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
+CR=dec0de00-000c-4000-8000-000000000001
+
+# G1 · the attempt endpoint exists and is demo-safe.  Substitute the endpoint that landed;
+#      if you do not know its path, G1 has already failed.
+curl -sS -X POST -H 'content-type: application/json' -d '{}' "$URL/<the-demo-safe-cr-endpoint>" \
+  | grep -o '"persisted": *[a-z]*'                      # must print  "persisted": false
+
+# G2 · the obligation list route answers
+curl -sS -o /dev/null -w '%{http_code}\n' "$URL/v1/change-requests/$CR/blocking-checks"   # 200
+
+# G3 · the change request still reads as the film describes it
+curl -sS "$URL/v1/change-requests/$CR" | grep -o '"open_blocking": *[0-9]*'               # 1
+
+# G4-G6 are read off the OPEN SCREEN, not off a status code:
+#   open  $URL/operator.html#/change   and read it with your own eyes.
+```
+
+| # | condition | how it is checked, and what fails it |
+|---|---|---|
+| **G1** | **The demo-safe attempt endpoint answers, and proves its own rollback.** | `persisted: false` **measured by the endpoint from a fingerprint it took before and after**, in its own payload — never a claim, never a constant, never this file's word for it. If the field is absent, or is `true`, or the endpoint commits: **FAIL.** A committing route is not a pass at any value. |
+| **G2** | **`GET /v1/change-requests/{cr_id}/blocking-checks` answers `200`.** | Today it is **`404`** (M16). |
+| **G3** | **The change request still reads `checks_materialised` with `open_blocking = 1`.** | If a caller has moved it, the film's premise is gone and no wording fixes that. |
+| **G4** | **The approve control is enabled and calls G1's endpoint.** | Today it is `disabled` with `aria-disabled="true"` and **there is no change-request merge call anywhere in the shipped bundle** (M13). Enabling it in front of nothing is banned by F-18. |
+| **G5 · R-5** | **The shared clause AND `DEMO-INC-0001` are BOTH legible in the same frame as the refusal.** | **This is the one that fails today and it is not close.** The clause is on the screen — printed label `7.3.2(b)`, the clause uuid in the read line. **`DEMO-INC-0001` occurs zero times on that screen** (M15). Plan R-5 is explicit: without both identifiers, use case two is a second refusal, the axis-one trade is a straight loss, and **the wave is abandoned in favour of the NO-GO path.** |
+| **G6 · R-4** | **The three change-request defeater prompts render on the refusal frame.** | They exist — `GET /v1/checks/dec0de00-000d-…/disposition` returns all three under one `vocab_sha256` (M17) — and **they render nowhere on the deployed screen today** (M15). Without them `b10` ends on a refusal with no way through shown, which is the cost plan §2.3 refuses to pay. **The lattice already on that screen is NOT this condition** — it is read against the permit's check (F-17). |
+
+> **ALL SIX, OR NO-GO. Five of six is NO-GO.** There is no partial shoot of use case two: R-10
+> makes `b9` and `b10` atomic, so a gate that fails anywhere fails the pair.
+>
+> **As of this amendment, 2026-08-16: G2, G4, G5 and G6 FAIL, and G1 has no endpoint to test.
+> G3 passes. The gate is a NO-GO today.** That is a reading, not a forecast — re-run it.
+
+---
+
+## 4.3 · **THE NO-GO PATH, IN FULL — and it is a legitimate outcome, not a failure**
+
+**Write this down plainly, because at 02:00 a NO-GO reads as the wave collapsing, and it is not
+that.** The film that comes out of this path is shorter, legal, and better than the film committed
+today — and every second of the defect fix lands either way.
+
+**What happens, exactly:**
+
+1. **W1 and W3 land anyway, in full.** They are the defect fix, not the use-case-two work. The
+   committed cut is **180 s — sitting exactly on the disqualification ceiling** — and the close
+   compression from 50 s to 22 s is what takes it off. **This is true whatever the gate says.**
+2. **`b9` and `b10` are never added.** Not shortened, not merged into `b8`, not described in
+   voice-over over a screen that cannot show them. Never written into `BEATS.yaml` as a
+   commented-out block that somebody uncomments at 02:00.
+3. **`b8` is restored to 10 s** and keeps its read-only change-request cut, in **F-8's NO-GO
+   form** — which is stronger than the form F-8 was first written for, because the screen now
+   renders the disabled control's own reason, the constraint, the predicate and the struck-through
+   route table.
+4. **The film totals `128 + 22 + 2 = 152 s · 2:32`** — 28 s under the 180 s ceiling, 22 s under
+   the 174 s hard stop, and every AWS service and CockroachDB feature still named on screen.
+5. **F-17 governs whatever is filmed on the change screen**, and its `SAY:` line answers the
+   judge who asks what the authorisation table is.
+6. **The mitigation for the judge's live question is already written, already cleared, and
+   remains true**: *"There is no merge route for it yet, so I'm telling you about it rather than
+   driving it."*
+
+**What must NOT happen under NO-GO**, and each of these has been proposed somewhere in this wave:
+
+* **Never build a committing public route to make the beat work.** `transitions._demo_guard`
+  answers `423 Locked` on the seeded subjects precisely so a public caller cannot mutate them, and
+  that guard stays (F-3).
+* **Never grant `mainline_api` INSERT.** The `transitions.materialise_checks` shortfall on
+  `mainline.exposure_receipt` / `exposure_line` stays open, is the founder's call, and is not this
+  wave's to close.
+* **Never enable the approve control ahead of the endpoint** (F-18).
+* **Never narrate the change request as if it had been driven.** **MUST NOT SAY:** *"watch the
+  same debt block the change request"* — under NO-GO nothing is watched, and A13.5's ruling is
+  live again in the half that matters.
+
+**Timing arithmetic, both worlds, so nobody re-derives it at 02:00:**
+
+| | demo | close | end card | total | margin to 174 hard stop |
+|---|---:|---:|---:|---:|---:|
+| committed today | 128 | 50 | 2 | **180** | **−6 · over, and on the 180 ceiling** |
+| **GO** — `b8` cut to 6 s, `b9`+`b10` added | 148 | 22 | 2 | **172** | +2 |
+| **NO-GO** — `b8` restored to 10 s | 128 | 22 | 2 | **152** | +22 |
+
+**These are budgets and are labelled as budgets** (plan §8 rule 8). `BEATS.yaml` is the timing
+authority and a number here that disagrees with it is wrong.
+
+---
+
 ## 5 · THE SENTENCES THAT ARE NEVER SAID, WHATEVER GOES WRONG
 
 The full register is `r6-honesty` Part A and `docs/submission/MUST-NOT-CLAIM.md`. These are the
-six a founder reaches for when a take is going badly, which is exactly when the reaching happens.
+six a founder reaches for when a take is going badly, which is exactly when the reaching happens
+— **and three more the second use case adds**, at the bottom of the table.
 
 | **MUST NOT SAY**, however the day is going | **TRUE INSTEAD** |
 |---|---|
@@ -691,6 +1001,9 @@ six a founder reaches for when a take is going badly, which is exactly when the 
 | *"Tamper-proof."* · *"split-view resistant"* in any form | Tamper-**evident**, never tamper-proof. One witness, ours, `q = 1`, and split-view resistance is **not** claimed. |
 | *"It refuses in milliseconds in production."* · any product latency | §3 answer one, verbatim. This repository contains no p50, no p99 and no load profile. |
 | *"It catches rubber-stamping."* | §3 answer three, verbatim. Nothing in this data model separates a considered disposition from a rubber stamp. |
+| **MUST NOT SAY**, any variant of the mirror that drops the scope word: *"the clause cannot be changed"* · *"the database won't let anyone edit the rule"* · *"the memory is immutable"* · *"you can't edit it"* | **"You can't quietly edit it away either."** The clause **can** be edited — by disposing of the obligation first, which is what the three defeaters are for. The adverb carries the whole truth of the sentence, exactly as `here` does in the rubber-stamp limit. If the adverb reads oddly on the day: *"not without answering the question first."* Four **REFUSE** rows, `CLAIMS-CLEARANCE.md` §12.4. |
+| *"And there is no way through."* | There are three, they are on screen, and each demands a citation. Saying otherwise spends R-4's mitigation to make a worse point. |
+| *"That's the change request's severity"* · *"there are its defeaters"*, over the lattice on the change screen | That table is read against the **permit's** check and the screen says so (F-17). **TRUE INSTEAD:** *"same clause, same precursor, two gate families"* — and only with both identifiers legible in frame. |
 
 **And the one that is not a sentence but an act:** never show a recorded refusal as if it were
 live. There is no fallback in this document that does it, and if one is ever added, it is wrong.
@@ -703,7 +1016,11 @@ Written down rather than glossed, in the same form the siblings use.
 
 | # | open item | evidence | owner |
 |---|---|---|---|
-| **W6-1** | **The operator surface is not on the deployed origin.** `GET /operator.html` is byte-identical to `GET /` and titles itself `MAINLINE console`. F-9 is therefore live, not hypothetical. I am forbidden to deploy and did not. | M2, this file; `CLICKS.md` D-6 | orchestrator |
+| **W6-1** | ~~**The operator surface is not on the deployed origin.**~~ **CLOSED 2026-08-16 by re-measurement.** `/operator.html` answers `200 · 5,097 B · Control of Work`, is no longer byte-identical to `/`, and **both screens render** (M12, M14, M15). F-9 is superseded and kept live only as a regression fallback. **Nobody deployed anything on this worker's account; the world moved and this row records that it did.** | M12, M14, M15 | **closed** |
+| **W6-6** | **R-5 is UNSATISFIED on the deployed origin: `DEMO-INC-0001` occurs zero times on the Management-of-Change screen.** The clause is in frame; the precursor is not. Under plan R-5 that alone is a NO-GO for use case two — see gate condition G5. **The data exists** (`demo_world.sql:1002-1015` writes `precursor_event_id` on that obligation); no declared route returns it. | M15, M17 | whoever owns the CR read routes |
+| **W6-7** | **R-4's mitigation is unavailable: the three change-request defeater prompts render nowhere on the deployed screen**, though `GET /v1/checks/dec0de00-000d-…/disposition` returns all three. The lattice that *is* on that screen is read against the **permit's** check and says so. **A film that narrated it as the change request's would be a fabricated exhibit** — F-17. | M15, M17 | console owner · film lead |
+| **W6-8** | **`severity` for the change request's obligation is not returned by any route that answers.** `virulence blood_major` is (and is the projection's own output, against a seed literal of `'routine'`). **So `severity 4` may not go on screen for this obligation until a route returns it**, and it is never spoken either way. | M17; `demo_world.sql:1012` | film lead |
+| **W6-9** | **`CLAIMS-CLEARANCE.md` §8.1's pre-flight is defective as written**: it says to check the script asset for `1 obligation outstanding`, and that string is **not in the operator entry asset** — it renders from a lazily-loaded chunk. The check must be made against the **rendered screen**. §4's block is corrected; the sheet's own §12.2 records it. | M13, M14 | **fixed here** |
 | **W6-2** | **`regression_guard.py` is RED: `3 of 31 FAILED, 28 PASS, 0 SKIP`, exit 1.** Two are the `SUITES` ratchet pinned at `911 / 910` against an observed `997 / 996`; one is a named privilege shortfall — `mainline.exposure_line INSERT; mainline.exposure_receipt INSERT`. **I did not move the ratchet and did not touch the privileges.** Whether the ratchet is re-pinned, and by whom, is not this file's call. | M8, §4 note (d) | QA / privileges owner |
 | **W6-2b** | **Running the prescribed pre-flight drove the live endpoint.** `regression_guard.py`'s `LIVE` family posts to `/v1/demo/gate-run` itself. It read `PROVEN`, four beats, zero mismatches, and the guard's own `SEED` row counts matched afterwards, so nothing was written — but the brief said `GET` only, and this is on the record rather than in a footnote. | M11 | orchestrator, for awareness |
 | **W6-3** | **`gen_card.py --check` exits 2 on this tree** for a named missing input, and 3 with `--allow-fixtures`. The r6 Part D block does not say so, and a founder reading that block cold will read a non-zero exit as a failure. This file's §4 note is the correction; whether the corpus lock ever lands is not mine. | M7 | corpus-freeze-load worker |
@@ -718,3 +1035,9 @@ the honest answer is the more interesting thing to watch. The cold start is a co
 up. The `40001` is `SERIALIZABLE` doing its job. The `423` is the demo refusing to let one
 caller brick it for the next. The `NOT VERIFIED` is eight checks declining to pretend. **A
 product whose failure modes are all worth filming does not need a demo that lies.**
+
+**And the line this amendment adds beside it.** The second use case is worth 24 seconds only if it
+can be **driven**; if it cannot, the honest film is 2:32 and says so, and the screen that would
+have carried it already publishes its own gap better than any script could — a `404`, seventeen
+declared routes, two of them struck through, and a sentence naming exactly what this deployment
+does not return. **A NO-GO on `b9` and `b10` costs the film nothing that the film ever had.**

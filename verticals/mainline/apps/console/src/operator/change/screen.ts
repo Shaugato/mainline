@@ -35,14 +35,19 @@
  */
 
 import { resolveAddressing } from '../kernel/addressing';
-import { get } from '../kernel/client';
+import { get, post } from '../kernel/client';
 import { registerScreen } from '../route';
 
 import { mountChangeScreen } from './ChangeScreen';
 import { el } from './ribbon';
 
 registerScreen('change', (host) => {
-  const handle = mountChangeScreen(host, { get, resolveAddressing });
+  // `post` joined `get` here on 2026-08-16, for exactly one endpoint: the change-request
+  // gate run. It is the kernel's own `post`, passed straight through — same client, same
+  // same-origin resolution, same verbatim bytes, same request log. The screen decides which
+  // path to send; it cannot reach `fetch`, and this is still the only line in the module
+  // that names `../kernel/`.
+  const handle = mountChangeScreen(host, { get, post, resolveAddressing });
 
   void handle.ready.catch((error: unknown) => {
     const failure = el('div', 'moc-absent');

@@ -58,6 +58,33 @@ export function readBlockingChecks(
 }
 
 /**
+ * `GET /v1/change-requests/{cr_id}/blocking-checks` — the SECOND subject's obligations.
+ *
+ * The mirror of the read above, and deliberately the same contract: the payload's
+ * `subject_kind` says which subject answered, and `blocking-check.schema.json` has always
+ * required `subject_kind` / `subject_id` rather than `permit_id`. So this is one document
+ * governing two routes, not a second document to keep in step with the first.
+ *
+ * `expectResource` is `cr_blocking_checks` and not `blocking_checks`, because the envelope
+ * names the RESOURCE and not the contract. A deployment that answered this path with the
+ * permit's resource key would be answering a different question than the one asked, and the
+ * client fails it closed rather than rendering it as this change request's.
+ *
+ * Until 2026-08-16 this route did not exist and the change screen proved it by rendering the
+ * deployment's own 404 route table. That absence path is still there and still correct
+ * against a deployment that does not carry the route; this is the read for one that does.
+ */
+export function readCrBlockingChecks(
+  crId: string,
+  options?: RequestOptions,
+): Promise<Exchange<BlockingChecksResponse['data']>> {
+  return get<BlockingChecksResponse['data']>(
+    `/v1/change-requests/${encodeURIComponent(crId)}/blocking-checks`,
+    { ...options, expectResource: 'cr_blocking_checks' },
+  );
+}
+
+/**
  * `GET /v1/clauses/{clause_uuid}/versions/{commit_id}` — the clause the check hangs off.
  *
  * A clause identifier without a commit addresses no version, so the two travel together or

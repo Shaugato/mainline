@@ -43,6 +43,56 @@
  *     that no surface has to carry an identifier of its own. The demo API owns the route,
  *     emits the payload from `subjects.py`, and therefore owns the contract; this is the
  *     copy, and it is checked against the original the same way the two above are.
+ *
+ * And a FOURTH on 2026-08-16, on the same terms again:
+ *
+ *   * `cr-gate-run.schema.json` ← `verticals/mainline/apps/demo-api/contracts/cr-gate-run.schema.json`.
+ *     It governs `POST /v1/demo/cr-gate-run`, the SECOND gated subject's run: the permit
+ *     gate run shows that a permit cannot be ISSUED while an obligation raised by blame is
+ *     open, and this one shows the mirror — that the clause under blame cannot quietly be
+ *     EDITED AWAY either. `cr_gate_run.py` repeats this document's `$id` inside its own
+ *     payload, exactly as `gate_run.py` does, so the same drift argument applies verbatim.
+ *
+ *     It is a SEPARATE document from `gate-run.schema.json` rather than one widened to
+ *     admit both, because the two runs' beats differ in kind — this one has no admitted
+ *     beat and declares that absence with the grant rows behind it — and a schema admitting
+ *     both would assert neither.
+ *
+ * ════════════════════════════════════════════════════════════════════════════════════
+ * WHY THE FOURTH IS LOADED ON DEMAND AND THE OTHER NINETEEN ARE NOT — a measurement
+ * ════════════════════════════════════════════════════════════════════════════════════
+ *
+ * `src/app/composition.tsx` imports `contractRegistry` statically, so every string in
+ * `CONTRACT_SOURCES` is inlined verbatim into the console's ENTRY chunk. That is the right
+ * trade for nineteen documents the console validates payloads against on the read path. It
+ * is the wrong trade for this one, and the numbers are not close.
+ *
+ * Measured on this workstation, 2026-08-16, `vite build` before and after adding the entry:
+ *
+ *     entry chunk `assets/index-*.js`, gzipped     138,278 B  →  145,594 B   (+7,316)
+ *     static_site.DEFAULT_MAX_RESPONSE_BYTES                     139,264 B
+ *
+ * The ceiling is not a style guide. An entry chunk above it means the origin answers **413
+ * to every browser on earth** for the one object no human types: `GET /` still returns 200
+ * and the shell, the shell asks for its module, receives a JSON problem document, and a
+ * judge is looking at a blank page while the health check reports fine. `DEFAULT_MAX_RESPONSE_BYTES`
+ * may not move — it has already been loosened twice to fit the tree it is supposed to bound.
+ *
+ * And the console entry does not read this route. `POST /v1/demo/cr-gate-run` is driven by
+ * the OPERATOR entry (`src/operator/change/**`), which is a separate HTML entry, shares no
+ * module with the console, and deliberately carries no runtime validator at all.
+ *
+ * So the document is declared HERE, by name, in an explicit import line that is not a glob,
+ * and it is registered — but its bytes are fetched when somebody asks for them rather than
+ * carried by every page load. Everything the eager entries get, this one gets:
+ *
+ *   * `contractRegistryFull()` compiles it exactly as `contractRegistry()` compiles the
+ *     others, so an unimplemented keyword or a dangling `$ref` still fails loudly;
+ *   * `tests/unit/data/contracts.test.ts` pins it against the demo API's original, byte for
+ *     byte AND pointer by pointer in both directions, on the same terms as the other three;
+ *   * a renamed or deleted file is still a BUILD error, because the import names the path.
+ *
+ * What it does not get is a place in the entry closure. That is the whole of the change.
  */
 
 import ancestryRaw from '../../contracts/ancestry.schema.json?raw';
@@ -94,6 +144,24 @@ export const CONTRACT_SOURCES: readonly (readonly [string, string])[] = Object.f
   ['subjects.schema.json', subjectsRaw],
 ] as const);
 
+/**
+ * Contracts registered by NAME here and fetched when asked for. See the note above.
+ *
+ * The loader is an explicit `import()` of a literal path — not a glob, and not a name
+ * assembled at runtime — so the bundler resolves it at build time and a file renamed or
+ * deleted is still a build error rather than a `$ref` that fails in front of a judge.
+ */
+export const DEFERRED_CONTRACT_SOURCES: readonly (readonly [
+  string,
+  () => Promise<string>,
+])[] = Object.freeze([
+  [
+    'cr-gate-run.schema.json',
+    async (): Promise<string> =>
+      (await import('../../contracts/cr-gate-run.schema.json?raw')).default,
+  ],
+] as const);
+
 /** The `$id` of the specification-owned refusal contract, carried here verbatim. */
 export const REFUSAL_SCHEMA_ID = 'https://spec.trappoint.org/1.0/wire/refusal.schema.json';
 
@@ -111,9 +179,9 @@ let cached: SchemaRegistry | null = null;
  * is the exact failure PL-2 exists to prevent — so the cost is paid at startup, once,
  * and loudly.
  */
-export function createContractRegistry(): SchemaRegistry {
+function build(sources: readonly (readonly [string, string])[]): SchemaRegistry {
   const registry = new SchemaRegistry();
-  for (const [name, source] of CONTRACT_SOURCES) {
+  for (const [name, source] of sources) {
     let parsed: unknown;
     try {
       parsed = JSON.parse(source);
@@ -137,8 +205,32 @@ export function createContractRegistry(): SchemaRegistry {
   return registry;
 }
 
+export function createContractRegistry(): SchemaRegistry {
+  return build(CONTRACT_SOURCES);
+}
+
 /** Memoised registry. Building it is pure, so one instance is enough for a process. */
 export function contractRegistry(): SchemaRegistry {
   cached ??= createContractRegistry();
   return cached;
+}
+
+/**
+ * The registry with the deferred documents in it too.
+ *
+ * A SECOND registry rather than a mutation of the memoised one: `compileAll()` resolves
+ * every `$ref` and a registry that gained documents after compiling would have two
+ * different answers to "does this `$ref` resolve?" depending on when it was asked. One
+ * object, one compile, one answer.
+ *
+ * It throws exactly where {@link createContractRegistry} throws, for the same reasons, so a
+ * deferred document carrying an unimplemented keyword fails as loudly as an eager one —
+ * later, but not more quietly.
+ */
+export async function createFullContractRegistry(): Promise<SchemaRegistry> {
+  const sources: (readonly [string, string])[] = [...CONTRACT_SOURCES];
+  for (const [name, load] of DEFERRED_CONTRACT_SOURCES) {
+    sources.push([name, await load()] as const);
+  }
+  return build(sources);
 }

@@ -1,0 +1,81 @@
+{
+  "measured_by": "W1",
+  "measured_at_utc": "2026-08-16T04:40:49Z",
+  "node": "LOCAL ONLY - postgresql://root@localhost:26257/mainline_demo",
+  "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+  "change_request_checks": {
+    "cr_commit_sized": "CHECK (((merged_commit IS NULL) OR (length(merged_commit) = 32)))",
+    "cr_conflicts_resolved_when_merged": "CHECK (((state != 'merged'::mainline.subject_state) OR (open_conflicts = 0)))",
+    "cr_ctr_nonneg": "CHECK ((((open_blocking >= 0) AND (open_residue >= 0)) AND (open_conflicts >= 0)))",
+    "cr_external_ref_stated": "CHECK ((external_ref != ''::STRING))",
+    "cr_gate_closed_when_merged": "CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))",
+    "cr_identity_conserved_when_merged": "CHECK (((state != 'merged'::mainline.subject_state) OR (open_residue = 0)))",
+    "cr_ledger_nonneg": "CHECK (((head_seq >= 0) AND (gate_epoch >= 0)))",
+    "cr_merge_evidence": "CHECK (((state != 'merged'::mainline.subject_state) OR (merged_commit IS NOT NULL)))",
+    "cr_ref_name_stated": "CHECK ((ref_name != ''::STRING))",
+    "cr_site_role_stated": "CHECK ((site_role != ''::STRING))",
+    "cr_target_ref_stated": "CHECK ((target_ref != ''::STRING))"
+  },
+  "change_request_triggers": {
+    "cr_merge_gate": "CREATE TRIGGER cr_merge_gate BEFORE UPDATE ON mainline_demo.mainline.change_request FOR EACH ROW WHEN ((new).state = 'merged':::mainline.subject_state) AND ((old).state != 'merged':::mainline.subject_state) EXECUTE FUNCTION mainline_demo.mainline.fn_cr_merge_gate()",
+    "z_cbm_gate_cr": "CREATE TRIGGER z_cbm_gate_cr BEFORE UPDATE ON mainline_demo.mainline.change_request FOR EACH ROW WHEN ((new).state = 'merged':::mainline.subject_state) AND ((old).state != 'merged':::mainline.subject_state) EXECUTE FUNCTION mainline_demo.mainline.fn_cbm_gate_cr()"
+  },
+  "legal_edges_change_request": [
+    "checks_materialised -> checks_materialised",
+    "checks_materialised -> dispositioned",
+    "dispositioned -> checks_materialised",
+    "dispositioned -> merged",
+    "draft -> abandoned",
+    "draft -> checks_materialised",
+    "merged -> closed",
+    "merged -> suspended",
+    "suspended -> closed"
+  ],
+  "checks_materialised_to_merged_is_an_edge": false,
+  "procedure_acl": {
+    "merge_change_request": "NULL - CockroachDB default, no explicit ACL",
+    "merge_permit": "NULL - CockroachDB default, no explicit ACL"
+  },
+  "execute_on_merge_change_request_is_public_by_default": true,
+  "cr_obligation": {
+    "check_id": "dec0de00-000d-4000-8000-000000000001",
+    "subject_kind": "change_request",
+    "cr_id": "dec0de00-000c-4000-8000-000000000001",
+    "origin": "blame_ancestry",
+    "severity": "4",
+    "virulence": "blood_major"
+  },
+  "exposure_receipt_rows": 1,
+  "exposure_receipt_subject_kinds": [
+    "permit"
+  ],
+  "exposure_line_check_ids": [
+    "dec0de00-0007-4000-8000-000000000001"
+  ],
+  "mainline_api_write_surface_measured": {
+    "mainline.exposure_receipt:SELECT": true,
+    "mainline.exposure_receipt:INSERT": false,
+    "mainline.exposure_receipt:UPDATE": false,
+    "mainline.exposure_receipt:DELETE": false,
+    "mainline.exposure_line:SELECT": true,
+    "mainline.exposure_line:INSERT": false,
+    "mainline.exposure_line:UPDATE": false,
+    "mainline.exposure_line:DELETE": false,
+    "mainline.cr_event:SELECT": true,
+    "mainline.cr_event:INSERT": false,
+    "mainline.cr_event:UPDATE": false,
+    "mainline.cr_event:DELETE": false,
+    "mainline.blocking_check:SELECT": true,
+    "mainline.blocking_check:INSERT": false,
+    "mainline.blocking_check:UPDATE": true,
+    "mainline.blocking_check:DELETE": false,
+    "mainline.disposition:SELECT": true,
+    "mainline.disposition:INSERT": true,
+    "mainline.disposition:UPDATE": false,
+    "mainline.disposition:DELETE": false,
+    "mainline.change_request:SELECT": true,
+    "mainline.change_request:INSERT": false,
+    "mainline.change_request:UPDATE": true,
+    "mainline.change_request:DELETE": false
+  }
+}

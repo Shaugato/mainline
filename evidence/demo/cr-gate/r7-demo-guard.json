@@ -1,0 +1,52 @@
+{
+  "measured_by": "W1",
+  "measured_at_utc": "2026-08-16T04:43:35Z",
+  "finding": "R7 hazard, recorded for the founder. No change proposed and none made.",
+  "file": "verticals/mainline/apps/demo-api/src/mainline_demo_api/transitions.py",
+  "revision": "git HEAD 240cff1, read with: git show HEAD:verticals/mainline/apps/demo-api/src/mainline_demo_api/transitions.py \u2014 so a concurrent working-tree edit by another worker cannot contaminate the quotation",
+  "the_guard_decides_on_the_permit_identifier": {
+    "lines": "509-521",
+    "source": [
+      "    if subject_id == scenario.permit_id:",
+      "        return _error(",
+      "            423,",
+      "            \"demo_subject_write_protected\",",
+      "            \"This is the seeded demo subject, and it is a single shared copy that a \"",
+      "            \"hundred judges read. Every transition on this path is irreversible on it \u2014 a \"",
+      "            \"permit is never un-merged \u2014 so one caller must not be able to brick the demo \"",
+      "            \"for the next. Drive the gate through POST /v1/demo/gate-run, which plays the \"",
+      "            \"same four beats in one transaction and rolls all of it back. Set \"",
+      "            \"MAINLINE_DEMO_ALLOW_MUTATION=1 in a deployment you own to lift this.\",",
+      "            subject_id=str(subject_id),",
+      "            use_instead=\"POST /v1/demo/gate-run\",",
+      "        )"
+    ]
+  },
+  "the_fallthrough": {
+    "lines": "523-524",
+    "source": [
+      "    if _demo_subject_is_established(conn, scenario):",
+      "        return None"
+    ]
+  },
+  "what_the_existence_read_actually_asks": {
+    "lines": "473-473",
+    "source": [
+      "        row = positional(conn, _DEMO_SUBJECT_SQL, (scenario.permit_id,)).fetchone()"
+    ]
+  },
+  "the_sql_it_asks_it_with": [
+    "_DEMO_SUBJECT_SQL: Final = \"SELECT 1 FROM mainline.permit WHERE permit_id = %s\""
+  ],
+  "decision_trace_for_a_change_request_identifier": [
+    "subject_id = dec0de00-000c-4000-8000-000000000001 (a change_request)",
+    "scenario.permit_id = the seeded permit identifier - a different UUID, always",
+    "line 509  subject_id == scenario.permit_id  -> FALSE, so the 423 demo_subject_write_protected branch is NOT taken",
+    "line 523  _demo_subject_is_established(conn, scenario) asks SELECT 1 FROM mainline.permit WHERE permit_id = scenario.permit_id",
+    "the seeded PERMIT is present, so that read returns a row and the function returns True",
+    "line 524  return None  -> LET IT THROUGH"
+  ],
+  "consequence": "A committing POST /v1/change-requests/{cr_id}/merge registered in TRANSITION_RESOURCES with mutates=True would be an unguarded, irreversible write on the seeded demo change request, reachable without authentication on a Function URL carrying authorization_type = NONE. The guard would not catch it: it would return None.",
+  "not_a_hypothetical": "evidence/deploy/demo-guard-armed.json records the same shape of defect one subject over.",
+  "this_wave": "No committing change-request route is added, and transitions._demo_guard is NOT widened. Widening it is only needed by a route this wave does not add; editing it now is how the route arrives later without the argument being had. Recorded, not acted on."
+}

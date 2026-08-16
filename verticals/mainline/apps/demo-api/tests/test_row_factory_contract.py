@@ -144,6 +144,16 @@ _PACKAGE_SRC = _APP_SRC / "mainline_demo_api"
 _EXPECTED_CONVENTIONS: dict[str, str] = {
     "__init__.py": "silent",
     "app.py": "silent",
+    # ADDED 2026-08-16 with POST /v1/demo/cr-gate-run, and this is the decision this table
+    # exists to force rather than a line copied from `gate_run.py`'s. `position` is measured:
+    # every reading site in the module goes through `scenario.positional()`, and two of them
+    # could not survive anything else. `_FINGERPRINT_SQL` is IMPORTED from `gate_run` — ten
+    # scalar subqueries CockroachDB names `count` alike, which a `dict` row collapses to one
+    # value with no error to notice — and `_CR_COUNTS_SQL` returns two more of the same. The
+    # module also reads `cursor.rowcount` off its merge statement to tell an ADMITTED merge
+    # from one that matched no row, which is a property of the cursor rather than of a row
+    # and is unaffected either way.
+    "cr_gate_run.py": "position",
     # ADDED 2026-08-13, deliberately, which is what this table exists to force. It reads
     # `mainline.signing_credential` through `scenario.positional()` at exactly one site —
     # the resolver that replaced the derived `_sha("cred", …)` constant. `position` is the

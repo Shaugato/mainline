@@ -70,6 +70,37 @@ So the counts below moved from 17 to 18 and the tolerance did **not** move: dire
 still plain set equality with no permitted exception. Raising a count and loosening the
 comparison in the same edit is how a gap gets a bigger number in front of it; only the
 count moved here, and the two counts are still written twice so that they have to agree.
+
+THE NINETEENTH AND TWENTIETH ROUTES, 2026-08-16 — THE SECOND GATED SUBJECT
+--------------------------------------------------------------------------
+Until this wave the API served exactly ONE change-request route,
+``GET /v1/change-requests/{cr_id}``. Measured against the live origin this session, it
+answered ``200`` with ``state: checks_materialised`` and ``open_blocking: 1`` — a counter
+saying one obligation was open — while ``/v1/change-requests/{cr_id}/blocking-checks``
+answered ``404`` and ``POST /v1/change-requests/{cr_id}/merge`` did not exist. So the
+kernel's second gate had **no HTTP path at all**: nothing could list what the counter was
+counting, and nothing could attempt the merge and be refused. That is the first defect in
+this file's history, one subject over, and it is why the two rows below landed together:
+
+* ``GET /v1/change-requests/{cr_id}/blocking-checks`` → ``cr_blocking_checks``, an
+  ordinary read in every table that names a read, under the EXISTING
+  ``blocking-check.schema.json`` — that contract's ``data`` requires ``subject_kind`` and
+  ``subject_id`` and carries no ``permit_id``, so it was authored for both subjects;
+* ``POST /v1/demo/cr-gate-run`` → ``cr_gate_run``, the change request's gate run, with
+  **no path parameter**, dispatched through the ``param_name is None`` branch.
+
+**WHY THAT SECOND ROW MAY NEVER GROW A ``{cr_id}``**, asserted below in
+:func:`test_no_mutating_route_carries_a_change_request_path_parameter`:
+``transitions._demo_guard`` decides on ``subject_id == scenario.permit_id``. A
+change-request identifier never equals the permit's, so a mutating CR route would fall
+past the ``demo_subject_write_protected`` branch, find the permit **is** seeded, and be
+let through — an unguarded, irreversible, unauthenticated write on the seeded demo change
+request, on an origin whose ``authorization_type`` is ``NONE``. The guard would not catch
+it. That is not a hypothesis about the future; it is the shape of the defect
+``evidence/deploy/demo-guard-armed.json`` already recorded, and the route table is where
+it is cheapest to make impossible.
+
+The counts moved 18 → **20** and the tolerance did not move, for the third time.
 """
 
 from __future__ import annotations
@@ -97,12 +128,34 @@ DEMO_KEY = "demo_gate_run"
 SUBJECTS_ROUTE: tuple[str, str] = ("GET", "/v1/demo/subjects")
 SUBJECTS_KEY = "demo_subjects"
 
+#: The change request's obligations, added 2026-08-16 — the read that lists what the CR's
+#: ``open_blocking`` counter counts. Named for the same reason the two above are.
+CR_CHECKS_ROUTE: tuple[str, str] = ("GET", "/v1/change-requests/{cr_id}/blocking-checks")
+CR_CHECKS_KEY = "cr_blocking_checks"
+
+#: The change request's gate run. **No path parameter, and that is a safety property** —
+#: see this module's docstring and
+#: :func:`test_no_mutating_route_carries_a_change_request_path_parameter`.
+CR_DEMO_ROUTE: tuple[str, str] = ("POST", "/v1/demo/cr-gate-run")
+CR_DEMO_KEY = "cr_gate_run"
+
 #: One number, written twice, because the two tables it counts are maintained by two
 #: different people in two different languages. They must be equal; that they are equal
 #: is the assertion, and a single shared constant would have made it unfalsifiable.
-#: 17 until 2026-08-15, 18 since ``demo_subjects``.
-_EXPECTED_ROUTE_COUNT = 18
-_CONSOLE_ROUTE_COUNT = 18
+#: 17 until 2026-08-15, 18 with ``demo_subjects``, 20 since 2026-08-16.
+_EXPECTED_ROUTE_COUNT = 20
+_CONSOLE_ROUTE_COUNT = 20
+
+#: **ROWS ARE NOT PATHS.** ``/v1/checks/{check_id}/disposition`` is declared twice — ``GET
+#: disposition`` reads it, ``POST sign_disposition`` signs it — so twenty rows address
+#: nineteen distinct templates, and the 404 body (which is
+#: ``sorted({r.template for r in ROUTES})``) lists nineteen. Written down here because a
+#: reader who counted the 404 body and found nineteen would "fix" a count that is right.
+_EXPECTED_PATH_COUNT = 19
+
+#: The one template two rows share, by name, so the discrepancy above has a witness rather
+#: than an explanation.
+_TWICE_DECLARED_PATH = "/v1/checks/{check_id}/disposition"
 
 
 def _event(method: str, path: str, body: str | None = None) -> dict[str, Any]:
@@ -170,6 +223,89 @@ def test_the_404_body_now_lists_the_demo_template() -> None:
     assert DEMO_ROUTE[1] in json.loads(response["body"])["error"]["declared"]
 
 
+# ── 1b · the two rows added 2026-08-16, in the same three directions ────────────────
+
+
+def test_the_cr_blocking_checks_route_resolves_to_its_key_and_takes_the_cr_id() -> None:
+    """The read that lists what the change request's ``open_blocking`` counter counts.
+
+    It takes a path parameter and the demo endpoints do not, and the difference is not an
+    inconsistency: this is a GET, it mutates nothing, and refusing to let a caller name
+    the subject of a READ would make it unaddressable rather than safe.
+    """
+    matched, params, other = app.route(
+        "GET", "/v1/change-requests/dec0de00-000c-4000-8000-000000000001/blocking-checks"
+    )
+    assert matched is not None, (
+        "GET /v1/change-requests/{cr_id}/blocking-checks routed nowhere: the CR's "
+        "open_blocking counter says an obligation is open and nothing can list it, which "
+        "is the live 404 operator/change/ChangeScreen.ts renders as evidence today"
+    )
+    assert matched.key == CR_CHECKS_KEY
+    assert matched.template == CR_CHECKS_ROUTE[1]
+    assert params == {"cr_id": "dec0de00-000c-4000-8000-000000000001"}
+    assert other is False
+
+
+def test_the_cr_demo_route_resolves_to_its_dispatcher_key_and_takes_no_parameters() -> None:
+    """``POST /v1/demo/cr-gate-run``, and the empty parameter map is the safety property."""
+    matched, params, other = app.route(*CR_DEMO_ROUTE)
+    assert matched is not None, (
+        "POST /v1/demo/cr-gate-run routed nowhere, so the change request's gate run is "
+        "unreachable over HTTP — the same defect this file was opened for, one subject over"
+    )
+    assert matched.key == CR_DEMO_KEY
+    assert matched.template == CR_DEMO_ROUTE[1]
+    assert params == {}
+    assert other is False
+
+
+def test_get_on_the_cr_demo_route_is_405_naming_post_and_not_404() -> None:
+    """405-vs-404 again: a 404 says "never built", a 405 says "wrong verb"."""
+    matched, _, other = app.route("GET", CR_DEMO_ROUTE[1])
+    assert matched is None
+    assert other is True
+
+    response = app.handler(_event("GET", CR_DEMO_ROUTE[1]))
+    assert response["statusCode"] == 405
+    body = json.loads(response["body"])
+    assert body["error"]["kind"] == "method_not_allowed"
+    assert body["error"]["allow"] == ["POST"]
+
+
+def test_a_trailing_slash_is_not_either_new_route() -> None:
+    """The templates are exact. A near miss is a 404, never a silent second spelling.
+
+    ``other`` must be ``False`` as well as ``matched`` being ``None``: a trailing slash
+    that produced a 405 would tell a caller the path exists under another verb, which is a
+    different and false claim about the surface.
+    """
+    for method, template in (CR_DEMO_ROUTE, CR_CHECKS_ROUTE):
+        path = template.replace("{cr_id}", "dec0de00-000c-4000-8000-000000000001")
+        matched, _, other = app.route(method, f"{path}/")
+        assert matched is None, f"{method} {path}/ resolved to {matched}"
+        assert other is False, f"{method} {path}/ was reported as a wrong-verb hit"
+
+
+def test_the_404_body_now_lists_both_new_templates() -> None:
+    """The declared list is how a caller discovers an endpoint from a wrong URL.
+
+    It is ``sorted({r.template for r in ROUTES})``, so it dedupes the twice-declared
+    disposition path and carries NINETEEN entries for twenty rows. Both facts are asserted
+    here so that neither is discovered by somebody counting the wrong list.
+    """
+    response = app.handler(_event("GET", "/v1/nope"))
+    assert response["statusCode"] == 404
+    declared = json.loads(response["body"])["error"]["declared"]
+    assert CR_CHECKS_ROUTE[1] in declared, declared
+    assert CR_DEMO_ROUTE[1] in declared, declared
+    assert len(declared) == _EXPECTED_PATH_COUNT == len({r.template for r in app.ROUTES})
+    assert len(declared) < _EXPECTED_ROUTE_COUNT, (
+        "the 404 body dedupes by template, so it must be SHORTER than the row count; if "
+        "these are equal then the twice-declared disposition path has lost one of its rows"
+    )
+
+
 # ── 2 · the dispatcher ──────────────────────────────────────────────────────────────
 
 
@@ -184,6 +320,62 @@ def test_the_route_key_is_a_declared_transition_resource() -> None:
     # parameter, names no single server-side procedure — it performs four beats — and
     # does not mutate: the transaction is rolled back.
     assert transitions.TRANSITION_RESOURCES[DEMO_KEY] == (None, None, False)
+
+
+def test_the_cr_route_key_is_a_declared_transition_resource() -> None:
+    """``cr_gate_run`` must be declared with the SAME shape as ``demo_gate_run``.
+
+    ``(None, None, False)`` is not cosmetic. ``handle_transition`` branches on
+    ``param_name is None``, and that branch is what keeps ``transitions._demo_guard`` out
+    of the path entirely — which is correct here because there is nothing to guard: the
+    transaction is rolled back. A non-``None`` parameter name on this key would route a
+    caller-supplied subject into the guard, and the guard compares to the PERMIT id.
+    """
+    from mainline_demo_api import transitions
+
+    assert CR_DEMO_KEY in transitions.TRANSITION_RESOURCES, (
+        f"{CR_DEMO_KEY} is routed but handle_transition would answer 404 unknown_resource"
+    )
+    assert transitions.TRANSITION_RESOURCES[CR_DEMO_KEY] == (None, None, False)
+
+
+def test_no_mutating_route_carries_a_change_request_path_parameter() -> None:
+    """THE HAZARD THIS TABLE IS THE CHEAPEST PLACE TO MAKE IMPOSSIBLE.
+
+    ``transitions._demo_guard`` decides on ``subject_id == scenario.permit_id``. A
+    change-request identifier never equals the permit's, so a POST route carrying
+    ``{cr_id}`` would fall PAST the ``demo_subject_write_protected`` branch, reach
+    ``_demo_subject_is_established``, find the permit **is** seeded, and return ``None`` —
+    *let it through*. On a Function URL with ``authorization_type = NONE`` that is an
+    unguarded, irreversible, unauthenticated write on the seeded demo change request.
+
+    The assertion is written over the WHOLE table rather than against the one row that
+    exists today, because the failure it prevents arrives as a NEW row somebody adds
+    believing the guard covers it. It is also deliberately not an assertion about
+    ``_demo_guard`` itself: widening that guard is a decision for the founder, and a test
+    that anticipated the widening would be the argument being skipped rather than had.
+    """
+    from mainline_demo_api import transitions
+
+    offending = sorted(
+        (route.method, route.template, route.key)
+        for route in app.ROUTES
+        if route.method == "POST"
+        and "{cr_id}" in route.template
+        and transitions.TRANSITION_RESOURCES.get(route.key, (None, None, False))[2]
+    )
+    assert offending == [], (
+        "a mutating route now carries a {cr_id} path parameter: "
+        f"{offending}. transitions._demo_guard compares subject_id to scenario.permit_id, "
+        "so it cannot refuse this and the write reaches the seeded demo change request "
+        "from any caller on the internet. The demo endpoint takes NO path parameter for "
+        "exactly this reason — see docs/demo/cr-gate-route-plan.md R7."
+    )
+    # Anti-vacuity: the predicate must be able to see a mutating key at all, or the empty
+    # result above would be a property of the filter rather than of the table.
+    assert any(flags[2] for flags in transitions.TRANSITION_RESOURCES.values()), (
+        "no declared transition resource mutates, so the filter above can never fire"
+    )
 
 
 def test_every_routed_post_is_a_declared_transition_resource() -> None:
@@ -263,17 +455,22 @@ def _console_declared() -> set[tuple[str, str]]:
     return {(m.group("method"), m.group("template")) for m in _DECLARE.finditer(text)}
 
 
-def test_the_table_and_the_console_declaration_are_the_same_eighteen() -> None:
-    """``declared == routed``, both eighteen, with NO permitted exception.
+def test_the_table_and_the_console_declaration_are_the_same_twenty() -> None:
+    """``declared == routed``, both twenty, with NO permitted exception.
 
     Until 2026-08-14 this pinned ``routed - declared == {DEMO_ROUTE}``: an exact set, so a
     second undeclared route failed, but one named row was still allowed through. The
     console declared that row on 2026-08-14, so the exception was collapsed to empty
     instead of the count being raised around it. On 2026-08-15 ``demo_subjects`` was added
     to both tables in one wave, so the count moved to eighteen and the tolerance stayed at
-    zero. Equality of the two SETS is what is asserted; the two counts are asserted beside
-    it because a set cannot see a duplicate row in ``app.ROUTES`` and a shadowed duplicate
-    is unreachable.
+    zero. On 2026-08-16 the change request's two rows landed the same way and the count
+    moved to twenty; **the tolerance has still never moved.** Equality of the two SETS is
+    what is asserted — this is not weakened to ``routed <= declared`` or to a count, and a
+    reader tempted to do so should note that a subset check is exactly what would have let
+    ``POST /v1/demo/gate-run`` sit undeclared for three days in front of the founder.
+
+    The two counts are asserted beside the set equality because a set cannot see a
+    duplicate row in ``app.ROUTES`` and a shadowed duplicate is unreachable.
 
     It fails in both directions, which is the point. A route this API serves and the
     console does not declare is the 404-in-front-of-a-judge defect this file was opened
@@ -300,6 +497,42 @@ def test_the_table_and_the_console_declaration_are_the_same_eighteen() -> None:
         "cannot ask which subjects exist or it asks and gets no_route — and every screen is "
         "back to carrying its subject's identifier in its own source"
     )
+    for route in (CR_CHECKS_ROUTE, CR_DEMO_ROUTE):
+        assert route in declared and route in routed, (
+            f"{route[0]} {route[1]} is missing from one of the two tables. The change "
+            "request is the second gated subject and these two rows are the only HTTP path "
+            "to its gate; without both, the demo shows that a clause under blame cannot be "
+            "USED and says nothing about it being quietly EDITED AWAY."
+        )
+
+
+def test_twenty_rows_address_nineteen_paths_and_the_repeat_is_named() -> None:
+    """ROWS ARE NOT PATHS, and the difference is one template declared under two verbs.
+
+    The live 404 body lists nineteen templates because it dedupes, and a reader who counts
+    that list will find one fewer than this table holds. That discrepancy is a correct
+    property of two different questions — "which addresses exist" and "which
+    (method, address) pairs are routed" — and it is written down here so that nobody
+    reconciles it by deleting a row.
+    """
+    rows = [(r.method, r.template) for r in app.ROUTES]
+    templates = {template for _method, template in rows}
+    assert len(rows) == _EXPECTED_ROUTE_COUNT
+    assert len(templates) == _EXPECTED_PATH_COUNT
+    repeated = sorted(
+        template
+        for template in templates
+        if sum(1 for _method, other in rows if other == template) > 1
+    )
+    assert repeated == [_TWICE_DECLARED_PATH], (
+        f"the set of templates declared under more than one method is {repeated}. Exactly "
+        f"one is expected: {_TWICE_DECLARED_PATH} is GET disposition and POST "
+        "sign_disposition — two resources, two contracts, two owners, one address."
+    )
+    assert sorted(r.method for r in app.ROUTES if r.template == _TWICE_DECLARED_PATH) == [
+        "GET",
+        "POST",
+    ]
 
 
 def test_the_subject_index_resolves_to_its_own_key_and_takes_no_parameters() -> None:
@@ -340,6 +573,40 @@ def test_the_subject_index_is_a_read_in_every_table_that_names_a_read() -> None:
     assert f"{envelope.CONTRACT_BASE}subjects.schema.json" == subjects.SUBJECTS_SCHEMA_ID
 
 
+def test_the_cr_obligations_read_is_in_every_table_that_names_a_read() -> None:
+    """Four tables, one key, and nothing in the language makes them agree.
+
+    Same four as the subject index, and the same three failure modes for a key present in
+    three of them: a route that 404s, a 400 that names no contract, or a read nothing can
+    address.
+
+    The last two assertions are the substantive ones. ``cr_blocking_checks`` names the
+    SAME ``$id`` as ``blocking_checks`` — ``blocking-check.schema.json`` — because that
+    contract's ``data`` requires ``subject_kind`` and ``subject_id`` and carries no
+    ``permit_id`` in its required set, and ``common.schema.json#/$defs/subject_kind`` is
+    the closed pair ``permit | change_request``. It was authored subject-polymorphic.
+    ``transport.ts::finishExchange`` compares the ``$id`` against the one the console
+    holds **for the requested key**, so two keys may name one contract; a key may never
+    name two.
+    """
+    from mainline_demo_api import envelope, reads
+
+    assert CR_CHECKS_KEY in {r.key for r in app.ROUTES}
+    assert CR_CHECKS_KEY in reads._DECLARED_PARAMS
+    assert CR_CHECKS_KEY in reads.READS
+    assert CR_CHECKS_KEY in envelope.SCHEMA_IDS
+    assert reads._DECLARED_PARAMS[CR_CHECKS_KEY] == (("cr_id",), ()), (
+        "the CR's obligations take one path parameter and no query parameter, exactly as "
+        "the permit's mirror declares. A silently-ignored query parameter is how a caller "
+        "comes to believe a filter was applied."
+    )
+    assert reads.READS[CR_CHECKS_KEY] is reads.read_cr_blocking_checks
+    assert envelope.SCHEMA_IDS[CR_CHECKS_KEY] == envelope.SCHEMA_IDS["blocking_checks"]
+    assert (
+        envelope.SCHEMA_IDS[CR_CHECKS_KEY] == f"{envelope.CONTRACT_BASE}blocking-check.schema.json"
+    )
+
+
 def test_the_transcribed_contract_id_is_the_one_the_handler_actually_stamps() -> None:
     """``envelope.SCHEMA_IDS[demo_gate_run]`` and ``gate_run.GATE_RUN_SCHEMA_ID`` are one id.
 
@@ -360,6 +627,15 @@ def test_the_transcribed_contract_id_is_the_one_the_handler_actually_stamps() ->
 
 
 def test_no_two_routes_share_a_method_and_template() -> None:
-    """A duplicate row would shadow the earlier one at ``route()`` and never be noticed."""
+    """A duplicate row would shadow the earlier one at ``route()`` and never be noticed.
+
+    ``route()`` returns the FIRST match, so a second row with the same method and template
+    is unreachable code that nothing else in this file can see: every other assertion here
+    compares SETS, and a set collapses the duplicate into the row it shadows. The keys are
+    asserted distinct too — two rows with one key would route consistently and mean the
+    resource registry has two names for one thing.
+    """
     pairs = [(r.method, r.template) for r in app.ROUTES]
     assert len(pairs) == len(set(pairs)), sorted({p for p in pairs if pairs.count(p) > 1})
+    keys = [r.key for r in app.ROUTES]
+    assert len(keys) == len(set(keys)), sorted({k for k in keys if keys.count(k) > 1})

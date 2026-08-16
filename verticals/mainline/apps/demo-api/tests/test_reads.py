@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
-"""The twelve reads, against a real migrated CockroachDB, checked against the real contracts.
+"""Every read, against a real migrated CockroachDB, checked against the real contracts.
 
 THE CENTRAL TEST IS :func:`test_every_read_satisfies_its_committed_contract`. It runs each
-of the twelve resources against a database built by applying every migration in
+resource in ``reads.READS`` against a database built by applying every migration in
 ``verticals/mainline/db/migrations`` and seeded with a history that has something true to
 say about all of them, then validates the response with the JSON Schema files the CONSOLE
 loads — not a copy, not a subset, the same files ``src/data/schema.ts`` reads. A payload
@@ -90,6 +90,11 @@ def _requests(seed: dict[str, str]) -> dict[str, tuple[dict[str, str], dict[str,
         "permit": ({"permit_id": seed["permit_id"]}, {}),
         "change_request": ({"cr_id": seed["cr_id"]}, {}),
         "blocking_checks": ({"permit_id": seed["permit_id"]}, {}),
+        # THE SECOND GATED SUBJECT'S OBLIGATIONS, declared 2026-08-16. Addressed at the
+        # SEEDED change request — the same `cr_id` `change_request` above is driven at —
+        # because the whole point of the resource is that the CR's `open_blocking` counter
+        # was saying one obligation was open and nothing could name it.
+        "cr_blocking_checks": ({"cr_id": seed["cr_id"]}, {}),
         "disposition": ({"check_id": seed["check_id"]}, {}),
         "exposure_receipt": ({"receipt_id": seed["receipt_id"]}, {}),
         # THE COMMIT THE BLOCKING CHECK CITES, which is the commit the CONSOLE addresses:
@@ -331,6 +336,89 @@ def test_the_change_request_gate_is_smaller_and_says_so(
         "cr_identity_conserved_when_merged",
         "cr_conflicts_resolved_when_merged",
     }
+
+
+def test_the_change_requests_obligation_is_listed_and_mirrors_the_permits(
+    payloads: dict[str, dict[str, Any]], seed: dict[str, str]
+) -> None:
+    """``GET /v1/change-requests/{cr_id}/blocking-checks`` — the second subject, listed.
+
+    Until 2026-08-16 there was no route to this. ``GET /v1/change-requests/{cr_id}``
+    answered with ``open_blocking: 1`` and **nothing could name the one obligation the
+    counter was counting**; the live origin answered ``404`` for this path and
+    ``operator/change/ChangeScreen.ts`` rendered that 404 as evidence.
+
+    THE MIRROR IS MEASURED HERE, NOT ASSERTED IN PROSE. The permit's obligation and the
+    change request's cite the SAME ``clause_uuid``, the SAME ``commit_id`` and the SAME
+    precursor event, at the same severity and the same virulence — one clause under blame,
+    reaching two subjects. That is the sentence the second use case exists to land: a
+    clause the blame reaches cannot be USED, and it cannot quietly be EDITED AWAY either.
+    If the seed ever pointed the two at different clauses the mirror would be a claim
+    nothing supports, and this test is what would say so.
+
+    ``permit_id`` is ``null`` on this check and ``cr_id`` is not, which is the whole reason
+    ``blocking-check.schema.json`` types both as nullable and requires ``subject_kind``.
+    """
+    data = payloads["cr_blocking_checks"]["data"]
+    assert data["subject_kind"] == "change_request"
+    assert data["subject_id"] == seed["cr_id"]
+    assert data["gate_epoch"] == payloads["change_request"]["data"]["gate_epoch"]
+    assert len(data["checks"]) == 1, (
+        "the seeded change request carries exactly one obligation, and its open_blocking "
+        "counter says so"
+    )
+
+    check = data["checks"][0]
+    assert check["subject_kind"] == "change_request"
+    assert check["cr_id"] == seed["cr_id"]
+    assert check["permit_id"] is None, (
+        "a change request's check has no permit, and the honest report of that is null. "
+        "blocking-check.schema.json types permit_id as uuid-or-null for exactly this row."
+    )
+    assert check["origin"] == "blame_ancestry"
+    assert check["severity"] == 4
+    assert check["virulence"] == "blood_major"
+    assert check["open"] is True
+    assert check["disposition_id"] is None
+
+    # The counter beside the list, re-derived from the list. `1 == 1` is satisfied only by
+    # a projection that counted the open one; `0 == 0` would be satisfied by a change
+    # request with no obligations at all.
+    counters = payloads["change_request"]["data"]["counters"]
+    assert counters["open_blocking"] == sum(1 for item in data["checks"] if item["open"]) == 1
+
+    # THE MIRROR, against the permit's own payload rather than against a literal.
+    permit_check = payloads["blocking_checks"]["data"]["checks"][0]
+    assert check["clause_uuid"] == permit_check["clause_uuid"]
+    assert check["commit_id"] == permit_check["commit_id"]
+    assert check["precursor_event_id"] == permit_check["precursor_event_id"]
+    assert check["check_id"] != permit_check["check_id"], (
+        "two subjects, two obligations — one row serving both would mean disposing of one "
+        "disposed of the other"
+    )
+
+    chips = {
+        entry["pointer"]: entry["chip"] for entry in payloads["cr_blocking_checks"]["provenance"]
+    }
+    assert chips["/subject_kind"] == "derived", (
+        "no column on mainline.change_request says 'change_request'; this API knows it "
+        "because app.ROUTES matched the template, which is what `derived` means"
+    )
+    assert chips["/subject_id"] == "db:column"
+    assert chips["/gate_epoch"] == "db:column"
+    assert chips["/checks/0/open"] == "derived"
+    assert chips["/checks/0/disposition_id"] == "derived"
+    assert chips["/checks/0"] == "db:column"
+
+    # The subject's own table is named in statement_refs, so a reader can see which row
+    # the gate_epoch beside the list was read off rather than inferring it.
+    objects = [ref["object"] for ref in payloads["cr_blocking_checks"]["statement_refs"]]
+    assert "mainline.change_request" in objects, objects
+    assert "mainline.permit" not in objects, objects
+    assert "mainline.blocking_check" in objects
+    assert "mainline.permit" in [
+        ref["object"] for ref in payloads["blocking_checks"]["statement_refs"]
+    ]
 
 
 def test_open_is_derived_and_the_projections_are_columns(
@@ -895,6 +983,48 @@ def test_an_unknown_change_request_is_404_and_not_an_empty_envelope(
         present = app.handler(_event("GET", f"/v1/change-requests/{seed['cr_id']}"))
         assert present["statusCode"] == 200, present["body"]
         assert json.loads(present["body"])["data"]["cr_id"] == seed["cr_id"]
+    finally:
+        demo_db.reset_dsn_cache()
+
+
+def test_the_cr_obligations_route_answers_over_the_event_shape_and_404s_the_absent(
+    demo_database: tuple[str, dict[str, str]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """``GET /v1/change-requests/{cr_id}/blocking-checks``, driven through :func:`app.handler`.
+
+    The read is exercised in ``payloads`` above; what this asserts is the part only the
+    HANDLER can be wrong about — that the route resolves, that the envelope comes back
+    with ``resource: cr_blocking_checks`` and the change-request subject, and that an
+    absent ``cr_id`` produces a **404** naming the resource rather than an envelope full
+    of nulls or a 500.
+
+    The absence matters more here than for a scalar read. An empty ``checks`` array for a
+    change request that does not exist is the sentence *"this change request has no open
+    obligations"*, which is precisely the false reassurance the gate exists to prevent.
+    """
+    dsn, seed = demo_database
+    absent = str(uuid.uuid4())
+    assert absent != seed["cr_id"]
+
+    monkeypatch.setenv("MAINLINE_DSN", dsn)
+    demo_db.reset_dsn_cache()
+    try:
+        present = app.handler(_event("GET", f"/v1/change-requests/{seed['cr_id']}/blocking-checks"))
+        assert present["statusCode"] == 200, present["body"]
+        envelope_body = json.loads(present["body"])
+        assert envelope_body["resource"] == "cr_blocking_checks"
+        assert envelope_body["schema_id"] == envelope.SCHEMA_IDS["cr_blocking_checks"]
+        assert envelope_body["data"]["subject_kind"] == "change_request"
+        assert envelope_body["data"]["subject_id"] == seed["cr_id"]
+        assert len(envelope_body["data"]["checks"]) == 1
+
+        missing = app.handler(_event("GET", f"/v1/change-requests/{absent}/blocking-checks"))
+        assert missing["statusCode"] == 404, missing["body"]
+        error = json.loads(missing["body"])["error"]
+        assert error["kind"] == "notfound"
+        assert error["resource"] == "cr_blocking_checks"
+        assert error["schema_id"] == envelope.SCHEMA_IDS["cr_blocking_checks"]
+        assert absent in error["detail"], "the refusal names the id it could not find"
     finally:
         demo_db.reset_dsn_cache()
 

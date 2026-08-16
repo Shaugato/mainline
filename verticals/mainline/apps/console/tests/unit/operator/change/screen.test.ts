@@ -167,6 +167,13 @@ function replies(): Record<string, Reply> {
 }
 
 let requested: string[] = [];
+let posted: string[] = [];
+
+/**
+ * The replies the POST port gives. Replaced per test; the default is the 404 a deployment
+ * that does not declare `/v1/demo/cr-gate-run` actually answers with.
+ */
+let postReply: Reply = { status: 404, raw: REAL_404_RAW, data: null };
 
 function makeKernel(overrides: Partial<ChangeKernel> = {}): ChangeKernel {
   const table = replies();
@@ -194,9 +201,29 @@ function makeKernel(overrides: Partial<ChangeKernel> = {}): ChangeKernel {
         raw: reply.raw,
       });
     },
+    post: <T,>(path: string): Promise<KernelExchange<T>> => {
+      posted.push(path);
+      return Promise.resolve({
+        method: 'POST',
+        path,
+        status: postReply.status,
+        wireBytes: postReply.raw.length,
+        receivedAt: '2026-08-16T09:00:00.000000Z',
+        emulator: 'local_furl',
+        data: postReply.data as T | null,
+        raw: postReply.raw,
+      });
+    },
     ...overrides,
   };
   return kernel;
+}
+
+/** Let every already-resolved promise in the click handler settle. No fake timers. */
+async function settled(): Promise<void> {
+  await new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
 }
 
 async function mount(kernel: ChangeKernel = makeKernel()): Promise<HTMLElement> {
@@ -233,6 +260,8 @@ function withoutRawPayloads(root: HTMLElement): HTMLElement {
 
 beforeEach(() => {
   requested = [];
+  posted = [];
+  postReply = { status: 404, raw: REAL_404_RAW, data: null };
   document.body.replaceChildren();
 });
 
@@ -491,6 +520,7 @@ describe('R11 — the approve control is disabled and the absence is on screen',
     const kernel = makeKernel();
     const root = await mount({
       resolveAddressing: kernel.resolveAddressing.bind(kernel),
+      post: kernel.post.bind(kernel),
       get: <T,>(path: string): Promise<KernelExchange<T>> =>
         path.endsWith('/blocking-checks')
           ? Promise.resolve({
@@ -559,6 +589,7 @@ describe('absence propagates rather than being papered over', () => {
     const kernel = makeKernel();
     const root = await mount({
       resolveAddressing: kernel.resolveAddressing.bind(kernel),
+      post: kernel.post.bind(kernel),
       get: <T,>(path: string): Promise<KernelExchange<T>> =>
         path.includes('/versions/')
           ? Promise.resolve({
@@ -593,7 +624,7 @@ describe('every rendered exchange is traceable to a real response', () => {
     const summaries = [...root.querySelectorAll('details summary')].map((s) => s.textContent);
     expect(summaries).toEqual([
       'Raw payload — change request',
-      'Raw payload — blocking-checks probe (404)',
+      'Raw payload — blocking-checks (404)',
       'Raw payload — clause version',
       'Raw payload — disposition, the addressable check (NOT this change request’s)',
     ]);
@@ -619,11 +650,12 @@ describe('every rendered exchange is traceable to a real response', () => {
           absent: [],
         }),
       get: kernel.get.bind(kernel),
+      post: kernel.post.bind(kernel),
     });
     expect(root.textContent).toContain('No check id was addressable in this page load');
     expect([...root.querySelectorAll('details summary')].map((s) => s.textContent)).toEqual([
       'Raw payload — change request',
-      'Raw payload — blocking-checks probe (404)',
+      'Raw payload — blocking-checks (404)',
     ]);
   });
 });
@@ -645,6 +677,7 @@ describe('the source of src/operator/change/** — the grep the brief asks for',
       'ChangeScreen.ts',
       'absence.ts',
       'change.css',
+      'cr-gate.ts',
       'lattice.ts',
       'osha-sections.ts',
       'ribbon.ts',
@@ -666,6 +699,28 @@ describe('the source of src/operator/change/** — the grep the brief asks for',
     const uuid = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i;
     for (const [path, source] of Object.entries(SOURCES)) {
       expect(uuid.test(source), `${path} contains a UUID literal`).toBe(false);
+    }
+  });
+
+  it('contains NO SQLSTATE literal in code — every code on screen came off a response', () => {
+    // The companion half of `cr-gate.test.ts`: that suite proves the renderer prints the
+    // member it was handed, by handing it tokens no database produces. This proves the
+    // renderer has no code of its own to fall back on. Both are needed — a module could
+    // print its argument AND still carry a default for the case where the argument is
+    // missing, and the default is the one that would end up on camera.
+    //
+    // COMMENTS ARE STRIPPED FIRST, on the same principle as every grep above: these modules
+    // are required to explain themselves, and `lattice.ts` legitimately cites the SQLSTATE
+    // a non-existent clearance row produces. A grep that failed on the explanation would
+    // push the explanation out of the source, which is the opposite of what it is for.
+    const code = /(?<![\w-])(?:23514|23503|23505|23502|40001|42501|P0001)(?![\w-])/;
+    for (const [path, source] of Object.entries(SOURCES)) {
+      const stripped = source
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .split('\n')
+        .filter((line) => !line.trimStart().startsWith('//'))
+        .join('\n');
+      expect(code.test(stripped), `${path} contains a SQLSTATE literal`).toBe(false);
     }
   });
 
@@ -756,6 +811,229 @@ describe('the source of src/operator/change/** — the grep the brief asks for',
   });
 });
 
+/* ══ the route now exists — the same screen, against a deployment that has it ═════ */
+
+/**
+ * `data` of `GET /v1/change-requests/<cr_id>/blocking-checks` → 200.
+ *
+ * MEMBER NAMES are `blocking-check.schema.json`'s. VALUES are this file's `…-UNDER-TEST`
+ * tokens, for the same reason the ids above are: a screen that only rendered correctly
+ * against the seeded world would pass with real values and fail with these.
+ */
+const REAL_CR_CHECKS_DATA = {
+  subject_kind: 'change_request',
+  subject_id: CR_ID,
+  gate_epoch: 1,
+  checks: [
+    {
+      check_id: CHECK_ID,
+      subject_kind: 'change_request',
+      cr_id: CR_ID,
+      permit_id: null,
+      origin: 'ORIGIN-UNDER-TEST',
+      severity: 4,
+      virulence: 'blood_major',
+      closure_gen: 2,
+      clause_label: 'LABEL-UNDER-TEST',
+      evidence_summary: 'EVIDENCE-SUMMARY-UNDER-TEST',
+      materialised_at: '2026-08-01T03:00:00Z',
+      open: true,
+    },
+  ],
+};
+
+/** A kernel whose blocking-checks route answers 200 with the payload above. */
+function kernelWithCrChecks(): ChangeKernel {
+  const base = makeKernel();
+  const raw = JSON.stringify({ data: REAL_CR_CHECKS_DATA });
+  return {
+    resolveAddressing: base.resolveAddressing.bind(base),
+    post: base.post.bind(base),
+    get: <T,>(path: string): Promise<KernelExchange<T>> => {
+      if (!path.endsWith('/blocking-checks')) return base.get<T>(path);
+      requested.push(path);
+      return Promise.resolve({
+        method: 'GET',
+        path,
+        status: 200,
+        wireBytes: raw.length,
+        receivedAt: '2026-08-16T09:00:00.000000Z',
+        emulator: 'local_furl',
+        data: REAL_CR_CHECKS_DATA as T,
+        raw,
+      });
+    },
+  };
+}
+
+describe('when the deployment declares the change request’s blocking-checks route', () => {
+  it('renders the obligation’s own row instead of the absence panel', async () => {
+    const text = (await mount(kernelWithCrChecks())).textContent ?? '';
+    for (const token of ['ORIGIN-UNDER-TEST', 'blood_major', 'LABEL-UNDER-TEST']) {
+      expect(text).toContain(token);
+    }
+    expect(text).toContain('EVIDENCE-SUMMARY-UNDER-TEST');
+    expect(text).not.toContain('not reachable from any declared route');
+  });
+
+  it('reads the disposition against THIS change request’s check, and says the scope changed', async () => {
+    const root = await mount(kernelWithCrChecks());
+    expect(requested).toEqual([
+      `/v1/change-requests/${CR_ID}`,
+      `/v1/change-requests/${CR_ID}/blocking-checks`,
+      `/v1/clauses/${CLAUSE_UUID}/versions/${COMMIT_ID}`,
+      `/v1/checks/${CHECK_ID}/disposition`,
+    ]);
+    expect(root.textContent).toContain('this change request’s own blocking check');
+  });
+
+  it('renders the change request’s defeater prompts, now that a live read yields them', async () => {
+    const root = await mount(kernelWithCrChecks());
+    expect(root.querySelectorAll('.moc-prompt')).toHaveLength(1);
+    expect(root.textContent).toContain('MECHANISM_PRESENT_AND_VERIFIED');
+    expect(root.textContent).not.toContain('they are unreachable');
+  });
+
+  it('labels the raw panel with the status the response actually had', async () => {
+    const root = await mount(kernelWithCrChecks());
+    expect([...root.querySelectorAll('details summary')].map((s) => s.textContent)).toContain(
+      'Raw payload — blocking-checks (200)',
+    );
+  });
+
+  it('still requests no merge route, for either subject', async () => {
+    await mount(kernelWithCrChecks());
+    expect(requested.filter((path) => path.includes('merge'))).toEqual([]);
+  });
+});
+
+/* ══ the attempt — one POST, rolled back, and nothing else on this screen ═════════ */
+
+/** Member names from `cr-gate-run.schema.json`; values from this file. See cr-gate.test.ts. */
+const CR_GATE_RUN_DATA = {
+  run_id: 'RUN-UNDER-TEST',
+  generated_at: '2026-08-16T09:00:00.000000Z',
+  outcome: 'completed',
+  verdict: 'VERDICT-UNDER-TEST',
+  persisted: false,
+  elapsed_ms: 1234,
+  failures: [],
+  beats: [
+    {
+      ordinal: 1,
+      name: 'merge',
+      label: 'LABEL-UNDER-TEST',
+      outcome: 'refused',
+      sqlstate: 'STATE-UNDER-TEST',
+      constraint: 'CONSTRAINT-UNDER-TEST',
+      constraint_source: 'SOURCE-UNDER-TEST',
+      message: 'MESSAGE-UNDER-TEST',
+      statement: 'STATEMENT-UNDER-TEST',
+      matched_expectation: true,
+      elapsed_ms: 22,
+      refusal: { sqlstate: 'STATE-UNDER-TEST' },
+    },
+  ],
+  persistence_check: {
+    before: { change_request: { open_blocking: 1 } },
+    after: { change_request: { open_blocking: 1 } },
+    identical: true,
+    self_persisted: false,
+    note: 'NOTE-UNDER-TEST',
+  },
+};
+
+describe('the attempt control — the refusal the approve control cannot produce', () => {
+  it('sends nothing at mount, and says so where the answer will go', async () => {
+    const root = await mount();
+    expect(posted).toEqual([]);
+    expect(root.textContent).toContain('Not pressed');
+    expect(button(root, 'button.moc-attempt').disabled).toBe(false);
+  });
+
+  it('sends exactly one POST, to the parameterless demo route, on one press', async () => {
+    const root = await mount();
+    button(root, 'button.moc-attempt').click();
+    await settled();
+    expect(posted).toEqual(['/v1/demo/cr-gate-run']);
+    // No identifier is interpolated into it, because the route declares no parameter.
+    expect(posted[0]).not.toContain(CR_ID);
+  });
+
+  it('renders the SQLSTATE, the constraint, how it was reported, and the message', async () => {
+    postReply = {
+      status: 200,
+      raw: JSON.stringify({ data: CR_GATE_RUN_DATA }),
+      data: CR_GATE_RUN_DATA,
+    };
+    const root = await mount();
+    button(root, 'button.moc-attempt').click();
+    await settled();
+    const text = root.textContent ?? '';
+    for (const token of [
+      'STATE-UNDER-TEST',
+      'CONSTRAINT-UNDER-TEST',
+      'SOURCE-UNDER-TEST',
+      'MESSAGE-UNDER-TEST',
+      'STATEMENT-UNDER-TEST',
+      'VERDICT-UNDER-TEST',
+    ]) {
+      expect(text).toContain(token);
+    }
+  });
+
+  it('renders both fingerprints beside the persistence conclusion, never the claim alone', async () => {
+    postReply = {
+      status: 200,
+      raw: JSON.stringify({ data: CR_GATE_RUN_DATA }),
+      data: CR_GATE_RUN_DATA,
+    };
+    const root = await mount();
+    button(root, 'button.moc-attempt').click();
+    await settled();
+    const rows = [...root.querySelectorAll('.moc-run tbody tr')].map((tr) =>
+      [...tr.querySelectorAll('td')].map((td) => td.textContent),
+    );
+    expect(rows).toContainEqual(['change_request/open_blocking', '1', '1', 'no']);
+    expect(root.textContent).toContain('NOTE-UNDER-TEST');
+  });
+
+  it('claims nothing when the deployment does not declare the endpoint', async () => {
+    // The default reply is the real 404 body. A screen that rendered a refusal here would
+    // be inventing one out of a routing error, which is the most deniable lie available.
+    const root = await mount();
+    button(root, 'button.moc-attempt').click();
+    await settled();
+    const run = root.querySelector('.moc-run');
+    expect(run?.textContent).toContain('is not a gate run this page can read');
+    // Nothing in the region that renders the answer says a refusal happened, and the
+    // verbatim bytes of the 404 are there instead.
+    expect(run?.textContent).not.toContain('refused');
+    expect(run?.querySelector('pre.moc-raw')?.textContent).toBe(REAL_404_RAW);
+  });
+
+  it('does not enable the approve control, whatever the attempt returned', async () => {
+    postReply = {
+      status: 200,
+      raw: JSON.stringify({ data: CR_GATE_RUN_DATA }),
+      data: CR_GATE_RUN_DATA,
+    };
+    const root = await mount();
+    button(root, 'button.moc-attempt').click();
+    await settled();
+    expect(button(root, 'button.moc-approve').disabled).toBe(true);
+  });
+
+  it('never posts to a merge route, for either subject', async () => {
+    const root = await mount();
+    button(root, 'button.moc-attempt').click();
+    await settled();
+    expect(posted.filter((path) => path.includes('merge'))).toEqual([]);
+    expect(posted.filter((path) => path.includes('change-requests'))).toEqual([]);
+    expect(posted.filter((path) => path.includes('/v1/permits/'))).toEqual([]);
+  });
+});
+
 /* ══ a mounted screen must not have acquired a second data source ═════════════════ */
 
 describe('the screen has exactly one way to get data', () => {
@@ -768,6 +1046,7 @@ describe('the screen has exactly one way to get data', () => {
           /* never resolves: the screen must render its chrome and then wait */
         }),
       get: spy,
+      post: spy,
     });
     expect(spy).not.toHaveBeenCalled();
     expect(host.querySelector('.moc-title')?.textContent).toBe('Management of change');

@@ -234,7 +234,14 @@ SUITE_PATHS = ("verticals/mainline/apps/demo-api/tests", "tests/deploy")
 #:
 #: A COUNT THAT FALLS IS A REGRESSION AND STOPS THE WAVE. It is never re-recorded downward
 #: to make a run green: that would delete the only evidence that a test was deleted.
-SUITE_BASELINE = {"collected": 998, "passed": 997, "failed": 0, "errors": 0, "skipped": 1}
+#:
+#: RAISED 2026-08-16, 998/997 -> 1070/1069, and the direction is the whole justification.
+#: The second use case — the change request's own gate, `cr_gate_closed_when_merged` and
+#: `fn_cr_merge_gate` — arrived with 72 tests covering the new endpoint, the list route, its
+#: contract and the CR-scoped persistence proof. Collection ROSE, which is the only motion
+#: this constant may make without an explanation of what was deleted. `failed`, `errors` and
+#: `skipped` are unchanged at 0/0/1, and the one skip is still the `jsonschema` one.
+SUITE_BASELINE = {"collected": 1070, "passed": 1069, "failed": 0, "errors": 0, "skipped": 1}
 
 # ── BOUNDS ───────────────────────────────────────────────────────────────────────────
 CEILING_EXPRESSION = "136 * 1024"

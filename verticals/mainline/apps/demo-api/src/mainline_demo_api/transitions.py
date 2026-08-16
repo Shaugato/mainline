@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
-"""The five POST resources: four kernel transitions, and the demo driver.
+"""The six POST resources: four kernel transitions, and the two demo drivers.
 
 ONE ENTRY POINT, and its signature is fixed between this worker and ``w3-api-core-reads``:
 
@@ -25,8 +25,21 @@ and governed by ``contracts/invoke.schema.json``:
 ``suspend_permit``      ``POST /v1/permits/{permit_id}/suspend``
 ======================  ==========================================================
 
-plus ``demo_gate_run`` — ``POST /v1/demo/gate-run`` — governed by this app's own
-``contracts/gate-run.schema.json``.
+plus the two demo drivers, each governed by a contract this app owns:
+
+====================  ====================================================================
+``demo_gate_run``     ``POST /v1/demo/gate-run`` — ``contracts/gate-run.schema.json``
+``cr_gate_run``       ``POST /v1/demo/cr-gate-run`` — ``contracts/cr-gate-run.schema.json``
+====================  ====================================================================
+
+They are the same claim from both sides: you cannot ISSUE a permit that relies on a clause
+a past incident's blame reaches, and you cannot quietly EDIT AWAY that clause either.
+**Neither takes a path parameter**, both roll their whole transaction back, and both prove
+``persisted: false`` from a fingerprint they measured rather than asserting it. See the
+note beside ``cr_gate_run`` in :data:`TRANSITION_RESOURCES` for why the second one's
+``(None, None, False)`` shape is a safety decision — ``_demo_guard`` decides on
+``subject_id == scenario.permit_id`` and a change-request identifier never equals a permit
+identifier, so a MUTATING change-request transition would have walked straight past it.
 
 A REFUSAL IS A NORMAL RESPONSE
 ------------------------------
@@ -168,6 +181,7 @@ from typing import Any, Final
 import psycopg
 from psycopg.types.json import Jsonb
 
+from .cr_gate_run import CR_GATE_RUN_SCHEMA_ID, cr_gate_run
 from .credentials import resolve_credential_id
 from .defeaters import resolve_defeater_vocabulary
 from .gate_run import DEMO_DEFEATER_CODE, GATE_RUN_SCHEMA_ID, canonical_json, gate_run
@@ -195,6 +209,26 @@ TRANSITION_RESOURCES: Final[Mapping[str, tuple[str | None, str | None, bool]]] =
     "merge_permit": ("permit_id", "trappoint.merge_permit", True),
     "suspend_permit": ("permit_id", "trappoint.suspend_permit", True),
     "demo_gate_run": (None, None, False),
+    # ── THE SIXTH, AND ITS SHAPE IS A SAFETY DECISION RATHER THAN A CONVENTION ──────
+    #
+    # `(None, None, False)`: no path parameter, no kernel procedure, does not mutate. The
+    # first of those three is what keeps `_demo_guard` out of the picture, and that is
+    # deliberate, because THE GUARD WOULD NOT HAVE HELD.
+    #
+    # `_demo_guard`'s whole decision is `subject_id == scenario.permit_id`. A change
+    # request identifier never equals the permit identifier, so a MUTATING change-request
+    # transition would fall past the `demo_subject_write_protected` branch, reach
+    # `_demo_subject_is_established`, find the permit IS seeded, and be let through — an
+    # unguarded, irreversible, unauthenticated write on the seeded demo change request.
+    # That is not hypothetical: it is the exact shape of the defect
+    # `evidence/deploy/demo-guard-armed.json` records, one subject over.
+    #
+    # So there is no committing change-request route, in this wave or by accident, and the
+    # guard is NOT widened to prepare for one — widening it now is how the route gets added
+    # next week without the argument being had. `cr_gate_run` needs no guard because there
+    # is nothing to guard: every write beat is fenced by its own savepoint and the whole
+    # transaction is rolled back, which the payload proves rather than asserts.
+    "cr_gate_run": (None, None, False),
 }
 
 _OK: Final = 200
@@ -1341,6 +1375,78 @@ def _demo_gate_run(
     )
 
 
+def _demo_cr_gate_run(
+    conn: psycopg.Connection[Any], body: Mapping[str, Any], scenario: Scenario
+) -> tuple[int, dict[str, Any]]:
+    """Play the three change-request beats and roll them back. The mirror of the above.
+
+    Same borrow, same retry, same reason: one call to :func:`cr_gate_run` is exactly one
+    whole transaction — it rolls back whatever it was handed, opens its own, plays the
+    beats and rolls all of it back — so ``spec/errors.md`` §2.1's retried unit is the call,
+    not a statement inside it.
+
+    WHAT IT DOES NOT SHARE WITH ``demo_gate_run`` IS ITS ``statement_refs``, and the
+    difference is the exhibit. This run never calls ``mainline.merge_change_request``: as
+    the role a Function URL carrying ``authorization_type = NONE`` executes as, that
+    procedure answers ``42501`` on ``mainline.cr_event`` rather than reaching the gate at
+    all — measured, and stated in the payload as ``kernel_procedure_absent_sqlstate``. What
+    the beats name instead is the TABLE and what is welded to it, because that is what
+    actually refuses: the ``CHECK`` and the trigger function meet a caller who skipped the
+    procedure exactly as they meet one who did not.
+    """
+    run_id = body.get("run_id")
+    if run_id is not None and not isinstance(run_id, str):
+        raise ValueError("body member 'run_id' must be a string when supplied")
+    try:
+        payload = run_transaction(
+            lambda: cr_gate_run(conn, scenario, run_id=run_id),
+            undecided=lambda result: bool(result["outcome"] == "retry"),
+        )
+    except RetryBudgetExhausted as exhausted:
+        # Hand on the DATABASE's own last error rather than a second exhaustion type —
+        # `_demo_gate_run` does the same thing for the same reason, recorded there.
+        cause = exhausted.__cause__
+        if isinstance(cause, psycopg.Error):
+            raise cause from exhausted
+        raise
+    status = _RETRY if payload["outcome"] == "retry" else _OK
+    return status, _envelope(
+        "cr_gate_run",
+        CR_GATE_RUN_SCHEMA_ID,
+        payload,
+        statement_refs=[
+            _ref("table", "mainline.change_request"),
+            _ref("procedure", "trappoint.explain_refusal"),
+            _ref("table", "mainline.blocking_check"),
+            _ref("table", "mainline.defeater_option"),
+            _ref("view", "pg_catalog.pg_constraint"),
+        ],
+        provenance=[
+            {"pointer": "/verdict", "chip": "derived"},
+            {"pointer": "/subject/open_blocking", "chip": "db:column"},
+            {"pointer": "/subject/open_blocking_derived", "chip": "recomputed"},
+            {"pointer": "/subject/severity", "chip": "db:column"},
+            {"pointer": "/subject/virulence", "chip": "db:column"},
+            {"pointer": "/beats/0/observed/named_checks", "chip": "db:constraint"},
+            {"pointer": "/beats/1/sqlstate", "chip": "db:constraint"},
+            {"pointer": "/beats/1/constraint", "chip": "db:constraint"},
+            {"pointer": "/beats/2/sqlstate", "chip": "db:constraint"},
+            {"pointer": "/beats/2/constraint", "chip": "db:constraint"},
+            {"pointer": "/persistence_check/identical", "chip": "recomputed"},
+            # The field the VERDICT keys on, named for the same reason it is named on
+            # `demo_gate_run`: `identical` is the ten unscoped counts and is a statement
+            # about the database, and a provenance list naming only that one would point a
+            # reader at the reading the verdict is not read off.
+            {"pointer": "/persistence_check/self_persisted", "chip": "recomputed"},
+            # NOT chipped `db:column` and not chipped at all by accident: these two are the
+            # API's own words about why a beat is absent. `common.schema.json` says an
+            # unclaimed provenance is better than a comfortable default, and there is no
+            # chip for "a sentence we wrote about a grant row".
+            {"pointer": "/kernel_procedure_absent_sqlstate", "chip": "derived"},
+        ],
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════════════
 # the entry point
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -1392,6 +1498,12 @@ def handle_transition(  # noqa: PLR0911 — one return per outcome; a shared exi
     # out of every one of the returns and raises inside it.
     with _borrowed(conn):
         try:
+            # THE TWO DEMO DRIVERS, BOTH BEFORE THE PARAMETER BRANCH. Neither takes a path
+            # parameter, so neither reaches `_uuid_param` and neither is ever handed to
+            # `_demo_guard` — see the note beside `cr_gate_run` in TRANSITION_RESOURCES for
+            # why that is the safety property and not merely the shape.
+            if resource_key == "cr_gate_run":
+                return _demo_cr_gate_run(conn, payload, scenario)
             if resource_key == "demo_gate_run" or param_name is None:
                 return _demo_gate_run(conn, payload, scenario)
 

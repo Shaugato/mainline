@@ -1,0 +1,79 @@
+{
+  "measured_by": "W1",
+  "measured_at_utc": "2026-08-16T04:32:56Z",
+  "node": "LOCAL ONLY \u2014 postgresql://root@localhost:26257/mainline_demo",
+  "role": "mainline_api",
+  "role_attributes": {
+    "rolcanlogin": true,
+    "rolsuper": false,
+    "rolcreatedb": false,
+    "rolcreaterole": false,
+    "rolbypassrls": false
+  },
+  "table_privileges": {
+    "declared_count": 76,
+    "actual_count": 75,
+    "declared_not_in_cluster": [
+      "trappoint.deploy_chain:SELECT"
+    ],
+    "extra_in_cluster": []
+  },
+  "schema_privileges": {
+    "declared": [
+      "mainline:USAGE",
+      "mainline_audit:USAGE",
+      "mainline_meas:USAGE",
+      "mainline_ops:USAGE",
+      "trappoint:USAGE"
+    ],
+    "actual_granted_to_mainline_api": [
+      "mainline:USAGE",
+      "mainline_audit:USAGE",
+      "mainline_meas:USAGE",
+      "mainline_ops:USAGE",
+      "trappoint:USAGE"
+    ],
+    "extra_in_cluster": [],
+    "reachable_by_inheritance_not_granted_to_this_role": [
+      "mainline:USAGE (grantee agent_gate)",
+      "mainline:USAGE (grantee auditor_ro)",
+      "mainline:USAGE (grantee svc_disposition)",
+      "mainline_audit:USAGE (grantee agent_gate)",
+      "mainline_audit:USAGE (grantee auditor_ro)",
+      "mainline_audit:USAGE (grantee svc_disposition)",
+      "mainline_meas:USAGE (grantee agent_gate)",
+      "mainline_meas:USAGE (grantee auditor_ro)",
+      "mainline_meas:USAGE (grantee svc_disposition)",
+      "mainline_ops:USAGE (grantee agent_gate)",
+      "mainline_ops:USAGE (grantee auditor_ro)",
+      "mainline_ops:USAGE (grantee svc_disposition)",
+      "mainline_qa:USAGE (grantee agent_gate)",
+      "mainline_qa:USAGE (grantee auditor_ro)",
+      "mainline_qa:USAGE (grantee svc_disposition)",
+      "public:USAGE (grantee public)"
+    ]
+  },
+  "memberships": {
+    "declared": [
+      "agent_gate",
+      "auditor_ro",
+      "svc_disposition"
+    ],
+    "actual": [
+      "agent_gate",
+      "auditor_ro",
+      "svc_disposition"
+    ],
+    "extra_in_cluster": []
+  },
+  "cr_gate_relevant": {
+    "mainline.change_request": [
+      "SELECT",
+      "UPDATE"
+    ],
+    "mainline.cr_event": [
+      "SELECT"
+    ]
+  },
+  "no_privilege_beyond_the_matrix": true
+}

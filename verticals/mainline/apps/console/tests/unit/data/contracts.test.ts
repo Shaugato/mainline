@@ -32,8 +32,10 @@ import { describe, expect, it } from 'vitest';
 import {
   CONTRACT_ID_PREFIX,
   CONTRACT_SOURCES,
+  DEFERRED_CONTRACT_SOURCES,
   REFUSAL_SCHEMA_ID,
   createContractRegistry,
+  createFullContractRegistry,
 } from '../../../src/data/contracts';
 import { RESOURCES } from '../../../src/data/resources';
 
@@ -42,6 +44,7 @@ import { REPO_ROOT, nodeFs } from './_support';
 const SPEC_REFUSAL = `${REPO_ROOT}spec/wire/refusal.schema.json`;
 const DEMO_API_GATE_RUN = `${REPO_ROOT}verticals/mainline/apps/demo-api/contracts/gate-run.schema.json`;
 const DEMO_API_SUBJECTS = `${REPO_ROOT}verticals/mainline/apps/demo-api/contracts/subjects.schema.json`;
+const DEMO_API_CR_GATE_RUN = `${REPO_ROOT}verticals/mainline/apps/demo-api/contracts/cr-gate-run.schema.json`;
 
 type Json = unknown;
 
@@ -80,8 +83,18 @@ async function expectVerbatimCopy(name: string, originalPath: string, reCopy: st
   );
 
   const originalSource = fs.readFileSync(originalPath, 'utf8');
-  const registered = CONTRACT_SOURCES.find(([entry]) => entry === name)?.[1];
-  expect(registered, `contracts.ts must register "${name}" in CONTRACT_SOURCES`).toBeDefined();
+  // Registered EAGERLY or DEFERRED — both are registrations and both are pinned here on
+  // identical terms. Where a document's bytes live is a byte decision (see the note in
+  // `contracts.ts`); whether the console registers it is a contract decision, and this
+  // check is about the second. A document in neither table fails with the name that is
+  // missing rather than with a `$ref` that does not resolve six months later.
+  const eager = CONTRACT_SOURCES.find(([entry]) => entry === name)?.[1];
+  const deferred = DEFERRED_CONTRACT_SOURCES.find(([entry]) => entry === name)?.[1];
+  expect(
+    eager !== undefined || deferred !== undefined,
+    `contracts.ts must register "${name}" in CONTRACT_SOURCES or DEFERRED_CONTRACT_SOURCES`,
+  ).toBe(true);
+  const registered = eager ?? (deferred === undefined ? undefined : await deferred());
 
   // (1) The two FILES, byte for byte. Both are read the same way, so a line-ending
   // difference between them is a real difference and not a checkout artefact. Compared
@@ -125,16 +138,29 @@ describe('contracts', () => {
     expect(registry.ids().length).toBe(CONTRACT_SOURCES.length);
   });
 
-  it('every declared resource names a contract the registry holds', () => {
-    const registry = createContractRegistry();
+  it('the deferred documents compile too — later, but not more quietly', async () => {
+    // A document loaded on demand that was never compiled would validate vacuously, which
+    // is the exact failure `compileAll()` exists to prevent. It is asserted separately from
+    // the eager set so a failure names which half broke.
+    const full = await createFullContractRegistry();
+    expect(full.ids().length).toBe(CONTRACT_SOURCES.length + DEFERRED_CONTRACT_SOURCES.length);
+    expect(DEFERRED_CONTRACT_SOURCES.map(([name]) => name)).toEqual(['cr-gate-run.schema.json']);
+  });
+
+  it('every declared resource names a contract the registry holds', async () => {
+    // The FULL registry, because a resource whose contract is deferred is still a resource
+    // whose contract this console must hold. Deferring is a decision about which chunk the
+    // bytes ride in; it is not permission to declare a route against a document nobody
+    // registered, which is the four-table rule this assertion is the console's half of.
+    const registry = await createFullContractRegistry();
     const known = new Set(registry.ids());
     for (const resource of RESOURCES.values()) {
       expect(known, `resource "${resource.key}"`).toContain(resource.schemaId);
     }
   });
 
-  it('every console-owned contract uses the console $id prefix, and only refusal does not', () => {
-    const registry = createContractRegistry();
+  it('every console-owned contract uses the console $id prefix, and only refusal does not', async () => {
+    const registry = await createFullContractRegistry();
     for (const id of registry.ids()) {
       if (id === REFUSAL_SCHEMA_ID) continue;
       expect(id.startsWith(CONTRACT_ID_PREFIX), id).toBe(true);
@@ -180,6 +206,49 @@ describe('contracts', () => {
       'Re-copy it from verticals/mainline/apps/demo-api/contracts/subjects.schema.json; ' +
         'never edit either side to make them agree.',
     );
+  });
+
+  it('contracts/cr-gate-run.schema.json is identical to the demo API’s, both directions', async () => {
+    // The SECOND gated subject's run, and the same argument as gate-run one line for one
+    // line: the demo API serves `POST /v1/demo/cr-gate-run` against this document and
+    // repeats its `$id` inside the payload, so a drift is the demo's front door refusing
+    // its own kernel's answer with a judge watching.
+    //
+    // Same asymmetry too. If these two disagree, the fix is to argue about the ORIGINAL on
+    // the record and re-copy — never to edit one side until they match, which produces a
+    // console agreeing with a document nobody decided on.
+    await expectVerbatimCopy(
+      'cr-gate-run.schema.json',
+      DEMO_API_CR_GATE_RUN,
+      'Re-copy it from verticals/mainline/apps/demo-api/contracts/cr-gate-run.schema.json; ' +
+        'never edit either side to make them agree.',
+    );
+  });
+
+  it('keeps the two run contracts SEPARATE documents, with separate $ids', async () => {
+    // A single schema widened to admit both runs would assert neither: the permit run has
+    // an admitted beat and the change-request run declares in the payload that it has none
+    // and why. If these two `$id`s ever became one, that distinction would have been
+    // dissolved rather than decided.
+    const registry = await createFullContractRegistry();
+    const permitRun = `${CONTRACT_ID_PREFIX}gate-run.schema.json`;
+    const crRun = `${CONTRACT_ID_PREFIX}cr-gate-run.schema.json`;
+    expect(registry.ids()).toContain(permitRun);
+    expect(registry.ids()).toContain(crRun);
+    expect(permitRun).not.toBe(crRun);
+  });
+
+  it('compiles the cr-gate-run contract rather than admitting it vacuously', async () => {
+    // Same claim, same reason, same method as the gate-run case below: registered and
+    // enforceable are two different things, and `compileAll()` refuses any keyword this
+    // validator does not implement rather than validating vacuously against it.
+    const registry = await createFullContractRegistry();
+    const id = `${CONTRACT_ID_PREFIX}cr-gate-run.schema.json`;
+    expect(registry.ids()).toContain(id);
+
+    const result = registry.validate(id, { resource: 'cr_gate_run' });
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((error) => error.keyword === 'required')).toBe(true);
   });
 
   it('compiles the gate-run contract rather than admitting it vacuously', () => {

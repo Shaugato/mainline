@@ -283,9 +283,18 @@ describe('resourcesWithoutFrame', () => {
     // committed bundle predates it and carries no frame for it. Counting it is this
     // screen's whole job — the alternative is a console that offers a REPLAY it cannot
     // perform and says nothing.
+    // `cr_blocking_checks` AND `cr_gate_run` JOINED IT ON 2026-08-16, by the same rule
+    // again. They are the change request's half of the demo — its obligation list, and the
+    // run that attempts the merge and is refused — declared in `src/data/resources.ts` and
+    // absent from a committed bundle that predates both. The repair is the same repair it
+    // has always been: capture the frames. It is NOT to stop counting them, and it is not
+    // to hold the declaration back until a bundle catches up, which would leave the live
+    // console unable to address a route the deployment serves.
     const gaps = resourcesWithoutFrame(buildInventory(manifest()));
     expect(gaps.map((gap) => gap.key)).toEqual([
       'change_request',
+      'cr_blocking_checks',
+      'cr_gate_run',
       'demo_gate_run',
       'demo_subjects',
       'suspend_permit',

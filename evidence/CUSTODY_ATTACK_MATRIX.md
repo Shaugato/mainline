@@ -22,7 +22,7 @@ real, disposable CockroachDB. Regenerate with:
 |---|---|
 | cluster | $MAINLINE_TEST_DSN |
 | cryptography | available |
-| generated_at | 2026-08-15T16:29:01Z |
+| generated_at | 2026-08-16T04:53:57Z |
 | schema | reduced nemesis fixture (see nemesis_harness.py) |
 | verifier | trappoint-verify 0.1.0; checks 4, 5, 6, 7, 8, 11, 12 answered by the nemesis-local fallback because no runner has landed for them |
 
@@ -30,20 +30,20 @@ real, disposable CockroachDB. Regenerate with:
 
 | Attack | Tier | Detected by (observed) | Latency | Expected (registry) | Agrees |
 |---|---|---|---|---|---|
-| **A1** `delete_and_relink` | T1 | check 3 *(primary)* · check 2 · check 16 | 151 ms | check 3, check 2, check 16 | yes |
-| **A2** `renumber_only` | T1 | check 9 *(primary)* · check 2 · check 3 · check 16 | 153 ms | check 9, check 3, check 16 | yes (+extra) |
-| **A3** `payload_substitute` | T1 | check 1 *(primary)* | 162 ms | check 1, check 16 | yes |
-| **A4** `canon_substitute` | T1 | check 2 *(primary)* · check 3 · check 15 | 196 ms | check 2, check 3, check 16 | yes (+extra) |
-| **A5** `canon_version_downgrade` | T1 | check 1 · check 16 | 200 ms | check 10, check 1, check 2 | yes (+extra) |
-| **A6** `fork` | T1 | check 2 · check 9 · check 16 | 166 ms | check 3, check 9 | yes (+extra) |
-| **A7** `checkpoint_swap` | T4 | check 5 *(primary)* · check 3 | 178 ms | check 3, check 5, check 7, check 8 | yes |
-| **A8** `backdate_forward` | T4 | check 5 *(primary)* · check 3 · check 6 · check 16 | 163 ms | check 5 | yes (+extra) |
+| **A1** `delete_and_relink` | T1 | check 3 *(primary)* · check 2 · check 16 | 138 ms | check 3, check 2, check 16 | yes |
+| **A2** `renumber_only` | T1 | check 9 *(primary)* · check 2 · check 3 · check 16 | 141 ms | check 9, check 3, check 16 | yes (+extra) |
+| **A3** `payload_substitute` | T1 | check 1 *(primary)* | 199 ms | check 1, check 16 | yes |
+| **A4** `canon_substitute` | T1 | check 2 *(primary)* · check 3 · check 15 | 190 ms | check 2, check 3, check 16 | yes (+extra) |
+| **A5** `canon_version_downgrade` | T1 | check 1 · check 16 | 184 ms | check 10, check 1, check 2 | yes (+extra) |
+| **A6** `fork` | T1 | check 2 · check 9 · check 16 | 182 ms | check 3, check 9 | yes (+extra) |
+| **A7** `checkpoint_swap` | T4 | check 5 *(primary)* · check 3 | 168 ms | check 3, check 5, check 7, check 8 | yes |
+| **A8** `backdate_forward` | T4 | check 5 *(primary)* · check 3 · check 6 · check 16 | 170 ms | check 5 | yes (+extra) |
 | **A9** `backdate_backward` | T4 | check 6 *(primary)* · check 5 | 159 ms | check 6 | yes (+extra) |
-| **A10** `closure_mass_rewrite` | T1 | check 14 *(primary)* · check 11 | 162 ms | check 14, check 16 | yes (+extra) |
-| **A11** `prev_digest_forgery` | T1 | check 11 *(primary)* | 159 ms | check 11 | yes |
-| **A12** `sandbox_smuggle` | T0 | check 13 *(primary)* · check 2 · check 16 | 161 ms | check 13, check 16 | yes (+extra) |
-| **A13** `trigger_disable` | T1 | check 11 *(primary)* | 165 ms | check 11, check 14 | yes |
-| **A14** `receipt_orphan` | T1 | check 15 *(primary)* | 160 ms | check 15 | yes |
+| **A10** `closure_mass_rewrite` | T1 | check 14 *(primary)* · check 11 | 166 ms | check 14, check 16 | yes (+extra) |
+| **A11** `prev_digest_forgery` | T1 | check 11 *(primary)* | 165 ms | check 11 | yes |
+| **A12** `sandbox_smuggle` | T0 | check 13 *(primary)* · check 2 · check 16 | 191 ms | check 13, check 16 | yes (+extra) |
+| **A13** `trigger_disable` | T1 | check 11 *(primary)* | 173 ms | check 11, check 14 | yes |
+| **A14** `receipt_orphan` | T1 | check 15 *(primary)* | 179 ms | check 15 | yes |
 | **A15** `object_lock_downgrade` | T2 | — SKIP(no-credentials) | not run | check 8 | n/a |
 
 Latency is measured from the moment the attack commits to the moment the first finding exists — the question a reader is actually asking is *how long after the attack would somebody know?* For attacks whose primary defence is a database refusal the honest answer is *before it happened*, and those refusals are listed below rather than folded into a millisecond count.

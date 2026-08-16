@@ -45,6 +45,47 @@
 # `findings.F-6`; it is not a boast, it is a note about which red somebody else already
 # paid for.
 #
+# ── RE-RUN AFTER THE FILM RE-CUT WAVE (b0b, b8's retime, b9, b10, k1-k3) ──────────────
+# The file grew by roughly a thousand lines, so the verdict above was re-earned rather
+# than assumed. Same command, 2026-08-16:
+#
+#   scanned 1 file(s) against 21 rules
+#   claim hygiene OK
+#   exit 0
+#
+# And falsified again on a copy of the NEW file, because a pass inherited from an older
+# shape is not a pass on this one:
+#
+#   FAIL :3781: [HYG-sha-literal]     a seven-hex tree ref planted in a note
+#   FAIL :3782: [HYG-bare-invariant]  a bare other-catalogue invariant id, planted outside
+#                                     the prohibition block
+#   FAIL :3783: [MNC-14-split-view]   a banned property claimed in prose
+#   3 claim-hygiene violation(s) · exit 1
+#
+# ⚠ TWO THINGS THE FALSIFICATION FOUND, AND BOTH ARE WORTH MORE THAN THE PASS.
+#
+# FIRST — THE PROBE ITSELF WENT RED IN THIS HEADER, AND THE FILE WAS FIXED RATHER THAN THE
+# SCANNER. Writing the planted ids into this comment block put two bare ids OUTSIDE the
+# `forbidden_on_camera` PROHIBITION_KEY, where nothing exempts them, and the check failed
+# on the real file with exit 1. That is the same trap BEATS.yaml's header already records
+# in its own words — a quoted prohibition on a line the exemption does not reach. The
+# resolution is the one this repository takes every time: the ids are DESCRIBED here and
+# written only inside the block that is allowed to hold them. If this paragraph ever
+# quotes one again, the check fails again, which is the point.
+#
+# SECOND — A CORRECTION TO ONE OF THIS FILE'S OWN CITATIONS. The first attempt at the
+# second probe planted the `M`-prefixed MAINLINE form and the scanner stayed SILENT. That
+# is the scanner being right, not asleep: `BARE_INVARIANT` is
+# `(?<![A-Za-z0-9_])I\d{2}(?![0-9])` (claim_hygiene.py:247), whose lookbehind excludes the
+# `M`, and the rule's own message reads "Cite a constraint name, or MI\d\d for MAINLINE's
+# own." So the `M`-prefixed form is the one that rule SANCTIONS. The `forbidden_on_camera`
+# row that bans every bare invariant id, both catalogues included, is therefore STRICTER
+# THAN ITS CITED AUTHORITY on that half. The row stays exactly as it is — its reason (two
+# catalogues collide; the film cites constraint names, which are unambiguous) is the film's
+# own and does not need the scanner's permission — but a reader should know that half of it
+# is enforced by people rather than by a rule. Recorded rather than quietly corrected,
+# because the whole value of that block is that its authorities are checkable.
+#
 # ── WHAT WAS MEASURED BEFORE THIS FILE WAS WRITTEN ────────────────────────────────────
 # Ten payload GETs against the live origin on 2026-08-16 (server_date 2026-08-15T14:00-
 # 14:02Z), and no POST — the plan forbids one and the recorded gate-run payload is the
@@ -72,13 +113,42 @@
 #
 # ── THE ONE THING A READER MUST KNOW BEFORE TRUSTING A `ui_label` ROW ─────────────────
 # Every `ui_label` string here is quoted from the operator source in THIS repository at
-# HEAD. On 2026-08-16 those strings were NOT in the bytes the live origin serves:
-# `GET /operator.html` answers 200 (4,655 B) with `<title>MAINLINE console</title>`, its
-# only script is `/assets/index-LoN3Sn_L.js`, and that bundle contains zero occurrences of
-# `CONTROL OF WORK`, `1 obligation outstanding`, `cow-`, `hz-card` or `moc-`. See
-# `findings.F-1`. Until the operator package is deployed, the `ui_label` rows describe the
-# film the repository can make, not the film this origin can serve today, and W6's
-# fallback governs the shoot.
+# HEAD. THE PARAGRAPH THAT USED TO STAND HERE IS SUPERSEDED AND ITS REPLACEMENT IS THE
+# BETTER NEWS: on 2026-08-16 at 15:0x local the operator package IS in the bytes the live
+# origin serves. `GET /operator.html` answers 200 (5,097 B) with
+# `<title>Control of Work</title>` and loads its own entry `/assets/operator-D24tzVGh.js`
+# (96,734 B decoded), and that bundle contains `CONTROL OF WORK`, `PERMIT NOT ISSUED`,
+# `Hazard identification`, `not carried by this deployment` ×4, `cow-` ×212, `hz-card` ×2
+# and `moc-` ×105. The old paragraph's figures (4,655 B, `MAINLINE console`,
+# `/assets/index-LoN3Sn_L.js`, zero occurrences) were true when they were taken and are
+# not true now; they are kept in `findings.F-1`, which is rewritten rather than deleted,
+# because a research reading is superseded, not erased.
+#
+# ⚠ THE CHECK F-1 HANDED TO THE ORCHESTRATOR IS BROKEN AND WOULD HAVE FAILED THE SHOOT.
+# F-1 named `1 obligation outstanding` as the pre-flight string to grep the bundle for.
+# That substring occurs ZERO times in the correctly-deployed bundle — and so does
+# `obligation outstanding` — because the sentence is COMPOSED at runtime, singular or
+# plural chosen from the count (`issue/beats.ts:476-477`, recorded at
+# `b0.actionbar.standing`). A pre-flight built on it says NO-GO on a good deployment. The
+# check that actually works is recorded at `findings.F-1.the_check_that_catches_it`.
+#
+# ── THE SECOND USE CASE, AND THE ONE SENTENCE THAT GOVERNS IT ─────────────────────────
+# `b9` and `b10` are the change-request blocks added by `docs/demo/film-recut-plan.md`.
+# THEY CANNOT BE SHOT AGAINST THIS ORIGIN TODAY and every string in them says so in its
+# own row. Measured 2026-08-16 against the live origin, GET only:
+#
+#   GET  /v1/change-requests/dec0de00-000c-…-000000000001                200  3,295 B
+#   GET  /v1/checks/dec0de00-000d-…-000000000001/disposition             200  3,850 B
+#   GET  /v1/change-requests/{cr_id}/blocking-checks                     404    693 B
+#   GET  /v1/change-requests/{cr_id}/checks                              404    684 B
+#   GET  /v1/change-requests/{cr_id}/merge                               404    683 B
+#   GET  /v1/demo/subjects · /data/check_id                              dec0de00-0007-… (the PERMIT's)
+#   the 404 body's own `error.declared` list                             17 routes, no CR merge, no cr-gate-run
+#
+# The plan's §6 decision gate is therefore OPEN, not closed, and `beats.b9.decision_gate`
+# carries the three conditions with today's reading beside each. Under NO-GO the `b9` and
+# `b10` blocks are never shot, `b8` is restored to 10 s, and the `no_go_only: true` rows
+# inside `b8` are the ones on screen. Nothing in this file assumes the gate closes.
 #
 # ── HOW TO READ AN ENTRY ──────────────────────────────────────────────────────────────
 #   id            stable handle: <beat>.<region>.<thing>
@@ -123,14 +193,16 @@
 # of words a judge would be right to call ours.
 
 meta:
-  owner: W5
+  owner: W5 (story-and-script wave); W4 (film-recut wave) for b0b, b8's retime, b9, b10, k1-k3
   file_purpose: >-
     Every burned-in and on-screen string in the 172 s cut, keyed by beat, each with its
     kind, its provenance chip and the pointer or file:line it came from.
   film_total_s: 172
   spine: docs/demo/film/BEATS.yaml
   plan: docs/demo/story-and-script-plan.md
+  plan_recut: docs/demo/film-recut-plan.md
   siblings: [VO-DEMO.md, VO-CLOSE.md, CLICKS.md, SPINE.md, FALLBACKS.md, CLAIMS-CLEARANCE.md]
+  siblings_cr_wave: [VO-DEMO-CR.md, CLICKS-CR.md, CLAIMS-CLEARANCE-CR.md]
   measured_on: '2026-08-16'
   origin: https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws
   post_reference: evidence/deploy/live-gate-run.json
@@ -138,6 +210,45 @@ meta:
   post_reference_generated_at: '2026-08-14T22:10:33Z'
   scanner_verdict: PASS
   scanner_command: .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check docs/demo/film/ONSCREEN-TEXT.yaml
+
+# ══════════════════════════════════════════════════════════════════════════════════════
+# WHERE THE `t` AND `dur` NUMBERS IN THIS FILE CAME FROM, AND THE ONE WAY THEY CAN BE WRONG
+# ══════════════════════════════════════════════════════════════════════════════════════
+timing_source:
+  authority: docs/demo/film/BEATS.yaml
+  rule: >-
+    This file re-decides no duration. Every `t` and `dur` below is inherited. If this file
+    and BEATS.yaml ever disagree, BEATS.yaml wins and this file is wrong.
+  state_when_this_file_was_written: >-
+    BEATS.yaml had NOT yet been re-cut when these rows were written. Measured on the tree:
+    its last write was 2026-08-15 23:16 and it still carries `demo_s: 120`, `close_s: 50`,
+    no `b0b`, `b8` at 10 s, and `c1`..`c4`. So the numbers below could not be copied from
+    it. They are DERIVED from film-recut-plan.md §2.1's arithmetic, which BEATS.yaml is
+    expected to adopt, and the derivation is written out so a reader can check it rather
+    than trust it.
+  derivation: >-
+    b0 12 + b0b 8 + b1 10 + b2 14 + b3 18 + b4 10 + b5 16 + b6 18 + b7 12 + b8 6 + b9 12 +
+    b10 12 = 148 demo. k1 6 + k2 10 + k3 6 = 22 close. end 2. 148 + 22 + 2 = 172.
+  the_check_a_reader_does_by_hand: >-
+    For each beat, `t + dur` equals the next beat's `t`; the list is contiguous and
+    gapless from 0 to 172. That is two subtractions per row and it needs no script.
+  reconciliation_done: >-
+    BEATS.yaml LANDED RE-CUT WHILE THIS FILE WAS BEING WRITTEN, AND THE DIFF WAS RUN
+    RATHER THAN ASSUMED. All sixteen beat ids match, and every `t` and every `dur` matches,
+    beat for beat: b0 0/12 · b0b 12/8 · b1 20/10 · b2 30/14 · b3 44/18 · b4 62/10 ·
+    b5 72/16 · b6 88/18 · b7 106/12 · b8 118/6 · b9 124/12 · b10 136/12 · k1 148/6 ·
+    k2 154/10 · k3 164/6 · end 170/2. Its budget block reads `demo_s: 148`, `close_s: 22`,
+    `end_card_s: 2`, `total_s: 172`, and this file's `film_total_s` is 172.
+  the_rule_that_still_stands: >-
+    The agreement above is a reading taken once. BEATS.yaml remains the authority: if it
+    moves again, this file is the one that is wrong and this file is the one that changes.
+  block_id_collision_recorded: >-
+    docs/demo/film/VO-DEMO-CR.md §0.3 names the same 24 s as THREE blocks — B9, B10, B11 —
+    under docs/demo/cr-gate-route-plan.md §R9, while film-recut-plan.md §4 names TWO, b9
+    and b10. This file follows the recut plan's two-block shape because that is the shape
+    its owner was briefed on, and records the collision rather than hiding it. Under
+    EITHER shape nothing before b9 renumbers, which is the property both plans require.
+    See todo.T-7.
 
 vocabulary:
   kind: [watermark, lower_third, overlay, ui_label, payload_value]
@@ -248,29 +359,55 @@ persistent:
     text: AWS Lambda Function URL · ap-southeast-1
     chip: editorial
     editorial: true
-    on_frame: b0 to b8, small, top-left, under the watermark
+    on_frame: b0 to b10, small, top-left, under the watermark
+    on_frame_note: >-
+      Extended from `b0 to b8` when the change-request blocks were added. The chip's whole
+      claim is that the origin in the URL bar in the same frame is a Lambda Function URL in
+      ap-southeast-1, and that is as true on the change screen as on the permit screen —
+      the same origin serves both. Nothing else about the chip changes.
     why_this_wording: >-
       Every word of it is confirmable against the URL bar in the same frame, which reads
       the `…lambda-url.ap-southeast-1.on.aws` origin. The cluster version is deliberately
       NOT in this chip: it comes from GET /v1/health and is not in frame on the permit
-      screen, so it is named in c3 where the read that produces it is the exhibit.
+      screen, so it is named in k2's CockroachDB column where the read that produces it is
+      the exhibit.
     authority: r5-craft §4 (suggested persistent chip, narrowed by rule 1 same-frame confirmability)
 
   - id: film.strap.disclosure_fallback
     kind: overlay
     text: >-
-      All four beats arrived in one already-rolled-back SERIALIZABLE transaction. This
-      panel reveals them in order as a reading aid; every timing shown is the server's.
+      The beats on this panel arrived in one already-rolled-back SERIALIZABLE transaction.
+      This panel reveals them in order as a reading aid; every timing shown is the
+      server's.
     chip: editorial
     editorial: true
-    on_frame: b2 to b8, only while the page's own disclosure strip is scrolled out of frame
+    on_frame: >-
+      ONE STRAP PER REQUEST. b2 to b8 over the permit request's panel; re-established over
+      the change request's panel in b10. In both cases only while that page's own
+      disclosure strip is scrolled out of frame.
     carries_no_run_varying_value: true
+    per_request: true
     why: >-
       Plan R-C requires the disclosure in frame from b2 onward; the page's strip is not
       sticky and leaves frame at b3 and b6 (CLICKS.md §7 D-2). A burned strap carrying a
       run_id typed by hand could be wrong about a run; this sentence cannot be, because it
       contains no value from one.
-    authority: plan R-C; CLICKS.md §7 D-2
+    the_word_that_changed_and_why_it_had_to: >-
+      This strap used to open `All four beats arrived…`. THAT SENTENCE IS FALSE OF THE
+      SECOND REQUEST. `POST /v1/demo/gate-run` plays four beats; the change-request
+      endpoint plays THREE — read, merge, projection_drift_attack — declared as a
+      three-member list at cr_gate_run.py:576-602. A strap carrying `four` re-established
+      over the second panel would be a count measured on one request asserted over
+      another, which is the precise class of act R-9 exists to stop. `The beats on this
+      panel` is true of either request and still contains no value from a run. The count
+      is left where it belongs: the page's own composed disclosure line
+      (`b2.disclosure.line`), which the transport writes and nobody types.
+    must_not: >-
+      One strap, restated per request, never carried across the cut from one request's
+      panel to the other's, and never carrying a number. If the strap is on frame while
+      neither panel is, it is on frame for a request that is not being shown, and that is
+      a disclosure about nothing.
+    authority: plan R-C; CLICKS.md §7 D-2; film-recut-plan.md R-9
 
   - id: film.ui.watermark_strip
     kind: ui_label
@@ -663,9 +800,40 @@ beats:
         source: permit/signatures.ts:67-68
         rows_visible: Issue · Acceptance · Hand-back · Cancellation, with Extension omitted and labelled
 
-  # ── b1 · THE ATTEMPT · 0:12 → 0:22 ─────────────────────────────────────────────────
-  - beat_id: b1
+  # ── b0b · WHY IT MATTERS · 0:12 → 0:20 ─────────────────────────────────────────────
+  # ADDED BY W4. `VO-DEMO.md` grew this beat on 2026-08-16 at 09:37 and the insert
+  # propagated to nothing: this file's `beats:` list ran b0, b1, b2 … with no b0b in it.
+  # Nothing renders differently because of this entry — b0b carries no new string — but a
+  # beat list that omits a beat is a beat list that is lying about the film, and every
+  # `t` after it was eight seconds wrong.
+  - beat_id: b0b
     t: 12
+    dur: 8
+    title: WHY IT MATTERS
+    strings_added_by_this_beat: none
+    what_is_on_screen: >-
+      The same permit screen as b0, unchanged and unscrolled. b0b is a voice-over beat: it
+      buys the public-YouTube audience the sentence that says why a permit to work is a
+      thing worth watching a database refuse. No new burned string, no new overlay, no new
+      lower third, and the b0 rows above are all still in frame.
+    strings_still_on_frame_from_b0: >-
+      film.watermark · film.chip.stack · film.ui.watermark_strip · film.ui.origin_strip ·
+      film.frame.url_bar, and every b0 `ui_label` and `payload_value` the b0 scroll
+      position holds.
+    do_not: >-
+      Do not add an overlay here to fill the eight seconds. b0b's whole job is a sentence
+      in the ear over a picture the eye has already read; a new card would make the viewer
+      re-read the screen instead of listening to it.
+    consequence_recorded: >-
+      Every beat from b1 to b8 shifts +8 s because of this beat. Those shifts are applied
+      below and are the reason `first_refusal_at_s` in BEATS.yaml is wrong at 22 —
+      film-recut-plan.md R-1 corrects it to 30. That correction is W1's to make, not this
+      file's; it is recorded at findings.F-7 so it is not lost.
+    authority: film-recut-plan.md §1.1, §1.2, R-1; VO-DEMO.md B0b
+
+  # ── b1 · THE ATTEMPT · 0:20 → 0:30 ─────────────────────────────────────────────────
+  - beat_id: b1
+    t: 20
     dur: 10
     title: THE ATTEMPT
     strings:
@@ -706,9 +874,9 @@ beats:
           screenshot.
         authority: r5-craft §6
 
-  # ── b2 · THE REFUSAL · 0:22 → 0:36 ─────────────────────────────────────────────────
+  # ── b2 · THE REFUSAL · 0:30 → 0:44 ─────────────────────────────────────────────────
   - beat_id: b2
-    t: 22
+    t: 30
     dur: 14
     title: THE REFUSAL — filmed calm
     strings:
@@ -959,9 +1127,9 @@ beats:
           No overlay, strap or spoken line quotes this number, and no digits are added to
           the ones the panel prints. See findings.F-3.
 
-  # ── b3 · WHY — THE MEMORY LOOP · 0:36 → 0:54 · never cut ───────────────────────────
+  # ── b3 · WHY — THE MEMORY LOOP · 0:44 → 1:02 · never cut ───────────────────────────
   - beat_id: b3
-    t: 36
+    t: 44
     dur: 18
     title: WHY — THE MEMORY LOOP
     never_cut: true
@@ -1198,9 +1366,9 @@ beats:
           is what a judge cross-checks, and it is the reason b3 does not need the disclosure
           strip in frame while the strip is unsticky.
 
-  # ── b4 · THE HUMAN MOVE · 0:54 → 1:04 ──────────────────────────────────────────────
+  # ── b4 · THE HUMAN MOVE · 1:02 → 1:12 ──────────────────────────────────────────────
   - beat_id: b4
-    t: 54
+    t: 62
     dur: 10
     title: THE HUMAN MOVE
     strings:
@@ -1281,9 +1449,9 @@ beats:
           anybody, and no UI-side decrement of the header counter.
         authority: plan R-D; CLICKS.md §5 B4
 
-  # ── b5 · REFUSED ANYWAY · 1:04 → 1:20 · the peak · never cut ───────────────────────
+  # ── b5 · REFUSED ANYWAY · 1:12 → 1:28 · the peak · never cut ───────────────────────
   - beat_id: b5
-    t: 64
+    t: 72
     dur: 16
     title: REFUSED ANYWAY — the peak
     never_cut: true
@@ -1411,9 +1579,9 @@ beats:
         editorial: false
         source: POST /v1/demo/gate-run
 
-  # ── b6 · THE ANSWER IS A QUESTION · 1:20 → 1:38 ────────────────────────────────────
+  # ── b6 · THE ANSWER IS A QUESTION · 1:28 → 1:46 ────────────────────────────────────
   - beat_id: b6
-    t: 80
+    t: 88
     dur: 18
     title: THE ANSWER IS A QUESTION
     path_note: >-
@@ -1572,9 +1740,9 @@ beats:
           claim about causation that nothing supports.
         authority: CLICKS.md §3 fourth boxed warning
 
-  # ── b7 · AND THEN IT ADMITS · 1:38 → 1:50 ──────────────────────────────────────────
+  # ── b7 · AND THEN IT ADMITS · 1:46 → 1:58 ──────────────────────────────────────────
   - beat_id: b7
-    t: 98
+    t: 106
     dur: 12
     title: AND THEN IT ADMITS
     strings:
@@ -1700,11 +1868,31 @@ beats:
           and that pairing is the product.
         authority: CLICKS.md §3 second boxed warning and §7.1
 
-  # ── b8 · NONE OF IT HAPPENED · 1:50 → 2:00 ─────────────────────────────────────────
+  # ── b8 · NONE OF IT HAPPENED · 1:58 → 2:04 ─────────────────────────────────────────
   - beat_id: b8
-    t: 110
-    dur: 10
+    t: 118
+    dur: 6
     title: NONE OF IT HAPPENED
+    dur_was: 10
+    what_the_four_seconds_bought: >-
+      The read-only change-request cut in b8's second half. It was rank 1 on the film's own
+      pre-committed cut ladder, whose stated reason was that it is "the weakest-supported
+      second on camera: that subject is shown read-only and told rather than driven."
+      Use case two is exactly the removal of "told rather than driven", so the four seconds
+      are not a cost — they are the ladder's own first choice, spent on the thing it was
+      complaining about.
+    what_survives_at_6_s: >-
+      THE WHOLE ROLLBACK PROOF. `persisted false`, `single_transaction true`, isolation
+      SERIALIZABLE, the savepoint list, and the minted disposition id with zero rows
+      surviving the rollback — every one of them is in b8's FIRST half and none of them is
+      touched. The rows below marked `no_go_only: true` are the ones that leave.
+    no_go_restores_this_beat_to_10_s: >-
+      Under film-recut-plan.md §6 NO-GO, b9 and b10 are never shot, this beat is restored
+      to 10 s, and the `b8b.*` rows below are on screen exactly as written. They are
+      therefore KEPT here rather than deleted. A row deleted because a plan expected to
+      supersede it is a row that has to be reconstructed from memory when the plan does
+      not — and it is the NO-GO path, not the GO path, that today's measurement supports.
+    authority: film-recut-plan.md §2.1, §2.2, §6; BEATS.yaml cut_ladder rank 1
     strings:
 
       - id: b8.footer.verdict
@@ -1773,7 +1961,21 @@ beats:
         editorial: false
         source: 'POST /v1/demo/gate-run · /data/persistence_check/{permit_row_identical via self_evidence,identical}'
 
+      # ── THE `b8b.*` ROWS · NO-GO PATH ONLY ─────────────────────────────────────────
+      # Seven rows, all of them the read-only change-request cut. They are on screen if
+      # and only if film-recut-plan.md §6's decision gate does NOT close and b9/b10 are
+      # never shot. Under GO they are superseded by b9 and b10, which drive the same
+      # subject instead of describing it — and four of them (header, counter, constraint,
+      # proposed_wording) reappear there with new ids, because the value is the same
+      # value and only the frame around it changed.
+      #
+      # NOT DELETED, DELIBERATELY. Today's measurement supports the NO-GO path, not the
+      # GO path: the CR merge route, the CR blocking-checks route and POST
+      # /v1/demo/cr-gate-run all answer 404 or are absent from the live route table.
+      # See beats.b9.decision_gate.
+
       - id: b8b.change.header
+        no_go_only: true
         kind: payload_value
         text: 'DEMO-MOC-0001 · refs/changes/demo-0001 → refs/heads/main · checks_materialised'
         chip: db:column
@@ -1786,6 +1988,7 @@ beats:
           not usually get to see a procedure change described that way.
 
       - id: b8b.change.ribbon
+        no_go_only: true
         kind: ui_label
         text: 'Initiate → Screen → Review → Approve → Implement    ·    Capture and Close-out'
         chip: editorial
@@ -1797,6 +2000,7 @@ beats:
           industry's model; the screen does not silently equate them.
 
       - id: b8b.change.counter
+        no_go_only: true
         kind: payload_value
         label: counters.open_blocking
         text: '1'
@@ -1807,6 +2011,7 @@ beats:
         note: The same clause's debt, on a second subject kind, carried by a column.
 
       - id: b8b.change.constraint
+        no_go_only: true
         kind: payload_value
         label: cr_gate_closed_when_merged
         text: "CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))"
@@ -1817,6 +2022,7 @@ beats:
         note: Catalogue form, with `::`. See b2.constraint_table.predicate and findings.F-2.
 
       - id: b8b.change.approve_disabled
+        no_go_only: true
         kind: ui_label
         label: Approve change (disabled)
         text: Cannot approve. 1 blocking obligation is outstanding on this change request.
@@ -1833,6 +2039,7 @@ beats:
         authority: plan R-I; r6-honesty A13.5
 
       - id: b8b.change.route_table
+        no_go_only: true
         kind: payload_value
         text_slot: the verbatim 404 response body, with the two absent routes struck through in place
         chip: derived
@@ -1843,6 +2050,7 @@ beats:
           is the strongest thing on the second screen and it costs one Network row.
 
       - id: b8b.change.proposed_wording
+        no_go_only: true
         kind: ui_label
         label: Proposed wording
         text: >-
@@ -1857,18 +2065,781 @@ beats:
           comparison is real and the right side would be fabricated.
         authority: plan R-I; r3-operator §5.4
 
-  # ══ THE CLOSE ═══════════════════════════════════════════════════════════════════════
-  # C1-C4 overlay text is W3's and is reproduced here VERBATIM so that one file carries
-  # every string in the film. If this block and VO-CLOSE.md ever disagree, VO-CLOSE.md is
-  # the owner of the words and this file is wrong.
-
-  - beat_id: c1
-    t: 120
+  # ── b9 · THE OTHER WAY IN · 2:04 → 2:16 ────────────────────────────────────────────
+  # The judge's own objection, said out loud before the judge has to: fine, so couldn't
+  # somebody just rewrite the rule? The seeded world has answered that since the day it
+  # was seeded and nothing has ever surfaced it.
+  - beat_id: b9
+    t: 124
     dur: 12
-    title: THE LOOP, NAMED
+    title: THE OTHER WAY IN
+    conditional_on: decision_gate below — under NO-GO this beat does not exist
+
+    decision_gate:
+      authority: film-recut-plan.md §6
+      rule: >-
+        Three conditions, all measurements and none of them a promise. If all three do not
+        hold on the day, b9 and b10 are NOT SHOT, b8 returns to 10 s with its `b8b.*` rows,
+        and the film is 152 s. That is a legitimate outcome and no string in this file
+        assumes otherwise.
+      condition_1:
+        what: POST /v1/demo/cr-gate-run answers 200 with persisted:false measured from a fingerprint
+        measured_2026_08_16: >-
+          ABSENT FROM THE DEPLOYMENT. The 404 body's own `error.declared` list carries 17
+          routes and this is not one of them. It exists in the tree — `app.py:316` declares
+          `Route("POST", "/v1/demo/cr-gate-run", "cr_gate_run")` and
+          `cr_gate_run.py` implements it — but the tree is not the origin.
+      condition_2:
+        what: GET /v1/change-requests/{cr_id}/blocking-checks answers 200
+        measured_2026_08_16: '404, 693 B, `kind: no_route`'
+        why_this_one_is_load_bearing_and_the_plan_does_not_say_so: >-
+          The plan treats this route as a broken panel to tidy up. IT IS NOT. It is the only
+          thing that makes the change request's OWN obligation addressable, and R-4 and R-5
+          both depend on it — see findings.F-8. Without it the screen renders the PERMIT's
+          defeater vocabulary on the change screen, under its own scope note saying nothing
+          is claimed about this change request's obligation, and the second use case has no
+          second vocabulary and no shared identifiers in frame.
+      condition_3:
+        what: GET /operator.html serves an approve/attempt control that calls that endpoint
+        measured_2026_08_16: >-
+          The deployed entry `/assets/operator-D24tzVGh.js` (96,734 B decoded) contains
+          `Approve change` ×1 and `cr-gate-run` ×0. The attempt control is in the tree
+          (`ChangeScreen.ts:158` names the path) and is not in the bytes served.
+      verdict_today: >-
+        OPEN — none of the three holds against the live origin as measured on 2026-08-16.
+        Recorded as a reading, not as a complaint: two of the three are packaging, the third
+        is a route, and none of them is this file's to land.
+
     strings:
 
-      - id: c1.overlay.columns
+      - id: b9.screen.title
+        kind: ui_label
+        text: Management of change
+        chip: editorial
+        editorial: true
+        source: operator/change/ChangeScreen.ts:285 (h1) and :280 (the region's aria-label)
+        deployed_2026_08_16: 'present in the served bundle, 3 occurrences'
+        note: >-
+          Still the supervisor's own product, not MAINLINE — the same move b0 makes with
+          CONTROL OF WORK. The refusal in b10 lands inside somebody else's software for the
+          second time, on a different screen of it, and that is half of what use case two
+          is for.
+
+      - id: b9.header.identity
+        kind: payload_value
+        text: 'DEMO-MOC-0001 · refs/changes/demo-0001 → refs/heads/main · checks_materialised'
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: 'GET /v1/change-requests/{cr_id} · /data/{external_ref,ref_name,target_ref,state}'
+        measured_2026_08_16: '200, 3,295 B; all four pointers chipped db:column in /provenance'
+        note: >-
+          A procedure change that is a branch aimed at a protected branch. It is the same
+          idea as `refs/permits/demo-0001` in b0's header, on a different subject kind, and
+          a judge who noticed the first will notice this one without being told.
+
+      - id: b9.header.counters
+        kind: payload_value
+        label: open_blocking · open_conflicts · open_residue
+        text: '1 · 0 · 0'
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: 'GET /v1/change-requests/{cr_id} · /data/counters/{open_blocking,open_conflicts,open_residue}'
+        measured_2026_08_16: '1 · 0 · 0'
+        why_all_three_and_not_just_the_one: >-
+          Two of these three are ZERO and showing them is the point. The record is clean on
+          conflicts and clean on residue; the only thing standing in the way is the
+          obligation. A frame that showed only the non-zero counter would let a viewer think
+          the change request is generally unready. It is ready in every respect but one.
+
+      - id: b9.clause.label_row
+        kind: ui_label
+        text: Clause of record — current text, as returned
+        chip: editorial
+        editorial: true
+        source: operator/change/osha-sections.ts:264
+
+      - id: b9.clause.text
+        kind: payload_value
+        text: >-
+          SYNTHETIC — Before any intrusive work, stored energy shall be isolated, locked and
+          verified at zero by a competent person.
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: >-
+          GET /v1/clauses/{clause_uuid}/versions/{commit_id} · /data/version/canon_text,
+          fetched by the change screen itself (ChangeScreen.ts:642-645) and rendered at
+          osha-sections.ts:267
+        synthetic_prefix: KEPT — it is part of the column value (C4)
+        same_string_as: b0.el7.clause_text
+        why_it_must_be_the_same_string: >-
+          This is the identical clause version a judge read on the permit screen ninety
+          seconds earlier. If it is paraphrased, re-wrapped or re-prefixed here, the word
+          `same` in the voice-over stops being checkable and becomes an assertion.
+
+      - id: b9.clause.provenance_row
+        kind: payload_value
+        label: Printed label · at commit · anchors
+        text_slot: >-
+          7.3.2(b) · <the 64-character commit_id, printed in full by this screen> · LOTO,
+          ZERO_ENERGY
+        chip: db:column
+        envelope_chip: db:column
+        editorial: false
+        source: >-
+          GET /v1/clauses/{clause_uuid}/versions/{commit_id} ·
+          /data/version/{printed_label,commit_id,anchor_set}, rendered at
+          osha-sections.ts:270-285
+        measured_2026_08_16: >-
+          `/v1/demo/subjects` · /data/subjects/clause/head_label returns `7.3.2(b)` and
+          /head_gen returns 1 on this world, both chipped db:column.
+        digest_rendering_differs_from_b0_and_that_is_correct: >-
+          The permit screen shortens the commit to eight-plus-four with the app's own
+          formatter (hazard/precursor.ts:172-180). THIS screen prints it in FULL, sixty-four
+          characters, because osha-sections.ts:279 renders the value unshortened. Both are
+          permitted — the ban is on seven and on forty — and neither may be "corrected" into
+          the other. The value is a slot in this file rather than a string for the same
+          reason the plan writes no commit id: it is not written down in advance.
+        r5_half_one: >-
+          THIS ROW AND `b10.check.row` CARRY R-5's FIRST HALF. `7.3.2(b)` is the label a
+          judge already read in b3, on the same clause, and it is in frame here and again
+          under the refusal.
+
+      - id: b9.clause.exchange_line
+        kind: ui_label
+        text_slot: >-
+          GET /v1/clauses/dec0de00-0004-4000-8000-000000000001/versions/<commit_id> → 200 ·
+          <n> bytes on the wire · received <ISO> (this browser’s clock)
+        template: >-
+          ${method} ${path} → ${status} · ${wireBytes} bytes on the wire · received
+          ${receivedAt} (this browser’s clock)
+        chip: derived
+        editorial: false
+        source: >-
+          composed at operator/change/ChangeScreen.ts:204-213 and rendered under the clause
+          quote at osha-sections.ts:287
+        this_row_is_where_the_clause_UUID_becomes_legible: >-
+          R-5 names the clause by its uuid, and the panel above prints the LABEL `7.3.2(b)`
+          rather than the uuid. The uuid is nonetheless in the frame, in this line, because
+          the path the screen fetched it on contains it — the same identifier that was in
+          b3's own exchange lines under the ancestry read. So the frame carries the label a
+          viewer remembers AND the identifier a judge can retype into the API, and neither
+          is an overlay.
+        do_not: >-
+          Do not crop the exchange line to tidy the panel. It is one of the four witnesses
+          the shoot rules keep in frame, it carries the emulator header when the take is
+          made against the emulator, and here it is also carrying R-5.
+
+      - id: b9.clause.relation_note
+        kind: ui_label
+        text: >-
+          This is the clause version addressed by GET /v1/demo/subjects, and the one the
+          live permit’s open obligation is anchored to. It is NOT a link this change
+          request carries: mainline.change_request has no target-clause column, so no
+          edge from this record to this clause is asserted here.
+        chip: editorial
+        editorial: true
+        source: operator/change/ChangeScreen.ts:654-658, rendered at osha-sections.ts:286
+        must_stay_in_frame: true
+        this_is_the_most_important_string_in_b9: >-
+          It is the screen refusing to claim the thing the beat most wants to claim. The
+          film's whole argument here is *same clause* — and this sentence says the change
+          request record does not itself assert an edge to that clause. BOTH ARE TRUE and
+          the honest frame carries both: the clause of record is quoted because the
+          deployment returned it, and the note says what that does and does not mean.
+        where_the_edge_actually_is_asserted: >-
+          On the OBLIGATION, not on the change request. `b10.check.row`'s `clause_label`
+          column is the change request's own blocking-check row naming the clause, and that
+          is a database claim rather than a screen's juxtaposition. It needs condition_2.
+        must_not: >-
+          Do not crop this note, do not scroll it out from under the quote, and do not let
+          an overlay cover it. Convention C5 in reverse: a frame that shows the clause and
+          hides the disclaimer is asserting the edge the disclaimer denies.
+
+      - id: b9.proposed.head_typed
+        kind: ui_label
+        label: Proposed wording
+        text: 'Before any intrusive work, stored energy shall be'
+        chip: typed
+        editorial: true
+        typed: pre-typed in pre-roll, 48 characters
+        source: 'operator/change/osha-sections.ts:290-298 — the app''s own input, id `moc-proposed-text`'
+        authority: film-recut-plan.md R-2; CLICKS.md §4; convention C3
+
+      - id: b9.proposed.tail_typed
+        kind: ui_label
+        text: ' isolated and locked.'
+        chip: typed
+        editorial: true
+        typed: TYPED ON CAMERA under the last line of the block, three words, at a human rate
+        joins_to: b9.proposed.head_typed
+        full_field_when_typed: 'Before any intrusive work, stored energy shall be isolated and locked.'
+        length_check: >-
+          69 characters complete. The box is a four-row textarea (`rows: 4`), so it wraps by
+          design and the wrap is not a defect to design around.
+        why_these_three_words: >-
+          THEY ARE THE ONES b0 TYPED, REMOVED. In b0 the supervisor typed `verified at zero`
+          into his own permit; here the proposal ends at `locked` and the verification is
+          gone. The clause of record is quoted six lines above with `isolated, locked and
+          verified at zero by a competent person` in it, so the difference is legible in the
+          frame without a single word of narration — and the anchor the proposal walks away
+          from, `ZERO_ENERGY`, is printed in the same panel by `b9.clause.provenance_row`.
+        constraint_check: >-
+          No date, no site, no job title, no injury, no identifier, no code, no uuid, no
+          company. Nothing here could be mistaken for a column value in a screenshot. It
+          does not carry the `SYNTHETIC —` prefix precisely BECAUSE it is not a column
+          value; the prefix belongs to the database's string and copying it onto a typed one
+          would be dressing a human's proposal as data.
+        carries_no_provenance_chip: true
+        the_convention_this_row_exists_to_demonstrate: >-
+          Typed carries no chip (C3). In frame, `DEMO-MOC-0001` in the header carries
+          `db:column`, the clause of record above carries `db:column`, and this box carries
+          the app's own sentence instead. A judge who learned that convention in b0 reads
+          this box correctly in one look and needs nothing said about it.
+        authority: film-recut-plan.md R-2 and §1.5; FALLBACKS.md F-8 satisfied rather than waived
+
+      - id: b9.proposed.box_note
+        kind: ui_label
+        text: >-
+          Typed here, now. This deployment carries no proposed text:
+          mainline.change_request has no column for it, so there is nothing to load into
+          this box and nothing was.
+        chip: editorial
+        editorial: true
+        source: operator/change/osha-sections.ts:295-297
+        same_string_as: b8b.change.proposed_wording (the NO-GO row; identical text, different frame)
+        must_stay_in_frame: true
+
+      - id: b9.proposed.compare_control
+        kind: ui_label
+        text: Compare with clause of record
+        chip: editorial
+        editorial: true
+        source: operator/change/osha-sections.ts:301
+        used_in_this_cut: >-
+          PERMITTED, NOT REQUIRED. At 12 s the beat has room for the press and the type and
+          not for a third action. If it IS pressed, the diff and its note below must both
+          be in frame; a struck-through/underlined diff filmed without its note would look
+          like a stored comparison, and it is not one.
+
+      - id: b9.proposed.compare_note
+        kind: ui_label
+        text: >-
+          Computed in this browser, just now, between the clause text this deployment
+          returned (struck through) and the wording typed into the box above (underlined).
+          It is not a stored diff, it is not a kernel claim, and no part of the right-hand
+          side came from the database.
+        chip: editorial
+        editorial: true
+        source: operator/change/osha-sections.ts:332-336
+        on_frame: only if b9.proposed.compare_control is pressed, and then always
+
+      - id: b9.attempt.control
+        kind: ui_label
+        text_slot: the attempt control's own label, as the built bundle renders it on the day
+        chip: editorial
+        editorial: true
+        status: >-
+          NOT IN THE DEPLOYED BYTES. `Approve change` is present ×1 and `cr-gate-run` ×0 in
+          `/assets/operator-D24tzVGh.js` as served on 2026-08-16. The tree carries the
+          attempt wiring (`ChangeScreen.ts:158` `CR_GATE_RUN_PATH`); the origin does not.
+        must_not: >-
+          Do not write this label down before it is built. A label typed into this file in
+          advance is a label somebody will match the build to, which is the wrong direction
+          of travel. It is a slot until the bundle renders it.
+        must_not_2: >-
+          The control is NOT `Approve change` re-enabled. `Approve change` is disabled with
+          the obligation named as its reason and it stays that way — an attempt that rolls
+          back is not an approval and must not be dressed as one
+          (ChangeScreen.ts:28-46, absence.ts:16-20).
+
+      - id: b9.devtools.row
+        kind: ui_label
+        text_slot: 'cr-gate-run · POST · <status> · <bytes> · <time> — DevTools'' own columns'
+        chip: derived
+        editorial: false
+        note: >-
+          Not our string. In frame because the list was cleared on camera before the press,
+          which is the only ordering that distinguishes a live request from a screenshot —
+          the same discipline as b1.devtools.row.
+        this_is_the_second_of_exactly_two_mutating_rows: >-
+          R-9. Two POST rows in the whole film, each narrated while it is in flight. A THIRD
+          row, or either row appearing without its narration, stops the take. See
+          forbidden_on_camera.
+
+  # ── b10 · REFUSED AGAIN · 2:16 → 2:28 ──────────────────────────────────────────────
+  # The mirror. You cannot USE the clause; you cannot quietly EDIT IT AWAY either. R-5 and
+  # R-4 both bind on this frame and they are the two rulings that decide whether the beat
+  # is worth its twelve seconds.
+  - beat_id: b10
+    t: 136
+    dur: 12
+    title: REFUSED AGAIN
+    conditional_on: b9.decision_gate
+
+    the_one_frame_this_beat_must_produce:
+      authority: film-recut-plan.md R-5 (binding, non-negotiable) and R-4
+      requirement: >-
+        FIVE THINGS, LEGIBLE AT ONCE, IN ONE FRAME. If they are not all in it, use case two
+        is a second refusal, the axis-1 trade is a straight loss, and R-5 says the wave
+        should be abandoned in favour of §6 rather than shot.
+      the_five:
+        - '1 · the refusal — SQLSTATE and constraint name, from the run''s own response (b10.refusal.*)'
+        - '2 · the clause, at label 7.3.2(b), the same one a judge read in b3 (b10.check.row · b9.clause.provenance_row), with its uuid dec0de00-0004-4000-8000-000000000001 legible in b9.clause.exchange_line'
+        - '3 · the precursor DEMO-INC-0001, the same one a judge read in b3 (b10.defeater.precursor_answered_elsewhere)'
+        - '4 · the predicate of cr_gate_closed_when_merged, with open_blocking = 1 beside it (b10.constraint.row)'
+        - '5 · the three live defeater prompts (b10.defeater.*) — R-4''s mitigation for having no admission'
+      how_the_shared_identifiers_get_into_the_frame_honestly: >-
+        NOT by juxtaposition and not by an overlay. Both come back as COLUMN VALUES on
+        reads this screen makes: `7.3.2(b)` as the `clause_label` column of the change
+        request's own blocking-check row, and `DEMO-INC-0001` inside the text of the
+        `PRECURSOR_ANSWERED_ELSEWHERE` defeater prompt, which is a `db:column` value on
+        `/v1/checks/{check_id}/disposition`. The database says *same clause, same incident*
+        in its own strings. The film does not have to.
+      what_it_depends_on: >-
+        Condition 2 of the decision gate. Both routes into the frame run through the change
+        request's own check id, and that id is not addressable today. See findings.F-8.
+
+    strings:
+
+      - id: b10.refusal.sqlstate
+        kind: payload_value
+        label: SQLSTATE
+        text_slot: /data/beats/1/sqlstate on the run actually filmed
+        chip: reported
+        envelope_chip: db:constraint
+        editorial: false
+        source: POST /v1/demo/cr-gate-run
+        the_expectation_this_is_matched_against: >-
+          `cr_gate_run.py:212` declares `CR_CF01_SQLSTATE = "23514"` as the EXPECTATION for
+          beat 2, and the payload carries its own `matched_expectation` field. What is on
+          screen is what came back; the expectation is recorded here so a reader knows what
+          a mismatch would look like rather than discovering one on the day.
+        must_not: >-
+          NEVER pre-render `23514` into an overlay for this beat. It is the film's most
+          quotable value and it is the easiest one to burn in before the run that produces
+          it. If the run returns something else, the something else is what is filmed and
+          the take is stopped, not the caption.
+
+      - id: b10.refusal.constraint
+        kind: payload_value
+        label: constraint
+        text_slot: /data/beats/1/constraint on the run actually filmed
+        chip: reported
+        envelope_chip: db:constraint
+        editorial: false
+        source: 'POST /v1/demo/cr-gate-run, with /data/beats/1/constraint_source rendered as the chip beside it'
+        the_expectation_this_is_matched_against: >-
+          `cr_gate_run.py:213` declares `CR_CF01_EXHIBIT = "cr_gate_closed_when_merged"` and
+          `:591` declares `constraint_source="reported"` — the same strength of diagnosis
+          the permit's b2 refusal had, and stronger than b5's `parsed`.
+        the_word_the_voice_over_leans_on: >-
+          *different*. The permit's refusal named `gate_closed_when_issued`; this one names
+          `cr_gate_closed_when_merged`. Two constraints, two tables, one arithmetic. Both
+          names must be legible in the cut for that word to be checkable — b2's is on the
+          locked ISSUE control, which has not left the film since 0:30.
+
+      - id: b10.constraint.row
+        kind: payload_value
+        label: 'cr_gate_closed_when_merged · predicate · counters it reads'
+        text: "CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))   ·   open_blocking = 1"
+        chip: db:column
+        envelope_chip: db:constraint
+        editorial: false
+        source: >-
+          GET /v1/change-requests/{cr_id} · /data/constraints/0/{constraint,predicate} and
+          /data/constraints/0/counters/0/{column,value}, read out of pg_catalog at request
+          time; rendered as the three-column table at absence.ts:369-386
+        measured_2026_08_16: 'verbatim as quoted; /constraints/0 chipped db:constraint, /constraints/0/counters/0/value chipped db:column'
+        catalogue_form: >-
+          This is the `::` form, the same renderer as b2.constraint_table.predicate. The
+          `:::` form belongs to the refusal MESSAGE and will arrive on this beat's own
+          message field. BOTH WILL BE IN THIS FRAME AT ONCE, which is the first time in the
+          film that happens — see findings.F-9. Neither may be corrected into the other and
+          the frame must not imply they are the same bytes.
+        third_form_that_is_not_on_camera: >-
+          `0051_change_request.sql:85` writes the constraint as
+          `CHECK (state <> 'merged' OR open_blocking = 0)`. That is the source form, it is a
+          third true rendering, and no migration file is on camera in this film.
+        why_the_predicate_and_not_a_gloss: >-
+          The predicate is the whole argument in one line: the state may not be `merged`
+          unless the counter is zero. A judge reads it and needs no explanation of why a
+          record with `open_blocking = 1` cannot merge. The counter is printed in the same
+          row by the screen's own third column.
+
+      - id: b10.refusal.message
+        kind: payload_value
+        label: message
+        text_slot: /data/beats/1/message on the run actually filmed
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/cr-gate-run
+        note: >-
+          The database's own sentence for this refusal, printed. It carries the `:::` form
+          of the predicate the way b2's does, and it is the second operand of F-9.
+        must_not: >-
+          Not paraphrased, not truncated, not pretty-printed, and not covered by an overlay.
+
+      - id: b10.refusal.statement
+        kind: payload_value
+        label: statement
+        text_slot: /data/beats/1/statement on the run actually filmed — the merge the endpoint attempted
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/cr-gate-run
+
+      - id: b10.refusal.label
+        kind: payload_value
+        text: >-
+          MERGE the change request — the edit lands on the protected branch. One open
+          obligation, no signed disposition.
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/cr-gate-run · /data/beats/1/label
+        measured_from: 'the tree, cr_gate_run.py:586-587 — the endpoint''s own label for its second beat'
+        note: >-
+          The payload's own words for what it tried. Nobody on the film's side wrote this
+          sentence, and it is the line that makes the beat an ATTEMPT rather than a
+          description — the same job b4.panel.attack_label does for the permit run.
+
+      - id: b10.rollback.persisted
+        kind: payload_value
+        label: this run persisted anything
+        text_slot: /data/persistence_check/self_persisted on the run actually filmed
+        reference_expected: 'false'
+        chip: recomputed
+        editorial: false
+        source: POST /v1/demo/cr-gate-run
+        must_be_in_frame: true
+        why_it_cannot_be_left_to_b8: >-
+          b8 proved the PERMIT run persisted nothing. It proves nothing about this one. This
+          endpoint takes its own fingerprint before the transaction opens and again after it
+          closes and puts BOTH readings in the payload (cr_gate_run.py:569, :723); what is
+          on screen is the two readings, not the conclusion. A second mutating request whose
+          rollback is asserted by inheritance from the first is a claim with no measurement
+          under it.
+        must_say: >-
+          `persisted false`, never "nothing was written" — the same rule as b8.footer.persisted.
+        authority: film-recut-plan.md's brief; R-9
+
+      - id: b10.rollback.transaction
+        kind: payload_value
+        label: isolation · transaction · savepoints
+        text_slot: '/data/transaction/{isolation,disposition,savepoints} on the run actually filmed'
+        reference_expected: 'SERIALIZABLE · rolled_back · cr_gate_run_beat_2, cr_gate_run_beat_3'
+        chip: none_claimed
+        editorial: false
+        source: POST /v1/demo/cr-gate-run
+        measured_from: 'the tree, cr_gate_run.py:348-349 and :811 — TWO savepoints, not three'
+        must_not: >-
+          Do not caption this beat with b8's savepoint list. The permit run fences three
+          write beats (`gate_run_beat_2,3,4`); this run fences TWO
+          (`cr_gate_run_beat_2,3`), because it has no admission beat to fence. A three-name
+          list on this panel would be a value measured on the other request.
+
+      - id: b10.check.row
+        kind: payload_value
+        label: 'origin · severity · virulence · closure_gen · clause_label · open · materialised_at'
+        text_slot: >-
+          the change request's own blocking-check row, as the route returns it — one row,
+          seven columns, printed
+        chip: db:column
+        editorial: false
+        source: >-
+          GET /v1/change-requests/{cr_id}/blocking-checks · /data/checks/0/*, rendered as the
+          seven-column table at absence.ts:500-536
+        blocked_by: 'that route answers 404 today — decision gate condition 2'
+        r5_half_one_lands_here: >-
+          `clause_label` is the column that puts `7.3.2(b)` on screen as a property of THIS
+          change request's obligation. That is the strongest possible form of R-5's first
+          half: not the film juxtaposing two panels, but the change request's own obligation
+          row naming the clause the permit's obligation named.
+        severity_note_read_this_before_writing_4_anywhere: >-
+          `severity` is a column ON THIS ROW and it is not readable from any 200 route
+          today. `/v1/checks/{check_id}/disposition` returns `virulence` and the defeater
+          vocabulary but NO severity, and the CR blocking-checks route 404s. The `severity
+          4` the plan describes is therefore a SLOT, not a string, and the only `4` this
+          deployment will hand over today is `/v1/demo/subjects` ·
+          /data/subjects/event/severity_gate — which is the EVENT's severity gate, a
+          different column on a different table. See forbidden_on_camera and findings.F-10.
+        the_caption_the_screen_prints_above_this_table: >-
+          "The obligations this change request carries. severity, virulence and closure_gen
+          are PROJECTIONS: fn_check_project overwrites them from the blame closure, so
+          nobody who filed this change chose any of the three." (absence.ts:493-495) — the
+          same sentence b3 earns for the permit, on the second subject, and it is the reason
+          `origin blame_ancestry` in this row is a memory claim rather than a label.
+
+      - id: b10.obligation.absence_note
+        kind: ui_label
+        text: >-
+          What this deployment does NOT return: the obligation’s own row. Its id, the
+          precursor that raised it, its severity, its virulence and its defeater vocabulary
+          are not reachable from any declared route, so none of them is shown. The counter
+          above is the whole of what can be known about it from here, and the route table
+          beside the approve control is the evidence for that sentence.
+        chip: editorial
+        editorial: true
+        source: operator/change/absence.ts:396-400
+        status: >-
+          WHAT THE DEPLOYMENT RENDERS TODAY — the `checksReachable: false` branch. Recorded
+          beside b10.check.row for the same reason b4 records both reveal labels: only one
+          of them will be on screen and this file may not guess which.
+        if_this_string_is_on_screen_the_beat_does_not_exist: >-
+          This sentence and R-5 are mutually exclusive. If the screen is rendering this, the
+          obligation's clause and precursor are by its own admission not on it, R-5 fails,
+          and §6 governs. It is written down so that nobody films it and narrates it as if
+          it were the refusal's evidence — it is the opposite, and it is honest, and it
+          belongs to the NO-GO film.
+
+      - id: b10.defeater.legend
+        kind: ui_label
+        text: Ways this obligation could be answered — each requires a citation
+        chip: editorial
+        editorial: true
+        source: operator/change/absence.ts:730-733 (the fieldset legend)
+        deployed_2026_08_16: 'present in the served bundle, 1 occurrence'
+
+      - id: b10.defeater.control_preserved_by_edit
+        kind: payload_value
+        label: CONTROL_PRESERVED_BY_EDIT
+        text: >-
+          Which control from the precursor's corrective set does the proposed text still
+          require, and where in it?
+        chip: db:column
+        envelope_chip: 'db:column exact on /defeater_options/0'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/defeater_options/0/prompt
+        measured_2026_08_16: 'verbatim, 200, 3,850 B, against check dec0de00-000d-…-000000000001'
+
+      - id: b10.defeater.edit_outside_blamed_anchor
+        kind: payload_value
+        label: EDIT_OUTSIDE_BLAMED_ANCHOR
+        text: >-
+          Which anchor does this edit touch, and why is it not the one the precursor's blame
+          reaches?
+        chip: db:column
+        envelope_chip: 'db:column exact on /defeater_options/1'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/defeater_options/1/prompt
+        measured_2026_08_16: verbatim
+        why_this_one_answers_the_typed_box: >-
+          `b9.clause.provenance_row` printed the anchors — LOTO and ZERO_ENERGY — six lines
+          above the box the founder typed into, and the typed proposal walks away from the
+          second one. This question asks him which anchor he touched. Nobody wrote that
+          question for this film; it came back on a read.
+
+      - id: b10.defeater.precursor_answered_elsewhere
+        kind: payload_value
+        label: PRECURSOR_ANSWERED_ELSEWHERE
+        text: >-
+          Which other clause version already carries the control DEMO-INC-0001 called for,
+          and at which commit?
+        chip: db:column
+        envelope_chip: 'db:column exact on /defeater_options/2'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/defeater_options/2/prompt
+        measured_2026_08_16: verbatim
+        r5_half_two_lands_here: >-
+          `DEMO-INC-0001` IS INSIDE THIS PROMPT, in the database's own text, chipped
+          `db:column`. That is R-5's second half arriving as a value rather than as a
+          caption — the shared precursor named by the change request's own obligation, in
+          the same frame as the refusal, with the same identifier a judge read in b3 on
+          b2.banner.precursor_sentence and b3.precursor.identity.
+        do_not_overlay_it: >-
+          There is no need and it would be a downgrade. An overlay saying "the same
+          incident" is a claim by the film; this sentence is a claim by the database, and it
+          is already on screen in a legible size.
+
+      - id: b10.defeater.vocab_note
+        kind: payload_value
+        label: vocab_sha256
+        text_slot: >-
+          the single vocabulary digest all three prompts share, printed by the screen if it
+          prints it at all
+        chip: db:column
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/defeater_options/*/vocab_sha256
+        measured_2026_08_16: >-
+          all three options carry ONE identical 64-character digest, which is the fact worth
+          having: this is one vocabulary generated for one act, not three prompts assembled
+          for a demo.
+        must_not: >-
+          The digest itself is not written into this file and not burned into an overlay. It
+          is 64 hex characters; it is rendered if the screen renders it, and it is never
+          re-typed. The film's ban is on seven and on forty, and the discipline that
+          survives both is: read it, never write it.
+
+      - id: b10.defeater.different_vocabulary
+        kind: ui_label
+        text: >-
+          There is no “not applicable” option because the vocabulary does not contain one.
+          The prompts above are the ones this read returned, printed verbatim.
+        chip: editorial
+        editorial: true
+        source: operator/change/absence.ts:768-770
+        same_string_as: b6.defeater.no_escape_hatch
+        the_point_of_the_whole_beat_is_that_these_three_are_not_b6s_three: >-
+          b6's vocabulary asks about isolation points, method statements and stored-energy
+          surveys — the questions you answer to do WORK safely. These three ask about
+          corrective controls, blamed anchors and other clause versions — the questions you
+          answer to CHANGE A RULE safely. Different act, different vocabulary, generated by
+          the same mechanism. That is an agentic-memory-design claim and it is the reason
+          this wave is worth its 24 s.
+        must_not_claim: >-
+          Do not say or caption that the system "generated" these questions in this request.
+          They are seeded rows read back by a GET; the vocabulary predates the take. The
+          claim is that the vocabulary is act-specific, not that it was written just now.
+
+      - id: b10.defeater.citation_field
+        kind: ui_label
+        text: typed by the engineer — this deployment carries no answer
+        chip: editorial
+        editorial: true
+        source: operator/change/absence.ts:759 (the placeholder on each citation input)
+        deployed_2026_08_16: 'present in the served bundle, 1 occurrence'
+        note: >-
+          Three empty inputs, each with this placeholder. They are the visible shape of R-4's
+          mitigation: the way through is shown and not walked. Convention C3 again — the
+          server values on this screen carry chips and these boxes carry a sentence.
+        the_word_engineer_is_not_a_person: >-
+          Checked, because the standing rule is that the seeded incident describes nobody —
+          no date, no site, no job title, no injury. This placeholder is a shipped UI
+          string quoted verbatim, and its `the engineer` names WHOEVER IS TYPING, in the
+          same way `typed on this device` does in b0. It attaches to no person in the
+          seeded world, it is not a role on any record, and it is not a new string authored
+          for this film. The seeded incident's own narrative column still ends by saying it
+          describes nobody, and nothing in b9 or b10 changes that.
+
+      - id: b10.do_not_render
+        kind: ui_label
+        text: '— no radio is selected, no citation is typed, no attempt is made to dispose —'
+        chip: editorial
+        editorial: true
+        is_on_screen: false
+        note: >-
+          Recorded as an on-screen ABSENCE, exactly as b6.do_not_render is. Selecting a
+          defeater here would say in pictures "I answered it, and then the edit went
+          through" — and nothing goes through: there is no committing route and the film
+          does not have one. b10 ends on the refusal with the three questions beside it, and
+          that ending is the honest one.
+        authority: film-recut-plan.md §2.3 COST 3, R-4; CLICKS.md §3 fourth boxed warning
+
+      - id: b10.lattice.rows
+        kind: payload_value
+        label: 'disposition kind · min signer rank · second signer · foreign org · max TTL'
+        text_slot: the five clearance_legal rows for this check's virulence, as the read returned them
+        chip: db:column
+        envelope_chip: 'db:column exact on /lattice/0..4'
+        editorial: false
+        source: GET /v1/checks/{check_id}/disposition · /data/lattice/*
+        measured_2026_08_16: >-
+          five rows, all `virulence blood_major`, all `policy_version cl-1.0`:
+          applied (rank 3) · emergency_override (rank 5, second signer, foreign org, max TTL
+          12 h) · escalated (rank 3, second signer) · mechanism_absent (rank 4, second
+          signer, foreign org, predicate, re-assert) · mitigated (rank 3, second signer,
+          compensating)
+        the_twelve_hours: >-
+          `emergency_override.max_ttl_hours = 12` is the schema's answer to the named
+          industry failure mode — temporary changes left running past their intended
+          duration — and on a CHANGE REQUEST that is the most on-the-nose place it could
+          possibly appear. The database holds the ceiling; no page and no policy document
+          does.
+        blood_major_rule: >-
+          It appears as a column value in the `virulence` cell and NOWHERE ELSE. It is not
+          spoken, not captioned, not put in an overlay and not used as an adjective in any
+          sentence in this file. Saying it aloud edges toward inventing an injury, which is
+          the one thing this repository has refused at every turn.
+        used_in_this_cut: >-
+          PERMITTED, AND THE FIRST THING TO GO. At 12 s the five lattice rows compete with
+          the three prompts, and the prompts are what R-4 requires. If the frame will not
+          hold both legibly, the lattice is the half that leaves — it was already shown in
+          b6 against the permit's obligation, and the prompts here have never been seen.
+
+      - id: b10.beat3.rows
+        kind: payload_value
+        label: 'the projection-drift beat — P0001 · mainline.fn_cr_merge_gate · parsed'
+        text_slot: /data/beats/2/* on the run actually filmed
+        chip: parsed
+        editorial: false
+        source: POST /v1/demo/cr-gate-run
+        measured_from: 'the tree, cr_gate_run.py:214-215 and :593-601'
+        permitted: true
+        used_in_this_cut: false
+        ruling: >-
+          The endpoint plays a third beat — force the projected counter to zero out of band,
+          then merge again — and it is the change-request mirror of b4/b5, the film's peak.
+          IT IS NOT IN THIS CUT AND SHOULD NOT BE. Twelve seconds cannot hold a second
+          attack sequence, and a compressed one would be the film re-running its best
+          material worse. The rows are recorded so that a later cut with room does not have
+          to rediscover them, and so nobody films the panel scrolled to beat 3 by accident
+          and narrates beat 2's line over it.
+
+      - id: b10.frame.permit_still_locked
+        kind: ui_label
+        text_slot: 'ISSUE is locked: <constraint> refused this write.'
+        chip: editorial
+        editorial: true
+        source: issue/ActionBar.ts, unchanged since b2
+        on_frame: only if the cut returns to the permit screen, which this cut does not
+        ruling: >-
+          Recorded because the mirror line in the voice-over — *you can't use the clause,
+          you can't quietly edit it away either* — asserts both halves and only one is on
+          screen in b10. The first half was on screen continuously from 0:30 to 2:04 and the
+          film relies on the viewer's memory of it, which is legitimate; what would NOT be
+          legitimate is a split-screen assembled after the fact to make the two refusals
+          look simultaneous. They were not simultaneous. They are two requests, minutes
+          apart, and the cut says so by being a cut.
+
+  # ══ THE CLOSE ═══════════════════════════════════════════════════════════════════════
+  # k1-k3 overlay text is W3's and is reproduced here VERBATIM so that one file carries
+  # every string in the film. If this block and VO-CLOSE.md ever disagree, VO-CLOSE.md is
+  # the owner of the words and this file is wrong.
+  #
+  # ── WHAT HAPPENED TO c1, c2, c3 AND c4 ────────────────────────────────────────────
+  # The close goes 50 s → 22 s and the four beats become three. NOTHING LEAVES THE
+  # SCREEN. film-recut-plan.md R-6 is explicit — Devpost asks that the services and
+  # features be "on screen (text overlay or slide) so judges can confirm them quickly"
+  # and never asks for them narrated — so the saving is taken from DWELL, from SPEECH,
+  # and from running two sequential cards in PARALLEL. The mapping, in full:
+  #
+  #   c1 (12 s) → k1 (6 s)              same overlay, same strap, half the dwell
+  #   c2 (16 s) ┐
+  #             ├→ k2 (10 s)            two cards side by side instead of one after the
+  #   c3 (14 s) ┘                       other; every line of both, verbatim, all labels
+  #   c4  (8 s) → k3 (6 s)              same three-line limit, same four-line rail, same
+  #                                      two URLs; one sentence moves from mouth to screen
+  #
+  # 36 spoken words over 22 s is 1.64 w/s — identical to two decimals to the current
+  # close's deliberate 1.64 w/s. THE WORDS-PER-SECOND DOES NOT MOVE, and that is the
+  # whole proof that this is a compression of delivery and not of content.
+  #
+  # THE ONE THING THAT DOES CHANGE, AND IT IS A COST: the criterion rail no longer builds
+  # one line per block beside the block that answers it. R-3 rules that it arrives WHOLE,
+  # in k3. The four answers are all still there; the adjacency is gone. The rail entries
+  # c1.rail.line1, c2.rail.line2 and c3.rail.line3 are therefore WITHDRAWN as separate
+  # on-screen strings and their text survives, to the character, inside
+  # k3.overlay.rail_all_four — which already carried all four lines and always did.
+
+  # ── k1 · THE LOOP · 2:28 → 2:34 ────────────────────────────────────────────────────
+  - beat_id: k1
+    t: 148
+    dur: 6
+    title: THE LOOP
+    was: c1 at 12 s
+    what_changed: >-
+      DWELL ONLY. The overlay below and its strap are unchanged to the character. What is
+      lost is the time a judge has to sit with STORE / RETRIEVE / ACT before the next card
+      arrives, and that is a real cost on the first tie-break axis — film-recut-plan.md
+      §2.3 COST 1 names it as the sharpest thing in the plan and does not dress it up.
+      Recorded here rather than only there, because this is the file that would otherwise
+      make the loss look like nothing happened.
+    spoken: ~10 w; the three words STORE · RETRIEVE · ACT are on screen large and are not spoken
+    authority: film-recut-plan.md §3.1, §3.2, §2.3 COST 1; VO-CLOSE.md §2.2
+    strings:
+
+      - id: k1.overlay.columns
         kind: overlay
         text: |-
           S T O R E                      R E T R I E V E                 A C T
@@ -1903,29 +2874,83 @@ beats:
             chip: db:column
             note: A live slot. Never filled from the reference run.
 
-      - id: c1.overlay.strap
+      - id: k1.overlay.strap
         kind: overlay
         text: every date above is a column value · no AS OF SYSTEM TIME produced any frame of this film
         chip: editorial
         editorial: true
         source: docs/demo/film/VO-CLOSE.md §2.2
+        stays_at_6_s: >-
+          It is one line and it is the sentence that stops a viewer reading the three dates
+          as time travel. Cutting the strap to buy dwell for the columns would remove the
+          only thing on the card that is a disclaimer.
 
-      - id: c1.rail.line1
+      - id: k1.rail.line1
         kind: overlay
-        text: |-
-          "what makes agentic systems different from traditional apps?"
-             -> the database is in the reasoning loop, as the thing that constrains the agent
+        status: WITHDRAWN AS A SEPARATE ON-SCREEN STRING — the text is not lost
+        text_survives_verbatim_in: k3.overlay.rail_all_four, first stanza, to the character
         chip: editorial
         editorial: true
-        source: docs/demo/film/VO-CLOSE.md §2.2, fades in at 2:04
+        source: docs/demo/film/VO-CLOSE.md §2.2 (where it faded in at 2:04)
+        ruling: >-
+          R-3. Across 22 s and three cards, four staggered rail lines are unreadable, so the
+          rail arrives WHOLE in the final card — which is the shape VO-CLOSE.md §0.3 already
+          designed it to lift into. Nothing is dropped: all four lines are on screen in k3
+          and this one is the first of them.
+        the_cost_stated_plainly: >-
+          A judge no longer sees each criterion answered BESIDE the block answering it. The
+          answers are all there; the adjacency is gone. That is film-recut-plan.md §2.3
+          COST 2 and it is a real loss, not a reorganisation.
 
-  - beat_id: c2
-    t: 132
-    dur: 16
-    title: THE AWS SURFACES
+  # ── k2 · THE STACK — AWS ∥ CockroachDB · 2:34 → 2:44 ───────────────────────────────
+  - beat_id: k2
+    t: 154
+    dur: 10
+    title: THE STACK — AWS ∥ CockroachDB
+    was: c2 (16 s) + c3 (14 s), run one after the other
+    what_changed: >-
+      SEQUENCE, NOT SUBSTANCE. Both were name-the-surfaces cards built on the same
+      three-label discipline, so they run SIDE BY SIDE in one card instead of one after the
+      other. Every line of both is below, verbatim. Not one service, feature, label, caveat
+      or concession leaves the screen.
+    spoken: >-
+      ~16 w — one sentence, whose only job is to say the list has a rule and to say the
+      Bedrock line out loud. The service names are not read aloud; VO-CLOSE.md §3.2 already
+      ruled that and R-6 keeps it.
+    layout:
+      one_card: true
+      columns: 'AWS on the left, CockroachDB on the right, one card, one lift, one hold'
+      rule: >-
+        The two entries below are TWO COLUMNS OF ONE CARD, not two cards. They arrive
+        together and leave together. If they are cut apart on the day the card is c2 and c3
+        again and the 10 s does not fit them.
+    highlight_sweep:
+      at_most_four_landings_in_10_s: true
+      order: '23514 → P0001 → the enum inside the predicate → the `It did not run in this request.` column'
+      everything_else_is_pause_material_by_design: >-
+        That is what "confirm them quickly" means for a list this long: the eye lands four
+        times and the pause button does the rest. A card this dense with a roving highlight
+        would be a card nobody reads.
+      authority: film-recut-plan.md §3.3 constraint 1; VO-CLOSE.md §4.1
+    the_constraint_that_keeps_this_card_honest:
+      rule: >-
+        THE GROUPING IS THE HONESTY AND IT SURVIVES AT ANY SIZE. VO-CLOSE.md §3.1: "a flat
+        list would let 'S3' borrow the credibility of 'Lambda', and S3 was never in the
+        request."
+      must_not_show: a single ungrouped stack list
+      escape_valve_if_it_will_not_fit: >-
+        If the two columns will not fit legibly WITH THEIR LABELS, k2 gets 12 s and the 8 s
+        banked in film-recut-plan.md §2.1 pays for it. It does NOT get flattened, and it
+        does not lose a label to fit. The bank exists for exactly this.
+      authority: film-recut-plan.md §3.3 constraint 2
+    the_three_labels_that_must_all_survive:
+      - 'IN THIS REQUEST — on both columns'
+      - 'IN THE APPLY THAT CREATED IT (AWS) · IN THIS DATABASE, EARLIER (CockroachDB)'
+      - 'IT IS NOT IN THIS REQUEST PATH — the Bedrock exception, in its own boxed position'
+    authority: film-recut-plan.md §3.1, §3.2, §3.3, R-6; VO-CLOSE.md §3.1 and §4.1
     strings:
 
-      - id: c2.overlay.aws
+      - id: k2.overlay.aws_column
         kind: overlay
         text: |-
           AWS  ·  IN THIS REQUEST
@@ -1950,30 +2975,40 @@ beats:
         chip: editorial
         editorial: true
         source: docs/demo/film/VO-CLOSE.md §3.1
+        column: LEFT
+        verbatim_rule: >-
+          Every line above is VO-CLOSE.md §3.1's exact text. The compression is the card's,
+          never the list's: no service is abbreviated, no evidence path is dropped, no
+          heading is merged into another, and the arm64/function-URL/parameter-name/policy
+          details stay on their own service lines where a judge can check each one.
         grouping_is_the_honesty: >-
           A flat list would let S3 borrow the credibility of Lambda, and S3 was never in the
           request. The three group headings carry the labels, not a footnote.
+        the_bedrock_block_is_boxed_and_that_is_structural: >-
+          The four Bedrock lines sit in their own ruled box inside this column, below the
+          apply group and visually separated from both. They are the one place in the film
+          where a service is named that the request path did not touch, and the box is what
+          stops the name sitting in a list that would lend it credit it has not earned. The
+          box may shrink; it may not be removed, merged upward into the apply group, or
+          reduced to a footnote marker.
         note_on_one_line: >-
           The residency sentence is one line and stays one line. It states the split and
           denies the claim in the same breath, which is what makes it a disclosure rather
           than a boast.
+        the_two_concessions_in_this_column_that_may_never_be_trimmed_for_space:
+          - 'Singapore/Sydney: `The database is aws-ap-southeast-1 (Singapore).  There is no end-to-end Australian residency and we do not claim one.`'
+          - '`The refusal you just watched involved no model at all, and that is the point.`'
 
-      - id: c2.rail.line2
+      - id: k2.rail.line2
         kind: overlay
-        text: |-
-          "Does the agent use the tools correctly and safely?"
-             -> persisted: false — this endpoint cannot write
+        status: WITHDRAWN AS A SEPARATE ON-SCREEN STRING — the text is not lost
+        text_survives_verbatim_in: k3.overlay.rail_all_four, second stanza, to the character
         chip: editorial
         editorial: true
-        source: docs/demo/film/VO-CLOSE.md §3.1, fades in at 2:16
+        source: docs/demo/film/VO-CLOSE.md §3.1 (where it faded in at 2:16)
+        ruling: R-3, same as k1.rail.line1.
 
-  - beat_id: c3
-    t: 148
-    dur: 14
-    title: THE COCKROACHDB SURFACES
-    strings:
-
-      - id: c3.overlay.cockroachdb
+      - id: k2.overlay.cockroachdb_column
         kind: overlay
         text: |-
           CockroachDB  ·  IN THIS REQUEST                 CockroachDB  ·  IN THIS DATABASE, EARLIER
@@ -2022,26 +3057,70 @@ beats:
               The same predicate as b2, quoted to the same characters, including the `:::`
               annotations. It is the cheapest feature to prove in the whole block: the enum
               type name is inside the error string rather than in a caption.
+        column: RIGHT
         highlight_sweep_order: '23514 → P0001 → the enum inside the predicate → the three `It did not run in this request.` lines'
+        highlight_sweep_note_at_10_s: >-
+          Four landings, and the fourth is the COLUMN of `It did not run in this request.`
+          lines rather than each line in turn. All three lines stay on screen; the highlight
+          lands once on the group. That is the only way the sweep fits 10 s without either
+          dropping a landing or turning into a roving pointer.
+        the_three_did_not_run_lines_are_the_card: >-
+          `mainline.fn_check_project`, the recursive CTE and the `42501` census each carry
+          `It did not run in this request.` beneath them. They are the reason the right-hand
+          column is headed IN THIS DATABASE, EARLIER and not IN THIS REQUEST, and every one
+          of the three sentences stays on screen at 10 s. A card that named the features and
+          quietly dropped the three disclaimers would be the exact swap this file exists to
+          prevent.
+        the_no_scale_concession_that_may_never_be_trimmed_for_space: >-
+          `One cluster.  One region.  This repository holds no load profile, and we do not
+          claim scale.` — last line of the column, full width, and it survives at any size.
+          It is the sentence that answers the criterion's own "at real scale" phrasing
+          honestly, and the rail's third stanza in k3 repeats the denial rather than
+          softening it.
 
-      - id: c3.rail.line3
+      - id: k2.rail.line3
         kind: overlay
-        text: |-
-          "Is it used for more than toy queries — state, embeddings, context, or transactional data
-           at real scale?"
-             -> transactional state, read inside the same SERIALIZABLE transaction as the decision
-                — and no scale is claimed
+        status: WITHDRAWN AS A SEPARATE ON-SCREEN STRING — the text is not lost
+        text_survives_verbatim_in: k3.overlay.rail_all_four, third stanza, to the character
         chip: editorial
         editorial: true
-        source: docs/demo/film/VO-CLOSE.md §4.1, fades in at 2:32
+        source: docs/demo/film/VO-CLOSE.md §4.1 (where it faded in at 2:32)
+        ruling: R-3, same as k1.rail.line1.
+        one_difference_a_reader_should_not_mistake_for_a_cut: >-
+          The rail's own third line is elided in k3 as `"Is it used for more than toy
+          queries ... at real scale?"`, where the withdrawn line quoted the criterion in
+          full. THE ELLIPSIS IS VO-CLOSE.md §5.2's OWN, not ours, and it was already there
+          in c4 before this re-cut. It elides the criterion's wording, never the answer;
+          the answer's two lines are verbatim in both places.
 
-  - beat_id: c4
-    t: 162
-    dur: 8
-    title: THE HONEST LIMIT
+  # ── k3 · THE LIMIT, THE RAIL, THE URLs · 2:44 → 2:50 ───────────────────────────────
+  - beat_id: k3
+    t: 164
+    dur: 6
+    title: THE LIMIT, THE RAIL, THE URLs
+    was: c4 at 8 s
+    what_changed: >-
+      ONE SENTENCE MOVES FROM THE MOUTH TO THE SCREEN, WHERE IT ALREADY IS. `We measure
+      deliberation and never threshold it` is line three of the limit card and was also
+      spoken; it is now only on screen. That is six spoken words saved and zero content
+      lost, and film-recut-plan.md §3.2 calls it the single cleanest trade in the plan.
+      Spoken: the first sentence only.
+    what_did_not_change: >-
+      The three-line limit is on screen IN FULL. The criterion rail is on screen in FULL,
+      all four stanzas, and this is the card R-3 lifts it whole into. Both URLs are on
+      screen. Nothing here is abbreviated for time.
+    the_dwell_arithmetic_that_makes_6_s_enough: >-
+      c4 worked at 8 s because only its fourth rail stanza was new — the other three had
+      been on screen since 2:00, 2:12 and 2:28. THAT IS NO LONGER TRUE: under R-3 all four
+      stanzas arrive here at once and none of them has been seen. This card is doing more
+      reading work than c4 did, in less time, and it is the second real cost of the
+      compression after COST 1. It is bearable because the limit is spoken while the rail
+      is read and the rail is the part a judge pauses on — but it is not free, and the cut
+      ladder's rank 4 takes k3 to 4 s only after everything else has already gone.
+    authority: film-recut-plan.md §3.1, §3.2, R-3, R-6; VO-CLOSE.md §5.2 and §5.3
     strings:
 
-      - id: c4.overlay.limit
+      - id: k3.overlay.limit
         kind: overlay
         text: |-
           THE LIMIT WE WILL NOT DRESS UP
@@ -2056,12 +3135,18 @@ beats:
         chip: editorial
         editorial: true
         source: docs/demo/film/VO-CLOSE.md §5.2
+        all_three_lines_on_screen: true
+        spoken_now: >-
+          The first two sentences only. Line three — `We measure deliberation and never
+          threshold it.` — is READ BY THE EYE, not by the voice. It does not leave the card,
+          it is not shortened, and it is not moved: it stays exactly where it is, in the
+          same type as the two above it.
         why_it_closes_the_film: >-
           The last thing a judge hears is the sentence a competitor could not say. A film that
           has spent two minutes saying the database refuses has earned the right to say what
           it cannot do.
 
-      - id: c4.overlay.rail_all_four
+      - id: k3.overlay.rail_all_four
         kind: overlay
         text: |-
           "what makes agentic systems different from traditional apps?"
@@ -2081,10 +3166,19 @@ beats:
         editorial: true
         source: docs/demo/film/VO-CLOSE.md §5.2
         note: >-
-          The first three lines have been on screen since 2:00, 2:12 and 2:28. Only the fourth
-          is read for the first time here, which is what makes eight seconds enough.
+          THE NOTE THAT USED TO STAND HERE IS NO LONGER TRUE AND IS REPLACED RATHER THAN
+          EDITED. It read: "The first three lines have been on screen since 2:00, 2:12 and
+          2:28. Only the fourth is read for the first time here, which is what makes eight
+          seconds enough." Under R-3 the rail no longer builds a line per block, so ALL FOUR
+          stanzas are read for the first time here. The card is denser than c4's was and it
+          has two seconds less. That is stated rather than quietly met.
+        this_is_the_whole_rail_and_it_is_complete: >-
+          Four criteria, four answers, none abbreviated. Whatever else the cut ladder takes,
+          it does not take a stanza: the rail is the only place in the film where the
+          organiser's own second sentences are answered in the organiser's own words.
+        authority: film-recut-plan.md R-3; VO-CLOSE.md §0.3
 
-      - id: c4.overlay.urls
+      - id: k3.overlay.urls
         kind: overlay
         text: |-
           github.com/Shaugato/mainline
@@ -2272,6 +3366,139 @@ forbidden_on_camera:
       a judge. The ISSUE button posts to the gate-run route and to nothing else.
     authority: r3-operator §5.5; CLICKS.md §2
 
+  # ── ADDED FOR THE CHANGE-REQUEST BLOCKS · b9, b10, k1-k3 ──────────────────────────
+
+  - value: >-
+      the 2019 incident date and the staged propagation title in the SAME SHOT — the
+      precursor dated 2019 on screen while any panel, tab, drawer or scroll position
+      carries the payload that reuses that uuid under a title naming a 2024 incident
+    reason: >-
+      r6-honesty A3's two-incident trap. `DEMO-INC-0001` renders with its own
+      `occurred_at` in b3, and the staged lesson-propagation payload reuses the same uuid
+      while titling it after a different, later incident. One uuid, two stories, and a
+      frame carrying both would let a viewer conclude the record had been rewritten. The
+      ban is on the PAIR; each alone is governed by its own row above, which already bans
+      the propagation screen outright and bans the 2024 incident in any sentence.
+    measured_2026_08_16: >-
+      THE MANAGEMENT-OF-CHANGE SCREEN CANNOT RENDER IT, and this was checked rather than
+      assumed. The deployed operator entry `/assets/operator-D24tzVGh.js` (96,734 B
+      decoded) contains ZERO occurrences of `propagation`, `lessons/`, `strengthened
+      after`, `INC-2024-0117` and the four-digit year `2024`. The operator subtree in the
+      tree mentions propagation exactly once, in a source comment at
+      `operator/hazard/precursor.ts:22` recording that the card never renders it. The
+      route `/v1/lessons/{lesson_id}/propagation` is declared by the deployment, so the
+      payload is reachable — it is simply not reachable FROM THIS SCREEN, because no
+      module in the operator entry builds that path.
+    so_the_residual_risk_is_named: >-
+      Not the screen. A second browser tab left open on the propagation surface, or a
+      devtools Network list still holding a `/v1/lessons/…` row from earlier in the
+      session. Both are shoot hygiene rather than software, which is why this row survives
+      the measurement instead of being closed by it: clear the Network list before the
+      press, and open no tab in the take that the take does not need.
+    authority: r6-honesty A3; film-recut-plan.md §4.3; W4's brief
+
+  - value: >-
+      `cr_gate_closed_when_merged`, `cr_merge_gate` and `mainline.fn_cr_merge_gate` used
+      as if they named the same object, in a caption, an overlay, a label or a column
+      heading
+    reason: >-
+      THEY ARE THREE DIFFERENT OBJECTS AND THE DIFFERENCE IS ONE WORD WIDE.
+      `cr_gate_closed_when_merged` is the CHECK constraint
+      (`db/migrations/0051_change_request.sql:85`). `cr_merge_gate` is a TRIGGER on the
+      same table (`db/migrations/0131_trg_cr_merge_gate.sql:38`), and `z_cbm_gate_cr` is a
+      second one (`db/migrations/0145d_trg_cbm_gate_cr.sql:63`).
+      `mainline.fn_cr_merge_gate` is the function a trigger calls
+      (`db/migrations/0116_fn_cr_merge_gate.sql`) and is what a `P0001` names. A `23514`
+      belongs to the CHECK and a `P0001` belongs to the function; putting either name
+      beside the other's SQLSTATE writes a claim the kernel did not make. This is the most
+      likely single defect in the second use case's on-screen text.
+    authority: VO-DEMO-CR.md B10's boxed warning; the four migrations named above
+
+  - value: >-
+      `severity 4` rendered, captioned or spoken as a property of the change request's
+      obligation, sourced from anything other than that obligation's own row
+    reason: >-
+      No 200 route returns it today. `/v1/checks/{check_id}/disposition` returns
+      `virulence` and the defeater vocabulary and carries NO severity member;
+      `/v1/change-requests/{cr_id}/blocking-checks` answers 404. The only `4` this
+      deployment will hand over is `/v1/demo/subjects` ·
+      /data/subjects/event/severity_gate — the EVENT's severity gate, a different column
+      on a different table, describing the incident rather than the obligation. Borrowing
+      it would be a value measured on one row asserted about another, which is the same
+      class of act as reading a counter off the wrong subject.
+    it_becomes_legal_the_moment_this_is_true: >-
+      the CR blocking-checks route answers 200 and `/data/checks/0/severity` is on screen
+      in the seven-column table the console already builds for it.
+    authority: measured 2026-08-16; findings.F-10
+
+  - value: >-
+      a third mutating request in the take — any POST row in the network panel beyond the
+      two the film narrates, or either of those two appearing without its narration
+    reason: >-
+      R-9's amended F-11, and it is strictly STRONGER than the rule it replaces, not a
+      loosening made to fit a beat. Exactly two mutating requests exist in this film: the
+      permit gate-run under b1, and the change-request attempt under b9. Each is narrated
+      while it is in flight and each is visible in the panel. A third row means something
+      pressed something nobody scripted, and an unnarrated row means the audience is
+      watching a write they were not told about. Either stops the take.
+    authority: film-recut-plan.md R-9; CLICKS.md §6
+
+  - value: >-
+      the change request shown or narrated as CARRYING the clause, as targeting it, or as
+      holding an edge to it
+    reason: >-
+      `mainline.change_request` has no target-clause column, and the screen says so in its
+      own words in the frame (`b9.clause.relation_note`). The clause of record is quoted
+      because the deployment returned it, and the change request asserts no edge to it.
+      Where the shared clause IS asserted is on the OBLIGATION — `clause_label` on the
+      change request's own blocking-check row — and that is a different sentence with a
+      different pointer behind it. A film that upgraded the juxtaposition into an edge
+      would be inventing a foreign key.
+    authority: ChangeScreen.ts:654-658; measured 2026-08-16
+
+  - value: >-
+      the typed proposed wording shown or narrated as the cause of the refusal, or as
+      something the request sent
+    reason: >-
+      TWO SEPARATE FALSEHOODS, BOTH EASY TO FALL INTO IN THIS FRAME. First, nothing about
+      the typed text reaches the database: the compare is computed in the browser
+      (`osha-sections.ts:329-336`) and the attempt control POSTs to a path that takes no
+      body and no path parameter at all (`ChangeScreen.ts:143-158` — "One POST. The only
+      one this screen can make, and it takes no identifier from this page"). Second, the
+      refusal is not about the words. It is about `open_blocking = 1` against a predicate
+      that reads that counter, and both are in the same frame saying so. A typed proposal
+      filmed beside a refusal, narrated as though the one produced the other, is a claim
+      about causation that nothing on screen supports — the same defect
+      `b6.do_not_render` guards against on the permit side.
+    the_frame_carries_its_own_answer: >-
+      Which is why this is survivable at all: the constraint row prints the predicate and
+      the counter side by side, so a judge who wonders what was refused reads it off the
+      screen rather than inferring it from the typing.
+    authority: measured 2026-08-16; film-recut-plan.md R-2
+
+  - value: >-
+      `23514`, `cr_gate_closed_when_merged`, `persisted false` or any beat value burned
+      into an overlay for b10 before the run that produced it
+    reason: >-
+      The endpoint declares those two as EXPECTATIONS (`cr_gate_run.py:212-213`) and
+      returns its own `matched_expectation` beside what actually happened. An overlay
+      prepared in advance is an overlay that will still be right-looking on a run that went
+      wrong, which is precisely the failure the payload's own field exists to expose.
+      Every value in b10 is a slot filled from the take's response, and a run whose verdict
+      is not `PROVEN` is filmed as not proven or not filmed.
+    authority: rule 1 of film-recut-plan.md §8; cr_gate_run.py:40-44
+
+  - value: >-
+      b9 shot without b10, or either of them shot while the decision gate is open
+    reason: >-
+      R-10. Use case two is ATOMIC. A setup with no answer is worse than neither: it
+      spends twelve seconds raising the judge's own objection and never answers it. And a
+      beat shot against a route that does not answer is a beat that has to be staged, which
+      is the one thing this repository has refused at every turn. If the gate is open on
+      the day, §6's NO-GO path is the film — b8 returns to 10 s, the `b8b.*` rows are on
+      screen, and the cut is 152 s and legal.
+    authority: film-recut-plan.md R-10, §6
+
 # ══════════════════════════════════════════════════════════════════════════════════════
 # TODO — strings this file could not source. Each carries the request that would produce
 # it. None is filled with a plausible placeholder, because a plausible placeholder is the
@@ -2281,12 +3508,19 @@ todo:
 
   - id: T-1
     what: The URL the browser's address bar shows in b0, to the path.
-    blocked_by: >-
+    status: >-
+      MOSTLY CLOSED, 2026-08-16. The blocker below is retired: `GET /operator.html` now
+      answers 200 with `<title>Control of Work</title>` and loads its own operator entry,
+      and that entry carries the permit and change screens. What is still not written down
+      is the FRAGMENT — the operator shell mounts the change screen at `#/change`
+      (ChangeScreen.ts:8) and this file does not record the permit screen's fragment,
+      because a route written down before it has answered is a route that will be wrong.
+    was_blocked_by: >-
       GET /operator.html answers 200 on the live origin but serves the console shell, so the
       operator route this film needs is not addressable there today (findings.F-1).
     request_that_would_produce_it: >-
-      GET <origin>/operator.html and confirm the served document's <title> and its script
-      asset carry the operator strings before writing this line down.
+      GET <origin>/operator.html, confirm the served document's <title> is the operator's,
+      then load it and read the address bar for each of the two screens the film uses.
     do_not: >-
       Do not write a route into this file that has never answered. If the film is shot before
       the operator package is deployed, W6's fallback document governs and this row is void.
@@ -2321,6 +3555,62 @@ todo:
     consequence: >-
       No string in this file depends on it. If it lands, the drawer's own strings are W5's to
       add; if it does not, DevTools' Response tab carries the raw payload in the naming block.
+    note_from_the_change_screen: >-
+      The MoC screen does NOT have this gap — it collects every exchange it made and renders
+      them together at the end, in reading order rather than fetch order, labelled per
+      exchange including the one that 404ed (ChangeScreen.ts:624-637). If the permit
+      screen's drawer ever lands, that is the pattern it should land as.
+
+  - id: T-6
+    what: Reconciliation of every `t` and `dur` in this file against the re-cut BEATS.yaml.
+    status: CLOSED, 2026-08-16, by running the diff rather than by assuming the agreement.
+    was_blocked_by: >-
+      BEATS.yaml had not been re-cut when these rows were written — measured on the tree,
+      last written 2026-08-15 23:16, still carrying `demo_s: 120`, `close_s: 50`, no `b0b`,
+      `b8` at 10 s and `c1`..`c4`. The numbers here were DERIVED from film-recut-plan.md
+      §2.1's arithmetic and written out at `timing_source.derivation` so they could be
+      checked rather than trusted.
+    outcome: >-
+      BEATS.yaml landed re-cut during this wave and the two files agree completely: sixteen
+      ids, sixteen `t` values, sixteen `dur` values, no exceptions. The two values flagged
+      as most likely to disagree — `b8.dur` and the three close in-points — all match.
+      See `timing_source.reconciliation_done` for the beat-by-beat list.
+    what_stays_open: >-
+      Nothing here. The standing rule does not close: BEATS.yaml is the authority, and a
+      later move in it makes this file wrong rather than the other way round.
+
+  - id: T-7
+    what: Which id scheme the second use case ships under — two blocks or three.
+    status: OPEN. Recorded rather than decided, because it is not this file's to decide.
+    the_collision: >-
+      `docs/demo/cr-gate-route-plan.md` §R9 names the material B9 · B10 · B11 over 10 + 6 +
+      8 s, and `docs/demo/film/VO-DEMO-CR.md` is written to it. `docs/demo/film-recut-plan.md`
+      §4 names the same 24 s b9 · b10 at 12 + 12 s. Two plans, two id schemes, one stretch
+      of film. VO-DEMO-CR.md §0.3 raised it first and this file confirms it.
+    what_this_file_did: >-
+      Followed the two-block shape, because that is the shape its owner was briefed on and
+      the shape the film lead's plan carries. Under EITHER choice nothing before b9
+      renumbers, which is the property both plans actually require.
+    what_would_change_here_under_three: >-
+      `b10` splits: the refusal rows stay in the second block and the mirror's frame
+      requirements — `the_one_frame_this_beat_must_produce` and the three defeater rows —
+      move to the third. No string changes; the `beat_id` on some of them does.
+    resolved_by: the film lead, in BEATS.yaml, and everyone else inherits it.
+
+  - id: T-8
+    what: The attempt control's own label on the change screen.
+    status: DELIBERATELY NOT WRITTEN DOWN, not merely unresolved.
+    blocked_by: >-
+      The control is not in the deployed bytes: `/assets/operator-D24tzVGh.js` contains
+      `Approve change` ×1 and `cr-gate-run` ×0, measured 2026-08-16.
+    do_not: >-
+      Do not write a label here in advance. A label written into this file before it is
+      built is a label somebody will then match the build to, which is the wrong direction
+      of travel — this file records what a surface renders, it does not specify it. It is a
+      slot (`b9.attempt.control`) until the bundle renders it.
+    the_one_thing_that_is_already_ruled: >-
+      Whatever it says, it is NOT `Approve change` re-enabled. An attempt that rolls back is
+      not an approval and must not be dressed as one.
 
 # ══════════════════════════════════════════════════════════════════════════════════════
 # FINDINGS — six, each measured this session, each handed to a named owner
@@ -2328,23 +3618,47 @@ todo:
 findings:
 
   - id: F-1
-    severity: HIGH — it decides whether this cut can be shot at all
-    finding: >-
-      The operator screens are not in the bytes the live origin serves. GET /operator.html
+    severity: WAS HIGH — now CLOSED on its finding and REOPENED on its remedy
+    status: SUPERSEDED BY MEASUREMENT, 2026-08-16, and rewritten rather than deleted
+    the_original_finding_kept_verbatim: >-
+      "The operator screens are not in the bytes the live origin serves. GET /operator.html
       answers 200 with 4,655 B and the title `MAINLINE console`; its only script is
       /assets/index-LoN3Sn_L.js; that asset answers 200 gzipped (138,177 B on the wire,
       490,539 B decoded) and contains zero occurrences of `CONTROL OF WORK`,
       `1 obligation outstanding`, `not carried by this deployment`, `cow-`, `hz-card` or
-      `moc-`.
-    why_it_matters: >-
-      A pre-flight that checks only for a 200 on /operator.html would pass and the shoot would
-      begin against the console. CLICKS.md D-6 flagged the dependency; this is the measurement
-      that says it is still open and names the check that catches it.
-    measured: '2026-08-16, against the live origin, GET only'
-    owner: orchestrator (packaging), W6 (fallback document)
+      `moc-`."
+    what_is_true_now: >-
+      The operator package IS deployed. GET /operator.html answers 200 with 5,097 B and
+      `<title>Control of Work</title>`, and loads its own entry
+      /assets/operator-D24tzVGh.js (96,734 B decoded) alongside operator-DTSzHtCs.css. That
+      entry contains `CONTROL OF WORK` ×1, `PERMIT NOT ISSUED` ×1, `Hazard identification`
+      ×2, `not carried by this deployment` ×4, `cow-` ×212, `hz-card` ×2, `moc-` ×105,
+      `Management of change` ×3, `Ways this obligation could be answered` ×1 and
+      `typed by the engineer` ×1.
+    why_the_original_is_kept: >-
+      It was true when it was taken. A research reading is superseded, not erased — the
+      same rule film-recut-plan.md R-8 applies to r6-honesty A13.5, applied here to this
+      file's own finding rather than only to somebody else's.
+    THE_PART_THAT_IS_NOT_CLOSED_AND_IS_WORSE_THAN_THE_ORIGINAL: >-
+      THE CHECK THIS FINDING HANDED TO THE ORCHESTRATOR IS BROKEN AND WOULD HAVE FAILED A
+      GOOD DEPLOYMENT. It named `1 obligation outstanding` as the string to grep the bundle
+      for. That substring occurs ZERO times in the correctly-deployed bundle, and so does
+      `obligation outstanding` — because the sentence is COMPOSED at runtime, singular or
+      plural chosen from the count (issue/beats.ts:476-477, recorded at
+      b0.actionbar.standing, which says so in its own row). A pre-flight built on it reports
+      NO-GO ten minutes before the red light, on a deployment that is fine.
+    the_general_lesson_worth_more_than_the_specific_fix: >-
+      A pre-flight may only grep for strings that exist as LITERALS in the source. Every
+      composed sentence in this file — and there are many, each carrying a `template` — is
+      unavailable to a substring check by construction. The rows in this file that carry
+      `template:` are exactly the rows a build check may not look for.
+    measured: '2026-08-16, against the live origin, GET only, accept-encoding: gzip'
+    owner: orchestrator (packaging), W6 (pre-flight document)
     the_check_that_catches_it: >-
-      Confirm the served document's title is the operator's and that the script asset contains
-      the string `1 obligation outstanding`, before step 2 of the pre-roll.
+      Confirm the served document's title reads `Control of Work`, and that the entry asset
+      contains ALL of `CONTROL OF WORK`, `Hazard identification` and `not carried by this
+      deployment` — three literals, present in the source and present in the shipped bytes.
+      Do NOT grep for `1 obligation outstanding`.
 
   - id: F-2
     severity: MEDIUM — two true strings that a tidy-minded person would "reconcile"
@@ -2414,3 +3728,136 @@ findings:
       the forbidden_on_camera exemption is a structural PROHIBITION_KEY rather than a hole.
     where_it_shows: b3.projection.seed_citation.do_not_print; the header block above
     owner: W5 (closed)
+
+  # ── ADDED BY W4 IN THE FILM RE-CUT WAVE ────────────────────────────────────────────
+
+  - id: F-7
+    severity: MEDIUM — a committed number that was false, in the file that is the timing authority
+    status: >-
+      CLOSED BY W1 IN THIS WAVE, and verified rather than taken on trust: the re-cut
+      BEATS.yaml now reads `first_refusal_at_s: 30`, and its constraints block additionally
+      carries `posts_per_film: 2`, `post_narration_required: true`,
+      `use_case_two_atomic: true`, `use_case_two_shared_identifiers_in_frame: true` and
+      `committing_route_in_film: false` — the last four being R-9, R-10 and R-5 written into
+      the spine as machine-readable constraints rather than left in prose.
+    finding: >-
+      `BEATS.yaml: first_refusal_at_s: 22` was true before `B0b` was inserted into
+      VO-DEMO.md on 2026-08-16 at 09:37. With b0b, b1's click lands at 0:20 and the refusal
+      is visible at 0:30. The beats in THIS file are retimed accordingly (b1..b8 all +8 s);
+      the BEATS.yaml field is not this file's to edit.
+    why_it_matters: >-
+      The organiser's tip is "get to the live demo fast (within the first 20 to 30
+      seconds)". 30 is the outer edge of that window, not outside it, and live product is on
+      screen from frame one — which is what the tip actually asks for. The number is wrong;
+      the film is not.
+    do_not_fix_it_the_expensive_way: >-
+      Do not buy the seconds back by cutting b0 from 12 s to 8 s. b0 carries 19 fixed,
+      verbatim words and 19 words in 8 s is 2.4 w/s, over every rate ceiling in the kit.
+      That step is arithmetically unexecutable and film-recut-plan.md §1.2 removes it.
+    owner: W1 (BEATS.yaml)
+    authority: film-recut-plan.md R-1, §1.1, §1.2
+
+  - id: F-8
+    severity: HIGH — R-4 and R-5 both depend on it and neither plan says so
+    finding: >-
+      THE CHANGE REQUEST'S OWN OBLIGATION IS NOT ADDRESSABLE FROM ANY DECLARED ROUTE, and
+      that is a different problem from the one the plan describes.
+      `GET /v1/demo/subjects` returns `check_id: dec0de00-0007-…` — the PERMIT's blocking
+      check — because its statement filters `WHERE bc.permit_id = %s`
+      (visible in the payload's own `statement_refs`). The CR's check
+      `dec0de00-000d-…` is returned by nothing. `GET
+      /v1/change-requests/{cr_id}/blocking-checks` answers 404.
+    what_the_screen_therefore_does_today: >-
+      `ChangeScreen.ts:675` computes `latticeCheckId = ownCheckIds[0] ?? addressing.checkId`.
+      With blocking-checks 404, `ownCheckIds` is empty and it falls back to the permit's
+      check. So the Management-of-Change screen reads the PERMIT's disposition and renders
+      the PERMIT's lattice and the PERMIT's three defeater prompts — correctly labelled,
+      under its own scope note saying "Nothing is claimed here about this change request's
+      obligation" (ChangeScreen.ts:711-715). The screen is honest. The BEAT is impossible.
+    why_it_matters_more_than_the_plan_says: >-
+      film-recut-plan.md §1.4 treats the 404 as a broken panel and §6 lists it as decision-
+      gate condition 2 without saying what it is load-bearing FOR. It is load-bearing for
+      both of the rulings the wave turns on. R-4 requires the three CR defeater prompts on
+      screen in b10 — they arrive only if the CR's check id is addressable. R-5 requires the
+      shared clause and the shared precursor legible in the refusal's frame — `7.3.2(b)`
+      arrives as the `clause_label` column of the CR's own blocking-check row, and
+      `DEMO-INC-0001` arrives inside the text of the `PRECURSOR_ANSWERED_ELSEWHERE` prompt.
+      BOTH ROUTES INTO THAT FRAME RUN THROUGH THE SAME CHECK ID. If it is not addressable,
+      R-5 fails, and R-5 says the wave should then be abandoned in favour of §6.
+    the_good_news_inside_it: >-
+      Nothing needs to be built into the console. `absence.ts:52-58` already drives discovery
+      off the 404 body's own declared route table, by predicate over the templates rather
+      than by matching a string it hopes to find: "On the day that route is added,
+      `discoverCrCheckIds` follows it, fetches the checks, and the prompts appear, with no
+      edit to this file." The console is waiting for the route. The route is the whole fix.
+    a_second_way_that_would_also_work: >-
+      `/v1/demo/subjects` carrying the CR's `check_id` beside the permit's. Cheaper, and
+      worse: the console deliberately refuses to take ids from source or from a fixed
+      shape, and an addressing route that special-cases one subject is the kind of thing
+      that stops being true when the seed changes.
+    measured: '2026-08-16, against the live origin, GET only'
+    owner: whoever owns the demo API's route table; film lead, for the decision gate
+
+  - id: F-9
+    severity: MEDIUM — two true strings that will be in ONE frame for the first time
+    finding: >-
+      F-2 recorded that the CHECK predicate appears in two real forms — the pg_catalog form
+      with `::` and no INT8, and CockroachDB's refusal-message form with `:::` and
+      `0:::INT8`. In b2 those two forms are in different panels. IN b10 THEY WILL BE IN THE
+      SAME FRAME: `b10.constraint.row` renders the catalogue form from the change-request
+      read, and `b10.refusal.message` renders the message form from the attempt's response,
+      and the beat is 12 s with both on screen.
+    why_it_matters: >-
+      F-2's ruling was "if both are ever in one frame the frame must not imply they are the
+      same bytes." b10 is that frame, and it arrives without anybody having designed for it.
+      The tidy-minded correction — making one look like the other — would put a string on
+      screen that no endpoint returned.
+    the_resolution_this_file_takes: >-
+      Both rows carry their renderer in their own entry, and neither is captioned. No
+      overlay names either one. A judge reading both sees two renderings of one constraint,
+      which is true and is the more interesting fact.
+    a_third_form_that_stays_off_camera: >-
+      `0051_change_request.sql:85` writes it as `CHECK (state <> 'merged' OR open_blocking =
+      0)`. No migration file is on camera in this film, so the third form is never in frame
+      and is recorded only so nobody "reconciles" the two that are.
+    owner: W6 (clearance), and anyone building an overlay near either string
+
+  - id: F-10
+    severity: MEDIUM — a number the plan asks for that no live read returns
+    finding: >-
+      film-recut-plan.md §4.2 requires b10 to show the three defeater prompts "with
+      `severity 4` and the `blood_major` lattice". `blood_major` is live and chipped:
+      `/v1/checks/dec0de00-000d-…/disposition` returns `virulence: blood_major` at
+      `/data/virulence` and on all five lattice rows. `severity` IS NOT IN THAT PAYLOAD AT
+      ALL — the disposition resource carries check_id, virulence, lattice, defeater_options,
+      reading_floor and signed, and no severity member. The obligation's severity lives on
+      its blocking-check row, and that route 404s.
+    the_trap: >-
+      `/v1/demo/subjects` DOES return a 4 — `/data/subjects/event/severity_gate` — and it is
+      chipped db:column, and it is on the same origin, and it is about the same incident.
+      It is the EVENT's severity gate, a different column on a different table. Writing it
+      into b10 as the obligation's severity would be a value measured on one row asserted
+      about another, and it would look completely fine to a reviewer.
+    the_resolution_this_file_takes: >-
+      `severity` is a slot on `b10.check.row`, blocked on the same route as F-8, with the
+      distinction written into the row itself; and a `forbidden_on_camera` entry bans the
+      substitution by name.
+    measured: '2026-08-16, both payloads read in full'
+    owner: W4 (recorded), film lead (if the route does not land)
+
+  - id: F-11
+    severity: LOW — a savepoint list that would be wrong by inheritance
+    finding: >-
+      The permit gate-run fences THREE write beats and names its savepoints
+      `gate_run_beat_2, gate_run_beat_3, gate_run_beat_4` (b8.footer.transaction). The
+      change-request endpoint plays THREE beats and fences TWO — `cr_gate_run_beat_2,
+      cr_gate_run_beat_3` (cr_gate_run.py:348-349, :811) — because it has no admission beat
+      to fence.
+    why_it_matters: >-
+      Everything about the second panel looks like the first, which is what makes it
+      readable and also what makes a value from the first easy to leave on it. The strap,
+      the beat count and the savepoint list are all things a compositor would reasonably
+      assume carry over. None of the three does. The strap is fixed at
+      film.strap.disclosure_fallback; the savepoints at b10.rollback.transaction; the beat
+      count is left to the page's own composed disclosure line, which is where it belongs.
+    owner: W4 (recorded), W5 (choreography), W6 (clearance)

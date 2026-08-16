@@ -107,7 +107,7 @@ def _declared_query_params() -> dict[str, list[str]]:
     return out
 
 
-def test_the_console_declares_eighteen_resources() -> None:
+def test_the_console_declares_twenty_resources() -> None:
     """Guards the parser itself: if the regex stops matching, every test below passes vacuously.
 
     Sixteen until 2026-08-14, when the console declared ``demo_gate_run`` and closed the
@@ -115,16 +115,21 @@ def test_the_console_declares_eighteen_resources() -> None:
     artefact a judge drives. That seventeenth resource is a POST, and the GET count stayed
     at twelve.
 
-    Eighteen since 2026-08-15, when the console declared ``demo_subjects`` —
+    Eighteen from 2026-08-15, when the console declared ``demo_subjects`` —
     ``GET /v1/demo/subjects``, the read that tells a screen which identifier to address.
-    That one moves the GET count to **thirteen**, and the split is asserted line by line
-    rather than folded into the total precisely so that a change which moved the total
-    without moving the split is still visible here.
+    That one moves the GET count to thirteen.
+
+    Twenty since 2026-08-16 and the split moves on BOTH sides: ``cr_blocking_checks`` is
+    the fourteenth GET — the change request's obligations, which nothing could list while
+    its ``open_blocking`` counter said one was open — and ``cr_gate_run`` is the sixth
+    POST, the change request's gate run. The split is asserted line by line rather than
+    folded into the total precisely so that a change which moved the total without moving
+    the split is still visible here.
     """
     declared = _declared()
-    assert len(declared) == 18, [entry["key"] for entry in declared]
-    assert sum(1 for entry in declared if entry["method"] == "GET") == 13
-    assert sum(1 for entry in declared if entry["method"] == "POST") == 5
+    assert len(declared) == 20, [entry["key"] for entry in declared]
+    assert sum(1 for entry in declared if entry["method"] == "GET") == 14
+    assert sum(1 for entry in declared if entry["method"] == "POST") == 6
 
 
 def test_declared_parameters_match_the_console() -> None:
@@ -151,24 +156,58 @@ def test_declared_parameters_match_the_console() -> None:
 
 
 def test_schema_ids_match_the_console_declaration() -> None:
-    """``envelope.schema_id`` must be the EXACT ``$id`` the console holds, for all seventeen.
+    """``envelope.schema_id`` must be the EXACT ``$id`` the console holds, for all twenty.
 
     ``finishExchange`` compares them as strings and refuses a mismatch outright:
     *a payload that names a contract we do not hold is not forward compatibility; it is
-    an unverifiable claim.* Six of the seventeen name a file whose stem is not their key,
-    so this cannot be a derivation and has to be a comparison.
+    an unverifiable claim.* Seven of the twenty name a file whose stem is not their key,
+    and one of those seven — ``cr_blocking_checks`` — names the SAME file as
+    ``blocking_checks``, which no rule from a key to a stem can produce at all. So this
+    cannot be a derivation and has to be a comparison.
 
     The equality is two-directional and stays that way. ``demo_gate_run`` joined both
-    sides on 2026-08-14 and is the one entry whose contract this package does not emit
-    through :func:`envelope.read_envelope` — ``gate_run.py`` stamps
-    ``GATE_RUN_SCHEMA_ID`` onto its own payload — so a reader tempted to drop it from
-    :data:`envelope.SCHEMA_IDS` on the grounds that "nothing uses it" should read
-    ``app.py``'s 501 branch first, and
+    sides on 2026-08-14 and ``cr_gate_run`` on 2026-08-16; those two are the entries whose
+    contracts this package does not emit through :func:`envelope.read_envelope` —
+    ``gate_run.py`` and ``cr_gate_run.py`` stamp their own ``$id`` onto their own payloads
+    — so a reader tempted to drop either from :data:`envelope.SCHEMA_IDS` on the grounds
+    that "nothing uses it" should read ``app.py``'s 501 branch first, and
     ``tests/test_routes_gate_run.py::test_the_transcribed_contract_id_is_the_one_the_handler_actually_stamps``
     second.
     """
     expected = {entry["key"]: f"{envelope.CONTRACT_BASE}{entry['schema']}" for entry in _declared()}
     assert expected == envelope.SCHEMA_IDS
+
+
+def test_two_keys_may_name_one_contract_and_that_is_the_polymorphism() -> None:
+    """``blocking_checks`` and ``cr_blocking_checks`` name ONE ``$id``, deliberately.
+
+    ``blocking-check.schema.json``'s ``data`` requires ``subject_kind``, ``subject_id``,
+    ``gate_epoch`` and ``checks``; ``permit_id`` is not in that required set, and
+    ``common.schema.json#/$defs/subject_kind`` is the closed pair
+    ``permit | change_request``. The contract was authored for both gated subjects, so
+    reusing it is the contract being used as written rather than a second file being
+    avoided — and the two properties this test pins are the ones that make that safe:
+    ``subject_kind`` is a closed pair the CR value is IN, and the required set names no
+    permit.
+
+    ``finishExchange`` looks the ``$id`` up by the REQUESTED key, so two keys may share a
+    contract and one key may never carry two ids.
+    """
+    shared = envelope.SCHEMA_IDS["blocking_checks"]
+    assert envelope.SCHEMA_IDS["cr_blocking_checks"] == shared
+    assert shared == f"{envelope.CONTRACT_BASE}blocking-check.schema.json"
+
+    contract = json.loads((CONTRACTS_DIR / "blocking-check.schema.json").read_text("utf-8"))
+    data_schema = next(
+        branch["properties"]["data"]
+        for branch in contract["allOf"]
+        if "properties" in branch and "data" in branch["properties"]
+    )
+    assert "permit_id" not in data_schema["required"], data_schema["required"]
+    assert set(data_schema["required"]) == {"subject_kind", "subject_id", "gate_epoch", "checks"}
+
+    common = json.loads((CONTRACTS_DIR / "common.schema.json").read_text("utf-8"))
+    assert common["$defs"]["subject_kind"]["enum"] == ["permit", "change_request"]
 
 
 def test_every_contract_id_resolves_to_a_committed_file() -> None:
@@ -182,12 +221,12 @@ def test_every_contract_id_resolves_to_a_committed_file() -> None:
 
 
 def test_reads_implements_exactly_the_declared_gets() -> None:
-    """Every GET key the console declares, no more and no fewer. W4 owns the five POSTs.
+    """Every GET key the console declares, no more and no fewer. W4 owns the six POSTs.
 
-    Twelve until 2026-08-15 and thirteen since, when ``demo_subjects`` was declared. The
-    assertion is deliberately NOT a count: it is the set, so a thirteenth GET that this API
-    does not implement, and an implementation the console does not declare, both fail here
-    and both name the key.
+    Twelve until 2026-08-15, thirteen with ``demo_subjects``, fourteen since 2026-08-16
+    and ``cr_blocking_checks``. The assertion is deliberately NOT a count: it is the set,
+    so a GET that this API does not implement, and an implementation the console does not
+    declare, both fail here and both name the key.
     """
     gets = {entry["key"] for entry in _declared() if entry["method"] == "GET"}
     assert set(reads.READS) == gets
@@ -216,14 +255,23 @@ def test_routes_match_the_console_path_templates() -> None:
     stays plain set equality, which permits no undeclared route and no unrouted
     declaration. That is the strongest form and nothing in this wave weakened it.
 
+    **2026-08-16 added the nineteenth and twentieth the same way**, and they are the
+    change request's: ``GET /v1/change-requests/{cr_id}/blocking-checks`` lists the
+    obligations its ``open_blocking`` counter was counting with nothing able to name them,
+    and ``POST /v1/demo/cr-gate-run`` drives the CR gate inside a transaction that is
+    rolled back. Both landed on both sides in one wave; the comparison is still plain set
+    equality.
+
     The two set assertions are joined by a COUNT over the list, because ``app.ROUTES`` is a
     list and the sets above cannot see a duplicate in it: two identical ``Route`` rows
     collapse into one member and every assertion below would still hold while ``route()``
-    resolved to whichever came first. 18 declared = 18 routed, re-derived here rather than
-    remembered — ``test_the_console_declares_eighteen_resources`` pins the 18.
+    resolved to whichever came first. 20 declared = 20 routed, re-derived here rather than
+    remembered — ``test_the_console_declares_twenty_resources`` pins the 20.
     """
     demo_route = ("POST", "/v1/demo/gate-run")
     subjects_route = ("GET", "/v1/demo/subjects")
+    cr_checks_route = ("GET", "/v1/change-requests/{cr_id}/blocking-checks")
+    cr_demo_route = ("POST", "/v1/demo/cr-gate-run")
     declared = {(entry["method"], entry["template"]) for entry in _declared()}
     routed = {(route.method, route.template) for route in app.ROUTES}
     assert declared - routed == set(), f"declared but not routed: {sorted(declared - routed)}"
@@ -231,9 +279,11 @@ def test_routes_match_the_console_path_templates() -> None:
     assert declared == routed
     assert demo_route in declared, "the console has stopped declaring the demo endpoint"
     assert subjects_route in declared, "the console has stopped declaring the subject index"
+    assert cr_checks_route in declared, "the console has stopped declaring the CR obligations"
+    assert cr_demo_route in declared, "the console has stopped declaring the CR gate run"
     pairs = [(route.method, route.template) for route in app.ROUTES]
     duplicated = sorted(pair for pair in routed if pairs.count(pair) > 1)
-    assert len(pairs) == len(declared) == 18, (
+    assert len(pairs) == len(declared) == 20, (
         f"app.ROUTES holds {len(pairs)} rows for {len(routed)} distinct (method, template) "
         f"pairs; a duplicate is unreachable and hides the row it shadows: {duplicated}"
     )

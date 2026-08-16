@@ -1,0 +1,1758 @@
+{
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "schema": "mainline.proof.cr-gate-live/1",
+  "produced_by": "scripts/proof/cr_gate_refusal.py",
+  "worker": "W5",
+  "lead_plan": "docs/demo/cr-gate-route-plan.md",
+  "produced_at_utc": "2026-08-16T04:41:54Z",
+  "origin": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+  "phase": "proof",
+  "one_sentence": "You cannot USE a clause the blame reaches, and this is the transcript of the deployed kernel refusing to let it be EDITED AWAY either.",
+  "no_apply_was_run": {
+    "statement": "This script is an HTTP client. No terraform was executed, no AWS API was called, no SSM parameter was written, no credential was read or printed, and no database connection was opened.",
+    "requests_sent": "GET and POST to the public Function URL, nothing else"
+  },
+  "health": {
+    "name": "health",
+    "method": "GET",
+    "path": "/v1/health",
+    "status": 200,
+    "bytes": 410,
+    "elapsed_s": 0.8515,
+    "content_type": "application/json; charset=utf-8",
+    "content_encoding": null,
+    "body_sha256": "4a8ea9b210bd35d2f0c62e96968e681303a4fe94533be17949ff971cad563d13",
+    "json_parsed": true,
+    "body": {
+      "applied_by": "scripts/deploy/cloud_chain.py",
+      "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "database": "mainline_demo",
+      "deploy_chain_applied": 271,
+      "deploy_chain_files": 271,
+      "migrations_applied": 0,
+      "ok": true,
+      "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+      "seconds": 0.0138,
+      "server_date": "2026-08-16T04:41:54.927017Z"
+    }
+  },
+  "deployment": {
+    "ok": true,
+    "database": "mainline_demo",
+    "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "deploy_chain_applied": 271,
+    "deploy_chain_files": 271,
+    "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339"
+  },
+  "subjects": {
+    "name": "demo_subjects",
+    "method": "GET",
+    "path": "/v1/demo/subjects",
+    "status": 200,
+    "bytes": 8941,
+    "elapsed_s": 0.8464,
+    "content_type": "application/json; charset=utf-8",
+    "content_encoding": null,
+    "body_sha256": "327fffdcf5fd084a21cea8213196d9772157227f38e3f05aa09793c322a5cd85",
+    "json_parsed": true,
+    "body": {
+      "data": {
+        "absent": [],
+        "check_id": "dec0de00-0007-4000-8000-000000000001",
+        "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+        "commit_id": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+        "cr_id": "dec0de00-000c-4000-8000-000000000001",
+        "lesson_id": "dec0de00-0005-4000-8000-000000000001",
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "receipt_id": "dec0de00-0008-4000-8000-000000000001",
+        "run_id": "dec0de00-0009-4000-8000-000000000001",
+        "site_code": "dec0de00-0001-4000-8000-000000000001",
+        "site_id": "dec0de00-0001-4000-8000-000000000001",
+        "subjects": {
+          "blocking_check": {
+            "check_id": "dec0de00-0007-4000-8000-000000000001",
+            "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+            "commit_id": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+            "count": 1,
+            "cr_id": null,
+            "permit_id": "dec0de00-0006-4000-8000-000000000001",
+            "precursor_event_id": "dec0de00-0005-4000-8000-000000000001",
+            "subject_kind": "permit"
+          },
+          "change_request": {
+            "count": 1,
+            "cr_id": "dec0de00-000c-4000-8000-000000000001",
+            "external_ref": "DEMO-MOC-0001",
+            "ref_name": "refs/changes/demo-0001",
+            "state": "checks_materialised"
+          },
+          "clause": {
+            "activity_root": "demo/isolation",
+            "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+            "count": 1,
+            "head_commit": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+            "head_gen": 1,
+            "head_label": "7.3.2(b)"
+          },
+          "event": {
+            "count": 1,
+            "event_id": "dec0de00-0005-4000-8000-000000000001",
+            "external_ref": "DEMO-INC-0001",
+            "kind": "incident",
+            "severity_gate": 4
+          },
+          "exposure_receipt": {
+            "count": 1,
+            "expires_at": "2027-01-01T00:00:00Z",
+            "receipt_id": "dec0de00-0008-4000-8000-000000000001",
+            "subject_kind": "permit"
+          },
+          "permit": {
+            "count": 1,
+            "external_ref": "DEMO-PTW-0001",
+            "gate_epoch": 1,
+            "open_blocking": 1,
+            "permit_id": "dec0de00-0006-4000-8000-000000000001",
+            "ref_name": "refs/permits/demo-0001",
+            "state": "dispositioned"
+          },
+          "recall_run": {
+            "count": 1,
+            "index_generation": "g1",
+            "policy_version": "demo-recall-1.0",
+            "run_id": "dec0de00-0009-4000-8000-000000000001"
+          },
+          "site": {
+            "count": 1,
+            "site_code": "dec0de00-0001-4000-8000-000000000001",
+            "site_id": "dec0de00-0001-4000-8000-000000000001"
+          }
+        }
+      },
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T04:41:55.730242Z",
+      "provenance": [
+        {
+          "chip": "db:column",
+          "pointer": "/site_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/site_code"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/cr_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/check_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/receipt_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/clause_uuid"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/commit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/run_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/lesson_id"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/site/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/site/site_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/site/site_code"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/permit/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/ref_name"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/external_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/state"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/gate_epoch"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/open_blocking"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/blocking_check/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/check_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/subject_kind"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/cr_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/clause_uuid"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/commit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/precursor_event_id"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/clause/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/clause_uuid"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/activity_root"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/head_commit"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/head_gen"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/head_label"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/event/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/event_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/external_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/kind"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/severity_gate"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/change_request/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/cr_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/ref_name"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/external_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/state"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/recall_run/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/recall_run/run_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/recall_run/policy_version"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/recall_run/index_generation"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/exposure_receipt/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/exposure_receipt/receipt_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/exposure_receipt/subject_kind"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/exposure_receipt/expires_at"
+        }
+      ],
+      "resource": "demo_subjects",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/subjects.schema.json",
+      "server_date": "2026-08-16T04:41:55.730242Z",
+      "staged": false,
+      "staged_note": null,
+      "statement_refs": [
+        {
+          "kind": "table",
+          "object": "mainline.site",
+          "text": "SELECT count(*) OVER ()  AS count,\n       s.site_id,\n       s.site_code\n  FROM mainline.site AS s\n ORDER BY s.site_code, s.site_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.permit",
+          "text": "SELECT count(*) OVER ()  AS count,\n       p.permit_id,\n       p.ref_name,\n       p.external_ref,\n       p.state::text     AS state,\n       p.gate_epoch,\n       p.open_blocking\n  FROM mainline.permit AS p\n WHERE p.site_id = %s\n ORDER BY p.opened_at, p.permit_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.blocking_check",
+          "text": "SELECT count(*) OVER ()        AS count,\n       bc.check_id,\n       bc.subject_kind::text   AS subject_kind,\n       bc.permit_id,\n       bc.cr_id,\n       bc.clause_uuid,\n       encode(bc.commit_id, 'hex') AS commit_id,\n       bc.precursor_event_id\n  FROM mainline.blocking_check AS bc\n  LEFT JOIN LATERAL (\n         SELECT d.disposition_id\n           FROM mainline.disposition AS d\n          WHERE d.check_id = bc.check_id AND d.retracted_by IS NULL\n          ORDER BY d.signed_at DESC\n          LIMIT 1\n       ) AS live ON true\n WHERE bc.permit_id = %s\n   AND live.disposition_id IS NULL\n ORDER BY bc.materialised_at, bc.check_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.clause",
+          "text": "SELECT count(*) OVER ()               AS count,\n       c.clause_uuid,\n       c.activity_root,\n       encode(c.head_commit, 'hex')   AS head_commit,\n       cv.gen                         AS head_gen,\n       cv.printed_label               AS head_label\n  FROM mainline.clause AS c\n  LEFT JOIN mainline.clause_version AS cv\n         ON cv.clause_uuid = c.clause_uuid AND cv.commit_id = c.head_commit\n WHERE c.site_id = %s\n ORDER BY c.activity_root, c.clause_uuid\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.event",
+          "text": "SELECT count(*) OVER ()  AS count,\n       e.event_id,\n       e.external_ref,\n       e.kind::text      AS kind,\n       e.severity_gate\n  FROM mainline.event AS e\n WHERE e.site_id = %s\n ORDER BY e.occurred_at, e.event_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.change_request",
+          "text": "SELECT count(*) OVER ()  AS count,\n       cr.cr_id,\n       cr.ref_name,\n       cr.external_ref,\n       cr.state::text    AS state\n  FROM mainline.change_request AS cr\n WHERE cr.site_id = %s\n ORDER BY cr.opened_at, cr.cr_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline_meas.recall_run",
+          "text": "SELECT count(*) OVER ()  AS count,\n       r.run_id,\n       r.policy_version,\n       r.index_generation\n  FROM mainline_meas.recall_run AS r\n WHERE r.permit_id = %s\n ORDER BY r.started_at, r.run_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.exposure_receipt",
+          "text": "SELECT count(*) OVER ()      AS count,\n       x.receipt_id,\n       x.subject_kind::text  AS subject_kind,\n       x.expires_at\n  FROM mainline.exposure_receipt AS x\n WHERE x.permit_id = %s\n ORDER BY x.issued_at, x.receipt_id\n LIMIT 1"
+        },
+        {
+          "kind": "statement",
+          "object": "pg_catalog.to_regclass",
+          "text": "SELECT to_regclass('mainline.site')             AS site,\n       to_regclass('mainline.permit')           AS permit,\n       to_regclass('mainline.blocking_check')   AS blocking_check,\n       to_regclass('mainline.clause')           AS clause,\n       to_regclass('mainline.event')            AS event,\n       to_regclass('mainline.change_request')   AS change_request,\n       to_regclass('mainline_meas.recall_run')  AS recall_run,\n       to_regclass('mainline.exposure_receipt') AS exposure_receipt"
+        }
+      ]
+    }
+  },
+  "cr_read": {
+    "name": "cr_read",
+    "method": "GET",
+    "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001",
+    "status": 200,
+    "bytes": 3295,
+    "elapsed_s": 0.9814,
+    "content_type": "application/json; charset=utf-8",
+    "content_encoding": null,
+    "body_sha256": "66aee6156ab002339f900e1ee06a7d53a466047378b9deb7d40ebb0f21a8bed1",
+    "json_parsed": true,
+    "body": {
+      "data": {
+        "constraints": [
+          {
+            "blamed_by_refusal": false,
+            "constraint": "cr_gate_closed_when_merged",
+            "counters": [
+              {
+                "column": "open_blocking",
+                "value": 1
+              }
+            ],
+            "predicate": "CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))"
+          },
+          {
+            "blamed_by_refusal": false,
+            "constraint": "cr_merge_evidence",
+            "counters": [],
+            "predicate": "CHECK (((state != 'merged'::mainline.subject_state) OR (merged_commit IS NOT NULL)))"
+          },
+          {
+            "blamed_by_refusal": false,
+            "constraint": "cr_conflicts_resolved_when_merged",
+            "counters": [
+              {
+                "column": "open_conflicts",
+                "value": 0
+              }
+            ],
+            "predicate": "CHECK (((state != 'merged'::mainline.subject_state) OR (open_conflicts = 0)))"
+          },
+          {
+            "blamed_by_refusal": false,
+            "constraint": "cr_identity_conserved_when_merged",
+            "counters": [
+              {
+                "column": "open_residue",
+                "value": 0
+              }
+            ],
+            "predicate": "CHECK (((state != 'merged'::mainline.subject_state) OR (open_residue = 0)))"
+          }
+        ],
+        "counters": {
+          "open_blocking": 1,
+          "open_conflicts": 0,
+          "open_residue": 0
+        },
+        "cr_id": "dec0de00-000c-4000-8000-000000000001",
+        "external_ref": "DEMO-MOC-0001",
+        "gate_epoch": 1,
+        "head_seq": 1,
+        "merged_commit": null,
+        "opened_at": "2026-08-01T03:00:00Z",
+        "ref_name": "refs/changes/demo-0001",
+        "site_id": "dec0de00-0001-4000-8000-000000000001",
+        "state": "checks_materialised",
+        "target_ref": "refs/heads/main"
+      },
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T04:41:56.616950Z",
+      "provenance": [
+        {
+          "chip": "db:column",
+          "pointer": "/cr_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/site_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/external_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/ref_name"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/target_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/state"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/head_seq"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/gate_epoch"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/merged_commit"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/opened_at"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counters/open_blocking"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counters/open_residue"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counters/open_conflicts"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/constraints/0"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/constraints/0/blamed_by_refusal"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/constraints/0/counters/0/value"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/constraints/1"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/constraints/1/blamed_by_refusal"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/constraints/2"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/constraints/2/blamed_by_refusal"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/constraints/2/counters/0/value"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/constraints/3"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/constraints/3/blamed_by_refusal"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/constraints/3/counters/0/value"
+        }
+      ],
+      "resource": "change_request",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/change-request.schema.json",
+      "server_date": "2026-08-16T04:41:56.616950Z",
+      "staged": false,
+      "staged_note": null,
+      "statement_refs": [
+        {
+          "kind": "table",
+          "object": "mainline.change_request",
+          "text": null
+        },
+        {
+          "kind": "view",
+          "object": "pg_catalog.pg_constraint",
+          "text": "SELECT con.conname                     AS constraint_name,\n       pg_get_constraintdef(con.oid)   AS predicate\n  FROM pg_catalog.pg_constraint con\n  JOIN pg_catalog.pg_class      rel ON rel.oid = con.conrelid\n  JOIN pg_catalog.pg_namespace  nsp ON nsp.oid = rel.relnamespace\n WHERE nsp.nspname = 'mainline'\n   AND rel.relname = %s\n   AND con.contype = 'c'\n ORDER BY con.oid"
+        }
+      ]
+    }
+  },
+  "cr_read_constraints": [
+    "cr_gate_closed_when_merged",
+    "cr_merge_evidence",
+    "cr_conflicts_resolved_when_merged",
+    "cr_identity_conserved_when_merged"
+  ],
+  "cr_blocking_checks": {
+    "name": "cr_blocking_checks",
+    "method": "GET",
+    "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001/blocking-checks",
+    "status": 404,
+    "bytes": 693,
+    "elapsed_s": 0.8011,
+    "content_type": "application/json; charset=utf-8",
+    "content_encoding": null,
+    "body_sha256": "3ce958e42bcc11286a367e1a773eb7a6524d56325cb88091c50aeb4444f778cb",
+    "json_parsed": true,
+    "body": {
+      "error": {
+        "declared": [
+          "/v1/audit",
+          "/v1/change-requests/{cr_id}",
+          "/v1/checks/{check_id}/disposition",
+          "/v1/clauses/{clause_uuid}/ancestry",
+          "/v1/clauses/{clause_uuid}/versions/{commit_id}",
+          "/v1/demo/gate-run",
+          "/v1/demo/subjects",
+          "/v1/ledger",
+          "/v1/lessons/{lesson_id}/propagation",
+          "/v1/permits/{permit_id}",
+          "/v1/permits/{permit_id}/blocking-checks",
+          "/v1/permits/{permit_id}/checks:materialise",
+          "/v1/permits/{permit_id}/merge",
+          "/v1/permits/{permit_id}/silence",
+          "/v1/permits/{permit_id}/suspend",
+          "/v1/recall-runs/{run_id}",
+          "/v1/receipts/{receipt_id}"
+        ],
+        "detail": "no resource is declared at GET /v1/change-requests/dec0de00-000c-4000-8000-000000000001/blocking-checks",
+        "kind": "no_route",
+        "status": 404
+      }
+    }
+  },
+  "cr_gate_run_probe": {
+    "name": "cr_gate_run_probe",
+    "method": "POST",
+    "path": "/v1/demo/cr-gate-run",
+    "status": 404,
+    "bytes": 642,
+    "elapsed_s": 0.8306,
+    "content_type": "application/json; charset=utf-8",
+    "content_encoding": null,
+    "body_sha256": "c318b3f2cec26e885f58c8417a270b5c79e8678d2020b7f8fca390aaa17cd656",
+    "json_parsed": true,
+    "body": {
+      "error": {
+        "declared": [
+          "/v1/audit",
+          "/v1/change-requests/{cr_id}",
+          "/v1/checks/{check_id}/disposition",
+          "/v1/clauses/{clause_uuid}/ancestry",
+          "/v1/clauses/{clause_uuid}/versions/{commit_id}",
+          "/v1/demo/gate-run",
+          "/v1/demo/subjects",
+          "/v1/ledger",
+          "/v1/lessons/{lesson_id}/propagation",
+          "/v1/permits/{permit_id}",
+          "/v1/permits/{permit_id}/blocking-checks",
+          "/v1/permits/{permit_id}/checks:materialise",
+          "/v1/permits/{permit_id}/merge",
+          "/v1/permits/{permit_id}/silence",
+          "/v1/permits/{permit_id}/suspend",
+          "/v1/recall-runs/{run_id}",
+          "/v1/receipts/{receipt_id}"
+        ],
+        "detail": "no resource is declared at POST /v1/demo/cr-gate-run",
+        "kind": "no_route",
+        "status": 404
+      }
+    }
+  },
+  "status": "UNANSWERABLE",
+  "verdict": "UNANSWERABLE",
+  "why_unanswerable": {
+    "finding": "POST /v1/demo/cr-gate-run is not declared by the deployment at https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws. The origin answered 404 and its body enumerates the routes that ARE declared.",
+    "declared_paths": [
+      "/v1/audit",
+      "/v1/change-requests/{cr_id}",
+      "/v1/checks/{check_id}/disposition",
+      "/v1/clauses/{clause_uuid}/ancestry",
+      "/v1/clauses/{clause_uuid}/versions/{commit_id}",
+      "/v1/demo/gate-run",
+      "/v1/demo/subjects",
+      "/v1/ledger",
+      "/v1/lessons/{lesson_id}/propagation",
+      "/v1/permits/{permit_id}",
+      "/v1/permits/{permit_id}/blocking-checks",
+      "/v1/permits/{permit_id}/checks:materialise",
+      "/v1/permits/{permit_id}/merge",
+      "/v1/permits/{permit_id}/silence",
+      "/v1/permits/{permit_id}/suspend",
+      "/v1/recall-runs/{run_id}",
+      "/v1/receipts/{receipt_id}"
+    ],
+    "declared_path_count": 17,
+    "cr_blocking_checks_declared": false,
+    "this_is_not_a_gate_that_failed_to_refuse": "A route that has not been deployed is not a refusal that did not happen. Exit code 2, the same code gate_refusal.py uses for 'there was no cluster', keeps the two findings apart.",
+    "what_closes_it": "The orchestrator deploys, then ONE command re-drives everything and rewrites both files in place: `python scripts/proof/cr_gate_refusal.py --suite-junit <run>.xml`. Exit 0 is PROVEN, 1 is NOT PROVEN with the failing beat named, 2 is this same finding again. tests/deploy/test_cr_gate_proof.py then asserts over the rewritten file with no network."
+  },
+  "route_table": {
+    "name": "route_table",
+    "method": "GET",
+    "path": "/v1/routes",
+    "status": 404,
+    "bytes": 631,
+    "elapsed_s": 0.8409,
+    "content_type": "application/json; charset=utf-8",
+    "content_encoding": null,
+    "body_sha256": "bf9a1508e1980f9b02d82d9e9b5bbeada62badbbf5f525f4c3c9f1966c106a00",
+    "json_parsed": true,
+    "body": {
+      "error": {
+        "declared": [
+          "/v1/audit",
+          "/v1/change-requests/{cr_id}",
+          "/v1/checks/{check_id}/disposition",
+          "/v1/clauses/{clause_uuid}/ancestry",
+          "/v1/clauses/{clause_uuid}/versions/{commit_id}",
+          "/v1/demo/gate-run",
+          "/v1/demo/subjects",
+          "/v1/ledger",
+          "/v1/lessons/{lesson_id}/propagation",
+          "/v1/permits/{permit_id}",
+          "/v1/permits/{permit_id}/blocking-checks",
+          "/v1/permits/{permit_id}/checks:materialise",
+          "/v1/permits/{permit_id}/merge",
+          "/v1/permits/{permit_id}/silence",
+          "/v1/permits/{permit_id}/suspend",
+          "/v1/recall-runs/{run_id}",
+          "/v1/receipts/{receipt_id}"
+        ],
+        "detail": "no resource is declared at GET /v1/routes",
+        "kind": "no_route",
+        "status": 404
+      }
+    }
+  },
+  "preexisting_routes": [
+    {
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001",
+      "route_key": "permit",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "permit",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/permit.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 5691,
+      "elapsed_s": 0.9864
+    },
+    {
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "route_key": "blocking_checks",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "blocking_checks",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/blocking-check.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 2408,
+      "elapsed_s": 0.8762
+    },
+    {
+      "method": "GET",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/silence",
+      "route_key": "silence",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "silence",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/silence.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 2386,
+      "elapsed_s": 0.86
+    },
+    {
+      "method": "GET",
+      "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001",
+      "route_key": "change_request",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "change_request",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/change-request.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 3295,
+      "elapsed_s": 0.9495
+    },
+    {
+      "method": "GET",
+      "path": "/v1/checks/dec0de00-0007-4000-8000-000000000001/disposition",
+      "route_key": "disposition",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "disposition",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/disposition.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 3805,
+      "elapsed_s": 0.8243
+    },
+    {
+      "method": "GET",
+      "path": "/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "route_key": "exposure_receipt",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "exposure_receipt",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/exposure.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 1817,
+      "elapsed_s": 0.8725
+    },
+    {
+      "method": "GET",
+      "path": "/v1/clauses/dec0de00-0004-4000-8000-000000000001/versions/9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "route_key": "clause_version",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "clause_version",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/clause.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 3230,
+      "elapsed_s": 0.8467
+    },
+    {
+      "method": "GET",
+      "path": "/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "route_key": "clause_ancestry",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "clause_ancestry",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/ancestry.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 3744,
+      "elapsed_s": 0.9791
+    },
+    {
+      "method": "GET",
+      "path": "/v1/ledger",
+      "route_key": "ledger",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "ledger",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/ledger.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 9505,
+      "elapsed_s": 0.8768
+    },
+    {
+      "method": "GET",
+      "path": "/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "route_key": "recall_run",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "recall_run",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/recall-run.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 2223,
+      "elapsed_s": 0.865
+    },
+    {
+      "method": "GET",
+      "path": "/v1/lessons/dec0de00-0005-4000-8000-000000000001/propagation",
+      "route_key": "propagation",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "propagation",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/propagation.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 4041,
+      "elapsed_s": 0.9042
+    },
+    {
+      "method": "GET",
+      "path": "/v1/audit",
+      "route_key": "audit",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "audit",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/audit.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 19439,
+      "elapsed_s": 1.5034
+    },
+    {
+      "method": "POST",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/checks:materialise",
+      "route_key": "materialise_checks",
+      "expected_status": 423,
+      "driven": false,
+      "why_not_driven": "commits irreversibly on the seeded demo subject; refused 423 demo_subject_write_protected by transitions._demo_guard, but a probe whose safety depends on a guard holding is a probe that writes on the day it does not \u2014 the ruling in evidence/deploy/cloud-acceptance.json, which this script does not overturn. Declaration is checked instead, from the deployment's own 404 route enumeration.",
+      "status_matches_expectation": true,
+      "shape": {
+        "declaration_checked_instead": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/checks/dec0de00-0007-4000-8000-000000000001/disposition",
+      "route_key": "sign_disposition",
+      "expected_status": 423,
+      "driven": false,
+      "why_not_driven": "commits irreversibly on the seeded demo subject; refused 423 demo_subject_write_protected by transitions._demo_guard, but a probe whose safety depends on a guard holding is a probe that writes on the day it does not \u2014 the ruling in evidence/deploy/cloud-acceptance.json, which this script does not overturn. Declaration is checked instead, from the deployment's own 404 route enumeration.",
+      "status_matches_expectation": true,
+      "shape": {
+        "declaration_checked_instead": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/merge",
+      "route_key": "merge_permit",
+      "expected_status": 423,
+      "driven": false,
+      "why_not_driven": "commits irreversibly on the seeded demo subject; refused 423 demo_subject_write_protected by transitions._demo_guard, but a probe whose safety depends on a guard holding is a probe that writes on the day it does not \u2014 the ruling in evidence/deploy/cloud-acceptance.json, which this script does not overturn. Declaration is checked instead, from the deployment's own 404 route enumeration.",
+      "status_matches_expectation": true,
+      "shape": {
+        "declaration_checked_instead": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/suspend",
+      "route_key": "suspend_permit",
+      "expected_status": 423,
+      "driven": false,
+      "why_not_driven": "commits irreversibly on the seeded demo subject; refused 423 demo_subject_write_protected by transitions._demo_guard, but a probe whose safety depends on a guard holding is a probe that writes on the day it does not \u2014 the ruling in evidence/deploy/cloud-acceptance.json, which this script does not overturn. Declaration is checked instead, from the deployment's own 404 route enumeration.",
+      "status_matches_expectation": true,
+      "shape": {
+        "declaration_checked_instead": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/demo/gate-run",
+      "route_key": "demo_gate_run",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "demo_gate_run",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 10498,
+      "elapsed_s": 2.8226
+    },
+    {
+      "method": "GET",
+      "path": "/v1/demo/subjects",
+      "route_key": "demo_subjects",
+      "expected_status": 200,
+      "driven": true,
+      "status_matches_expectation": true,
+      "shape": {
+        "status": 200,
+        "resource": "demo_subjects",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/subjects.schema.json",
+        "error_code": null,
+        "envelope_version": 1
+      },
+      "bytes": 8941,
+      "elapsed_s": 0.9005
+    }
+  ],
+  "undriven_routes": {
+    "count": 4,
+    "templates": [
+      "/v1/permits/{permit_id}/checks:materialise",
+      "/v1/checks/{check_id}/disposition",
+      "/v1/permits/{permit_id}/merge",
+      "/v1/permits/{permit_id}/suspend"
+    ],
+    "why": "commits irreversibly on the seeded demo subject; refused 423 demo_subject_write_protected by transitions._demo_guard, but a probe whose safety depends on a guard holding is a probe that writes on the day it does not \u2014 the ruling in evidence/deploy/cloud-acceptance.json, which this script does not overturn. Declaration is checked instead, from the deployment's own 404 route enumeration.",
+    "declared_by_the_origin": [
+      "/v1/permits/{permit_id}/checks:materialise",
+      "/v1/checks/{check_id}/disposition",
+      "/v1/permits/{permit_id}/merge",
+      "/v1/permits/{permit_id}/suspend"
+    ]
+  },
+  "route_drift": {
+    "compared_against": "the earliest route drive recorded in qa/cr-gate-live.json",
+    "baseline_rows": 18,
+    "drifted": []
+  },
+  "gate_run": {
+    "name": "gate_run",
+    "method": "POST",
+    "path": "/v1/demo/gate-run",
+    "status": 200,
+    "bytes": 10500,
+    "elapsed_s": 2.7464,
+    "content_type": "application/json; charset=utf-8",
+    "content_encoding": null,
+    "body_sha256": "6b46e21d65b6606cf31f1dc6d182270ed8c2a6e4c15339b4d6f96098585282fd",
+    "json_parsed": true,
+    "body": {
+      "data": {
+        "beats": [
+          {
+            "constraint": null,
+            "constraint_source": null,
+            "elapsed_ms": 0.009,
+            "expected": {
+              "outcome": "read"
+            },
+            "label": "The permit, and the obligation that is still open on it.",
+            "matched_expectation": true,
+            "message": null,
+            "name": "read",
+            "note": null,
+            "observed": {
+              "blocking_check_id": "dec0de00-0007-4000-8000-000000000001",
+              "counters_agree": true,
+              "gate_epoch": 1,
+              "head_seq": 2,
+              "open_blocking_derived": 1,
+              "open_blocking_projected": 1,
+              "state": "dispositioned"
+            },
+            "ordinal": 1,
+            "outcome": "read",
+            "refusal": null,
+            "sqlstate": "00000",
+            "statement": "SELECT \u2026 FROM mainline.permit JOIN mainline.site \u2026"
+          },
+          {
+            "constraint": "gate_closed_when_issued",
+            "constraint_source": "reported",
+            "elapsed_ms": 615.337,
+            "expected": {
+              "constraint": "gate_closed_when_issued",
+              "constraint_source": "reported",
+              "outcome": "refused",
+              "sqlstate": "23514"
+            },
+            "label": "MERGE the permit. One open obligation, no signed disposition.",
+            "matched_expectation": true,
+            "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+            "name": "merge",
+            "note": null,
+            "observed": {},
+            "ordinal": 2,
+            "outcome": "refused",
+            "refusal": {
+              "class": "gate",
+              "constraint": "gate_closed_when_issued",
+              "constraint_source": "reported",
+              "diagnosis": "declarative",
+              "gate_epoch": 1,
+              "message": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+              "mus": [
+                {
+                  "clause_id": "dec0de00-0004-4000-8000-000000000001",
+                  "detail": "open at gate_epoch 1; no live disposition",
+                  "event_id": "dec0de00-0005-4000-8000-000000000001",
+                  "kind": "obligation",
+                  "obligation_id": "dec0de00-0007-4000-8000-000000000001",
+                  "origin": "blame_ancestry",
+                  "severity": 4,
+                  "virulence": "blood_major"
+                }
+              ],
+              "naa": {
+                "cardinality": 1,
+                "description": "1 obligation(s) remain open on this subject; disposing of exactly those restores admissibility",
+                "kind": "dispose_obligations",
+                "legal_kinds": [
+                  "applied",
+                  "mitigated",
+                  "mechanism_absent",
+                  "escalated",
+                  "emergency_override"
+                ],
+                "obligation_ids": [
+                  "dec0de00-0007-4000-8000-000000000001"
+                ]
+              },
+              "naa_reason": null,
+              "observed_at": "2026-08-16T04:42:15Z",
+              "probe_calls": 0,
+              "profile": "mainline",
+              "refusal_id": "e4a42091-dd52-4c5a-91c9-e58540083495",
+              "spec_version": "1.0.0-rc.1",
+              "sqlstate": "23514",
+              "subject_id": "dec0de00-0006-4000-8000-000000000001",
+              "subject_kind": "permit"
+            },
+            "sqlstate": "23514",
+            "statement": "CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)"
+          },
+          {
+            "constraint": "mainline.fn_permit_merge_gate",
+            "constraint_source": "parsed",
+            "elapsed_ms": 683.713,
+            "expected": {
+              "constraint": "mainline.fn_permit_merge_gate",
+              "constraint_source": "parsed",
+              "outcome": "refused",
+              "sqlstate": "P0001"
+            },
+            "label": "THE ATTACK: force the projected counter to zero out of band, then merge again.",
+            "matched_expectation": true,
+            "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+            "name": "projection_drift_attack",
+            "note": null,
+            "observed": {
+              "attack": "mainline.permit.open_blocking set out of band \u2014 what a disarmed projector or a careless UPDATE leaves behind",
+              "counter_forced_to": 0,
+              "open_blocking_derived": 1
+            },
+            "ordinal": 3,
+            "outcome": "refused",
+            "refusal": {
+              "class": "gate",
+              "constraint": "mainline.fn_permit_merge_gate",
+              "constraint_source": "parsed",
+              "diagnosis": "none",
+              "gate_epoch": 1,
+              "message": "MAINLINE: merge refused by mainline.fn_permit_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+              "mus": [
+                {
+                  "capability": "mainline.fn_permit_merge_gate",
+                  "detail": "outside the declarative decomposition; the general algorithm is QuickXplain over savepoint probes, in a separate transaction and never on the completion path",
+                  "kind": "capability_gap"
+                }
+              ],
+              "naa": null,
+              "naa_reason": "not_computable",
+              "observed_at": "2026-08-16T04:42:16Z",
+              "probe_calls": 0,
+              "profile": "mainline",
+              "refusal_id": "39c45840-6829-43ca-bedf-691cbc293142",
+              "spec_version": "1.0.0-rc.1",
+              "sqlstate": "P0001",
+              "subject_id": "dec0de00-0006-4000-8000-000000000001",
+              "subject_kind": "permit"
+            },
+            "sqlstate": "P0001",
+            "statement": "UPDATE mainline.permit SET open_blocking = 0 WHERE permit_id = %s; CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)"
+          },
+          {
+            "constraint": null,
+            "constraint_source": null,
+            "elapsed_ms": 493.533,
+            "expected": {
+              "outcome": "admitted",
+              "sqlstate": "00000"
+            },
+            "label": "Sign one disposition against the obligation, then merge again.",
+            "matched_expectation": true,
+            "message": null,
+            "name": "admit",
+            "note": null,
+            "observed": {
+              "disposition_id": "fa7acc13-9315-4ea9-9815-9cdf13202f79",
+              "disposition_kind": "applied",
+              "merge_record": {
+                "clearance_digest": "37cfe4692ba8caf9032f08a55b7149c7d347e866a078a435d2b9a5aa363d716d",
+                "gate_epoch": 1,
+                "merged_at": "2026-08-16T04:42:15.192805+00:00",
+                "merged_commit": "4fbbd37106cf5e02b03a49ce2ba5c4aa4fbbd37106cf5e02b03a49ce2ba5c4aa",
+                "permit_head_seq": 3,
+                "permit_open_blocking": 0,
+                "permit_state": "merged"
+              },
+              "open_blocking_after_signature": 0
+            },
+            "ordinal": 4,
+            "outcome": "admitted",
+            "refusal": null,
+            "sqlstate": "00000",
+            "statement": "INSERT INTO mainline.disposition ( disposition_id, check_id, receipt_id, subject_kind, permit_id, site_id, kind, virulence, closure_gen, defeater_code, defeater_vocab_sha256, rationale, evidence_sha256, signer_sub, signer_rank, signer_org, signer_credential_id, countersigner_sub, countersigner_credential_id, signature_alg, authenticator_data, client_data_json, user_verified, competency_snapshot, competency_source_id, competency_sha256, req_compensating, req_second_signer, req_foreign_org, req_predicate, req_reassert, min_signer_rank, severity_snapshot, deliberation_seconds, evidence_opened, prior_override_count) VALUES (%s, %s, %s, 'permit', %s, %s, 'applied', 'routine', 0, %s, %s, %s, %s, %s, 1, 'x', %s, %s, %s, 'ES256', %s, %s, true, %s, %s, %s, false, false, false, false, false, 1, 0, 0, true, 0); CALL mainline.merge_permit(%s, %s, %s, %s, %s, %s, %s, %s)"
+          }
+        ],
+        "elapsed_ms": 1944.655,
+        "failures": [],
+        "generated_at": "2026-08-16T04:42:15Z",
+        "outcome": "completed",
+        "persisted": false,
+        "persistence_check": {
+          "after": {
+            "permit_row": {
+              "countersigned_count": 0,
+              "gate_epoch": 1,
+              "head_seq": 2,
+              "merged_commit": null,
+              "open_blocking": 1,
+              "state": "dispositioned",
+              "unmet_floor_count": 0
+            },
+            "row_counts": {
+              "mainline.blocking_check": 2,
+              "mainline.disposition": 0,
+              "mainline.exposure_line": 1,
+              "mainline.exposure_receipt": 1,
+              "mainline.ledger_intake": 5,
+              "mainline.merge_record": 0,
+              "mainline.permit": 1,
+              "mainline.permit_event": 2,
+              "mainline.refusal_ledger": 0,
+              "mainline_ops.outbox": 2
+            },
+            "subject_row_counts": {
+              "mainline.disposition": 0,
+              "mainline.merge_record": 0,
+              "mainline.permit_event": 2
+            }
+          },
+          "before": {
+            "permit_row": {
+              "countersigned_count": 0,
+              "gate_epoch": 1,
+              "head_seq": 2,
+              "merged_commit": null,
+              "open_blocking": 1,
+              "state": "dispositioned",
+              "unmet_floor_count": 0
+            },
+            "row_counts": {
+              "mainline.blocking_check": 2,
+              "mainline.disposition": 0,
+              "mainline.exposure_line": 1,
+              "mainline.exposure_receipt": 1,
+              "mainline.ledger_intake": 5,
+              "mainline.merge_record": 0,
+              "mainline.permit": 1,
+              "mainline.permit_event": 2,
+              "mainline.refusal_ledger": 0,
+              "mainline_ops.outbox": 2
+            },
+            "subject_row_counts": {
+              "mainline.disposition": 0,
+              "mainline.merge_record": 0,
+              "mainline.permit_event": 2
+            }
+          },
+          "concurrent_writes": null,
+          "identical": true,
+          "note": "Row counts over every table the four beats can write, taken before the transaction opened and after it was rolled back, plus mainline.permit's own columns \u2014 because the attack beat mutates a column without changing a count. `identical` is that reading and it is about the DATABASE. `self_persisted` is about THIS RUN: the disposition beat 4 minted is a uuid4 no other writer holds, and it is gone, and this subject's own row counts and permit row are unchanged. The verdict keys on the second, because a whole-table count cannot tell 'I persisted something' from 'somebody else did' and this endpoint used to report the difference as its own failure.",
+          "self_evidence": {
+            "minted_disposition_id": "fa7acc13-9315-4ea9-9815-9cdf13202f79",
+            "minted_disposition_rows_after_rollback": 0,
+            "permit_row_identical": true,
+            "subject_row_counts_after": {
+              "mainline.disposition": 0,
+              "mainline.merge_record": 0,
+              "mainline.permit_event": 2
+            },
+            "subject_row_counts_before": {
+              "mainline.disposition": 0,
+              "mainline.merge_record": 0,
+              "mainline.permit_event": 2
+            }
+          },
+          "self_persisted": false,
+          "tables": [
+            "mainline.permit",
+            "mainline.permit_event",
+            "mainline.merge_record",
+            "mainline.disposition",
+            "mainline.ledger_intake",
+            "mainline.refusal_ledger",
+            "mainline.blocking_check",
+            "mainline.exposure_receipt",
+            "mainline.exposure_line",
+            "mainline_ops.outbox"
+          ]
+        },
+        "run_id": "a49cecbc-c2fb-47e9-ac98-f32a7ba71b98",
+        "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json",
+        "subject": {
+          "blocking_check_id": "dec0de00-0007-4000-8000-000000000001",
+          "exposure_receipt_id": "dec0de00-0008-4000-8000-000000000001",
+          "external_ref": "DEMO-PTW-0001",
+          "gate_epoch": 1,
+          "head_seq": 2,
+          "open_blocking": 1,
+          "open_blocking_derived": 1,
+          "site_code": "dec0de00-0001-4000-8000-000000000001",
+          "state": "dispositioned",
+          "subject_id": "dec0de00-0006-4000-8000-000000000001",
+          "subject_kind": "permit"
+        },
+        "transaction": {
+          "canonicalisation": "mainline_demo_api.gate_run.canonical_json (sorted-key JSON; ASCII payloads only)",
+          "closed_logical_timestamp": "1786855335192826202.0000000000",
+          "disposition": "rolled_back",
+          "isolation": "SERIALIZABLE",
+          "opened_logical_timestamp": "1786855335192826202.0000000000",
+          "retry_sqlstate": null,
+          "savepoints": [
+            "gate_run_beat_2",
+            "gate_run_beat_3",
+            "gate_run_beat_4"
+          ],
+          "single_transaction": true
+        },
+        "verdict": "PROVEN"
+      },
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T04:42:17Z",
+      "provenance": [
+        {
+          "chip": "derived",
+          "pointer": "/verdict"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subject/open_blocking"
+        },
+        {
+          "chip": "recomputed",
+          "pointer": "/subject/open_blocking_derived"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/beats/1/sqlstate"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/beats/1/constraint"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/beats/2/sqlstate"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/beats/2/constraint"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/beats/3/observed/merge_record/clearance_digest"
+        },
+        {
+          "chip": "recomputed",
+          "pointer": "/persistence_check/identical"
+        },
+        {
+          "chip": "recomputed",
+          "pointer": "/persistence_check/self_persisted"
+        }
+      ],
+      "resource": "demo_gate_run",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/gate-run.schema.json",
+      "server_date": "2026-08-16T04:42:17Z",
+      "staged": false,
+      "staged_note": null,
+      "statement_refs": [
+        {
+          "kind": "procedure",
+          "object": "mainline.merge_permit",
+          "sql_path": null,
+          "text": null
+        },
+        {
+          "kind": "procedure",
+          "object": "trappoint.explain_refusal",
+          "sql_path": null,
+          "text": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.permit",
+          "sql_path": null,
+          "text": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.disposition",
+          "sql_path": null,
+          "text": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.merge_record",
+          "sql_path": null,
+          "text": null
+        }
+      ]
+    }
+  },
+  "gate_run_summary": {
+    "merge": {
+      "sqlstate": "23514",
+      "constraint": "gate_closed_when_issued"
+    },
+    "projection_drift_attack": {
+      "sqlstate": "P0001",
+      "constraint": "mainline.fn_permit_merge_gate"
+    },
+    "verdict": "PROVEN",
+    "persisted": false,
+    "beat_names": [
+      "read",
+      "merge",
+      "projection_drift_attack",
+      "admit"
+    ]
+  },
+  "suite": {
+    "baseline": {
+      "collected": 998,
+      "passed": 997,
+      "failed": 0,
+      "errors": 0
+    },
+    "before": {
+      "collected": 1005,
+      "failed": 12,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 992,
+      "failing_node_ids": [
+        "verticals/mainline/apps/demo-api/tests/test_envelope::test_each_declared_template_resolves_to_its_own_key[cr_blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_envelope::test_each_declared_template_resolves_to_its_own_key[cr_gate_run]",
+        "verticals/mainline/apps/demo-api/tests/test_envelope::test_every_contract_id_resolves_to_a_committed_file",
+        "verticals/mainline/apps/demo-api/tests/test_envelope::test_every_read_is_addressable_and_named_consistently",
+        "verticals/mainline/apps/demo-api/tests/test_envelope::test_routes_match_the_console_path_templates",
+        "verticals/mainline/apps/demo-api/tests/test_envelope::test_the_console_declares_eighteen_resources",
+        "verticals/mainline/apps/demo-api/tests/test_reads::test_every_provenance_pointer_addresses_something_real[cr_blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_reads::test_every_read_satisfies_its_committed_contract[cr_blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_reads::test_every_read_survives_the_clients_own_post_conditions[cr_blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_reads::test_no_read_silently_drops_a_provenance_claim[cr_blocking_checks]",
+        "verticals/mainline/apps/demo-api/tests/test_routes_gate_run::test_the_table_and_the_console_declaration_are_the_same_eighteen",
+        "verticals/mainline/apps/demo-api/tests/test_seed_covers_every_console_resource::test_every_declared_key_is_either_driven_here_or_named_as_not_a_read"
+      ],
+      "at_or_above_baseline": false,
+      "junitxml": "suite-before.xml",
+      "junitxml_note": "uncommitted session artefact; reproduce with the argv below and read the counts off the ROOT ELEMENT, never off a terminal tail",
+      "argv": ".venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests tests/deploy --crdb=reuse -q -p no:cacheprovider --timeout=900 --junitxml=<out>"
+    },
+    "after": {
+      "collected": 1070,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 1,
+      "passed": 1068,
+      "failing_node_ids": [
+        "verticals/mainline/apps/demo-api/tests/test_transitions::test_a_run_that_really_persists_is_caught"
+      ],
+      "at_or_above_baseline": false,
+      "junitxml": "suite-final.xml",
+      "junitxml_note": "uncommitted session artefact; reproduce with the argv below and read the counts off the ROOT ELEMENT, never off a terminal tail",
+      "argv": ".venv/Scripts/python.exe -m pytest verticals/mainline/apps/demo-api/tests tests/deploy --crdb=reuse -q -p no:cacheprovider --timeout=900 --junitxml=<out>"
+    }
+  },
+  "assertions": {
+    "total": 23,
+    "held": 23,
+    "rows": [
+      {
+        "id": "H1",
+        "statement": "the deployment reports itself healthy",
+        "pointer": "/ok",
+        "expected": true,
+        "observed": true,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "H2",
+        "statement": "the deploy chain applied every file it carries",
+        "pointer": "/deploy_chain_applied vs /deploy_chain_files",
+        "expected": 271,
+        "observed": 271,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "SUB",
+        "statement": "the deployment's own /v1/demo/subjects names the change request this run drives",
+        "pointer": "/data/cr_id",
+        "expected": "dec0de00-000c-4000-8000-000000000001",
+        "observed": "dec0de00-000c-4000-8000-000000000001",
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "CR1",
+        "statement": "GET /v1/change-requests/dec0de00-000c-4000-8000-000000000001 answers 200",
+        "pointer": "<http status>",
+        "expected": 200,
+        "observed": 200,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "CR2",
+        "statement": "the change request is in checks_materialised with one open obligation",
+        "pointer": "/data/state + /data/counters/open_blocking",
+        "expected": [
+          "checks_materialised",
+          1
+        ],
+        "observed": [
+          "checks_materialised",
+          1
+        ],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "CR3",
+        "statement": "the CR read already names the CHECK the merge beat will be refused by",
+        "pointer": "/data/constraints/*/constraint",
+        "expected": true,
+        "observed": true,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "RR-DECL",
+        "statement": "the four committing routes this script will not send are still DECLARED",
+        "pointer": "/error/declared",
+        "expected": [],
+        "observed": [],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "RR0",
+        "statement": "all eighteen pre-existing Route rows were accounted for",
+        "pointer": "<route sweep>",
+        "expected": 18,
+        "observed": 18,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "RR0b",
+        "statement": "fourteen of the eighteen were driven; the four that commit were not sent",
+        "pointer": "<route sweep>",
+        "expected": [
+          14,
+          4
+        ],
+        "observed": [
+          14,
+          4
+        ],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "RR1",
+        "statement": "every pre-existing route answered the status it answered before this wave",
+        "pointer": "<route sweep>",
+        "expected": [],
+        "observed": [],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "RR2",
+        "statement": "no pre-existing route changed status or shape since the recorded baseline",
+        "pointer": "<route drift>",
+        "expected": [],
+        "observed": [],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "G1",
+        "statement": "POST /v1/demo/gate-run still answers verdict PROVEN",
+        "pointer": "/data/verdict",
+        "expected": "PROVEN",
+        "observed": "PROVEN",
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "G2",
+        "statement": "POST /v1/demo/gate-run still persists nothing",
+        "pointer": "/data/persisted",
+        "expected": false,
+        "observed": false,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "G3",
+        "statement": "POST /v1/demo/gate-run still carries its four beats, in order",
+        "pointer": "/data/beats/*/name",
+        "expected": [
+          "read",
+          "merge",
+          "projection_drift_attack",
+          "admit"
+        ],
+        "observed": [
+          "read",
+          "merge",
+          "projection_drift_attack",
+          "admit"
+        ],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "G4",
+        "statement": "the permit gate's merge beat still refuses 23514 gate_closed_when_issued",
+        "pointer": "/data/beats/1/(sqlstate,constraint)",
+        "expected": [
+          "23514",
+          "gate_closed_when_issued"
+        ],
+        "observed": [
+          "23514",
+          "gate_closed_when_issued"
+        ],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "G5",
+        "statement": "the permit gate's projection_drift_attack beat still refuses P0001 mainline.fn_permit_merge_gate",
+        "pointer": "/data/beats/2/(sqlstate,constraint)",
+        "expected": [
+          "P0001",
+          "mainline.fn_permit_merge_gate"
+        ],
+        "observed": [
+          "P0001",
+          "mainline.fn_permit_merge_gate"
+        ],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "G6",
+        "statement": "the permit gate's persistence fingerprint is still identical before and after",
+        "pointer": "/data/persistence_check/identical",
+        "expected": true,
+        "observed": true,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "S-before-1",
+        "statement": "the before suite collected at least 998",
+        "pointer": "<junitxml root @tests>",
+        "expected": true,
+        "observed": true,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "S-before-3",
+        "statement": "the before suite is RED, and every red node id is named",
+        "pointer": "<junitxml testcase/failure>",
+        "expected": 12,
+        "observed": 12,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "S-before-4",
+        "statement": "none of the red node ids belongs to this worker's own test file",
+        "pointer": "<junitxml testcase/failure>",
+        "expected": [],
+        "observed": [],
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "S-after-1",
+        "statement": "the after suite collected at least 998",
+        "pointer": "<junitxml root @tests>",
+        "expected": true,
+        "observed": true,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "S-after-3",
+        "statement": "the after suite is RED, and every red node id is named",
+        "pointer": "<junitxml testcase/failure>",
+        "expected": 1,
+        "observed": 1,
+        "pointer_resolved": true,
+        "holds": true
+      },
+      {
+        "id": "S-after-4",
+        "statement": "none of the red node ids belongs to this worker's own test file",
+        "pointer": "<junitxml testcase/failure>",
+        "expected": [],
+        "observed": [],
+        "pointer_resolved": true,
+        "holds": true
+      }
+    ]
+  },
+  "failures": [],
+  "caveats": [],
+  "exit_code": 2
+}

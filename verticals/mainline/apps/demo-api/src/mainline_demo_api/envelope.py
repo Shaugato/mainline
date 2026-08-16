@@ -106,32 +106,46 @@ STATEMENT_REF_CAP: Final = 32
 #: Resource key → the ``$id`` of the contract governing its ``data``.
 #:
 #: TRANSCRIBED, NOT DERIVED, from ``console/src/data/resources.ts``, and it is a
-#: transcription of the console's **eighteen** ``declare()`` calls — thirteen reads and
-#: five POSTs. Six of the reads name a file whose stem is not their key
+#: transcription of the console's **twenty** ``declare()`` calls — fourteen reads and
+#: six POSTs. Seven of the reads name a file whose stem is not their key
 #: (``change_request`` → ``change-request``, ``blocking_checks`` → ``blocking-check``,
-#: ``exposure_receipt`` → ``exposure``, ``clause_version`` → ``clause``,
-#: ``clause_ancestry`` → ``ancestry``, ``recall_run`` → ``recall-run``), so any rule that
-#: computed these would be a rule with six exceptions. The POST keys are carried too:
+#: ``cr_blocking_checks`` → ``blocking-check`` as well, ``exposure_receipt`` →
+#: ``exposure``, ``clause_version`` → ``clause``, ``clause_ancestry`` → ``ancestry``,
+#: ``recall_run`` → ``recall-run``), so any rule that computed these would be a rule with
+#: seven exceptions — and one of them maps two keys onto ONE file, which no rule from a
+#: key to a stem can produce at all. The POST keys are carried too:
 #: this module implements none of them, but ``app.py`` must be able to route them and
 #: name their contract when the transitions module is absent.
 #:
-#: ``demo_gate_run`` IS THE ONE ENTRY THAT IS NOT A CONSOLE READ CONTRACT. The other
-#: sixteen name a contract some function in this package emits: the twelve GETs through
-#: :func:`read_envelope`, the four kernel POSTs through the ``invoke.schema.json``
-#: envelope ``transitions`` builds. This one names ``gate-run.schema.json``, which
-#: ``gate_run.py`` holds as ``GATE_RUN_SCHEMA_ID`` and stamps onto its own payload; the
-#: success path never consults this table. It is transcribed here anyway for the two
-#: reasons the table exists at all — the console declared it on 2026-08-14 and
+#: ``demo_gate_run`` AND ``cr_gate_run`` ARE THE TWO ENTRIES THAT ARE NOT CONSOLE READ
+#: CONTRACTS. The other eighteen name a contract some function in this package emits: the
+#: fourteen GETs through :func:`read_envelope`, the four kernel POSTs through the
+#: ``invoke.schema.json`` envelope ``transitions`` builds. These two name
+#: ``gate-run.schema.json`` and ``cr-gate-run.schema.json``, which ``gate_run.py`` and
+#: ``cr_gate_run.py`` hold as their own ``$id`` constants and stamp onto their own
+#: payloads; the success path never consults this table. They are transcribed here anyway
+#: for the two reasons the table exists at all — the console declares them and
 #: ``tests/test_envelope.py::test_schema_ids_match_the_console_declaration`` compares the
 #: two lists key for key, and ``app.py``'s 501 branch reads ``SCHEMA_IDS.get(key)`` to
-#: name the contract a caller was denied at the one moment ``gate_run`` cannot be
-#: imported to be asked. Measured 2026-08-14: that body's ``error.schema_id`` was
-#: ``null`` for this key before the entry and is the ``gate-run.schema.json`` ``$id``
-#: after it. Nothing else in this package changes.
+#: name the contract a caller was denied at the one moment the implementing module cannot
+#: be imported to be asked. Measured 2026-08-14 for the first of the pair: that body's
+#: ``error.schema_id`` was ``null`` for the key before the entry and is the
+#: ``gate-run.schema.json`` ``$id`` after it. Nothing else in this package changes.
 SCHEMA_IDS: Final[Mapping[str, str]] = {
     "permit": f"{CONTRACT_BASE}permit.schema.json",
     "change_request": f"{CONTRACT_BASE}change-request.schema.json",
     "blocking_checks": f"{CONTRACT_BASE}blocking-check.schema.json",
+    # THE SAME CONTRACT, FOR THE OTHER GATED SUBJECT, AND IT IS NOT A SHORTCUT.
+    # ``blocking-check.schema.json``'s ``data`` requires ``subject_kind``, ``subject_id``,
+    # ``gate_epoch`` and ``checks`` — there is no ``permit_id`` in that required set — and
+    # ``common.schema.json#/$defs/subject_kind`` is the closed pair
+    # ``permit | change_request``. The contract was authored subject-polymorphic;
+    # ``reads.read_cr_blocking_checks`` is the second subject it was authored for, so the
+    # two keys naming one ``$id`` is the contract being used as written rather than a
+    # second file being avoided. ``finishExchange`` compares the ``$id`` to the one the
+    # console holds for the KEY, so two keys may name one contract and a key may never
+    # name two.
+    "cr_blocking_checks": f"{CONTRACT_BASE}blocking-check.schema.json",
     "disposition": f"{CONTRACT_BASE}disposition.schema.json",
     "exposure_receipt": f"{CONTRACT_BASE}exposure.schema.json",
     "clause_version": f"{CONTRACT_BASE}clause.schema.json",
@@ -152,6 +166,15 @@ SCHEMA_IDS: Final[Mapping[str, str]] = {
     # console addresses seven surfaces by identifier and had no way to learn one, so three
     # screens shipped identifiers nobody had seeded and answered 404 on the live URL.
     "demo_subjects": f"{CONTRACT_BASE}subjects.schema.json",
+    # The change-request gate run, added 2026-08-16, and it is ``demo_gate_run``'s twin in
+    # every respect that matters to this table. Nothing in this package emits it through
+    # :func:`read_envelope` — ``cr_gate_run.py`` stamps its own ``$id`` onto its own
+    # payload, exactly as ``gate_run.py`` does — and it is transcribed here for the two
+    # reasons that entry gives: ``tests/test_envelope.py`` compares this table with the
+    # console's ``declare()`` calls key for key, and ``app.py``'s 501 branch reads
+    # ``SCHEMA_IDS.get(key)`` to name the contract a caller was denied at the one moment
+    # the implementing module cannot be imported to be asked.
+    "cr_gate_run": f"{CONTRACT_BASE}cr-gate-run.schema.json",
 }
 
 #: ``envelope.schema.json`` — ``resource`` pattern.

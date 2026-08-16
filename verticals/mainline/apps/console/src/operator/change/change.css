@@ -433,6 +433,58 @@
   font-weight: 600;
 }
 
+/*
+ * The attempt control. A THIRD class, and a third kind of thing.
+ *
+ * `.moc-approve` cannot act and is disabled. `.moc-compare` acts entirely inside this
+ * browser. This one sends a real POST to a real endpoint that opens a real serializable
+ * transaction and rolls it back — so it is neither of the other two, and it does not
+ * borrow either one's appearance. It is styled as a probe rather than as an approval,
+ * because pressing it is not approving anything and must never look like it might be.
+ */
+.moc-attempt {
+  margin-top: 0.6rem;
+  border: 1px solid var(--moc-db);
+  background: var(--moc-db-bg);
+  color: var(--moc-db);
+  padding: 0.55rem 0.9rem;
+  font-family: var(--moc-sans);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.moc-attempt[disabled] {
+  cursor: progress;
+  color: var(--moc-absent);
+  border-color: var(--moc-rule);
+  background: var(--moc-absent-bg);
+}
+
+.moc-run {
+  display: block;
+  margin-top: 1rem;
+  border: 1px solid var(--moc-rule);
+  background: var(--moc-paper);
+  padding: 0.7rem 0.85rem;
+}
+
+.moc-verdict {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.moc-beat {
+  margin-top: 0.8rem;
+  border-left: 3px solid var(--moc-stop);
+  padding-left: 0.7rem;
+}
+
+.moc-table tr.moc-moved td {
+  color: var(--moc-stop);
+  font-weight: 700;
+}
+
 .moc-approve-reason {
   margin: 0.6rem 0 0;
   font-size: 0.86rem;

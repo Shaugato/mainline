@@ -4,9 +4,27 @@
 /**
  * R11 — THE ABSENCE, AND THE FOUR WAYS A BUILDER COULD HAVE FAKED IT.
  *
- * The change request has one blocking obligation open on it and NO declared route returns
- * it. That is an awkward fact and there are four comfortable ways around it, all of them
- * lies a screenshot could not detect:
+ * ── WHAT 2026-08-16 CHANGED ABOUT THIS FILE, AND WHAT IT DID NOT ─────────────────────
+ *
+ * `GET /v1/change-requests/{cr_id}/blocking-checks` now exists, so the last three describes
+ * cover the OTHER branch: what the module renders once the obligation actually arrives over
+ * HTTP. Every case below them is kept unchanged, because the deployment a judge is pointed
+ * at may not carry the route — the live origin answered 404 for it as recently as W5's
+ * transcript — and a screen that only worked against the newest origin would be asserting
+ * over the one in front of them. Which branch runs is decided by a response.
+ *
+ * `POST /v1/change-requests/{cr_id}/merge` still does not exist and is not being added, so
+ * lie 4 below is closed exactly as it was. What is beside the approve control now is an
+ * ATTEMPT control the SCREEN builds and this module only places — it rolls its transaction
+ * back, and the two cases at the end assert that placing it changes nothing about the
+ * approve control.
+ *
+ * ── THE ORIGINAL FOUR ────────────────────────────────────────────────────────────────
+ *
+ * The change request has one blocking obligation open on it, and on the deployment this
+ * file's fixtures were captured from, NO declared route returned it. That is an awkward
+ * fact and there are four comfortable ways around it, all of them lies a screenshot could
+ * not detect:
  *
  *   1. copy `dec0de00-000d-…` out of `docs/demo/research/r3-operator.md` and read the
  *      obligation with it;
@@ -25,10 +43,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   composeAbsentCrRoutes,
+  crCheckIds,
   discoverCrCheckIds,
   fillTemplate,
   parseRouteTable,
   renderActionBar,
+  renderCrChecks,
   renderDefeaterPrompts,
   renderObligation,
   routesMergingChangeRequest,
@@ -280,6 +300,7 @@ describe('renderActionBar — disabled, reasoned, and wired to nothing', () => {
       probeLine: 'GET /v1/change-requests/x/blocking-checks → 404 · 695 bytes on the wire',
       soughtButAbsent: composeAbsentCrRoutes(table.declared),
       discoveryAttempts: [],
+      attempt: null,
     });
   }
 
@@ -330,6 +351,7 @@ describe('renderActionBar — disabled, reasoned, and wired to nothing', () => {
       // A caller asks for a route to be shown missing that the table in fact declares.
       soughtButAbsent: ['/v1/permits/{permit_id}/merge'],
       discoveryAttempts: [],
+      attempt: null,
     });
     expect(rendered.querySelectorAll('li.moc-route-missing')).toHaveLength(0);
   });
@@ -344,6 +366,7 @@ describe('renderActionBar — disabled, reasoned, and wired to nothing', () => {
       probeLine: 'probe',
       soughtButAbsent: ['/v1/change-requests/{cr_id}/merge'],
       discoveryAttempts: [],
+      attempt: null,
     });
     expect(rendered.querySelectorAll('li.moc-route')).toHaveLength(0);
     expect(rendered.textContent).toContain('makes no claim about which routes exist');
@@ -377,6 +400,7 @@ describe('renderObligation — what is known, and the boundary named in the same
       ],
       tables: ['mainline.change_request'],
       readFrom: 'GET /v1/change-requests/x → 200',
+      checksReachable: false,
     });
     const text = rendered.textContent ?? '';
     expect(text).toContain('counters.open_blocking = 1');
@@ -390,6 +414,7 @@ describe('renderObligation — what is known, and the boundary named in the same
       constraints: [],
       tables: [],
       readFrom: 'GET /v1/change-requests/x → 503',
+      checksReachable: false,
     });
     expect(rendered.textContent).toContain('not read');
     expect(rendered.textContent).not.toContain('0 blocking obligations');
@@ -418,5 +443,148 @@ describe('renderDefeaterPrompts — verbatim from a payload, with no way out', (
       (input) => (input as HTMLInputElement).value,
     );
     expect(values).toEqual(['ALPHA_CODE', 'BETA_CODE']);
+  });
+});
+
+/* ══ the route now exists: what is rendered when the obligation actually arrives ═══ */
+
+/**
+ * `data` of `GET /v1/change-requests/<cr_id>/blocking-checks` → 200.
+ *
+ * The FIELD NAMES are `blocking-check.schema.json`'s, which is the contract the change
+ * request's list is governed by — the same document the permit's list uses, because it has
+ * always required `subject_kind`/`subject_id` rather than `permit_id`. The VALUES here are
+ * this fixture's; they are deliberately not the seeded ones, so a renderer that only worked
+ * against the demo world would fail here.
+ */
+const CHECKS_DATA = {
+  subject_kind: 'change_request',
+  subject_id: 'CR-UNDER-TEST',
+  gate_epoch: 1,
+  checks: [
+    {
+      check_id: 'CHECK-UNDER-TEST',
+      subject_kind: 'change_request',
+      cr_id: 'CR-UNDER-TEST',
+      permit_id: null,
+      origin: 'blame_ancestry',
+      severity: 4,
+      virulence: 'blood_major',
+      closure_gen: 2,
+      clause_label: '7.3.2(b)',
+      evidence_summary: 'The isolation mechanism this clause names is the one the incident found absent.',
+      materialised_at: '2026-08-01T03:00:00Z',
+      open: true,
+    },
+  ],
+};
+
+describe('renderCrChecks — the obligation itself, once a route returns it', () => {
+  it('prints the payload’s own subject_kind rather than asserting the subject', () => {
+    const text = renderCrChecks(CHECKS_DATA, 'GET /v1/change-requests/x/blocking-checks → 200')
+      .textContent;
+    expect(text).toContain('change_request');
+    expect(text).toContain('gate_epoch');
+  });
+
+  it('prints severity, virulence, origin and closure_gen as the columns they are', () => {
+    const text =
+      renderCrChecks(CHECKS_DATA, 'GET /v1/change-requests/x/blocking-checks → 200').textContent ??
+      '';
+    for (const value of ['blame_ancestry', '4', 'blood_major', '2', '7.3.2(b)']) {
+      expect(text).toContain(value);
+    }
+    // The caption has to say who chose them, because nobody who filed the change did.
+    expect(text).toContain('fn_check_project overwrites them');
+  });
+
+  it('prints evidence_summary verbatim and does not summarise it', () => {
+    const rendered = renderCrChecks(CHECKS_DATA, 'read');
+    expect(rendered.querySelector('.moc-quote')?.textContent).toBe(
+      CHECKS_DATA.checks[0]?.evidence_summary,
+    );
+  });
+
+  it('renders an absence for a member the payload did not carry — never a blank cell', () => {
+    const rendered = renderCrChecks(
+      { subject_kind: 'change_request', gate_epoch: 1, checks: [{ check_id: 'X' }] },
+      'read',
+    );
+    expect(rendered.querySelectorAll('td .moc-absent-inline').length).toBeGreaterThan(0);
+    expect(rendered.textContent).toContain('not returned');
+  });
+
+  it('says so, rather than showing an empty table, when the route returns no rows', () => {
+    const rendered = renderCrChecks({ subject_kind: 'change_request', checks: [] }, 'read');
+    expect(rendered.querySelectorAll('table')).toHaveLength(0);
+    expect(rendered.textContent).toContain('returned no obligation rows');
+  });
+});
+
+describe('crCheckIds — ids come from the payload or they do not come at all', () => {
+  it('returns the ids the payload carried, in payload order', () => {
+    expect(crCheckIds(CHECKS_DATA)).toEqual(['CHECK-UNDER-TEST']);
+  });
+
+  it('returns none for a null payload, a missing array, or rows without a string id', () => {
+    expect(crCheckIds(null)).toEqual([]);
+    expect(crCheckIds({ checks: 'not an array' })).toEqual([]);
+    expect(crCheckIds({ checks: [{ check_id: 7 }, null, {}] })).toEqual([]);
+  });
+});
+
+describe('renderObligation — the sentence changes when the row becomes reachable', () => {
+  const input = {
+    openBlocking: 1,
+    constraints: [],
+    tables: [],
+    readFrom: 'GET /v1/change-requests/x → 200',
+  };
+
+  it('says the row is unreachable when this deployment did not return it', () => {
+    const text = renderObligation({ ...input, checksReachable: false }).textContent ?? '';
+    expect(text).toContain('not reachable from any declared route');
+  });
+
+  it('stops saying that once the row has arrived over HTTP in this page load', () => {
+    const text = renderObligation({ ...input, checksReachable: true }).textContent ?? '';
+    expect(text).not.toContain('not reachable from any declared route');
+    expect(text).toContain('read from this deployment’s change-request blocking-checks route');
+  });
+});
+
+describe('the action bar carries the attempt control without becoming an approval', () => {
+  const table = mustParse(REAL_404);
+
+  function barWith(attempt: HTMLElement | null): HTMLElement {
+    return renderActionBar({
+      openBlocking: 1,
+      blockingConstraint: null,
+      tables: [],
+      table,
+      raw: REAL_404,
+      probeLine: 'probe',
+      soughtButAbsent: composeAbsentCrRoutes(table.declared),
+      discoveryAttempts: [],
+      attempt,
+    });
+  }
+
+  it('places the node the screen supplied, and nothing when it supplies none', () => {
+    const marker = document.createElement('div');
+    marker.className = 'attempt-under-test';
+    expect(barWith(marker).querySelectorAll('.attempt-under-test')).toHaveLength(1);
+    expect(barWith(null).querySelectorAll('.attempt-under-test')).toHaveLength(0);
+  });
+
+  it('leaves the approve control disabled and unlistened, attempt or no attempt', () => {
+    const marker = document.createElement('button');
+    const rendered = barWith(marker);
+    const approve = rendered.querySelector('button.moc-approve');
+    if (!(approve instanceof HTMLButtonElement)) throw new Error('no approve button');
+    expect(approve.disabled).toBe(true);
+    // Still nothing that could reach a committing route from this bar.
+    expect(rendered.querySelectorAll('a[href]')).toHaveLength(0);
+    expect(rendered.querySelectorAll('form')).toHaveLength(0);
   });
 });

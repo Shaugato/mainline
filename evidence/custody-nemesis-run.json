@@ -7,7 +7,7 @@
         3,
         16
       ],
-      "detection_latency_ms": 151,
+      "detection_latency_ms": 138,
       "findings": [
         "check 2: 72 of 72 leaves unproven [inclusion-proof-failed]",
         "check 3: 3 of 7 consecutive pairs unproven [consistency-proof-failed]",
@@ -38,7 +38,7 @@
         9,
         16
       ],
-      "detection_latency_ms": 153,
+      "detection_latency_ms": 141,
       "findings": [
         "check 2: 72 of 72 leaves unproven [inclusion-proof-failed]",
         "check 3: 4 of 7 consecutive pairs unproven [consistency-proof-failed]",
@@ -67,7 +67,7 @@
       "detected_by": [
         1
       ],
-      "detection_latency_ms": 162,
+      "detection_latency_ms": 199,
       "findings": [
         "check 1: 1 leaf finding(s) [payload-disagrees-with-canon-bytes]"
       ],
@@ -95,7 +95,7 @@
         3,
         15
       ],
-      "detection_latency_ms": 196,
+      "detection_latency_ms": 190,
       "findings": [
         "check 2: 73 of 73 leaves unproven [inclusion-proof-failed]",
         "check 3: 5 of 7 consecutive pairs unproven [consistency-proof-failed]",
@@ -124,7 +124,7 @@
         1,
         16
       ],
-      "detection_latency_ms": 200,
+      "detection_latency_ms": 184,
       "findings": [
         "check 1: payload_ver [2] is not a canonicaliser this verifier holds [unknown-payload-ver]",
         "check 16: 1 totality finding(s) \u2014 read no other verdict as complete [unknown-payload-ver]"
@@ -157,7 +157,7 @@
         9,
         16
       ],
-      "detection_latency_ms": 166,
+      "detection_latency_ms": 182,
       "findings": [
         "check 2: 1 of 74 leaves unproven [inclusion-proof-missing]",
         "check 9: 1 chain finding(s) [link-chain-broken]",
@@ -186,7 +186,7 @@
         3,
         5
       ],
-      "detection_latency_ms": 178,
+      "detection_latency_ms": 168,
       "findings": [
         "check 3: 2 of 7 consecutive pairs unproven [consistency-proof-failed]",
         "check 5: size 50: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped"
@@ -215,7 +215,7 @@
         6,
         16
       ],
-      "detection_latency_ms": 163,
+      "detection_latency_ms": 170,
       "findings": [
         "check 3: 1 of 8 consecutive pairs unproven [consistency-proof-missing]",
         "check 5: size 97: the RFC 3161 messageImprint is not SHA-256(note text) \u2014 the note travelling with this token is not the note that was timestamped",
@@ -274,7 +274,7 @@
         11,
         14
       ],
-      "detection_latency_ms": 162,
+      "detection_latency_ms": 166,
       "findings": [
         "check 11: mainline.clause_blame_closure.append_only: the mechanism attested at migration 0128j_trg_refuse_mutation_clause_blame_closure is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused",
         "check 14: 8 closure finding(s) over 8 (clause, commit) pairs [closure-severity-decreased]"
@@ -302,7 +302,7 @@
       "detected_by": [
         11
       ],
-      "detection_latency_ms": 159,
+      "detection_latency_ms": 165,
       "findings": [
         "check 11: mainline.permit_event.permit_event_chain: the mechanism attested at migration 0125_trg_permit_event_chain is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused"
       ],
@@ -329,7 +329,7 @@
         13,
         16
       ],
-      "detection_latency_ms": 161,
+      "detection_latency_ms": 191,
       "findings": [
         "check 2: 1 of 74 leaves unproven [inclusion-proof-missing]",
         "check 13: 1 leaf of 74 leaves carry is_sandbox = true [sandbox-leaf-present]",
@@ -359,7 +359,7 @@
       "detected_by": [
         11
       ],
-      "detection_latency_ms": 165,
+      "detection_latency_ms": 173,
       "findings": [
         "check 11: mainline.permit_merge_gate: the mechanism attested at migration 0130_trg_permit_merge_gate is not present and enabled in the live catalogue. The exhibit can no longer show the source of the mechanism that refused"
       ],
@@ -384,7 +384,7 @@
       "detected_by": [
         15
       ],
-      "detection_latency_ms": 160,
+      "detection_latency_ms": 179,
       "findings": [
         "check 15: 1 of 17 receipts are not covered [receipt-orphaned]"
       ],
@@ -423,7 +423,7 @@
   "environment": {
     "cluster": "$MAINLINE_TEST_DSN",
     "cryptography": "available",
-    "generated_at": "2026-08-15T16:29:01Z",
+    "generated_at": "2026-08-16T04:53:57Z",
     "schema": "reduced nemesis fixture (see nemesis_harness.py)",
     "verifier": "trappoint-verify 0.1.0; checks 4, 5, 6, 7, 8, 11, 12 answered by the nemesis-local fallback because no runner has landed for them"
   },

@@ -41,13 +41,25 @@ Two separate blocks, and the second is not a claims problem at all:
    `CLICKS.md` and `FALLBACKS.md` both document that the software does not do it.** Four of the
    six delivered files are already right; two have not caught up. §7.1 gives the exact
    replacement wording per file and line.
-2. **The operator surface is not on the deployed origin.** Two workers measured this
-   independently today, by `GET` only: `FALLBACKS.md` M2 and `ONSCREEN-TEXT.yaml` finding F-1.
-   `GET /operator.html` answers `200` with **4,655 bytes byte-identical to `GET /`**, titled
-   `MAINLINE console`, and its only script asset contains **zero** occurrences of
-   `CONTROL OF WORK`, `1 obligation outstanding` or `cow-`. **The film scored in `CLICKS.md`
-   has no pixels on this origin today.** That is nobody on this sheet's to fix and it is not a
-   claims defect — but it decides whether there is a film at all, so it is condition 1 in §10.
+2. ~~**The operator surface is not on the deployed origin.**~~ **CLOSED 2026-08-16 — see §12.2,
+   row S2.** The finding below was true on 2026-08-15 and is kept exactly as it was written.
+   Re-measured today: `/operator.html` answers `200 · 5,097 B`, titled **`Control of Work`**, no
+   longer byte-identical to `/`, and **both screens render on the deployed origin.** Condition 1
+   of §11 is discharged. The original finding, unedited:
+
+   > **The operator surface is not on the deployed origin.** Two workers measured this
+   > independently today, by `GET` only: `FALLBACKS.md` M2 and `ONSCREEN-TEXT.yaml` finding F-1.
+   > `GET /operator.html` answers `200` with **4,655 bytes byte-identical to `GET /`**, titled
+   > `MAINLINE console`, and its only script asset contains **zero** occurrences of
+   > `CONTROL OF WORK`, `1 obligation outstanding` or `cow-`. **The film scored in `CLICKS.md`
+   > has no pixels on this origin today.** That is nobody on this sheet's to fix and it is not a
+   > claims defect — but it decides whether there is a film at all, so it is condition 1 in §10.
+
+**A second wave has been audited into this file. See §12.** The film re-cut wave adds two or three
+spoken blocks for a second use case and compresses the close from 50 s to 22 s; §12 carries every
+new spoken sentence, every new on-screen string, the superseding rows, and **four REFUSE rows on
+one sentence**. §§1–11 are the story-and-script wave's audit and are unchanged apart from the two
+condition markers, both of which are marked rather than silently edited.
 
 **The thirteen REWORD rows are twelve findings, and most of them are one family.** Seven of the
 twelve are a **label that claims more than the thing under it** — the exact failure mode W3's own
@@ -705,6 +717,11 @@ exit 2` — stays a different subject and is correctly kept separate in that blo
 
 ### 8.1 · **THE OPERATOR SURFACE IS NOT ON THE DEPLOYED ORIGIN** — measured twice today
 
+> **SUPERSEDED 2026-08-16 — it landed. See §12.2, rows S2 and S3.** Everything below was true when
+> it was measured and is kept unedited; the pre-flight it prescribes is **corrected** in S3,
+> because grepping the script asset for `1 obligation outstanding` fails today on a screen that
+> renders it.
+
 This is not a claims defect and it is the largest fact in this wave. Two workers measured it
 independently, by `GET` only:
 
@@ -959,10 +976,12 @@ Path B. Exact replacement wording for all six is in §7.1 and §7.3.
 >
 > It becomes shootable when, and only when, all five conditions hold:
 >
-> 1. **The operator surface is on the deployed origin** — checked by `<title>` **and** by the script
->    asset containing `1 obligation outstanding`, not by a `200` (§8.1). Until then the film scored
->    in `CLICKS.md` cannot be shot at all, and `FALLBACKS.md` F-9 governs — that fallback is cleared
->    and its spoken line is row B9.
+> 1. ~~**The operator surface is on the deployed origin**~~ — **DISCHARGED 2026-08-16, §12.2 row
+>    S2.** `/operator.html` serves `Control of Work` and both screens render. **The check as
+>    written here is defective and is corrected in §12.2 row S3:** the string
+>    `1 obligation outstanding` is **not** in the operator entry asset — it renders from a
+>    lazily-loaded chunk — so the check is made against the **rendered screen**, never against the
+>    asset. `FALLBACKS.md` F-9 is superseded and kept live only as a regression fallback.
 > 2. **The six REFUSE edits in §7.1 and §7.3 are made** by W2 and W1, using the exact replacement
 >    wording there or wording this sheet has cleared.
 > 3. **The twelve REWORD findings in §7.4–§7.15 are made, or each is declined in writing** in its
@@ -983,3 +1002,495 @@ Path B. Exact replacement wording for all six is in §7.1 and §7.3.
 **Nothing was cleared that this worker could not source, and no family was softened to let a
 sentence pass.** One file written; nothing else in the tree touched; no `POST`, no AWS surface, no
 commit.
+
+---
+
+# 12 · THE FILM RE-CUT WAVE — B9, B10, B11, k1, k2, k3, and the superseding rows
+
+**Worker W6 · fallbacks and clearance · film re-cut wave · audited 2026-08-16 (UTC)**
+**Binding plan:** `docs/demo/film-recut-plan.md`, §§4.3, 4.4, 6 and 8 — **R-4, R-5, R-7, R-9,
+R-10** and the decision gate this wave numbers **R-11**.
+**Registers re-read in full before a row was written:** `r6-honesty.md` Part A — **A3, A5, A13.5**
+family by family — and `docs/submission/MUST-NOT-CLAIM.md`, **which retains precedence over
+everything below.**
+**What this section audits:** every new spoken sentence in the second use case and in the
+compressed close, and every new on-screen string the plan requires. **§§1–11 are the
+story-and-script wave's audit** and are unchanged except for two condition markers, both marked
+rather than silently edited.
+
+**A sibling exists and is not superseded.** `CLAIMS-CLEARANCE-CR.md` audits the three-block script
+in `VO-DEMO-CR.md` and `CLICKS-CR.md` — 48 rows, 42 CLEAR, 5 REFUSE — and it is a good sheet. This
+section does not repeat it and does not overrule it. **Where the two touch the same sentence, the
+verdicts agree**, and where this section adds something the sibling could not have had, it is
+because the measurements below were taken after it was written.
+
+---
+
+## 12.0 · THE VERDICT OF THIS SECTION, FIRST
+
+> ## THE NEW MATERIAL IS CLEARABLE. IT IS NOT SHOOTABLE TODAY, AND THE REASON IS NOT A CLAIM.
+
+**55 verdict rows · 22 CLEAR · 18 CLEAR-CONDITIONAL · 4 REWORD · 11 REFUSE**, plus **3 superseding
+rows** in §12.2 which carry no verdict and are counted separately.
+
+**The arithmetic, added from the tables below and from nothing else.** §12.3 is 28 rows —
+`12 · 9 · 2 · 5`, of which §12.3.6's three are this worker's own amended fallback lines, audited
+with the conflict declared. §12.4 is 4 rows, all REFUSE. §12.5 is 16 rows — `6 · 9 · 0 · 1`.
+§12.9 is 7 rows — `4 · 0 · 2 · 1` — the re-read against the files W2, W3 and W4 landed **while this
+section was being written**. `28 + 4 + 16 + 7 = 55`; `22 + 18 + 4 + 11 = 55`. **A first draft of
+this line carried a larger total than its own tables produced**, which is the defect §11 confesses
+to and refuses to repeat, so the sums are printed rather than asserted.
+
+Three things decide the section, and the second was not in anybody's brief:
+
+1. **Nothing in the drafted blocks claims more than its evidence carries**, on the condition that
+   every value is re-derived from the filmed run. **Eleven REFUSE rows: ten of them pre-emptive,
+   and one of them live.** The ten are four mirror-line variants R-7 orders filed, two sentences
+   the frame would contradict, three compressions of the close that would cost content rather than
+   delivery, and one on-screen value **no route that answers returns** — none of the ten is in any
+   script, and they are here so nobody improvises one at 02:00. **The eleventh is in the delivered
+   `VO-CLOSE.md`:** row D35, `k2`'s only spoken line, which compressed the Bedrock sentence to a
+   bare denial and landed on a REFUSE row filed before it existed. Its replacement is two words
+   shorter than the line it replaces and is already cleared.
+2. **`DEMO-INC-0001` is not on the change screen, and R-5 is therefore unsatisfied today.** Counted
+   in the rendered DOM of the deployed origin: **zero occurrences.** R-5 is not a preference — its
+   own words are that without both identifiers in the frame, use case two is a second refusal, the
+   axis-one trade is a straight loss, and **the wave should be abandoned in favour of the NO-GO
+   path.** That is condition 7 below and it is the sharpest thing in this section.
+3. **The three change-request defeater prompts render nowhere**, so R-4's mitigation — *the way
+   through is shown* — is unavailable. The authorisation lattice that **is** on that screen is read
+   against the **permit's** check and says so in its own words. **A film that narrated it as the
+   change request's would be a fabricated exhibit**, which is why row N14 is a REFUSE and
+   `FALLBACKS.md` F-17 exists.
+
+**And one thing that improved, measured rather than assumed:** condition 1 of §11 — *the film
+scored in `CLICKS.md` has no pixels on this origin* — **is closed.** The console landed.
+
+---
+
+## 12.1 · WHAT THIS WORKER MEASURED, AND HOW
+
+Everything in this section is a reading taken today against the live origin or against the tree.
+`FALLBACKS.md` §1.1 carries the same table with the failure-mode consequences; this is the
+clearance-relevant half.
+
+| # | reading | result |
+|---|---|---|
+| **A** | `GET /operator.html` · `GET /` | `200 · 5,097 B · sha256 37454502…3f2d · <title>Control of Work</title>` against `200 · 4,749 B · sha256 9bd68bcd…1fbb · <title>MAINLINE console</title>`. **Two different documents.** |
+| **B** | the rendered `#/permit` screen | `CONTROL OF WORK` · `DEMO-PTW-0001` · `dispositioned` · **`1 obligation outstanding`** · `Save draft` · `ISSUE ▸` · the `SYNTHETIC DEMONSTRATION — no real site, no real permit, no real person` watermark · `DEMO-INC-0001` ×2 · origin strip `X-Mainline-Emulator · absent`. **`Which isolation point` ×0** — the permit screen still issues no disposition read, so §7.3's Path B finding stands, now confirmed against the deployed origin. |
+| **C** | the rendered `#/change` screen | Renders, and **does not break on the `404`.** `MANAGEMENT OF CHANGE · DEMO-MOC-0001` · `checks_materialised` · `counters.open_blocking 1` · four `cr_*` constraints with predicates *"read out of `pg_catalog` at request time"* · clause of record with printed label `7.3.2(b)` and its `SYNTHETIC —` prefix · both typed boxes empty and labelled · the disabled approve control with its reason · the `404` body, the seventeen declared routes and the two it needs struck through in place. |
+| **D** | the same screen, counted | **`DEMO-INC-0001` ×0 · the three CR defeater prompts ×0 · `dec0de00-000d-…` ×0 · a severity for that obligation ×0.** |
+| **E** | `GET`/`POST` on the change-request route family | `{cr_id}` → `200 · 3,295 B`; `…/checks`, `…/blocking-checks`, `…/merge` (`GET` and `POST`), `/v1/demo/cr-gate-run` (`POST`) → **`404`**, each body declaring **17 routes**. |
+| **F** | `GET /v1/checks/dec0de00-000d-…/disposition` | `200 · 3,850 B`. Three prompts under one `vocab_sha256`; a five-row `blood_major` lattice; `virulence blood_major`. **No `severity`, no `clause_uuid`, no `event_id`, no origin.** |
+| **G** | the seed, read for what the routes do not return | `demo_world.sql:1002-1015` writes that obligation with `clause_uuid dec0de00-0004-…`, `precursor_event_id dec0de00-0005-…`, `origin blame_ancestry`, and the literal `0, 'routine', 0` under its own comment *"projected over by `fn_check_project`"*. The live read returns `blood_major`. **The projection is provable for this obligation from a route that answers; the severity is not.** |
+
+**Two `POST`s were issued by hand and both answered `404 no_route`.** They establish that a route
+is **absent**, which is a claim the film makes; a `404` creates nothing and drives nothing.
+**`POST /v1/demo/gate-run` was not run by hand** — §8.3's rule stands, and the day's verdict is the
+founder's own run. No AWS surface was touched, no SSM parameter read or written, no credential
+printed, nothing committed, and no ratchet, floor or expectation moved.
+
+---
+
+## 12.2 · THE SUPERSEDING ROWS — three, and none of them edits a research record
+
+**R-8's ruling, adopted in terms.** `r6-honesty.md` is a **dated research record**; this file is the
+film's **live clearance sheet**. A research record is not rewritten because the world moved — it is
+cited and superseded, here, with the measurement that retires it. **`docs/demo/research/r6-honesty.md`
+is not edited by this worker and must not be edited by anybody for this reason.**
+
+| # | what is superseded | on what measurement | what survives, and this matters |
+|---|---|---|---|
+| **S1** | **`r6-honesty.md` A13.5's clause *"and no console surface"*, for the change request.** | Readings A, C and D. `/operator.html#/change` renders a complete Management-of-Change surface on the deployed origin: the record, the four `cr_*` predicates, the clause of record, the disabled approve control with its own reason, and the route table. **A13.5's premise that there are no pixels for this subject is retired.** | **A13.5's other half is untouched and is still live.** *"There is no `POST /v1/change-requests/{cr_id}/merge`"* was re-measured today: **`404`, and the `404` body declares the whole route table.** Its **MUST NOT SAY:** *"watch the same debt block the change request"* therefore **stays in force until the attempt endpoint lands and the R-11 gate passes.** A console surface is not a merge route, and retiring half a finding does not retire the half that still holds. Its **TRUE INSTEAD** — *told, never driven* — is unchanged and is `FALLBACKS.md` F-8's NO-GO form. |
+| **S2** | **§11 condition 1, and the §THE VERDICT, FIRST finding 2 it came from: *"the film scored in `CLICKS.md` has no pixels on this origin today."*** | Readings A and B. `Control of Work` is served; the permit screen renders every string the film's b0–b8 depend on, including `1 obligation outstanding` and the watermark. | **Closed.** `FALLBACKS.md` F-9 is superseded and is **kept live as a regression fallback**: a deploy can go backwards, and the day's pre-flight decides, not this row. |
+| **S3** | **§8.1's pre-flight instruction — *"confirm … that the script asset contains the string `1 obligation outstanding`."*** | The operator entry asset `operator-D24tzVGh.js` is `96,734 B` decoded and contains **zero** occurrences of that string; the **rendered** permit screen contains it. The string lives in a lazily-loaded chunk. | **The check is corrected, not dropped, and it is still not a `200` check.** Open `/operator.html#/permit` and read `1 obligation outstanding` **off the screen**. §8.1's instinct was right — a `200` proves nothing — and its implementation would now fail on a healthy deployment, which is the worse of the two errors: it would send a founder to F-9 on a night when F-9 does not apply. |
+
+---
+
+## 12.3 · EVERY NEW SPOKEN SENTENCE
+
+`✓` CLEAR · `✓⃝` CLEAR-CONDITIONAL, the condition stated in the row and binding · `~` REWORD ·
+`✗` REFUSE. **Two block-id schemes are in play and both are audited**, because `VO-DEMO.md` had not
+landed its new blocks when this section was written: `film-recut-plan.md` §4 drafts **two** blocks
+(`b9`, `b10`), `VO-DEMO-CR.md` writes **three** (`B9`, `B10`, `B11`). A row's verdict attaches to
+the **sentence**, not to the id it is filed under, so it survives whichever shape the film lead
+picks.
+
+> **THE STANDING RULE OF THIS SECTION, AND IT IS THE ONE THAT MAKES IT A GATE.** A sentence that is
+> not on this sheet is **not cleared**, and an uncleared sentence does not go on camera. That
+> applies to a rewrite W2 or W3 makes after this section is written, to a substitute reached for at
+> 02:00, and to any sentence "obviously equivalent" to a cleared one. **Equivalent is the word that
+> drops a scope word.**
+
+### 12.3.1 · The second use case — `b9` / `B9`
+
+| # | line | verdict | family checked | authority, and the condition if there is one |
+|---|---|---|---|---|
+| N1 | *"Fine. Then don't use the clause — change it."* (plan §4.1) | ✓ | A5 · MNC-17 | It is the **judge's objection spoken in the judge's voice**, not an instruction and not a claim about the system. Nothing in it asserts a retrieval, a capability or an outcome. **Delivery condition, from the plan's own note:** it must not be delivered as a straw man. |
+| N2 | *"Then change the rule instead."* (`VO-DEMO-CR.md` B9) | ✓ | as N1 | The same objection, four words shorter. Both forms are cleared; the film lead picks one. |
+| N3 | *"Same paragraph. Same incident behind it."* | ✓⃝ | **A3 · R-5** | The whole axis-one claim, and it is **only true if the frame proves *same***. **CONDITION — and it fails today:** the clause is on the change screen (printed label `7.3.2(b)`, the clause uuid in its own read line) and **`DEMO-INC-0001` is not, in any form** (reading D). Until a route renders the precursor on that frame, this sentence is **uncleared for camera**. It is not reworded, because there is no wording that fixes a missing identifier — the frame is the evidence, and the frame is what has to change. |
+| N4 | *"This request asks to edit it."* | ✓ | **A5 tense** | Present tense about **a row's standing content**, not about a lookup. `mainline.cr_clause` carries `relation = 'edits'` against the exact `(clause_uuid, commit_id)` pair (`demo_world.sql:984-989`), so *asks to edit* is a column, not a narration. The recall stays past tense everywhere. **MUST NOT SAY:** *"the rewritten clause"* — nothing has been rewritten; somebody has proposed to. |
+
+### 12.3.2 · The second use case — `b10` / `B10`
+
+| # | line | verdict | family checked | authority, and the condition if there is one |
+|---|---|---|---|---|
+| N5 | *"Refused. Same SQLSTATE, a different constraint —"* (plan §4.2) | ✓⃝ | A7 · A8 · **anti-fake** | Both halves are checkable in the frame: the permit's refusal named `gate_closed_when_issued`; this one names `cr_gate_closed_when_merged`, a different constraint on a different table with its own predicate, all four of which the change-request read already returns. **CONDITION:** the SQLSTATE is **read off the take**, never pre-captioned and never predicted from this page. A predicted SQLSTATE on an overlay is a staged exhibit even when the prediction is right. |
+| N6 | *"— this one guards the edit."* (plan §4.2) | **~** | **A8 · precision** | **REWORD — §12.6.1.** The constraint's predicate is `((state != 'merged') OR (open_blocking = 0))`: what it refuses is the **merge of the change request**, not the act of editing. `VO-DEMO-CR.md`'s own register already forbids *"the database refused the edit"* for exactly this reason, and *"guards the edit"* is that sentence one word away. **Replace with** *"— this one guards the change."* — the wording the three-block script already uses, one syllable shorter, and true of the object the constraint names. |
+| N7 | *"Refused. 23514 again — a different CHECK, guarding the change."* (`VO-DEMO-CR.md` B10) | ✓⃝ | A7 · A8 | Cleared as written, and it is the better of the two forms. **CONDITION as N5.** **The one-character trap, restated because it is the likeliest defect in this wave's on-screen text:** `cr_gate_closed_when_merged` is the **CHECK**; `cr_merge_gate` is the **trigger**; `mainline.fn_cr_merge_gate` is the trigger's **function**, and a `P0001` names the third and never the first. |
+| N8 | *"…a different CHECK, `cr_gate_closed_when_merged`, guarding the change itself."* (B10 alternate, +2 s) | ✓⃝ | A7 | Cleared on the same terms. It spends about three words of mouth-time on one word of page, which is what the extra 2 s buys. |
+
+### 12.3.3 · The mirror — `b10` tail / `B11`
+
+| # | line | verdict | family checked | authority |
+|---|---|---|---|---|
+| N9 | *"You can't use the clause."* | ✓ | A8 · A12 | The film has spent two minutes proving exactly this, on camera, twice. It asserts nothing new. |
+| N10 | **"You can't quietly edit it away either."** | ✓ | **R-7 · A5 · MNC-06's scope discipline** | **CLEARED, and cleared only with the adverb.** The scope word carries the entire truth of the sentence, exactly as `here` does in the rubber-stamp limit at row K9. The clause **can** be edited — by disposing of the obligation first — and *quietly* is what makes the sentence a statement about **unanswered** edits rather than about edits. **Every variant that drops it is REFUSED at §12.4, and that refusal is final.** |
+| N11 | *"You can't use the clause. You can't edit it away either — not without answering the question first."* (substitute A) | ✓⃝ | R-7 | Cleared as a claim: the trailing clause carries the scope that the dropped adverb was carrying. **CONDITION — timing, and it is not this sheet's to waive:** 17 words in an 8 s window is **2.13 w/s**, over every rate ceiling in the kit. `CLAIMS-CLEARANCE-CR.md` §2 row 14 prices it at 11 s. **A substitute nobody has counted is a substitute that overruns the beat after it.** |
+| N12 | *"Use it, or edit it. Not without answering the question first."* (substitute B) | ✓ | R-7 | Cleared, and it fits the window as written. Keeps both halves of the mirror and carries the scope in a clause rather than an adverb. **This is the substitute to reach for if the adverb has to go.** |
+| N13 | *"…not without answering the question first."* used **alone**, without the first half | **~** | R-7 · R-4 | **REWORD — §12.6.2.** On its own it answers a question the audience has not been asked; the mirror is a **pair**, and half a mirror is a claim about editing with no claim about using beside it. Keep both halves in whichever form is taken. |
+
+### 12.3.4 · Two sentences the second use case must never end on
+
+| # | line | verdict | family | authority |
+|---|---|---|---|---|
+| N14 | **MUST NOT SAY:** *"and there are its defeaters"* — said over the authorisation table on the change screen | **✗** | **A17.1 fabricated exhibit · MNC-19** | **REFUSE.** That table is read from `GET /v1/checks/dec0de00-0007-…/disposition` — **the permit's check** — and the screen prints its own sentence saying so: *"This change request's own obligation is not addressable from any declared route, so the read above was made against the check that is addressable. Nothing is claimed here about this change request's obligation."* The lattice is keyed by **virulence**, so the five rows are identical either way, **and that is exactly what makes the mistake invisible.** The software refuses the claim; the voice-over may not make it. |
+| N15 | **MUST NOT SAY:** *"and there is no way through"* | **✗** | **R-4** | **REFUSE.** There are three, each demanding a citation, and showing them is the whole mitigation for use case two having no admission beat. A sentence contradicting the frame spends the mitigation to make a worse point. **TRUE INSTEAD:** *"answering one of those is the way through"* — sayable **only** when the three prompts are actually on screen, which today they are not (reading D). |
+
+### 12.3.5 · The compressed close — `k1`, `k2`, `k3`
+
+**The rule this sub-section runs under.** The close is compressed **from delivery, never from
+content** (plan R-6). Every sentence in `k1`–`k3` is therefore either **a cleared C1–C4 sentence
+carried forward to the character**, in which case its original row still governs, or **a new
+sentence**, in which case it needs a row here. There is no third case, and *"a shorter way of
+saying the same thing"* is the second case, not the first.
+
+| # | line | verdict | family checked | authority, and the condition |
+|---|---|---|---|---|
+| N16 | **`k1` · the compression itself** — C1's 20 spoken words into ~10 | ✓⃝ | **A5 — the family with no scanner** | **CONDITION:** the surviving words are a **subset** of rows K1–K3, never a paraphrase of them. A5 is the one family in this film that a rewrite breaks silently: it has no scanner, and the difference between *"a retrieval"* and *"it retrieves"* is one letter and the whole claim. |
+| N17 | **`k1` cleared minimum: *"And the refusal you just watched, re-deriving it."*** (K3 verbatim, 8 w · 1.33 w/s in 6 s) | ✓⃝ | **A5** | K3's clearance carries forward **under NO-GO, unchanged**. **CONDITION under GO — and this is a finding, not a formality:** in the GO cut this sentence lands **6 to 12 seconds after `b10`'s refusal**, and *the refusal you just watched* then most naturally names the change-request refusal — which is a `CHECK` on a counter and **does not re-derive anything**. The referent moved when the blocks were inserted. See §12.6.3. |
+| N18 | **`k1` GO-cut replacement: *"And the second refusal, re-deriving it."*** (6 w · 1.00 w/s in 6 s) | ✓ | **A5 · A8** | Names the beat that actually re-derived: `b5`, `P0001`, *"the gate counted again, from the obligations themselves"* — the film's second refusal under either cut, since `b10` is the third. Past-referring, no present tense about the recall, and two words shorter than the sentence it replaces. |
+| N19 | **`k1` · *"Stored, recalled — and the refusal you just watched."*** or any form that **speaks** the column words | **✗** | **A5 · W3's own delivery rule** | **REFUSE.** `VO-CLOSE.md` §2.3 rules that `STORE` / `RETRIEVE` / `ACT` are on screen in large type and are **not spoken**, *"because saying them while they are that size is the kind of narration that makes a judge stop reading."* Compression is exactly when a writer reaches for the three words that are already on the card. Every one of them is on screen in `k1`; none is in the mouth. |
+| N20 | **`k2` · *"Every line says which."*** (4 w) | ✓⃝ | **A6** | The whole job of `k2`'s voice: tell a judge the list has a rule. **CONDITION:** all three labels must be legible on the card — `IN THIS REQUEST` / `IN THE APPLY` · `EARLIER` / `NOT IN THIS PATH` — because the sentence is a claim **about the card**. If the two columns will not fit legibly with their labels, `k2` takes 12 s from the 8 s bank; **it is never flattened.** **MUST NOT SHOW:** a single ungrouped stack list — *"a flat list would let `S3` borrow the credibility of `Lambda`, and `S3` was never in the request."* |
+| N21 | **`k2` · *"Bedrock is exercised in this repository — not in this path."*** (10 w, K5 verbatim) | ✓ | **A6** | K5 carried forward to the character. `raw-haiku-converse.json` (a live `Converse` in `ap-southeast-2`), Titan v2 in `manifest.json`, and `r6-honesty.md:162` measuring no Bedrock call in the demo-API source. **Total spoken `k2` = 14 w in 10 s = 1.40 w/s**, inside the plan's 16-word budget. |
+| N22 | **`k2` · any compression of N21 to a bare denial** — *"Bedrock — not in this path."* | **✗** | **A6** | **REFUSE.** The **positive** half is what makes the denial credible and it is the strongest twelve words in the block. A card that only denies reads as a card hiding something; a card that says *we ran it, and not here* reads as the only kind of list a judge can trust. This is a compression that costs content, which R-6 forbids in terms. |
+| N23 | **`k3` · *"Nothing here separates a considered disposition from a rubber stamp."*** (10 w · 1.67 w/s in 6 s) | ✓ | **A12 · MNC-06** | K9 carried forward to the character, **with the scope word `here` intact**. `VO-CLOSE.md:474-484` prices every shorter form and rejects each; dropping `here` turns a statement about this deployment into a statement about safety records in general, which is not ours to make. |
+| N24 | **`k3` · *"We measure deliberation and never threshold it."*** moved from the mouth to the screen | ✓ | A12 · MNC-16 | It is **already** on the screen, in the limit overlay's third line, verbatim. Moving it out of the mouth removes six spoken words and removes no content — the cleanest trade in the re-cut, and the only reason `k3` fits in 6 s. |
+| N25 | **`k3` · the second and third sentences of the limit spoken at speed** | **✗** | **A12 · MNC-06** | **REFUSE.** *"It makes the question unavoidable, the record precise, the worst stamp non-representable"* is the **precise** form and a judge who pauses gets it exactly. Paraphrasing it at pace is how a concession turns back into a boast — `VO-CLOSE.md` §5.3's own words, and compression is when it would happen. |
+
+### 12.3.6 · The amended `FALLBACKS.md` spoken lines — **audited, and the conflict declared**
+
+**This worker wrote these three lines and this worker is clearing them, which is a conflict and is
+stated rather than hidden.** §5 of this sheet audits `FALLBACKS.md`'s spoken lines because they are
+said **on camera, live, at the moment a take is going wrong**, which is exactly when a register
+gets broken; leaving the amended ones unaudited because their author is the auditor would be worse
+than the conflict. **Every value below is a reading from §12.1, and any of the three may be struck
+by the film lead without argument.**
+
+| # | line | verdict | family | authority |
+|---|---|---|---|---|
+| B19 | **F-8 NO-GO, amended:** *"…Open blocking: one. The approve control is disabled, and it prints its own reason: one blocking obligation outstanding, and the constraint that holds it closed, with its predicate. There is no merge route for it yet — the screen says so and lists the routes that exist — so I'm telling you about it rather than driving it."* | ✓ | **A13.5 · R-I · A17.1** | Every clause is reading C: the count is `counters.open_blocking 1`; the control is constructed `disabled` with `aria-disabled="true"`; its reason string is measured verbatim; the constraint and predicate render beneath it; and the `404` with its seventeen declared routes is on the same screen. **This row supersedes the quoted form in §5 row B8**, which stays cleared and is now the shorter version of the same true sentence. **A first draft said *"the constraint that will refuse the merge"*; it was changed to *"holds it closed"* before this row was written**, because the first is a claim about a run that has not happened and the second is a claim about a predicate in the frame. |
+| B20 | **F-8 GO form:** *"Refused. Twenty-three five one four again — a different CHECK, guarding the change. ·hold· You can't use the clause. You can't quietly edit it away either."* | ✓⃝ | **R-7 · A7 · A8** | The mirror with its adverb (N10), the constraint claim a judge can check in the frame (N7), and the SQLSTATE read off the take. **CONDITION: the R-11 gate passes, all six.** Under NO-GO this line does not exist, because the refusal it narrates cannot be produced. |
+| B21 | **F-17:** *"That authorisation table is read against the permit's obligation, not the change request's — the screen says so itself, right there. The change request's own obligation isn't reachable from any route this deployment declares, so nothing on this screen claims anything about it."* | ✓ | **A17.1 fabricated exhibit** | A paraphrase of the screen's own two sentences, in the founder's register, pointing at them. It is the answer to the one question that surface invites, and it is stronger than silence: **the software already refuses the claim, and saying so out loud is the disclosure-before-discovery habit §0 is built on.** |
+
+---
+
+## 12.4 · **THE FOUR REFUSED VARIANTS OF THE MIRROR — R-7's instruction, discharged**
+
+`film-recut-plan.md` R-7 instructs this worker to *"file a REFUSE row against every variant that
+drops the scope word."* **Here are all four, one row each, each with what makes it false rather than
+merely strong.** `CLAIMS-CLEARANCE-CR.md` §4 files three of these against the three-block script and
+its rows agree with these; filing them separately is deliberate — **a refusal that lives in one file
+is a refusal somebody edits around.**
+
+| # | ✗ **REFUSED** | why it is **false**, not merely strong |
+|---|---|---|
+| **X1** | **MUST NOT SAY:** *"The clause cannot be changed."* | It **can** be changed — by disposing of the obligation first. The mechanism is not hypothetical: three defeater prompts exist for this obligation under one `vocab_sha256`, live at `GET /v1/checks/dec0de00-000d-…/disposition`. Under R-4 they are meant to be in the same frame, which means the sentence would be **contradicted by the picture it is spoken over.** |
+| **X2** | **MUST NOT SAY:** *"The database won't let anyone edit the rule."* | Adds **anyone**, which is a claim about every caller and every code path. A cluster admin drops a constraint and it succeeds — the film shows one doing it. What they cannot do is drop it unobserved. **Tamper-evident, never tamper-proofing**, and §3 answer two is the rehearsed form. |
+| **X3** | **MUST NOT SAY:** *"The memory is immutable."* | Nothing here is immutable. `mainline.clause_blame_closure` is append-only and generation-versioned — *superseded, never deleted* — which is a claim about **how** it changes, not about it never changing. What the gate refuses is a **transition** while a counter and a re-derivation disagree; that is a condition on a change, not an absence of change. The word also invites a permanence claim the ledger's own `NOT VERIFIED` chip refuses. |
+| **X4** | **MUST NOT SAY:** *"You can't edit it."* | The scope word is the whole sentence. Without it the claim is about editing; with it the claim is about editing **unanswered**, which is what the kernel enforces. This is the same failure `here` prevents in the rubber-stamp limit, and it is the one most likely to happen — because it is the shortest, and 02:00 reaches for the shortest. |
+
+> **TRUE INSTEAD, and only these two:** **"You can't quietly edit it away either."** — or, if the
+> adverb reads oddly on the day, **"not without answering the question first."**
+>
+> **This refusal is final.** Plan §9 states that W2 and W3 draft and **W6 clears**, and that this
+> worker's REFUSE is not appealable to a rewrite. A fifth variant invented on the night is refused
+> by the standing rule at the head of §12.3 and does not need a row of its own.
+
+**And two more, refused for a different reason**, endorsing `CLAIMS-CLEARANCE-CR.md` §4 rows R4 and
+R5 without restating them: *"and there is no way through"* (N15 above) and *"the same debt blocks
+both"* as an unqualified sentence — whether the two obligations are the **same row** is a claim
+about the data model that this film does not put on screen. **The cleared claim is the one the frame
+carries: same clause, same precursor, two gate families.**
+
+---
+
+## 12.5 · EVERY NEW ON-SCREEN STRING
+
+**What this sub-section can and cannot be, said plainly.** `ONSCREEN-TEXT.yaml` had not landed its
+new ids when this section was written, so these rows are filed against **the strings the plan
+requires to be on screen**, each sourced against a reading taken today. **A new id that does not
+match a row here is uncleared**, and the standing rule at the head of §12.3 governs it. Where a
+string already has a row in §6.1, that row still governs and is pointed at rather than re-audited.
+
+| # | string / frame element | verdict | family | authority, and the condition |
+|---|---|---|---|---|
+| O14 | `DEMO-MOC-0001` · `checks_materialised` · `counters.open_blocking 1` | ✓ | A14 | All three read live today (readings C, E). Composed from the response, never from a constant. |
+| O15 | the four `cr_*` CHECK constraints with their predicates and the counters they read | ✓ | **A7 · A14** | Live in the change-request body and rendered on the screen under its own sentence: predicates are *"read out of `pg_catalog` at request time, not stored in this page."* That sentence is the reason the block is quotable. |
+| O16 | `cr_gate_closed_when_merged` and `CHECK (((state != 'merged'::mainline.subject_state) OR (open_blocking = 0)))` as **the refusal's** constraint | ✓⃝ | **A8 · anti-fake** | **CONDITION:** on the refusal frame these come from the **response the take produced**, not from the constraint table beside it. Two renderers of one constraint already exist in this film and §6.1 rules that **neither may be edited into the other**; a third — a predicate captioned from this page — would be worse than both. |
+| O17 | `23514` on the change-request refusal | ✓⃝ | **A17.1** | **CONDITION: never pre-captioned.** The value is right on the evidence available — the constraint is a `CHECK` — but *right* and *filmed* are different words, and an overlay written before the run is a staged exhibit whatever it says. Read it off the take. |
+| O18 | the three defeater prompts, verbatim, under the legend *"Ways this obligation could be answered — each requires a citation"* | ✓⃝ | **A12 · R-4 · MNC-19** | The strings are live and exact (reading F), each a **question**, and never an escape hatch: the shipped vocabulary does not carry `not_applicable` and the three prompts do not offer one, which is the schema's own position. **CONDITION — unmet today:** they render nowhere on the deployed screen (reading D). Until they do, they are cleared as strings and unavailable as pixels. |
+| O19 | `severity 4` for the change request's obligation | **✗** | **A14 · A17.1** | **REFUSE.** **No route that answers returns a severity for this obligation** (reading F). The seed writes `0, 'routine', 0` and the projection overwrites it, but the projected severity is not readable from the deployed API — only `virulence` is. Putting `4` on that frame would be a value carried from a seed file to a camera, which is the seed-reshaping act this repository has already reverted a worker for. **TRUE INSTEAD:** show `blood_major`, which **is** returned, and say nothing. |
+| O20 | `blood_major` on the change-request frame | ✓ | **A3 · R-F** | A column value, live in the disposition body, and **it is the projection's own output** — the seed literal is `'routine'`. Renders only; **never spoken**, in this block or any other: an injury-shaped word said aloud edges toward inventing a casualty, which is the one thing this repository has refused at every turn. |
+| O21 | the proposed wording, **typed by the founder on camera**, into the screen's own box, carrying no provenance chip | ✓ | **R-2 · R-H** | The screen's own field says *"Typed here, now. This deployment carries no proposed text… so there is nothing to load into this box and nothing was."* The typed/chipped convention makes a human's proposal distinguishable from a database claim in one look. **MUST NOT:** pre-fill it, echo it back as data, or let any frame imply the record carries it. |
+| O22 | `DEMO-INC-0001` in the `b9`/`b10` frame (R-5) | ✓⃝ | **A3 · R-5** | The identifier itself is cleared — it is a real `external_ref`, it is already on the permit screen, and §6.1's rows govern its treatment. **CONDITION — unmet today:** it must arrive **rendered by a read**, from a route that returns it. **MUST NOT:** supply it by caption, overlay or burned strap on the change screen. An identifier the frame did not fetch is an editorial claim wearing a column's clothes, and it would be the exact defect R-5 exists to prevent, committed in the act of satisfying R-5. |
+| O23 | the `404` body, the seventeen declared routes, and the two struck through in place | ✓ | **A13.5 · R-I** | **The deployment confirming its own absence**, now rendered on a real screen rather than described. §6.1's `b8b.change.route_table` row governs and is strengthened by reading C. |
+| O24 | the disabled approve control and its reason: *"Cannot approve. 1 blocking obligation is outstanding on this change request."* + the constraint name and predicate + *"← from `mainline.change_request`"* | ✓ | **R-I · A14** | Measured in the rendered DOM and in the shipped bytes: the control is constructed `disabled` with `aria-disabled="true"`, and the count comes from the change-request read's own `counters.open_blocking`. The screen also states *"it is wired to nothing… not pointed at the permit's merge route: a button that refused a different record would be a prop."* **Under GO this string changes** — an enabled control renders something else, and that new string needs its own row before it is filmed. |
+| O25 | the authorisation lattice on the change screen | ✓⃝ | **A17.1** | Cleared **only with the screen's own disclosure sentence in the same frame**, naming that the read was made against the addressable check and that nothing is claimed about the change request's obligation. **CONDITION:** W4 may not import this table into a `b10` overlay as *the change request's* lattice. See N14, which refuses the spoken form. |
+| O26 | `k2`'s two-column card | ✓⃝ | **A6 · A7** | Inherited from rows `c2.overlay.aws` and `c3.overlay.cockroachdb` — **all four of their REWORDs are still open** (§7.7 SSM, §7.8 the S3 heading, §7.9 the recursive CTE, §7.10 `256/256`). **CONDITION:** merging two cards into one does **not** discharge them; it puts both sets of labels on one card, where a wrong label is harder to spot and stays on screen longer. Condition 3 of §11 covers them and is unchanged. |
+| O27 | `k3`'s four-line criterion rail, arriving whole | ✓⃝ | **A4.2 · A14** | R-3's ruling — the rail lifts into the final block complete — is a **layout** change and clears on its own terms. **CONDITION:** rows `c2.rail.line2` and `c4.overlay.rail_all_four` are still REWORD (*"this endpoint cannot write"*, and `256/256`), and the compressed close puts both on screen for the film's last six seconds instead of its last eight. Fewer seconds is not a fix. |
+| O28 | the per-request disclosure strap, if a second mutating request lands (plan §4.4) | ✓⃝ | **R-C** | **CONDITION:** each request's strap composes from **its own** payload and carries **its own** measured `persisted: false` — never a figure inherited from the first request, and never a burned constant. `film.strap.disclosure_fallback`'s rule that a burned strap carries **no run-varying value** is what makes the fallback safe, and it applies twice now rather than once. |
+| O29 | the film's watermark and the R-C disclosure line, across two more blocks | ✓⃝ | **A3 · R-C** | **CONDITION:** §8.2 is unchanged and now covers 24 more seconds. Both strips are normal-flow elements; the burned straps must carry them through `b9`/`b10` as they do through `b3`/`b6`. |
+
+---
+
+## 12.6 · THE FINDINGS, WITH EXACT REPLACEMENT WORDING
+
+### 12.6.1 · REWORD — *"this one guards the edit"* names the wrong object
+
+**Location:** `film-recut-plan.md` §4.2's `b10` draft, and any file that inherits it. **Owner: W2.**
+
+The predicate is `((state != 'merged'::mainline.subject_state) OR (open_blocking = 0))`. It is
+evaluated on the change request's **state transition to `merged`**. The edit — the proposed new
+wording — is not the object of the constraint and is not refused by it; what is refused is the
+merge that would make the edit the clause of record. The three-block script already avoids this and
+its own register forbids the neighbouring sentence *"the database refused the edit"* in terms.
+
+**Replace** *"— this one guards the edit."*
+**with** **"— this one guards the change."**
+
+Same length in the mouth, true of the object the constraint names, and it keeps `b10` and the
+mirror consistent: the mirror's claim is about **editing away quietly**, and the constraint's claim
+is about **merging while an obligation is open**. Those are two different sentences and the film is
+stronger for saying both.
+
+### 12.6.2 · REWORD — half a mirror is not a mirror
+
+**Location:** any cut that drops *"You can't use the clause."* to save a second. **Owner: W2.**
+
+The mirror is a **pair**, and the pair is the wave's entire reason for existing: the film has
+proved the first half on camera for two minutes, and the second half only lands as a *mirror* if
+the first is said beside it. Alone, *"not without answering the question first"* answers a question
+the audience has not been asked. **Both halves, in whichever form is taken** — and if the seconds
+are not there, take substitute B, which carries both halves in 11 words.
+
+### 12.6.3 · REWORD — `k1`'s referent moves when `b9`/`b10` are inserted
+
+**Location:** `VO-CLOSE.md` C1 / `k1`. **Owner: W3**, and it applies **only under GO.**
+
+*"And the refusal you just watched, re-deriving it"* was cleared at row K3 in a cut where the last
+refusal a judge had watched was `b5`'s `P0001` — the beat that **counted again from the obligations
+themselves**, which is what *re-deriving* names. Insert `b9`/`b10` and the last refusal watched
+becomes the change-request `CHECK`, six to twelve seconds earlier, **which re-derives nothing.**
+The sentence does not become false by being rewritten; it becomes false by **something being
+inserted in front of it**, which is the kind of defect only a whole-film read catches.
+
+**Replace, under GO only** — *"And the refusal you just watched, re-deriving it."*
+**with** **"And the second refusal, re-deriving it."**
+
+Six words for eight, names `b5` unambiguously under either cut, and stays past-referring.
+**Under NO-GO, K3 is unchanged and its clearance stands.**
+
+---
+
+## 12.7 · THE FAMILIES RE-CHECKED, ONE BY ONE, FOR THE NEW MATERIAL
+
+Re-read against `r6-honesty.md` Part A and `MUST-NOT-CLAIM.md`, **which retains precedence**.
+
+* **A3 — the corpus and the incident.** The seeded world describes nobody, and the new blocks say
+  no more than `b3` already did: **no date, no site, no job title, no injury**, spoken or written.
+  `B0b` set the frame with *"years ago"* and named no year. The `SYNTHETIC —` prefixes stay
+  uncropped on every string that carries one, including the clause of record on the change screen.
+  **The two-incident trap is re-checked and is clean:** `DEMO-INC-0001` is dated 2019 on screen and
+  the staged propagation payload reuses that uuid while titling it after a different year — **the
+  two must never be in the same shot**, the propagation one is never narrated, and reading D
+  confirms the change screen renders **neither**. The answer to *"did that happen?"* remains *"no,
+  it is authored"*, and the standing sentence is the one to say: **every clause, procedure,
+  incident, permit, operator, site and person in this demo was written for this repository — the
+  mechanism is real and the inputs are authored.**
+* **A5 — agentic memory, the family with no scanner.** Not one present-tense sentence about the
+  retrieval survives into the new material. **MUST NOT SAY:** *"watch it remember"* · *"the system
+  just retrieved the incident and blocked the change."* Row N4's present tense is about a **row's
+  standing content**, which is not the retrieval; rows N16–N19 exist because compression is exactly
+  when a noun becomes a verb; and N19 refuses the compression that speaks the column words off the
+  card. **This is the family the whole hackathon theme runs through, a human is the only control,
+  and it is the reason this section audits candidate wordings rather than waiting for final ones.**
+* **A13.5 — the change request.** Superseded in one half and live in the other; §12.2 row S1 states
+  exactly which. Its **MUST NOT SAY:** *"watch the same debt block the change request"* stays in
+  force until the R-11 gate passes, because under NO-GO nothing is watched.
+* **MUST-NOT-CLAIM, precedence.** Re-checked family by family against the new material, and each
+  one is refused rather than merely omitted.
+  Tamper-proofing is **never** claimed and split-view resistance is **never** claimed in any form
+  (X2's row carries the true version).
+  Rubber-stamp detection is **never** claimed — N23 keeps the scope word.
+  `not_applicable` **is not** in the shipped vocabulary and **must not** be implied — N14 refuses
+  the sentence that would imply one.
+  Per-person measurement, time travel, corpus exhaustion and an upstream merge are **never**
+  claimed, in any of the new material.
+  And the film still **does not** open with the category.
+  **Where MNC and any wording below disagree, MNC wins and the wording is wrong.**
+
+---
+
+## 12.8 · WHAT THIS SECTION ADDS TO §11's CONDITIONS
+
+Condition 1 is **discharged** (§12.2 row S2). Conditions 2–5 are **unchanged and still open**.
+**Four more are added, and they are conditions on `b9`/`b10` only** — under NO-GO none of them
+applies, because the blocks do not exist.
+
+> 6. **The R-11 gate passes on all six of its conditions**, run on the day, from
+>    `FALLBACKS.md` §4.2. **Five of six fail today.** A partial pass is a NO-GO: R-10 makes `b9`
+>    and `b10` atomic.
+> 7. **R-5 is satisfied in the frame** — the shared clause **and** `DEMO-INC-0001`, both legible,
+>    both rendered by a read, in the same frame as the change-request refusal. **`DEMO-INC-0001`
+>    occurs zero times on that screen today.** Without it, plan R-5's own instruction is to abandon
+>    the wave in favour of the NO-GO path, and this sheet holds that instruction to be binding.
+> 8. **R-4 is satisfied in the frame** — the three change-request defeater prompts render beside
+>    the refusal. They render nowhere today, and **the lattice that is on that screen is not
+>    them** (N14, O25).
+> 9. **All eleven REFUSE rows in §12.3–§12.5 and §12.9 are honoured, and the findings in §12.6 and
+>    §12.9 are made or each is declined in writing** in its owner's file with its reason, under the
+>    same dissent mechanism condition 3 provides. **The four in §12.4 are not declinable** — R-7
+>    makes this worker's refusal final on that sentence, and plan §9 says so in terms.
+>
+> **Condition 9 is the only one of the four that binds the NO-GO film as well.** Rows D31–D37 are
+> about the close and about `b10`'s wording; **D35 is in `VO-CLOSE.md` and the close is shot under
+> either outcome**, so its replacement lands whatever the R-11 gate says.
+
+> ## **THE NEW MATERIAL MAY NOT BE SHOT TODAY — AND THE FILM IS NOT WAITING ON IT.**
+>
+> The close compression is **not** conditional on any of this. It is a defect fix: the committed
+> cut runs **180 s**, which `BEATS.yaml` itself calls a disqualified cut, and rows N16–N25 clear
+> the compression that takes it off the ceiling. **Under NO-GO the film is 152 s · 2:32, legal in
+> every particular, with every service and feature still named** — and `FALLBACKS.md` §4.3 carries
+> that path in full.
+>
+> **NO-GO is a legitimate outcome and this sheet records it as one.** Nothing in this section is
+> an argument for building a committing route, enabling a control in front of nothing, or granting
+> `mainline_api` a write it does not hold.
+
+---
+
+## 12.9 · **WHAT THE OWNERS ACTUALLY DELIVERED — re-read against the landed files**
+
+**§§12.3–12.8 were written while `VO-DEMO.md`, `VO-CLOSE.md` and `ONSCREEN-TEXT.yaml` still held
+their pre-wave text, so their rows audit the plan's drafts and the sibling script.** The three
+files landed at 15:09–15:21 while this section was being written. **This sub-section is the re-read
+against what is actually in the tree**, and it is the reason the rows above were written against
+candidate wordings rather than waited for: three of the six delivered lines differ from every
+wording this sheet had in front of it, and one of them lands **exactly** on a REFUSE row that was
+filed before it existed.
+
+| # | delivered line, and where | verdict | authority |
+|---|---|---|---|
+| D31 | `VO-DEMO.md` B10: *"— a different constraint **guards edits**."* | **~** | **§12.6.1 applies, and now has a real location.** The predicate is evaluated on the transition to `merged`: what it refuses is the **merge**, not the act of editing. **Replace with** *"— a different constraint guards the change."* Same length in the mouth; true of the object the constraint names. The block's own `MUST NOT SAY` already forbids *"the database refused the edit"*, which is this phrase one word away. |
+| D32 | `VO-DEMO.md` B10: *"You can't **just** use the clause."* | ✓ | **CLEARED, and it is better than the wording this sheet cleared at N9.** The bare *"You can't use the clause"* is absolute, and the film's own `b7` disproves it on camera — the permit **is** admitted once the obligation is answered. **`just` gives the first half the same scope discipline `quietly` gives the second**, so the mirror is now scoped on both sides. An improvement found by its author, recorded as one. |
+| D33 | `VO-DEMO.md` B10: *"You can't **quietly** edit it away."* (without *"either"*) | ✓ | **The adverb survives, which is the only thing §12.4 refuses over.** Dropping *either* costs the explicit tie to the previous sentence; the parallel construction carries it, and D32's *just* now carries it harder. Cleared. **All four §12.4 refusals stand against any future edit of this line.** |
+| D34 | `VO-CLOSE.md` `k1`: *"The incident. The retrieval. Ten seconds later, the obligation. Refused."* | ✓ | **A5 clean, and it moots §12.6.3.** Four fragments landing on three columns; *incident* and *retrieval* are **nouns**, so nothing is narrated as happening now; the year is dropped, which A3 can only welcome; and *"Refused."* names what the judge watched under either cut, so the referent problem §12.6.3 raised **cannot arise in this wording.** §12.6.3 is therefore **moot as delivered** and is kept for the case where anybody restores the longer form. |
+| D35 | `VO-CLOSE.md` `k2`: *"Everything here is either in that request or in the apply. **Bedrock — not in this path.**"* | **✗** | **REFUSE — row N22, filed before this line existed, fires on it exactly.** The Bedrock sentence has been compressed to a **bare denial**: *"is exercised in this repository"* is gone, and that positive half is what makes the denial credible and is the strongest twelve words in the block. A card that only denies reads as a card hiding something. **And the first sentence is §7.6's open REWORD, undischarged** — the overlay carries a third group, and §7.7/§7.8 move two more rows out of the first two, so *"either… or…"* is false about three of the card's rows rather than one. **Replacement, 14 words, inside the 16-word budget:** **"Every line says which. Bedrock is exercised in this repository — not in this path."** That is N20 + N21, both already cleared, and it costs two words fewer than the line it replaces. |
+| D36 | `VO-CLOSE.md` `k3`: *"Nothing here separates a considered disposition from a rubber stamp."* | ✓ | **Row N23 exactly, with the scope word `here` intact**, and N24 confirmed: *"We measure deliberation and never threshold it"* has moved to the screen in its sanctioned form. Six spoken words saved, zero content lost. |
+| D37 | `ONSCREEN-TEXT.yaml` `b10.lattice.rows` | **~** | **REWORD — one gap in an otherwise exemplary file.** Its `source` reads `GET /v1/checks/{check_id}/disposition`, unbound. **On the deployed screen today that read is made against `dec0de00-0007-…`, the PERMIT's check**, because the change request's own obligation is not addressable — and the deployment prints its own sentence saying so. The five rows are **identical either way**, since the lattice is keyed by virulence, which is exactly what makes the substitution invisible. **Add the deployed screen's own disclosure to this id as a required companion string**, in the form O25 clears and N14 refuses the spoken version of. |
+
+**And the part that is a credit rather than a finding.** ``ONSCREEN-TEXT.yaml``'s 46 new ids reach
+four of this section's conclusions independently and in some places further:
+`b10.check.row` marks `severity` as a **slot** and names the trap of borrowing the event's
+`severity_gate` for it — which is O19's REFUSE, arrived at from the other side;
+`b10.obligation.absence_note` records that its own presence and R-5 are **mutually exclusive**;
+`b10.do_not_render` records the unselected defeater as an on-screen **absence**; and
+`b10.defeater.different_vocabulary` carries `must_not_claim`: **the vocabulary is act-specific, and
+it was not generated in this request.** **Four writers reaching the same rulings from four
+directions is the strongest evidence in this file that the rulings are right.**
+
+---
+
+## 12.10 · THE SCANNER, AFTER THIS SECTION
+
+`docs/demo/film/` is outside every `TARGET_GLOBS` entry, so this scan is invoked by hand and its
+result is pasted rather than assumed. **This file's exit code was already `1` before this section
+existed** — six findings on four lines, every one of them inside §9.4's pasted self-test transcript,
+which §9.5 measures and explains. **The number to watch is therefore whether this section adds a
+seventh.**
+
+```
+$ .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check docs/demo/film/CLAIMS-CLEARANCE.md
+  scanned 1 file(s) against 21 rules
+  ... 6 claim-hygiene violation(s)
+exit=1
+```
+
+**Six, unchanged, and all four lines are still the transcript's.** Not one finding lands in §12
+**in the version you are reading — and four did in the version before it.** Recorded rather than
+quietly repaired, because §9.5.1 records the same class of defect and a sheet that hid its own
+would have no standing to refuse anybody else's:
+
+| # | what fired, in the first draft of §12 | why | fixed how |
+|---|---|---|---|
+| 4 | `MNC-14-split-view` and `MNC-06-rubber-stamp` on §12.7's MUST-NOT-CLAIM bullet | The bullet listed the families as *"no tamper-proofing and no split-view resistance… no rubber-stamp detection"*. **Plain *no* is still not one of the scanner's negation markers** — the identical trap §9.5.1 finding 1 records, and the third file in this repository to hit it | The bullet now says each family is **never** claimed, one clause per line, **in this file and never in the scanner** |
+| 5 | `MNC-19-not-applicable`, twice — on §12.7's bullet and on row O18 | Both said *"contains no `not_applicable`"*, and both were **clearing** the vocabulary for **not** carrying one. The rule was right and the rows were wrong | Rewritten to *"is not in the shipped vocabulary"* and *"the shipped vocabulary does not carry"* — the same claim, with a marker the scanner reads |
+
+**No rule was edited, no exemption marker was bolted onto a sentence that was not already a denial,
+and no phrase was deleted to dodge a rule.** Every prohibition quoted above sits on a line carrying
+its own explicit negation marker, because the scanner's exemption is **line-scoped** — a `never`
+that wraps away from the phrase it governs stops exempting it. The command that scans the film
+**without** this register is §9.2's and is the one to run after the §7 and §12.6 edits.
+
+**One observation about the tool itself, for whoever runs it on the day.** On a Windows console at
+the default code page, `claim_hygiene.py` **raises `UnicodeEncodeError` while printing a finding**
+whose excerpt contains a character outside `cp1252` — the findings before it print, the traceback
+lands after them, and the exit code is still `1`. It is a printing failure, never a scanning
+failure, and `PYTHONIOENCODING=utf-8` in front of the command shows the full list. **A green sweep
+never hits it, because there is nothing to print.** Recorded here rather than filed as a fix: this
+worker owns neither the script nor the right to change a checker.
+
+```
+$ .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check docs/demo/film/FALLBACKS.md
+  scanned 1 file(s) against 21 rules
+  claim hygiene OK
+exit=0
+```
+
+The sibling file this worker owns, re-scanned after its own amendment. And §9.2's command, re-run
+over the six delivered film files with the amended `FALLBACKS.md` in the set:
+
+```
+$ .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check \
+    docs/demo/film/BEATS.yaml docs/demo/film/SPINE.md docs/demo/film/VO-DEMO.md \
+    docs/demo/film/VO-CLOSE.md docs/demo/film/CLICKS.md docs/demo/film/FALLBACKS.md
+  scanned 6 file(s) against 21 rules
+  claim hygiene OK
+exit=0
+```
+
+**`--self-test` was re-run and is unchanged: `planted 4 violation families, scanner fired on 4`,
+exit 0.** A hygiene check that has never fired asserts nothing.
+
+**And the number that must not move, said plainly.** The two files this worker wrote are markdown
+under `docs/demo/film/`. Re-verified this session rather than inherited:
+`grep -rln "demo/film\|FALLBACKS\|CLAIMS-CLEARANCE" tests/ scripts/ .github/ …/demo-api/tests`
+returns **nothing**, no workflow filters on `docs/**`, and `docs/demo/film/**` is outside every
+`TARGET_GLOBS` entry. **The 998 / 997 / 0 / 0 baseline cannot move for a markdown file nothing
+collects**, so the suite was not run — and **if that verification is ever wrong, the replacement
+number comes from a `--junitxml` root element and from nothing else, never from a terminal tail.**
+No scratch database was created either: an empty `w_W6` would have been a write with no reader.
+
+---
+
+**Signed:** W6 · fallbacks and clearance · film re-cut wave · 2026-08-16 (UTC), audited against
+`r6-honesty.md` Part A — A3, A5 and A13.5 family by family — and `docs/submission/MUST-NOT-CLAIM.md`,
+which retains precedence.
+**Two files written — `FALLBACKS.md` and this one — and nothing else in the tree touched.**
+`docs/demo/research/r6-honesty.md` was **read and not edited**: a dated research record is cited and
+superseded, never rewritten. No ratchet, floor, ceiling, assertion or expectation was moved. No
+`terraform`, no AWS surface, no SSM parameter, no credential, no commit.
+**Nothing was cleared that this worker could not source, no family was softened to let a sentence
+through, and the four refusals in §12.4 are final.**

@@ -1,0 +1,98 @@
+{
+  "measured_by": "W1",
+  "measured_at_utc": "2026-08-16T03:53:05Z",
+  "origin": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+  "note": "read-only; the one POST is /v1/demo/gate-run which rolls back by contract",
+  "requests": [
+    {
+      "name": "health",
+      "method": "GET",
+      "path": "/v1/health",
+      "status": 200,
+      "bytes": 409,
+      "elapsed_s": 0.852,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "route_table_404",
+      "method": "GET",
+      "path": "/v1/routes",
+      "status": 404,
+      "bytes": 631,
+      "elapsed_s": 0.264,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "cr_read",
+      "method": "GET",
+      "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001",
+      "status": 200,
+      "bytes": 3295,
+      "elapsed_s": 0.398,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "check_disposition",
+      "method": "GET",
+      "path": "/v1/checks/dec0de00-000d-4000-8000-000000000001/disposition",
+      "status": 200,
+      "bytes": 3850,
+      "elapsed_s": 0.329,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "demo_subjects",
+      "method": "GET",
+      "path": "/v1/demo/subjects",
+      "status": 200,
+      "bytes": 8941,
+      "elapsed_s": 0.33,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "cr_checks_404",
+      "method": "GET",
+      "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001/checks",
+      "status": 404,
+      "bytes": 684,
+      "elapsed_s": 0.263,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "cr_blocking_checks_404",
+      "method": "GET",
+      "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001/blocking-checks",
+      "status": 404,
+      "bytes": 693,
+      "elapsed_s": 0.277,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "cr_merge_404",
+      "method": "POST",
+      "path": "/v1/change-requests/dec0de00-000c-4000-8000-000000000001/merge",
+      "status": 404,
+      "bytes": 684,
+      "elapsed_s": 0.264,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    },
+    {
+      "name": "gate_run",
+      "method": "POST",
+      "path": "/v1/demo/gate-run",
+      "status": 200,
+      "bytes": 10500,
+      "elapsed_s": 2.484,
+      "content_type": "application/json; charset=utf-8",
+      "content_encoding": null
+    }
+  ]
+}

@@ -150,9 +150,13 @@ describe('the intact bundle', () => {
     // tells the console which subjects this deployment actually seeded — is declared and
     // the committed bundle, which predates it, captured no frame for it either. The count
     // is asserted exactly, so a gap that is silently dropped from the screen fails here
-    // rather than disappearing from a judge's view.
-    expect(gaps.querySelectorAll('li')).toHaveLength(4);
+    // rather than disappearing from a judge's view. SIX since 2026-08-16: the change
+    // request's obligation list `cr_blocking_checks` and its gate run `cr_gate_run` are
+    // both declared and neither is in the committed bundle, which predates both.
+    expect(gaps.querySelectorAll('li')).toHaveLength(6);
     expect(gaps.querySelector('[data-resource="change_request"]')).not.toBeNull();
+    expect(gaps.querySelector('[data-resource="cr_blocking_checks"]')).not.toBeNull();
+    expect(gaps.querySelector('[data-resource="cr_gate_run"]')).not.toBeNull();
     expect(gaps.querySelector('[data-resource="demo_gate_run"]')).not.toBeNull();
     expect(gaps.querySelector('[data-resource="demo_subjects"]')).not.toBeNull();
     expect(gaps.querySelector('[data-resource="suspend_permit"]')).not.toBeNull();

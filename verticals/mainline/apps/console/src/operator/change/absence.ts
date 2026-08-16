@@ -4,10 +4,25 @@
 /**
  * R11 — THE ABSENCE THIS SCREEN IS REQUIRED TO NAME, AND THE EVIDENCE FOR IT.
  *
+ * ── WHAT CHANGED ON 2026-08-16, AND WHAT DID NOT ─────────────────────────────────────
+ *
+ * `GET /v1/change-requests/{cr_id}/blocking-checks` now exists. Where it is declared, the
+ * change request's own obligation arrives over HTTP and {@link renderCrChecks} prints it;
+ * the module keeps every path below intact for a deployment that does not carry the route,
+ * because a screen that only worked against the newest origin would be asserting over the
+ * one a judge is actually pointed at. Which of the two happened is decided by a response,
+ * never by a build flag.
+ *
+ * `POST /v1/change-requests/{cr_id}/merge` **still does not exist, and is not being added.**
+ * The approve control is still wired to nothing and still says so. What was added beside it
+ * is an ATTEMPT control pointed at `POST /v1/demo/cr-gate-run`, which opens one serializable
+ * transaction, tries the merge, and rolls the whole thing back — so the refusal is real and
+ * the record is untouched. A committing route would be neither.
+ *
+ * ── THE ORIGINAL RULING, WHICH STILL GOVERNS EVERYTHING HERE ─────────────────────────
+ *
  * The change request has one blocking obligation open on it: `counters.open_blocking = 1`
- * comes back on every read of `GET /v1/change-requests/{cr_id}`. **No declared route
- * returns that obligation.** `GET /v1/change-requests/{cr_id}/blocking-checks` is 404 and
- * `POST /v1/change-requests/{cr_id}/merge` is 404 — measured, not assumed.
+ * comes back on every read of `GET /v1/change-requests/{cr_id}`.
  *
  * So there are exactly three honest moves available, and this module makes all three:
  *
@@ -297,6 +312,13 @@ export interface ObligationInput {
   readonly tables: readonly string[];
   /** The verbatim request line the change request arrived on. */
   readonly readFrom: string;
+  /**
+   * True when this deployment's blocking-checks route answered for this change request.
+   *
+   * It decides only which of two TRUE sentences is printed about what is knowable from
+   * here. It is derived from a response received in this page load, never from a build.
+   */
+  readonly checksReachable: boolean;
 }
 
 /**
@@ -368,14 +390,167 @@ export function renderObligation(input: ObligationInput): HTMLElement {
 
   wrap.append(
     txt(
-      'What this deployment does NOT return: the obligation’s own row. Its id, the precursor ' +
-        'that raised it, its severity, its virulence and its defeater vocabulary are not ' +
-        'reachable from any declared route, so none of them is shown. The counter above is ' +
-        'the whole of what can be known about it from here, and the route table beside the ' +
-        'approve control is the evidence for that sentence.',
+      input.checksReachable
+        ? 'The obligation’s own row follows, read from this deployment’s change-request ' +
+            'blocking-checks route in this page load. Everything in it is a column.'
+        : 'What this deployment does NOT return: the obligation’s own row. Its id, the ' +
+            'precursor that raised it, its severity, its virulence and its defeater ' +
+            'vocabulary are not reachable from any declared route, so none of them is shown. ' +
+            'The counter above is the whole of what can be known about it from here, and the ' +
+            'route table beside the approve control is the evidence for that sentence.',
     ),
   );
   wrap.append(txt(input.readFrom, 'moc-exchange'));
+  return wrap;
+}
+
+/* ── the obligation itself, when the route that returns it is declared ────────────── */
+
+/** One row of `data.checks`, as `blocking-check.schema.json` declares it. */
+export interface CrBlockingCheck {
+  readonly check_id?: unknown;
+  readonly origin?: unknown;
+  readonly severity?: unknown;
+  readonly virulence?: unknown;
+  readonly closure_gen?: unknown;
+  readonly clause_label?: unknown;
+  readonly evidence_summary?: unknown;
+  readonly materialised_at?: unknown;
+  readonly open?: unknown;
+  readonly precursor_event_id?: unknown;
+  readonly recall_run_id?: unknown;
+}
+
+/** The `data` of `GET /v1/change-requests/{cr_id}/blocking-checks`. */
+export interface CrBlockingChecksData {
+  readonly subject_kind?: unknown;
+  readonly subject_id?: unknown;
+  readonly gate_epoch?: unknown;
+  readonly checks?: unknown;
+}
+
+/** Print one member of a payload row, or `null` when it is not a scalar this can print. */
+function printed(value: unknown): string | null {
+  if (typeof value === 'string') return value === '' ? null : value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'boolean') return String(value);
+  return null;
+}
+
+/** The `check_id` strings of a blocking-checks payload, in payload order. */
+export function crCheckIds(data: CrBlockingChecksData | null): readonly string[] {
+  if (data === null || !Array.isArray(data.checks)) return [];
+  const ids: string[] = [];
+  for (const check of data.checks as readonly unknown[]) {
+    if (typeof check !== 'object' || check === null) continue;
+    const id: unknown = (check as Record<string, unknown>).check_id;
+    if (typeof id === 'string' && id !== '') ids.push(id);
+  }
+  return ids;
+}
+
+/**
+ * The change request's OWN obligation, as the route returns it.
+ *
+ * The three columns worth reading twice are `severity`, `virulence` and `origin`, and the
+ * caption says why: `fn_check_project` overwrites all three from the blame closure, so
+ * nobody who filed this change request chose any of them. They are the same three columns
+ * the permit's obligation carries, on the subject that proposes to REWRITE the clause
+ * rather than to rely on it — which is the mirror this screen exists to show.
+ *
+ * `subject_kind` is printed above the table on purpose. It is the payload's own statement
+ * of which subject answered, and a list rendered here without it would be a list a reader
+ * has to take this page's word for.
+ */
+export function renderCrChecks(data: CrBlockingChecksData, readFrom: string): HTMLElement {
+  const wrap = el('div');
+
+  const subject = el('p');
+  subject.append(document.createTextNode('subject_kind '));
+  subject.append(el('code', 'moc-db', printed(data.subject_kind) ?? 'not returned'));
+  subject.append(document.createTextNode(' · gate_epoch '));
+  subject.append(el('code', 'moc-db', printed(data.gate_epoch) ?? 'not returned'));
+  wrap.append(subject);
+
+  const checks = Array.isArray(data.checks) ? (data.checks as readonly CrBlockingCheck[]) : [];
+  if (checks.length === 0) {
+    wrap.append(
+      el(
+        'p',
+        'moc-absent',
+        'The route answered and returned no obligation rows. Nothing is shown in their place.',
+      ),
+    );
+    wrap.append(txt(readFrom, 'moc-exchange'));
+    return wrap;
+  }
+
+  const scroll = el('div', 'moc-scroll');
+  const table = el('table', 'moc-table');
+  const caption = el('caption');
+  caption.append(
+    document.createTextNode(
+      'The obligations this change request carries. severity, virulence and closure_gen are ' +
+        'PROJECTIONS: fn_check_project overwrites them from the blame closure, so nobody who ' +
+        'filed this change chose any of the three.',
+    ),
+  );
+  table.append(caption);
+
+  const thead = el('thead');
+  const headRow = el('tr');
+  for (const heading of [
+    'origin',
+    'severity',
+    'virulence',
+    'closure_gen',
+    'clause_label',
+    'open',
+    'materialised_at',
+  ]) {
+    headRow.append(el('th', undefined, heading));
+  }
+  thead.append(headRow);
+  table.append(thead);
+
+  const tbody = el('tbody');
+  for (const check of checks) {
+    const tr = el('tr');
+    const cells: readonly (readonly [string, unknown])[] = [
+      ['moc-kind', check.origin],
+      ['moc-num', check.severity],
+      ['moc-kind', check.virulence],
+      ['moc-num', check.closure_gen],
+      ['moc-kind', check.clause_label],
+      ['moc-kind', check.open],
+      ['moc-kind', check.materialised_at],
+    ];
+    for (const [className, value] of cells) {
+      const text = printed(value);
+      tr.append(
+        text === null
+          ? el('td', className, el('span', 'moc-absent-inline', 'not returned'))
+          : el('td', className, text),
+      );
+    }
+    tbody.append(tr);
+  }
+  table.append(tbody);
+  scroll.append(table);
+  wrap.append(scroll);
+
+  for (const check of checks) {
+    const summary = printed(check.evidence_summary);
+    if (summary === null) continue;
+    wrap.append(el('p', 'moc-quote', summary));
+  }
+  wrap.append(
+    txt(
+      'The paragraph above is `evidence_summary`, the reranker’s mechanism-citing ' +
+        'justification, printed verbatim. This page does not summarise it further.',
+    ),
+  );
+  wrap.append(txt(readFrom, 'moc-exchange'));
   return wrap;
 }
 
@@ -396,6 +571,14 @@ export interface ActionBarInput {
   readonly soughtButAbsent: readonly string[];
   /** Attempts made by `discoverCrCheckIds`, for the record. */
   readonly discoveryAttempts: readonly string[];
+  /**
+   * The attempt control and the region its answer renders into.
+   *
+   * Built by the screen, because the screen is the only module in this directory that holds
+   * the kernel. This module places it and writes the sentences around it; it cannot send
+   * anything itself, which is the property that keeps the port a single point of entry.
+   */
+  readonly attempt: HTMLElement | null;
 }
 
 /**
@@ -445,13 +628,23 @@ export function renderActionBar(input: ActionBarInput): HTMLElement {
     }
   }
 
+  // Deliberately a claim about THIS SOURCE rather than about the deployment. "No route
+  // exists to drive it" needs a route table to stand on, and there is not always one to
+  // hand: a deployment that declares the blocking-checks route answers 200 and produces no
+  // 404 body at all. "It has no listener in this directory" is true either way, and the
+  // greps in `screen.test.ts` are what hold it true.
   left.append(
     txt(
-      'This control is disabled because no route exists to drive it, and it is wired to ' +
-        'nothing. It is not pointed at the permit’s merge route: that route drives a ' +
-        'different subject, and a button that refused a different record would be a prop.',
+      'This control is wired to nothing: it carries no click handler and no listener anywhere ' +
+        'in this directory. It is not pointed at the permit’s merge route either — that route ' +
+        'drives a different subject, and a button that refused a different record would be a ' +
+        'prop. The attempt below is not an approval: it rolls its transaction back.',
     ),
   );
+
+  if (input.attempt !== null) {
+    left.append(input.attempt);
+  }
   bar.append(left);
 
   const right = el('div', 'moc-evidence');

@@ -21,24 +21,50 @@ import {
 const PERMIT_ID = '018f3a2f-1104-7c88-b3aa-77c1de40e2b1';
 
 describe('the resource catalogue', () => {
-  it('declares eighteen resources; the eighteenth is the demo subject index', () => {
+  it('declares twenty resources; the last two are the change request’s gate', () => {
     // The count is asserted as an EXACT number rather than a floor. A floor would admit a
-    // nineteenth resource arriving unannounced, and the whole point of this module is
+    // twenty-first resource arriving unannounced, and the whole point of this module is
     // that the console's read surface is a closed, declared set — `resolveRequest` refuses
     // anything not on it, so a resource nobody noticed being added is a request nobody
     // reviewed being sendable.
     //
-    // MOVING THIS NUMBER IS THE REVIEW. It went 17 → 18 on 2026-08-15 for `demo_subjects`,
-    // `GET /v1/demo/subjects`. The decision behind it: five surfaces addressed subjects
-    // that no seed in this repository has ever carried — `BLK-07`, `DEMO_CLAUSE`,
-    // `DEMO_COMMIT` — and each answered 404 on the live URL. A console cannot hold a
-    // correct identifier, because an identifier in a console file is a claim about a row
-    // the console did not write; it can only ask. This is that read, and it is the only
-    // one in the catalogue whose answer is other identifiers.
-    expect(RESOURCES.size).toBe(18);
-    expect(RESOURCE_KEYS.length).toBe(18);
+    // MOVING THIS NUMBER IS THE REVIEW.
+    //
+    // 17 → 18 on 2026-08-15 for `demo_subjects`, `GET /v1/demo/subjects`. The decision
+    // behind it: five surfaces addressed subjects that no seed in this repository has ever
+    // carried — `BLK-07`, `DEMO_CLAUSE`, `DEMO_COMMIT` — and each answered 404 on the live
+    // URL. A console cannot hold a correct identifier, because an identifier in a console
+    // file is a claim about a row the console did not write; it can only ask. That read is
+    // the only one in the catalogue whose answer is other identifiers.
+    //
+    // 18 → 20 on 2026-08-16 for the SECOND gated subject. The demo could show that a permit
+    // cannot be ISSUED while an obligation raised by blame is open, and could not show the
+    // mirror — that the clause under blame cannot quietly be EDITED AWAY either — because
+    // the change request's obligation was returned by no route and there was no route on
+    // which to attempt the edit and be refused. `cr_blocking_checks` is the first;
+    // `cr_gate_run` is the second, and it is a demo run that rolls back rather than a
+    // committing merge route, which is not being added.
+    expect(RESOURCES.size).toBe(20);
+    expect(RESOURCE_KEYS.length).toBe(20);
     expect([...RESOURCES.keys()]).toContain('demo_gate_run');
     expect([...RESOURCES.keys()]).toContain('demo_subjects');
+    expect([...RESOURCES.keys()]).toContain('cr_blocking_checks');
+    expect([...RESOURCES.keys()]).toContain('cr_gate_run');
+  });
+
+  it('gives the change request’s obligations the mirror path and the SAME contract', () => {
+    // `blocking-check.schema.json` requires `subject_kind`/`subject_id`, never `permit_id`,
+    // so one document governs both subjects' lists. A second contract here would be two
+    // documents to keep in step for no gain, and the first drift between them would show
+    // up as a screen refusing its own kernel's answer.
+    const checks = resourceOrThrow('cr_blocking_checks');
+    const permitChecks = resourceOrThrow('blocking_checks');
+    expect(checks.method).toBe('GET');
+    expect(checks.template).toBe('/v1/change-requests/{cr_id}/blocking-checks');
+    expect(checks.pathParams).toEqual(['cr_id']);
+    expect(checks.queryParams).toEqual([]);
+    expect(checks.owner).toBe('kernel');
+    expect(checks.schemaId).toBe(permitChecks.schemaId);
   });
 
   it('gives the subject index no path parameter and no query, like the demo run', () => {
@@ -84,11 +110,48 @@ describe('the resource catalogue', () => {
     const posts = [...RESOURCES.values()].filter((resource) => resource.method === 'POST');
     expect(posts.map((resource) => resource.template).sort()).toEqual([
       '/v1/checks/{check_id}/disposition',
+      '/v1/demo/cr-gate-run',
       '/v1/demo/gate-run',
       '/v1/permits/{permit_id}/checks:materialise',
       '/v1/permits/{permit_id}/merge',
       '/v1/permits/{permit_id}/suspend',
     ]);
+  });
+
+  it('declares NO committing change-request route, and that is not an oversight', () => {
+    // The demo API's write guard decides on `subject_id == scenario.permit_id`, and a
+    // change request's identifier never equals the permit's — so a mutating CR transition
+    // would fall past the guard, find the permit seeded, and be let through as an
+    // irreversible unauthenticated write on the demo record. The refusal is reached by
+    // `POST /v1/demo/cr-gate-run` instead, which rolls its transaction back and proves it.
+    //
+    // This assertion is over the whole catalogue rather than over one key, so a route added
+    // under any name that mutates a change request fails here.
+    const crRoutes = [...RESOURCES.values()].filter((resource) =>
+      resource.template.includes('/change-requests/'),
+    );
+    expect(crRoutes.map((resource) => `${resource.method} ${resource.template}`).sort()).toEqual([
+      'GET /v1/change-requests/{cr_id}',
+      'GET /v1/change-requests/{cr_id}/blocking-checks',
+    ]);
+  });
+
+  it('gives the change-request gate run no path parameter either, and refuses one', () => {
+    // Same guarantee, same reason, same enforcement as `demo_gate_run`: the Function URL is
+    // `authorization_type = NONE`, and a `{cr_id}` here would let a stranger aim the
+    // forged-counter beat at a row nobody meant. The subject is resolved server-side.
+    const run = resourceOrThrow('cr_gate_run');
+    expect(run.method).toBe('POST');
+    expect(run.template).toBe('/v1/demo/cr-gate-run');
+    expect(run.pathParams).toEqual([]);
+    expect(run.queryParams).toEqual([]);
+    expect(run.owner).toBe('kernel');
+    expect(run.schemaId).toBe(
+      'https://console.mainline.trappoint.org/contracts/1.0/cr-gate-run.schema.json',
+    );
+    expect(() =>
+      resolveRequest({ resource: 'cr_gate_run', path: { cr_id: PERMIT_ID }, body: {} }),
+    ).toThrow(/has no path parameter "cr_id"/);
   });
 
   it('gives the demo run no path parameter, so a caller cannot aim it at another row', () => {

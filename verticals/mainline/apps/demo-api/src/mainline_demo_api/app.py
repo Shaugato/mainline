@@ -7,7 +7,7 @@ A Lambda invocation already *is* a function call with a dict argument. Bolting M
 front of FastAPI would translate that dict into an HTTP request so a framework could
 parse it back into a dict — three dependencies and a cold-start penalty to arrive where
 we started. ``handler(event, context)`` is the server, and the routing table below is
-eighteen regexes compiled once at import.
+twenty regexes compiled once at import.
 
 ONE ORIGIN, TWO SURFACES
 ------------------------
@@ -137,9 +137,9 @@ _log = logging.getLogger("mainline_demo_api")
 # a ceiling installed by the first invocation would leave the cold one unbounded.
 logbudget.install()
 
-#: Cache-Control for the thirteen reads — the console's twelve and the demo's subject
-#: index, which is cacheable for exactly the same reason and by the same argument.
-#: Ten seconds is long enough for CloudFront to
+#: Cache-Control for the fourteen reads — the console's twelve, the demo's subject index
+#: and the change request's blocking checks, each cacheable for exactly the same reason
+#: and by the same argument. Ten seconds is long enough for CloudFront to
 #: absorb a room full of judges refreshing at once and short enough that the gate
 #: surface still looks live after a transition. The three-beat demo drives POSTs, which
 #: are never cached, so nothing a judge *does* is ever served stale.
@@ -179,21 +179,30 @@ class Route:
 
 
 def _routes() -> tuple[Route, ...]:
-    """Build the eighteen routes: sixteen console resources plus the demo's own two.
+    """Build the twenty routes across nineteen paths, and count ROWS rather than paths.
 
-    **Sixteen are transcribed from** ``console/src/data/resources.ts`` — twelve GETs and
-    the four kernel POSTs. Those four POST templates are here even though this
+    **TWENTY ROWS, NINETEEN PATHS, AND THE DIFFERENCE IS ONE PATH DECLARED TWICE.**
+    ``/v1/checks/{check_id}/disposition`` has two rows — ``GET disposition`` reads the
+    lattice, the defeater vocabulary and the signature, and ``POST sign_disposition``
+    signs one. They are two resources with two contracts and two owners at one address,
+    which is what a routing table keyed on ``(method, template)`` is for. The 404 body
+    below lists ``sorted({r.template for r in ROUTES})`` and therefore dedupes to
+    nineteen; **that list is a courtesy to a caller who mistyped a URL and it is not the
+    count of this table.** Every test that counts counts rows.
+
+    **Sixteen rows are transcribed from** ``console/src/data/resources.ts`` — twelve GETs
+    and the four kernel POSTs. Those four POST templates are here even though this
     distribution implements none of them: a POST to a real path must answer 501 with the
     module that owes it, not 404 with "no such path". Those are different bugs and they
     belong to different people.
 
-    **The seventeenth is** ``POST /v1/demo/gate-run``, and it is NOT one of the console's
-    sixteen. It is the demo driver's own endpoint: it is governed by
+    **``POST /v1/demo/gate-run``** is the demo driver's own endpoint. It is governed by
     ``demo-api/contracts/gate-run.schema.json`` (``$id``
-    ``gate_run.GATE_RUN_SCHEMA_ID``) rather than by ``invoke.schema.json``, and it is
-    declared separately from the resource registry — ``transitions.TRANSITION_RESOURCES``
-    carries the key ``demo_gate_run`` and ``transitions.handle_transition`` dispatches it
-    to ``gate_run.gate_run``, four beats inside one transaction that is rolled back.
+    ``gate_run.GATE_RUN_SCHEMA_ID``) rather than by ``invoke.schema.json``, and its
+    implementation is declared separately from the resource registry —
+    ``transitions.TRANSITION_RESOURCES`` carries the key ``demo_gate_run`` and
+    ``transitions.handle_transition`` dispatches it to ``gate_run.gate_run``, four beats
+    inside one transaction that is rolled back.
 
     IT WAS MISSING, AND THAT WAS THE DEMO'S HEADLINE DEFECT. Every beat was implemented
     and none of it was reachable, because this table had sixteen rows and the router
@@ -202,18 +211,24 @@ def _routes() -> tuple[Route, ...]:
     returned 404, expected 200"* and ``console/src/features/gate/DemoDriver.tsx`` renders
     *"POST /v1/demo/gate-run is not addressable from this console"* on screen.
 
-    The console still does not declare it: ``resources.ts`` has sixteen ``declare()``
-    calls and ``contracts.ts`` does not register ``gate-run.schema.json``, so the panel
-    keeps telling that truth until the console domain closes its half.
-    ``tests/test_routes_gate_run.py`` pins the difference between the two tables to
-    exactly this one endpoint, so a *second* undeclared route is still a failure.
+    **The console declares it, and this paragraph used to say the opposite.** Until
+    2026-08-16 the text here read *"the console still does not declare it: ``resources.ts``
+    has sixteen ``declare()`` calls"*. That was true when it was written and the console
+    closed its half on 2026-08-14; ``resources.ts`` now carries a ``declare()`` for every
+    row of this table, ``contracts.ts`` registers ``gate-run.schema.json``, and
+    ``DemoDriver.tsx``'s not-addressable panel is unreachable rather than what a judge
+    sees. A comment that has quietly become false is worse than no comment, so it is
+    replaced rather than left standing.
+    ``tests/test_routes_gate_run.py`` asserts the two tables are the SAME SET in both
+    directions, so a route nobody declared and a declaration nobody routed are both
+    failures there.
 
-    **The eighteenth is** ``GET /v1/demo/subjects``, added 2026-08-15, and it exists because
-    the console could not open a screen on a subject without already knowing the subject's
-    identifier. Every read route above takes that identifier in its path and ``/v1/audit``
-    is aggregate-first — across all fourteen views it carries ``site_id`` and a commit
-    prefix and never a ``permit_id``, a ``check_id`` or a ``clause_uuid``. So a screen had
-    to be handed its subject by a human or carry one in its own source, and it carried one:
+    **``GET /v1/demo/subjects``**, added 2026-08-15, exists because the console could not
+    open a screen on a subject without already knowing the subject's identifier. Every
+    read route above takes that identifier in its path and ``/v1/audit`` is
+    aggregate-first — across all fourteen views it carries ``site_id`` and a commit prefix
+    and never a ``permit_id``, a ``check_id`` or a ``clause_uuid``. So a screen had to be
+    handed its subject by a human or carry one in its own source, and it carried one:
     ``CustodyScreen.tsx``'s ``DEFAULT_SITE_CODE = 'BLK-07'`` and ``ClauseDiffScreen.tsx``'s
     clause-and-commit pair are ``404`` against the live URL today, because no seed in this
     repository ever wrote them.
@@ -223,13 +238,56 @@ def _routes() -> tuple[Route, ...]:
     the module to keep it that way. Unlike ``demo_gate_run`` it is an ordinary read in every
     other respect: ``resources.ts`` declares it, ``envelope.SCHEMA_IDS`` names its contract,
     ``reads.READS`` carries its implementation, and the dispatch below reaches it with no
-    branch of its own. So the two tables are the same **eighteen** again.
+    branch of its own.
+
+    THE TWO ROWS ADDED 2026-08-16, AND THE HOLE THEY CLOSE
+    ------------------------------------------------------
+    The eighteen rows above serve exactly ONE change-request route,
+    ``GET /v1/change-requests/{cr_id}``. Measured against the live origin this session:
+    that path answers ``200`` with ``state: checks_materialised``, ``open_blocking: 1`` and
+    four named CHECKs, and ``/v1/change-requests/{cr_id}/blocking-checks`` answered
+    ``404``. So the counter said one obligation was open and **nothing could list it**, and
+    ``operator/change/ChangeScreen.ts`` was already probing that path and rendering the
+    deployment's own 404 as evidence.
+
+    **``GET /v1/change-requests/{cr_id}/blocking-checks``** → ``cr_blocking_checks``. The
+    mirror of ``/v1/permits/{permit_id}/blocking-checks``, implemented by
+    ``reads.read_cr_blocking_checks`` under the SAME contract:
+    ``blocking-check.schema.json``'s ``data`` requires ``subject_kind`` / ``subject_id``
+    and carries no ``permit_id`` in its required set, and
+    ``common.schema.json#/$defs/subject_kind`` is the closed pair
+    ``permit | change_request``. It was authored subject-polymorphic and this is the second
+    subject it was authored for.
+
+    **``POST /v1/demo/cr-gate-run``** → ``cr_gate_run``, dispatched by ``transitions`` to
+    ``cr_gate_run.py``, beats inside one ``SERIALIZABLE`` transaction that is rolled back,
+    with a fingerprint taken before and after in the payload so ``persisted: false`` is a
+    conclusion the caller can check rather than an assertion.
+
+    **IT TAKES NO PATH PARAMETER AND THAT IS A SAFETY PROPERTY, NOT A STYLE.** It is the
+    same argument the ``demo_gate_run`` row below makes, and for the change request there
+    is a second and sharper reason. ``transitions._demo_guard`` decides on
+    ``subject_id == scenario.permit_id``; a change-request identifier never equals the
+    permit's, so a mutating route carrying ``{cr_id}`` would fall PAST the
+    ``demo_subject_write_protected`` branch, find the permit is seeded, and be let
+    through — an unguarded, irreversible, unauthenticated write on the seeded demo CR,
+    on an origin whose ``authorization_type`` is ``NONE``. **No row in this table may
+    pair a ``{cr_id}`` path parameter with a mutating resource key.** The demo endpoint
+    takes the ``param_name is None`` branch of ``handle_transition``, so the guard is
+    never consulted, because there is nothing to guard: the transaction rolls back.
+
+    So the two tables are the same **twenty** again — and ``tests/test_envelope.py`` and
+    ``tests/test_routes_gate_run.py`` both assert that as a set equality in both
+    directions rather than as a count, because a count cannot say WHICH twenty.
     """
     return (
         Route("GET", "/v1/permits/{permit_id}", "permit"),
         Route("GET", "/v1/permits/{permit_id}/blocking-checks", "blocking_checks"),
         Route("GET", "/v1/permits/{permit_id}/silence", "silence"),
         Route("GET", "/v1/change-requests/{cr_id}", "change_request"),
+        # Added 2026-08-16. The counter on the row above said one obligation was open and
+        # until this row existed there was no path that could list it.
+        Route("GET", "/v1/change-requests/{cr_id}/blocking-checks", "cr_blocking_checks"),
         Route("GET", "/v1/checks/{check_id}/disposition", "disposition"),
         Route("GET", "/v1/receipts/{receipt_id}", "exposure_receipt"),
         Route("GET", "/v1/clauses/{clause_uuid}/versions/{commit_id}", "clause_version"),
@@ -242,14 +300,20 @@ def _routes() -> tuple[Route, ...]:
         Route("POST", "/v1/checks/{check_id}/disposition", "sign_disposition"),
         Route("POST", "/v1/permits/{permit_id}/merge", "merge_permit"),
         Route("POST", "/v1/permits/{permit_id}/suspend", "suspend_permit"),
-        # The seventeenth. No path parameters: the subject is the seeded demo permit,
-        # resolved by `scenario.from_env()`, because a judge must not be able to point
-        # the demo driver at somebody else's row.
+        # No path parameters: the subject is the seeded demo permit, resolved by
+        # `scenario.from_env()`, because a judge must not be able to point the demo driver
+        # at somebody else's row.
         Route("POST", "/v1/demo/gate-run", "demo_gate_run"),
-        # The eighteenth. No path parameter and no query parameter either: the answer is
-        # "which subjects does this database carry", and a caller who could filter it
-        # would be choosing the answer to the question they asked.
+        # No path parameter and no query parameter either: the answer is "which subjects
+        # does this database carry", and a caller who could filter it would be choosing
+        # the answer to the question they asked.
         Route("GET", "/v1/demo/subjects", "demo_subjects"),
+        # Added 2026-08-16, and NO PATH PARAMETER for the reason the docstring sets out at
+        # length: `transitions._demo_guard` compares `subject_id` to `scenario.permit_id`,
+        # a change-request uuid never matches, and a `{cr_id}` template on a mutating key
+        # would therefore be let straight through on an unauthenticated Function URL. The
+        # subject is resolved server-side and the transaction is rolled back.
+        Route("POST", "/v1/demo/cr-gate-run", "cr_gate_run"),
     )
 
 
@@ -627,17 +691,20 @@ def _transition(
             "not_implemented",
             f"{matched.key} is a transition and {_TRANSITIONS_MODULE} is not deployed in this "
             f"artefact ({exc}). The read surface ships independently of the write surface, by "
-            "design: this distribution owns the twelve GETs and the spine, and the four POSTs "
+            "design: this distribution owns the fourteen GETs and the spine, and the six POSTs "
             "are implemented against handle_transition(resource_key, path_params, body, conn).",
             resource=matched.key,
-            # `.get`, not `[...]`: `demo_gate_run` is the one route whose contract is NOT
-            # in SCHEMA_IDS. SCHEMA_IDS is a transcription of the console's sixteen
-            # `declare()` calls — `tests/test_envelope.py` asserts that equality — and the
-            # demo driver's contract is `gate_run.GATE_RUN_SCHEMA_ID`, which cannot be
-            # imported here because importing `gate_run` is precisely what this branch
-            # exists to survive. A subscript would turn "the write surface is absent"
-            # into an unhandled KeyError, i.e. a 502 with no body, from the one code path
-            # whose entire job is to fail legibly.
+            # `.get`, not `[...]`. SCHEMA_IDS is a transcription of the console's twenty
+            # `declare()` calls — `tests/test_envelope.py` asserts that equality — so
+            # every routed key is in it today. That is a property of two tables agreeing,
+            # not of the language, and this is the ONE branch that runs when the module
+            # implementing the key could not be imported: a subscript would turn "the
+            # write surface is absent" into an unhandled KeyError, i.e. a 502 with no
+            # body, from the code path whose entire job is to fail legibly. The two demo
+            # drivers are why the entries exist at all — `gate_run` and `cr_gate_run` hold
+            # their own `$id` constants and stamp them onto their own payloads, and
+            # importing either is precisely what this branch exists to survive, so their
+            # ids are transcribed into SCHEMA_IDS to be readable without them.
             schema_id=SCHEMA_IDS.get(matched.key),
         )
 

@@ -96,6 +96,22 @@ const DECLARED: readonly ResourceDescriptor[] = Object.freeze([
     'kernel',
     'Every materialised obligation attached to the subject, with the projected severity, virulence and closure generation that armed it.',
   ),
+  // THE SECOND SUBJECT'S OBLIGATION LIST, AND WHY IT IS THE SAME CONTRACT.
+  //
+  // `blocking-check.schema.json` requires `subject_kind`, `subject_id`, `gate_epoch` and
+  // `checks` — there is no `permit_id` in its required set and never has been — so the
+  // change request's obligations are governed by the document that already exists rather
+  // than by a second one that would have to be kept in step with it. `envelope.resource`
+  // is a free `^[a-z][a-z0-9_]*$` string with no enum, so a new key costs no contract edit
+  // either. Two resources, one contract, one `$id` in the payload.
+  declare(
+    'cr_blocking_checks',
+    'GET',
+    '/v1/change-requests/{cr_id}/blocking-checks',
+    `${C}blocking-check.schema.json`,
+    'kernel',
+    'The change request’s own materialised obligations — the permit list’s mirror, for the subject that proposes to rewrite the clause rather than rely on it.',
+  ),
   declare(
     'disposition',
     'GET',
@@ -220,6 +236,31 @@ const DECLARED: readonly ResourceDescriptor[] = Object.freeze([
     'kernel',
     'The four-beat demo run against the seeded permit — read, refused, refused under a forged counter, admitted — inside ONE serializable transaction that is rolled back.',
   ),
+  // THE SECOND RUN, AND IT TAKES NO PATH PARAMETER FOR THE SAME REASON THE FIRST DOES NOT.
+  //
+  // The permit run asks "can this permit be ISSUED while an obligation is open"; this one
+  // asks "can the clause under blame be EDITED AWAY instead". Both are refusals the
+  // database already carries — `cr_gate_closed_when_merged` is a CHECK on
+  // `mainline.change_request` and `fn_cr_merge_gate` is a BEFORE UPDATE trigger — and
+  // neither needed a new rule to exist. What was missing was an HTTP path to be refused on.
+  //
+  // It is a SEPARATE endpoint rather than a `subject` parameter on `demo_gate_run`: that
+  // run's persistence proof binds the permit positionally, its contract is copied verbatim
+  // into this workspace and pinned pointer-by-pointer in both directions, and the two runs'
+  // beats differ in kind. One schema admitting both would assert neither.
+  //
+  // No `{cr_id}`, deliberately, and `resolveRequest` enforces it: the demo URL carries
+  // `authorization_type = NONE`, so a path parameter here would let a stranger aim the
+  // forged-counter beat at a row nobody meant. The subject is resolved server-side and the
+  // whole transaction is rolled back.
+  declare(
+    'cr_gate_run',
+    'POST',
+    '/v1/demo/cr-gate-run',
+    `${C}cr-gate-run.schema.json`,
+    'kernel',
+    'The change-request gate run — read, the merge attempted, then attempted again under a forged counter — inside ONE serializable transaction that is rolled back, fingerprinted before and after.',
+  ),
   // THIS IS THE ONE READ THAT ANSWERS "WHICH SUBJECT", AND IT TAKES NO PARAMETER EITHER.
   //
   // Every other GET above is addressed by an identifier the caller already holds. Nothing
@@ -261,6 +302,8 @@ export const RESOURCE_KEYS = [
   'change_request',
   'clause_ancestry',
   'clause_version',
+  'cr_blocking_checks',
+  'cr_gate_run',
   'demo_gate_run',
   'demo_subjects',
   'disposition',

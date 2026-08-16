@@ -1,0 +1,79 @@
+{
+  "measured_by": "W1",
+  "measured_at_utc": "2026-08-16T04:19:46Z",
+  "node": "LOCAL ONLY \u2014 postgresql://root@localhost:26257/mainline_demo",
+  "role": "root",
+  "purpose": "contrast run: the identical statements as a fully privileged role, so the 42501 mainline_api gets from the procedure is measured against what the same statement does when the grant is not the obstacle",
+  "privileges": {
+    "mainline_api has_table_privilege(mainline.cr_event, INSERT)": false,
+    "mainline_api has_table_privilege(mainline.cr_event, SELECT)": true,
+    "mainline_api has_table_privilege(mainline.change_request, UPDATE)": true,
+    "mainline_api has_table_privilege(mainline.merge_record, INSERT)": true,
+    "mainline_api has_table_privilege(mainline.ledger_intake, INSERT)": true,
+    "mainline_api has_function_privilege(mainline.merge_change_request, EXECUTE)": true,
+    "mainline_api has_function_privilege(mainline.merge_permit, EXECUTE)": true
+  },
+  "transaction": {
+    "cluster_logical_timestamp_first": "1786853986333404282.0000000000",
+    "cluster_logical_timestamp_last": "1786853986333404282.0000000000",
+    "one_transaction": true,
+    "terminated_by": "ROLLBACK"
+  },
+  "row_before": {
+    "state": "checks_materialised",
+    "open_blocking": 1,
+    "head_seq": 1,
+    "merged_commit_hex": null,
+    "cr_event_rows": 1
+  },
+  "row_after_rollback": {
+    "state": "checks_materialised",
+    "open_blocking": 1,
+    "head_seq": 1,
+    "merged_commit_hex": null,
+    "cr_event_rows": 1
+  },
+  "unchanged_after_rollback": true,
+  "attempts": [
+    {
+      "id": "R1",
+      "name": "kernel_procedure",
+      "statement": "CALL mainline.merge_change_request(%s, %s, %s, %s, %s, %s, %s, %s)",
+      "outcome": "REFUSED",
+      "sqlstate": "23503",
+      "constraint": "cr_legal_edge",
+      "table": null,
+      "message_primary": "insert on table \"cr_event\" violates foreign key constraint \"cr_legal_edge\"",
+      "message_detail": "Key (subject_kind, from_state, to_state)=('change_request', 'checks_materialised', 'merged') is not present in table \"subject_transition\"."
+    },
+    {
+      "id": "R2",
+      "name": "bare_merge_update",
+      "statement": "UPDATE mainline.change_request SET state = 'merged', head_seq = head_seq + 1, merged_commit = digest('probe', 'sha256') WHERE cr_id = %s AND head_seq = %s",
+      "outcome": "REFUSED",
+      "sqlstate": "23514",
+      "constraint": "cr_gate_closed_when_merged",
+      "table": null,
+      "message_primary": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+      "message_detail": null
+    },
+    {
+      "id": "R3a",
+      "name": "forge_counter_out_of_band",
+      "statement": "UPDATE mainline.change_request SET open_blocking = 0 WHERE cr_id = %s",
+      "outcome": "ADMITTED",
+      "sqlstate": "00000"
+    },
+    {
+      "id": "R3b",
+      "name": "merge_under_forged_counter",
+      "statement": "UPDATE mainline.change_request SET state = 'merged', head_seq = head_seq + 1, merged_commit = digest('probe', 'sha256') WHERE cr_id = %s AND head_seq = %s",
+      "outcome": "REFUSED",
+      "sqlstate": "P0001",
+      "constraint": null,
+      "table": null,
+      "message_primary": "MAINLINE: merge refused by mainline.fn_cr_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+      "message_detail": null
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "measured_by": "W1",
+  "measured_at_utc": "2026-08-16T04:15:30Z",
+  "node": "LOCAL ONLY \u2014 postgresql://root@localhost:26257/mainline_demo",
+  "cr_id": "dec0de00-000c-4000-8000-000000000001",
+  "role": {
+    "connected_as": "root",
+    "after_set_role": "mainline_api",
+    "inside_transaction": "mainline_api",
+    "grants": "verticals/mainline/db/GRANTS.yaml rows for mainline_api, applied by trappoint_migrate.grants; see grant-apply.json"
+  },
+  "transaction": {
+    "isolation": "serializable",
+    "cluster_logical_timestamp_first": "1786853730469766074.0000000000",
+    "cluster_logical_timestamp_last": "1786853730469766074.0000000000",
+    "one_transaction": true,
+    "terminated_by": "ROLLBACK"
+  },
+  "row_before": {
+    "state": "checks_materialised",
+    "open_blocking": 1,
+    "open_conflicts": 0,
+    "open_residue": 0,
+    "head_seq": 1,
+    "gate_epoch": 1,
+    "merged_commit_hex": null,
+    "cr_event_rows": 1,
+    "merge_record_rows": 0
+  },
+  "row_after_forged_counter_in_txn": {
+    "state": "checks_materialised",
+    "open_blocking": 0,
+    "open_conflicts": 0,
+    "open_residue": 0,
+    "head_seq": 1,
+    "gate_epoch": 1,
+    "merged_commit_hex": null,
+    "cr_event_rows": 1,
+    "merge_record_rows": 0
+  },
+  "row_after_rollback": {
+    "state": "checks_materialised",
+    "open_blocking": 1,
+    "open_conflicts": 0,
+    "open_residue": 0,
+    "head_seq": 1,
+    "gate_epoch": 1,
+    "merged_commit_hex": null,
+    "cr_event_rows": 1,
+    "merge_record_rows": 0
+  },
+  "unchanged_after_rollback": true,
+  "attempts": [
+    {
+      "id": "A0",
+      "name": "control_cr_event_insert",
+      "statement": "INSERT INTO mainline.cr_event (cr_id, seq, prev_seq, from_state, to_state, subject_kind, actor_sub, payload, prev_digest) VALUES (%s, 99, 98, 'checks_materialised', 'merged', 'change_request', 'w1-probe', '{}'::JSONB, decode(repeat('00', 32), 'hex'))",
+      "outcome": "REFUSED",
+      "sqlstate": "42501",
+      "constraint": null,
+      "schema": null,
+      "table": null,
+      "column": null,
+      "severity": "ERROR",
+      "message_primary": "user mainline_api does not have INSERT privilege on relation cr_event",
+      "message_detail": null,
+      "message_hint": null,
+      "driver_str": "user mainline_api does not have INSERT privilege on relation cr_event"
+    },
+    {
+      "id": "A1",
+      "name": "kernel_procedure",
+      "statement": "CALL mainline.merge_change_request(%s, %s, %s, %s, %s, %s, %s, %s)",
+      "outcome": "REFUSED",
+      "sqlstate": "42501",
+      "constraint": null,
+      "schema": null,
+      "table": null,
+      "column": null,
+      "severity": "ERROR",
+      "message_primary": "user mainline_api does not have INSERT privilege on relation cr_event",
+      "message_detail": null,
+      "message_hint": null,
+      "driver_str": "user mainline_api does not have INSERT privilege on relation cr_event"
+    },
+    {
+      "id": "A2",
+      "name": "bare_merge_update",
+      "statement": "UPDATE mainline.change_request SET state = 'merged', head_seq = head_seq + 1, merged_commit = digest('probe', 'sha256') WHERE cr_id = %s AND head_seq = %s",
+      "outcome": "REFUSED",
+      "sqlstate": "23514",
+      "constraint": "cr_gate_closed_when_merged",
+      "schema": null,
+      "table": null,
+      "column": null,
+      "severity": "ERROR",
+      "message_primary": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))",
+      "message_detail": null,
+      "message_hint": null,
+      "driver_str": "failed to satisfy CHECK constraint ((state != 'merged':::mainline.subject_state) OR (open_blocking = 0:::INT8))"
+    },
+    {
+      "id": "A3a",
+      "name": "forge_counter_out_of_band",
+      "statement": "UPDATE mainline.change_request SET open_blocking = 0 WHERE cr_id = %s",
+      "outcome": "ADMITTED",
+      "sqlstate": "00000"
+    },
+    {
+      "id": "A3b",
+      "name": "merge_under_forged_counter",
+      "statement": "UPDATE mainline.change_request SET state = 'merged', head_seq = head_seq + 1, merged_commit = digest('probe', 'sha256') WHERE cr_id = %s AND head_seq = %s",
+      "outcome": "REFUSED",
+      "sqlstate": "P0001",
+      "constraint": null,
+      "schema": null,
+      "table": null,
+      "column": null,
+      "severity": "ERROR",
+      "message_primary": "MAINLINE: merge refused by mainline.fn_cr_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero",
+      "message_detail": null,
+      "message_hint": null,
+      "driver_str": "MAINLINE: merge refused by mainline.fn_cr_merge_gate \u2014 re-derived open obligation count is 1 while the projected counter reads zero"
+    }
+  ]
+}

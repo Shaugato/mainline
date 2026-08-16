@@ -1,0 +1,548 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://console.mainline.trappoint.org/contracts/1.0/cr-gate-run.schema.json",
+  "$comment": "Governs the `data` member of the POST /v1/demo/cr-gate-run envelope. The permit's mirror is gate-run.schema.json and the two are deliberately NOT one schema: the runs differ in kind — this one has three beats, no admission and no canonicalised procedure call — and a schema admitting both would assert neither. Licensing: cr-gate-run.schema.json.license (REUSE sidecar; JSON admits no comment syntax).",
+  "title": "MAINLINE demo — three-beat change-request gate run",
+  "description": "Three beats played against the seeded change request inside ONE SERIALIZABLE transaction that is rolled back: read the subject, attempt the merge that would land the proposed edit on the protected branch and be refused, forge the projected counter and be refused anyway. It is the mirror of gate-run.schema.json: you cannot ISSUE a permit that relies on a clause a past incident's blame reaches, and you cannot quietly EDIT AWAY that clause either. The payload carries what the DATABASE said at each beat — SQLSTATE, constraint name, how that name was obtained — and it proves rather than asserts that the beats shared one transaction (equal cluster logical timestamps) and that nothing persisted (a fingerprint taken before and after). Two beats this run cannot play honestly are DECLARED rather than omitted, each with the grant rows behind it.",
+  "allOf": [
+    { "$ref": "envelope.schema.json" },
+    {
+      "properties": { "data": { "$ref": "#/$defs/cr_gate_run" } },
+      "required": ["data"]
+    }
+  ],
+  "$defs": {
+    "cr_gate_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_id",
+        "run_id",
+        "generated_at",
+        "outcome",
+        "verdict",
+        "failures",
+        "persisted",
+        "elapsed_ms",
+        "transaction",
+        "subject",
+        "beats",
+        "admission_beat",
+        "admission_absent_reason",
+        "admission_absent_grants",
+        "admission_proved_by",
+        "kernel_procedure_beat",
+        "kernel_procedure_absent_reason",
+        "kernel_procedure_absent_sqlstate",
+        "kernel_procedure_absent_grants",
+        "persistence_check"
+      ],
+      "properties": {
+        "schema_id": {
+          "description": "This contract's own $id, repeated inside the payload so that a run captured into an evidence bundle still names the contract that governs it once it is separated from its envelope.",
+          "const": "https://console.mainline.trappoint.org/contracts/1.0/cr-gate-run.schema.json"
+        },
+        "run_id": { "$ref": "#/$defs/uuid_or_token" },
+        "generated_at": { "$ref": "#/$defs/timestamp" },
+        "outcome": {
+          "description": "completed = all three beats were attempted. retry = SQLSTATE 40001 aborted the run; the transaction was UNDECIDED, which is not a refusal, and this driver does not re-send on the caller's behalf.",
+          "enum": ["completed", "retry"]
+        },
+        "verdict": {
+          "description": "PROVEN only when every beat matched the expectation it was written against AND the persistence check proves this run persisted nothing (`persistence_check.self_persisted` is false). A run that observed something else still returns 200 and still says NOT PROVEN — a truthful red beats a fabricated green.",
+          "enum": ["PROVEN", "NOT PROVEN"]
+        },
+        "failures": {
+          "description": "One sentence per thing that did not hold. Empty exactly when the verdict is PROVEN.",
+          "type": "array",
+          "maxItems": 32,
+          "items": { "type": "string", "minLength": 1, "maxLength": 2048 }
+        },
+        "persisted": {
+          "description": "Always false. The whole transaction is rolled back and every write beat is fenced by its own savepoint besides. `persistence_check` is the evidence for it, and this field is a conclusion from readings that are in the payload beside it rather than an assertion.",
+          "const": false
+        },
+        "elapsed_ms": { "type": "number", "minimum": 0 },
+        "transaction": { "$ref": "#/$defs/transaction" },
+        "subject": { "$ref": "#/$defs/subject" },
+        "beats": {
+          "description": "Exactly three, in order: read, merge, projection_drift_attack. THREE and not four, and the count is fixed here for the same reason gate-run's four are — the narrative is fixed. What is missing relative to the permit's run is an admission, and it is not silently absent: `admission_beat` below is null with the reason and the grant rows that make it so.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/beat" }
+        },
+        "admission_beat": {
+          "description": "Null, always, and declared rather than omitted. A disposition's composite foreign key lands on (check_id, receipt_id); no exposure receipt covers this change request's obligation, and mainline_api holds SELECT and not INSERT on mainline.exposure_receipt and mainline.exposure_line, so this endpoint cannot mint one. A beat with outcome 'skipped' dressed to look passing would be a fabricated exhibit; an absence nobody mentioned would be worse, because a reader cannot audit it.",
+          "type": "null"
+        },
+        "admission_absent_reason": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "admission_absent_grants": {
+          "description": "The rows in db/GRANTS.yaml that make the admission unplayable, cited so a reader can check the sentence above without leaving the payload.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1, "maxLength": 512 }
+        },
+        "admission_proved_by": {
+          "description": "Where the admission IS proved, against the subject that carries the receipt for it. A gate that always refuses is broken, not safe, so the demo does not omit that beat — only THIS run does.",
+          "const": "POST /v1/demo/gate-run"
+        },
+        "kernel_procedure_beat": {
+          "description": "Null, always, and for a measured reason rather than a design preference. CALL mainline.merge_change_request(...) answers 23503 cr_legal_edge as root — the edge checks_materialised -> merged is not a row in mainline.subject_transition — but 42501 as mainline_api, the role an anonymous caller on this Function URL executes as, because the procedure's step 5 appends to mainline.cr_event and the privilege is checked while planning. A privilege error says the writer never reached the gate; showing one as a gate refusal would be a fabricated exhibit. The merge beat reaches the same CHECK and the same trigger function by the bare statement instead.",
+          "type": "null"
+        },
+        "kernel_procedure_absent_reason": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "kernel_procedure_absent_sqlstate": {
+          "description": "The code that removed the beat, in the payload so the removal is auditable from the response alone. 42501 is the DENIED class in spec/errors.md §1.1 — never a member of the refusal taxonomy.",
+          "const": "42501"
+        },
+        "kernel_procedure_absent_grants": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1, "maxLength": 512 }
+        },
+        "persistence_check": { "$ref": "#/$defs/persistence_check" }
+      }
+    },
+
+    "transaction": {
+      "description": "How the three beats were run, with the evidence for the claim rather than the claim alone. There is no `canonicalisation` member here and its absence is the point: this run never calls the kernel procedure, so no client-side JCS canonicalisation and no ledger leaf are produced for it to name.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "isolation",
+        "disposition",
+        "opened_logical_timestamp",
+        "closed_logical_timestamp",
+        "single_transaction",
+        "savepoints",
+        "retry_sqlstate"
+      ],
+      "properties": {
+        "isolation": {
+          "description": "Issued explicitly by the client on every attempt, never inherited from a pool default (spec/errors.md §2.1). On a warm Lambda the session is by definition a reused one.",
+          "const": "SERIALIZABLE"
+        },
+        "disposition": { "const": "rolled_back" },
+        "opened_logical_timestamp": {
+          "description": "cluster_logical_timestamp() read at the first beat.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "closed_logical_timestamp": {
+          "description": "The same builtin read after the last beat. Null when the run was aborted by 40001 before it could be read.",
+          "type": ["string", "null"],
+          "maxLength": 64
+        },
+        "single_transaction": {
+          "description": "The two timestamps are equal. cluster_logical_timestamp() is constant within a CockroachDB transaction and moves between them, so this is a READ-ONLY witness that no beat quietly opened a transaction of its own — not an assertion the driver makes about itself.",
+          "type": "boolean"
+        },
+        "savepoints": {
+          "description": "The savepoint fenced around each write beat. A constraint refusal rolls back to its own savepoint and the transaction keeps taking statements.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1, "maxLength": 64 }
+        },
+        "retry_sqlstate": {
+          "description": "40001 when the run was abandoned as undecided; null otherwise. Never a refusal code: an undecided transaction has no reason set.",
+          "enum": ["40001", null]
+        }
+      }
+    },
+
+    "subject": {
+      "description": "The change request as it stood when the run opened, read in ONE statement so the counters, the state and the obligation describe one moment rather than several.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_kind",
+        "subject_id",
+        "external_ref",
+        "ref_name",
+        "target_ref",
+        "state",
+        "head_seq",
+        "gate_epoch",
+        "open_blocking",
+        "open_blocking_derived",
+        "open_conflicts",
+        "open_residue",
+        "merged_commit",
+        "blocking_check_id",
+        "severity",
+        "virulence",
+        "origin",
+        "site_code"
+      ],
+      "properties": {
+        "subject_kind": { "const": "change_request" },
+        "subject_id": {
+          "description": "The change request this deployment's demo drives. READ from the database, never derived: db/seeds/demo/demo_world.sql §10 fixes it as a literal that appears nowhere under apps/demo-api/src/, and MAINLINE_DEMO_CR_ID overrides the read rather than seeding a fallback nothing seeds.",
+          "$ref": "#/$defs/uuid"
+        },
+        "external_ref": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "ref_name": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "target_ref": {
+          "description": "The protected branch the proposed edit would land on. This is what makes the run a mirror of the permit's rather than a repeat of it: the permit is one ref OF the branch, this is a proposed edit TO it.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "state": {
+          "enum": [
+            "draft",
+            "checks_materialised",
+            "dispositioned",
+            "merged",
+            "suspended",
+            "closed",
+            "abandoned"
+          ]
+        },
+        "head_seq": { "type": "integer", "minimum": 0 },
+        "gate_epoch": { "type": "integer", "minimum": 0 },
+        "open_blocking": {
+          "description": "The PROJECTED counter — the column fn_check_materialised wrote.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_blocking_derived": {
+          "description": "The same quantity re-derived from blocking_check LEFT JOIN disposition by the anti-join mainline.fn_cr_merge_gate itself performs. Carried separately and never reconciled: the whole product is the observation that a gate trusting the first is a gate one UPDATE disarms.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "open_conflicts": { "type": "integer", "minimum": 0 },
+        "open_residue": { "type": "integer", "minimum": 0 },
+        "merged_commit": {
+          "description": "Null on an unmerged subject, which is what CONSTRAINT cr_merge_evidence and this run's rollback both mean.",
+          "type": ["string", "null"],
+          "pattern": "^([0-9a-f]{2})*$",
+          "maxLength": 4096
+        },
+        "blocking_check_id": { "oneOf": [{ "$ref": "#/$defs/uuid" }, { "type": "null" }] },
+        "severity": {
+          "description": "mainline.blocking_check.severity for the open obligation. PROJECTED by fn_check_project from mainline.clause_blame_current, not supplied by the seed — which is why the demo can say 'nobody typed that four'.",
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 5
+        },
+        "virulence": {
+          "description": "mainline.blocking_check.virulence, projected with the severity. The lattice belongs to the database and is not restated as an enum here.",
+          "type": ["string", "null"],
+          "maxLength": 64
+        },
+        "origin": {
+          "description": "mainline.blocking_check.origin — why this obligation exists at all. `blame_ancestry` on the seeded subject: the recalled precursor's blame reaches the clause version this change request proposes to edit.",
+          "type": ["string", "null"],
+          "maxLength": 64
+        },
+        "site_code": { "type": "string", "minLength": 1, "maxLength": 256 }
+      }
+    },
+
+    "beat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "name",
+        "label",
+        "expected",
+        "outcome",
+        "sqlstate",
+        "constraint",
+        "constraint_source",
+        "message",
+        "matched_expectation",
+        "elapsed_ms",
+        "statement",
+        "refusal",
+        "observed",
+        "note"
+      ],
+      "properties": {
+        "ordinal": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "name": { "enum": ["read", "merge", "projection_drift_attack"] },
+        "label": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "expected": {
+          "description": "What this beat was WRITTEN against, carried in the response so that a reader can check the driver's arithmetic instead of taking `matched_expectation` on trust.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome"],
+          "properties": {
+            "outcome": { "$ref": "#/$defs/beat_outcome" },
+            "sqlstate": { "type": "string", "minLength": 5, "maxLength": 5 },
+            "constraint": { "type": "string", "minLength": 1, "maxLength": 128 },
+            "constraint_source": { "enum": ["reported", "parsed"] }
+          }
+        },
+        "outcome": { "$ref": "#/$defs/beat_outcome" },
+        "sqlstate": {
+          "description": "Verbatim from the driver. 00000 for a beat that did not raise. Never composed.",
+          "type": ["string", "null"],
+          "minLength": 5,
+          "maxLength": 5
+        },
+        "constraint": {
+          "description": "The exhibit. A constraint name for 23514/23503/23505; the fully-qualified name of the raising object for P0001.",
+          "type": ["string", "null"],
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.$]*$"
+        },
+        "constraint_source": {
+          "description": "reported = taken from driver diagnostics. parsed = recovered from the kernel's own `refused by <schema>.<object>` clause, which is a WEAKENED diagnosis and must be rendered as such. Every P0001 lands in the parsed case, measured: on CockroachDB v26.2.5 a PL/pgSQL RAISE carries no constraint_name and no PL/pgSQL context.",
+          "enum": ["reported", "parsed", "absent", null]
+        },
+        "message": {
+          "description": "The database's own message, verbatim apart from whitespace normalisation and the length cap. The driver never writes this sentence.",
+          "type": ["string", "null"],
+          "maxLength": 2048
+        },
+        "matched_expectation": { "type": "boolean" },
+        "elapsed_ms": { "type": "number", "minimum": 0 },
+        "statement": {
+          "description": "The parameterised SQL this beat sent, so a reader can run it themselves.",
+          "type": ["string", "null"],
+          "maxLength": 4096
+        },
+        "refusal": {
+          "description": "The spec/wire refusal payload, unchanged. Its minimal unsatisfiable subset and nearest admissible alternative come from trappoint.explain_refusal — the same engine that produced the refusal — so the explanation cannot disagree with it.",
+          "oneOf": [
+            { "$ref": "https://spec.trappoint.org/1.0/wire/refusal.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "observed": { "$ref": "#/$defs/observed" },
+        "note": {
+          "description": "Set only when something needs saying: a beat whose outcome was not the one it was written against, or an UPDATE that matched no row and therefore never reached the gate.",
+          "type": ["string", "null"],
+          "maxLength": 1024
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "outcome refused -> refusal non-null. A refusal with no payload is the prettified refusal D18 forbids.",
+          "if": { "properties": { "outcome": { "const": "refused" } }, "required": ["outcome"] },
+          "then": {
+            "required": ["refusal"],
+            "properties": {
+              "refusal": { "type": "object" },
+              "constraint": { "type": "string" },
+              "constraint_source": { "enum": ["reported", "parsed"] }
+            }
+          },
+          "else": { "properties": { "refusal": { "type": "null" } } }
+        }
+      ]
+    },
+
+    "beat_outcome": {
+      "description": "read = a SELECT, nothing attempted. refused = the gate said no and named what said it. admitted = the write succeeded (and was then rolled back), which on this run is a defect and makes the verdict NOT PROVEN. retry = 40001. skipped = the beat never ran. error = a SQLSTATE outside the modelled taxonomy — 42501 among them, which is a PRIVILEGE failure and not a gate decision — or an UPDATE that matched no row and therefore never reached the gate.",
+      "enum": ["read", "refused", "admitted", "retry", "skipped", "error"]
+    },
+
+    "observed": {
+      "description": "What this beat saw. Every member is optional because the beats observe different things, and every member that is present is a value the database produced.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state": { "type": "string", "maxLength": 64 },
+        "gate_epoch": { "type": "integer", "minimum": 0 },
+        "head_seq": { "type": "integer", "minimum": 0 },
+        "open_blocking_projected": { "type": "integer", "minimum": 0 },
+        "open_blocking_derived": { "type": "integer", "minimum": 0 },
+        "counters_agree": { "type": "boolean" },
+        "blocking_check_id": { "oneOf": [{ "$ref": "#/$defs/uuid" }, { "type": "null" }] },
+        "severity": { "type": ["integer", "null"], "minimum": 0, "maximum": 5 },
+        "virulence": { "type": ["string", "null"], "maxLength": 64 },
+        "origin": { "type": ["string", "null"], "maxLength": 64 },
+        "defeater_options": {
+          "description": "The codes mainline.defeater_option offers for THIS obligation, read and not stated. They are about the proposed EDIT — whether the control survives it, whether the anchor touched is the one under blame, whether the precursor was answered elsewhere — and deliberately not the permit's three: PRIMARY KEY (check_id, defeater_code) makes a code unique within a check and meaningless outside it. Nothing is signed on this run; the list is here because an obligation is a question, not a checkbox.",
+          "type": "array",
+          "maxItems": 32,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "named_checks": {
+          "description": "The gate CHECKs declared on mainline.change_request, read out of pg_catalog.pg_constraint with their predicates. Which CHECKs are gate refusals is decided by the catalog's own text — every one of them is shaped state <> 'merged' OR <counter> = 0 — so a constraint a future migration adds appears here without an edit.",
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["constraint", "predicate"],
+            "properties": {
+              "constraint": { "type": "string", "minLength": 1, "maxLength": 128 },
+              "predicate": { "type": "string", "minLength": 1, "maxLength": 1024 }
+            }
+          }
+        },
+        "counter_forced_to": { "type": ["integer", "null"] },
+        "counter_after_savepoint_rollback": {
+          "description": "The counter read back INSIDE the transaction after the attack beat's own ROLLBACK TO SAVEPOINT. The forced write is undone twice — here, and again by the transaction's rollback — and both readings are reported so the strength of the persistence claim is visible rather than carried by one boolean.",
+          "type": ["integer", "null"]
+        },
+        "attack": { "type": "string", "maxLength": 512 },
+        "rows_matched": {
+          "description": "How many rows the merge statement matched, present only when it raised nothing. Zero means the compare-and-swap on head_seq missed and the gate was never asked — reported as `error`, never as an admission.",
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+
+    "persistence_check": {
+      "description": "The evidence for `persisted: false`. THREE readings taken before the transaction opened and again after it was rolled back. (1) The ten unscoped whole-table counts, which are gate-run's own list imported rather than copied, so no table can leave one and stay in the other; that reading is `identical` and it is a statement about the DATABASE, which any other caller can move. (2) This change request's own cr_event and merge_record counts. (3) This change request's own row, by VALUE, because the attack beat mutates a column without changing a count. `self_persisted` is (2) and (3) and it is what the VERDICT keys on, for the reason docs/diagnosis/gate-run-fingerprint.md records: a whole-table count cannot distinguish 'I persisted something' from 'somebody else did'. NOTHING WAS NARROWED — the ten counts are gate-run's unchanged and the run-scoped evidence was ADDED beside them, under docs/leads/cloud-hardening-final.md ruling R2.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before",
+        "after",
+        "identical",
+        "self_persisted",
+        "self_evidence",
+        "concurrent_writes",
+        "tables",
+        "subject_tables",
+        "note"
+      ],
+      "properties": {
+        "before": { "$ref": "#/$defs/fingerprint" },
+        "after": { "$ref": "#/$defs/fingerprint" },
+        "identical": {
+          "description": "Every reading is byte-identical before and after. False means SOMETHING moved — not necessarily this run; read `self_persisted` and `concurrent_writes` for which.",
+          "type": "boolean"
+        },
+        "self_persisted": {
+          "description": "Did anything THIS RUN wrote survive the rollback? False is the claim `persisted: false` makes, and it is proven rather than asserted: this change request's row is unchanged — which is where the attack beat's out-of-band UPDATE would show — and its own cr_event and merge_record counts are unchanged. True is a defect in the gate and makes the verdict NOT PROVEN.",
+          "type": "boolean"
+        },
+        "self_evidence": { "$ref": "#/$defs/self_evidence" },
+        "concurrent_writes": {
+          "description": "Null when `identical` is true. Otherwise the tables whose unscoped count moved while this run was open, each as [before, after]. These are ANOTHER caller's rows — a fact about the database this demo shares, reported rather than blamed on the run, and never a reason to narrow the counts above.",
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "tables": {
+          "description": "The ten unscoped tables, named so a reader can recount them.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "subject_tables": {
+          "description": "The two counted for THIS change request only. Neither is among the ten, and they were added here rather than there because the ten prove something about the database and editing them would change a reading POST /v1/demo/gate-run also depends on.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "note": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+
+    "self_evidence": {
+      "description": "The run-scoped readings `self_persisted` is computed from, in the payload so that a reader can recompute the verdict rather than take it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "counter_forced_to",
+        "counter_after_savepoint_rollback",
+        "counter_before",
+        "counter_after_rollback",
+        "witness_written",
+        "subject_row_counts_before",
+        "subject_row_counts_after",
+        "change_request_row_identical"
+      ],
+      "properties": {
+        "counter_forced_to": {
+          "description": "The value the attack beat wrote into mainline.change_request.open_blocking out of band. This run's witness: a value THIS RUN wrote and no other caller did. Null when the beat never got that far, in which case the run wrote nothing at all and the claim below rests on the two readings alone.",
+          "type": ["integer", "null"]
+        },
+        "counter_after_savepoint_rollback": {
+          "description": "The same column read back inside the transaction, after the attack beat's ROLLBACK TO SAVEPOINT. The first of the two fences, observed rather than assumed.",
+          "type": ["integer", "null"]
+        },
+        "counter_before": { "type": ["integer", "null"] },
+        "counter_after_rollback": {
+          "description": "And the second fence: the committed value after the whole transaction was rolled back. Equal to `counter_before` is the proof.",
+          "type": ["integer", "null"]
+        },
+        "witness_written": {
+          "description": "Whether the attack beat actually wrote the witness. False weakens the claim to 'nothing moved' and says so, rather than reporting the stronger sentence a run that never wrote could not earn.",
+          "type": "boolean"
+        },
+        "subject_row_counts_before": { "$ref": "#/$defs/subject_row_counts" },
+        "subject_row_counts_after": { "$ref": "#/$defs/subject_row_counts" },
+        "change_request_row_identical": { "type": "boolean" }
+      }
+    },
+
+    "subject_row_counts": {
+      "description": "The two tables a successful merge would write a surviving row into, counted for THIS change request only. Added beside the ten unscoped counts, never in place of them.",
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 },
+      "minProperties": 2,
+      "maxProperties": 2
+    },
+
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["row_counts", "subject_row_counts", "change_request_row"],
+      "properties": {
+        "row_counts": {
+          "description": "gate-run's ten tables, counted WHOLE. Unscoped on purpose and it stays unscoped: a check that only looked where this run was expected to write could not see a write it was not expecting.",
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "subject_row_counts": { "$ref": "#/$defs/subject_row_counts" },
+        "change_request_row": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "state",
+                "head_seq",
+                "gate_epoch",
+                "open_blocking",
+                "open_conflicts",
+                "open_residue",
+                "merged_commit"
+              ],
+              "properties": {
+                "state": { "type": "string", "maxLength": 64 },
+                "head_seq": { "type": "integer", "minimum": 0 },
+                "gate_epoch": { "type": "integer", "minimum": 0 },
+                "open_blocking": { "type": "integer", "minimum": 0 },
+                "open_conflicts": { "type": "integer", "minimum": 0 },
+                "open_residue": { "type": "integer", "minimum": 0 },
+                "merged_commit": { "type": ["string", "null"], "pattern": "^([0-9a-f]{2})*$" }
+              }
+            },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "uuid_or_token": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "timestamp": { "type": "string", "format": "date-time", "minLength": 1, "maxLength": 64 }
+  }
+}

@@ -417,14 +417,54 @@ def _assert_invoke(data: dict[str, Any], procedure: str, outcome: str, status: i
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
 
-def test_the_five_declared_resources_are_exactly_these() -> None:
+def test_the_six_declared_resources_are_exactly_these() -> None:
+    """Four kernel transitions and two demo drivers. An EQUALITY, never a subset check.
+
+    The sixth is ``cr_gate_run`` — ``POST /v1/demo/cr-gate-run`` — and it is the mirror of
+    ``demo_gate_run`` against the second gated subject. Written as a set equality so that a
+    seventh resource appearing here without the rest of its declaration is a red rather
+    than a silent pass: ``app.py::_routes()``'s own record of this demo's headline defect
+    is every beat implemented and none of it reachable, and a POST that is in this table
+    and in no ``Route`` row is the same defect with the halves swapped.
+    """
     assert set(TRANSITION_RESOURCES) == {
         "materialise_checks",
         "sign_disposition",
         "merge_permit",
         "suspend_permit",
         "demo_gate_run",
+        "cr_gate_run",
     }
+
+
+def test_neither_demo_driver_takes_a_path_parameter_or_mutates() -> None:
+    """``(None, None, False)`` for both, and for the second one that is a SAFETY property.
+
+    ``_demo_guard``'s whole decision is ``subject_id == scenario.permit_id``. A change
+    request identifier never equals a permit identifier, so a mutating change-request
+    transition would fall past the ``demo_subject_write_protected`` branch, reach
+    ``_demo_subject_is_established``, find the permit IS seeded, and be LET THROUGH — an
+    unguarded, irreversible, unauthenticated write on the seeded demo change request, which
+    is the shape ``evidence/deploy/demo-guard-armed.json`` records one subject over.
+
+    The guard is not widened to cover it, because nothing in this wave needs that and
+    widening it now is how the committing route gets added later without the argument being
+    had. What is asserted instead is the shape that makes the guard unnecessary: no path
+    parameter, so ``handle_transition`` never reaches ``_uuid_param``; no procedure; and no
+    mutation, because the whole transaction is rolled back.
+    """
+    for key in ("demo_gate_run", "cr_gate_run"):
+        param_name, procedure, mutates = TRANSITION_RESOURCES[key]
+        assert param_name is None, key
+        assert procedure is None, key
+        assert mutates is False, key
+    mutating = {key for key, (_p, _proc, m) in TRANSITION_RESOURCES.items() if m}
+    assert all(TRANSITION_RESOURCES[key][0] in ("permit_id", "check_id") for key in mutating), (
+        "a mutating resource whose path parameter is neither permit_id nor check_id would "
+        "not be resolved to a permit by handle_transition, so _demo_guard would either be "
+        "skipped or asked about a subject it cannot recognise. Both are the hole this "
+        "wave declined to open."
+    )
 
 
 def test_unknown_resource_is_404_and_not_an_envelope(w4_conn: psycopg.Connection[Any]) -> None:
@@ -1176,6 +1216,54 @@ def test_a_non_string_run_id_is_422(w4_conn: psycopg.Connection[Any]) -> None:
     status, payload = handle_transition("demo_gate_run", {}, {"run_id": 7}, w4_conn)
     assert status == 422
     assert "run_id" in payload["detail"]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# the SECOND demo driver, on a database that does not carry its subject
+#
+# This scratch database is built by `scripts/proof/gate_refusal.py::seed_history`, which
+# seeds a permit and no change request — measured: `grep change_request` over that file
+# finds nothing. That is not a gap to be papered over here. It is the one condition
+# `POST /v1/demo/cr-gate-run` has to answer honestly and that the seeded database can never
+# exercise, so it is asserted where it exists: "there was nothing to ask" and "the gate did
+# not refuse" are different findings and only one of them is about the product.
+#
+# The three-beat run against the subject that IS seeded lives in `test_cr_gate_run.py`,
+# against `conftest.py`'s `demo_database` — the deployed seed.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def test_cr_gate_run_on_a_database_with_no_change_request_is_422_and_not_a_refusal(
+    w4_conn: psycopg.Connection[Any],
+) -> None:
+    status, payload = handle_transition("cr_gate_run", {}, {"run_id": "w4-no-cr"}, w4_conn)
+    assert status == 422, payload
+    assert payload["error"] == "demo_history_not_seeded"
+    assert "change_request" in payload["detail"]
+    assert "MAINLINE_DEMO_CR_ID" in payload["detail"]
+    # A plain {error, detail}, never an envelope: the console's transport treats a non-2xx
+    # body that is not an envelope as a transport failure, which is the correct diagnosis
+    # for "this deployment does not carry that subject". Dressing it as a gate refusal
+    # would put a fabricated exhibit in front of a reader.
+    assert "envelope_version" not in payload
+    assert "sqlstate" not in payload
+
+
+def test_cr_gate_run_hands_the_shared_connection_back_in_autocommit(
+    shared_conn: psycopg.Connection[Any],
+) -> None:
+    """Same borrow, same restore — asserted on the 422 path, which is the one that returns
+    early.
+
+    ``_borrowed``'s ``finally`` is what makes this true for every exit, and a restore
+    written at the bottom of a happy path would pass every other assertion in this section
+    and leak here. This is the newest caller and therefore the one most likely to have been
+    written without it.
+    """
+    status, _payload = handle_transition("cr_gate_run", {}, {}, shared_conn)
+    assert status == 422
+    assert shared_conn.autocommit is True
+    assert _idle(shared_conn), shared_conn.info.transaction_status
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════

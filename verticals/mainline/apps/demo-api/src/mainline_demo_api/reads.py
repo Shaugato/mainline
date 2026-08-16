@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 MAINLINE contributors
 # SPDX-License-Identifier: LicenseRef-FSL-1.1-ALv2
-"""The twelve GET resources declared by ``console/src/data/resources.ts``.
+"""The GET resources declared by ``console/src/data/resources.ts``.
 
 Every function here returns a complete read envelope for one resource key, built from
 one snapshot of one database, with a provenance chip beside every claim the console will
@@ -186,6 +186,12 @@ _DECLARED_PARAMS: Final[Mapping[str, tuple[tuple[str, ...], tuple[str, ...]]]] =
     "permit": (("permit_id",), ()),
     "change_request": (("cr_id",), ()),
     "blocking_checks": (("permit_id",), ()),
+    # THE SECOND GATED SUBJECT'S OBLIGATIONS, declared 2026-08-16. The mirror of
+    # ``blocking_checks`` with the CR's own parameter: ``mainline.blocking_check`` carries
+    # BOTH ``permit_id`` and ``cr_id`` and its ``subject_kind`` says which one is set, so
+    # the two resources are one query over one table asked about two subjects. One path
+    # parameter and no query parameter, exactly as the permit's mirror declares.
+    "cr_blocking_checks": (("cr_id",), ()),
     "disposition": (("check_id",), ()),
     "exposure_receipt": (("receipt_id",), ()),
     "clause_version": (("clause_uuid", "commit_id"), ()),
@@ -602,9 +608,25 @@ def read_change_request(
     )
 
 
-# ── blocking_checks ─────────────────────────────────────────────────────────────────
+# ── blocking_checks, and its change-request mirror ──────────────────────────────────
+#
+# ONE STATEMENT, TWO SUBJECTS, AND THE ONLY DIFFERENCE IS WHICH COLUMN IS ASKED ABOUT.
+# ``mainline.blocking_check`` carries ``permit_id`` and ``cr_id`` side by side with a
+# ``subject_kind`` column saying which of the two is set — ARCHITECTURE.md §5.5's two
+# gated subjects, in one table. So the SELECT below is written ONCE and specialised twice
+# by :meth:`str.format`, and the substituted value is one of two literals written on the
+# next two lines. It is not a caller's string and it cannot become one: a resource key is
+# routed by ``app.ROUTES`` before any of this is reached, and the two derivations happen
+# at import.
+#
+# Two copies of a thirty-line statement would have been the alternative, and the failure
+# it invites is specific rather than aesthetic: the LATERAL join that computes ``open``
+# is the subtlest part of this module, and a fix applied to one copy and not the other
+# would make the CR's obligations look closed while the permit's looked open — a
+# disagreement between two payloads about the same table, which is the exact class of
+# defect this product is about.
 
-_CHECKS_SQL: Final = """
+_CHECKS_SELECT: Final = """
 SELECT bc.check_id, bc.subject_kind, bc.permit_id, bc.cr_id, bc.site_id, bc.clause_uuid,
        encode(bc.commit_id, 'hex')      AS commit_id,
        cv.printed_label                 AS clause_label,
@@ -637,10 +659,143 @@ SELECT bc.check_id, bc.subject_kind, bc.permit_id, bc.cr_id, bc.site_id, bc.clau
           ORDER BY d.signed_at DESC
           LIMIT 1
        ) live ON true
- WHERE bc.permit_id = %s
+ WHERE bc.{subject_column} = %s
  ORDER BY bc.materialised_at, bc.check_id
  LIMIT 512
 """
+
+#: The permit's obligations. ``subject_column`` is a literal on this line.
+_CHECKS_SQL: Final = _CHECKS_SELECT.format(subject_column="permit_id")
+
+#: The change request's, and it is the same statement over the same table.
+_CR_CHECKS_SQL: Final = _CHECKS_SELECT.format(subject_column="cr_id")
+
+
+def _check_statement_refs(subject_table: str) -> list[dict[str, Any]]:
+    """Name the four relations :data:`_CHECKS_SELECT` reads, plus the subject's own table.
+
+    *subject_table* is ``mainline.permit`` or ``mainline.change_request`` — whichever the
+    caller read ``gate_epoch`` off — so a reader of the payload can see which row that
+    number came from rather than inferring it from ``subject_kind``.
+    """
+    return [
+        statement_ref("table", "mainline.blocking_check"),
+        statement_ref("table", "mainline.clause_version"),
+        statement_ref("table", "mainline.event"),
+        statement_ref(
+            "table",
+            "mainline.disposition",
+            text=(
+                "SELECT d.disposition_id FROM mainline.disposition d "
+                "WHERE d.check_id = bc.check_id AND d.retracted_by IS NULL "
+                "ORDER BY d.signed_at DESC LIMIT 1"
+            ),
+        ),
+        statement_ref("table", subject_table),
+    ]
+
+
+def _render_check(row: Mapping[str, Any], resource: str) -> dict[str, Any]:
+    """One ``blocking-check.schema.json#/$defs/blocking_check``, or a 409 naming the row.
+
+    Shared by both subjects because the CONTRACT is shared: the array item requires
+    ``subject_kind`` and admits ``permit_id`` and ``cr_id`` as nullable, so a check
+    belonging to a change request and a check belonging to a permit are the same object
+    with the other identifier null. Rendering them through two functions would have been
+    two chances to disagree about that.
+    """
+    if row["dedupe_key"] is None:  # pragma: no cover - STORED generated column
+        raise Unrepresentable(
+            f"mainline.blocking_check {row['check_id']} has a NULL dedupe_key; "
+            "blocking-check.schema.json requires it as a sha256_hex",
+            resource=resource,
+        )
+    check: dict[str, Any] = {
+        **_pick(
+            row,
+            "check_id",
+            "subject_kind",
+            "permit_id",
+            "cr_id",
+            "site_id",
+            "clause_uuid",
+            "commit_id",
+            "clause_label",
+            "precursor_event_id",
+            "origin",
+            "severity",
+            "virulence",
+            "closure_gen",
+            "control_delta",
+            "recall_run_id",
+            "evidence_summary",
+            "materialised_at",
+            "dedupe_key",
+        ),
+        "open": row["disposition_id"] is None,
+        "disposition_id": jsonable(row["disposition_id"]),
+        "precursor": None,
+    }
+    if row["e_event_id"] is not None:
+        check["precursor"] = {
+            "event_id": jsonable(row["e_event_id"]),
+            "kind": row["e_kind"],
+            "external_ref": row["e_external_ref"],
+            "title": row["e_title"],
+            "occurred_at": jsonable(row["e_occurred_at"]),
+            "severity_actual": jsonable(row["e_severity_actual"]),
+            "severity_potential": jsonable(row["e_severity_potential"]),
+            "severity_gate": jsonable(row["e_severity_gate"]),
+            "severity_basis": row["e_severity_basis"],
+            "source_object_key": row["e_source_object_key"],
+            "source_sha256": row["e_source_sha256"],
+        }
+    return check
+
+
+def _blocking_check_envelope(
+    conn: psycopg.Connection[Any],
+    *,
+    resource: str,
+    subject_kind: str,
+    subject_id: str,
+    gate_epoch: int,
+    checks: Sequence[dict[str, Any]],
+    subject_table: str,
+) -> dict[str, Any]:
+    """Build the ``blocking-check.schema.json`` envelope for either gated subject.
+
+    ``subject_kind`` is chipped ``derived`` and the two identifiers around it are not,
+    and the distinction is the one this module's rule 1 is about. ``subject_id`` and
+    ``gate_epoch`` are columns of *subject_table*, read by the caller's own statement.
+    ``subject_kind`` is a string THIS API wrote, out of which route was matched; the
+    ``subject_kind`` COLUMN inside each check is the database's word and is chipped as
+    one, by the sweeping ``db:column`` over the check object.
+    """
+    prov = Provenance()
+    prov.add("/subject_id", "db:column").add("/gate_epoch", "db:column")
+    prov.add("/subject_kind", "derived")
+    # The two computed fields first, per check, so they survive the 256-pointer cap:
+    # an unclaimed `db:column` is a value the reader can check against the table, while
+    # an unclaimed `derived` would be indistinguishable from one.
+    for index in range(len(checks)):
+        prov.add(f"/checks/{index}/open", "derived")
+        prov.add(f"/checks/{index}/disposition_id", "derived")
+    for index in range(len(checks)):
+        prov.add(f"/checks/{index}", "db:column")
+
+    return read_envelope(
+        resource,
+        {
+            "subject_kind": subject_kind,
+            "subject_id": subject_id,
+            "gate_epoch": gate_epoch,
+            "checks": list(checks),
+        },
+        server_date=db.server_now(conn),
+        provenance=prov,
+        statement_refs=_check_statement_refs(subject_table),
+    )
 
 
 def read_blocking_checks(
@@ -661,7 +816,7 @@ def read_blocking_checks(
     permit_id = _uuid_param(params, "permit_id", "blocking_checks")
     subject = _row(
         conn,
-        "SELECT gate_epoch FROM mainline.permit WHERE permit_id = %s",
+        "SELECT permit_id, gate_epoch FROM mainline.permit WHERE permit_id = %s",
         (permit_id,),
     )
     if subject is None:
@@ -669,96 +824,74 @@ def read_blocking_checks(
             f"no mainline.permit row with permit_id {permit_id}", resource="blocking_checks"
         )
 
-    rows = _rows(conn, _CHECKS_SQL, (permit_id,))
-    checks: list[dict[str, Any]] = []
-    for row in rows:
-        if row["dedupe_key"] is None:  # pragma: no cover - STORED generated column
-            raise Unrepresentable(
-                f"mainline.blocking_check {row['check_id']} has a NULL dedupe_key; "
-                "blocking-check.schema.json requires it as a sha256_hex",
-                resource="blocking_checks",
-            )
-        check: dict[str, Any] = {
-            **_pick(
-                row,
-                "check_id",
-                "subject_kind",
-                "permit_id",
-                "cr_id",
-                "site_id",
-                "clause_uuid",
-                "commit_id",
-                "clause_label",
-                "precursor_event_id",
-                "origin",
-                "severity",
-                "virulence",
-                "closure_gen",
-                "control_delta",
-                "recall_run_id",
-                "evidence_summary",
-                "materialised_at",
-                "dedupe_key",
-            ),
-            "open": row["disposition_id"] is None,
-            "disposition_id": jsonable(row["disposition_id"]),
-            "precursor": None,
-        }
-        if row["e_event_id"] is not None:
-            check["precursor"] = {
-                "event_id": jsonable(row["e_event_id"]),
-                "kind": row["e_kind"],
-                "external_ref": row["e_external_ref"],
-                "title": row["e_title"],
-                "occurred_at": jsonable(row["e_occurred_at"]),
-                "severity_actual": jsonable(row["e_severity_actual"]),
-                "severity_potential": jsonable(row["e_severity_potential"]),
-                "severity_gate": jsonable(row["e_severity_gate"]),
-                "severity_basis": row["e_severity_basis"],
-                "source_object_key": row["e_source_object_key"],
-                "source_sha256": row["e_source_sha256"],
-            }
-        checks.append(check)
+    checks = [
+        _render_check(row, "blocking_checks") for row in _rows(conn, _CHECKS_SQL, (permit_id,))
+    ]
+    return _blocking_check_envelope(
+        conn,
+        resource="blocking_checks",
+        subject_kind="permit",
+        subject_id=str(subject["permit_id"]),
+        gate_epoch=int(subject["gate_epoch"]),
+        checks=checks,
+        subject_table="mainline.permit",
+    )
 
-    data = {
-        "subject_kind": "permit",
-        "subject_id": str(permit_id),
-        "gate_epoch": int(subject["gate_epoch"]),
-        "checks": checks,
-    }
 
-    prov = Provenance()
-    prov.add("/subject_id", "db:column").add("/gate_epoch", "db:column")
-    prov.add("/subject_kind", "derived")
-    # The two computed fields first, per check, so they survive the 256-pointer cap:
-    # an unclaimed `db:column` is a value the reader can check against the table, while
-    # an unclaimed `derived` would be indistinguishable from one.
-    for index in range(len(checks)):
-        prov.add(f"/checks/{index}/open", "derived")
-        prov.add(f"/checks/{index}/disposition_id", "derived")
-    for index in range(len(checks)):
-        prov.add(f"/checks/{index}", "db:column")
+def read_cr_blocking_checks(
+    conn: psycopg.Connection[Any], params: Mapping[str, str], query: Mapping[str, str]
+) -> dict[str, Any]:
+    """``GET /v1/change-requests/{cr_id}/blocking-checks`` — the second subject's obligations.
 
-    return read_envelope(
-        "blocking_checks",
-        data,
-        server_date=db.server_now(conn),
-        provenance=prov,
-        statement_refs=[
-            statement_ref("table", "mainline.blocking_check"),
-            statement_ref("table", "mainline.clause_version"),
-            statement_ref("table", "mainline.event"),
-            statement_ref(
-                "table",
-                "mainline.disposition",
-                text=(
-                    "SELECT d.disposition_id FROM mainline.disposition d "
-                    "WHERE d.check_id = bc.check_id AND d.retracted_by IS NULL "
-                    "ORDER BY d.signed_at DESC LIMIT 1"
-                ),
-            ),
-            statement_ref("table", "mainline.permit"),
-        ],
+    THE MIRROR OF :func:`read_blocking_checks`, AND THE MIRROR IS THE POINT. A permit that
+    a past incident's blame reaches cannot be issued; a change request that proposes to
+    EDIT the clause the same blame reaches cannot be merged. Both refusals are welded to
+    the same table — ``mainline.blocking_check`` — and this read is how a caller sees the
+    second one's obligations at all. Until 2026-08-16 there was no route to them:
+    ``GET /v1/change-requests/{cr_id}`` answered with the row and its four named CHECKs and
+    nothing could list what the ``open_blocking`` counter was counting.
+
+    **NO NEW CONTRACT, and that is a measurement rather than a convenience.**
+    ``blocking-check.schema.json``'s ``data`` requires ``subject_kind``, ``subject_id``,
+    ``gate_epoch`` and ``checks``; ``permit_id`` is not in that required set, and
+    ``common.schema.json#/$defs/subject_kind`` is the closed pair
+    ``permit | change_request``. The contract was written subject-polymorphic and this read
+    is the second subject it was written for. The array item is likewise unchanged: it
+    admits ``permit_id`` and ``cr_id`` as nullable and requires ``subject_kind``, so a CR's
+    check is a permit's check with the other identifier null.
+
+    ``subject_kind`` here is ``"change_request"`` and it is chipped ``derived``, not
+    ``db:column``. No column on ``mainline.change_request`` says it; it is what this API
+    knows because ``app.ROUTES`` matched this template. The ``subject_kind`` column that
+    IS the database's word is the one inside each check, and it is chipped as one.
+    """
+    _check_request("cr_blocking_checks", params, query)
+    cr_id = _uuid_param(params, "cr_id", "cr_blocking_checks")
+    subject = _row(
+        conn,
+        "SELECT cr_id, gate_epoch FROM mainline.change_request WHERE cr_id = %s",
+        (cr_id,),
+    )
+    if subject is None:
+        # The typed absence, exactly as the permit's mirror raises it. "There is no such
+        # change request" and "there is one and it has no obligations" are different
+        # sentences, and an empty `checks` array for an absent subject would assert the
+        # second while meaning the first.
+        raise NotFound(
+            f"no mainline.change_request row with cr_id {cr_id}", resource="cr_blocking_checks"
+        )
+
+    checks = [
+        _render_check(row, "cr_blocking_checks") for row in _rows(conn, _CR_CHECKS_SQL, (cr_id,))
+    ]
+    return _blocking_check_envelope(
+        conn,
+        resource="cr_blocking_checks",
+        subject_kind="change_request",
+        subject_id=str(subject["cr_id"]),
+        gate_epoch=int(subject["gate_epoch"]),
+        checks=checks,
+        subject_table="mainline.change_request",
     )
 
 
@@ -2464,15 +2597,20 @@ def read_demo_subjects(
     return subjects.read_subjects(conn, params, query)
 
 
-#: Resource key → implementation. Exactly the thirteen GETs of
+#: Resource key → implementation. Exactly the fourteen GETs of
 #: ``console/src/data/resources.ts``; ``tests/test_envelope.py`` asserts the set matches.
 #: The thirteenth, ``demo_subjects``, was declared by the console on 2026-08-15 and is the
 #: demo's own subject index — the read that tells a screen which identifier to address,
 #: which is what three screens were carrying in their own source and answering 404 for.
+#: The fourteenth, ``cr_blocking_checks``, landed 2026-08-16: the change request's
+#: obligations, which the console had been probing and rendering the deployment's own 404
+#: for, because ``/v1/change-requests/{cr_id}`` was the ONLY change-request route this API
+#: served.
 READS: Final[Mapping[str, ReadFn]] = {
     "permit": read_permit,
     "change_request": read_change_request,
     "blocking_checks": read_blocking_checks,
+    "cr_blocking_checks": read_cr_blocking_checks,
     "disposition": read_disposition,
     "exposure_receipt": read_exposure_receipt,
     "clause_version": read_clause_version,
