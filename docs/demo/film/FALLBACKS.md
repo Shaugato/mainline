@@ -21,6 +21,12 @@ list, the scanner must PRINT that it skipped this file, so "not scanned" is neve
 its own re-measurement, F-11 tightened under R-9, F-17 and F-18 added, and §4 now carries the
 **R-11 decision gate** and the **NO-GO path** in full. Every amendment is a reading taken today
 against the live origin; the superseded rows are kept and marked, never deleted.
+**Amended again 2026-08-16 · W6 · shoot-documents wave** — the film's second mutating press is
+named with its clock in three places (**F-1a**, **F-11**, **§4.2**): **Click 6 is at `2:14.0`,
+inside `b9`**, per `docs/demo/shoot-docs-plan.md` **`R-SD4`**, and `CLICKS.md` §5's `2:17` is
+**struck**. **No second was added to the film and no spoken word moved** — `R-SD5`: 172 s total,
+174 s hard stop, 180 s ceiling. Every statement of the placement is conditional on §4.2's R-11
+gate (`R-SD4b`).
 **Binding on this file:** `docs/demo/story-and-script-plan.md` §4 — **R-N above all**, and
 R-C, R-E, R-F, R-I, R-J, R-K, R-L; and `docs/demo/film-recut-plan.md` §§4.3, 4.4, 6 and 8 —
 **R-4, R-5, R-7, R-9, R-10** and the decision gate this file numbers **R-11**.
@@ -166,6 +172,55 @@ press in the filmed tab reveals the beats and burns the take (`CLICKS.md` §1.5,
 something no screenshot and no `setTimeout` can produce. `r5-craft` §0.1 is unambiguous: *the
 button takes about two and a half seconds warm and up to about nine cold, and that is not a
 defect to hide — it is the shot.*
+
+#### F-1a · **A COLD *SECOND* PRESS — what it costs at Click 6, and why the pre-roll warm stopped being optional**
+
+**Amended 2026-08-16 under `docs/demo/shoot-docs-plan.md` `R-SD4`.** Conditional, like everything
+about `b9`/`b10`, on §4.2's **R-11** gate: under NO-GO there is no Click 6 and this sub-section is
+inert.
+
+**The film's second and last mutating press is Click 6, `Approve change`, at `2:14.0` — inside
+`b9`, not `b10`.** The struck `2:17` is not the number to reason from. What `R-SD4` budgets is
+**1.5 s of flight**, `2:14.0 → 2:15.5`, with the refusal painting at `2:15.5` and `b10` opening at
+`2:16.0` on a frame that already carries it.
+
+**A cold press does not degrade that. It ends it.**
+
+| the press | answer lands | `b10`'s in-point is `2:16.0` |
+|---|---|---|
+| **warm**, ≈ 2.5 s (`r5-craft` §0.1) | `≈ 2:16.5` | already `0.5 s` late — this is why `R-SD4` budgets `1.5 s`, not 2.5 s, and why the string that gets typed must be short enough to leave the press its slack |
+| **cold**, 7–9 s (F-1) | **`2:21.0` – `2:23.0`** | **5 to 7 seconds past the in-point.** *"Refused."* would be spoken over a spinner |
+
+> ### THE CONSEQUENCE, STATED AS A RULE RATHER THAN AS ADVICE
+>
+> **A cold press at Click 6 blows straight through `b10`'s in-point, and there is no fallback in
+> this file that recovers it.** F-1's two prohibitions still govern and they are the whole of the
+> remedy available in the take: **do not cut, and do not press again.** So the recovery is not in
+> the take at all — **it is in pre-roll, and the pre-roll warm is therefore not optional.**
+
+**What the warm has to cover, and it is two things, not one.**
+
+1. **The function**, per §4's *last sixty seconds* block — 30–60 s before the take, **from a
+   different tab or browser**. A warming press in the filmed tab is a mutating row with no
+   narration and F-11 stops the take for it.
+2. **The change screen's own four-read chain**, which `R-SD4` allots **exactly its warm figure and
+   not one tick more**: the module switch is at `2:05.5` and the paint is budgeted `2:05.5 → 2:09.0`
+   — **3.5 s, the measured warm number** (`CLICKS.md` M14/M8). **Cold that chain is ≈ 6 s**, which
+   lands at `≈ 2:11.5`, *after* the scroll dwell that R-5's evidence needs and inside the typing
+   window. **The chain is incompressible and `R-SD4` refuses to take its 0.5 s from anywhere else**
+   — never from the scroll dwell, never from the reads.
+
+**If the take is already rolling and the press comes back cold anyway:** it is F-1, verbatim —
+say the cold-start line, keep the pending clock and the single in-flight row in the same frame,
+and let the beat run long. **Then stop and re-take from pre-roll step 2.** `b9` and `b10` are
+atomic (R-10), so the pair is re-shot together or not at all; a `b9` whose answer arrived in the
+middle of `b10` is not a beat that can be rescued in the edit, and rescuing it in the edit would be
+editing the thing being claimed.
+
+**NEVER** solve a cold Click 6 by pressing again — that is a second unnarrated `POST` row and F-11
+stops the take for it. **NEVER** solve it by moving `b10`'s in-point past `R-SD4a`'s floored
+`0.4 s`: beyond that cap the mirror hold or the spoken `SQLSTATE` pays, both are protected, and
+that same `0.4 s` is already claimed by `CLAIMS-CLEARANCE.md` `D31` — **it cannot be spent twice**.
 
 ---
 
@@ -601,6 +656,21 @@ R-11 gate in §4.2 passes; under NO-GO the count reverts to one and the narratio
 stays.** The spine field moves `one_post_per_film: true` → `posts_per_film: 2`, and the
 per-request disclosure strap becomes per-request rather than per-film (plan §4.4).
 
+> ### THE TWO ROWS, BY NAME AND BY CLOCK — amended 2026-08-16 under `R-SD4`
+>
+> | # | press | when | block | narrated by |
+> |---|---|---|---|---|
+> | **1 of 2** | Click 2 — `ISSUE` | `0:22.5` (`+2.5` into `b1`) | **`b1`**, the attempt beat; the refusal beat `b2` opens at `0:30` on an answer already painted | `b1`'s line, over the flight |
+> | **2 of 2** | **Click 6 — `Approve change`** | **`2:14.0`** (`+10.0` into `b9`) | **`b9`**, the attempt beat; **`b10` opens at `2:16.0` on a refusal already painted** | the tail of *"This request asks to edit it."*, **1.0 s of narration over the flight** |
+>
+> **`docs/demo/shoot-docs-plan.md` `R-SD4` is the authority and `CLICKS.md` §5's `2:17` is
+> struck.** The two mutating presses are choreographed **identically** — press in the attempt
+> beat, answer painted before the refusal beat's first word — and that symmetry is what makes
+> F-11's count checkable by eye: **one row per attempt beat, and none anywhere else.**
+>
+> **This is a placement, not a permission.** The count is still **two**, the narration condition
+> still binds both, and `R-SD4b` makes the second row conditional on the R-11 gate below.
+
 **SAY:** nothing. **DO:** stop the take, and start again from pre-roll step 2.
 
 **The one exemption, unchanged and still narrow:** F-2, where the first row is **on screen
@@ -915,6 +985,19 @@ camera is pointed at `docs/submission/SUBMISSION.json`** while its `demo_url` re
 missing are the ones today's measurements produced.** A gate that passes on `200`s and fails on
 camera is not a gate.
 
+> ### WHAT THIS GATE IS GATING, NAMED WITH ITS CLOCK — amended 2026-08-16 under `R-SD4`
+>
+> **It gates one press: Click 6 — `Approve change` — at `2:14.0`, `+10.0` into `b9`.** In flight
+> `2:14.0 → 2:15.5`; the refusal paints at `2:15.5`; `b10` opens at `2:16.0` on a refusal that has
+> been on screen for half a second. **`CLICKS.md` §5's `2:17` is struck and `CLICKS-CR.md`'s
+> `+7.4` is struck**; the ruling and its full costing are `docs/demo/shoot-docs-plan.md` `R-SD4`.
+>
+> **`R-SD4b`: the ruling is conditional on this gate and never the other way round.** If the gate
+> is a NO-GO there is **no Click 6 at all** — the film's whole click ledger is five clicks and one
+> text entry, F-11's count reverts to **exactly one** mutating request, `b8` returns to 10 s and
+> the film is 152 s (§4.3). **Nobody enables a control, builds a committing route or grants
+> `mainline_api` a write to make this gate pass** (F-18).
+
 **Run this, in this order, and read every line of output. It takes under a minute.**
 
 ```bash
@@ -1045,6 +1128,7 @@ Written down rather than glossed, in the same form the siblings use.
 | **W6-3** | **`gen_card.py --check` exits 2 on this tree** for a named missing input, and 3 with `--allow-fixtures`. The r6 Part D block does not say so, and a founder reading that block cold will read a non-zero exit as a failure. This file's §4 note is the correction; whether the corpus lock ever lands is not mine. | M7 | corpus-freeze-load worker |
 | **W6-4** | **The SEAL chip's tally was not read by any worker**, including me — the honesty researcher flagged the same gap and marked it speculation. F-6 says read it on the day, and that is the only control there is. | `r6-honesty` speculation item 1 | founder, before the take |
 | **W6-5** | **No worker has run `POST /v1/demo/gate-run` in this wave**, by design. Every payload string quoted across the film's files is from committed evidence or from the handler's source. The day's verdict is the founder's own run and nothing substitutes for it. | M9 | founder |
+| **W6-10** | **`b10`'s `0.4 s` of free slack is claimed by two things and it cannot be spent twice — and this is the one decision on this page that must be made BEFORE the red light, not during a take.** Claimant one is **`R-SD4a`**: if rehearsal shows no honest proposal string types legibly in 2.5 s, `b10`'s first word may slip by at most `0.4 s`, putting Click 6 at `2:14.4`. Claimant two is **`CLAIMS-CLEARANCE.md` `D31`**, the still-open `~ REWORD` of `b10`'s *"guards **edits**"* to *"guards the change"*, priced at **21 words running `1.13 s` against `0.95 s` of slack**. **Beyond the `0.4 s` the payer is the mirror hold or the spoken `SQLSTATE`, and `SPINE.md` §4 protects both.** Nothing in this file can settle it: one is a stopwatch and the other is a claim. **Found by three workers independently and recorded by all three** rather than resolved by whichever noticed it last. | `CLAIMS-CLEARANCE.md` §12.9.2 · `VO-DEMO.md:630` · `CLICKS.md` R-SD4a · F-1a above | **film lead**, who states which it is spent on before the shoot; W2 owns `D31`'s wording with W1 for the seconds |
 
 ---
 

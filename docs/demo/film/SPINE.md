@@ -191,7 +191,7 @@ look. **b3 and b5 are the two beats no cut may reach.**
 | **B10** | `2:16` | 12 s | **Refused again** — the mirror | the answer to it |
 | **K1** | `2:28` | 6 s | The loop | — |
 | **K2** | `2:34` | 10 s | The stack — AWS ∥ CockroachDB | — |
-| **K3** | `2:44` | 6 s | The limit, the rail, the URLs | — |
+| **K3** | `2:44` | 6 s | The limit, the rail, the URLs, **the four contest tools** | — |
 | **end** | `2:50` | 2 s | End card | — |
 
 `148` s demo · `22` s close · `2` s end card · **`172` s total** · hard stop `174` s ·
@@ -347,9 +347,32 @@ staged refusal is a rules violation and not merely a dishonesty.
   reach 22 s. **The saving is dwell, speech, and running two sequential cards in parallel, and
   nothing else.** Devpost asks that these be *"on screen (text overlay or slide) so judges can
   confirm them quickly"* and never asks for them narrated. The proof that this is delivery and
-  not content: the close's words-per-second **does not move** — 1.64 at 50 s, 1.64 at 22 s.
+  not content: the close's words-per-second **does not rise** — **1.64 at 50 s, 1.55 at 22 s**.
+  **CORRECTED 2026-08-16, and it was stale rather than wrong in direction.** This line read
+  *"1.64 at 50 s, 1.64 at 22 s"* until today, and that second 1.64 was the pre-`D35` first
+  draft's 36-word budget. `VO-CLOSE.md` §0.2 is the measurement and carries all three columns:
+  `82 w ÷ 50 s = 1.640`; `36 w ÷ 22 s = 1.636`; and — after `D35` restored *"is exercised in
+  this repository"* beside *"not in this path"* in K2's Bedrock line, at 14 words rather than
+  16 — `34 delivered w ÷ 22 s = 1.545`. **The argument gets STRONGER, not weaker.** A close
+  compressed in *content* would show up here as a **rising** w/s; this one reads `0.095 w/s`
+  **slower** than the 50 s cut it replaced (`1.640 → 1.545`) and `0.091 w/s` slower than its own
+  first-draft budget (`1.636 → 1.545`). `close_words: 36` in `BEATS.yaml` does not move: a budget
+  is a ceiling, and under-running one is free.
 * **K3** — must not point a camera at the submission metadata file while any field in it is
   unresolved. Must not claim a green lane for this URL: nothing in CI has ever asserted it.
+  **Since 2026-08-16 this card also carries the four contest CockroachDB tools, each in the
+  state it was measured in** — Distributed Vector Indexing (C-SPANN), Managed MCP Server and
+  CockroachDB Cloud + `ccloud` CLI **EXERCISED**, each beside the committed evidence path a
+  judge can open; CockroachDB Agent Skills **DESIGNED**, shipped and validated, with no run
+  committed under `evidence/`. Must not state that fourth tool in any better state than
+  DESIGNED, and must never drop its row so the panel reads as four exercised tools — that is
+  how *"three exercised, one designed"* silently becomes *"four tools"*, and it is a REFUSE
+  (`../close-card-plan.md` R-C5). **No second and no spoken word was added to put them there.**
+  K3 stays 6 s on a 10-word budget, the close stays 22 s, the film stays 172 s, and the whole
+  cost is glyph size — `34.2 px → 25.6 px`, still larger than either card K2 replaced was
+  cleared at (K2 composed 20.5 px, old C3 24.9 px). The panel's geometry, its remedy ladder and
+  its never-cut-for-content rule live in `../close-card-plan.md` R-C4/R-C5 and in `BEATS.yaml`
+  at `k3` and at `cut_ladder` rank 4.
 * **end** — must not swell. No logo animation, no music resolve, no "thanks for watching".
 
 **Two openings, recorded here so nobody re-proposes them at 02:00:**
@@ -400,6 +423,17 @@ that the answer is a question, and the cost lattice survives), rank 3 loses dwel
 cheapest thing in any film. Rank 4 gives up the film's last *spoken* concession while the screen
 keeps every word of it, which is a real loss to a judge who is listening rather than reading, so
 it goes fourth and not first. Rank 5 is floored, and §5.1 says why.
+
+**Rank 4 got worse on 2026-08-16 and it keeps its rank anyway.** K3 now also carries the contest
+tools panel, so at 4 s the panel is the densest **unread** thing on the card and the step
+shortens the one card a judge is most likely to pause on. It stays at rank 4 — it is still the
+last step before the ladder reaches B10, which §5.1 floors at 8 s, and moving K3 down the order
+would put a floored step above an unfloored one — but the new cost is **recorded** in
+`BEATS.yaml`'s rank-4 `why` rather than left at its old value, because
+re-ordering a pre-committed ladder is the film lead's call at rehearsal and never a documentation
+edit. **The panel is never cut for content, at this step or any other**: it may lose its
+horizontal rule and the blank line under its heading, both decoration; it may never lose a row
+and never the `DESIGNED` state. Shortening K3 is a cut to **dwell**.
 
 ### 5.1 · RULING R-10 — USE CASE TWO IS ATOMIC
 
@@ -493,6 +527,19 @@ one-sentence answer if a judge asks.
   `BEATS.yaml` is a one-line summary for orientation, not a specification.
 * **The clicks and the typed input.** W5 owns `CLICKS.md`, including what the founder types into
   the change request's own field in B9.
+
+  **One timing question inside that ownership was ruled by the film lead on 2026-08-16, and it is
+  recorded here because it touches an in-point.** The film's second mutating press — **Click 6,
+  *Approve change*** — lands at **`2:14.0`, `+10.0` into B9**, so the request is in flight across
+  the B9/B10 seam and **B10 opens at `2:16` on a refusal that is already on screen**. It was ruled
+  on this film's own grammar: B1 carries its press at `+2.5` and B2 in-points where the refusal is
+  visible, and the film's two mutating presses are choreographed the same way. **`CLICKS.md` §5 is
+  where it is choreographed, and not one duration or in-point in this file moved for it** — B9 is
+  12 s at `2:04`, B10 is 12 s at `2:16`, the demo is 148 s and the film is 172 s, exactly as §2
+  and §5 already have them. What it costs is B9's keystroke window, `5.0 s → 2.5 s`, priced in
+  `../shoot-docs-plan.md` R-SD4 and floored at 0.4 s by R-SD4a. **Live only if `FALLBACKS.md`
+  §4.2's R-11 gate passes**; on the no-go path there is no Click 6 at all and §5.1's escape hatch
+  gives the 152 s film.
 * **What happens if the day goes wrong.** W6 owns `FALLBACKS.md`. One thing is settled here
   because it is a timing question: a retry on a serialisation error is **pressed again on
   camera** and costs its own seconds out of the margin above `total_s`, not out of B5.

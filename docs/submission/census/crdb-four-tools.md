@@ -19,24 +19,111 @@ compliance spine: one row per named tool, each with a state, an evidence path, a
 stranger can paste in under a minute **with that verification's real output**, and the exact
 sentence the close block may use.
 
-**Headline: all four are used, and each is used in a different way — which is the finding, not the
-count.** Two carry a live transcript against CockroachDB Cloud, one carries a server-enforced
-refusal, one ships as installable open source. The states below are the plan's §R2 vocabulary.
+**Headline: four are named, three are exercised with a committed transcript, and the fourth is
+shipped and not evidenced — which, against a floor of two, is a margin stated rather than a count
+inflated.** Two of the three carry a live transcript against CockroachDB Cloud, one carries a
+server-enforced refusal, and the fourth ships as installable open source with no run captured. The
+`state` column is the plan's §R2 vocabulary; the `verdict` column is
+`evidence/tool-usage/crdb-features.json`'s, and it is the word the film's closing card prints.
 
-| # | contest-named tool | state | the one-line reading | the honest limit, stated in the row |
+| # | contest-named tool | state | verdict | the one-line reading | the honest limit, stated in the row |
+|---|---|---|---|---|---|
+| 1 | **CockroachDB Cloud Managed MCP Server** | **REPO** | **EXERCISED** | Two committed end-to-end transcripts against `https://cockroachlabs.cloud/mcp`, five days apart. **15 of 16** both times. | verdict `DIVERGED — KNOWN GAP`; `credential_publishable: false` |
+| 2 | **CockroachDB Distributed Vector Indexing** | **REPO** | **EXERCISED** | 3 `cspann` indexes, live in the same database the demo reads; the prefix rule is enforced by the server at `42809`. | no ANN query runs in the demo's HTTP request path |
+| 3 | **ccloud CLI (Agent-Ready)** | **REPO** | **EXERCISED** | `ccloud auth whoami` + `ccloud cluster list -o json`, verbatim transcript, JSON parsed not screen-scraped. | 0.6.12 has no headless service-account auth — an agent cannot drive it cold |
+| 4 | **CockroachDB Agent Skills Repo (Open Source)** | **DESIGNED** | **DESIGNED** | 3 skills validate under two validators; both authored scripts run locally and both can be made to fail. | **no run of either is captured under `evidence/`** — shipped and not evidenced; the upstream contribution is **staged, not filed**; the green CI run is at `2dc5c86`, behind the tip |
+
+**Rows 1–3 are REPO, and that is the honest answer for them.** Under §R2, REPO means *exercised in
+this repository, with a committed artefact, but not in the live demo's HTTP request path*. The live
+origin's request path opens a `psycopg` connection and reads SSM; it does not call MCP, does not run
+an ANN query, does not shell out to `ccloud`, and does not load a skill. Saying so is the
+construction the repository already uses for Bedrock (§R4), and it costs nothing — because what
+those three *do* carry is a transcript against the real managed cluster, which is a stronger
+artefact than a code path a judge cannot see.
+
+**Row 4 is not REPO and must never be written as REPO.** REPO's first clause is *a committed
+artefact*, and there is none: no run of `assert_gate_refuses.py` or `assert_prefix_index_used.py` is
+captured under `evidence/`. An earlier draft of this file ruled row 4 up to REPO on the strength of
+a CI lane; **§4.1 now records that ruling as withdrawn.** The floor is two and three are exercised,
+so the promotion bought nothing and risked the only thing this census sells.
+
+---
+
+## 0.1 · THE FOUR LINES THE CLOSING CARD PRINTS, AND THE FOUR COMMANDS THAT CHECK THEM
+
+The film's closing card `k3` carries a four-row tools panel. **Every value on it is measured, and
+every value resolves to a section of this file.** Nothing is on that card that is not below, and no
+row on the card is in a better state than its row here.
+
+| the panel row | verdict | the measured values on it | evidence path | §  |
 |---|---|---|---|---|
-| 1 | **CockroachDB Cloud Managed MCP Server** | **REPO** | Two committed end-to-end transcripts against `https://cockroachlabs.cloud/mcp`, five days apart. **15 of 16** both times. | verdict `DIVERGED — KNOWN GAP`; `credential_publishable: false` |
-| 2 | **CockroachDB Distributed Vector Indexing** | **REPO** | 3 `cspann` indexes, live in the same database the demo reads; the prefix rule is enforced by the server at `42809`. | no ANN query runs in the demo's HTTP request path |
-| 3 | **ccloud CLI (Agent-Ready)** | **REPO** | `ccloud auth whoami` + `ccloud cluster list -o json`, verbatim transcript, JSON parsed not screen-scraped. | 0.6.12 has no headless service-account auth — an agent cannot drive it cold |
-| 4 | **CockroachDB Agent Skills Repo (Open Source)** | **REPO** | 3 skills validate under two validators; both authored scripts run and both can be made to fail. | the upstream contribution is **staged, not filed**; the green CI run is at `2dc5c86`, behind the tip |
+| Distributed Vector Indexing (C-SPANN) | **EXERCISED** | **3** `cspann` indexes · **4** `VECTOR` columns · `42809` | `evidence/aws/ann/` | §2 |
+| Managed MCP Server | **EXERCISED** | **15 of 16** · `DIVERGED — KNOWN GAP` · published, not rounded | `evidence/mcp/` | §1 |
+| CockroachDB Cloud + `ccloud` CLI | **EXERCISED** | `cluster list -o json`, parsed not screen-scraped | `evidence/ccloud/` | §3 |
+| CockroachDB Agent Skills | **DESIGNED** | shipped, validated; **NO RUN IS COMMITTED** | `skills/` | §4 |
 
-**Every state in that table is REPO, and that is the honest answer.** Under §R2, REPO means
-*exercised in this repository, with a committed artefact, but not in the live demo's HTTP request
-path*. The live origin's request path opens a `psycopg` connection and reads SSM; it does not call
-MCP, does not run an ANN query, does not shell out to `ccloud`, and does not load a skill. Saying
-so is the construction the repository already uses for Bedrock (§R4), and it costs nothing —
-because what the four tools *do* carry is a transcript against the real managed cluster, which is a
-stronger artefact than a code path a judge cannot see.
+Measured on 2026-08-16 for the first row, against the pinned local node: **3** indexes whose
+`indexdef` contains `cspann`, and **4** columns of SQL type `vector` (plus one `tsvector`, which is
+not counted as a vector column — see §2.1). `42809` occurs **3 times** in
+`evidence/aws/ann/explain-unhinted.txt`: once in the file's own prose at `:26`, and **twice as the
+refusal itself**, at `:205` and `:220`.
+
+### 0.1.1 · The four one-liners, and the first line each one actually printed
+
+**These four were run verbatim from the repository root on 2026-08-16 before being published here,
+so nothing in this block is a command that has not been executed.** All four read committed files —
+**no network call, no credential, and no cluster is needed for any of them**, which is why they are
+the four the card prints. `python` is the repository interpreter, `.venv/Scripts/python.exe`.
+
+```bash
+# Managed MCP
+python -c "import json;d=json.load(open('evidence/mcp/pack-run.json'));print(d['passed'],'/',d['total'],d['verdict'])"
+
+# C-SPANN
+grep -n "REFUSED BY THE SERVER" evidence/aws/ann/explain-unhinted.txt
+
+# ccloud — the transcript, parsed rather than screen-scraped
+tail -n +2 evidence/ccloud/cluster-list.txt | python -c "import json,sys;print([c['cockroach_version'] for c in json.load(sys.stdin)])"
+
+# Agent Skills
+python -c "import json;print(json.load(open('evidence/tool-usage/crdb-features.json'))['rows']['crdb_agent_skills']['verdict'])"
+```
+
+Observed output, pasted:
+
+```
+15 / 16 DIVERGED — KNOWN GAP
+
+205:  REFUSED BY THE SERVER — SQLSTATE 42809
+220:  REFUSED BY THE SERVER — SQLSTATE 42809
+
+['v26.2.5']
+
+DESIGNED
+```
+
+**The fourth command prints `DESIGNED`, and the card already said so** — which is the whole reason
+the state is on the card. A judge who runs the four in the order the card lists them gets three
+transcripts and one honest absence, and never has to take a sentence on trust.
+
+### 0.1.2 · Two taxonomies are in play, and they must not be added together
+
+`DEVPOST.md` already makes this point and this file repeats it, because the count is the thing a
+rival team would attack first. **The hackathon's four named tools and this census's four `kind:
+tool` rows are deliberately not the same four.**
+
+* *The hackathon's* four: Distributed Vector Indexing, Managed MCP Server, `ccloud` CLI — in the
+  order the Technological Implementation criterion enumerates them — then Agent Skills, which is
+  named in the submission requirements and **not** in that criterion.
+* *The census's* `kind` column splits its 14 CockroachDB rows **4 tools / 10 engine features**
+  (`totals.by_kind`, measured in `evidence/tool-usage/crdb-features.json`). Its four tool rows are
+  the database itself, Cloud with `ccloud`, the Managed MCP Server, and Agent Skills.
+
+**So Distributed Vector Indexing appears above as one of the hackathon's four tools and is filed by
+the census as one of its ten engine features — `crdb_vector_index`, `kind: feature`. That is one
+thing counted under two schemes, not two things.** It is said out loud here so that nobody adds the
+lists together and reports five, and because counting a feature as a tool to clear a bar is exactly
+the arithmetic this repository exists to refuse.
 
 ---
 
@@ -390,7 +477,9 @@ never say:    "Our agent drives ccloud."  (It cannot, from a cold start, on 0.6.
 ## 4 · CockroachDB Agent Skills Repo (Open Source)
 
 ```
-state:        REPO  (EXERCISED — see the ruling in §4.1, which corrects the generator's DESIGNED)
+state:        DESIGNED  (the generator's verdict, KEPT — see §4.1, where this file's earlier
+                        promotion to REPO/EXERCISED is withdrawn. NO RUN IS CAPTURED UNDER
+                        evidence/: the skills are shipped and not evidenced.)
 what it is:   Agent Skills for building database-enforced refusals on CockroachDB, distributed
               two ways (Agent Skills spec + Claude Code plugin marketplace), each shipping a script
               that FAILS when the guarantee does not hold.
@@ -402,7 +491,15 @@ where:        skills/designing-diachronic-gates/          SKILL.md + 3 reference
               .claude-plugin/marketplace.json             the plugin distribution manifest
 ```
 
-### 4.1 · The ruling: DESIGNED versus "solid", resolved by measurement
+### 4.1 · The ruling, WITHDRAWN — this row stays DESIGNED
+
+> **Amended 2026-08-16.** An earlier version of this section ruled that the census state for this
+> tool was *REPO (= EXERCISED)* and that the generator was understated against its own definition.
+> **That ruling is withdrawn.** The row's verdict is **DESIGNED**, the generator's own word, and it
+> is the word the film's closing card prints. The argument that produced the promotion is preserved
+> below, because it is a real argument and deleting it would hide why the state was ever in doubt —
+> but it is preserved as an argument that was **not** acted on. Three reasons it was withdrawn are
+> in §4.1.1, and the decisive one is the second.
 
 `evidence/tool-usage/crdb-features.json` marks `crdb_agent_skills` **DESIGNED** with this basis:
 
@@ -428,19 +525,37 @@ holds:
 3. **Both scripts run here, today, on a machine with no credential**, which is the property the
    skills actually sell.
 
-**Ruling: the census state for this tool is REPO (= EXERCISED), and the generator row is
-understated against its own definition.** Two caveats travel with the promotion and must not be
-dropped:
+**That was the case for promotion. It is not accepted.** Two caveats always travelled with it, and
+on re-reading they are not caveats — they are the answer:
 
 - **The green run is at `2dc5c86`, which `docs/CI-STATE.md` itself calls "five commits behind" the
   tip it was measuring.** A green whose head is old is a claim about a tree nobody is running. The
   cure is a dispatch, not a sentence — escalated in §5.
 - **No `evidence/` JSON artefact of a skill-script run is committed.** The record is a CI run id plus
-  a locally reproducible self-test. That is weaker than the MCP row's transcript, and the close block
-  should not imply otherwise.
+  a locally reproducible self-test. That is weaker than the MCP row's transcript, and neither the
+  close block nor the film may imply otherwise.
 
-Per §R6 this ruling is proposed as prose plus an exact detector, not as an edit to the generator —
-see §6. **I did not touch `scripts/submission/capture_tool_evidence.py`.**
+#### 4.1.1 · Why the promotion was withdrawn, in order of weight
+
+1. **Part 2 of the promotion's own detector refutes it.** The detector stores the commit beside the
+   run id precisely so a stale green cannot masquerade as a green at HEAD — and the recorded green
+   is stale. A predicate that is built to catch this exact failure, and then catches it, has
+   answered the question.
+2. **REPO's first clause is a committed artefact, and there is none.** *"Neither script's run is
+   captured under `evidence/`"* is the generator's basis string, and this file has never been able
+   to contradict it — it argued around it, via the definition's second clause. **On the one page a
+   judge is pointed at for states, arguing around a missing artefact is the failure mode this whole
+   census exists to prevent.** The correct verb for a shipped-and-unevidenced tool is *DESIGNED*.
+3. **It bought nothing.** The eligibility floor is **two**; three tools carry a committed
+   transcript. Promoting a fourth changes no outcome and puts the credibility of the other three in
+   play. A `DESIGNED` sitting in the same column as three `EXERCISED`s is the reason a judge
+   believes the three.
+
+**The cure is a captured run, and capturing one is out of scope for this wave** — nothing under
+`evidence/` or `skills/` is written by this file, and the state is reported here, never created.
+The verdict moves when a run is committed, not when a sentence is rewritten. Per §R6 the detector
+is still proposed as prose, not as an edit to the generator — see §6. **I did not touch
+`scripts/submission/capture_tool_evidence.py`.**
 
 ### 4.2 · What is actually there
 
@@ -504,9 +619,15 @@ say this:     "We authored two CockroachDB Agent Skills and published them under
               that fails when the guarantee does not hold — and CI runs the failing half first: nine
               unwelding rows against a throwaway CockroachDB node, four of which must ADMIT, plus
               nine planted violations each refused by name. A third skill is de-branded and staged
-              for contribution to cockroachlabs/cockroachdb-skills."
+              for contribution to cockroachlabs/cockroachdb-skills. We file this one DESIGNED, not
+              exercised — no run of either script is captured under evidence/, so it is shipped and
+              not evidenced. It is a fourth tool past a floor of two, and we do not promote it to
+              lengthen a list."
 
-never say:    "Our skill was merged upstream."  (Nothing is merged. The CI claims-grep fails the
+never say:    "All four contest tools are exercised."  (Three are, each with a committed
+              transcript. This one is DESIGNED, and the closing card prints DESIGNED in the same
+              capitals it prints EXERCISED in.)
+              "Our skill was merged upstream."  (Nothing is merged. The CI claims-grep fails the
               build on that sentence.)
               "We contributed a skill to CockroachDB."  (It is STAGED and READY TO FILE. Measured:
               docs/upstream/proposal-issue.md still says "Skill, ready to file" and carries a
@@ -529,7 +650,7 @@ Nothing in this section was acted on. Each is out of scope by construction.
 | E1 | **`N01` / the `mainline_qa` grant.** The `managed-mcp` identity can read `mainline_qa.v_disposition_profile`; the pack asserts it cannot. Closing it means revoking a grant on submission eve. | Standing prohibition: **never widen or narrow a database grant.** And a negative suite that has quietly gone green is the worst artefact in a repository, because it reads as the strongest. |
 | E2 | **Re-dispatch the `skills` lane at the tip.** The recorded green is at `2dc5c86`. A dispatch would convert "green five commits ago" into "green at HEAD" and costs one click. | Not mine to trigger; and CI state is W7/orchestrator territory. |
 | E3 | **File the upstream proposal, or state clearly that it is staged.** `docs/upstream/proposal-issue.md` carries a four-item re-check list to run first (the target domain was `.gitkeep`-only on 2026-08-10 and that stops being true the moment somebody else files). | Filing is a public action on another organisation's repository. Founder's call. |
-| E4 | **`evidence/tool-usage/crdb-features.json` row `crdb_agent_skills` still reads DESIGNED.** §4.1 rules it REPO/EXERCISED. | §R6: workers propose rows and detectors; they do not edit the generator. Detector in §6. |
+| E4 | **`crdb_agent_skills` reads DESIGNED, and this file now agrees with it.** The open question is not the verdict but the *basis string*, which tests only the first clause of the generator's own EXERCISED definition. **Nothing here asks for a promotion** — a promotion needs a captured run under `evidence/`, and capturing one is prohibited in this wave. | §R6: workers propose detectors; they do not edit the generator, and they do not manufacture the evidence that would move a verdict. Detector in §6. |
 
 ---
 
@@ -538,8 +659,10 @@ Nothing in this section was acted on. Each is out of scope by construction.
 Proposed for `scripts/submission/capture_tool_evidence.py`, as prose plus the exact probe. **Not
 applied by this worker.**
 
-**`crdb_agent_skills` → EXERCISED.** Replace the current `verdict_basis` with a two-part predicate,
-both parts machine-checkable:
+**`crdb_agent_skills` → the verdict stays `DESIGNED`; only the `verdict_basis` gets sharper.** The
+proposal below is a two-part predicate, both parts machine-checkable. **Part 2 is what refuses the
+promotion**, and it is included for exactly that reason — a detector that can only ever say yes is
+not a detector:
 
 ```python
 # part 1 — a check in this repository runs both shipped scripts (the generator's own
@@ -559,8 +682,8 @@ runs_both = (
 
 Suggested `verdict_basis` text, carrying its own caveat the way `crdb_managed_mcp`'s does:
 
-> PROMOTED 2026-08-16. The prior basis tested only the first clause of EXERCISED ("a committed
-> artefact") and not the second ("or a check in this repository"). `.github/workflows/skills.yml`
+> DESIGNED, and the basis is sharpened rather than the verdict moved (2026-08-16).
+> `.github/workflows/skills.yml`
 > runs `assert_gate_refuses.py --self-test --docker-only` (nine unwelding rows against
 > `cockroachdb/cockroach:v26.2.5`, four of which must ADMIT), `assert_prefix_index_used.py
 > --self-test`, and a red-before-green step requiring exit 1 on an unwelded schema; plus five
@@ -578,6 +701,18 @@ the divergence is still honestly recorded.
 ---
 
 ## 7 · What this worker did not do
+
+> **Amendment, 2026-08-16 (close-card wave, worker W5).** This section is kept as written and
+> extended, not replaced. Since it was first published, this file has been amended three ways and
+> **every amendment moves a claim down or leaves it flat — none moves one up.** §4/§4.1 withdraw
+> the promotion of Agent Skills and restore **DESIGNED**; §0 adds the generator's `verdict` column
+> beside the §R2 `state` column so the two vocabularies cannot silently diverge; §0.1 adds the four
+> panel rows, the four one-liners **as actually run**, and the two-taxonomies note. Additional
+> reads made for those: four verification one-liners run from the repository root, and two
+> `SELECT`s against the pinned local node (`pg_indexes`, `information_schema.columns`) confirming
+> **3** `cspann` indexes and **4** `vector` columns. **No file under `evidence/`, `skills/` or
+> `infra/` was written or read for anything but text; no run was captured to promote a row; no
+> commit.**
 
 - **No new MCP session, and no cloud credential was read, written or printed.** Every MCP number
   here was parsed out of a committed file (§R1's explicit instruction).
@@ -606,12 +741,16 @@ submission surface is `docs/submission/*.md`, non-recursive:
 python scripts/demo/claim_hygiene.py --check docs/submission/census/crdb-four-tools.md
 ```
 
-Result: **10 findings, every one of them `HYG-sha-literal`, and zero findings in any other family**
-— including every must-not-claim rule. `HYG-sha-literal` is the one family the submission surface
+Result, **re-run after the 2026-08-16 close-card amendment: 14 findings, every one of them
+`HYG-sha-literal`, and zero findings in any other family** — including every must-not-claim rule.
+(It was 10 before the amendment; the four new ones are further citations of the same stale-green
+commit, added by §4.1.1 and by the `verdict` column, and the count is re-stated rather than left at
+the number that was true yesterday.) `HYG-sha-literal` is the one family the submission surface
 deliberately scopes out, in the scanner's own printed words: *"a provenance disclosure's job is to
 quote git commits; the ban is on SHAs in the film and the deck, where `commit_id` cannot be chosen
-in advance."* The ten literals here are `5f57146`, `c951558` and `2dc5c86` — the last of which is
+in advance."* The literals here are `5f57146`, `c951558` and `2dc5c86` — the last of which is
 load-bearing, because "the skills lane is green at `2dc5c86`, not at the tip" is not a checkable
-sentence without it, and `docs/CI-STATE.md` and the census plan itself quote commits the same way.
+sentence without it, and it is the sentence that now **holds this row at DESIGNED**.
+`docs/CI-STATE.md` and the census plan itself quote commits the same way.
 **W7: if the submission glob is ever widened to `docs/submission/**/*.md`, this file passes — that
 family is not re-applied there.**

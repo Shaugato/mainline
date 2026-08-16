@@ -142,8 +142,10 @@ that actually settles it.**
    pre-typed** — it is typed on camera or it is not on screen at all. `B9` must therefore hold: the
    module switch, ≈ 3.5 s of read chain nobody may cut away from, a scroll to the clause, and the
    typing. `CLICKS.md`'s own choreography spends all twelve seconds on exactly that — travel and
-   module switch `2:04–2:05.5`, the four-read paint `2:05.5–2:09`, the scroll `2:09–2:10.5`, the
-   click into the box `2:10.5–2:11`, the typing `2:11–2:16` — and its `B8` note says in terms that
+   module switch `2:04.0–2:05.5`, the four-read paint `2:05.5–2:09.0`, the scroll `2:09.0–2:10.5`,
+   the click into the box `2:10.5–2:11.0`, the typing `2:11.0–2:13.5`, the travel to `Approve
+   change` `2:13.5–2:14.0`, **Click 6 at `2:14.0`** and the request in flight to `2:15.5`
+   (`shoot-docs-plan.md` `R-SD4`, §1's ruling box below) — and its `B8` note says in terms that
    *"B9's read chain needs every one of its own 12 seconds (M14)."* **Ten does not fit**, and the
    same measurement is what voids the cut ladder's rank-1 saving on `b9`. A decomposition that
    starts by over-running its first block is not a decomposition, whatever it totals.
@@ -225,27 +227,68 @@ path of record**; `CLICKS-CR.md` §4 is its pre-flight and field-path companion.
 it and hears it dismissed stops believing the next twenty seconds. Say it as if it were a good
 point, because it is one.
 
-> ### ⚠ **OPEN ITEM, NOT SETTLED HERE, AND NOT MINE TO SETTLE — WHERE THE PRESS LANDS**
+> ### ✔ **RULED, 2026-08-16 — THE PRESS LANDS AT `2:14.0`, UNDER THIS BLOCK'S LAST SENTENCE.** No word moves
 >
-> **This file used to state that the press lands under `B9`'s last sentence, exactly as `B1`'s
-> does.** `CLICKS.md` §5 — the choreography of record, written against a read chain it measured
-> twice — puts **Click 6 at `2:17`**, which is one second **inside `B10`**, with the pending state
-> running to `2:18.5` and the refusal painting from `2:18.5`. **Those two placements are not
-> compatible and this sheet does not get to pick.**
+> **`docs/demo/shoot-docs-plan.md` `R-SD4` closed the open item this box used to carry, and it
+> closed it in favour of candidate (a).** Click 6 — `Approve change` — is at **`2:14.0`**, `+10.0`
+> into `b9`. The request is in flight `2:14.0 → 2:15.5`, so the tail of *"This request asks to edit
+> it."* runs over the flight and R-9 is satisfied. **The refusal paints at `2:15.5`**, and `B10`
+> opens at `2:16.0` on a refusal already on screen, so *"Refused."* names a value the viewer can
+> see and R-K is satisfied with 0.5 s to spare. **`CLICKS.md`'s `2:17` is struck** — it put the
+> value on screen 2.5 s *after* the word, which R-K does not permit at any price. **This file's
+> literal `+7.4` is struck too**: it was scored against the retired 10 s `B9` and in the 12 s block
+> lands at `2:11.4`, in the middle of the typing. The placement survived; neither number did.
 >
-> **Why it matters rather than being a detail.** `B10`'s first spoken word is *"Refused."* at its
-> in-point. Under `CLICKS.md`'s placement the refusal has not landed when that word is said, which
-> R-K forbids — a value is spoken while it is on screen or it is not spoken — and R-9 requires each
-> mutating request to be narrated **while it is in flight**. Under this file's former placement the
-> press sits inside `B9`, which `CLICKS.md` measured as having no spare second to give it.
+> **What it costs is picture, not words, and that is the whole reason it was chosen.** `B9`'s
+> typing window falls 5.0 s → 2.5 s and its 1.1 s of settle slack (§2, from `VO-DEMO.md` §2:595) is
+> re-purposed to the answer landing. **No spoken word, no word count, no `w/s` figure and no beat
+> duration changes anywhere in this file for it.** `CLICKS-CR.md` §4.2 and §5.6 carry the picture
+> half, including the stopwatch check that the proposed wording types legibly in 2.5 s.
 >
-> **The two candidate resolutions, costed, neither taken here.** (a) Move Click 6 back into `B9`
-> and re-time `B9`'s typing — `CLICKS.md` M14 says the read chain is ≈ 3.5 s warm and cannot be
-> compressed, so this spends the typing, which R-2 makes load-bearing. (b) Start `B10`'s line
-> ≈ 2.5 s after its in-point — 20 words in the remaining ≈ 9.5 s is **2.11 w/s**, over every rate
-> ceiling in this kit, so it costs words rather than seconds. **Owner: the film lead, with W1 for
-> the seconds and W2 for the words.** Recorded rather than quietly resolved, because either fix
-> spends something and neither is a documentation edit.
+> #### **WHY CANDIDATE (b) WAS REJECTED — it is not expensive, it is unaffordable**
+>
+> Candidate (b) was *"start `B10`'s line ≈ 2.5 s after its in-point"*. **`VO-DEMO.md` §2's own beat
+> table, line 596, measures `B10`'s slack at 1.5 s** — and that 1.5 s is already spent twice over:
+> **0.6 s is the mirror hold** and **≈ 0.5 s pays for the spoken word `SQLSTATE`** (§0.1, §2),
+> leaving **0.4 s free**. A 2.5 s slip therefore needs **2.1 s that does not exist**, and it can
+> only take them from the hold or from the words:
+>
+> * **The hold is protected.** `SPINE.md` §4 makes the scripted silence an element with a duration,
+>   not a pause an editor may tighten, and §1.1's whole argument is that the mirror is heard in it.
+> * **The words are protected, and the arithmetic is the flat refusal.** 20 w in the remaining
+>   ≈ 9.5 s is **2.11 w/s**, against `BEATS.yaml:175`'s **1.95** kit ceiling and its 1.9
+>   `wps_assumption` (`BEATS.yaml:142`). **§2's closing rule — a block that cannot be written at or
+>   under 1.95 w/s is not written — retires (b) exactly as it retired the three-block `B9` and
+>   `SUBSTITUTE A`.**
+>
+> **That is why this box now records a ruling and not a choice.** Candidate (b) does not cost a
+> second somebody can find; it costs a second nobody has.
+>
+> #### **`R-SD4a` — the fallback is floored at 0.4 s, and the 0.4 s cannot be spent twice**
+>
+> If rehearsal shows that **no honest proposal string types legibly in 2.5 s**, even after the
+> string is shortened and the 0.5 s of app-bar travel is reclaimed, `B10`'s first word may slip by
+> **at most 0.4 s** — the measured free slack above — putting Click 6 at `2:14.4` and the typing at
+> 2.9 s. **0.4 s is a floor, not a preference:** past it the hold or the `SQLSTATE` pays, and both
+> are protected.
+>
+> **And spending it here forecloses `CLAIMS-CLEARANCE.md` `D31`.** That row is the still-open
+> `~ REWORD` of `B10`'s *"guards **edits**"* to *"guards the change"* — the more precise naming of
+> the object the CHECK refuses, which is the merge — and **`VO-DEMO.md`'s head note prices it at
+> 21 words running 1.13 s against 0.95 s of slack**, i.e. it lands only by eating the same free
+> tenths. **The 0.4 s buys the press or it buys `D31`. It does not buy both.** The film lead states
+> which before the take. **This sheet still does not discharge `D31`** — it is W2's row in W2's
+> file — and recording the collision is not the same as resolving it.
+>
+> #### **`R-SD4b` — all of the above is conditional, and says so**
+>
+> **`b9` and `b10` are NO-GO on the deployed origin today** and §4's conditions 1–4 are the
+> measured reasons: `POST /v1/demo/cr-gate-run` `404`, `GET …/blocking-checks` `404` and **not
+> declared**, the approve control hard-disabled and wired to nothing, and `DEMO-INC-0001` occurring
+> **zero** times on the change screen, so R-5 is unsatisfied. **`FALLBACKS.md` §4.2's `R-11` gate
+> decides it, not this ruling.** On the no-go path there is no Click 6 at all, these two blocks are
+> never added, `b8` returns to 10 s and the film is 152 s. A press timed to a tenth in a block that
+> is not shot would be a second document describing a film that does not exist.
 
 ---
 
@@ -437,6 +480,13 @@ full length. **What it buys is in §0.3 reason 3: the mirror and its hold are in
 The two right-hand columns are rounded to a tenth and the totals are the sums of the **unrounded**
 values — the same convention, for the same reason, as `VO-DEMO.md` §2's slack column.
 
+**One entry in the right-hand column is re-purposed by `R-SD4` and not re-priced by it.** `B9`'s
+1.1 s no longer buys *the typed proposal settling* — the typing now ends at `2:13.5` — it buys
+**the answer landing**, `2:14.0 → 2:15.5`, so that `B10` opens on a refusal already on screen.
+**The seconds are identical and no figure in this table moves**; only what they are spent on
+changes, and §1's ruling box is where that is argued. The wording in the cell is `VO-DEMO.md`
+§2:595's and is left as inherited rather than edited here, per this file's own precedence rule.
+
 **1.9 w/s is the speech rate `VO-DEMO.md` §2 measured across the delivered demo** (213 words ÷
 112.1 s of speech). Every figure in the two right-hand columns is derived from it, not observed;
 they are budgets and are labelled as budgets, per `film-recut-plan.md` §8 rule 8.
@@ -563,6 +613,12 @@ executable form and this is only the part of it that reaches this file** — the
 > read chain it cannot compress. **`b9` at 8 s is tight and should be re-checked against the
 > measurement before anybody executes the step at 02:00.** Recorded here because this file's own
 > §0.3 rests on the same measurement; **owner: W1, in `BEATS.yaml`.**
+>
+> **And `R-SD4` adds a second thing rank 1 must re-site rather than drop.** `b9` now carries
+> **Click 6 at `+10.0`** and the flight to `+11.5`; a `12 s → 8 s` cut has to place both inside
+> eight seconds, on top of the read chain, or `B10` opens on a request still in flight and R-K
+> fails. **The press moves with the block or the step is not executed** — it is never solved by
+> letting `B10`'s first word arrive before the refusal, which is the placement `R-SD4` struck.
 
 **RULING ADOPTED FROM `film-recut-plan.md` R-10 · USE CASE TWO IS ATOMIC.** **No step may take
 `B10` below 8 s, and `B9` may never be cut without `B10`.** A setup with no answer is worse than

@@ -18,6 +18,21 @@ neither is a credit. Putting a DESIGNED name on a screen headed *"what we used"*
 honest census into an overclaim in one frame, and it is the cheapest way this submission
 could lose the Functionality axis.
 
+**The rule has exactly one exception, it was ruled on 2026-08-16, and it is the one this page
+already proposed for itself.** A `DESIGNED` name may appear **only on a card that prints its
+verdict beside it, in the same type as the verdicts around it, under a heading that states the
+ratio out loud.** That is the framing the *"names that MAY NOT appear"* table below already
+recommends — *"put them under a heading that says **DESIGNED, NOT DEPLOYED**"* — and the reason it
+is safe is that the reader is never told *"what we used"*: he is told what state each thing is in.
+**Exactly one string in the film uses it**: `k3.overlay.tools`, whose heading reads
+**`three EXERCISED, one DESIGNED`** and whose fourth row reads
+**`CockroachDB Agent Skills   DESIGNED   shipped, validated;  NO RUN IS COMMITTED`**. The
+exception is narrow by construction — **a card headed *"what we used"* still may not carry a
+DESIGNED name, and dropping or greying the DESIGNED row voids the exception rather than
+satisfying it**, because a list of four with one entry visually demoted reads as four. Ruled at
+`docs/demo/close-card-plan.md` **R-C5**; cleared at `docs/demo/film/CLAIMS-CLEARANCE.md` **§13.2**
+with the refusals at **§13.3** (**X6**, **X7**, **X8**).
+
 **The census is the authority, not this page.** Re-derive before the take:
 
 ```bash
@@ -156,6 +171,68 @@ against **their own** cluster with **their own** key, and that page's own table 
 
 ---
 
+## CockroachDB — the four contest tools, as they go on screen in `k3`
+
+**Added 2026-08-16.** Until this date the film's 22 s close named **seven AWS services and zero of
+the four contest CockroachDB tools**, and a judge asking the eligibility question — *did they use
+at least two CockroachDB tools?* — could not find the answer anywhere in the film
+(`docs/submission/AUDIT.md` §5). The remedy is one overlay string, **`k3.overlay.tools`**, and it
+cost no second of film: **172 s total, 174 s hard stop, `close_words: 36`, `k3` still 6 s on a
+10-word budget.** A card is text a judge pauses on, so a line costs **layout**, not seconds.
+
+**These four rows are the registry entry for that panel.** The verdict column is not this page's
+opinion — every value is read from `evidence/tool-usage/crdb-features.json`, which carried all four
+of these verdicts **before** the film was changed. The census was right; the film was silent.
+
+| may appear as, exactly | verdict | what the panel prints beside it | the anchor a judge opens |
+|---|---|---|---|
+| **Distributed Vector Indexing (C-SPANN)** | **EXERCISED** | `3 cspann, 4 VECTOR, 42809` | `evidence/aws/ann/` — `explain-unhinted.txt:205` and `:220` both print `REFUSED BY THE SERVER — SQLSTATE 42809`; `42809` occurs `3×` in the file. The `3` and the `4` are live on the cluster, counted `2026-08-16`. Census row `rows.crdb_vector_index` |
+| **Managed MCP Server** | **EXERCISED** | `15 of 16, DIVERGED, published` | `evidence/mcp/` — `pack-run.json`: `passed 15`, `total 16`, `exit_code 1`, `verdict DIVERGED — KNOWN GAP`. Second, independent transcript five days earlier at `evidence/deploy/judge-run.json` (`2026-08-11`), same `15/16`, same verdict. Census row `rows.crdb_managed_mcp` |
+| **CockroachDB Cloud + `ccloud` CLI** | **EXERCISED** | `cluster list -o json, parsed` | `evidence/ccloud/cluster-list.txt` — an `auth whoami` line, then a **JSON array that parses**, carrying `"cockroach_version": "v26.2.5"` and `"cloud_provider": "AWS"`. `parsed` is doing work: it says machine-readable artefact, not pasted terminal. Census row `rows.crdb_cloud_ccloud` |
+| **CockroachDB Agent Skills** | **DESIGNED** | `shipped, validated;  NO RUN IS COMMITTED` | `skills/` — `designing-diachronic-gates`, `designing-vector-recall-prefixes`, a de-branded `upstream/`, and `validate-spec.py`. **`find evidence -iname "*skill*"` returns nothing**, which is what makes `NO RUN IS COMMITTED` a measurement rather than a concession. Census row `rows.crdb_agent_skills` → `DESIGNED` |
+
+**The heading is a claim too, and it is the load-bearing one.** The panel opens
+`COCKROACHDB · THE FOUR CONTEST TOOLS. THE RULES REQUIRE TWO.   three EXERCISED, one DESIGNED`.
+**Printing the floor of two beside the count is what converts a boast into a check** — a judge can
+falsify the eligibility claim from the frame instead of taking our word for it — and printing the
+ratio before any row means he knows to expect a fourth row saying `DESIGNED` before he reads one.
+`docs/submission/DEVPOST.md:191` is the source for both the floor (*"Three are EXERCISED against a
+floor of two"*) and the order, which is the Technological Implementation criterion's own
+enumeration with Agent Skills fourth as the separately-named extra.
+
+### The three things this panel may never become
+
+1. **Never *"all four exercised."*** Agent Skills is `DESIGNED`, our own census says so, and the
+   sentence was struck from `census/close-block.md` §3 on `2026-08-16` as audit finding **S5**.
+   **The film may not re-introduce the sentence the census just removed** — and nobody may capture
+   an Agent Skills run to make it true. The assertion scripts finish in seconds; that is exactly
+   why not doing it is a decision worth recording.
+2. **Never a greyed, dimmed, italicised, smaller, footnoted, parenthesised, folded-away or deleted
+   `DESIGNED` row.** Same size, same weight, same column as `EXERCISED`; `NO RUN IS COMMITTED` in
+   the same capitals. **This is the one row on the panel that a bad render turns into a lie without
+   changing a character** — a visually demoted fourth entry reads as an asterisk, and a list of
+   four with an asterisk reads as four tools.
+3. **Never spoken.** Not in voice-over, not as a read caption, not as an ad-lib over the card. The
+   panel exists because it costs layout instead of seconds; narrating it spends the seconds the
+   arithmetic said were not there — `k3` has `0.7 s` of air, which is `1.3` words.
+
+### And the sentence this panel must never be read as saying
+
+**The MCP row cites a committed transcript and never an endpoint.** `15 of 16, DIVERGED,
+published` means *we drove it and here is what came back*. It does **not** mean a judge can query
+MAINLINE's ledger over MCP, and no caption, slide or voice-over may imply it — the section above on
+the Managed MCP row gives the full reason (`credential_publishable: false`, and a key carrying
+`create_database`, `create_table` and `insert_rows`). **A judge reads our ledger over the published
+`mainline_judge` pgwire login, or not at all.**
+
+**Keeping `DIVERGED` on the card is deliberate and it is the stronger choice.** The one FAIL is
+`N01` — the `managed-mcp` identity **can** read `mainline_qa.v_disposition_profile`, which the pack
+asserted it could not — and it was re-measured on `2026-08-16` and is **still open**. Nobody
+revoked a grant to round `15` up to `16`. **If a future capture ever reads `16 of 16`, check what
+was revoked before you believe it.**
+
+---
+
 ## The names that MAY NOT appear
 
 | name | verdict | why, in one line |
@@ -167,7 +244,7 @@ against **their own** cluster with **their own** key, and that page's own table 
 | **Amazon EventBridge** | DESIGNED | There is no `aws_cloudwatch_event_*` resource anywhere under `infra/`; the schedule is a container entrypoint |
 | **Amazon Bedrock Rerank** | NOT-AVAILABLE | Not offered in `ap-southeast-2` (`evidence/aws/probe/model-availability.json`). Listed rather than dropped, because a services list that omits what you checked is a list nobody can audit |
 | **CockroachDB CHANGEFEED / CDC** | DESIGNED | `SHOW CHANGEFEED JOBS` reports `0`, and `kv.rangefeed.enabled` reads **false** on the pinned node — not merely unstarted, not currently startable |
-| **CockroachDB Agent Skills** | DESIGNED | Two skills are authored and ship an executable assertion script each; **neither script's run is captured under `evidence/`**. The sentence that is true is *"authored and shipped"* — never *"demonstrated"* |
+| **CockroachDB Agent Skills** | DESIGNED | Two skills are authored and ship an executable assertion script each; **neither script's run is captured under `evidence/`**. The sentence that is true is *"authored and shipped"* — never *"demonstrated"*. **AMENDED 2026-08-16 and the verdict did not move:** this name now appears in exactly one place, `k3.overlay.tools`, **under the verdict-printing exception at the head of this page** — with `DESIGNED` and `NO RUN IS COMMITTED` beside it in the same type as the three `EXERCISED` rows. It remains banned from every card, caption, slide or line that does not print its state, and **it may never be promoted by capturing a run to make a panel read better on the day** |
 
 **If the founder wants CloudFront or the evidence store on screen anyway**, there is one
 honest framing and it is a strong one: put them under a heading that says **DESIGNED, NOT

@@ -1455,19 +1455,23 @@ reads slower than it did and slower than the 50 s cut it replaces.
 **Three things were NOT discharged, and each is left as a written open item rather than closed
 quietly.**
 
-1. **`D31` — *"a different constraint guards edits"*.** Still **`~ REWORD`**. The supplied
-   replacement *"guards the change"* is one word longer on the page, and `VO-DEMO.md` §2 has
-   already priced `b10` at 21 words running **1.13 s against 0.95 s of slack** — so taking it
-   re-prices the mirror's hold. **Owner: W2, with W1 for the seconds.** `VO-DEMO-CR.md`'s own
-   alternate already uses the corrected object and is cleared at N7/N8, so the two files converge
-   the moment it lands. **The wording was not propagated into a second file in the meantime**,
-   which would have doubled the row rather than discharged it.
-2. **Where the press lands.** `CLICKS.md` §5 puts **Click 6 at `2:17`**, inside `b10`;
+1. **`D31` — *"a different constraint guards edits"*.** Still **`~ REWORD`**, and **now carrying a
+   collision it did not have when it was filed — see §12.9.2.** The supplied replacement *"guards
+   the change"* is one word longer on the page, and `VO-DEMO.md` §2 has already priced `b10` at 21
+   words running **1.13 s against 0.95 s of slack** — so taking it re-prices the mirror's hold.
+   **Owner: W2, with W1 for the seconds.** `VO-DEMO-CR.md`'s own alternate already uses the
+   corrected object and is cleared at N7/N8, so the two files converge the moment it lands. **The
+   wording was not propagated into a second file in the meantime**, which would have doubled the
+   row rather than discharged it. **D31 IS NOT DISCHARGED BY §12.9.2 AND IS NOT DISCHARGED HERE.**
+2. **Where the press lands.** ~~`CLICKS.md` §5 puts **Click 6 at `2:17`**, inside `b10`;
    `CLICKS-CR.md` put it inside `b9`. `b10`'s first spoken word is *"Refused."* at `2:16`, so
    under the first placement the value is spoken before it is on screen — which **R-K forbids** —
    and **R-9** requires each mutating request to be narrated while it is in flight. Both fixes
    spend something and both are priced in `VO-DEMO-CR.md` §1. **Owner: the film lead.** **This is
-   not a documentation defect and it is not fixed by choosing one quietly.**
+   not a documentation defect and it is not fixed by choosing one quietly.**~~
+   **CLOSED 2026-08-16 by `docs/demo/shoot-docs-plan.md` `R-SD4`, which is the film lead's
+   ruling this row asked for. §12.9.2 is the closure record, the collision it creates with
+   `D31`, and what the ruling costs.**
 3. **`cut_ladder` rank 1 is not executable as written.** It buys 4 s by arriving on the proposed
    wording *"already composed"*, and the same `CLICKS.md` measurement that decided defect A says
    the box is empty when the screen mounts. The step can buy a **shorter typed string**, never a
@@ -1477,6 +1481,100 @@ quietly.**
 **No assertion was weakened, no floor was lowered, and no register row was softened to let a
 sentence through.** Every replacement above is a wording this sheet had **already** cleared before
 the defect was found; the work was putting cleared wordings where uncleared ones had been.
+
+---
+
+## 12.9.2 · **OPEN ITEM 2 IS CLOSED — the press lands at `2:14.0`, and it collides with `D31`**
+
+**Added 2026-08-16 by W6 of the shoot-documents wave.** Authority:
+[`../shoot-docs-plan.md`](../shoot-docs-plan.md) **`R-SD4`**, `R-SD4a`, `R-SD4b`, and
+[`../../submission/AUDIT.md`](../../submission/AUDIT.md). **This sub-section closes §12.9.1's open
+item 2 and closes nothing else. `D31` stays open and §12.9.1 item 1 says so on its own line.**
+
+### The ruling, quoted rather than paraphrased
+
+> **Click 6 — `Approve change` — is at `2:14.0`, which is `+10.0` into `b9`. The request is in
+> flight `2:14.0 → 2:15.5`. The refusal paints at `2:15.5`. `B10` opens at `2:16.0` on a refusal
+> that has been on screen for half a second.**
+
+**Neither sheet's number survived and the placement of one did.** `CLICKS.md` §5's `2:17` is
+**struck**: it puts the SQLSTATE on screen after *"Refused."* is spoken at `2:16`, which is exactly
+what **R-K** forbids and what this row was filed over. `CLICKS-CR.md`'s literal **`+7.4` is struck
+too** — it was scored against the retired 10 s `B9`, and `+7.4` inside the 12 s block is `2:11.4`,
+in the middle of the typing. What is upheld is `CLICKS-CR.md`'s *intent*: the press sits under
+*"This request asks to edit it."*, inside `b9`, so the mutating request is narrated while it is in
+flight (**R-9**) and the value is on screen before it is spoken (**R-K**).
+
+### Why this closes a CLAIMS row and not merely a choreography row
+
+**Because the defect this row named was a claims defect wearing a stopwatch.** Under `2:17` the
+founder says *"Refused."* over a frame that does not yet carry a refusal, and then names `23514`
+over a frame that has carried it for less than a second — **a spoken value that is not on screen
+when it is spoken is an unsourced value**, which is the one thing every row of this sheet exists to
+stop. Under `2:14.0` the refusal has been composed for `0.5 s` when the first word lands. **R-K is
+satisfied with half a second to spare, and it is satisfied by arithmetic rather than by delivery.**
+
+**It also restores the film's own grammar, and that is a claims argument as well as a craft one.**
+`b1` already choreographs the film's *first* mutating press this way — Click 2 at `0:22.5`, `+2.5`
+into a 10 s attempt beat, with the refusal beat `B2` opening at `0:30` on an answer already
+painted. **A judge watches the same act twice; the second one being cut differently is what makes
+it read as edited.**
+
+### What it costs, priced here rather than absorbed
+
+| what moves | from | to | who pays |
+|---|---|---|---|
+| the typing window in `b9` | `5.0 s` (`2:11 – 2:16`) | **`2.5 s`** (`2:11.0 – 2:13.5`) | the proposed-wording string, which must be one a human types legibly in 2.5 s |
+| `b9`'s 1.1 s of "settle" slack | *the typed proposal settling* | *the answer landing* | nobody — it is re-purposed, not spent twice |
+| spoken words, word budgets, beat durations, `total_s` | — | — | **nothing.** `R-SD5`: `172 s`, hard stop `174 s`, ceiling `180 s`, and no `vo_word_budget` moves |
+
+**The string is `CLICKS.md` §5 `B9`'s to state, with its character count** (`R-SD4`), and **`R-2`
+is discharged by the *act* of typing into the console's own input with no provenance chip** — it
+has never required a character count, so a shorter honest proposal discharges it identically.
+**If 0.5 s more is needed it comes from the app-bar travel (`1.5 s → 1.0 s`), never from the scroll
+dwell — which is R-5's evidence — and never from the read chain, which is incompressible.**
+
+### **THE COLLISION, WHICH IS THE PART A LATER READER MUST NOT LOSE**
+
+> ## `R-SD4a`'s FLOORED `0.4 s` AND `D31` WANT THE SAME `0.4 s`, AND IT CANNOT BE SPENT TWICE.
+
+`R-SD4a` allows `b10`'s first word to slip by **at most `0.4 s`** — `b10`'s entire measured free
+slack — if rehearsal shows that no honest proposal string types legibly in 2.5 s even after the
+string is shortened and the 0.5 s of travel is reclaimed. That would put Click 6 at `2:14.4` and
+the typing at 2.9 s.
+
+**`D31` wants the same `0.4 s`.** §12.9.1 item 1 prices the `~ REWORD` of *"guards **edits**"* to
+*"guards the change"* at **21 words running `1.13 s` against `0.95 s` of slack** — an overrun of
+`1.13 − 0.95 = 0.18 s`, and `b10`'s free slack is the only place to pay it from. **`VO-DEMO.md`
+reaches the same collision from the other side, in its own words, at `:630`** — *"that 0.4 s is the
+same 0.4 s `D31` would have to be paid out of … it cannot be spent twice"* — which is two workers
+finding one trade independently and is the reason it is recorded rather than resolved.
+`b10`'s 1.5 s of slack is
+**0.6 s mirror hold + 0.5 s spoken `SQLSTATE` + 0.4 s free**, and both the hold and the `SQLSTATE`
+are protected (`SPINE.md` §4: the hold is a scripted element, not a pause an editor may tighten).
+
+| claimant | what it asks for | what it buys | what it forecloses |
+|---|---|---|---|
+| **`R-SD4a`** | up to `0.4 s` of `b10`'s free slack | 0.4 s more typing, if no honest string fits 2.5 s | **`D31` — the wording stays *"guards edits"*, which this sheet has recorded as **not** true of the object the constraint names** |
+| **`D31`** | `0.18 s` of the same slack | *"guards the change"* — true of the object the predicate is evaluated on | the floored press fallback; the string must then fit 2.5 s or the press moves nowhere |
+
+**THE FILM LEAD SPENDS IT ON ONE OR THE OTHER, STATES WHICH, AND DOES NOT DISCOVER THE COLLISION
+ON THE DAY.** This sheet does not choose: `D31` is a wording verdict and the press is a
+choreography ruling, and **a clearance sheet that quietly resolved a rehearsal trade by picking the
+half it owns would be doing the small version of the thing it exists to prevent.**
+
+**`D31` IS THEREFORE LEFT OPEN, WITH ITS COLLISION RECORDED AND ITS `~` UNCHANGED.** It is not
+discharged, not downgraded, and not re-priced. Its owner is unchanged — **W2, with W1 for the
+seconds** — and the film lead now owns the `0.4 s` that decides whether W2 can spend it.
+
+### `R-SD4b` — the whole of this sub-section is conditional, and it says so on its own line
+
+**`b9` and `b10` are NO-GO on the deployed origin as measured 2026-08-16.** On the no-go path
+**there is no Click 6 at all**: the ledger is five clicks and one text entry, `FALLBACKS.md` F-11
+reverts to exactly one mutating request, `b8` returns to 10 s and the film is 152 s. **Every
+restatement of `R-SD4` in this repository is conditional on `FALLBACKS.md` §4.2's R-11 decision
+gate**, and this one is no exception. A row written as unconditional would be a second document
+describing a film that does not exist.
 
 ---
 
@@ -1561,3 +1659,588 @@ superseded, never rewritten. No ratchet, floor, ceiling, assertion or expectatio
 `terraform`, no AWS surface, no SSM parameter, no credential, no commit.
 **Nothing was cleared that this worker could not source, no family was softened to let a sentence
 through, and the four refusals in §12.4 are final.**
+
+---
+
+# 13 · THE CLOSE-CARD WAVE — `k3.overlay.tools`, the eligibility panel
+
+**Worker W6** · clearance, hygiene and whole-wave verification · close-card wave · **2026-08-16
+(UTC)** · authority read first: [`../../submission/AUDIT.md`](../../submission/AUDIT.md) **FIX 1**
+and [`../close-card-plan.md`](../close-card-plan.md) §2 (R-C1…R-C10) and §4.
+
+**Why this section exists.** The audit's §5 found that the film's 22 s close named **seven AWS
+services and zero of the four contest CockroachDB tools**, on a CockroachDB hackathon — *"the
+largest unforced loss in the submission."* The wave's remedy is one new overlay string,
+`k3.overlay.tools`, carrying seven lines. **Every one of those lines is a claim a judge reads off
+a paused frame, so every one of them gets a row here.**
+
+---
+
+## 13.0 · THE VERDICT OF THIS SECTION, FIRST
+
+> ## THE PANEL CLEARS IN FULL, AND ITS ONE SHOOT-BLOCKING CONDITION WAS DISCHARGED WHILE THIS SHEET WAS BEING WRITTEN.
+
+Two separate things, and the second was the one that decided whether the panel was filmable:
+
+1. **Every string on `k3.overlay.tools` is true in the state it is printed in, and each one was
+   re-measured by this worker rather than copied from the plan that specified it.** 8 clearance
+   rows — **7 CLEAR, 1 CLEAR-with-condition** — and **0 REWORD**. The panel's numbers (`3 cspann`,
+   `4 VECTOR`, `42809`, `15 of 16`), its four verdict words and its four evidence paths all hold
+   against the cluster and the committed artefacts. **Nothing on it is stated in a better state
+   than it is in**, and the one `DESIGNED` is stated as `DESIGNED` with `NO RUN IS COMMITTED`
+   printed beside it in the same capitals.
+2. **`docs/demo/film/VO-CLOSE.md` §5.6 — the section the film authority and the string of record
+   both name as the OWNER of these words — did not exist when this sheet's rows were composed at
+   `23:31`.** Not stale, not disagreeing: **absent**, while referenced seven times from inside
+   `VO-CLOSE.md` itself and twice from `ONSCREEN-TEXT.yaml`. That is the audit's **S8** failure
+   mode — two documents from one wave disagreeing about the same 22 seconds — reproduced by the
+   wave convened to remove it. **W1 landed §5.6 at `23:43:32`**, and on re-measurement at `23:44`
+   the panel text in `VO-CLOSE.md` §5.6.1, in `ONSCREEN-TEXT.yaml` and in `close-card-plan.md`
+   R-C4 are **byte-identical, all three** — `sha256[:24] = 9d53228e9442c416acec46d8`. **Condition
+   C-13.1 is DISCHARGED (§13.4.2), and both readings are kept (§13.4).**
+
+**Three refusals are filed pre-emptively (§13.3), none of them against anything in the tree.** They
+exist so that nobody improvises one at 02:00, which is the same reason X1–X5 exist.
+
+**Two further failures are reported and neither is repaired here, because neither is this worker's
+file or this worker's node.** `claim_hygiene.py --check` goes **RED on `feature-census.md`** with
+**three** new `HYG-sha-literal` hits (§13.5.4, W5's file — the count was `2` at `23:36` and `3` at
+`23:44`, because that file is still being written), and the **regression guard's SUITES family
+reports `1070 / 1056 / 1 / 12`** against the `1070 / 1069 / 0 / 0` baseline (§13.5.5). **KERNEL is
+`PROVEN` caveat-free and `DEFAULT_MAX_RESPONSE_BYTES == 136 * 1024` is unmoved.** All 13
+non-passing tests fail on *setup* with one identical cluster-limit error on a local node carrying
+242 databases; §13.5.5.1 gives the three-step argument that no markdown edit could have caused it,
+and **declines both available remedies** rather than moving the environment to make a number green.
+
+**And one thing this worker checked and did not do.** The Agent Skills row could be promoted to
+`EXERCISED` by running two assertion scripts that finish in seconds and committing the transcript.
+**No such run was generated, captured or committed by this worker**, because `close-card-plan.md`
+§0 rule 1 and the brief both rule that the tool is stated in the state it is in or not stated at
+all. `find evidence -iname "*skill*"` returns nothing, and that is the state the panel prints.
+
+---
+
+## 13.1 · WHAT THIS WORKER MEASURED, AND HOW
+
+**Nothing below is quoted from the plan that specified the panel, or from the census that scores
+it.** Each value was taken independently today, and the command is printed so a stranger repeats
+it in under a minute.
+
+| # | reading | command, run verbatim by this worker | result |
+|---|---|---|---|
+| **A** | the four census verdicts | `python -c "import json;d=json.load(open('evidence/tool-usage/crdb-features.json'));[print(k,'=',v['verdict']) for k,v in d['rows'].items() if k in ('crdb_vector_index','crdb_managed_mcp','crdb_cloud_ccloud','crdb_agent_skills')]"` | `crdb_vector_index = EXERCISED` · `crdb_cloud_ccloud = EXERCISED` · `crdb_managed_mcp = EXERCISED` · **`crdb_agent_skills = DESIGNED`** |
+| **B** | the MCP run | `python -c "import json;d=json.load(open('evidence/mcp/pack-run.json'));print(d['passed'],'/',d['total'],'exit',d['exit_code'],d['verdict'])"` | `15 / 16 exit 1 DIVERGED — KNOWN GAP` |
+| **C** | the C-SPANN server refusal | `grep -c "42809" evidence/aws/ann/explain-unhinted.txt` and `grep -n "REFUSED BY THE SERVER" evidence/aws/ann/explain-unhinted.txt` | `3` occurrences of `42809`; **`:205` and `:220`** both read `REFUSED BY THE SERVER — SQLSTATE 42809` |
+| **D** | `cspann` indexes, **live** | `SHOW CREATE TABLE` over the four vector-bearing tables, counting `VECTOR INDEX`, against `postgresql://root@localhost:26257/mainline_demo` | **`3`** — `clause_embedding` 1, `event_cue_coarse` 1, `event_cue_embedding` 1, `event_cue_stage` 0 |
+| **E** | `VECTOR` columns, **live** | `SELECT count(*) FROM information_schema.columns WHERE udt_name = 'vector' AND table_schema NOT IN ('pg_catalog','information_schema','crdb_internal')` | **`4`** — `clause_embedding.embedding`, `event_cue_coarse.emb_coarse`, `event_cue_embedding.emb`, `event_cue_stage.emb` |
+| **F** | the `ccloud` transcript | `head -c 300 evidence/ccloud/cluster-list.txt` | an `auth whoami` line (`logged in to … (org-3bkz4)`), then a **parsed JSON array** carrying `"cloud_provider": "AWS"` and `"cockroach_version": "v26.2.5"` |
+| **G** | the skills tree, and the absence beside it | `ls skills/` then `find evidence -iname "*skill*"` | `README.md`, `designing-diachronic-gates`, `designing-vector-recall-prefixes`, `upstream`, `validate-spec.py` — and **`find` returns nothing**, so `NO RUN IS COMMITTED` is measured, not assumed |
+| **H** | the panel as composed | extracted `k3.overlay.tools` from `ONSCREEN-TEXT.yaml` and hashed it against `close-card-plan.md` R-C4's fenced block | **byte-identical**, `sha256[:24] = 9d53228e9442c416acec46d8`; **7 lines**, widest line **99** characters — R-C4's own measurement, reproduced |
+| **I** | the four printed paths | `test -d` on each | `evidence/aws/ann/` (4 entries) · `evidence/mcp/` (8) · `evidence/ccloud/` (2) · `skills/` (5) — **all four resolve** |
+
+### 13.1.1 · Reading E is also the answer to the audit's **S7**, and it is worth one sentence
+
+The brief's status table said *"5 live VECTOR columns"*; the census says `4`. **Both numbers come
+off the same cluster and the difference is one predicate.** `udt_name ILIKE '%vector%'` returns
+**5** — because `mainline.event_cue.tsv` is a **`tsvector`**, a full-text column that is not a
+vector column at all. `udt_name = 'vector'` returns **4**. **The panel prints `4` and the panel is
+right**, and this is recorded here so nobody "corrects" it upward from a wildcard the way the S1
+role predicate was corrupted upward from an `IN` list.
+
+---
+
+## 13.2 · EVERY LINE OF `k3.overlay.tools` — the clearance rows
+
+**The string of record is `ONSCREEN-TEXT.yaml:3228`, id `k3.overlay.tools`, `chip: derived`,
+`editorial: false`.** Seven lines. Each row below states the claim, the measured basis, the
+artefact or `file:line` that proves it, and the verdict.
+
+| # | the line, exactly as it goes on screen | claim being made | measured basis (§13.1 reading) | verdict |
+|---|---|---|---|---|
+| **T1** | `------------------------------------------------------------------------------------------------` | **none — decoration.** 96 characters of horizontal rule | No claim to source. R-C4's remedy ladder names this rule as the **second** thing cut if the card lands below a legible floor, precisely because it asserts nothing | **CLEAR** |
+| **T2a** | `COCKROACHDB  ·  THE FOUR CONTEST TOOLS.` | **there are four contest-named CockroachDB tools, and this panel enumerates all four** | Reading **A** — the census carries exactly these four rows. `DEVPOST.md:191`: the Technological Implementation criterion names three (*"distributed vector index, MCP Server, ccloud CLI"*) and the submission requirement names Agent Skills separately. **Four is the count of the criterion's own list, not our arithmetic** | **CLEAR** |
+| **T2b** | `THE RULES REQUIRE TWO.` | **the eligibility floor is two, and we are naming it out loud on the frame** | `DEVPOST.md:191` — *"Three are EXERCISED against a floor of two"* — and `RULES-MATRIX.md` **R6**, which the audit §3 confirms *"states this correctly and explicitly does not count Agent Skills."* **Printing the floor beside the count is what converts a boast into a check**: a judge can now falsify the eligibility claim from the frame instead of taking it | **CLEAR** |
+| **T2c** | `three EXERCISED, one DESIGNED` | **the ratio, before any row is read** | Reading **A**, exactly: three `EXERCISED` and one `DESIGNED` in `crdb-features.json`. **This is the most load-bearing fragment on the panel** and the reason T6 cannot be quietly dropped — the heading has already told the judge to expect a fourth row and to expect it to say `DESIGNED`. R-C5 | **CLEAR** |
+| **T3** | `Distributed Vector Indexing (C-SPANN)  EXERCISED  3 cspann, 4 VECTOR, 42809    evidence/aws/ann/` | verdict **EXERCISED**; **3** `cspann` indexes; **4** `VECTOR` columns; SQLSTATE **`42809`**; path `evidence/aws/ann/` | Verdict from reading **A**. `3` and `4` from readings **D** and **E**, taken live on the cluster today, not inherited. `42809` from reading **C** — three occurrences, two of them the committed line `REFUSED BY THE SERVER — SQLSTATE 42809` at `explain-unhinted.txt:205` and `:220`. Path resolves (reading **I**) | **CLEAR** |
+| **T4** | `Managed MCP Server                     EXERCISED  15 of 16, DIVERGED, published   evidence/mcp/` | verdict **EXERCISED**; **15 of 16**; the run **DIVERGED**; we **published** it; path `evidence/mcp/` | Verdict from reading **A**. `15 of 16`, `exit 1` and `DIVERGED — KNOWN GAP` from reading **B**, off `pack-run.json` itself. **`DIVERGED, published` is the strongest true form of this row and a weaker-sounding one than the file could have carried**: the one FAIL is `N01`, `mainline_qa.v_disposition_profile` readable by the `managed-mcp` identity when the pack asserted it was not, and it is **still open** — nobody revoked a grant to round `15` to `16`. See §13.3 **X6** for the form this row may never take | **CLEAR** |
+| **T5** | `CockroachDB Cloud + ccloud CLI         EXERCISED  cluster list -o json, parsed   evidence/ccloud/` | verdict **EXERCISED**; the transcript is a **parsed** `cluster list -o json`, not a screen-scrape; path `evidence/ccloud/` | Verdict from reading **A**. Reading **F** confirms the file opens on an `auth whoami` line and then carries a **JSON array that parses**, with `cockroach_version v26.2.5` and `cloud_provider AWS` in it. **`parsed` is the honest word and it is doing work**: it says the artefact is machine-readable rather than a pasted terminal, which is the difference between evidence and a screenshot | **CLEAR** |
+| **T6** | `CockroachDB Agent Skills               DESIGNED   shipped, validated;  NO RUN IS COMMITTED  skills/` | verdict **DESIGNED**; the skills are **shipped** and **validated**; **no run is committed**; path `skills/` | Verdict from reading **A** — `crdb_agent_skills = DESIGNED`, and it read `DESIGNED` **before this wave**, so the census was already right and only the film was silent. `shipped` from reading **G**: two authored skills, one de-branded upstream contribution and `validate-spec.py` are in the tree. **`NO RUN IS COMMITTED` is measured, not conceded** — `find evidence -iname "*skill*"` returns nothing. Path resolves | **CLEAR — with the standing condition below** |
+
+### 13.2.1 · The condition on **T6**, which is a rendering condition and not a wording one
+
+**`DESIGNED` is cleared on the words and conditioned on the pixels.** R-C5 is adopted here in full
+and this sheet enforces it: `DESIGNED` renders in the **same size, same weight and same column** as
+`EXERCISED` — no grey, no reduced opacity, no italic, no smaller type, no footnote marker, no
+parenthesis — and `NO RUN IS COMMITTED` renders in the **same capitals** as `EXERCISED`.
+
+**Why a clearance sheet is ruling on typography at all.** Every other row on this panel survives a
+bad render; this one does not. A greyed `DESIGNED` is read as a footnote, a footnote is read as an
+asterisk on a list of four, and a list of four with an asterisk is read as **four tools**. **The
+degradation does not change one character of the string, which is exactly why it needs a row here
+and not only a note in the layout file.** §13.3 **X7** is the refusal.
+
+### 13.2.2 · What the panel does **not** claim — checked, because the absence is the point
+
+* **No MCP route claim.** The row cites `evidence/mcp/` — **a committed transcript** — and never an
+  endpoint. It does not say, and may not be captioned or narrated as saying, that a judge can query
+  our ledger over MCP. The credential behind those transcripts is an account-level Cloud
+  service-account key carrying `create_database`, `create_table` and `insert_rows`, and
+  `evidence/deploy/judge-access.json` records **`credential_publishable: false`**. **A judge reads
+  our ledger over pgwire as `mainline_judge`, or not at all.** R-C6 discharged; this worker wrote
+  nothing to `docs/submission/JUDGE-START.md`, where the audit's **S2** lives and where it is
+  another lead's to close.
+* **No scale claim, no latency claim, no `16 of 16`.** The panel prints one number per row and
+  every one of them is a count off a committed file.
+* **No AWS name.** The panel is the CockroachDB half of the answer and it does not borrow from the
+  seven services on `k2`.
+
+---
+
+## 13.3 · THE REFUSALS — three, filed against strings that are **not** in the tree
+
+**All three are pre-emptive.** Nothing in `ONSCREEN-TEXT.yaml`, `VO-CLOSE.md`, `BEATS.yaml` or
+`SPINE.md` says any of these today; this worker checked. They are filed because each is shorter,
+flatter and more flattering than the true form, and 02:00 reaches for the shortest.
+
+| # | ✗ **REFUSED** | why it is **false**, not merely strong |
+|---|---|---|
+| **X6** | **MUST NOT SHOW OR SAY:** *"all four exercised"*, *"all four are exercised"*, *"four tools exercised"*, *"four contest tools, all demonstrated"*, or **any variant that puts Agent Skills in the `EXERCISED` column** | **It is false against our own census.** `crdb-features.json` → `rows.crdb_agent_skills.verdict` reads **`DESIGNED`** (reading **A**), and its basis string says the assertion scripts' runs are not captured under `evidence/` — which `find evidence -iname "*skill*"` confirms returns nothing (reading **G**). This is the audit's **S5**, struck in `census/close-block.md` §3 on 2026-08-16; **the film must not re-introduce the sentence the census just removed.** And it may not be made true by capture: **nobody on this wave runs, generates or commits an Agent Skills transcript to promote the row** (`close-card-plan.md` §0 rule 1). **TRUE INSTEAD — and it is already on the frame:** `three EXERCISED, one DESIGNED`. |
+| **X7** | **MUST NOT RENDER:** the Agent Skills row **greyed, dimmed, italicised, set smaller, marked with a footnote glyph, parenthesised, folded into the heading, or removed** — and must not render `NO RUN IS COMMITTED` in anything but the capitals `EXERCISED` is set in | **This is how a true panel becomes a false one without a single character changing.** Dropping the row leaves four names' worth of expectation set by the heading and three rows to satisfy it; greying it converts a stated verdict into a visual asterisk. **Either way *"three exercised, one designed"* silently becomes *"four tools"*, and the heading has already promised the judge otherwise.** R-C5 in full. The remedy ladder if the card is illegible is (1) the blank line under the heading, (2) the horizontal rule, (3) re-wrap the Agent Skills row onto two lines — **never a word, never a row, and never the `DESIGNED` state.** |
+| **X8** | **MUST NOT SAY:** any word of `k3.overlay.tools`, in any take, in voice-over, in a caption read aloud, or as an ad-lib over the card — **the panel is read by the eye and never by the voice** | **Speaking it breaks the film's arithmetic, and the arithmetic is why the panel was affordable at all.** The whole justification for putting seven lines on `k3` is R-C3: *a card costs layout, not seconds.* `k3` has **0.7 s** of air, which at the file's own 1.9 w/s is **1.3 words** — there is no sentence there. `k2`'s 2.6 s was **priced and refused in writing**: a 19-word line takes that block to `10.0 s` in a 10 s window with zero air and breaks `VO-CLOSE.md` §3.5's landing-4 alignment. **A take that narrates the panel has lengthened the film**, and the film may not be lengthened — 172 s, 174 s hard stop. **The air stays air.** Related and unchanged: §8.2's refusal of any `k1` take exceeding 10 words. |
+
+**A fourth thing, not a row because it is not a string.** R-C7 bans a **fifth highlight sweep
+landing** on `k3`. The sweep is capped at four and all four are spent in `k2`. A pointer moving
+across this panel during a 6 s card already carrying a three-line limit, a four-stanza rail and two
+URLs would be the roving highlight `ONSCREEN-TEXT.yaml` itself calls *"a card nobody reads."*
+**The panel is pause material by construction.**
+
+---
+
+## 13.4 · **`VO-CLOSE.md` §5.6 — found missing at `23:31`, landed by W1 at `23:43`, RE-MEASURED AND CLOSED**
+
+> **THIS ROW IS KEPT IN BOTH ITS READINGS RATHER THAN OVERWRITTEN**, which is this repository's
+> standing rule for every number on every page. The defect below was real when it was measured;
+> **it is not real now.** Deleting the first reading would have been the tidier edit and the
+> dishonest one — a clearance sheet that silently drops a finding it raised is a sheet nobody can
+> audit, and the whole subject of this section is a wave that published a correction and then
+> contradicted it.
+
+### 13.4.1 · What was measured at `23:31`, and why it was filed as shoot-blocking
+
+**This worker runs last, and W1 was still writing.** At the time §13.2's rows were composed:
+
+`docs/demo/film/VO-CLOSE.md` is the film authority — its §4.1 says *"Every word below is the
+committed 50 s text"*, and `close-card-plan.md` **R-C8** rules it the sole authority for the close
+precisely because two documents prescribing the same 22 seconds is the audit's **S8**.
+
+**Measured, by listing every heading in the file:**
+
+* `VO-CLOSE.md` **references §5.6 seven times** — at `:208`, `:212`, `:320`, `:398`, `:992`, `:997`
+  and `:998` — including *"§5.6's **What is NOT on this panel** forbids saying it aloud"* (`:212`),
+  *"The panel therefore lives on `k3`, and **§5.6 is it**"* (`:398`), and pointers to **§5.6.1**
+  (the ≤ 119 × ≤ 32 geometry budget) and **§5.6.3** (the sweep ban) at `:997`–`:998`.
+* **`VO-CLOSE.md` has no §5.6.** Its §5 runs `5.1`, `5.2`, `5.3`, `5.3.1`, `5.4`, `5.5` and then
+  §6 begins at `:1099`. There is no `5.6`, no `5.6.1` and no `5.6.3`.
+* **The panel string appears zero times in `VO-CLOSE.md`.** `grep -c "THE RULES REQUIRE TWO\|Distributed Vector Indexing\|NO RUN IS COMMITTED\|three EXERCISED, one DESIGNED" docs/demo/film/VO-CLOSE.md` returns **`0`**.
+* §5.2 is headed *"Overlay text — **exact**"* and its fenced block carries the limit, the rail and
+  both URLs — **and not the panel** — so the authority's own exact-overlay block for `k3` omits a
+  string the film renders on that card.
+* `ONSCREEN-TEXT.yaml:3276` declares: *"THE WORDS ARE OWNED BY `docs/demo/film/VO-CLOSE.md` §5.6
+  and this file reproduces them to the character; **if the two ever disagree, VO-CLOSE.md is right
+  and this file is wrong**."* **That tie-break resolves to a section that is not there**, and
+  `:3335` cites §5.6.1 for the geometry budget the same way.
+
+**Why this is a blocking condition and not a typo.** The reproduction cannot be checked against its
+authority, so the discipline `ONSCREEN-TEXT.yaml` states for itself — *reproduces them to the
+character* — is unverifiable, and the one rule that resolves a disagreement points at nothing. **A
+panel whose authority is a dangling pointer is exactly the S8 shape the wave was convened to
+remove**, committed in the act of removing it.
+
+**What was NOT wrong even then.** The panel's *content* was correct — §13.2 clears all seven lines
+— and the string in `ONSCREEN-TEXT.yaml` was already **byte-identical to `close-card-plan.md`
+R-C4** (reading **H**), so there was never a live disagreement about the words. The defect was that
+**the authority did not carry them**, which meant the next person to edit either file had no way to
+tell which one had moved.
+
+**CONDITION C-13.1, as filed at `23:31`:** *the panel is not filmable until `VO-CLOSE.md` carries a
+real §5.6 holding the panel text verbatim, its "What is NOT on this panel" prohibition (the basis
+of **X8**), §5.6.1's geometry budget and §5.6.3's sweep ban.*
+
+### 13.4.2 · **C-13.1 IS DISCHARGED.** Re-measured `23:44`, after W1's file changed under this audit
+
+`docs/demo/film/VO-CLOSE.md` was written at **`23:43:32`** — after §13.4.1 was measured and while
+this sheet was being written. **Re-read in full, and the section now exists:**
+
+| what C-13.1 required | **measured `23:44`** |
+|---|---|
+| a real §5.6 | **`:1076` — §5.6 · THE FOUR CONTEST COCKROACHDB TOOLS — the panel on `k3`, read and never spoken** |
+| the panel text verbatim | **`:1098` — §5.6.1 · Panel text — exact, and the measured geometry** |
+| the geometry budget (§5.6.1) | present, with §5.6.2 added beside it — *"What this costs `k3`, in numbers"* |
+| the sweep ban (§5.6.3) | **`:1230` — §5.6.3 · No sweep. The panel is read, never swept.** |
+| the *What is NOT on this panel* prohibition — **X8's basis** | **`:1257` — §5.6.5** |
+| — | and **`:1239` — §5.6.4 · Evidence — one row per tool**, which C-13.1 did not ask for |
+
+**And the check that actually matters — the authority and its reproduction now agree to the
+byte.** The panel extracted from all three files and hashed:
+
+```
+VO-CLOSE.md §5.6.1   (AUTHORITY)      sha256[:24] = 9d53228e9442c416acec46d8   7 lines, 99 ch
+ONSCREEN-TEXT.yaml   k3.overlay.tools sha256[:24] = 9d53228e9442c416acec46d8   7 lines, 99 ch
+close-card-plan.md   R-C4             sha256[:24] = 9d53228e9442c416acec46d8   7 lines, 99 ch
+```
+
+**AUTHORITY == REPRODUCTION == PLAN.** `ONSCREEN-TEXT.yaml:3276`'s tie-break — *"if the two ever
+disagree, `VO-CLOSE.md` is right and this file is wrong"* — now resolves to a section that exists
+and carries the same string. **R-C8 is satisfied and the audit's S8 shape is not reproduced.**
+
+> **C-13.1 — DISCHARGED.** No condition on the panel survives from this sheet. **The three refusals
+> in §13.3 are not conditions and do not lift**: they bind every take, in perpetuity.
+
+**One observation, recorded and not raised as a defect.** §5.6 is inserted **between §5.4 and
+§5.5**, so §5's headings now read `5.1, 5.2, 5.3, 5.3.1, 5.4, 5.6, 5.5`. §5.5 is the retired
+`48 s / 170 s` variant, so putting live material ahead of a retired section is defensible ordering;
+it is noted only so that a reader scanning the table of contents is not the one to discover it.
+**It changes no string and no verdict, and this worker does not edit another worker's file to
+renumber a heading.**
+
+### 13.4.3 · The lesson, which is worth more than the finding
+
+**This worker was specified to run LAST and did not, in fact, run last.** Between the first
+verification sweep and the final one, `feature-census.md`'s hygiene violations went from **2 to 3**
+and `VO-CLOSE.md` gained six new sub-sections. **Any single-pass verification of a wave still being
+written is a photograph, not a proof** — which is why every reading in §13.1 and §13.5 carries the
+time it was taken, and why the orchestrator must re-run §13.5's four commands against the tree it
+actually commits. **This section is not a substitute for that re-run. It is a record of what was
+true when it was read.**
+
+---
+
+## 13.5 · THE WAVE VERIFICATION BLOCK — every invariant `close-card-plan.md` §4 lists
+
+**Run by this worker against the working tree, after W1–W5 landed.** Each row names the command so
+a stranger repeats it in under a minute.
+
+### 13.5.1 · The film's arithmetic — `BEATS.yaml`, unchanged
+
+| invariant | required | **measured** | verdict |
+|---|---|---|---|
+| `total_s` | 172 | **172** | ✓ |
+| `hard_stop_s` | 174 | **174** | ✓ |
+| `demo_s` | 148 | **148** | ✓ |
+| `close_s` | 22 | **22** | ✓ |
+| `close_words` | 36 | **36** | ✓ |
+| `k1` / `k2` / `k3` `dur` | 6 / 10 / 6 | **6 / 10 / 6** | ✓ |
+| `k1` / `k2` / `k3` `vo_word_budget` | 10 / 16 / 10 | **10 / 16 / 10** | ✓ |
+| `k1` / `k2` / `k3` in-points | 148 / 154 / 164 | **148 / 154 / 164** | ✓ |
+
+`148 + 22 + 2 = 172 ≤ 174`. **Not one second and not one spoken word was added to put four tool
+names on screen**, which was R-C3's whole condition.
+
+### 13.5.2 · `k2` was not touched — byte-identical, proved by hash and not by reading
+
+`k2.overlay.aws_column` and `k2.overlay.cockroachdb_column` extracted from `HEAD` and from the
+working tree and hashed:
+
+```
+k2.overlay.aws_column           HEAD 748c00dd51fb3029   WORK 748c00dd51fb3029   IDENTICAL  (1067 B)
+k2.overlay.cockroachdb_column   HEAD 9f38c578b27917fd   WORK 9f38c578b27917fd   IDENTICAL  (1937 B)
+```
+
+**R-C1 holds.** The tightest card in the film was not re-rendered by this wave, and the four
+open REWORDs on it (§7.7 SSM, §7.8 the S3 heading, §7.9 the recursive CTE, §7.10 `256/256`) are
+neither discharged nor disturbed — §12.5 row **O26** still governs them.
+
+### 13.5.3 · The two greps the brief names, and the third that must exit 1
+
+| # | command | required | **result** | verdict |
+|---|---|---|---|---|
+| 1 | `grep -rn "LIKE 'mainline" docs/` | nothing | **6 matches in 5 files, exit 0** — and **none is a published check.** `docs/submission/AUDIT.md:147` and `docs/demo/close-card-plan.md:50` **quote the corruption in order to strike it**; `docs/submission/census/crdb-programmable.md:728` is a **different query** (`pg_namespace` / schema ownership, not `pg_roles`); `docs/diagnosis/divergence-census-plan.md:204` is an `information_schema.columns` schema filter; **and 2 are in this sheet, §13.5.3, quoting the command in order to report it** | **PASS on substance, FAIL as literally worded** — see §13.5.3.1 |
+| 2 | `grep -rni "all four are exercised" docs/submission/census/` | nothing | **1 match, exit 0** — `census/close-block.md:386`, which reads *"**§3 no longer says** 'all four are exercised … with a committed transcript.'"* It is W4's **correction record**, quoting the struck sentence to record that it was struck | **PASS on substance, FAIL as literally worded** — see §13.5.3.1 |
+| 3 | `grep -rn --include=*.tf "aws_cloudwatch_event\|aws_scheduler" infra` | no output, **exit 1** | **no output, exit 1** | **✓ PASS** |
+
+**Row 3 is also the audit's S6 discharged, and it is worth showing both halves**, because the whole
+point of that row is that the published command must be the one that was run:
+
+```
+$ grep -rn "aws_cloudwatch_event\|aws_scheduler" infra          # as originally published
+Binary file infra/envs/demo/.terraform/.../terraform-provider-aws_v6.58.0_x5.exe matches
+Binary file infra/modules/cost-guard/.terraform/.../terraform-provider-aws_v6.59.0_x5.exe matches
+Binary file infra/modules/demo-api/.terraform/.../terraform-provider-aws_v6.59.0_x5.exe matches
+exit 0                                                          # 3 matches, all vendored binaries
+
+$ grep -rn --include=*.tf "aws_cloudwatch_event\|aws_scheduler" infra
+exit 1                                                          # no output — the true form
+```
+
+**The conclusion was always right and the command was always wrong.** `census/close-block.md:327`
+now carries the `--include=*.tf` form.
+
+#### 13.5.3.1 · Both "empty grep" checks return matches, and **the checks are wrong, not the tree**
+
+**This worker is required to report a failure as a failure, so both are reported as returning
+matches.** But a clearance sheet that stops at the exit code would be filing two defects that do
+not exist, so the substance is stated too:
+
+**Every one of the seven matches is a document quoting a struck string in order to strike it —
+including the two this sheet just added by printing the command.** That is not a residual defect —
+**it is the repository's standing convention**, the same one that lets `MUST-NOT-CLAIM.md`,
+`CLAIMS-CLEARANCE-CR.md` and this file carry banned sentences verbatim under a
+`prose-hygiene: register` marker. **A correction record that may not name the thing it corrected is
+not a correction record** — and a verification sheet that cannot print the command it ran is the
+same defect wearing a different hat. **This is also why an "empty grep" is the wrong shape of check
+for a repository that documents its own strikes:** it counts mentions, and a strike is a mention.
+The narrow forms below count *predicates*, which is what the claim was ever about.
+
+**The narrow forms that are actually falsifiable**, and which this worker ran:
+
+```
+$ grep -rn "rolname LIKE 'mainline" docs/submission/census/ docs/submission/feature-census.md
+exit 1                       # the S1 corruption is gone from every PUBLISHED predicate
+
+$ grep -rni "all four are exercised" docs/submission/census/ | grep -v "no longer says"
+exit 1                       # the S5 sentence survives only inside its own strike record
+```
+
+**S1 and S5 are both closed.** `census/close-block.md:262` now carries the explicit nine-name `IN`
+list with `ORDER BY 1` and the answer that did not move — *nine rows, `rolcanlogin` false on all
+nine* — plus the half-clause naming `mainline_api` and `mainline_judge` as the two service logins
+deliberately outside the lattice. `close-block.md` §3 now reads *"**Three** of the four are
+exercised in this repository with a committed transcript … **the fourth, Agent Skills, is
+`DESIGNED`**."* **The claim was strengthened rather than weakened to match a broken check**, which
+is R-C9's instruction discharged.
+
+### 13.5.4 · `claim_hygiene.py --check` over all six touched files — **RED, and the RED is new**
+
+```
+$ .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check \
+    docs/demo/film/VO-CLOSE.md docs/demo/film/ONSCREEN-TEXT.yaml \
+    docs/demo/film/BEATS.yaml docs/demo/film/SPINE.md \
+    docs/submission/census/close-block.md docs/submission/feature-census.md
+  scanned 6 file(s) against 21 rules
+  FAIL  docs/submission/feature-census.md:958:  [HYG-sha-literal] 2dc5c8… in: at commit `2dc5c8…`, which `docs/CI-STATE.md` itself calls five commits behind the tip it was
+  FAIL  docs/submission/feature-census.md:1617: [HYG-sha-literal] 2dc5c8… in: | U-C4 | `crdb_agent_skills` — **detector only; the verdict stays DESIGNED** | **DESIGNED** | two-part predicate, propos
+  2 claim-hygiene violation(s)
+exit 1
+```
+
+**RE-RUN AT `23:44`, AND THE COUNT HAD MOVED TO `3`.** `feature-census.md:1707` joined the two
+above — same rule, same literal, on the `O19` row. **The reading is reported as it moved rather
+than as one number**, because W5's file was still being written while this sheet verified it
+(§13.4.3). **Four of the six files remain clean; every violation in all three readings is in
+`feature-census.md`, and the count may be higher again by the time the orchestrator reads this.**
+
+> **THE OFFENDING LITERAL IS MASKED IN THIS PASTE, TO ITS LAST CHARACTER ONLY, AND THE MASK IS
+> DECLARED RATHER THAN SILENT.** The scanner's `HYG-sha-literal` pattern matches a bounded run of
+> **exactly 7 or 40 hex characters**, so reproducing W5's literal verbatim here would plant four
+> more findings **in this file** — and this register's header commits it to *"exit 1 with 6
+> findings on 4 lines, all of them inside the pasted self-test transcript."* **A clearance sheet
+> that widens its own sanctioned exception while reporting somebody else's is not a clearance
+> sheet.** Every `2dc5c8…` below is the same 7-character literal with its final character elided;
+> **run the command and the real one prints.** This is a redaction of one character in a quotation,
+> not a softened finding: the file, the two line numbers, the rule id and the exit code are exact.
+
+**Four of the six film/census files are clean. Both failures are in `docs/submission/feature-census.md`,
+which is W5's, and both were introduced by this wave.** Proved rather than assumed — the same six
+files extracted at `HEAD` into a scratch directory and scanned:
+
+```
+$ git show HEAD:<each of the six> > <scratch>/ ; claim_hygiene.py --check <scratch>/*
+  scanned 6 file(s) against 21 rules
+  claim hygiene OK
+exit 0
+```
+
+and `git show HEAD:docs/submission/feature-census.md | grep -c <the literal>` returns **`0`** against
+**`2`** in the working tree, with both occurrences on `+` lines of `git diff HEAD`.
+
+**THE FIX IS THE TEXT, NEVER THE SCANNER — and this worker did neither.** `feature-census.md` is
+W5's file and is not repaired here. For the orchestrator, the remedy is already in the scanner's
+own design: `HYG-sha-literal` is exempted on any line carrying the inline marker
+`claim-hygiene: quoting` (`scripts/demo/claim_hygiene.py:300`), or inside a `PROHIBITION_KEYS`
+block. **Nobody may add `HYG-sha-literal` to an ignore list, relax its pattern, or drop
+`feature-census.md` from the sweep** — a hygiene rule that is loosened the first time it fires is
+`PL-2` decoration, and this repository's own `--self-test` exists to prevent exactly that.
+
+**The irony is worth one line, because it is the reason this is a small defect and not a
+dangerous one.** Every offending line is W5 **refusing to promote `crdb_agent_skills`** — *"the
+verdict stays DESIGNED"*, *"Promotion is refused on Part 2's own evidence: the recorded green is at
+`2dc5c8…`, five commits behind."* **The content is the most honest paragraph in the file. Only its
+citation form is banned.**
+
+#### 13.5.4.1 · This sheet's own scan — the register's declared count, restored exactly
+
+**A verification sheet that reports somebody else's RED without printing its own is not
+verification.** Scanned together with the two other files this worker wrote:
+
+```
+$ .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check \
+    docs/demo/film/CLAIMS-CLEARANCE.md docs/demo/film/CLAIMS-CLEARANCE-CR.md \
+    docs/demo/ON-SCREEN-CLAIMS.md
+  scanned 3 file(s) against 21 rules
+  6 claim-hygiene violation(s)                    # lines 833, 834, 835 ×2, 836 ×2
+exit 1
+```
+
+**`CLAIMS-CLEARANCE-CR.md` and `ON-SCREEN-CLAIMS.md` are clean. All 6 findings are in this file, on
+4 lines, and every one is inside the pasted `--self-test` transcript at §8.4** — which is exactly
+what this register's header commits it to: *"SCANNING THIS FILE RETURNS EXIT 1 WITH 6 FINDINGS ON 4
+LINES, ALL OF THEM INSIDE THE PASTED SELF-TEST TRANSCRIPT."* **The declared count is unchanged by
+§13, and restoring it took a correction to this worker's own draft**: the first version of §13.5.4
+quoted W5's literal verbatim and planted **4 more findings in this file**, taking it to 10 on 8
+lines. **That is the same class of defect this section reports in `feature-census.md`, committed in
+the act of reporting it**, and it is recorded rather than quietly fixed — a register that widens
+its own sanctioned exception while auditing somebody else's has stopped being a register.
+
+**`--self-test` re-run and unchanged: `planted 4 violation families, scanner fired on 4`, exit 0.**
+The scanner can still go red, which is the only reason its green means anything.
+
+### 13.5.5 · The regression guard — baseline held
+
+Run as `scripts/qa/regression_guard.py --no-live --no-cloud --only SUITES,KERNEL,BOUNDS` with
+`--suite-out` writing a JUnit XML and `--json` writing the full record. **`--live` and `--cloud`
+were declined deliberately**: this worker is forbidden to touch AWS, and the deployed origin's
+`ok true` / `deploy_chain_applied 271` / `gate_run_verdict PROVEN` are already carried by the
+auditor's own run in `AUDIT.md` §1 the same day.
+
+**KERNEL and BOUNDS hold exactly. SUITES does not, and it is reported as a FAIL.**
+
+```
+KERNEL  verdict             PASS  expected PROVEN                    observed PROVEN
+KERNEL  caveats             PASS  expected (none)                    observed (none)
+KERNEL  refusal_sqlstate    PASS  expected 23514                     observed 23514
+KERNEL  refusal_exhibit     PASS  expected gate_closed_when_issued   observed gate_closed_when_issued
+KERNEL  drift_sqlstate      PASS  expected P0001                     observed P0001
+KERNEL  drift_exhibit       PASS  expected mainline.fn_permit_merge_gate  observed mainline.fn_permit_merge_gate
+KERNEL  admission_sqlstate  PASS  expected ADMITTED [00000]          observed ADMITTED [00000]
+
+SUITES  collected           PASS  expected 1070                      observed 1070
+SUITES  passed              FAIL  expected 1069                      observed 1056
+SUITES  failed              FAIL  expected 0                         observed 1
+SUITES  errors              FAIL  expected 0                         observed 12
+SUITES  skipped             PASS  expected 1                         observed 1
+
+BOUNDS  ceiling_constant    PASS  expected 136 * 1024 == 139264      observed 136 * 1024 == 139264
+BOUNDS  straddle            PASS  expected largest_served < 139264 < largest_identity   observed 137939 < 139264 < 490373
+BOUNDS  one_refusal         PASS  expected exactly 1 identity object above the ceiling  observed 1: assets/index-HZTFrKeL.js
+
+VERDICT  REGRESSION - 3 of 15 checks FAILED in SUITES (12 PASS, 0 SKIP)
+```
+
+**The numbers come from the `--junitxml` root element and from nothing else, never from a terminal
+tail** — the rule §12.10 set for this file and which it keeps. The root element, verbatim:
+
+```xml
+<testsuite name="pytest" errors="12" failures="1" skipped="1" tests="1070" time="195.344"
+           timestamp="2026-08-16T23:36:25.171151+10:00" hostname="AetherX">
+```
+
+* **`DEFAULT_MAX_RESPONSE_BYTES` did not move** — `136 * 1024 == 139264`, and the straddle still
+  brackets it: `137939 < 139264 < 490373`, with exactly one identity refusal.
+* **The gate proof is `PROVEN` and `caveats` is empty** — caveat-free, with all three SQLSTATEs
+  and both constraint names intact.
+* **`collected` is `1070`, matching the baseline exactly.** No test was added, removed, renamed
+  or deselected.
+
+#### 13.5.5.1 · The 13 non-passing tests share ONE cause, and it is the local node, not this wave
+
+**All 13 — the single `failure` and all 12 `errors` — fail on *setup* with the identical error**,
+read out of the JUnit XML rather than off a terminal:
+
+```
+psycopg.errors.ConfigurationLimitExceeded: error executing StatementPhase stage 1 of 1 with
+17 MutationType ops: cannot create new schema object(s): would exceed approximate maximum
+(20000); current count: 20270
+HINT:  You can increase the limit by adjusting the cluster setting sql.schema.approx_max_object_count
+```
+
+**The local CockroachDB node is saturated.** Measured read-only by this worker on
+`postgresql://root@localhost:26257`: **242 databases on the node, 54 of them scratch-shaped**,
+accumulated across many worker waves — each of which created a scratch database and none of which
+dropped it. The fixtures cannot create their schemas, so every test that needs a fresh one errors
+before its body runs.
+
+**Why this is not attributable to the close-card wave, stated as an argument a stranger can check
+rather than as a reassurance:**
+
+1. **`collected` is `1070`, the baseline exactly.** A wave that changed what the suite runs would
+   move the collection count; this one did not move it by one.
+2. **The wave touched six files: four `.md` and two `.yaml`, all under `docs/`.** Nothing under
+   `docs/**` is collected by pytest, no workflow filters on it, and `docs/demo/film/**` is outside
+   every `TARGET_GLOBS` entry. **There is no path by which a markdown edit reaches a fixture.**
+3. **The failure mode is a cluster resource limit, not an assertion.** Not one of the 13 records a
+   wrong value; every one records `ConfigurationLimitExceeded` on `CREATE`.
+
+> **REPORTED, NOT REPAIRED.** The two available remedies are **raising
+> `sql.schema.approx_max_object_count`** and **dropping the 54 accumulated scratch databases**.
+> **This worker did neither, and the reason is the same reason `N01` stays FAIL:** both would turn
+> a red number green by moving the environment rather than by fixing anything, and one of them
+> destroys data on a node the demo world lives on. **Whoever clears it must re-run
+> `regression_guard.py` and get `1070 / 1069 / 0 / 0` from a `--junitxml` root element before the
+> baseline may be called held.** Until then the honest statement is: **KERNEL caveat-free and
+> BOUNDS unmoved, SUITES unverified on a saturated node.**
+
+**Nothing this worker did could have moved it.** The three files written are markdown under
+`docs/`. **No database was created or dropped** — an empty scratch database would have been a write
+with no reader, and on this node it would also have been one more of the 20,270. No grant moved, no
+cluster setting written, no `terraform`, no AWS call, no SSM parameter, no credential printed, no
+commit.
+
+### 13.5.6 · The two divergences that stay open, restated so a green is never misread
+
+* **`mainline_qa.v_disposition_profile` / `N01` stays open.** `evidence/mcp/pack-run.json` reads
+  `15 / 16`, `exit_code 1`, `verdict DIVERGED — KNOWN GAP` **today**, five days after the
+  `2026-08-11` run said the same thing. **No grant was revoked or widened by this wave to change
+  it.** If a future capture ever reads `16 of 16`, check what was revoked before believing it.
+* **The PRIVILEGES `FAIL` on `mainline.exposure_line` / `mainline.exposure_receipt` INSERT is the
+  sanctioned standing gap**, not a regression. Widening the write surface of an unauthenticated
+  endpoint is the founder's call and he has not made it.
+
+**A negative suite that has quietly gone green is the worst artefact in a repository, because it
+reads as the strongest.**
+
+---
+
+## 13.6 · WHAT THIS SECTION FOUND IN OTHER WORKERS' FILES — reported, not repaired
+
+**`close-card-plan.md` §5 gives each worker literally enumerated paths and this worker's are three
+markdown files.** Two defects were found outside them. Both are named with `file:line`; neither was
+touched.
+
+| # | file, owner | defect | severity |
+|---|---|---|---|
+| **D-W1** | `docs/demo/film/VO-CLOSE.md` — **W1** | **§5.6, §5.6.1 and §5.6.3 did not exist** at `23:31`, while referenced 7 times in that file plus twice from `ONSCREEN-TEXT.yaml`; the panel string appeared **0** times in the file the string of record names as owning it | **CLOSED `23:43:32`.** W1 landed §5.6 through §5.6.5; all three copies of the panel are byte-identical. **C-13.1 discharged, §13.4.2.** Kept in the table because a finding that was raised and then met is a record, not an embarrassment |
+| **D-W5** | `docs/submission/feature-census.md` — **W5** | `HYG-sha-literal` fires on one 7-character commit literal (`2dc5c8…`, masked per §13.5.4) at `:958`, `:1617` and — from `23:44` — `:1707`. **New this wave** (`0` at `HEAD`; every occurrence on a `+` line). Takes `claim_hygiene.py --check` from **exit 0 to exit 1** across the six touched files | **OPEN — BLOCKING for CI.** `.github/workflows/claims.yml` asserts this scanner. The remedy is the text (`claim-hygiene: quoting`, `:300`), never the rule. **Re-run before committing: the count moved once already** |
+| **D-ENV** | the **local CockroachDB node** — nobody's file | `sql.schema.approx_max_object_count` exhausted: **20,270 objects against a 20,000 maximum**, from **242 databases, 54 scratch-shaped**, left behind by earlier waves. 13 tests error/fail on setup; SUITES reads **`1070 / 1056 / 1 / 12`** | **BLOCKING for the baseline claim** — the suite cannot be said to hold until a clean node reproduces `1070 / 1069 / 0 / 0` from a `--junitxml` root. **Not an artefact defect and not caused by this wave** (§13.5.5.1). Remedies declined here on purpose |
+
+**Three things this worker deliberately did not do, each of which would have made a number look
+better today.**
+
+1. **Did not run or commit an Agent Skills transcript** to turn `DESIGNED` into `EXERCISED`. The
+   scripts finish in seconds. The panel prints the state the tool is in.
+2. **Did not touch `mainline_qa`'s grant.** `N01` stays FAIL and the MCP verdict stays
+   `DIVERGED — KNOWN GAP`.
+3. **Did not soften a clearance verdict, relax the hygiene rule, or edit another worker's file to
+   make its check pass.** A REFUSE that is downgraded to let a string through is not a clearance
+   system; it is a rubber stamp, which is the exact thing `k3`'s own limit card says this project
+   will not dress up.
+
+---
+
+**Signed:** W6 · clearance, hygiene and whole-wave verification · close-card wave · 2026-08-16
+(UTC), audited against `docs/submission/AUDIT.md` FIX 1, `docs/demo/close-card-plan.md`
+R-C1…R-C10 and §4, `docs/submission/MUST-NOT-CLAIM.md` (which retains precedence) and
+`docs/demo/research/r6-honesty.md` Part A.
+**Three files written — `CLAIMS-CLEARANCE.md` (this section), `CLAIMS-CLEARANCE-CR.md` (§7, a
+scope note only) and `docs/demo/ON-SCREEN-CLAIMS.md` — and nothing else in the tree touched.**
+**`VO-CLOSE.md`, `ONSCREEN-TEXT.yaml`, `BEATS.yaml`, `SPINE.md`, `close-block.md` and
+`feature-census.md` were READ and NOT EDITED**, including the two files carrying the defects in
+§13.6: a worker who repairs another worker's file destroys the only evidence that the wave needed
+repairing. No ratchet, floor, ceiling, assertion or expectation was moved. No grant widened, none
+revoked. **No cluster setting written and no database created or dropped**, on a node whose
+saturation is the subject of D-ENV. No `terraform`, no AWS surface, no SSM parameter, no
+credential, no commit.
+**8 rows cleared, 0 reworded, 3 refused, 1 shoot-blocking condition raised and discharged,
+2 defects still open and handed back — and 2 of the wave's own verification checks reported RED
+rather than rounded. Every reading carries the time it was taken, because the wave was still
+being written while it was verified, and the orchestrator must re-run §13.5 against the tree it
+actually commits.**

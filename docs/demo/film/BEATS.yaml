@@ -398,6 +398,56 @@ beats:
     # convention is that every server value carries a provenance chip and nothing
     # typed does, so the wording is visibly a human's proposal and never a database
     # claim. It is the same discipline `b0`'s work-description tail already uses.
+    #
+    # ── THE PRESS LANDS AT 2:14.0, INSIDE THIS BEAT. RULED 2026-08-16. ─────────
+    # RECORDED, NOT RE-CUT. `CLICKS.md` §5 is the choreography of record; this is
+    # the timing note that beat owes this file. Click 6 — `Approve change`, the
+    # second and last mutating request of the film — is at `2:14.0`, which is
+    # `+10.0` into `b9`. In flight `2:14.0 -> 2:15.5`. The refusal paints at
+    # `2:15.5`. `b10` in-points at `2:16.0` on a refusal already half a second on
+    # screen. NOT ONE `t`, `dur`, `ends` OR `vo_word_budget` IN THIS FILE MOVED
+    # FOR IT — `b9` is still 12 s at 124, `b10` still 12 s at 136, `demo_s` 148,
+    # `total_s` 172 against `hard_stop_s` 174 — which is the whole reason this is
+    # a comment and not a revision. The ruling is `docs/demo/shoot-docs-plan.md`
+    # R-SD4; it quotes `wps_assumption: 1.9` and the kit's 1.95 ceiling from this
+    # file at `budget:` above and moves neither.
+    #
+    # THE AUTHORITY IS THE FILM'S OWN GRAMMAR RATHER THAN A PREFERENCE.
+    # `CLICKS.md` §5 `b1` already solves this exact problem once: the attempt beat
+    # carries the press (Click 2 at `0:22.5`, `+2.5` into a 10 s block), the
+    # cursor then does not move, and the refusal beat's in-point is where the
+    # refusal IS ON SCREEN (`b2` at `0:30`). `b9` is the attempt beat of use case
+    # two and `b10` is titled REFUSED AGAIN; choreographing the film's two
+    # mutating presses differently is itself the defect, because a judge watches
+    # the same act twice and the second one reads as edited. Three rules point the
+    # same way and none points the other. R-K: a value is spoken while it is on
+    # screen, and `b10`'s first word is "Refused." at `2:16`. R-9, encoded under
+    # `constraints:` below: each mutating request is narrated WHILE IT IS IN
+    # FLIGHT, and under this placement the tail of "This request asks to edit it."
+    # runs over the flight. R-10: `b9` and `b10` are atomic, so the seam between
+    # them is a seam inside one act and not a place to park a pending spinner.
+    #
+    # WHAT IT COSTS, PRICED HERE RATHER THAN DISCOVERED AT REHEARSAL. The
+    # keystroke window falls from 5.0 s to 2.5 s, and the 1.1 s of "settle" slack
+    # `VO-DEMO.md` §2 books against this beat is RE-PURPOSED — from the typed
+    # proposal settling, to the press at `2:14.0` and the answer landing. The
+    # proposed wording must therefore be a string a human types legibly in 2.5 s.
+    # `CLICKS.md` §5 `B9` owns that string and is where it is stated; this file
+    # does not carry it and must not.
+    #
+    # THE R-2 NOTE ABOVE IS STRENGTHENED BY THIS AND NEVER WEAKENED. R-2 is
+    # satisfied by THE ACT of typing into the console's own input with no
+    # provenance chip; it has never been satisfied by a character count, so a
+    # shorter honest proposal satisfies it identically. A string that will not
+    # type in the window is SHORTENED — it is never pre-typed, because
+    # `CLICKS.md` M14 measured the textarea destroyed and re-created empty when
+    # the screen mounts.
+    #
+    # CONDITIONAL, LIKE EVERY OTHER SENTENCE ABOUT THIS BEAT. `b9` and `b10` are
+    # NO-GO on the deployed origin today and this placement is live only if
+    # `FALLBACKS.md` §4.2's R-11 gate passes. On the NO-GO path there is no
+    # Click 6 at all: the film reverts to exactly one mutating request, `b8`
+    # returns to 10 s, and the cut is the 152 s of the escape hatch below.
 
   - beat_id: b10
     t: 136
@@ -430,6 +480,36 @@ beats:
     # "the system just says no", which is why the three live defeater prompts are on
     # screen and not optional (R-4): the way through is shown; only the walking
     # through it is not.
+    #
+    # ── THIS BLOCK OPENS ON A REFUSAL ALREADY PAINTED, AND CARRIES NO PRESS ────
+    # Ruled with the `b9` note above on 2026-08-16
+    # (`docs/demo/shoot-docs-plan.md` R-SD4 / R-SD4a). Click 6 is at `2:14.0`,
+    # inside `b9`; the request is in flight `2:14.0 -> 2:15.5`; the refusal paints
+    # at `2:15.5`. This block's in-point at `2:16.0` therefore lands on a frame
+    # that has been showing the refusal for half a second, and R-K is satisfied
+    # with 0.5 s to spare when the first word "Refused." is spoken. THERE IS NO
+    # CLICK IN THIS BEAT and no pending spinner sits on its in-point. `dur: 12`
+    # and `t: 136` did not move for this and neither did anything else.
+    #
+    # THE FALLBACK SLIP IS CAPPED AT 0.4 s, AND THE CAP IS THIS BEAT'S OWN
+    # MEASURED FREE SLACK RATHER THAN A ROUND NUMBER. `VO-DEMO.md` §2 books 1.5 s
+    # of slack here: 0.6 s of mirror hold plus 0.5 s for the spoken SQLSTATE,
+    # leaving 0.4 s free. If rehearsal shows that no honest proposal string types
+    # legibly in 2.5 s even after the string is shortened, this block's first word
+    # may slip by AT MOST 0.4 s — Click 6 at `2:14.4`, the typing at 2.9 s. Past
+    # 0.4 s the hold or the SQLSTATE pays and both are protected: `SPINE.md` §4
+    # makes the hold a scripted element rather than a pause an editor may tighten,
+    # and 20 delivered words in 9.5 s is 2.11 w/s, over the kit's 1.95 ceiling.
+    # A 2.5 s slip was therefore not expensive; it was unaffordable.
+    #
+    # THE COLLISION, NAMED HERE SO IT IS NOT DISCOVERED ON THE DAY. That same
+    # 0.4 s is the only slack `CLAIMS-CLEARANCE.md` `D31` can be paid out of — the
+    # `~ REWORD` of "guards edits" to "guards the change", which `VO-DEMO.md`'s
+    # head note prices at 21 words running 1.13 s against 0.95 s of slack. THE
+    # 0.4 s CANNOT BE SPENT TWICE. The film lead spends it on the press or on
+    # `D31`, states which, and does not discover the choice at 02:00. Like every
+    # other sentence about this beat, all of it is conditional on `FALLBACKS.md`
+    # §4.2's R-11 gate: on the NO-GO path this block does not run at all.
 
   # ═══ THE CLOSE — three cards + end card, 24 s ══════════════════════════════
   # Overlay over LIVE PICTURE, never a stock slide. Devpost's tip permits "text
@@ -442,7 +522,12 @@ beats:
   # already ruled that the service names are not read aloud. The saving is taken
   # from DWELL, from SPEECH, and from running two sequential cards in PARALLEL.
   # Not one service, feature, label, caveat or concession leaves the screen. The
-  # words-per-second does not move: 1.64 before, 1.64 after.
+  # words-per-second does not RISE: 1.64 at 50 s and 1.64 at 22 s AT BUDGET, and
+  # 1.55 AS DELIVERED after `D35` — 34 words over 22 s. See the `close_words` note
+  # under `budget:` above and `VO-CLOSE.md` §0.2, which is the measurement. This
+  # comment read "1.64 before, 1.64 after" until 2026-08-16; the delivered figure
+  # was missing from it, and the direction it proves is the safe one either way,
+  # because a close compressed in CONTENT would read FASTER and this one is slower.
   - beat_id: k1
     t: 148
     dur: 6
@@ -506,8 +591,31 @@ beats:
     vo_word_budget: 10 # 1.67 w/s
     never_cut: false
     on_screen: >-
-      The three-line honest limit ON SCREEN IN FULL, the complete four-line
-      criterion rail, and both URLs.
+      FOUR elements, not three, since the close-card wave of 2026-08-16. The
+      three-line honest limit ON SCREEN IN FULL, the complete four-line criterion
+      rail, both URLs, and THE CONTEST TOOLS PANEL — the four CockroachDB contest
+      tools, each beside its state and the evidence path a judge can open:
+      Distributed Vector Indexing (C-SPANN) EXERCISED, evidence/aws/ann/; Managed
+      MCP Server EXERCISED, evidence/mcp/; CockroachDB Cloud + ccloud CLI
+      EXERCISED, evidence/ccloud/; CockroachDB Agent Skills DESIGNED — shipped and
+      validated, NO RUN IS COMMITTED — skills/. THREE EXERCISED, ONE DESIGNED, and
+      the panel heading says that ratio out loud before a judge reads a row, so the
+      contest's own eligibility question is answerable from the frame alone.
+      Authority for the string: `VO-CLOSE.md` §5 and `ONSCREEN-TEXT.yaml`
+      `k3.overlay.tools`; this line is orientation, never a specification.
+    # WHAT THE PANEL COSTS, MEASURED, AND IT IS GLYPH SIZE AND NOTHING ELSE.
+    # `close-card-plan.md` §1.4 and R-C4 composed it: k3 goes from 89 ch x 24 lines
+    # to 99 ch x 32 lines, so the em drops from 34.2 px to 25.6 px — a 25 % cut in
+    # glyph size, height-bound, with 20 ch of width headroom still in hand. The
+    # budget handed to W1 and W2 is <= 119 characters across and <= 32 lines tall.
+    # THAT COST IS REAL AND IS NOT DRESSED UP. What it is not is a drop below
+    # anything already cleared: 25.6 px is 1.25x the composed k2 card's 20.5 px and
+    # 1.03x the 24.9 px the old C3 was cleared at, so k3 still runs LARGER than
+    # either card k2 replaced. NOT ONE SECOND AND NOT ONE SPOKEN WORD PAID FOR IT:
+    # `dur: 6` and `vo_word_budget: 10` are unchanged, k3's 0.7 s of air stays air
+    # (R-C3), and no fifth sweep landing is added (R-C7). Agent Skills is DESIGNED
+    # and must not appear in any better state than that, on this card or anywhere.
+    #
     # THE RAIL ARRIVES WHOLE, IN THIS CARD (R-3). Today four rail lines fade in one
     # per close block. Across 22 s and three cards, four staggered lines are
     # unreadable, so the rail lifts into the final block complete — which is how
@@ -605,7 +713,24 @@ cut_ladder:
         The limit is already the densest thing on the card and it is already
         printed there in its exact sanctioned form. What is given up is the film's
         last SPOKEN concession, which is a real loss to a judge who is listening
-        rather than reading — so it goes fourth, not first.
+        rather than reading — so it goes fourth, not first. THIS STEP GOT WORSE ON
+        2026-08-16 AND KEEPS ITS RANK ANYWAY, WITH THE NEW COST RECORDED RATHER
+        THAN LEFT AT THE OLD ONE: k3 now also carries the contest tools panel, so
+        at 4 s the panel — the seven lines at 25.6 px that answer the contest's
+        eligibility question — is the densest UNREAD thing on the card, and this
+        step shortens the one card a judge is most likely to pause on. Rank 4
+        stands anyway, because it is still the last step before the ladder reaches
+        b10, which R-10 floors at 8 s: moving k3 down the order would put a floored
+        step above an unfloored one. Re-ordering a pre-committed ladder is the film
+        lead's decision at rehearsal and never a documentation edit made at 02:00.
+      panel_is_never_cut_for_content: >-
+        BINDING AT THIS STEP AND AT EVERY OTHER. The tools panel may lose its
+        horizontal rule, which is decoration, and it may lose the blank line under
+        its heading. It may never lose a ROW and it may never lose the DESIGNED
+        state on the Agent Skills row. Dropping that row is how "three exercised,
+        one designed" silently becomes "four tools" — a REFUSE under
+        `close-card-plan.md` R-C5, and the reason the rest of the card is
+        believable. Shortening this beat is a cut to DWELL, never to the panel.
     - rank: 5
       beat_id: b10
       from_dur: 12

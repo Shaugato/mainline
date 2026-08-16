@@ -2117,6 +2117,48 @@ beats:
         Recorded as a reading, not as a complaint: two of the three are packaging, the third
         is a route, and none of them is this file's to land.
 
+    # ── THE PRESS, PLACED — added 2026-08-16 under shoot-docs-plan.md R-SD4 ──────────
+    press_placement:
+      authority: docs/demo/shoot-docs-plan.md R-SD4 · R-SD4a · R-SD4b
+      ruling: >-
+        CLICK 6 — THE ATTEMPT — IS AT 2:14.0, WHICH IS +10.0 INTO b9. The request is in
+        flight 2:14.0 to 2:15.5. The refusal paints at 2:15.5. b10 opens at 2:16.0 on a
+        refusal that has been on screen for half a second. The film's two mutating presses
+        are now choreographed identically: press in the attempt beat, answer painted before
+        the refusal beat's first word.
+      struck: >-
+        CLICKS.md §5's 2:17 is STRUCK — it put the SQLSTATE on screen after "Refused." was
+        spoken at 2:16, which R-K forbids. CLICKS-CR.md's +7.4 is STRUCK too — scored
+        against the retired 10 s three-block B9, it lands at 2:11.4, in the middle of the
+        typing. Neither number survives; the placement of one does.
+      why_this_file_carries_it: >-
+        Because two ids in this file are values a judge reads off a frame whose in-point the
+        ruling moves. b9.devtools.row is the second of exactly two mutating rows and it now
+        appears at 2:14.0; every b10 payload id renders from the response that lands at
+        2:15.5. This file records WHEN a string reaches the screen only where that timing is
+        what makes the string checkable, and here it is: R-K says a value is spoken while it
+        is on screen or it is not spoken.
+      timeline_inside_this_beat:
+        - '2:04.0-2:05.5  cursor to the app-bar tab `Management of change`'
+        - '2:05.5         Click 5 — module switch; the screen MOUNTS here, inside the take'
+        - '2:05.5-2:09.0  the four-read paint, 3.5 s WARM (CLICKS.md M14); operator touches nothing'
+        - '2:09.0-2:10.5  wheel scroll to §3; the dwell on the clause of record is R-5 evidence and is not shortened'
+        - '2:10.5-2:11.0  click into `Proposed wording`; caret in an EMPTY box'
+        - '2:11.0-2:13.5  keystrokes — 2.5 s, at a human rate, on camera'
+        - '2:13.5-2:14.0  cursor travels to the attempt control'
+        - '2:14.0         CLICK 6 — mutating request 2 of 2'
+        - '2:14.0-2:15.5  in flight; real pending state; ONE cr-gate-run row'
+        - '2:15.5-2:16.0  the refusal paints and the frame composes'
+        - '2:16.0         b10 in-point — "Refused." is spoken over a refusal already on screen'
+      conditional_on: >-
+        R-SD4b. FALLBACKS.md §4.2's R-11 gate. Under NO-GO there is NO Click 6 at all: the
+        film's click ledger is five clicks and one text entry, F-11's count reverts to
+        exactly one mutating request, b8 returns to 10 s and the film is 152 s. Every
+        restatement of this ruling states it as conditional, including this one.
+      what_did_not_move: >-
+        R-SD5. No spoken line, no vo_word_budget, no beat duration and no total. 148 + 22 + 2
+        = 172 s, hard stop 174 s, ceiling 180 s. This block adds nothing to the film.
+
     strings:
 
       - id: b9.screen.title
@@ -2268,44 +2310,100 @@ beats:
       - id: b9.proposed.head_typed
         kind: ui_label
         label: Proposed wording
-        text: 'Before any intrusive work, stored energy shall be'
+        text: 'Isolate and lock.'
         chip: typed
         editorial: true
-        typed: pre-typed in pre-roll, 48 characters
-        source: 'operator/change/osha-sections.ts:290-298 — the app''s own input, id `moc-proposed-text`'
-        authority: film-recut-plan.md R-2; CLICKS.md §4; convention C3
-
-      - id: b9.proposed.tail_typed
-        kind: ui_label
-        text: ' isolated and locked.'
-        chip: typed
-        editorial: true
-        typed: TYPED ON CAMERA under the last line of the block, three words, at a human rate
-        joins_to: b9.proposed.head_typed
-        full_field_when_typed: 'Before any intrusive work, stored energy shall be isolated and locked.'
+        typed: TYPED ON CAMERA IN FULL, 2:11.0 to 2:13.5 — 2.5 s, 17 keystrokes, three words
         length_check: >-
-          69 characters complete. The box is a four-row textarea (`rows: 4`), so it wraps by
-          design and the wrap is not a defect to design around.
-        why_these_three_words: >-
-          THEY ARE THE ONES b0 TYPED, REMOVED. In b0 the supervisor typed `verified at zero`
-          into his own permit; here the proposal ends at `locked` and the verification is
-          gone. The clause of record is quoted six lines above with `isolated, locked and
-          verified at zero by a competent person` in it, so the difference is legible in the
-          frame without a single word of narration — and the anchor the proposal walks away
-          from, `ZERO_ENERGY`, is printed in the same panel by `b9.clause.provenance_row`.
+          17 characters. I-s-o-l-a-t-e is 7, the space is 8, a-n-d is 11, the space is 12,
+          l-o-c-k is 16, the full stop is 17. The capital I is one keystroke with a held
+          Shift, not two. The box is a four-row textarea (`rows: 4`) and 17 characters do not
+          reach the wrap.
+        rate_calibration: >-
+          6.8 keystrokes per second, and this film has ALREADY scored that rate and accepted
+          it: b0.el5.work_typed_tail types ` verified at zero` — 17 keystrokes counting its
+          leading space — across 0:05.5 to 0:08.0, which is the same 2.5 s. Same operator,
+          same duration, same rate, two rows a stranger can compare in under a minute.
+          CLICKS.md §5 B9 carries the comparison table.
+        THIS_ROW_WAS_CORRECTED_2026_08_16: >-
+          IT CARRIED A DIFFERENT STRING AND A DIFFERENT SHOOTING MODEL, AND BOTH WERE WRONG.
+          It read `Before any intrusive work, stored energy shall be` marked "pre-typed in
+          pre-roll, 48 characters", joined to b9.proposed.tail_typed's ` isolated and
+          locked.` for a 69-character composite. TWO THINGS WERE WRONG WITH THAT PAIR AND
+          NEITHER WAS NEW. (1) THE HEAD COULD NOT BE PRE-TYPED AT ALL: the change screen
+          MOUNTS at Click 5, 2:05.5, INSIDE the take, and CLICKS.md §1.5 step 3 measured the
+          router tearing the moc-proposed-text textarea down and re-creating it EMPTY on the
+          hash change — the same measurement this file already records at todo.T-7 and the
+          same one that ruled b9 cannot be shot in 10 s. Nothing typed before the red light
+          survives to this frame. (2) 69 CHARACTERS WILL NOT TYPE IN R-SD4's 2.5 s AT ANY
+          HUMAN RATE: it is 27.6 characters per second against the 6.8 this film has actually
+          filmed. The row borrowed b0's head/tail convention for a screen b0's convention does
+          not fit.
+        where_the_new_string_came_from: >-
+          CLICKS.md §5 B9, "WHAT THE RULING COSTS B9" — which owns the typed string under
+          shoot-docs-plan.md R-SD4 and states it verbatim with its character count. THIS FILE
+          COPIED IT; IT DID NOT CHOOSE IT. A string invented here to hit a stopwatch would be
+          a string somebody then matches the build to, which is the wrong direction of travel
+          — the same rule b9.attempt.control states about the control's label.
+        why_this_string: >-
+          IT IS A WEAKENING EDIT OF THE CLAUSE OF RECORD AND THE WEAKENING IS LEGIBLE WITHOUT
+          NARRATION. The clause b9.clause.text quotes six lines above reads `SYNTHETIC —
+          Before any intrusive work, stored energy shall be isolated, locked and verified at
+          zero by a competent person.` The proposal stops at `lock`. THE VERIFICATION IS GONE
+          — and `verified at zero` is the very phrase b0's supervisor typed into his own
+          permit on camera at 0:05.5, so the film has already taught the judge to read it.
+          The anchor the proposal walks away from, `ZERO_ENERGY`, is printed in the same panel
+          by b9.clause.provenance_row, so the removal is anchored rather than asserted. THIS
+          IS THE SAME ARGUMENT THE RETIRED PAIR MADE AND IT SURVIVES THE SHORTENING INTACT.
         constraint_check: >-
-          No date, no site, no job title, no injury, no identifier, no code, no uuid, no
-          company. Nothing here could be mistaken for a column value in a screenshot. It
-          does not carry the `SYNTHETIC —` prefix precisely BECAUSE it is not a column
-          value; the prefix belongs to the database's string and copying it onto a typed one
-          would be dressing a human's proposal as data.
+          Three words, so the typing rate is visible on camera. No date, no site, no job
+          title, no injury, no identifier, no code, no uuid, no company, no plant, no asset
+          tag, no crew, no PPE list. 17 characters against §4's 60-character ceiling. Nothing
+          here could be mistaken for a column value in a screenshot. It does not carry the
+          `SYNTHETIC —` prefix precisely BECAUSE it is not a column value; the prefix belongs
+          to the database's string and copying it onto a typed one would be dressing a
+          human's proposal as data.
         carries_no_provenance_chip: true
         the_convention_this_row_exists_to_demonstrate: >-
           Typed carries no chip (C3). In frame, `DEMO-MOC-0001` in the header carries
           `db:column`, the clause of record above carries `db:column`, and this box carries
           the app's own sentence instead. A judge who learned that convention in b0 reads
           this box correctly in one look and needs nothing said about it.
-        authority: film-recut-plan.md R-2 and §1.5; FALLBACKS.md F-8 satisfied rather than waived
+        r2_is_discharged_by_the_act_and_never_by_the_length: >-
+          R-2 is satisfied by TYPING INTO THE CONSOLE'S OWN INPUT with no provenance chip
+          beside it, under the deployment's own note that nothing was loaded into that box.
+          It has never carried a character count, so a shorter honest proposal discharges it
+          identically. FALLBACKS.md F-8 is satisfied rather than waived either way, because
+          the right-hand side of any comparison is visibly a human's and never the database's.
+        source: 'operator/change/osha-sections.ts:290-298 — the app''s own input, id `moc-proposed-text`'
+        authority: >-
+          film-recut-plan.md R-2 and §1.5; CLICKS.md §4 and §5 B9 (the string of record);
+          convention C3; shoot-docs-plan.md R-SD4; FALLBACKS.md F-8 satisfied rather than
+          waived
+
+      - id: b9.proposed.tail_typed
+        kind: ui_label
+        status: >-
+          RETIRED 2026-08-16 UNDER R-SD4, AND KEPT RATHER THAN DELETED. There is no head and
+          no tail any more: the whole 17-character string is typed on camera in one 2.5 s
+          run and it lives at b9.proposed.head_typed. This id is preserved because CLICKS.md
+          §5 B9 names it by name when it records the residue it handed here, and an id that
+          vanishes makes that pointer unresolvable — the same reason F-1 in this file's
+          findings block keeps its original finding verbatim. IT RENDERS NOTHING. Nothing on
+          screen comes from this row.
+        text_retired: ' isolated and locked.'
+        composite_retired: 'Before any intrusive work, stored energy shall be isolated and locked.'
+        why_it_was_retired: >-
+          69 characters at 27.6 per second is not a rate a hand reaches, and its head was
+          marked pre-typed in pre-roll on a screen that mounts inside the take. See
+          b9.proposed.head_typed.THIS_ROW_WAS_CORRECTED_2026_08_16 for both halves of the
+          defect and CLICKS.md §5 B9 for the ruling that replaced it.
+        what_survived_the_shortening: >-
+          THE REASONING, IN FULL. `why_these_three_words` argued that the proposal is legible
+          as a weakening because it drops exactly the phrase b0 typed on camera. That is still
+          the argument and it is now carried by
+          b9.proposed.head_typed.why_this_string, unchanged in substance.
+        authority: film-recut-plan.md R-2 and §1.5; shoot-docs-plan.md R-SD4; CLICKS.md §5 B9
 
       - id: b9.proposed.box_note
         kind: ui_label
@@ -2326,10 +2424,14 @@ beats:
         editorial: true
         source: operator/change/osha-sections.ts:301
         used_in_this_cut: >-
-          PERMITTED, NOT REQUIRED. At 12 s the beat has room for the press and the type and
-          not for a third action. If it IS pressed, the diff and its note below must both
-          be in frame; a struck-through/underlined diff filmed without its note would look
-          like a stored comparison, and it is not one.
+          NOT USED IN THIS CUT, and since R-SD4 that is arithmetic rather than preference.
+          The 12 s block is spent: 1.5 s app-bar travel, 3.5 s of read chain, 1.5 s of scroll
+          dwell that R-5 needs, 0.5 s into the box, 2.5 s of keystrokes, 0.5 s of travel to
+          the attempt control, and 2.0 s of flight and paint. There is no third action left
+          to spend on it. IF it is ever pressed — only if b9 is given more time, and it is
+          the first thing to spend that time on — the diff and its note below must both be in
+          frame; a struck-through/underlined diff filmed without its note would look like a
+          stored comparison, and it is not one.
 
       - id: b9.proposed.compare_note
         kind: ui_label
@@ -2375,6 +2477,14 @@ beats:
           R-9. Two POST rows in the whole film, each narrated while it is in flight. A THIRD
           row, or either row appearing without its narration, stops the take. See
           forbidden_on_camera.
+        when_it_appears: >-
+          2:14.0, on Click 6, INSIDE b9 — see press_placement above. Its Status, Size and
+          Time columns fill between 2:14.0 and 2:15.5. Row 1 of 2 is b1's, at 0:22.5, also
+          inside its own attempt beat: the film's two mutating rows appear at the same place
+          in the same shape of beat, which is what makes FALLBACKS.md F-11's count checkable
+          by eye. CLICKS.md §5's 2:17 is struck (shoot-docs-plan.md R-SD4). CONDITIONAL on
+          FALLBACKS.md §4.2's R-11 gate: under NO-GO this row does not exist and the film
+          carries exactly one.
 
   # ── b10 · REFUSED AGAIN · 2:16 → 2:28 ──────────────────────────────────────────────
   # The mirror. You cannot USE the clause; you cannot quietly EDIT IT AWAY either. R-5 and
@@ -3119,6 +3229,16 @@ beats:
       spoken; it is now only on screen. That is six spoken words saved and zero content
       lost, and film-recut-plan.md §3.2 calls it the single cleanest trade in the plan.
       Spoken: the first sentence only.
+      AND, SINCE 2026-08-16, THIS CARD ALSO CARRIES THE ELIGIBILITY PANEL. The new string
+      k3.overlay.tools names the four contest CockroachDB tools with their verdicts and
+      their evidence paths — three EXERCISED, one DESIGNED — because until this wave the
+      closing card of a CockroachDB hackathon film named seven AWS services and zero
+      CockroachDB tools, and a judge asking the eligibility question (did they use at least
+      two CockroachDB tools?) could not find the answer anywhere in the film. NOT ONE
+      SECOND AND NOT ONE SPOKEN WORD WAS ADDED TO BUY IT: a card is text a judge pauses on,
+      so a line costs LAYOUT rather than seconds. What it costs is glyph size — k3 drops
+      from 34.2 px to 25.6 px — and that is stated in the arithmetic below rather than
+      quietly met. close-card-plan.md R-C2 and R-C4; AUDIT.md FIX 1.
     what_did_not_change: >-
       The three-line limit is on screen IN FULL. The criterion rail is on screen in FULL,
       all four stanzas, and this is the card R-3 lifts it whole into. Both URLs are on
@@ -3131,7 +3251,29 @@ beats:
       compression after COST 1. It is bearable because the limit is spoken while the rail
       is read and the rail is the part a judge pauses on — but it is not free, and the cut
       ladder's rank 4 takes k3 to 4 s only after everything else has already gone.
-    authority: film-recut-plan.md §3.1, §3.2, R-3, R-6; VO-CLOSE.md §5.2 and §5.3
+      THE ELIGIBILITY PANEL MAKES THIS CARD DENSER AGAIN, AND THAT IS A STATED COST RATHER
+      THAN A QUIETLY MET ONE. Adding k3.overlay.tools takes the composed card from 89
+      characters across by 24 lines to 99 by 32, and the glyph size from 34.2 px to
+      25.6 px — a 25 % reduction, on the card that carries the film's only concession, the
+      organiser's four criteria in their own words, and both URLs. Three things are true
+      beside that and none of them cancels it. 25.6 px is above the largest glyph size any
+      card in this close actually runs at — 1.25× k2's composed 20.5 px, which is the
+      densest card in the cut and is already cleared, and 1.03× the 24.9 px old c3 was
+      cleared at — BUT IT IS BELOW OLD c2's 31.0 px, and that is stated rather than rounded
+      away. VO-CLOSE.md §0.5 measured c2 alone at 98 ch × 22 lines, width-bound at ≈31 px,
+      and §5.6.2 rules that anyone repeating a claim that k3 still runs larger than EITHER
+      card k2 replaced is repeating something the film authority has measured to be false
+      for c2. This entry carried that looser sentence for one draft and it was corrected
+      against §5.6.2 rather than left to be caught on camera. The panel is four
+      rows a judge SCANS in a second, not prose he reads. And the alternative was a closing
+      card that answered the eligibility question nowhere, which AUDIT.md calls the largest
+      unforced loss in the submission. THE CUT LADDER'S RANK 4 — k3 6 s to 4 s — IS NOW A
+      WORSE STEP THAN IT WAS, because the card it shortens is denser; it stays at rank 4,
+      it is still the last thing before b10, and BEATS.yaml carries the new cost in its
+      `why` rather than the old one. close-card-plan.md R-C4 and §6.
+    authority: >-
+      film-recut-plan.md §3.1, §3.2, R-3, R-6; VO-CLOSE.md §5.2, §5.3 and §5.6;
+      close-card-plan.md R-C2, R-C4, R-C5, R-C6, R-C7
     strings:
 
       - id: k3.overlay.limit
@@ -3167,15 +3309,15 @@ beats:
              -> the database is in the reasoning loop, as the thing that constrains the agent
 
           "Does the agent use the tools correctly and safely?"
-             -> persisted: false — this endpoint cannot write
+             -> persisted: false — this call is non-mutating by construction
 
           "Is it used for more than toy queries ... at real scale?"
              -> transactional state, read inside the same SERIALIZABLE transaction as the decision
                 — and no scale is claimed
 
           "resilience, access control, and what happens when things go wrong?"
-             -> the refusal itself; 42501 on 256/256 ungranted pairs; a ledger that publishes
-                what did not run
+             -> the refusal itself; 42501 on 256/256 ungranted pairs in privilege
+                conformance; a ledger that publishes what did not run
         chip: editorial
         editorial: true
         source: docs/demo/film/VO-CLOSE.md §5.2
@@ -3191,6 +3333,197 @@ beats:
           it does not take a stanza: the rail is the only place in the film where the
           organiser's own second sentences are answered in the organiser's own words.
         authority: film-recut-plan.md R-3; VO-CLOSE.md §0.3
+
+      # ── THE ELIGIBILITY PANEL · added 2026-08-16 by the close-card wave ──────────────
+      # AUDIT.md FIX 1: the 22 s close named seven AWS services and ZERO of the four
+      # contest CockroachDB tools, on a CockroachDB hackathon. This string is the whole
+      # remedy, and it costs no second of film. Screen order is the order of this list:
+      # the limit, the rail, THEN this panel, then the URLs — the tools sit next to the
+      # two URLs a judge would use to check them, which is what makes them verification
+      # material rather than a boast.
+      - id: k3.overlay.tools
+        kind: overlay
+        text: |-
+          ------------------------------------------------------------------------------------------------
+          COCKROACHDB  ·  THE FOUR CONTEST TOOLS.  THE RULES REQUIRE TWO.   three EXERCISED, one DESIGNED
+
+          Distributed Vector Indexing (C-SPANN)  EXERCISED  3 cspann, 4 VECTOR, 42809    evidence/aws/ann/
+          Managed MCP Server                     EXERCISED  15 of 16, DIVERGED, published   evidence/mcp/
+          CockroachDB Cloud + ccloud CLI         EXERCISED  cluster list -o json, parsed   evidence/ccloud/
+          CockroachDB Agent Skills               DESIGNED   shipped, validated;  NO RUN IS COMMITTED  skills/
+        layout: >-
+          THE PANEL ARRIVES AS ONE ELEMENT — with the limit, the rail and both URLs, in a
+          single fade, held to the out-point — AND IS NEVER SEQUENCED. No row builds, no row
+          arrives late, and no row is revealed under a spoken cue. Sequencing inside a 6 s
+          card is exactly what R-3 took out of the rail; re-introducing it for a seven-line
+          panel would spend that saving twice and leave a judge reading a card that is still
+          assembling itself. AND IT CARRIES NO HIGHLIGHT SWEEP — close-card-plan.md R-C7.
+          The sweep is capped at four landings and all four are spent in k2
+          (VO-CLOSE.md §3.5). A fifth landing here would be the roving highlight this file
+          elsewhere calls a card nobody reads, on a 6 s card already holding a three-line
+          limit, a four-stanza rail, two URLs and now seven more lines. The panel is pause
+          material by construction, which is the same rule that leaves k2's AWS half unswept.
+          Set fixed-pitch so the four columns line up as written; the horizontal rule is
+          decoration and is the second thing the remedy ladder takes — never a word, never a
+          row, and never the DESIGNED state.
+        chip: derived
+        editorial: false
+        chip_note: >-
+          `derived` and NOT `editorial`, which is the whole difference between this panel and
+          every other string on k1-k3. The four tool names, the four VERDICTS, the counts
+          (3 cspann, 4 VECTOR, 15 of 16), the SQLSTATE and the four evidence paths are READ
+          from the census and the committed artefacts named in `source` below; they are not
+          this film's opinion of its own work. Convention C6 still holds for what IS ours,
+          and it is worth naming exactly: the heading's framing sentence
+          (`THE FOUR CONTEST TOOLS.  THE RULES REQUIRE TWO.`) and the compressed glosses in
+          the third column (`published`, `parsed`, `shipped, validated`). NONE of those
+          authored fragments states a verdict — every verdict on this panel is the census's
+          word, in the census's vocabulary, and that is what makes `derived` the honest chip.
+        source: >-
+          evidence/tool-usage/crdb-features.json is the row of record for all four verdicts —
+          `rows.crdb_vector_index`, `rows.crdb_managed_mcp`, `rows.crdb_cloud_ccloud` and
+          `rows.crdb_agent_skills` already read EXERCISED, EXERCISED, EXERCISED and DESIGNED
+          before this wave, so the census was right and the film was silent. The four paths
+          printed on the panel are the four a judge checks, and each carries the value beside
+          it: evidence/aws/ann/ for the vector row (explain-unhinted.txt prints REFUSED BY
+          THE SERVER — SQLSTATE 42809, and 3 cspann indexes and 4 VECTOR columns are live on
+          the cluster); evidence/mcp/ for the MCP row (pack-run.json — passed 15, total 16,
+          exit_code 1, verdict DIVERGED — KNOWN GAP); evidence/ccloud/ for the Cloud row
+          (cluster-list.txt — an auth whoami line, then a parsed JSON array carrying
+          cockroach_version v26.2.5 and cloud_provider AWS); and skills/ for the Agent Skills
+          row (two authored skills, one de-branded upstream contribution, validate-spec.py,
+          and no run). THE WORDS ARE OWNED BY docs/demo/film/VO-CLOSE.md §5.6 and this file
+          reproduces them to the character; if the two ever disagree, VO-CLOSE.md is right
+          and this file is wrong.
+        the_two_numbers_this_worker_re_measured_rather_than_inherited: >-
+          `4 VECTOR` and `3 cspann` were both re-run against
+          postgresql://root@localhost:26257/mainline_demo on 2026-08-16, read-only, because
+          VO-CLOSE.md §5.6.4 records that its own worker re-measured the first and did NOT
+          re-run the second. FOUR VECTOR COLUMNS, confirmed: clause_embedding.embedding,
+          event_cue_coarse.emb_coarse, event_cue_embedding.emb and event_cue_stage.emb. A
+          `data_type ILIKE '%vector%'` filter returns FIVE because it also catches
+          event_cue.tsv, which is a `tsvector`; filtering on `udt_name ILIKE 'vector'`
+          returns exactly four. ANYONE RE-RUNNING THIS MUST EXCLUDE tsvector OR HE WILL
+          PUBLISH 5. THREE CSPANN INDEXES, confirmed, and here is the one command that
+          prints them, because §5.6.4 asked for a check a stranger can be handed and
+          crdb_internal.table_indexes is privilege-restricted on this node —
+          `SELECT descriptor_name, create_statement FROM crdb_internal.create_statements
+          WHERE create_statement ILIKE '%VECTOR INDEX%'` returns THREE rows and their
+          declarations are `ce_ann` on clause_embedding, `cue_scoped_idx` on
+          event_cue_embedding and `cue_sweep_idx` on event_cue_coarse, each ending
+          `vector_cosine_ops`. It needs `SET allow_unsafe_internals = true` first, which is
+          why §5.6.4's preference for `SHOW INDEXES` or the census row as the PUBLISHED check
+          stands; this key records the corroboration, not a replacement for it.
+        never_added_to_this_panel: >-
+          VO-CLOSE.md §5.6.5, the items that bind the rendering rather than the prose. NEVER a
+          scale, latency or throughput figure — evidence/aws/ann/ann-proof.json holds timing
+          distributions and none of them goes on screen; this repository holds no load profile
+          and a vector-index proof is not a performance claim. NEVER a claim that a vector
+          query ran in this film: VO-CLOSE.md §4.2 stands unchanged, this demo world seeds no
+          embedding and issues no vector query, and the C-SPANN row is labelled with the
+          repository scope for exactly that reason. NEVER a spoken naming of any of the four
+          tools, on any card in the close — the panel is text a judge pauses on, and the
+          moment it is also something the founder says, the close is 19 words in a 10 s block
+          with zero air and VO-CLOSE.md §3.5's landing-4 alignment is broken.
+        exercised_means_in_this_repository_and_never_in_this_request: >-
+          VO-CLOSE.md §5.6.1, AND IT BINDS THE RENDERER AS HARD AS THE GEOMETRY DOES. This
+          panel speaks the CENSUS's verdict vocabulary — EXERCISED / DESIGNED, from
+          evidence/tool-usage/crdb-features.json — which is NOT k2's request-scope vocabulary.
+          On this panel EXERCISED means *exercised in this repository, with a committed
+          transcript*; it does NOT mean *in this request*. None of the four tools ran inside
+          the POST /v1/demo/gate-run a judge has just watched. THE PANEL IS THE COCKROACHDB
+          MIRROR OF THE BEDROCK BOX on k2's AWS half — the same third label, in the same
+          spirit — and it must read as one. Two consequences. FIRST, the panel never sits
+          under, beside, or visually inside anything reading `IN THIS REQUEST`: it lives on
+          k3, which carries no such heading, it must not acquire one, and no still,
+          thumbnail or press-kit crop may place it adjacent to k2's group headings. SECOND,
+          no caption, subtitle, alt text or Devpost paste may expand EXERCISED to *ran in
+          this request*, *live*, or *in the demo* — W6 files a REFUSE against any that does.
+          The rows resist it on their own (`15 of 16, DIVERGED` is a transcript's verdict and
+          `42809` is a refusal), but the failure mode is a caption written later by somebody
+          who never read §5.6.1, and it is cheap to forbid here.
+        order_is_the_criterion_s_own: >-
+          Vector index, MCP Server, ccloud CLI, then Agent Skills. That is DEVPOST.md:191's
+          own enumeration under Technological Implementation, with Agent Skills fourth
+          because the submission requirement names it separately — so a judge holding the
+          criterion and the frame sees ONE list in ONE order. It is the same principle that
+          put the criterion rail on this card in the organiser's own words.
+          close-card-plan.md R-C2.
+        the_designed_row_may_never_be_dropped_or_greyed: >-
+          close-card-plan.md R-C5, IN FULL, AND IT IS THE MOST VALUABLE WORD ON THE PANEL.
+          DESIGNED is set in the SAME SIZE, the SAME WEIGHT and the SAME COLUMN as EXERCISED:
+          no grey, no reduced opacity, no italic, no smaller type, no footnote marker, no
+          parenthesis. NO RUN IS COMMITTED is set in the SAME CAPITALS as EXERCISED, so the
+          missing thing is exactly as legible as the present ones. The heading says the ratio
+          out loud — `three EXERCISED, one DESIGNED` — so a judge has the count before he
+          reads a single row. DROPPING THE AGENT SKILLS ROW IS HOW `three exercised, one
+          designed` SILENTLY BECOMES `four tools`, AND IT IS A REFUSE: the row may not be
+          removed to make four look like four, may not be folded into the heading, may not be
+          greyed back, and may not be re-stated as anything stronger than DESIGNED. The
+          banned phrasings themselves are written out ONCE, in `forbidden_on_camera`, which is
+          the only block in this file allowed to hold them — the same discipline this file's
+          header already records for the bare invariant ids, which is why they are described
+          here rather than quoted. AND NOBODY MAY PROMOTE THIS ROW BY CAPTURING ONE: no
+          worker on this wave generates, runs or commits an Agent Skills transcript to make
+          the panel read better on the day. The tool is stated in the state it is in — shipped
+          and validated, not evidenced — or it is not stated at all. AND THE WORD IS NEVER
+          RE-WORDED UPWARD: not `ready`, not `complete`, not `validated and ready to run`,
+          not any phrase that reads as a run. `shipped, validated` is the cleared gloss and
+          `NO RUN IS COMMITTED` travels with it on the same line. The verdict changes when
+          evidence/tool-usage/crdb-features.json changes, and at no other moment and by no
+          other hand. VO-CLOSE.md §5.6.5.
+        no_mcp_route_claim: >-
+          close-card-plan.md R-C6. The MCP row cites `evidence/mcp/` — A COMMITTED TRANSCRIPT
+          — and NEVER an endpoint a judge can point a client at. `15 of 16, DIVERGED,
+          published` reads as *we drove it, and here is what came back*, which is the true
+          sentence; it does not read as *you can query our ledger over MCP*, which
+          census/close-block.md §8 bans by name and which AUDIT.md S2 struck where it survived
+          in a judge-facing document. The credential behind those transcripts is an
+          account-level Cloud service-account key carrying create_database, create_table and
+          insert_rows, and evidence/deploy/judge-access.json records
+          `credential_publishable: false` — so THERE IS NO PUBLISHED MCP ROUTE TO OUR LEDGER
+          and nothing on this panel may imply one. A judge reads our ledger over pgwire as
+          mainline_judge, or not at all. No worker in this wave writes to
+          docs/submission/JUDGE-START.md; this key's only obligation is that nothing this
+          panel puts on screen makes that finding worse, and citing the transcript discharges
+          it. The row also keeps the run's real verdict — DIVERGED, not a green 16 of 16 —
+          because a negative suite that has quietly gone green is the worst artefact in a
+          repository.
+        measured_geometry: >-
+          MEASURED, NOT ESTIMATED, ON VO-CLOSE.md §0.5's OWN BUDGETING ASSUMPTIONS (advance
+          0.6 em, pitch 1.25 em, 1824 × 1026 title-safe). The panel alone is 99 CHARACTERS
+          ACROSS BY 7 LINES. Composed onto k3 with one blank separator line: characters
+          across = max(89, 99) = 99; lines tall = 24 + 1 + 7 = 32. Width-bound
+          em <= 1824 / (0.6 × 99) = 30.7 px; height-bound em <= 1026 / (1.25 × 32) = 25.6 px;
+          K3 RUNS AT THE SMALLER, 25.6 px. That is 1.25× k2's 20.5 px and 1.03× the 24.9 px
+          the old c3 was cleared at, and the card is HEIGHT-BOUND with 20 characters of width
+          headroom still in hand. THE BINDING BUDGET: composed k3 must stay <= 119 CHARACTERS
+          ACROSS AND <= 32 LINES TALL. If a re-measurement against the real face and frame
+          lands below a legible floor, the remedy ladder is, in order — (1) drop the blank
+          line after the heading, which buys 0.9 px; (2) shorten the horizontal rule, which
+          is decoration; (3) re-wrap the Agent Skills row onto two lines and drop the rule
+          entirely. NEVER A WORD, NEVER A ROW, AND NEVER THE DESIGNED STATE.
+          close-card-plan.md R-C4; VO-CLOSE.md §5.6.1.
+        nothing_here_is_spoken: >-
+          Not one word of this panel is read aloud, and no word was added anywhere to carry
+          it. The close still delivers 34 spoken words in 22 s at 1.55 w/s; `close_words: 36`,
+          `close_s: 22`, `demo_s: 148`, `total_s: 172`, the 174 s hard stop and every
+          `vo_word_budget` are unchanged by this string. k3's 0.7 s of air is 1.3 words at
+          1.9 w/s — there is no sentence there — and k2's 2.6 s was refused in writing rather
+          than spent, because a line there would take that card to zero air and break the
+          landing-4 alignment VO-CLOSE.md §3.5 calls the one moment the parallelism buys
+          something the sequence could not. THE AIR STAYS AIR. close-card-plan.md R-C3.
+        what_a_judge_can_do_with_this_frame_that_he_could_not_before: >-
+          From the paused frame alone: count four tool names, read three EXERCISED and one
+          DESIGNED, and answer *did they use two or more CockroachDB tools?* — yes, three
+          with committed transcripts — without leaving the video. From the repository, in
+          under a minute, using the four paths printed on that same frame: close-card-plan.md
+          §3 carries the four one-line commands, one per row, and the fourth prints DESIGNED,
+          which is exactly what the frame already said.
+        authority: >-
+          docs/demo/close-card-plan.md R-C2, R-C4, R-C5, R-C6, R-C7; docs/demo/film/VO-CLOSE.md
+          §5.6 (the owner of the words); docs/submission/AUDIT.md FIX 1 and S5;
+          evidence/tool-usage/crdb-features.json
 
       - id: k3.overlay.urls
         kind: overlay
@@ -3512,6 +3845,37 @@ forbidden_on_camera:
       the day, §6's NO-GO path is the film — b8 returns to 10 s, the `b8b.*` rows are on
       screen, and the cut is 152 s and legal.
     authority: film-recut-plan.md R-10, §6
+
+  # ── ADDED BY THE CLOSE-CARD WAVE · the k3 eligibility panel ──────────────────────
+
+  - value: >-
+      'all four exercised', 'four tools exercised', 'all four CockroachDB tools are
+      exercised with a committed transcript', or ANY variant that presents CockroachDB
+      Agent Skills as EXERCISED — including a tools panel from which the Agent Skills row
+      has been dropped, greyed, footnoted or folded into the heading, so that four tools
+      read as four exercised tools
+    reason: >-
+      AGENT SKILLS IS DESIGNED, AND THE REPOSITORY SAYS SO IN ITS OWN CENSUS.
+      `evidence/tool-usage/crdb-features.json` → `rows.crdb_agent_skills.verdict` reads
+      DESIGNED, against EXERCISED on the other three contest tools, and that file's own
+      vocabulary defines DESIGNED as "the code or configuration is complete and on disk;
+      nothing recorded has run it end to end". Two authored skills, one de-branded upstream
+      contribution and a green validator are on disk under `skills/`; NO RUN IS COMMITTED
+      under `evidence/`. AUDIT.md S5 struck exactly this sentence where it survived in
+      census/close-block.md §3. THE REMEDY IS NEVER TO CAPTURE A RUN SO THE CLAIM BECOMES
+      TRUE BEFORE THE SHOOT: the tool is stated in the state it is in — three exercised with
+      committed transcripts, one shipped and not evidenced — or it is not stated at all.
+      The scoping is the reason the rest of the card is believable, which is the same
+      argument that boxes Bedrock inside k2's AWS column and keeps S3 Object Lock at
+      DESIGNED. A card that claimed four would be trading the one property this film has
+      spent 172 seconds earning for a word nobody asked for.
+    where_the_true_form_lives: >-
+      k3.overlay.tools, whose heading reads `three EXERCISED, one DESIGNED` and whose fourth
+      row reads `DESIGNED  shipped, validated;  NO RUN IS COMMITTED  skills/` in the same
+      size, weight, column and capitals as the three above it.
+    authority: >-
+      docs/submission/AUDIT.md S5 and FIX 1; docs/demo/close-card-plan.md R-C5;
+      evidence/tool-usage/crdb-features.json rows.crdb_agent_skills.verdict
 
 # ══════════════════════════════════════════════════════════════════════════════════════
 # TODO — strings this file could not source. Each carries the request that would produce

@@ -53,10 +53,10 @@ for the first time in the second week of September, and it has to work then.
 `authorization_type = NONE` — measured, and readable back off
 `aws_lambda_function_url.authorization_type` rather than off our intent
 (`infra/envs/demo/outputs.tf:148`). Every route in Stops 1–4 and 6 needs **no account, no
-key, no login and no email from us**. Stop 5's `mainline_judge` psql login is a *deeper,
-optional* path for reading our own Cloud ledger; it is not required to evaluate the project,
-and the rules' "if Entrant's website is private, include login credentials" clause does not
-bite, because the website is not private.
+key, no login and no email from us**. Stop 5's `mainline_judge` psql login is the **one**
+*deeper, optional* path for reading our own Cloud ledger; it is not required to evaluate the
+project, and the rules' "if Entrant's website is private, include login credentials" clause
+does not bite, because the website is not private.
 
 ### ⚠ The tension we are recording rather than resolving: the cost guard can take the demo down, and that would be a RULES BREACH
 
@@ -387,13 +387,12 @@ The longer account of these same five minutes, including every way they go wrong
 Everything above needed nothing from us. This stop is the only one that does, and it is
 optional: it lets you read **our** CockroachDB Cloud cluster rather than one you started.
 
-Two published routes, both read-only, either one sufficient:
-
-1. **MCP** — point any MCP client at the CockroachDB Managed MCP Server using the
-   configuration in [`verticals/mainline/demo/judge/MCP-CONFIG.md`](../../verticals/mainline/demo/judge/MCP-CONFIG.md) §1.
-2. **psql** — connect as the read-only `mainline_judge` SQL login using
-   [`docs/deploy/JUDGE-PACK.md`](../deploy/JUDGE-PACK.md), which carries the host, the
-   database and the sixteen questions with their expected answers.
+**There is exactly ONE published route to MAINLINE's ledger, and it is a SQL login.** Connect
+`psql` — or any SQL client — as the read-only **`mainline_judge`** login, over pgwire, from
+your own machine, using [`docs/deploy/JUDGE-PACK.md`](../deploy/JUDGE-PACK.md) §2
+(*"Read-only credentials — the ledger, in your own SQL client"*), which carries the host, the
+port, the database and the `sslmode`. §2.4 is five minutes from zero to a refusal you can see,
+and §3 carries the questions with the answers they returned on the live cluster.
 
 **Where the password is.** It is in the **judge-credentials field of the submission form**,
 and nowhere in this repository — not in a file, not in an artefact, not in an environment
@@ -405,6 +404,71 @@ verdict `PROVEN`, `failures: []`]: **14 of 14** `mainline_audit` views readable;
 base-table reads, inserts, `CREATE TABLE` and `DROP VIEW` attempts refused, each with the
 expected SQLSTATE. You cannot damage anything, and that is a measurement rather than a
 promise.
+
+### Managed MCP — available, working, and deliberately not published
+
+That heading is [`docs/deploy/JUDGE-PACK.md`](../deploy/JUDGE-PACK.md) §4's, word for word,
+because this page has no business saying it differently. **The CockroachDB Managed MCP Server
+is a SEPARATE path and it does not reach our data with any credential we publish.** It is a
+tool we use, evidenced below; it is not a second way in.
+
+* **Why we do not hand you the key.** The credential that opens
+  `https://cockroachlabs.cloud/mcp` is an **account-level CockroachDB Cloud service-account
+  key**, not a read-only one. Its measured tool list carries `create_database`, `create_table`
+  and `insert_rows`, and `list_clusters` enumerates every cluster the account owns — so
+  `evidence/deploy/judge-access.json` records `mcp_channel.credential_publishable` as
+  **`false`**, and `why_not_publishable` names those four verbs. It is not this deployment's
+  credential to hand to a stranger. Read it back in one command:
+
+  ```bash
+  python -c "import json;print(json.load(open('evidence/deploy/judge-access.json'))['mcp_channel']['credential_publishable'])"
+  ```
+
+  It prints `False`.
+
+* **What you can reproduce is the mechanism, not our data.**
+  [`MCP-CONFIG.md`](../../verticals/mainline/demo/judge/MCP-CONFIG.md) §1 is the
+  copy-pasteable configuration for pointing **your own** MCP client at the Managed MCP Server
+  with **your own** key against **your own** cluster; its §0 is the two-path table that says
+  which credential goes where. A judge cannot read MAINLINE's ledger over MCP with a
+  credential we hand out, because we do not hand one out.
+
+* **The sessions we ran against ours are committed, and they are not clean.**
+  `evidence/deploy/judge-run.json` (2026-08-11) drove the sixteen-question pack over this
+  channel as SQL identity `managed-mcp` — not `root`, not the database owner — and records
+  **15 of 16**. `evidence/mcp/pack-run.json` (2026-08-16) re-ran the same sixteen through the
+  pack's own runner to the same **15 of 16**, `exit_code` `1`, verdict
+  **`DIVERGED — KNOWN GAP`**. The one FAIL is **`N01`** and it is preserved rather than
+  rounded off: `mainline_qa` **is** readable by the `managed-mcp` identity, which the pack
+  asserted it was not. The `mainline_judge` login this stop publishes refuses that same
+  statement at `42501`. Both numbers in two commands:
+
+  ```bash
+  python -c "import json;d=json.load(open('evidence/mcp/pack-run.json'));print(d['passed'],'of',d['total'],'exit',d['exit_code'])"
+  python -c "import json;d=json.load(open('evidence/deploy/judge-run.json'))['channels']['mcp'];print(d['passed'],'of',d['total'],d['sql_identity'])"
+  ```
+
+  They print `15 of 16 exit 1` and `15 of 16 managed-mcp`. **The 15 is not rounded to 16 here
+  and is not rounded to 16 anywhere else** — that refusal is what makes the other fifteen
+  worth reading.
+
+> **CORRECTED — this stop used to offer a second route, and there is not a second route.**
+> An earlier version of this stop listed the Managed MCP Server as a second published
+> read-only route, sufficient on its own. That was false for the reason directly
+> above, and the identical wording had already been found and corrected in `SUBMISSION.json`'s
+> `judge_access.how` field: [`RULES-MATRIX.md`](RULES-MATRIX.md) §3 R2 records that
+> correction and dates it **2026-08-16**. This page was the last file carrying it, and it is
+> recorded here rather than deleted quietly, because a project that publishes a correction and
+> then contradicts it is worse off than one that never corrected anything.
+>
+> **Four documents already said it correctly, and this stop now says what they say rather than
+> inventing a fifth phrasing:** `SUBMISSION.json` → `judge_access.how` (*"The CockroachDB
+> Managed MCP Server is a SEPARATE path and it does not reach our data with any credential we
+> publish"*); [`JUDGE-PACK.md`](../deploy/JUDGE-PACK.md) §4, the heading above;
+> [`MCP-CONFIG.md`](../../verticals/mainline/demo/judge/MCP-CONFIG.md) §0 and §1 (*"your own"*
+> key, *"your own"* cluster); and [`census/close-block.md`](census/close-block.md) §7.2 —
+> *"the read-only endpoint a stranger can actually verify is the `mainline_judge` pgwire login
+> — **not** the MCP one-liner."*
 
 ---
 
@@ -418,12 +482,25 @@ through it.** `evidence/demo/live-beats.json` records eleven requests to
 `00000` / `23514` `gate_closed_when_issued` / `P0001` `mainline.fn_permit_merge_gate` /
 `00000`. It needed no credential of ours and neither do you.
 
-**`docs/submission/SUBMISSION.json` nevertheless still holds the literal `UNRESOLVED` for
-`demo_url` and for `video_url`, and this page is not the file that resolves them.** `video_url`
-is genuinely unresolved — the film has not been uploaded. `demo_url` is a disagreement between
-a document and the wire, and **where they disagree the wire wins and this paragraph is the
-record of it**. `check_submission_ready.py`, RAN 2026-08-14, reported both as unresolved rows;
-it has not been re-run here and no exit code is printed for it that nobody took.
+~~**`docs/submission/SUBMISSION.json` nevertheless still holds the literal `UNRESOLVED` for
+`demo_url` and for `video_url`, and this page is not the file that resolves them.**~~
+**SUPERSEDED 2026-08-16 for the `demo_url` half — that field now holds the origin.**
+`SUBMISSION.json:20` carries the live Function URL, and the file's own
+`notes.demo_url` opens `RESOLVED 2026-08-16` and preserves the two claims that preceded it
+rather than deleting them. The disagreement between a document and the wire that this
+paragraph used to record is closed, and it closed by the document being written to match the
+wire rather than by this page asserting it. **`video_url` is still the literal `UNRESOLVED`,
+it is genuinely unresolved — the film has not been uploaded — and this page is not the file
+that resolves it.** Both halves in one command:
+
+```bash
+python -c "import json;d=json.load(open('docs/submission/SUBMISSION.json'));print(d['demo_url']);print(d['video_url'])"
+```
+
+`check_submission_ready.py`, re-run for this page **without** `--check-urls`, prints
+`PASS demo URL <the origin> (not fetched; pass --check-urls to require HTTP 200)` and
+`FAIL video URL video_url is UNRESOLVED`. It still exits non-zero, and `video URL` is one of
+the rows keeping it there — no exit code is printed here that nobody took.
 
 Read the rest of this stop before you open `evidence/deploy/`, because it is the one place where
 an honest artefact could be misread as a deployment. **The two *acceptance* artefacts read

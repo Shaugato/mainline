@@ -5,6 +5,71 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # VIDEO KIT — the capture runbook
 
+## WHAT THIS FILE IS, AND WHAT IT IS NOT — read this before anything else
+
+> **THIS FILE IS A CAPTURE RUNBOOK. IT IS NOT THE FILM AUTHORITY, AND AS OF 2026-08-16 IT NO
+> LONGER DESCRIBES THE FILM.**
+> Demoted by ruling **`R-SD1`** in [`../demo/shoot-docs-plan.md`](../demo/shoot-docs-plan.md)
+> §1, on the authority of [`../demo/film/SPINE.md`](../demo/film/SPINE.md) `:197` and `:216`
+> and of [`AUDIT.md`](AUDIT.md) §4.2 findings `S3` and `S4`. **Nothing in the demotion changed
+> a duration, a spoken word or a shot in the film**; it changed which document a founder is
+> allowed to read them out of.
+
+**WHAT IT IS.** These parts are current, they were measured against this tree, and they are not
+struck. They are the reason the page still exists.
+
+| § | what it answers |
+|---|---|
+| **§00** | the five Devpost video sub-rules and the pre-upload checklist — the duration read off the export, the visibility trap, the Functionality rule, logos and music |
+| **§0.2E** | the export settings — `1920 × 1080`, `30 fps`, `−16 LUFS`, true peak `−1 dBTP`, captions burned in |
+| **§0.3** | the **film-specific must-not-claim extract** — the four the camera tempts you into, and the five the register carries that a camera makes worse |
+| **§A** | the machine — one window, geometry, colour, and the `just` / `uv` trap on this laptop |
+| **§B** | the **cluster pre-flight** — the pinned node, the doctor, the seed, the receipt deadline, the two databases |
+| **§F · §G · §H** | the read before you speak, the open findings this kit raised, and this page's own provenance ledger |
+
+**WHAT IT IS NOT.** Every question below is owned by a file under `docs/demo/film/`. **Where
+this page and that file disagree, that file wins and this page is stale.** This page prescribes
+nothing that reaches the screen or the microphone.
+
+| the question | the file that owns the answer |
+|---|---|
+| What is the shape of the film? How long is it? What is each beat's in-point, duration and weight? | [`../demo/film/SPINE.md`](../demo/film/SPINE.md) — **the authority**; §2 is the shape, §5 the cut ladder |
+| The same, machine-readable — every duration, every budget, the cut ladder | [`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml) — durations are authoritative here, over SPINE and over this page |
+| What is spoken over `B0`–`B8`? | [`../demo/film/VO-DEMO.md`](../demo/film/VO-DEMO.md) |
+| What is spoken over `B9`–`B10`, the change-request pair? | [`../demo/film/VO-DEMO-CR.md`](../demo/film/VO-DEMO-CR.md) |
+| What is spoken **and what is on the cards** in the close, `K1`–`K3`? | [`../demo/film/VO-CLOSE.md`](../demo/film/VO-CLOSE.md) — **§4.1 is the card text and this page may not restate it** |
+| Where does the cursor go, when is each click pressed, what is typed? | [`../demo/film/CLICKS.md`](../demo/film/CLICKS.md) |
+| The same for the change-request pair | [`../demo/film/CLICKS-CR.md`](../demo/film/CLICKS-CR.md) |
+| What text is on the frame? | [`../demo/film/ONSCREEN-TEXT.yaml`](../demo/film/ONSCREEN-TEXT.yaml) |
+| What happens if the day goes wrong — the decision gates, the NO-GO forms? | [`../demo/film/FALLBACKS.md`](../demo/film/FALLBACKS.md) |
+
+**Struck as descriptions of the current film, on 2026-08-16, and preserved rather than
+deleted:** **§0** (authority for the numbers), **§0.1** (the 25-shot table), **§0.2** (the
+voice-over with word counts), **§C** (the beat-by-beat table), **§D** (capture order) and
+**§E** (the scope-cut ladder). Each carries a `SUPERSEDED 2026-08-16` block naming what
+replaced it. **Nothing was deleted** — the struck content stays readable, because it is the
+record of the committed console cut and because a claim removed is not a claim corrected.
+
+**One pointer into this page is stale and this wave did not own the file that prints it
+(`R-SD7`).** `scripts/submission/check_submission_ready.py`'s remedy text for the unresolved
+`video URL` row prints, verbatim:
+
+```
+docs/submission/VIDEO-KIT.md                          the VO and the timings
+```
+
+**Neither the VO nor the timings is here any more.** They are in `VO-DEMO.md`,
+`VO-DEMO-CR.md`, `VO-CLOSE.md` and `BEATS.yaml`, per the table above. The script is under
+`scripts/`, which this wave is forbidden to edit, so the correction is recorded here rather
+than made there, and the owner of that script is the one who closes it. Re-derive the remedy
+text yourself in one command, no `--check-urls` and no network call to the origin:
+
+```bash
+D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe scripts/submission/check_submission_ready.py
+```
+
+---
+
 ## 00 · THE FIVE VIDEO SUB-RULES — the pre-upload checklist
 
 > **Read this section LAST, immediately before you paste the link into the submission form.**
@@ -27,50 +92,64 @@ rules-compliance lead's transcription and the authority for this section). The v
 
 | # | rule | what satisfies it here | check it by |
 |---|---|---|---|
-| V1 | **< 3 minutes** | the cut is **171 s = 2:51**, 9 s under | read the duration off the **exported file**, not the shot list — see §00.1 |
-| V2 | **footage of the Project functioning on the device it was built for** | beat 2, `s08`–`s12` — the refusal and the raw-SQL bypass, on the pinned node | §B.7 prints the frame; §00.3 ties it to the live origin |
-| V3 | **footage showing the CockroachDB memory layer at work** | beat 1 blame-walk, beat 3 disposition, beat 5 `EXPLAIN` over `@cue_scoped_idx` | §C.2, §C.4, §C.6 — and **beat 1 still has no surface** (§G item 3) |
+| V1 | **< 3 minutes** | the film is **172 s = 2:52**, 8 s under the rule, with a `174` s hard stop and a `180` s ceiling — `SPINE.md` §2 | read the duration off the **exported file**, not off any plan — see §00.1 |
+| V2 | **footage of the Project functioning on the device it was built for** | **`B1` / `B2`** — the attempt and the refusal, inside the supervisor's own screen on the deployed origin; **`B9` / `B10`** mirror it | `SPINE.md` §2 and §4; §00.3 ties every frame to the live origin |
+| V3 | **footage showing the CockroachDB memory layer at work** | **`B3` — store, retrieve, act.** `SPINE.md` §5 names it a **rules requirement** and floors it: *"Never B3."* | `SPINE.md` §5; `BEATS.yaml` `cut_ladder` — no ladder step may reach `B3` |
 | V4 | **uploaded and publicly visible on YouTube or Vimeo, link on the form** | Unlisted is enough; **Private is not** | §00.2 — the logged-out check |
 | V5 | **no third-party trademarks, no copyrighted music** | no logos in frame, **no music track at all** | §00.4 |
 
 - [ ] **V1** duration of the exported file is under 3:00
-- [ ] **V2** beat 2 is in the cut
-- [ ] **V3** a CockroachDB memory surface is in the cut
+- [ ] **V2** `B2` — the refusal inside the operator's own screen — is in the cut
+- [ ] **V3** `B3`, the memory loop, is in the cut
 - [ ] **V4** uploaded, and the pasted URL opens in a **logged-out** browser
 - [ ] **V5** no logo in any frame; no music on the audio track
 - [ ] **F** every shot is reachable on the live origin (§00.3)
 
 ---
 
-### 00.1 · V1 — the ceiling is the rule, and 9 seconds is thin
+### 00.1 · V1 — the ceiling is the rule, and the margin is thin
 
-**Re-derived today, 2026-08-16**, by the validator that CI runs:
+> ~~**Re-derived today, 2026-08-16**, by the validator that CI runs … `submission.total_s 171`,
+> `submission.shots 25` … **171 s is 2:51, not 2:52.**~~
+>
+> **SUPERSEDED 2026-08-16 — that validator measures `SHOT-LIST.yaml`, which is the committed
+> console cut and NOT the film.** The film is
+> [`../demo/film/SPINE.md`](../demo/film/SPINE.md) §2: **`148` s demo · `22` s close · `2` s
+> end card · `172` s total · `2:52`**, hard stop `174` s, ceiling `180` s, structured
+> `B0`–`B10` then `K1`/`K2`/`K3`. `BEATS.yaml` is the machine half and wins on any duration.
+> The struck text is kept below because the reading it reports is still a true reading **of the
+> YAML**, and `.github/workflows/claims.yml` still gates that YAML.
+
+**What the two numbers are, so nobody averages them.** `SHOT-LIST.yaml` is a **different cut**
+— 25 shots, `s01`–`s25` — and `validate_shotlist.py` sums *its* durations. It is committed, it
+is CI-gated, and `SPINE.md` §7 leaves it untouched. **It is not what the founder is filming.**
+The film's arithmetic lives in `BEATS.yaml`; this page carries neither.
+
+**The measurement of the YAML, kept verbatim.** `validate_shotlist.py`, **RAN 2026-08-16**,
+exit **0**: `submission.total_s 171`, `submission.shots 25`, `submission.vo_words 304`,
+`submission.headroom_s 9`. Those four values describe `SHOT-LIST.yaml` and describe nothing
+about the film.
 
 ```bash
 D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe verticals/mainline/demo/script/validate_shotlist.py
 ```
 
-**RAN 2026-08-16**, exit **0**: `submission.total_s 171`, `submission.shots 25`,
-`submission.vo_words 304`, `submission.headroom_s 9`.
+**AND THE CONCLUSION IS UNCHANGED BY THE DEMOTION, WHICH IS THE POINT OF STATING IT HERE.**
+The margin is thin, an overrun is a real risk, and the ceiling is a rule and not a target.
+`SPINE.md` §5.2 says the same thing about the film's own numbers: `172` leaves **8 s to the
+ceiling and 2 s to the hard stop**, and its one sanctioned variant (`K2` at 12 s) spends the
+lot and lands on `174` s exactly.
 
-**171 s is 2:51, not 2:52.** The figure carried into this wave was "2:52 with 8 seconds of
-headroom"; the validator says 171 s and 9 s. One second, in our favour, and it is recorded
-rather than smoothed over because the whole point of quoting a number is that somebody can
-re-run the command. **Either way the conclusion is identical and it is the one that matters:
-the margin is thin, an overrun is a real risk, and the ceiling is a rule and not a target.**
-
-**The 9 seconds is headroom on the PLAN, not on the FILE.** `SHOT-LIST.yaml` sums the
-*intended* durations. The rule applies to the duration of the thing you upload. Those two
-numbers come apart the moment a read runs long, and §0.2 already names exactly where:
-`s24-rubber-stamp` is 16 words in 5 s — **3.20 w/s, 80 % above the film's average** — and at
-the average rate that line takes **9 s**. That one shot, read at a natural pace, spends the
-entire headroom. `s04-architecture` at 2.80 w/s is the second.
+**Headroom on a PLAN is not headroom on the FILE.** Any of these documents sums *intended*
+durations. The rule applies to the duration of the thing you upload, and the two come apart
+the moment a read runs long.
 
 So: **read the duration off the export.** If it is at or over 3:00, do not upload it and do
 not hope a judge is lenient — the rule says judges are *not required* to watch past three
 minutes, so an overrun does not merely risk disqualification, it silently truncates whatever
-you put last. The end card is last. The scope-cut ladder in §E is pre-committed for exactly
-this and step 1 costs the film nothing a viewer will miss.
+you put last. The end card is last. **The pre-committed cut ladder is `SPINE.md` §5 and
+`BEATS.yaml`'s `cut_ladder`, executed top-down and never reordered on the day** — §E of this
+page is the superseded one and points there.
 
 ---
 
@@ -172,9 +251,12 @@ helpful direction:
 Different length, different digest, different title, and it carries its own bundle
 (`./assets/operator-D24tzVGh.js`, 96,734 B, `200`) rather than the console's. **It is not the
 fallback.** The film's setting — the permit-to-work and management-of-change screens the
-story actually happens in (§C.7) — is therefore served by the live origin, and the biggest
+story actually happens in ([`../demo/film/CLICKS.md`](../demo/film/CLICKS.md) and
+[`../demo/film/CLICKS-CR.md`](../demo/film/CLICKS-CR.md); `SPINE.md` §2's `B0`–`B10`) — is
+therefore served by the live origin, and the biggest
 Functionality-rule exposure this kit had is closed. JUDGE-START.md carries the same
-correction.
+correction, and [`../demo/film/FALLBACKS.md`](../demo/film/FALLBACKS.md) `F-9` records the same
+measurement from the film side.
 
 **One honest limit on that, which the film must not overrun.** `#/permit` and `#/change` are
 **hash fragments**, resolved client-side inside that bundle; a hash is never sent to the
@@ -227,29 +309,37 @@ library music.**
 * "Royalty-free" is not the same as "licensed to you", and "no copyright" is a YouTube search
   term rather than a legal status. Both still require the Entrant to hold permission, and a
   submission that has to argue about a licence has already lost the minute it costs to argue.
-* **The film does not need it.** §0.2 records two deliberate `·hold` marks in `VO.md`, at
-  `s06` and `s20`, where the frame is held in silence — *"the silence is part of the shot. Do
-  not fill it."* Music would fill exactly those two moments, and they are load-bearing.
-* Captions are burned in and judges watch muted (§0.2), so a music bed is inaudible to a
+* **The film does not need it, and this argument got STRONGER with the recut.**
+  [`../demo/film/SPINE.md`](../demo/film/SPINE.md) §3 makes the held silence after `B5`'s line
+  **a scripted element with a duration, not a pause the editor may tighten**, and §4 gives `B5`
+  its own prohibition — *must not step on the silence*. **Music would fill exactly the moment
+  the film's peak is built on.** (The struck §0.2 recorded the console cut's two `·hold` marks
+  at `s06` and `s20`; the rule outlived the ids.)
+* Captions are burned in and judges watch muted (§0.2E), so a music bed is inaudible to a
   large part of the audience and a rules exposure for all of it.
 
 **The one permitted piece of on-screen text stays**: the end card's licence triple, spelled
-out once in §C.7, is **our own** licensing, and the watermark
-`SYNTHETIC CORPUS · KESTREL RESOURCES IS FICTIONAL` is ours. Neither is a third-party mark,
+out once in §C.7, is **our own** licensing, and the watermark naming this film's world is ours
+— [`../demo/film/SPINE.md`](../demo/film/SPINE.md) §6.2 assigns the exact watermark string to
+[`../demo/film/ONSCREEN-TEXT.yaml`](../demo/film/ONSCREEN-TEXT.yaml), so it is not spelled here
+either. Neither is a third-party mark,
 and neither is spelled a second time here — the licence identifiers are ratcheted repository
 surface (`scripts/qa/check_reuse.py`, metric `non_spdx_spelling.*`), so this section points
 at §C.7 rather than restating them.
 
 ---
 
-The script is finished. `verticals/mainline/demo/script/` holds a locked voice-over
-(`VO.md`), the submission cut (`SHOT-LIST.yaml`), a minimum-winnable cut
-(`SHOT-LIST-MWS.yaml`), the camera strings, the generated cut diff and a validator that
-`.github/workflows/claims.yml` runs, so a drifted shot list is a red build.
+`verticals/mainline/demo/script/` holds the **committed console cut**: a locked voice-over
+(`VO.md`), `SHOT-LIST.yaml`, a minimum-winnable cut (`SHOT-LIST-MWS.yaml`), the camera strings,
+the generated cut diff and a validator that `.github/workflows/claims.yml` runs, so a drifted
+shot list is a red build. **That cut is CI-gated, it is untouched by this wave, and it is not
+the film the founder is shooting** — `SPINE.md` §7 leaves it exactly where it is. The film is
+the nine documents in the pointer table at the top of this page.
 
-This document is the gap between a locked script and a founder holding a microphone: the
-machine, the pre-flight, the literal keystrokes, the string each one should produce, and
-the pre-committed fallback for every shot whose milestone might not be finished on the day.
+This document is the gap between a locked film and a founder holding a microphone: **the
+machine, the pre-flight, the pinned database states, the export settings and the
+must-not-claim extract.** The keystrokes, the clicks, the beats, the words and the fallbacks
+are `CLICKS.md`, `CLICKS-CR.md`, `BEATS.yaml`, the three `VO-*` files and `FALLBACKS.md`.
 
 **Everything below was re-measured on 2026-08-14** against the pinned local node, and this
 revision supersedes the 2026-08-12 one. Where a command was executed while writing this page
@@ -271,7 +361,27 @@ itself: a command nobody has run is a plan.
 
 ---
 
-## 0 · Authority, and how every number below is re-derived
+## ~~0 · Authority, and how every number below is re-derived~~ — **SUPERSEDED 2026-08-16**
+
+> **SUPERSEDED 2026-08-16 — this section is struck as an authority table for the film, and
+> replaced by the pointer table at the top of this page** (ruling `R-SD1`,
+> [`../demo/shoot-docs-plan.md`](../demo/shoot-docs-plan.md) §1). Every question it answers with
+> a path under `verticals/mainline/demo/script/` is now answered by a file under
+> `docs/demo/film/`: the running time and every duration by
+> [`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml) and
+> [`../demo/film/SPINE.md`](../demo/film/SPINE.md); what is spoken by `VO-DEMO.md`,
+> `VO-DEMO-CR.md` and `VO-CLOSE.md`; what appears on screen by `ONSCREEN-TEXT.yaml`; the
+> keystrokes by `CLICKS.md` and `CLICKS-CR.md`.
+>
+> **Two rows of the table below survive on their own terms and are not struck**: the *database*
+> still prints what `verticals/mainline/demo/REFUSAL-STRINGS.yaml` records, and
+> [`MUST-NOT-CLAIM.md`](MUST-NOT-CLAIM.md) plus §0.3 of this page are still what the founder
+> may not say.
+>
+> **Nothing below is deleted.** It is the record of the committed console cut, it is still
+> CI-gated by `.github/workflows/claims.yml`, and a claim removed is not a claim corrected.
+
+**Kept verbatim, as the authority table for the CONSOLE CUT and not for the film:**
 
 | Question | The file that answers it |
 |---|---|
@@ -284,10 +394,13 @@ itself: a command nobody has run is a plan.
 **Those files are authoritative.** `.github/workflows/claims.yml` runs
 `script/validate_shotlist.py` over the YAML, so a drifted shot list is a red build.
 
-Sections §0.1 and §0.2 carry the timings and the word counts anyway, because a founder cannot
-film from a promise that the numbers exist somewhere. They are **derived, not transcribed**:
-one command regenerates both tables, and if it disagrees with what is printed here, the
-command is right and this page is stale.
+~~Sections §0.1 and §0.2 carry the timings and the word counts anyway, because a founder cannot
+film from a promise that the numbers exist somewhere.~~ **SUPERSEDED 2026-08-16 — §0.1 and §0.2
+are struck as descriptions of the film; the founder's timings and word counts are in
+[`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml) and the three `VO-*` files.** What follows
+is still **derived, not transcribed**, and still true *of the YAML*: one command regenerates
+both tables, and if it disagrees with what is printed here, the command is right and this page
+is stale.
 
 ```bash
 D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe - <<'PY'
@@ -305,9 +418,12 @@ print(f"ceiling {b['hard_ceiling_s']}s  CI hard fail {b['ci_hard_fail_s']}s  "
 PY
 ```
 
-**RAN 2026-08-14.** It printed `25 shots  171s (2:51)  304 words  1.78 w/s` and
+**RAN 2026-08-14 — and every figure it printed is a figure about `SHOT-LIST.yaml`, not about
+the film.** It printed `25 shots  171s (2:51)  304 words  1.78 w/s` and
 `ceiling 180s  CI hard fail 176s  headroom 9s` — the same figures the 2026-08-12 and
-2026-08-11 runs produced. Everything in §0.1 and §0.2 is that output, formatted.
+2026-08-11 runs produced. Everything in the struck §0.1 and §0.2 is that output, formatted.
+**The film's figures are `SPINE.md` §2 and `BEATS.yaml`: `172` s, `2:52`, `B0`–`B10` then
+`K1`/`K2`/`K3`.**
 
 The validator agrees, and it is the gate that matters:
 
@@ -332,25 +448,82 @@ D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe verticals/mainline/demo/sc
   shot lists OK
 ```
 
-**The timings did not move, and that is the finding, not the absence of one.** Nothing in
-this wave added or removed a shot: the working signature path changed which beats have a
-*surface*, not how long the film is. A revision that quietly grew the cut to show off a new
-mechanism would have spent the nine seconds of headroom on the least examined part of the
-submission. **Beat 3 gained a terminal-checkable surface and gained zero seconds** — §C.4.
+~~**The timings did not move, and that is the finding, not the absence of one.**~~
+**SUPERSEDED 2026-08-16 — the timings moved, in a different document.** Nothing in the
+2026-08-14 wave added or removed a shot from the YAML; what happened afterwards is that the
+film stopped being the YAML. The current shape is `SPINE.md` §2, reproduced below.
 
 The NOTE is not a pass and says so: the authored corpus fixture root does not exist yet, so
-the camera string was not checked against it. That NOTE is the same fact that decides beat 1
-in §C.2, and it is still the fact.
+the camera string was not checked against it.
 
 ---
 
-## 0.1 · THE SHOT LIST, TIMED — 2:51 against a 3:00 ceiling
+## ~~0.1 · THE SHOT LIST, TIMED — 2:51 against a 3:00 ceiling~~ — **SUPERSEDED 2026-08-16**
 
-**Total 171 s = 2 minutes 51 seconds.** The rule is under three minutes; the hard ceiling in
-the budget is 180 s and CI fails the cut at 176 s, so there are **9 seconds of margin to the
+> **SUPERSEDED 2026-08-16. THE 25-SHOT TABLE BELOW IS A DIFFERENT FILM AND NOT A STALE
+> IN-POINT INTO THIS ONE.** It lists `s01`–`s25` totalling `171` s / `2:51`, closes on
+> `s22-readiness-strip` / `s23-honesty-card` / `s24-rubber-stamp` / `s25-end-card`, and
+> contains **`s19-beat5-mcp-connect`, a shot the current film does not have.**
+> [`../demo/film/SPINE.md`](../demo/film/SPINE.md)`:216` rules it in terms: *"Any document still
+> in-pointing the naming block at `2:00` is describing the pre-revision film."* **This was that
+> document.** Struck under `R-SD1`; see [`AUDIT.md`](AUDIT.md) §4.2 `S4`.
+>
+> **What replaces it:** `SPINE.md` §2 for the shape, `BEATS.yaml` for every duration,
+> `CLICKS.md` / `CLICKS-CR.md` for the choreography, `ONSCREEN-TEXT.yaml` for the frame.
+>
+> **The table is kept, unedited, because `SHOT-LIST.yaml` still exists, is still CI-gated by
+> `.github/workflows/claims.yml`, and is still the committed console cut.** It is preserved as
+> the record of that cut. It is not preserved as a description of what is being filmed.
+
+### 0.1a · THE SHAPE OF THE FILM — copied from `SPINE.md` §2, which wins on any disagreement
+
+**This table is a COPY, reproduced here so a founder holding this page can still see the shape
+of the day.** It is subordinate: `SPINE.md` §2 is the prose authority and
+[`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml) is authoritative on every duration. **If
+this copy and either of those disagree, they are right and this copy is stale.** Nothing here
+was chosen by this page and no number here was moved by it.
+
+| beat | in | dur | what it is | weight |
+|---|---|---|---|---|
+| **B0** | `0:00` | 12 s | The ordinary moment | low, deliberately |
+| **B0b** | `0:12` | 8 s | **Why it matters** — for the audience the rest does not serve | low, plain |
+| **B1** | `0:20` | 10 s | The attempt | low |
+| **B2** | `0:30` | 14 s | The refusal | medium — **resist inflating it** |
+| **B3** | `0:44` | 18 s | **The memory loop** — store, retrieve, act | rising |
+| **B4** | `1:02` | 10 s | The human move | tension, played matter-of-fact |
+| **B5** | `1:12` | 16 s | **Refused anyway** | **THE PEAK. All of it.** |
+| **B6** | `1:28` | 18 s | The answer is a question | release |
+| **B7** | `1:46` | 12 s | And then it admits | relief |
+| **B8** | `1:58` | 6 s | None of it persisted | cool |
+| **B9** | `2:04` | 12 s | **The other way in** — then change the clause | the judge's own question |
+| **B10** | `2:16` | 12 s | **Refused again** — the mirror | the answer to it |
+| **K1** | `2:28` | 6 s | The loop | — |
+| **K2** | `2:34` | 10 s | The stack — AWS ∥ CockroachDB | — |
+| **K3** | `2:44` | 6 s | The limit, the rail, the URLs, **the four contest tools** | — |
+| **end** | `2:50` | 2 s | End card | — |
+
+`148` s demo · `22` s close · `2` s end card · **`172` s total = `2:52`** · hard stop `174` s ·
+ceiling `180` s.
+
+**Two facts from `SPINE.md` §2 that a shooting document must not lose.** `B3` and `B5` are the
+two beats no cut may reach. And **the close begins at `2:28`, not at `2:00`** — that single
+moved in-point is the tell for every document still describing the pre-revision film.
+
+**Three things this copy deliberately does not carry**, because they are not this page's to
+carry and restating them is how two documents start prescribing the same seconds: the spoken
+lines (`VO-DEMO.md`, `VO-DEMO-CR.md`, `VO-CLOSE.md`), the on-screen text
+(`ONSCREEN-TEXT.yaml`), and the click placements (`CLICKS.md`, `CLICKS-CR.md`).
+
+---
+
+### 0.1b · The pre-revision shot table, kept verbatim as the record of the console cut
+
+~~**Total 171 s = 2 minutes 51 seconds.**~~ ~~The rule is under three minutes; the hard ceiling
+in the budget is 180 s and CI fails the cut at 176 s, so there are **9 seconds of margin to the
 rule and 5 seconds to the build**. That margin is the whole reason the scope-cut ladder in §E
-exists and is pre-committed: an over-length cut is disqualified, and nobody discovers it at
-02:00 on the deadline.
+exists and is pre-committed.~~ **SUPERSEDED 2026-08-16 — those are `SHOT-LIST.yaml`'s numbers,
+not the film's. The film is `172` s against a `174` s hard stop and a `180` s ceiling, and its
+pre-committed ladder is `SPINE.md` §5.**
 
 | in | dur | shot_id | beat | VO words | w/s | never cut | needs |
 |---|---|---|---|---|---|---|---|
@@ -379,16 +552,33 @@ exists and is pre-committed: an over-length cut is disqualified, and nobody disc
 | `2:32` | 8 s | `s23-honesty-card` | — | 12 | 1.50 |  | K0 |
 | `2:40` | 5 s | `s24-rubber-stamp` | — | 16 | 3.20 |  | K0 |
 | `2:45` | 6 s | `s25-end-card` | — | 7 | 1.17 |  | K0 |
-| | **171 s** | **25 shots** | | **304** | **1.78** | | |
+| | ~~**171 s**~~ | ~~**25 shots**~~ | | ~~**304**~~ | ~~**1.78**~~ | | |
 
-`2:45 + 6 = 2:51`. Export at 30 fps: **5 130 frames.**
+~~`2:45 + 6 = 2:51`. Export at 30 fps: **5 130 frames.**~~ **SUPERSEDED 2026-08-16 — those are
+the console cut's totals. The film is `172` s = `2:52`; see §0.1a.**
 
 ---
 
-## 0.2 · THE VOICE-OVER, WITH WORD COUNTS — so the timing is checkable
+## ~~0.2 · THE VOICE-OVER, WITH WORD COUNTS — so the timing is checkable~~ — **SUPERSEDED 2026-08-16**
 
-304 words over 171 seconds is **1.78 words per second — 107 words per minute**, which is a
-deliberate, unhurried read. It is *slow* for narration on purpose: every sentence in this film
+> **SUPERSEDED 2026-08-16 — this is `VO.md`'s voice-over for the console cut, and not one word
+> of it is spoken in the film.** The film's words, word counts and rates live in
+> [`../demo/film/VO-DEMO.md`](../demo/film/VO-DEMO.md) (`B0`–`B8`),
+> [`../demo/film/VO-DEMO-CR.md`](../demo/film/VO-DEMO-CR.md) (`B9`–`B10`) and
+> [`../demo/film/VO-CLOSE.md`](../demo/film/VO-CLOSE.md) (`K1`–`K3`); the budgets those files
+> were built against are in [`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml). Struck under
+> `R-SD1`. **No worker of this wave edited a spoken word anywhere**, and this page must not be
+> the second document prescribing one.
+>
+> **The export settings that used to sit at the foot of this section have been lifted out
+> unchanged into §0.2E below, because they are capture-runbook material and they survive.**
+>
+> **The stopwatch discipline survives too, as a method rather than a table**: read every line
+> aloud against its budget before you commit to a take, and find the overrun on the sofa rather
+> than in the edit. Apply it to the three `VO-*` files.
+
+~~304 words over 171 seconds is **1.78 words per second — 107 words per minute**, which is a
+deliberate, unhurried read.~~ It is *slow* for narration on purpose: every sentence in this film
 is load-bearing and several of them contain a SQLSTATE.
 
 **Two lines are faster than the rest, and you will feel it.** Read them first, with a
@@ -434,12 +624,29 @@ than in the edit.
 | `s24-rubber-stamp` | The honest limit: nothing separates a considered disposition from a rubber stamp. We log our silence. | 16 | 5 s | 3.20 |
 | `s25-end-card` | Repo, demo, read-only endpoint. Verify it yourself. | 7 | 6 s | 1.17 |
 
-`VO.md` carries two `·hold` marks — `s06` and `s20` — where the line lands early and the
-frame is held in silence. **The silence is part of the shot.** Do not fill it.
+~~`VO.md` carries two `·hold` marks — `s06` and `s20` — where the line lands early and the
+frame is held in silence.~~ **SUPERSEDED 2026-08-16 as a location; the RULE is not superseded
+and is the film's, not this page's.** `SPINE.md` §3 makes the held silence at **`B5`** a
+**scripted element with a duration, not a pause the editor may tighten**, and `SPINE.md` §4
+gives `B5` its own prohibition — *must not step on the silence*. **The silence is part of the
+shot. Do not fill it.** `§00.4` of this page is why that also means no music over it.
 
-Export: **1920 × 1080, 30 fps, −16 LUFS, true peak −1 dBTP, captions burned in**
+---
+
+## 0.2E · EXPORT SETTINGS — current, and not superseded
+
+**Export: `1920 × 1080`, `30 fps`, `−16 LUFS`, true peak `−1 dBTP`, captions burned in**
 (`SHOT-LIST.yaml: budget.export`). Judges watch muted; a film whose SQLSTATEs are only in the
 audio is a film with no evidence in it.
+
+**These four values are capture-and-export settings, not film structure, so the demotion in
+`R-SD1` does not reach them** — they were read out of `SHOT-LIST.yaml`'s `budget.export`, which
+this wave does not edit, and they are unchanged by the recut. **The loudness pair is a *voice*
+level and there is no music key anywhere in that file** (§00.4, `grep` RAN 2026-08-16), which
+is the audible half of sub-rule **V5**.
+
+**The one number that is NOT read from here is the duration.** Read that off the exported file
+(§00.1), and check it against `SPINE.md` §2 — `172` s, hard stop `174` s, ceiling `180` s.
 
 ---
 
@@ -482,19 +689,91 @@ are different sentences and only the first one is filmed.
 | **TRUE INSTEAD** | "One AWS Lambda Function URL serves the console and the API from a single origin — HTTPS on an AWS-issued certificate, no CDN, no bucket in the request path, and therefore no CORS anywhere." |
 | **WHY** | `docs/leads/ship-final.md` §1.4: this AWS account is under a verification hold and a real `terraform apply` was refused with `AccessDenied: Your account must be verified before you can add new CloudFront resources`. DECISION D1 removed CloudFront from the critical path; `var.enable_cloudfront` defaults `false` and **no distribution exists**. |
 
-`s22-readiness-strip`'s fourth tile is *"CloudWatch alarm on gate-bypass attempts"*. Those
+~~`s22-readiness-strip`'s fourth tile is *"CloudWatch alarm on gate-bypass attempts"*. Those
 alarms are **declared in Terraform and not created**, because the apply has not been run. The
 shot's own fallback says to drop that tile if AWS is unreachable — drop it, or film the HCL
-that declares it and say "declared". Do not film a CloudWatch console showing an alarm that
-belongs to a different project's stack.
+that declares it and say "declared".~~
+
+**SUPERSEDED 2026-08-16 — the apply ran on 2026-08-14 and the alarms exist.** Two things in the
+struck paragraph are wrong and they fail in opposite directions, so read both.
+
+* **The alarms were created.** `evidence/deploy/APPLIED.md` records the apply as
+  **`24 created, 0 changed, 0 destroyed`**, and [`AUDIT.md`](AUDIT.md) §4.1 counts **seven
+  alarms — 4 in `module.api` + 3 in `module.guard`** — inside those 24, beside the SNS topic,
+  its policy, its subscription and the `aws_budgets_budget`. Telling a founder to say
+  *"declared"* about an applied alarm is guidance that **understates the project on camera**,
+  which is the defect `AUDIT.md` §4.2 `S3` names.
+* **`s22-readiness-strip` is a shot in the superseded console cut and is not in the film.** The
+  film's close is `K1`/`K2`/`K3` and its content is owned by
+  [`../demo/film/VO-CLOSE.md`](../demo/film/VO-CLOSE.md) §4.1, which this page may not restate.
+  There is no readiness strip to drop a tile from.
+* **Beware the scope trap in the two numbers.** `APPLIED.md` says *three* alarms and
+  `census/close-block.md` says *seven*; **both are true at different scopes** — 3 in the cost
+  guard, 4 in the API — and `AUDIT.md` §4.3 flags that a judge reading both may not see it.
+  Name the scope or name neither.
+
+**What does NOT change, and it is the part that was load-bearing all along: do not film a
+CloudWatch console.** `SPINE.md` §4's `K2` prohibition is categorical — *never a CloudWatch
+console window on screen* — and it holds now that the alarms are real exactly as it held when
+they were not. An alarm that exists is still not a frame; it is a line on a card.
 
 ### 4 · Do NOT name an AWS service the committed evidence does not show executing
 
 | | |
 |---|---|
-| **MUST NOT SAY** | Any AWS service as part of the running system unless a committed artefact shows it returning bytes. |
-| **TRUE INSTEAD** | "Amazon Bedrock executes: Titan embeddings and Claude Haiku, in `ap-southeast-2`, with the transcript committed." |
-| **MEASURED** | `evidence/deploy/aws-live.json`. Everything else in the AWS column — Lambda, SSM, CloudWatch — is **declared in Terraform and not applied**. `check_submission_ready.py`, RAN 2026-08-14, prints `4 CockroachDB tools, 10 AWS services; 2 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch); 24 of 24 cited artefacts present on disk`. **Two of ten**, named. Say those two. |
+| **MUST NOT SAY** | Any AWS service as part of the running system unless a committed artefact shows it returning bytes. **And never in a better state than it was measured in** — the rule cuts both ways and both cuts are live. |
+| **TRUE INSTEAD** | "Amazon Bedrock is **exercised in this repository — Titan embeddings and Claude Haiku, in `ap-southeast-2`, transcript committed — and it is NOT in this request path.**" Both halves, always, in that order. |
+| **MEASURED** | ~~`evidence/deploy/aws-live.json`. Everything else in the AWS column — Lambda, SSM, CloudWatch — is **declared in Terraform and not applied**. `check_submission_ready.py`, RAN 2026-08-14, prints `… 2 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch); 24 of 24 cited artefacts present on disk`. **Two of ten**, named. Say those two.~~ **SUPERSEDED 2026-08-16 — see the restatement immediately below. That line has been false since the 2026-08-14 apply and it is *shooting* guidance, so it would have understated the project on the record** ([`AUDIT.md`](AUDIT.md) §4.2 `S3`). |
+
+#### 4.1 · The restatement, re-run by this worker rather than re-typed
+
+**The readiness gate, re-run on 2026-08-16 with NO `--check-urls` and therefore no network call
+to the origin:**
+
+```bash
+D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe scripts/submission/check_submission_ready.py
+```
+
+Its `tool usage documented` row prints, verbatim:
+
+```
+4 CockroachDB tools, 10 AWS services; 5 AWS service(s) marked as having run
+(Amazon Bedrock, Amazon CloudWatch, AWS Lambda, AWS IAM, AWS SSM Parameter Store);
+35 of 35 cited artefacts present on disk
+```
+
+**Five, not two — and Lambda, IAM and SSM Parameter Store are three of the five.** The apply
+that made that true is committed at `evidence/deploy/APPLIED.md`:
+**`24 created, 0 changed, 0 destroyed`**, `2026-08-14`.
+
+**Beside it, the census artefact, which counts a different set.**
+`evidence/tool-usage/aws-services.json` → `totals`: **12 rows · 6 `EXERCISED` · 5 `DESIGNED` ·
+1 `NOT-AVAILABLE`**.
+
+> **THE TWO ARE NOT TO BE RECONCILED BY PICKING A NUMBER OR BY AVERAGING THEM.** The gate
+> counts **10 services, 5 run**; the census carries **12 rows, 6 `EXERCISED`**. They count
+> different sets — [`AUDIT.md`](AUDIT.md) §4.3 names the gap: **no SNS row, no Budgets row, and
+> S3 present only as `aws_s3_object_lock`, which is `DESIGNED`** — even though the SNS topic,
+> its subscription, its policy and the `aws_budgets_budget` were all genuinely applied inside
+> those 24 resources. **Quote whichever artefact you read, name it, and say that the two
+> differ.** An averaged figure would be the first invented number in this repository.
+
+**Three scopings that are not softeners. They are the reason the rest of the card is
+believed, and none of them may be dropped to make a line shorter:**
+
+* **CockroachDB Agent Skills is `DESIGNED`.** Two authored skills plus one de-branded upstream,
+  the validator runs green — **and no run is captured under `evidence/`**
+  ([`AUDIT.md`](AUDIT.md) §3). Say `DESIGNED`, or say nothing. Never *"four tools exercised"*.
+* **Amazon Bedrock is exercised in this repository and is NOT in this request path.** One
+  sentence, both halves.
+* **The S3 Object Lock row is `DESIGNED`.** The state bucket in `APPLIED.md` is a different,
+  applied thing; do not let one borrow the other's verdict.
+
+> **AND THIS PAGE DOES NOT PRESCRIBE WHAT IS SAID ON CAMERA.**
+> [`../demo/film/VO-CLOSE.md`](../demo/film/VO-CLOSE.md) **§4.1 is the authority for the close
+> card's content**, its §0.5 rules that no line may be added to `k2`, and no worker of this wave
+> edits it. **§0.3 names *states* — applied, exercised, designed — and stops there.** If this
+> page and that card disagree about a word, the card is right and this page is stale.
 
 ### And the five the register carries that a camera makes worse
 
@@ -511,10 +790,19 @@ scanner rule at all** — a human is the only control. In one line each:
   reads `verdict PROVEN` — and `target_is_local_emulator: true`, `url http://127.0.0.1:8792`,
   `database_under_test.host localhost:26257`, `is_cockroachdb_cloud: false`. Its sibling
   `cloud-acceptance.json` reads `PROVEN` against the **Cloud** database `mainline_demo` — over
-  the **same local emulator socket**, `http://127.0.0.1:8791`. **There is no public origin.**
+  the **same local emulator socket**, `http://127.0.0.1:8791`. ~~**There is no public origin.**~~
   The file's own `mode_description` field says *"against CockroachDB Cloud"* and is false for
   the local run; quote `target_provenance`, never `mode_description`. (Family 12; caught by
   nothing — read the file, both files, on the day.)
+  * **SUPERSEDED 2026-08-16 — *"There is no public origin"* is false and only that sentence is
+    struck.** The apply landed on 2026-08-14 (`evidence/deploy/APPLIED.md`:
+    **`24 created, 0 changed, 0 destroyed`**), and §00.3 of this page records this worker's own
+    unauthenticated `GET`s against the origin it produced. **Everything else in the bullet
+    stands**: both acceptance artefacts really are local-emulator runs, `target_provenance`
+    really is the field to quote, and **the ban itself is not weakened here.** Its *reason* is
+    now narrower — an origin exists, so the falsehood a founder could still tell is calling
+    those two `PROVEN` artefacts a proof *of that origin*. Re-scoping the register's own
+    wording belongs to [`MUST-NOT-CLAIM.md`](MUST-NOT-CLAIM.md)'s owner and not to this page.
 * **Never say a signature in this project has always pinned the declined alternatives.** Until
   2026-08-14 both signing paths bound `sha256(b"defeater-vocab")`. It is fixed now and the
   captured Cloud bundle still carries the old value. (Family 13; caught by nothing.)
@@ -523,16 +811,38 @@ scanner rule at all** — a human is the only control. In one line each:
   application's. (Family 14; caught by nothing — and this is the one a founder three minutes
   into saying *"the database refuses"* will say once too often.)
 
-### The demo URL, on `s25`
+### The demo URL and the video URL — the card is read out of `SUBMISSION.json`
 
-`s25-end-card` shows the repository, the demo URL and the MCP one-liner. RAN 2026-08-14:
+~~`s25-end-card` shows the repository, the demo URL and the MCP one-liner. RAN 2026-08-14:
 `docs/submission/SUBMISSION.json` holds `"demo_url": "UNRESOLVED"` and
 `"video_url": "UNRESOLVED"`; `"repo_url"` reads `https://github.com/Shaugato/mainline`, and
 `check_submission_ready.py` confirms the repository itself is `PUBLIC`, asked live.
 **Film `s25` last, and do not put a URL on the card that is not in that file.** If it still
 reads `UNRESOLVED` on the day, the card carries the repository and the MCP line only, and the
 voice-over drops the word "demo" — "*Repo, read-only endpoint. Verify it yourself*" is seven
-words minus one and fits the same 6 seconds.
+words minus one and fits the same 6 seconds.~~
+
+**SUPERSEDED 2026-08-16. The two fields moved in opposite directions and each is restated on
+its own evidence.**
+
+* **`demo_url` is RESOLVED.** `docs/submission/SUBMISSION.json:20` holds the live Function URL
+  as of 2026-08-16 — read the field, do not read this sentence. The `a_field_is_resolved_only_when_it_is_proven`
+  note two lines above it in that file is the rule that was satisfied before the value was
+  written.
+* **`video_url` is still `UNRESOLVED`, and that half stands exactly as written.** Re-measured
+  by this worker on 2026-08-16, no `--check-urls`: the readiness gate's remaining row of this
+  kind reads `video URL: video_url is UNRESOLVED`. **The film has not been recorded.** Nothing
+  in this repository can resolve it and no document may pre-empt it.
+* **`s25-end-card` is not the film's card.** In the current film the URLs sit on **`K3`**, whose
+  content is owned by [`../demo/film/VO-CLOSE.md`](../demo/film/VO-CLOSE.md) §4.1 — and
+  `SPINE.md` §4 rules that `K3` **must not point a camera at the submission metadata file while
+  any field in it is unresolved.** One field still is. Read the value, film the value; never
+  film the file.
+
+**What does not change, and it is the whole point of the section: the card is read out of
+`SUBMISSION.json` on the day and out of nothing else.** Do not copy a hostname onto a card from
+`APPLIED.md`, from `LIVE.md`, from §00.3 of this page or from the paragraph you are reading —
+that is the second write point this repository refuses to have.
 
 **This prohibition is not softened by the two `PROVEN` acceptance artefacts.** Both were taken
 over `scripts/deploy/local_furl.py`, a local emulator of a Lambda Function URL, and both say
@@ -540,18 +850,18 @@ so in their own `target_is_local_emulator` field. A green acceptance run against
 your own laptop is not a demo URL, and putting one on the end card would be the single
 checkable falsehood in the film.
 
-**Nor is it softened by the fact that a real origin now exists — and read this before
-concluding the card must be bare.** The apply landed on `2026-08-14`
+**Nor is it softened by the fact that a real origin exists.** The apply landed on `2026-08-14`
 (`evidence/deploy/APPLIED.md`: `24 created, 0 changed, 0 destroyed`), the Function URL it
 produced answers `ok true` with `deploy_chain 271/271` (`evidence/deploy/live-health.json`),
 and the four beats come back from it at verdict `PROVEN`
-(`evidence/deploy/live-gate-run.json`). **So the missing thing is the *submitted value*, not
-the deployment** — `SUBMISSION.json` still holds `UNRESOLVED` in `demo_url`, and that file,
-not this page and not an evidence artefact, is what the card is read from. The rule is
-therefore unchanged and its reason is now narrower: film `s25` last, read the value out of
-`SUBMISSION.json` on the day, and if its owner has written the hostname by then the card
-carries it. Do not copy a hostname onto the card from `APPLIED.md`, `LIVE.md` or this
-paragraph — that is the second write point this repository refuses to have.
+(`evidence/deploy/live-gate-run.json`). ~~**So the missing thing is the *submitted value*, not
+the deployment** — `SUBMISSION.json` still holds `UNRESOLVED` in `demo_url`.~~
+**SUPERSEDED 2026-08-16: the submitted value has since been written and `demo_url` is
+resolved** — which is why the struck clause is the one thing in this passage that had to move
+and the rest did not. **A `PROVEN` acceptance artefact taken over a local socket is still not a
+proof of the origin, and never becomes one.** Those are two different claims and only the
+second was ever in doubt; the first is what these three artefacts settle. Read the value out of
+`SUBMISSION.json` on the day and film that.
 
 ### And the one that is easiest to get wrong because it sounds modest
 
@@ -1207,9 +1517,37 @@ matters more than the per-file chain.
 
 ---
 
-## C · THE BEAT-BY-BEAT TABLE
+## ~~C · THE BEAT-BY-BEAT TABLE~~ — **SUPERSEDED 2026-08-16 as a description of the film**
 
-For every shot: the exact command, the seeded state it assumes, the shot itself, the one
+> **SUPERSEDED 2026-08-16 under `R-SD1`.** Everything from here to the end of §C.7 is
+> shot-by-shot choreography for `s01`–`s25`, the committed console cut. **The film has no `s`
+> ids.** Its beats are `B0`–`B10` then `K1`/`K2`/`K3` (§0.1a, copied from
+> [`../demo/film/SPINE.md`](../demo/film/SPINE.md) §2), and each of the four questions §C
+> answers is now answered elsewhere:
+>
+> | §C answered | the file that answers it now |
+> |---|---|
+> | which shot, how long, in what order | [`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml) · `SPINE.md` §2 |
+> | what the cursor does and what is typed | [`../demo/film/CLICKS.md`](../demo/film/CLICKS.md) · [`../demo/film/CLICKS-CR.md`](../demo/film/CLICKS-CR.md) |
+> | what is on the frame | [`../demo/film/ONSCREEN-TEXT.yaml`](../demo/film/ONSCREEN-TEXT.yaml) |
+> | the one sentence of voice-over | `VO-DEMO.md` · `VO-DEMO-CR.md` · `VO-CLOSE.md` |
+> | the pre-committed fallback | [`../demo/film/FALLBACKS.md`](../demo/film/FALLBACKS.md) |
+>
+> **`s19-beat5-mcp-connect`, filmed at `2:05` in §C.6 below, is a shot the current film does not
+> contain** ([`AUDIT.md`](AUDIT.md) §5). Do not shoot it off this page.
+>
+> **Two things below are NOT superseded and are pointed at from the live sections of this page.**
+> **§C.0's four database states** (`STATE A`–`STATE D`) are an inventory of *databases and
+> assets*, not of shots; §B builds `STATE A` and `STATE B` and still refers to them by those
+> names. And the **measurements** recorded through §C — the eight-relation presence probe, the
+> four beat-1 surface probes, the `EXPLAIN`, the empty `v_silence_summary` — are dated readings
+> of this tree, kept verbatim under this page's own rule that **a dated reading is not rewritten
+> because the world moved**.
+>
+> **Nothing is deleted.** §C stays readable as the record of the console cut.
+
+**Kept verbatim, as the beat-by-beat table for the CONSOLE CUT and not for the film.** For
+every shot: the exact command, the seeded state it assumes, the shot itself, the one
 sentence of voice-over, and the pre-committed fallback. Durations are in `SHOT-LIST.yaml`;
 `capture_order` is section D.
 
@@ -1881,9 +2219,23 @@ them"* is true and is the sentence to use.
 
 ---
 
-## D · CAPTURE ORDER — worst first, three takes each
+## ~~D · CAPTURE ORDER — worst first, three takes each~~ — **SUPERSEDED 2026-08-16**
 
-Shoot in `capture_order`, not in story order. The list is in `SHOT-LIST.yaml`; the reason it
+> **SUPERSEDED 2026-08-16 under `R-SD1`. The six shot ids below do not exist in the film**, and
+> `SHOT-LIST.yaml`'s `capture_order` orders a different cut. The film's own order of work is
+> the founder's and the film lead's: **`SPINE.md` §7 records what the spine does not decide**,
+> [`../demo/film/FALLBACKS.md`](../demo/film/FALLBACKS.md) §4 carries the pre-flight and the
+> decision gates that have to be settled before the light goes on, and
+> [`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml) carries the beat ids to schedule against.
+>
+> **The craft below is not superseded and is the reason this section is kept**: shoot the
+> hardest and least recoverable thing first; three takes of everything, even a clean first one,
+> because an editor with one take has no cut point; re-seed between destructive takes; and plan
+> the day around the receipt window in §B.4, which is a real two-hour deadline and is invisible
+> once it passes. **Read those four rules as method and the `s`-ids as history.**
+
+**Kept verbatim, as the capture order for the CONSOLE CUT.** Shoot in `capture_order`, not in
+story order. The list is in `SHOT-LIST.yaml`; the reason it
 starts where it does is that the hardest, most valuable and least recoverable shot is the
 raw-SQL bypass, and discovering a problem with it at the end of a shooting day is how a
 submission misses a deadline.
@@ -1910,9 +2262,26 @@ shoot the rest.
 
 ---
 
-## E · THE SCOPE-CUT LADDER, AND THE ONE THING IT MAY NOT REACH
+## ~~E · THE SCOPE-CUT LADDER, AND THE ONE THING IT MAY NOT REACH~~ — **SUPERSEDED 2026-08-16**
 
-The ladder is pre-committed in `SHOT-LIST.yaml` under `scope_cut_ladder`, executed top-down,
+> **SUPERSEDED 2026-08-16 under `R-SD1`. THE FILM'S LADDER IS
+> [`../demo/film/SPINE.md`](../demo/film/SPINE.md) §5**, with its machine form in
+> [`../demo/film/BEATS.yaml`](../demo/film/BEATS.yaml) under `cut_ladder`. It is triggered only
+> if the assembled cut exceeds **`174` s**, it is executed top-down, and `SPINE.md` §5 says in
+> terms: **do not reorder it on the day.** Its ranks are stated against `B`-ids and `K`-ids, not
+> against `s01`–`s25`; §5.1 floors `B10` and forbids cutting `B9` without it; §5.2 records the
+> one sanctioned claim on the banked margin. **This page reproduces none of it** — a ladder
+> restated in two documents is a ladder that gets reordered at 02:00 by whoever is holding the
+> other copy.
+>
+> **The one thing that carries across unchanged, and it is the whole title of this section:
+> `SPINE.md` §5 rules `Never B3. Never B5.`** `B3` is the rules requirement — the video *"must
+> include footage showing the CockroachDB memory layer at work"* — and `B5` is the product. A
+> cut that reaches either has gone wrong somewhere else, and the answer is to find that
+> somewhere else. The struck ladder below protected the same instinct with different ids.
+
+**Kept verbatim, as the ladder for the CONSOLE CUT.** The ladder is pre-committed in
+`SHOT-LIST.yaml` under `scope_cut_ladder`, executed top-down,
 so that it is never a 02:00 judgement call:
 
 1. Cut `s07-beat1-identity-survival` — the reflow claim moves to `s06`'s VO and to the
@@ -1956,10 +2325,13 @@ camera:
 * Not "a real incident" — the corpus, the operator, the site and the incident are authored.
 * Not "the conformance suite passes", and not that it has ever been demonstrated — it has not;
   two cases are demonstrated instead by `scripts/proof/gate_refusal.py`.
-* Not "the deployed demo is proven" and not "the demo is live" — **both acceptance artefacts
+* Not "the deployed demo is proven" — **both acceptance artefacts
   read `PROVEN` as of 2026-08-14 and both were taken over a local emulator socket**, with
-  `target_is_local_emulator: true`. There is no public origin; `demo_url` is `UNRESOLVED`.
-  Read the files on the day, and read `target_provenance`, not `mode_description`.
+  `target_is_local_emulator: true`. ~~There is no public origin; `demo_url` is `UNRESOLVED`.~~
+  **SUPERSEDED 2026-08-16: an origin exists (`APPLIED.md`, `24 created, 0 changed, 0 destroyed`)
+  and `SUBMISSION.json:20` now carries it — so the surviving error is calling either LOCAL
+  artefact a proof of that origin.** `video_url` is still `UNRESOLVED` and that is the one to
+  keep saying. Read the files on the day, and read `target_provenance`, not `mode_description`.
 * Not "every signature pins the alternatives the signer declined" as a claim about the past —
   until 2026-08-14 both signing paths bound `sha256(b"defeater-vocab")`, and the captured
   Cloud bundle still carries that value.
@@ -1996,8 +2368,11 @@ because a findings list nobody re-runs is a findings list that quietly becomes f
    validator reports it as unchecked, which it prints as *not a pass*); no
    `evidence/demo-run-*` tape exists; and no blame surface exists anywhere under `scripts/`.
    **This did not move when the signature path started working** — that wave gave beat 3 a
-   surface and beat 1 nothing. It is 39 s of a 171 s film. Owners: `corpus-spine-authored` and
-   whoever owns K3's surface.
+   surface and beat 1 nothing. ~~It is 39 s of a 171 s film.~~ **RE-SCOPED 2026-08-16: `39 s`
+   is `39` of `SHOT-LIST.yaml`'s `171`, which is the console cut and not the film.** In the
+   film the equivalent subject is `B3`, and `SPINE.md` §5 floors `B3` outright — *"Never B3"* —
+   so the finding gets *worse* under the demotion, not better: it names a surface a cut may not
+   drop. Owners: `corpus-spine-authored` and whoever owns that surface.
 4. **`seed_demo.py` and `seed_demo_state.py` cannot seed the same database.** Measured:
    applying the demo world on top of the proof history produces
    `VERDICT WRONG STATE — 2 permits stand in mainline.permit, expected exactly 1`, even though
@@ -2099,9 +2474,15 @@ Here is the ledger for the 2026-08-14 revision, so a reader can check the claim 
 accept it. Everything marked RAN was executed on this machine, on 2026-08-14, against the
 pinned local node; everything marked READ was read back from a committed file.
 
+> **READ THE FIRST ROW AS A MEASUREMENT OF A FILE, NOT AS A DESCRIPTION OF THE FILM.**
+> `validate_shotlist.py` sums `SHOT-LIST.yaml`. Its `171` / `25` / `304` were true of that YAML
+> on 2026-08-14, are still true of it today, and were never the film's numbers after the
+> 2026-08-16 recut. The film is `172` s — §0.1a, copied from `SPINE.md` §2. **A dated reading is
+> not rewritten because the world moved**, so the row stands exactly as it was taken.
+
 | § | command or file | verdict |
 |---|---|---|
-| 0 | `validate_shotlist.py` | **RAN** · exit 0 · `submission.total_s 171`, `shots 25`, `vo_words 304`, `headroom_s 9`, `mws.total_s 158` |
+| 0 | `validate_shotlist.py` — **measures `SHOT-LIST.yaml`, not the film** | **RAN** · exit 0 · `submission.total_s 171`, `shots 25`, `vo_words 304`, `headroom_s 9`, `mws.total_s 158` |
 | A.4 | `ls .venv/Scripts/*.exe` | **RAN** · no bare `mainline`; `uv.exe` present but not on `PATH` |
 | B.1 | `docker ps` | **RAN** · one container, `trappoint-crdb`, `cockroachdb/cockroach:v26.2.5` |
 | B.2 | `scripts/qa/doctor.py` | **RAN** · `NOT READY - 2 blocking checks` (`uv`, `just`) |
@@ -2153,7 +2534,7 @@ voice-over word. Its own ledger, same rule as above:
 
 | § | command or file | verdict |
 |---|---|---|
-| 00.1 | `validate_shotlist.py` | **RAN 2026-08-16** · exit 0 · `submission.total_s 171` (**2:51**), `shots 25`, `vo_words 304`, `headroom_s 9` |
+| 00.1 | `validate_shotlist.py` — **measures `SHOT-LIST.yaml`, not the film** | **RAN 2026-08-16** · exit 0 · `submission.total_s 171`, `shots 25`, `vo_words 304`, `headroom_s 9` |
 | 00.3 | `curl` → `GET /`, `/judge`, `/console`, `/v1/health` | **RAN 2026-08-16** · all **200**; `/` is 4,749 B, title `MAINLINE console` |
 | 00.3 | `curl` → `GET /v1/demo/gate-run` | **RAN 2026-08-16** · **405** — the POST-only finding |
 | 00.3 | `curl` → `GET /operator.html` | **RAN 2026-08-16** · **200**, 5,097 B, title `Control of Work`, digest differs from `/` — **not the SPA fallback** |
@@ -2161,8 +2542,10 @@ voice-over word. Its own ledger, same rule as above:
 | 00.3 | `POST /v1/demo/gate-run` | **NOT RUN BY THIS WORKER** · measured today by the compliance lead; committed transcript `evidence/demo/live-beats.json` (2026-08-15) |
 | 00.4 | `grep -niE "music\|audio\|bed\|soundtrack\|lufs" SHOT-LIST.yaml` | **RAN 2026-08-16** · no music or soundtrack key; `budget.export` line 90 sets voice levels only |
 
-**Two figures moved and neither was smoothed over.** The running time carried into this wave
-was *2:52 with 8 s of headroom*; the validator says **171 s = 2:51 with 9 s**. And
+**Two figures moved and neither was smoothed over.** ~~The running time carried into this wave
+was *2:52 with 8 s of headroom*; the validator says **171 s = 2:51 with 9 s**.~~
+**SUPERSEDED 2026-08-16 by §H.2 — the `2:52` this addendum "corrected" was the film's number
+all along, and the correction was pointed at the wrong artefact.** And
 `JUDGE-START.md`'s 2026-08-15 claim that `/operator.html` is the console shell byte-for-byte
 is **false as of today** — it is a distinct 5,097-byte document titled *Control of Work* with
 its own bundle. The second correction closes this kit's largest Functionality-rule exposure,
@@ -2171,6 +2554,29 @@ and it is recorded in both files rather than in the one it flatters.
 **What §00 did NOT do:** it touched no infrastructure, no Terraform, no budget, no alarm and
 no SSM parameter; it issued only `GET`s against a public `authorization_type = NONE` origin;
 and it printed no credential.
+
+### H.2 · ADDENDUM — the 2026-08-16 demotion to a capture runbook
+
+This revision executed `R-SD1`, `R-SD2` and `R-SD7` of
+[`../demo/shoot-docs-plan.md`](../demo/shoot-docs-plan.md) §1, on findings `S3` and `S4` of
+[`AUDIT.md`](AUDIT.md) §4.2. Same rule as above: a command nobody has run is a plan.
+
+| § | command or file | verdict |
+|---|---|---|
+| head block · §0 · §0.1 · §0.2 · §C · §D · §E | `../demo/film/SPINE.md` `:197`, `:216`; `../demo/film/BEATS.yaml` | **READ** · film is `148 + 22 + 2 = 172` s = `2:52`, hard stop `174` s, ceiling `180` s, `B0`–`B10` then `K1`/`K2`/`K3`; close in-points at `2:28`, not `2:00` |
+| §0.3 item 4 · §4.1 | `scripts/submission/check_submission_ready.py`, **no `--check-urls`** | **RAN 2026-08-16** · `tool usage documented` = `4 CockroachDB tools, 10 AWS services; 5 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch, AWS Lambda, AWS IAM, AWS SSM Parameter Store); 35 of 35 cited artefacts present on disk` |
+| §0.3 item 4 · §4.1 | `evidence/tool-usage/aws-services.json` → `totals` | **READ** · `12` rows · `6 EXERCISED` · `5 DESIGNED` · `1 NOT-AVAILABLE` — **a different set from the gate's, per `AUDIT.md` §4.3** |
+| §0.3 item 3 · item 4 | `evidence/deploy/APPLIED.md` | **READ** · `24 created, 0 changed, 0 destroyed`, 2026-08-14; seven alarms inside it per `AUDIT.md` §4.1 |
+| §0.3 demo URL · §F | `docs/submission/SUBMISSION.json:20` | **READ** · `demo_url` **RESOLVED**; `video_url` still `UNRESOLVED`, confirmed by the gate's own remaining row |
+| head block `R-SD7` | the gate's `video URL` remedy text | **RAN 2026-08-16** · still prints `docs/submission/VIDEO-KIT.md … the VO and the timings`; the script is under `scripts/` and was **not** edited |
+| whole file | `scripts/submission/check_submission_prose.py` | **RAN 2026-08-16** · `submission prose OK`, exit **0** |
+
+**What this revision did NOT do**, and each is a prohibition it was given rather than a
+coincidence: it ran no `terraform` command, made **no network call to the origin** (the gate was
+run without `--check-urls`), wrote no SSM parameter, printed no credential, widened and revoked
+no grant, and **changed no duration and no spoken word** — 172 s stands, and every `VO-*` file
+belongs to another worker. `verticals/mainline/demo/script/SHOT-LIST.yaml` is **byte-unchanged**;
+nothing under `verticals/`, `infra/` or `scripts/` was touched. **Nothing was committed.**
 
 **And the thing this page did not do: it did not record a video.** No footage exists. The kit
 is the preparation; the film is the founder's.

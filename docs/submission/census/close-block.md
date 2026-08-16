@@ -107,7 +107,11 @@ rather than on the origin says so on the card, in the line itself.
 
 > **12. Nine roles, none of which can log in.** The role that detects an obligation cannot create
 > one, the role that creates one cannot dispose of it, and the role that certifies the books has no
-> write path to them.
+> write path to them. Those nine are the **duty-separation lattice**, named one at a time in §6
+> row 12, and they are **distinct by design from the two service logins that do connect** —
+> `mainline_api`, which the Lambda authenticates as, and `mainline_judge`, the read-only login this
+> submission publishes to judges. The lattice is NOLOGIN because a lattice that could log in would
+> be a set of accounts; the two that can log in are the two that have to.
 
 **Lines 1, 2, 3, 6, 7 and 12 are LIVE** — they run when a stranger sends one unauthenticated
 request to the demo URL. **Lines 4, 5, 9 and 10 are exercised in this repository and on the pinned
@@ -120,10 +124,17 @@ LIVE and the `not_computable` half is visible in the live response body.
 ## 3. PART B — THE FOUR CONTEST-NAMED COCKROACHDB TOOLS
 
 The rules require **two**. We used **four**, and each one differently — which is the finding, not
-the count. All four are exercised in this repository with a committed transcript, and **none is in
-the demo's HTTP request path**: that path opens a `psycopg` connection and reads SSM. Saying so
-costs nothing, because what the four carry instead is a transcript against the real managed
-cluster, which is a stronger artefact than a code path a judge cannot see.
+the count. **Three of the four are exercised in this repository with a committed transcript** —
+Managed MCP, C-SPANN and `ccloud`. **The fourth, Agent Skills, is `DESIGNED`: the skills are
+shipped and not evidenced.** That is the census's own basis string, not a softening invented here —
+`evidence/tool-usage/crdb-features.json` → `rows.crdb_agent_skills.verdict_basis` reads *"two skills
+are on disk, each shipping an executable assertion script; neither script's run is captured under
+`evidence/`, so they are shipped and not evidenced"*, and `.verdict` reads `DESIGNED`. **The floor of two is cleared three times over without it**, which is
+exactly why nothing is gained by rounding it up.
+
+And **none of the four is in the demo's HTTP request path**: that path opens a `psycopg` connection
+and reads SSM. Saying so costs nothing, because what the three carry instead is a transcript
+against the real managed cluster, which is a stronger artefact than a code path a judge cannot see.
 
 > **13. CockroachDB Cloud Managed MCP Server — driven end to end, twice, five days apart.**
 > Protocol `2025-06-18`, server `cockroachdb-cloud 1.0.0`, twelve tools, SQL identity
@@ -147,9 +158,14 @@ cluster, which is a stronger artefact than a code path a judge cannot see.
 
 > **16. Two authored CockroachDB Agent Skills, Apache-2.0, shipped two ways** — the Agent Skills
 > spec and a Claude Code plugin marketplace. Each ships a script that **fails when the guarantee
-> does not hold**, and the lane runs the failing half first: nine unwelding rows against a
-> throwaway CockroachDB node, four of which must ADMIT, plus nine planted violations each refused
-> by name. A third skill is de-branded and **staged for contribution — not filed, and not merged.**
+> does not hold**, and the lane is written to run the failing half first: nine unwelding rows
+> against a throwaway CockroachDB node, four of which must ADMIT, plus nine planted violations each
+> refused by name. A third skill is de-branded and **staged for contribution — not filed, and not
+> merged.** **This is the one row of the four that is `DESIGNED` rather than `EXERCISED`, and it
+> says so on the card:** the skills are on disk and the spec validator passes over them, but
+> **neither assertion script's run is captured under `evidence/`** — they are *shipped and not
+> evidenced*, and there is no transcript here for a judge to open. Line 16's check in §6 proves the
+> validator, which is the claim; it does not prove a run, which is not.
 
 ---
 
@@ -243,7 +259,7 @@ repository and Docker, and which name a committed artefact as the credential-fre
 | 9 | **REPO** *(cluster)* | `SELECT count(*) FROM pg_indexes WHERE indexdef ILIKE '%WHERE%'` → **6**; `EXPLAIN` prints the literal words `(partial index)` | `6` |
 | 10 | **REPO** *(cluster)* | `… crdb_sql_type ILIKE 'VECTOR%'` → **4**; `… data_type='tsvector'` → **1**; `… indexdef ILIKE '%cspann%'` → **3**; `… ILIKE '%USING gin%'` → **5** | `4 · 1 · 3 · 5` |
 | 11 | **LIVE** | same gate-run: beat 2's `naa` is populated; beat 3's is `null` with `naa_reason "not_computable"` | `not_computable` |
-| 12 | **LIVE** | `SELECT rolname, rolcanlogin FROM pg_roles WHERE rolname LIKE 'mainline%'` | nine rows, `rolcanlogin` false on all nine |
+| 12 | **LIVE** | `SELECT rolname, rolcanlogin FROM pg_roles WHERE rolname IN ('mainline_migrator','mainline_owner','agent_gate','agent_projector','agent_recaller','svc_disposition','mainline_auditor','auditor_ro','quality_assurance') ORDER BY 1;` — the lattice **by name**, the predicate preserved at `census/crdb-programmable.md:827`. The two service logins `mainline_api` and `mainline_judge` are deliberately outside the list and both **can** log in; a wildcard over the `mainline` prefix answers a different question and is not this check | nine rows, `rolcanlogin` false on all nine |
 | 13 | **REPO** — committed transcript | `python -c "import json;d=json.load(open('evidence/mcp/pack-run.json'));print(d['passed'],'/',d['total'],d['verdict'])"` | `15 / 16 DIVERGED — KNOWN GAP` |
 | 14 | **REPO** — committed transcript | `grep -n "prefix spans" evidence/aws/ann/explain-hinted.txt`; and `evidence/aws/ann/explain-unhinted.txt` Appendix B for the `42809` refusal | the `prefix spans` line; `REFUSED BY THE SERVER — SQLSTATE 42809` |
 | 15 | **REPO** — committed transcript | parse `evidence/ccloud/cluster-list.txt` as JSON | `mainline-dev v26.2.5 AWS ap-southeast-1` |
@@ -271,19 +287,30 @@ one `grep`.
 
 ## 7. THE THREE CUTS
 
-### 7.1 The card (film) — read, not spoken
+### 7.1 The static card — a written/press-kit fallback, **not** the film's overlay
+
+**This file does not prescribe the film.** The sole authority for what appears on screen in the
+closing block is [`../../demo/film/VO-CLOSE.md`](../../demo/film/VO-CLOSE.md) §§2–5 together with
+[`../../demo/film/ONSCREEN-TEXT.yaml`](../../demo/film/ONSCREEN-TEXT.yaml) `k1`/`k2`/`k3`, which
+carry the committed overlay strings; where this section and those files differ, **they win and this
+one is wrong.** The six lines below are a **static card for the press kit and the written
+submission** — a slide, a README banner, a still — and they were never implemented as film text.
 
 Set Part A lines **1–4** first and large; then Part B as four short tool names with their one
-number each; then Part C as a single stack; then Part D. If the card can hold only six lines:
+number each; then Part C as a single stack; then Part D. If the static card can hold only six
+lines:
 
 ```
 The database refuses the merge — and refuses the counter that lied to it.
 And it refuses the cluster superuser. Seventeen tables. root cannot edit an event.
 Four beats, two refusals, one SERIALIZABLE transaction, rolled back.
 Refused 6/6 at SERIALIZABLE. Admitted 6/6 at READ COMMITTED.
-All four contest CockroachDB tools: Managed MCP 15/16 · C-SPANN · ccloud · two Agent Skills.
+Four contest CockroachDB tools. Three exercised with transcripts: Managed MCP 15/16 · C-SPANN 42809 · ccloud. Agent Skills: DESIGNED.
 One Python Lambda, one Function URL, no SDK in the package. Bedrock is in the repo, not in the path.
 ```
+
+Line 5 is corrected here regardless of where the block is used: a line that says *"all four
+exercised"* is false in a press kit exactly as it would be on a frame.
 
 ### 7.2 The spoken line
 
@@ -297,7 +324,7 @@ The **read-only endpoint a stranger can actually verify** is the `mainline_judge
 service-account key. If `claude mcp add` appears on the card at all it must be labelled *"your own
 cluster."*
 
-### 7.3 The written cut (Devpost, ~180 words) — because a judge may never press play
+### 7.3 The written cut (Devpost, **239 words**, counted) — because a judge may never press play
 
 > MAINLINE puts the refusal inside CockroachDB. Twenty-six PL/pgSQL functions and two procedures,
 > welded by thirty-nine row-level triggers, refuse a merge that the projected counter says is
@@ -308,12 +335,13 @@ cluster."*
 > and the response hands you the isolation level, both hybrid-logical timestamps and the rollback
 > fingerprint. The same crossed history is refused six times out of six at `SERIALIZABLE` and
 > admitted six times out of six at `READ COMMITTED`; that measurement is why this memory layer is a
-> database. We used all four contest CockroachDB tools — Managed MCP end to end at fifteen of
-> sixteen with the divergence published, C-SPANN vector indexes whose prefix rule the server
-> enforces at `42809`, `ccloud -o json`, and two authored Agent Skills. On AWS: one Python Lambda,
-> one Function URL with `authorization_type NONE`, SSM reached by hand-rolled SigV4 with no SDK in
-> the package, CloudWatch, SNS, Budgets and a cost guard applied. Bedrock is real in the repository
-> and is deliberately not in the request path.
+> database. We used all four contest CockroachDB tools, three with a committed transcript: Managed
+> MCP end to end at fifteen of sixteen with the divergence published, C-SPANN vector indexes whose
+> prefix rule the server enforces at `42809`, and `ccloud -o json`. The fourth, two authored Agent
+> Skills, is shipped and validated but has no committed run, so we call it designed. On AWS: one
+> Python Lambda, one Function URL with `authorization_type NONE`, SSM reached by hand-rolled SigV4
+> with no SDK in the package, CloudWatch, SNS, Budgets and a cost guard applied. Bedrock is real in
+> the repository and is deliberately not in the request path.
 
 ---
 
@@ -324,7 +352,7 @@ Each of these is checkable by a judge in one command, and each would discredit t
 | never say | why | say instead |
 |---|---|---|
 | "CloudFront serves the demo" · "behind a CDN" · "at the edge" | no distribution exists; AWS refused to create one | line 25 |
-| "We use EventBridge" | `grep -rn "aws_cloudwatch_event\|aws_scheduler" infra` returns **nothing**. **This row is dropped from the close block on purpose** — it is the one AWS line a judge could falsify with a single grep, and the list is strong enough without it | say nothing |
+| "We use EventBridge" | `grep -rn --include=*.tf "aws_cloudwatch_event\|aws_scheduler" infra` prints **no output and exits 1**. `--include=*.tf` is load-bearing and this row was struck once for omitting it: without the filter the same grep matches **three vendored `terraform-provider-aws_*_x5.exe` binaries** under `infra/**/.terraform/` and **exits 0**, which says nothing about our configuration. **This row is dropped from the close block on purpose** — it is the one AWS line a judge could falsify with a single grep, and the list is strong enough without it | say nothing |
 | "AWS KMS is on the request path" | the applied SSM parameter's **type has never been read back**; if it is a plain String no KMS call happens. **KMS is deliberately absent from every line above** | say nothing until the one read-only command is run |
 | "Distributed tracing with X-Ray" | the trace header is the Lambda service's; there is no tracing configuration in `infra/` | say nothing |
 | "The MCP pack passes" · "judges can query our ledger over MCP" | it exits 1 at 15 of 16, verdict `DIVERGED — KNOWN GAP`; `credential_publishable` is **false** | line 13 |
@@ -353,6 +381,10 @@ Each of these is checkable by a judge in one command, and each would discredit t
 | **KMS left out of every line** | over-claim O15: the applied parameter's type was never read back. The default is to leave it out |
 | **Every REPO line now says where it *is* reachable** rather than being softened | the Functionality rule, and R4 — Bedrock's construction is the model |
 | **The four AWS lines about the cost guard were merged into one (line 22)** and end with "none of it has ever fired" | R5 — a row that adds a logo outranks nothing, and an unexercised control that says so is worth more than four that do not |
+| **§6 row 12's check became the explicit nine-name `IN` list with `ORDER BY 1`**, and §2 line 12 now names the two service logins (`mainline_api`, `mainline_judge`) that sit outside the lattice. **The answer did not move: nine rows, `rolcanlogin` false on all nine.** The wildcard predicate this row used to print returned five rows with two of them able to log in — one being `mainline_judge`, the login we publish — so the card's own check refuted the card | `AUDIT.md` §4.2 **S1** · predicate restored from `census/crdb-programmable.md:827` · both predicates re-measured today against the local cluster, twice (psycopg and `cockroach sql`). **The claim was not weakened to match the broken check** |
+| **§3 no longer says "all four are exercised … with a committed transcript."** It says three exercised with a committed transcript and one — Agent Skills — **shipped and not evidenced**. Line 16 and the §7.3 written cut say the same in their own words; the count of four survives, the state of the fourth is stated | `AUDIT.md` §4.2 **S5** and §3 · the census's own `verdict_basis` in `evidence/tool-usage/crdb-features.json`, whose `crdb_agent_skills.verdict` is `DESIGNED`. **No skills run was captured or committed to promote the row** — the tool is stated in the state it is in. Stating the fourth tool's state grew the §7.3 cut by **20 words**; its header claimed *"~180 words"* while the cut already ran to **219**, so the header now carries the counted length, **239** |
+| **§8's EventBridge row now prints `grep -rn --include=*.tf …` and its real result: no output, exit 1** — with the reason the filter matters (three vendored provider `.exe` matches, exit 0, without it) | `AUDIT.md` §4.2 **S6** · both forms run verbatim by this worker today. The row's whole premise is one-command falsifiability, so the command has to be the one that was run |
+| **§7.1 stopped prescribing the film's card.** It now names `docs/demo/film/VO-CLOSE.md` §§2–5 and `docs/demo/film/ONSCREEN-TEXT.yaml` `k1`/`k2`/`k3` as the sole authority for the overlay, and re-labels its six-line block as a written/press-kit fallback for a static card. Its line 5 is corrected regardless of use: four named, three exercised with transcripts, Agent Skills `DESIGNED` | `AUDIT.md` §4.2 **S8** and close-card plan **R-C8** — two documents from one wave were prescribing different content for the same 22 seconds. `VO-CLOSE.md` is the film authority; this file defers |
 
 **Suggestion for the orchestrator, not a change made here.** `docs/submission/VIDEO-KIT.md` still
 tells the shoot to *drop the CloudWatch tile* from `s22-readiness-strip` because the alarms "have

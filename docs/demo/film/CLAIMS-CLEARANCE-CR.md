@@ -400,3 +400,118 @@ and the two-block shape were therefore never equal in honesty**, whatever the ar
 because this file transcribed R-7's bar list as four items and dropped the fifth: the one its own
 primary line broke. **That is worth more as a lesson than the ruling is:** a pre-emptive refusal
 list is only as good as the half of the sentence it was pointed at.
+
+---
+
+## 9 · THE CLOSE-CARD WAVE — **out of this sheet's scope, and where its rows actually live**
+
+**Added 2026-08-16 by W6 of the close-card wave.** This is a scope ruling and a pointer. **No
+clearance row for the eligibility panel is filed here**, and the reason is this sheet's own
+declared corpus rather than convenience.
+
+### 9.1 · Why the `k3.overlay.tools` rows are NOT in this file
+
+The close-card wave added one new overlay string, **`k3.overlay.tools`** — the four contest
+CockroachDB tools with their verdicts and evidence paths, at `ONSCREEN-TEXT.yaml:3228` — in
+answer to `AUDIT.md` FIX 1. The brief for that wave instructed W6 to file its clearance rows here
+**if this sheet's scope covers the change-request blocks that include `k1`–`k3`.** **It does not,
+and the header of this file says so in its own words:**
+
+> *"**Audits, exclusively:** `docs/demo/film/VO-DEMO-CR.md`, `docs/demo/film/CLICKS-CR.md`, and
+> this file. **`CLAIMS-CLEARANCE.md` is not edited by this worker** and continues to own `B0`…`B8`,
+> **the close**, and the other five film documents."*
+
+**The close is named, explicitly, as the other sheet's.** `§1.1`'s corpus table lists three files
+and `ONSCREEN-TEXT.yaml` is not among them; the two blocks this sheet audits are `B9` and `B10`,
+the second use case, and `k1`–`k3` appear in `CLAIMS-CLEARANCE.md` §12.3.5 and §12.5 rows **O26**
+and **O27** — that sheet's rows, on that sheet's `k`-card material.
+
+**Duplicating the rows here would have been the worse choice, and not only on tidiness.** A
+clearance row that exists in two files with two owners is a row that can be edited in one and not
+the other — which is precisely the **S8** defect this whole wave was convened to remove, and which
+§13.4 of the other sheet finds reproduced in `VO-CLOSE.md`. **One row, one owner, one file.**
+
+**The one place this sheet's method IS reused rather than copied.** §4's discipline — *file a
+REFUSE against the variant nobody has written yet, because 02:00 reaches for the shortest form* —
+is exactly what produced **X6**, **X7** and **X8** over there, and §8's lesson (*a pre-emptive
+refusal list is only as good as the half of the sentence it was pointed at*) is why **X7** refuses
+a **rendering** and not only a wording: the Agent Skills row can be turned into a lie without one
+character of it changing.
+
+### 9.2 · Where to read them, and the two findings that bind a shoot of these blocks too
+
+| what | where |
+|---|---|
+| the 8 clearance rows for every line of `k3.overlay.tools` | `CLAIMS-CLEARANCE.md` **§13.2** |
+| the 3 REFUSE rows — `all four exercised`; degrading or dropping the `DESIGNED` row; speaking the panel | `CLAIMS-CLEARANCE.md` **§13.3**, rows **X6**, **X7**, **X8** |
+| the shoot-blocking condition **C-13.1** — raised when `VO-CLOSE.md` §5.6 was missing, **discharged when W1 landed it** — kept in both readings | `CLAIMS-CLEARANCE.md` **§13.4**, **§13.4.2** |
+| the whole-wave verification block, including the two RED checks | `CLAIMS-CLEARANCE.md` **§13.5** |
+| the on-screen registry rows for the four tools | `docs/demo/ON-SCREEN-CLAIMS.md` § *CockroachDB — the four contest tools* |
+
+**Two of those bind a shoot of `B9`/`B10` as much as a shoot of the close**, so they are restated
+here rather than left behind a cross-reference:
+
+* **X8 — the tools panel is never spoken**, in any take, including an ad-lib over the card. The
+  panel was affordable only because a card costs layout instead of seconds; narrating it lengthens
+  a 172 s film against a 174 s hard stop. **This sheet's §7 conditions gain no seconds either.**
+* **X6 — no take, caption or ad-lib may say *"all four exercised."*** CockroachDB Agent Skills is
+  **DESIGNED**: `evidence/tool-usage/crdb-features.json` → `rows.crdb_agent_skills.verdict`, and
+  `find evidence -iname "*skill*"` returns nothing. **Nobody on this wave captured a run to change
+  that**, which is the same discipline that keeps `N01` a FAIL and this sheet's own
+  `cr-gate-live.json` verdict at `UNANSWERABLE` rather than quietly re-scoped.
+
+**Signed:** W6 · close-card wave · 2026-08-16 (UTC). **This section adds a scope note and a pointer
+and changes no verdict on this sheet** — the 8 REFUSE rows of §4 and §2, the superseding row in §3
+and the conditions in §7 all stand exactly as written.
+
+---
+
+## 10 · **THE PRESS RULING `R-SD4`, RE-READ AGAINST THIS SHEET'S OWN ROWS**
+
+**Added 2026-08-16 by W6 of the shoot-documents wave.** Authority:
+[`../shoot-docs-plan.md`](../shoot-docs-plan.md) **`R-SD4`** / `R-SD4a` / `R-SD4b`. **No verdict on
+this sheet moves. Not one row is re-verdicted, softened or withdrawn.** This section exists because
+a ruling that changes *when* a value reaches the screen can silently falsify a row that cleared it
+on the assumption it was there — so the rows most exposed to it were re-read one by one rather than
+assumed safe.
+
+### 10.1 · The ruling, in the one sentence that binds this sheet
+
+> **Click 6 — the attempt — is at `2:14.0`, `+10.0` into `B9`. The request is in flight
+> `2:14.0 → 2:15.5`. The refusal paints at `2:15.5`. `B10` opens at `2:16.0` on a refusal already
+> on screen.** Conditional, in every restatement, on `FALLBACKS.md` §4.2's **R-11** gate
+> (`R-SD4b`): under NO-GO there is no Click 6 at all.
+
+**`CLICKS-CR.md`'s own `+7.4` is struck and `CLICKS.md`'s `2:17` is struck. This sheet quoted
+neither**, which is why no row below needed correcting — it was written against *"the CR run's own
+merge beat"* rather than against a clock, and that is the discipline that saved it.
+
+### 10.2 · The re-read, row by row
+
+| row | what it clears | does `R-SD4` disturb it? |
+|---|---|---|
+| **§2 row 1** — B9 *"Then change the rule instead."* | the viewer's objection voiced; no tense, no number, no mechanism | **NO.** `R-SD5` moves no spoken word, no word budget and no duration. The line is `B9`'s first, at `2:04`, ten seconds before the press it now shares a block with. |
+| **§2 row 8** — B10 *"a different CHECK"* | scoped to a declarative CHECK on `mainline.change_request`; **both constraint names in the frame at the instant *different* is said** | **NO — and the condition is now easier to meet, not harder.** Under `2:17` the refusal band composed *after* `B10`'s first word; under `2:14.0` it has been on screen for `0.5 s` when `B10` opens. The frame this row's clearance depends on is painted **before** the sentence, which is the only ordering **R-K** accepts. |
+| **§2 row 9** — B10 *"guarding the change"* | says what the constraint is attached to and nothing about what else it can stop | **NO.** And worth recording: this sheet's wording already names **the change**, which is exactly the object `CLAIMS-CLEARANCE.md` **`D31`** supplies as the replacement for `VO-DEMO.md`'s *"guards edits"*. **`D31` remains OPEN in that sheet** — see its §12.9.1 item 1 and §12.9.2 — and this row is not offered as its discharge. The two files converge the moment W2 lands it; until then they differ and this line says so. |
+| **§2 row 10** — the constraint name is not spoken in the primary read | the name is on screen with its field label for the whole block | **NO.** The name is rendered from the response that landed at `2:15.5`, so it is on screen for the whole of `B10` rather than for all but its first second. |
+| **§2 row 11** — B10 alt *"a different CHECK, `cr_gate_closed_when_merged`, guarding the change itself."* | same clearance as rows 8–9, **on the condition that the name spoken is the one the filmed run returned** | **NO, and its condition is unchanged.** The alternate speaks a value roughly two seconds into `B10`; under the new placement that value has been on screen since `2:15.5`. The `PENDING` condition in §5 rows 9 and 11 is what governs it, and it governs it identically. |
+| **§5 row 1** — the shipped page's own strings, `Approve change` among them | strings the bundle constructs | **NO.** `R-SD4` moves *when* the attempt control is pressed, not *which* control exists. **The standing bar is unchanged and restated:** the attempt control **is not** `Approve change` re-enabled — that control is disabled with the obligation named as its reason (§7 condition 3, `ONSCREEN-TEXT.yaml` `b9.attempt.control`). |
+| **§5 rows 8–11** — the SQLSTATE, the constraint name, `constraint_source`, the refusal's own message | each traced to **the CR run's own merge beat**, each still `PENDING` | **NO on provenance; ONE THING CHANGES AND IT IS WORTH A LINE.** These four values render inside `B10`, but the request that produces them is pressed in **`B9`** at `2:14.0`. Under the struck `2:17` the press and the paint were both inside `B10`. **The field paths do not move, boxed row one still governs — these come from the CR run's merge beat and never from `gate_run_summary` — and every one of the four stays `PENDING` until it is re-derived from the filmed run** (§7 condition 6). |
+
+### 10.3 · What this section deliberately does **not** do
+
+* **It does not discharge `D31`.** That row is `CLAIMS-CLEARANCE.md`'s, its owner is W2 with W1 for
+  the seconds, and it now carries a recorded collision with `R-SD4a`'s floored `0.4 s`
+  (`CLAIMS-CLEARANCE.md` §12.9.2). **The `0.4 s` cannot be spent twice and this sheet does not
+  spend it.**
+* **It does not turn any `PENDING` row into a cleared value.** §7 condition 6 stands: a row still
+  `PENDING` on the day the film is cut is a row whose value does not go on camera.
+* **It does not make `R-SD4` unconditional.** `R-SD4b` and §7 condition 1 say the same thing from
+  two directions: **the gate is a NO-GO on the deployed origin as last measured**, and on that path
+  `B9` and `B10` are never shot, `B8` returns to 10 s, and the film is 152 s.
+
+**Signed:** W6 · shoot-documents wave · 2026-08-16 (UTC). **This section re-reads six of this
+sheet's rows against a ruling made in another file and changes none of them.** `VO-CLOSE.md`,
+`close-block.md`, `feature-census.md`, `RULES-MATRIX.md` and `SUBMISSION.json` were **read and not
+edited** — other leads own them this wave. No grant widened, none revoked. No `terraform`, no AWS
+surface, no SSM parameter, no credential, no commit.

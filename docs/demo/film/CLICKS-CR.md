@@ -25,7 +25,9 @@ SPDX-License-Identifier: CC-BY-4.0
 > reasons. **What this file owns and is worth keeping for:** the frame rule in §3 and the evidence
 > trap in §3.1, the field-path tables in §4, the executable pre-flight in §5, and the stop-the-take
 > list in §6. **Where the two disagree about a cursor, `CLICKS.md` wins and this file is wrong.**
-> §4 records the one place they still do disagree rather than hiding it.
+> §4.2 records the one place they **used to** disagree — where the press lands — together with the
+> 2026-08-16 ruling that closed it, rather than quietly conforming and leaving no trace of either
+> position.
 
 **`claim_hygiene.py --check` verdict** for this file is recorded once, for the `-CR` files
 together, in `CLAIMS-CLEARANCE-CR.md` §6, with its exit code. Re-run it after any edit —
@@ -198,10 +200,15 @@ pre-flight, not a thing to notice in the edit.**
 
 #### 4.2 · The actions — **`CLICKS.md` §5 `B9` is the version of record**
 
-`CLICKS.md` spends all twelve seconds as: cursor to the app bar (`2:04–2:05.5`), **Click 5 — the
-module switch** (`2:05.5`), the four-read paint it measured at ≈ 3.5 s warm (`2:05.5–2:09`), a
-wheel scroll to the clause of record and the `Proposed wording` box (`2:09–2:10.5`), a click into
-the textarea (`2:10.5–2:11`), and **the proposed wording typed on camera** (`2:11–2:16`).
+`CLICKS.md` spends all twelve seconds, and after the press ruling below it spends them as: cursor
+to the app bar (`2:04.0–2:05.5`), **Click 5 — the module switch** (`2:05.5`), the four-read paint
+it measured at ≈ 3.5 s warm (`2:05.5–2:09.0`), a wheel scroll to the clause of record and the
+`Proposed wording` box — **that dwell is R-5's evidence and is not shortened** (`2:09.0–2:10.5`), a
+click into the textarea (`2:10.5–2:11.0`), **the proposed wording typed on camera in 2.5 s**
+(`2:11.0–2:13.5`), the cursor travelling to `Approve change` (`2:13.5–2:14.0`), and **Click 6 —
+mutating request 2 of 2 — at `2:14.0`**, which is `+10.0` into the block. The request is in flight
+`2:14.0 → 2:15.5`, the tail of *"…asks to edit it."* runs over that flight (R-9), and **the refusal
+paints at `2:15.5`**, half a second before `B10`'s in-point.
 
 **Three notes this file adds and `CLICKS.md` does not contradict:**
 
@@ -215,21 +222,58 @@ the textarea (`2:10.5–2:11`), and **the proposed wording typed on camera** (`2
 * **`Compare with clause of record` is not clicked**, and `CLICKS.md` records it as a trade rather
   than a prohibition: it is a real shipped control, it makes no request, and it is the single best
   show-don't-tell asset on that screen — **and there is no room for it**, because `B9`'s last five
-  seconds are the typing. **This file's earlier action table clicked it at `+5.5` inside a 10 s
-  block.** That was one of the two documents' disagreements and it is resolved against this file.
+  seconds are the typing, the press and the flight. **This file's earlier action table clicked it
+  at `+5.5` inside a 10 s block.** That was one of the two documents' disagreements and it is
+  resolved against this file.
 
-> ### ⚠ THE ONE PLACE THE TWO CLICK DOCUMENTS STILL DISAGREE — recorded, not resolved here
+> ### ✔ RULED, 2026-08-16 — **THE PRESS LANDS AT `2:14.0`, INSIDE `B9`.** This file's open item is closed
 >
-> **This file put `Approve change` at `+7.4` inside `B9`, under *"This request asks to edit it."*
-> `CLICKS.md` puts it at `2:17` as Click 6, one second inside `B10`**, with the pending state
-> running to `2:18.5` and the refusal painting from `2:18.5`. **Both cannot be shot.**
+> **`docs/demo/shoot-docs-plan.md` `R-SD4` is the ruling and it is reproduced here rather than
+> pointed at, because a shooting sheet nobody can read on its own at 02:00 is not a shooting
+> sheet.** Click 6 — `Approve change` — is at **`2:14.0`**, `+10.0` into `b9`. The request is in
+> flight `2:14.0 → 2:15.5`. **The refusal paints at `2:15.5`.** `B10` opens at `2:16.0` on a
+> refusal that has already been on screen for half a second.
 >
-> It matters because `B10`'s first spoken word is *"Refused."* at `2:16`: under `CLICKS.md`'s
-> placement the refusal has not landed when that word is said, which R-K forbids, and R-9 requires
-> the request to be narrated **while it is in flight**. Under this file's placement the press sits
-> inside a block `CLICKS.md` measured as having no spare second. **Owner: the film lead, with W1
-> for the seconds and W2 for the words.** `VO-DEMO-CR.md` §1 carries the same open item with both
-> candidate fixes priced. **Nothing in this wave settles it by choosing quietly.**
+> **This file won on the merits and lost on its number, and both halves are stated.**
+>
+> * **UPHELD — the placement.** §4.2's position, the press inside `B9` under *"This request asks to
+>   edit it."*, is the film's own grammar: `CLICKS.md` §5 `B1` already solves this problem once, with
+>   Click 2 at `0:22.5` — `+2.5` into the 10 s attempt beat — and the refusal beat `B2` opening at
+>   `0:30` **on a refusal that is already on screen**. `b9` is the attempt beat of use case two and
+>   `b10` is titled *REFUSED AGAIN*. Choreographing the film's two mutating presses differently is
+>   itself the defect: a judge watches the same act twice and the second one reads as edited.
+> * **STRUCK — this file's `+7.4`.** It was scored against the **retired 10 s three-block `B9`**.
+>   In the 12 s block `+7.4` is `2:11.4`, which is **in the middle of the typing**. The intent
+>   survives; the number does not.
+> * **STRUCK — `CLICKS.md`'s `2:17`.** It puts the SQLSTATE on screen **2.5 s after *"Refused."* is
+>   spoken** at `2:16`, and R-K is absolute: a value is spoken while it is on screen or it is not
+>   spoken. R-9 also requires each mutating request to be narrated **while it is in flight**, which
+>   only the `B9` placement gives. **Neither sheet's number survived; the placement of one did.**
+>
+> **What it costs, and the cost is this file's to carry.** The typing window falls from 5.0 s to
+> **2.5 s**, and `b9`'s 1.1 s of slack (`VO-DEMO.md` §2:595) is re-purposed from *the typed
+> proposal settling* to *the answer landing*. **R-2 is satisfied by the act of typing into the
+> console's own input with no provenance chip — it has never required a character count** — so a
+> shorter honest proposal discharges it identically. If 0.5 s more is needed it comes from the
+> app-bar travel (`1.5 s → 1.0 s`), which still proves no cut. **It never comes from the scroll
+> dwell (R-5's evidence) and never from the read chain (M8/M14, incompressible).** §5.6 is the
+> stopwatch check that settles it before the red light, and `R-SD4a`'s floored 0.4 s fallback —
+> with the `D31` collision it creates — is priced in `VO-DEMO-CR.md` §1.
+>
+> **`CLICKS.md` §5 remains the version of record for cursors, click numbers and keystroke
+> timings.** This box records a ruling that both files now implement; it does not take that
+> ownership back. Where the two still disagree about a cursor, `CLICKS.md` wins and this file is
+> wrong.
+>
+> **`R-SD4b` — and it is not a footnote.** The whole ruling is **conditional on `FALLBACKS.md`
+> §4.2's `R-11` gate**, which is a **NO-GO today**: `POST /v1/demo/cr-gate-run` `404`,
+> blocking-checks `404`, the approve control hard-disabled, and `DEMO-INC-0001` occurring **zero**
+> times on the change screen, so `G5`/R-5 fails. **On the no-go path there is no Click 6 at all** —
+> the ledger is five clicks and one text entry, §6 row 1's two-request rule (R-9's tightening of
+> `FALLBACKS.md` F-11) reverts to **exactly one** mutating request, `b8` returns to 10 s and the
+> film is 152 s (`SPINE.md` §5.1). A press timed to a tenth of a second in a
+> block that is not shot is not a plan; it is the second document this wave describing a film that
+> does not exist.
 
 **MUST NOT DO:** narrate the typing, or say anything that gives the typed words the status of data.
 **MUST NOT DO:** press `Approve change` twice. **MUST NOT DO:** open a second tab.
@@ -245,15 +289,16 @@ inherited. **The block runs refusal → hold → mirror without a boundary in it
 
 #### 4.3 · The actions
 
-**`CLICKS.md` §5 `B10` is the version of record.** Its shape, in one line: the press and its real
-pending state, then the refusal painting from `2:18.5`, then the cursor **pointing** down the
-refusal band without clicking or selecting (`2:18.5–2:22`), then travelling left and up to the
-three prompt cards without leaving the frame (`2:22–2:26`), then **stopping** for the mirror
-(`2:26–2:28`).
+**`CLICKS.md` §5 `B10` is the version of record.** Its shape, in one line, **re-anchored to the
+`R-SD4` ruling above**: the block **contains no press and no pending state** — both are `B9`'s, and
+the refusal painted at `2:15.5` — so it opens on a refusal already composed, then the cursor
+**points** down the refusal band without clicking or selecting (`2:18.5–2:22`), then travels left
+and up to the three prompt cards without leaving the frame (`2:22–2:26`), then **stops** for the
+mirror (`2:26–2:28`).
 
 | # | t | action | what must happen on screen |
 |---|---|---|---|
-| 1 | `+0.0` | **nothing.** The founder's hands leave the mouse. | the answer lands. The Network row goes from pending to its status. The refusal band composes itself from the response. |
+| 1 | `+0.0` = `2:16.0` | **nothing.** The founder's hands left the mouse at `2:14.0` and have not come back. | **the answer has already landed.** The Network row went from pending to its status at `2:15.5`; the refusal band composed itself from the response between `2:15.5` and `2:16.0` and is on screen when *"Refused."* is spoken (R-K). Nothing in this block is waiting for a response. |
 | 2 | `+2.5` | cursor rests — does not click, does not select text — beside the constraint name | the name is legible and its label says which payload field it is |
 | 3 | `+6.0` | **one movement, slow, and it stops** — to the three defeater prompts, **with the refusal band still in frame** | both in one frame. If they will not both fit at the take's geometry, §5.5's ruling applies. |
 | 4 | `+10.0` | **nothing.** No cursor movement, no click, no hover, for the rest of the block. | the frame holds through the mirror and through the silence after it |
@@ -352,7 +397,7 @@ the last word, or the hold is not a hold.
 
 ---
 
-## 5 · PRE-FLIGHT — the five things settled before the red light
+## 5 · PRE-FLIGHT — the six things settled before the red light
 
 Every one of these is a `GET`-only check or a look at a rendered screen. **None of them is a
 `POST`, and none of them is run from the tab that is about to be filmed** — a press in the filmed
@@ -438,6 +483,44 @@ by a second slow movement inside the 0.6 s hold — and the tail silence moves t
 never solved by cropping the refusal out from under a sentence that refers to it. **`CLICKS.md`
 §5 `B10` is stricter and it wins: if the refusal and the three prompts will not compose in one
 frame, `B10` does not shoot.**
+
+### 5.6 · The proposed wording types legibly in **2.5 s** — with a stopwatch, before the red light
+
+**This check exists because of `R-SD4`, and it is the one thing that ruling costs.** Click 6 at
+`2:14.0` leaves the typing exactly **`2:11.0 → 2:13.5`**, and a string that overruns it does not
+fail gracefully: it either pushes the press past `2:14.0`, which walks the refusal into
+*"Refused."*, or it is finished off camera, which R-2 forbids.
+
+**`CLICKS.md` §5 `B9` owns the proposed wording string and states it with its character count.**
+This check does not choose the string; it proves the stated one is typeable.
+
+Rehearse it, on the loaded change screen, at the take's own geometry — 2560×1440, browser zoom
+250 %, DevTools docked right (`CLICKS.md` §1) — because a string that types in 2.5 s on a bare
+desktop can wrap and re-flow in the narrow layout (M8):
+
+1. Caret in the empty `moc-proposed-text` box, as `B9` leaves it at `2:11.0`.
+2. **Start the stopwatch, type the string `CLICKS.md` §5 `B9` states, stop the stopwatch.**
+   At a human rate, on camera, not at a demo-typist's rate nobody will reproduce under the light.
+3. **Read the result back on screen** — the last character legible, no truncation, no wrap that
+   hides the tail behind the action bar.
+4. Repeat it three times and take the **slowest**, not the best.
+
+| result | what happens |
+|---|---|
+| **≤ 2.5 s** | shoot it. Nothing moves. |
+| **≤ 3.0 s** | reclaim the 0.5 s from the app-bar travel (`1.5 s → 1.0 s`, `R-SD4`). The travel still proves no cut. **Never from the scroll dwell (R-5) and never from the read chain (M8).** |
+| **> 3.0 s** | **shorten the string first** — R-2 is satisfied by the act of typing with no provenance chip and has never required a character count. Only if no honest string fits does `R-SD4a`'s floored slip apply: `B10`'s first word may move by **at most 0.4 s**, putting Click 6 at `2:14.4` and the typing at 2.9 s. |
+
+> **`R-SD4a`'s 0.4 s is a floor, not a preference, and it cannot be spent twice.** Beyond it the
+> 0.6 s mirror hold or the spoken `SQLSTATE` pays, and both are protected. Spending it here also
+> **forecloses `CLAIMS-CLEARANCE.md` `D31`** — the `~ REWORD` of *"guards edits"* to *"guards the
+> change"*, priced in `VO-DEMO.md`'s head note at 21 words running **1.13 s against 0.95 s of
+> slack**. `VO-DEMO-CR.md` §1 carries the arithmetic. **The film lead spends the 0.4 s on the press
+> or on `D31`, says which before the take, and does not discover the collision on the day.**
+
+**And this check is `R-11`-conditional like everything else in §4.2's box.** If the gate in
+`FALLBACKS.md` §4.2 is a NO-GO, there is no press, no typing window and nothing here to rehearse —
+the change screen is filmed read-only under `FALLBACKS.md` F-17, or not at all.
 
 ---
 

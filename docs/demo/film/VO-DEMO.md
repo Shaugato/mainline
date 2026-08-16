@@ -592,7 +592,7 @@ file: `b0..b10` `t`/`dur`, `demo_s: 148`, `total_s: 172`, `first_refusal_at_s: 3
 | B6 | 18 s | 34 | **34** | 0 | 1.89 | 0.1 s |
 | B7 | 12 s | 22 | **21** | −1 | 1.75 | 0.9 s — 0.4 s hold, 0.5 s pays for saying `00000` |
 | B8 | 6 s | 11 | **11** | 0 | 1.83 | 0.2 s |
-| B9 | 12 s | 20 | **20** | 0 | 1.67 | 1.5 s — 0.4 s hold, 1.1 s for the typed proposal to settle |
+| B9 | 12 s | 20 | **20** | 0 | 1.67 | 1.5 s — 0.4 s hold, 1.1 s for the press at `2:14.0` and the answer landing; typing 2.5 s |
 | B10 | 12 s | 22 | **20** | −2 | 1.67 | 1.5 s — 0.6 s mirror hold, 0.5 s for the spoken `SQLSTATE` |
 | | **148 s** | **286** | **259** | **−27** | **1.75** | **11.7 s** |
 
@@ -612,6 +612,25 @@ both without borrowing:** B8 has 0.2 s of slack and no hold at all; B9 spends 0.
 inside 1.5 s; B10 spends 0.6 s of hold plus 0.5 s of spoken `SQLSTATE` inside 1.5 s. **No new
 beat takes a second from the beat after it**, which matters more here than anywhere else in the
 film, because the beat after B10 is the close and the close has no margin left.
+
+**THE PRESS RULING OF 2026-08-16 IS PRICED IN THOSE TWO ROWS AND IN NO OTHER ONE.** Click 6 —
+*Approve change* — lands at **`2:14.0`, `+10.0` into B9**, so the request is in flight across the
+B9/B10 seam and B10 in-points at `2:16` on a refusal already painted. `CLICKS.md` §5 is the
+choreography; `../shoot-docs-plan.md` R-SD4 is the ruling; `BEATS.yaml` records it under `b9` and
+`b10` as a comment because **no window, no budget, no delivered count and no w/s figure in the
+table above moved for it.** What moved is what B9's 1.1 s *buys*: the keystroke window is now
+**2.5 s**, and the 1.1 s pays for the press and for the answer landing rather than for the typed
+proposal settling. **The other candidate was priced out of B10's own row, and here is the
+measurement that killed it.** B10's 1.5 s is **0.6 s of mirror hold plus 0.5 s for the spoken
+`SQLSTATE`, leaving 0.4 s free** — so starting B10's line ≈ 2.5 s after its in-point would have
+taken 2.1 s that does not exist, and paid for it out of either the hold (`SPINE.md` §4: a
+scripted element, never a pause the editor may tighten) or the words (20 delivered words in 9.5 s
+is **2.11 w/s**, over the 1.95 ceiling every other row here clears). **Any slip of B10's first
+word is therefore capped at 0.4 s** — and that 0.4 s is the same 0.4 s `D31` would have to be
+paid out of, the head note's still-open `~ REWORD` at 21 words running 1.13 s against 0.95 s of
+slack. **It cannot be spent twice**, and the film lead states which it is spent on before the
+shoot rather than discovering the collision on the day. Both beats stay conditional on
+`FALLBACKS.md` §4.2's R-11 gate: on the no-go path neither row is shot at all.
 
 **Where the budgets come from, and the one that cannot be met.** Every figure in the budget
 column is `BEATS.yaml`'s own `vo_word_budget`, taken verbatim — including the three the re-cut

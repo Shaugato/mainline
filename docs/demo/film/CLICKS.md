@@ -7,15 +7,20 @@ SPDX-License-Identifier: CC-BY-4.0
 
 **Written by W4 · story-and-script wave · 2026-08-15**
 **Re-timed and extended by W5 · film-re-cut wave · 2026-08-16**
+**Press placement re-ruled and implemented by W3 · shooting-documents wave — R-SD4, R-SD4a and
+R-SD4b of `docs/demo/shoot-docs-plan.md` (2026-08-16). Click 6 is at `2:14.0`, inside `b9`;
+`2:17` is struck. No duration, no word budget and no spoken line moved.**
 **Binding on this file:** `docs/demo/film-recut-plan.md` §1.4, §4.1, §4.2 and §6, and rulings
-R-2, R-4, R-5, R-9 and R-10 in that document; `docs/demo/film/BEATS.yaml`, which is the
-timing authority and wins over this file wherever they disagree; and the surviving rulings of
-`docs/demo/story-and-script-plan.md` §4 (R-C, R-D, R-G, R-H, R-I, R-N).
+R-2, R-4, R-5, R-9 and R-10 in that document; `docs/demo/shoot-docs-plan.md` §1 R-SD4 / R-SD4a /
+R-SD4b / R-SD5, which win over this file on where the press lands and on what may be spent to
+place it; `docs/demo/film/BEATS.yaml`, which is the timing authority and wins over this file
+wherever they disagree; and the surviving rulings of `docs/demo/story-and-script-plan.md` §4
+(R-C, R-D, R-G, R-H, R-I, R-N).
 **Live origin:** `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`
 **Operator surface filmed:** `<origin>/operator.html#/permit` and `<origin>/operator.html#/change`
 
-**`claim_hygiene.py --check` verdict**, run this session on this file after the re-cut edit and
-pasted verbatim:
+**`claim_hygiene.py --check` verdict**, re-run on this file **after the press-placement edit**
+and pasted verbatim:
 
 ```
 $ .venv/Scripts/python.exe scripts/demo/claim_hygiene.py --check docs/demo/film/CLICKS.md
@@ -66,9 +71,10 @@ no request to the permit merge route occurs in the whole page load.
 **Alignment with the spine.** `BEATS.yaml` was re-cut on 2026-08-16 to twelve beats. `B0`,
 `B0b`, `B1`…`B10` here are its `b0`, `b0b`, `b1`…`b10`, and every in-point, duration and
 end-point below matches it exactly (`0 / 12 / 20 / 30 / 44 / 62 / 72 / 88 / 106 / 118 / 124 /
-136 / 148`). Its two `never_cut: true` beats — `b3` and `b5` — are the two beats scored here
-with no click in them at all, which is not a coincidence: the beats that may never be cut are
-the beats where the only correct operator action is to stop moving.
+136 / 148`). Its two `never_cut: true` beats — `b3` and `b5` — carry no click at all, which is
+not a coincidence: the beats that may never be cut are the beats where the only correct operator
+action is to stop moving. (`B0b`, `B2`, `B6`, `B8` and — since R-SD4 moved the press into `B9` —
+`B10` carry none either.)
 
 > **THIS FILE IS THE CHOREOGRAPHY OF RECORD FOR `B9` AND `B10`, AND THAT WAS SETTLED ON
 > 2026-08-16.** `docs/demo/film/CLICKS-CR.md` was written earlier the same day against a
@@ -80,13 +86,41 @@ the beats where the only correct operator action is to stop moving.
 > **`CLICKS-CR.md` is now the companion sheet** — pre-flight, frame rules, field paths and the
 > stop-the-take list — with cursors, click numbers and keystroke timings inherited from §5 here.
 >
-> **One disagreement between them is open and is NOT resolved by this note: where the press
-> lands.** §5 `B10` puts **Click 6 at `2:17`**, one second inside `B10`; `CLICKS-CR.md` put it
-> inside `B9`, under *"This request asks to edit it."* `B10`'s first spoken word is *"Refused."*
-> at `2:16`, so under this file's placement the value is spoken before it is on screen, which
-> R-K forbids, and R-9 requires the request to be narrated **while it is in flight**. Both
-> candidate fixes are priced in `VO-DEMO-CR.md` §1 and both spend something. **Owner: the film
-> lead, with W1 for the seconds and W2 for the words.**
+> **THAT DISAGREEMENT IS CLOSED AND THE PRESS HAS MOVED. `2:17` IS STRUCK FROM THIS FILE.**
+> Ruled by the shooting-documents lead on 2026-08-16 as **R-SD4**
+> (`docs/demo/shoot-docs-plan.md` §1), and implemented here:
+>
+> > **Click 6 — `Approve change` — is at `2:14.0`, which is `+10.0` into `b9`. The request is
+> > in flight `2:14.0 → 2:15.5`. The refusal paints at `2:15.5`. `B10`'s in-point at `2:16.0`
+> > opens on a refusal that has already been on screen for half a second.**
+>
+> **It was ruled on this file's own grammar.** §5 `B1` already solves the identical problem
+> once: the **attempt** beat carries the press (Click 2 at `0:22.5`, `+2.5` into a 10 s
+> block), the cursor then does not move, and the **refusal** beat's in-point is the moment the
+> refusal is on screen (`B2` at `0:30`). `B9` is the attempt beat of use case two and `B10` is
+> titled *REFUSED AGAIN*. **Two mutating presses choreographed differently is itself the
+> defect** — a judge watches the same act twice and the second one reads as edited.
+>
+> **Three rules point the same way and none points the other.** **R-K:** `B10`'s first spoken
+> word is *"Refused."* at `2:16`, and under this placement it names a value that is already on
+> screen, with 0.5 s to spare. **R-9:** the tail of *"This request asks to edit it."* runs
+> **1.0 s over the flight**. **R-10:** `b9` and `b10` are atomic, so the boundary between them
+> is a seam inside one act — not a place to park a pending spinner.
+>
+> **`CLICKS-CR.md` is upheld in substance and struck in its number.** Its intent — the press
+> under *"This request asks to edit it."* — is exactly what §5 `B9` now scores. Its literal
+> **`+7.4` is struck**: it was scored against the retired **10 s** `B9`, and `+7.4` into the
+> 12 s block is **`2:11.4`, in the middle of the typing**. **Neither sheet's number survives;
+> the placement of one does.**
+>
+> **What it costs is priced, not waved through** — the typing window falls from 5.0 s to 2.5 s
+> and `b9`'s 1.1 s of settle slack is re-purposed. §5 `B9` carries the price, the verbatim
+> typed string, its character count, and the floored fallback **R-SD4a**. **No beat duration,
+> no `vo_word_budget` and no spoken line moves; the film is still 172 s.**
+>
+> **And the whole ruling is conditional (R-SD4b).** It lives or dies with `FALLBACKS.md`
+> §4.2's **R-11 gate**, which was a **NO-GO** when it was last read (2026-08-16). On that path
+> there is **no Click 6 at all** — see §5 `B9`'s R-SD4b box, `B10`'s ⛔ box, and §8's tail.
 
 ---
 
@@ -388,8 +422,10 @@ database claim. It is the same discipline B0's work-description tail already use
   record**, short enough to type inside B9's budget, and it must be recognisably a *removal or
   softening* of the control the clause carries — because that is what makes the refusal
   intelligible. It must not name a person, a site, a date or a standard. It is typed against a
-  clause whose returned text begins `SYNTHETIC —`, and the comparison in §5 B9 will show the
-  two side by side, so a judge can read the edit rather than be told about it.
+  clause whose returned text begins `SYNTHETIC —`, and the frame in §5 B9 holds the clause quote
+  and the box together, so a judge can read the edit rather than be told about it.
+  **Since R-SD4 the budget is 2.5 s, and §5 `B9` states the string that fits it verbatim —
+  `Isolate and lock.`, 17 characters. That is the string; this is only the rule it satisfies.**
 
 ---
 
@@ -779,16 +815,33 @@ proves the host never changed.
 **Window/scroll state at the in-point.** The permit screen's run footer, exactly where B8 left
 it. The cursor is at the foot of the footer rows.
 
-**Cursor path, the click, and the keystrokes.**
+**Cursor path, the two clicks, and the keystrokes.** **This beat now carries the film's second
+mutating press** — Click 6 at `2:14.0`, moved here from `2:17` by R-SD4 (§0).
 
 | t | movement |
 |---|---|
-| `2:04 – 2:05.5` | Cursor travels **up to the app bar**, continuously, to the tab **`Management of change`**. This is a long travel across the page and it must not jump — the URL bar is in frame the whole way and the travel is what proves no cut. |
+| `2:04.0 – 2:05.5` | Cursor travels **up to the app bar**, continuously, to the tab **`Management of change`**. This is a long travel across the page and it must not jump — the URL bar is in frame the whole way and the travel is what proves no cut. **This 1.5 s is the only reclaimable interval in the beat: it may be shortened to `1.0 s`, once, and no further** — see R-SD4a below. |
 | `2:05.5` | **Click 5 — the module switch.** The hash becomes `#/change` **in the URL bar, on the same origin**; the host in frame does not change. |
-| `2:05.5 – 2:09` | **The screen paints in four visible stages as its four reads land, and the operator does not touch anything while it does.** Measured warm at ≈ 3.5 s total (M14): the header, the IChemE ribbon and §2's counter and CHECK-constraint table fill together from the change-request read; then the approval bar and its route table, from the blocking-checks probe; then §3's clause of record; then §5's lattice. **The stages do not fill top to bottom** — the approval bar is below §5 and paints second — so let the page settle rather than chasing each one with the cursor. **Four new rows appear in the Network panel** — `change-requests/…` `200`, `…/blocking-checks` **`404`**, the clause version `200`, the disposition `200`. A live client, proven again, for free. **`GET /v1/demo/subjects` is not re-read** — it is memoised at module scope — so there are four rows, not five. |
-| `2:09 – 2:10.5` | Wheel scroll **down** to **§3 · Modifications to operating procedures**, until the *Clause of record — current text, as returned* block and the **Proposed wording** box are in frame together. Cursor rests one beat on the clause quote so its returned text and its `SYNTHETIC —` prefix are readable. |
-| `2:10.5 – 2:11` | Cursor travels to the **Proposed wording** textarea and single-left-clicks into it. Caret appears in an empty box. |
-| `2:11 – 2:16` | **Keystrokes: the proposed wording, typed at a human rate, on camera.** No `Enter`, no `Tab`. The caret is left blinking in the field. |
+| `2:05.5 – 2:09.0` | **The screen paints in four visible stages as its four reads land, and the operator does not touch anything while it does.** Measured warm at ≈ 3.5 s total (M14) and **incompressible**: the header, the IChemE ribbon and §2's counter and CHECK-constraint table fill together from the change-request read; then the approval bar and its route table, from the blocking-checks probe; then §3's clause of record; then §5's lattice. **The stages do not fill top to bottom** — the approval bar is below §5 and paints second — so let the page settle rather than chasing each one with the cursor. **Four new rows appear in the Network panel** — `change-requests/…` `200`, `…/blocking-checks` **`404`**, the clause version `200`, the disposition `200`. A live client, proven again, for free. **`GET /v1/demo/subjects` is not re-read** — it is memoised at module scope — so there are four rows, not five. |
+| `2:09.0 – 2:10.5` | Wheel scroll **down** to **§3 · Modifications to operating procedures**, until the *Clause of record — current text, as returned* block and the **Proposed wording** box are in frame together. Cursor rests one beat on the clause quote so its returned text and its `SYNTHETIC —` prefix are readable. **THIS DWELL IS R-5's EVIDENCE AND IS NEVER SHORTENED**, whatever else in the beat is under pressure. |
+| `2:10.5 – 2:11.0` | Cursor travels to the **Proposed wording** textarea and single-left-clicks into it. Caret appears in an empty box. |
+| **`2:11.0 – 2:13.5`** | **Keystrokes — 2.5 s, at a human rate, on camera.** The string is stated verbatim, with its character count and its rate calibration, in *"What the ruling costs `B9`"* below. No `Enter`, no `Tab`. The caret is left blinking in the field and it stays there for the rest of the film. |
+| `2:13.5 – 2:14.0` | Cursor travels to **`Approve change`**. **A travel, not a scroll** — the frame precondition beneath this table is the thing to measure in pre-flight. |
+| **`2:14.0`** | **Click 6 — the attempt.** Single left click. **This is the film's second and last mutating request** and it is narrated while it is in flight (§6 rule 9). |
+| `2:14.0 – 2:15.0` | In flight. The control shows its own **real** pending state and **one row appears** in the Network panel — `cr-gate-run`, method `POST`, its `Status`, `Size` and `Time` columns filling as the response lands. **Cursor does not move; hands off the mouse.** The tail of *"This request asks to edit it."* finishes here: **1.0 s of narration over the flight, which is what R-9 asks for.** |
+| `2:15.0 – 2:15.5` | Still in flight. The founder is silent and nothing on screen is chased. |
+| `2:15.5 – 2:16.0` | **The refusal paints and the frame composes.** No cursor movement, no scroll, no click. B10 opens on it 0.5 s later. |
+
+> **THE FRAME PRECONDITION THE `2:13.5 – 2:14.0` ROW DEPENDS ON, AND IT IS MEASURED IN
+> PRE-FLIGHT, NOT DISCOVERED ON THE DAY.** That half-second is a **cursor travel**, so it
+> presumes that at the take's geometry (§1.2, §1.3) the **`Approve change`** control and the
+> **Proposed wording** box compose in **one frame**. The shipped DOM order puts them apart
+> (§1.3) and **§7.2(d) already owns that problem** — it is the same geometry question that
+> decides whether `B10` shoots at all. **If one wheel notch is needed to reach the control, it
+> costs ≈ 0.3 s and it comes out of the app-bar travel reclaim (R-SD4a reserve 1), which is
+> then spent and cannot also pay for typing.** It never comes out of the scroll dwell at
+> `2:09.0` and never out of the read chain. **If the two will not compose at all, that is a
+> §7.2(d) failure and the answer is plan §6 — not a scroll bought from the dwell.**
 
 **What must render.**
 
@@ -810,11 +863,18 @@ it. The cursor is at the foot of the footer rows.
   that contradicts an on-screen caveat is the worst failure available in this film;
 * the **Proposed wording** box filling with typed characters, carrying **no provenance chip**,
   under its own note that the deployment carries no proposed text and nothing was loaded into
-  it (R-2, §4).
+  it (R-2, §4);
+* **from `2:14.0`, the control's own real pending state and a fifth Network row** — the film's
+  **second and last `POST`**, `cr-gate-run` — filling its `Status`, `Size` and `Time` columns on
+  a real clock. There is no `setTimeout` behind it and there is no cut across it (§6 rule 1);
+* **from `2:15.5`, the refusal itself.** What it must contain is scored in `B10`'s *"What must
+  render"* below — it is one render, read across a beat boundary, not two.
 
 **In frame.** URL bar reading `#/change` on the unchanged host · taskbar clock · DevTools with
-the four new rows and the `404` among them, unhidden · `7.3.2(b)` and the typed box in the same
-frame at the out-point.
+the four new `GET` rows and the `404` among them, unhidden, **and the `POST` row from `2:14.0`**
+· `7.3.2(b)` and the typed box in the same frame from `2:09.0` until the press. **At the
+out-point the frame is the one `B10` opens on, composed by the refusal itself** — which is the
+whole point of the ruling in §0 and is why nothing is chased between `2:14.0` and `2:16.0`.
 
 **Do not.**
 
@@ -824,9 +884,13 @@ frame at the out-point.
   caveat — *"Computed in this browser, just now … It is not a stored diff, it is not a kernel
   claim, and no part of the right-hand side came from the database."* **It is the single best
   show-don't-tell asset on that screen and the film has no room for it:** B9's last five
-  seconds are the typing, and the diff renders in §3 while B10's frame is §2. If `b9` is ever
-  given more time, this control is the first thing to spend it on — not a fourth read and not
-  a second scroll.
+  seconds are **the typing, the press and the flight**, and the diff renders in §3 while B10's
+  frame is the refusal's. If `b9` is ever given more time, this control is the first thing to
+  spend it on — not a fourth read and not a second scroll.
+* **Do not press `Approve change` twice, and do not move the cursor between `2:14.0` and
+  `2:16.0`.** A second press is a third mutating row and kills the take under §6 rule 9; a
+  cursor that wanders across a real pending state is the one moment in this beat where movement
+  reads as impatience rather than as a person.
 * **Do not touch `moc-technical-basis` or `moc-source-of-change`.** They are empty on purpose
   and their notes are part of the exhibit. Typing into the source-of-change box in particular
   would suggest the obligation came from what was typed there, when the screen's own note says
@@ -834,6 +898,115 @@ frame at the out-point.
 * Do not scroll past the relation note to reach the box faster.
 * Do not narrate the ribbon as a workflow position — no step is current, and the ribbon says so.
 * Do not say a year, a site, a job title or an injury. The seeded precursor describes nobody.
+
+#### WHAT THE RULING COSTS `B9`, PRICED — and the typed string, which this file owns
+
+**The typing window falls from 5.0 s to 2.5 s.** That is the whole bill and it is paid inside
+`b9`, out of slack that already existed: `VO-DEMO.md` §2's budget table (line 595) scores **B9 at
+20 w / 12 s / 1.67 w/s with 1.5 s of slack — 0.4 s of hold plus 1.1 s "for the typed proposal to
+settle."** **That 1.1 s is re-purposed, not spent twice:** from *the typed proposal settling* to
+*the answer landing*. **No beat duration, no `vo_word_budget` and no spoken line moves** — `B9`
+is still 12 s at `2:04` and `B10` is still 12 s at `2:16`.
+
+> ### THE PROPOSED WORDING, VERBATIM — **`Isolate and lock.`** — **17 characters**, three words.
+
+**Why 17 characters, and how a stranger checks the rate in under a minute.** This film already
+types on camera once, and this file already scored it: §5 `B0`'s tail runs `0:05.5 – 0:08` —
+**2.5 s** — for `ONSCREEN-TEXT.yaml` `b0.el5.work_typed_tail`, the string `` verified at zero``,
+which is **17 keystrokes** counting its leading space.
+
+| where | string | window | keystrokes | rate |
+|---|---|---|---|---|
+| §5 `B0`, already scored, already accepted as a human rate | `` verified at zero`` | 2.5 s | **17** | 6.8 /s |
+| §5 `B9`, this ruling | `Isolate and lock.` | 2.5 s | **17** | 6.8 /s |
+
+**Same operator, same duration, same rate — and the rate is one the film was always going to
+have to hit anyway.** Two rows, two counts, one comparison. (The capital `I` is one keystroke
+with a held `Shift`, not a second one; the full stop is the seventeenth.)
+
+**Why this string and not a longer one.**
+
+* It is **a weakening edit of the clause of record**, and what it weakens is legible without a
+  word of narration: the clause the database returned is quoted six lines above it and reads
+  *"SYNTHETIC — Before any intrusive work, stored energy shall be isolated, locked **and
+  verified at zero by a competent person**."* The proposal stops at `lock`. **The verification
+  is gone** — and it is the very phrase the supervisor typed into his own permit on camera at
+  `0:05.5`, so the film has already taught the judge to read it.
+* The anchor it walks away from, **`ZERO_ENERGY`**, is printed in the same panel beside the
+  clause, so the removal is anchored rather than asserted.
+* It satisfies §4's constraints on typed strings without exception: **≤ 60 characters**; no
+  plant, asset tag, crew, company or PPE list; no person, site, date, standard, identifier,
+  code or uuid; nothing in it could be mistaken for a column value in a screenshot; **three
+  words, so the typing rate is visible on camera** (§4; r5-craft §7 tell 12).
+* It carries **no `SYNTHETIC —` prefix**, and that is deliberate: the prefix belongs to the
+  database's own string, and copying it onto a typed one would dress a human's proposal as data.
+
+**R-2 does not require a longer one, and never did.** R-2 is satisfied by **the act** of typing
+into the console's own input — no provenance chip beside it, under the deployment's own note
+that nothing was loaded into that box — and it has never carried a character count. **A shorter
+honest proposal discharges it identically**, and `FALLBACKS.md` F-8 is satisfied rather than
+waived either way, because the right-hand side of any comparison is visibly a human's and never
+the database's.
+
+**RESIDUE, NAMED RATHER THAN LEFT FOR THE DAY.** `ONSCREEN-TEXT.yaml` still carries the
+pre-ruling string at `b9.proposed.head_typed` / `b9.proposed.tail_typed` — *"Before any
+intrusive work, stored energy shall be isolated and locked."*, **69 characters**, with its head
+marked *"pre-typed in pre-roll, 48 characters."* **Two things are wrong with that pair and
+neither is new: 69 characters will not type in 2.5 s at any human rate, and the head cannot be
+pre-typed at all** — §1.5 step 3's box measured the router tearing the textarea down on the hash
+change. **Owner: W6**, which owns `ONSCREEN-TEXT.yaml` and runs last
+(`shoot-docs-plan.md` §2). This file states the string; that file must come to carry the same
+one, and its `why_these_three_words` reasoning survives the shortening intact.
+
+##### R-SD4a · THE FLOOR IF 2.5 s WILL NOT TYPE, AND THE COLLISION IT CREATES
+
+If a rehearsal — **a rehearsal, not arithmetic** — shows that no honest proposal types legibly
+in 2.5 s even at 17 characters, there are exactly two reserves:
+
+1. **the app-bar travel, `1.5 s → 1.0 s`**, giving **3.0 s** of typing. The travel still crosses
+   the page continuously and still proves no cut, which is its only job. **This is the same
+   0.5 s the frame precondition above may need for a wheel notch, and it cannot be spent twice.**
+2. **`B10`'s first word slips by AT MOST `0.4 s`**, putting Click 6 at `2:14.4` and the typing at
+   2.9 s. **0.4 s is `B10`'s entire measured free slack** — `VO-DEMO.md` §2 line 596 scores B10
+   at 20 w / 12 s / 1.67 w/s with 1.5 s of slack, of which **0.6 s is the mirror hold** and
+   **0.5 s pays for the spoken `SQLSTATE`**, leaving **0.4 s**.
+
+**The 0.4 s cap is a floor, not a preference.** Past it the payer is the mirror hold or the
+spoken `SQLSTATE`, and `SPINE.md` §4 protects both — the hold is a scripted element with a
+duration, not a pause an editor may tighten, and each scope word does all the work of its own
+half.
+
+> **AND TAKING ANY OF THE 0.4 s FORECLOSES `CLAIMS-CLEARANCE.md` `D31`.** D31 is the still-open
+> `~ REWORD` of `B10`'s *"a different constraint **guards edits**"* to *"guards the change"* —
+> the predicate is evaluated on the transition to `merged`, so what it refuses is the merge, not
+> the act of editing. `VO-DEMO.md`'s head note prices that reword at **21 words running 1.13 s
+> against 0.95 s of slack**, which is the same 0.4 s under a different name. **It cannot be
+> spent twice. The film lead spends it on the press OR on D31, says which before the red light,
+> and does not discover the collision on the day.**
+
+**Neither reserve is ever taken from the scroll dwell at `2:09.0 – 2:10.5`, which is R-5's
+evidence, and neither is ever taken from the four-read paint, which M14 measured as
+incompressible.**
+
+##### R-SD4b · ALL OF THE ABOVE IS CONDITIONAL ON `FALLBACKS.md` §4.2's R-11 GATE
+
+**There is no version of this ruling that is unconditional.** `b9` and `b10` exist only if the
+**R-11 decision gate** passes on the day, all six conditions, each a measurement. **When it was
+last read — 2026-08-16 — it was a NO-GO: G2, G4, G5 and G6 FAIL and G1 has no endpoint to test;
+only G3 passes.** On the NO-GO path:
+
+* **there is no Click 6 and no typed proposal** — §8's ledger rows 7 and 8 do not happen, and
+  the press does not exist to be placed at `2:14.0` or anywhere else;
+* the ledger is **five clicks and one text entry** (§8's tail rows);
+* **§6 rule 9 reverts to exactly one mutating request**, in F-11's original form: a second
+  `POST` row kills the take;
+* `b8` returns to 10 s with its read-only change-request half and the film runs 152 s
+  (`SPINE.md` §5.1).
+
+**A ruling written as unconditional would be a second document describing a film that does not
+exist**, which is the defect this wave was called to fix. The gate is re-run before anybody
+records `b9`, and its answer is written on the shot list before the red light — never decided
+inside the take.
 
 ---
 
@@ -850,7 +1023,9 @@ frame at the out-point.
 > anything, and narrating an absence of a route as a refusal fakes a refusal.
 
 **Precondition, checked in pre-flight and not on the day of the shoot.** All three must hold,
-each measured, none assumed:
+each measured, none assumed — and they gate **the pair**, because R-10 makes `b9` and `b10`
+atomic and the press they enable now lands at `2:14.0`, inside `b9`. They are `FALLBACKS.md`
+§4.2's **G1, G2 and G4**; the frame half of (3) is its **G5 and G6** (R-SD4b):
 
 1. `POST /v1/demo/cr-gate-run` answers `200` with `persisted` false **measured by the endpoint
    from its own two fingerprints**, three beats named `read` / `merge` /
@@ -862,22 +1037,31 @@ each measured, none assumed:
 3. the approve control is enabled and calls the endpoint in (1) — and **the refusal renders in
    the same section as the three prompts**, which is the R-5 frame requirement in §7.2.
 
-**Window/scroll state at the in-point.** §2 · *Impact of change on safety and health* composed
-in the page area, with the counter line, the CHECK-constraint table and the three prompt cards
-in frame. The cursor is coming down from B9's typed box.
+**Window/scroll state at the in-point.** **The refusal is already on screen** — it painted at
+`2:15.5`, inside `B9`, and has been up for half a second when this beat starts (§0's ruling;
+R-SD4). §2 · *Impact of change on safety and health* is composed in the page area with the
+counter line, the CHECK-constraint table and the three prompt cards, and the refusal band
+composed with it. **The cursor is where `B9` left it, on `Approve change`, and the founder's
+hands are off the mouse.**
 
-**Cursor path and the click.**
+**Cursor path. THERE IS NO CLICK AND NO KEYSTROKE IN B10** — the press moved into `B9` at
+`2:14.0`. This is exactly the shape `CLICKS-CR.md` §4.3 row 1 already describes: *"nothing. The
+founder's hands leave the mouse."*
 
 | t | movement |
 |---|---|
-| `2:16 – 2:17` | Cursor travels to the **`Approve change`** control, now enabled. |
-| `2:17` | **Click 6 — the attempt.** Single left click. **This is the film's second and last mutating request** and it is narrated while it is in flight (§6 rule 9). |
-| `2:17 – 2:18.5` | The control shows its own real pending state; **one row appears** in the Network panel, `cr-gate-run`, method `POST`, its `Status`, `Size` and `Time` columns filling as the response lands. Cursor does not move. |
-| `2:18.5 – 2:22` | The refusal paints. Cursor travels down it as a pointer: **`SQLSTATE 23514`** → `constraint cr_gate_closed_when_merged` chipped **`reported`** → the predicate `((state != 'merged':::mainline.subject_state) OR (open_blocking = 0))` → `counters.open_blocking 1`. It **points**; it does not click and does not select text. |
-| `2:22 – 2:26` | Cursor moves **left and up, without leaving the frame**, to the three prompt cards and rests across them: `CONTROL_PRESERVED_BY_EDIT`, `EDIT_OUTSIDE_BLAMED_ANCHOR`, `PRECURSOR_ANSWERED_ELSEWHERE`. |
-| `2:26 – 2:28` | **Cursor stops. Hold.** The refusal and the three questions both legible, with the mirror line spoken over the still frame. |
+| `2:16.0 – 2:18.5` | **Nothing. Hands off the mouse.** The refusal has been on screen since `2:15.5` and the Network row has already gone from pending to its status, so the beat's first spoken word — *"Refused."* — **names a value that is already in the frame (R-K)**. Nothing is chased, nothing is pointed at, nothing is scrolled. |
+| `2:18.5 – 2:22.0` | Cursor travels down the refusal band as a pointer: **`SQLSTATE 23514`** → `constraint cr_gate_closed_when_merged` chipped **`reported`** → the predicate `((state != 'merged':::mainline.subject_state) OR (open_blocking = 0))` → `counters.open_blocking 1`. It **points**; it does not click and does not select text. |
+| `2:22.0 – 2:26.0` | Cursor moves **left and up, without leaving the frame**, to the three prompt cards and rests across them: `CONTROL_PRESERVED_BY_EDIT`, `EDIT_OUTSIDE_BLAMED_ANCHOR`, `PRECURSOR_ANSWERED_ELSEWHERE`. |
+| `2:26.0 – 2:28.0` | **Cursor stops. Hold.** The refusal and the three questions both legible, with the mirror line spoken over the still frame. |
 
-**What must render, and the frame that R-5 requires.**
+**The 2.5 s of stillness that opens this beat is not dead air and is not a place to reclaim a
+second.** It is the film's second refusal landing, and `B2` — the first one — parks the cursor
+still for six seconds over the same act. **The silence at the tail is likewise a scripted
+element with a duration, not a pause an editor may tighten.**
+
+**What must render — and by `2:16.0` all of it has already rendered, in `B9`'s last half-second.
+This is the list a judge reads across the whole block, and the frame that R-5 requires.**
 
 * the refusal itself, from the payload: `23514`, **`cr_gate_closed_when_merged`**, its own
   predicate, `constraint_source reported`, `outcome refused`, the beat's server-measured
@@ -941,7 +1125,8 @@ added by plan R-9 as a **tightening**.
    geometry is fixed in §1 and is not adjusted between beats to make a section fit.
 4. **Nothing is sped up across a claim.** The press → refusal round trip is never compressed.
    The only thing that may be trimmed at all is typing, and only with a visible marker in the
-   picture, and never over a claim — which is why B0's typing is short enough not to need one.
+   picture, and never over a claim — which is why B0's typing is short enough not to need one,
+   **and why B9's was shortened to 17 characters rather than trimmed in the edit** (§5 B9).
 5. **Nothing is rounded.** Per-beat durations are the payload's own `elapsed_ms` to the digits
    it printed. **Re-derive them from the take's own run**; the reference run in
    `evidence/deploy/live-gate-run.json` printed `0.011 / 572.251 / 564.509 / 516.003` ms and the
@@ -959,7 +1144,10 @@ added by plan R-9 as a **tightening**.
    requests than F-11 was at one**, because it adds a narration condition F-11 never carried:
    a `POST` that lands while the founder is talking about something else is now a dead take
    even though the count is legal. The two are `POST /v1/demo/gate-run` at `0:22.5` and
-   `POST /v1/demo/cr-gate-run` at `2:17`, and there is no third mutating route in this film.
+   `POST /v1/demo/cr-gate-run` at **`2:14.0`** (R-SD4; `2:17` is struck), and there is no third
+   mutating route in this film. **Both presses now sit inside their own attempt beat** — Click 2
+   at `+2.5` into `b1`, Click 6 at `+10.0` into `b9` — and each refusal beat opens on a refusal
+   that is already on screen.
 
    > **On the path where use case two does not shoot, the count reverts to exactly one** and
    > F-11's original form applies unchanged — a second `POST` row kills the take. **The count
@@ -1102,7 +1290,12 @@ second box).
   screen down and re-creates the textarea empty (§1.5 step 3). At 8 s the choice is a shorter
   string typed faster, not a pre-composed one, and B9's 12 s already contains ≈ 3.5 s of
   read chain it cannot compress (M14). **`b9` at 8 s is tight and should be re-checked against
-  a rehearsal, not against arithmetic.**
+  a rehearsal, not against arithmetic.** **And R-SD4 has since made it tighter, not looser:**
+  with the press at `2:14.0` the beat now also carries 1.5 s of flight and paint, the typing has
+  already been cut from 5.0 s to 2.5 s to pay for it, and the only reclaimable interval left is
+  0.5 s of app-bar travel that R-SD4a has already reserved twice over. **Rank 1 is now further
+  out of reach than when it was written, and it must be re-checked against a rehearsal rather
+  than re-derived from arithmetic.**
 * **B9's read chain is a measured cost and should be visible in the spine.** Four sequential
   awaited GETs, ≈ 3.5 s warm and ≈ 6 s cold. Pre-roll step 4 exists to keep it warm; if the
   take slips past the warm window, B9 over-runs and there is nowhere for it to go, because B10
@@ -1124,8 +1317,8 @@ text entry where it does not (see the tail rows).
 | 4 | `1:04` | click the **beat-3 reveal** | **none** (measured 30 ms to paint) |
 | 5 | `1:48` | click the **beat-4 reveal** | **none** (measured 33 ms to paint) |
 | 6 | `2:05.5` | click the app-bar tab **Management of change** | **4 × `GET`** — the change request `200`, `…/blocking-checks` **`404`**, the clause version `200`, the disposition `200`. `GET /v1/demo/subjects` is memoised and is **not** re-read |
-| 7 | `2:10.5` | click into **Proposed wording**; **type the proposed wording** | none |
-| 8 | `2:17` | click **`Approve change`** | **1 × `POST /v1/demo/cr-gate-run`** — mutating request 2 of 2 |
+| 7 | `2:10.5` | click into **Proposed wording**; **type `Isolate and lock.`** — 17 characters, `2:11.0 – 2:13.5` | none |
+| 8 | `2:14.0` | click **`Approve change`** — **inside `b9`, `+10.0`**, not inside `b10` (R-SD4; `2:17` is struck) | **1 × `POST /v1/demo/cr-gate-run`** — mutating request 2 of 2, in flight `2:14.0 → 2:15.5`, refusal painted at `2:15.5` |
 
 **B0b contains no click, no keystroke and no scroll.** **B2, B3, B5, B6 and B8 contain no click
 either.** Everything between the clicks is a wheel scroll and a cursor travel — which is what a
@@ -1133,7 +1326,8 @@ real person does with a form, and is why the take can be unbroken.
 
 **Totals a judge can verify in the Network panel, and the only totals this film claims:**
 
-* **exactly two `POST` rows**, at `0:22.5` and `2:17`, each narrated while in flight (§6 rule 9);
+* **exactly two `POST` rows**, at `0:22.5` and `2:14.0`, each narrated while in flight
+  (§6 rule 9) and **each pressed inside its own attempt beat**, `b1` and `b9`;
 * **the two reveals make none** — the list holds one `POST` across both of them;
 * **the module switch makes four `GET`s and no `POST`**, one of which is a `404` that stays on
   screen unhidden.

@@ -276,17 +276,55 @@ state:         LIVE for the roles, the revokes, the floor and the covenant — a
                deploy chain.  The §4 table-privilege matrix is NOT applied on the deployed cluster.
 what it is:    nine roles, none of which can log in, splitting the duties: the role that detects
                an obligation cannot create one, the role that creates one cannot dispose of it,
-               and the role that certifies the books has no write path to them.
+               and the role that certifies the books has no write path to them. The nine are the
+               duty-separation lattice, and they are distinct by design from the two service
+               logins — `mainline_api`, which the Lambda authenticates as, and `mainline_judge`,
+               the read-only login this submission publishes to judges. Those two CAN log in and
+               are not lattice members: the lattice is privilege containers reached by
+               membership, so there is no credential whose theft yields a role.
 where:         verticals/mainline/db/GRANTS.yaml; the 0180-band role migrations
-verify in 60s: SELECT rolname, rolcanlogin FROM pg_roles WHERE rolname LIKE 'mainline%';
-               →  nine rows, `rolcanlogin` false on all nine
+verify in 60s: SELECT rolname, rolcanlogin FROM pg_roles WHERE rolname IN
+               ('mainline_migrator','mainline_owner','agent_gate','agent_projector',
+                'agent_recaller','svc_disposition','mainline_auditor','auditor_ro',
+                'quality_assurance') ORDER BY 1;
+               →  9 rows, `rolcanlogin` = `f` on every one   (run 2026-08-16; output below)
 say this:      "Nine roles, none of which can log in, split the duties: the role that detects an
                obligation cannot create one, the role that creates one cannot dispose of it, and
                the role that certifies the books has no write path to them."
 never say:     "The grant matrix is applied on the deployed cluster." The roles and the revokes
                are; the table-privilege rows are not.
+               "Every role whose name starts with `mainline` is NOLOGIN," and never publish a
+               `LIKE` prefix-match on that name as the check. Measured 2026-08-16, a prefix-match
+               returns **five** rows and **two of them CAN log in** — `mainline_api` and
+               `mainline_judge`, the login this submission hands judges. Only the nine-name IN
+               list above returns the lattice; a `LIKE` match on `agent_` returns **10**.
 source:        census/crdb-programmable.md R10
 ```
+
+Run on 2026-08-16 against the pinned local node
+(`docker exec trappoint-crdb ./cockroach sql --insecure -d mainline_demo --format=csv`), that
+query printed exactly nine rows:
+
+```
+rolname,rolcanlogin
+agent_gate,f
+agent_projector,f
+agent_recaller,f
+auditor_ro,f
+mainline_auditor,f
+mainline_migrator,f
+mainline_owner,f
+quality_assurance,f
+svc_disposition,f
+```
+
+**The answer did not change; the command beside it did.** The predicate published here until
+2026-08-16 was a `LIKE` prefix-match on the `mainline` name, introduced when the worker file was
+merged upward. It returns five rows, with `rolcanlogin` true on `mainline_api` and
+`mainline_judge` — so the published check refuted the published answer, using the very login a
+judge is handed. **The claim was right and is kept at nine; only the check moved**, and it is now
+the one that produces it, preserved verbatim from `census/crdb-programmable.md:827`. It is not
+reprinted anywhere on this page, so it cannot be pasted back in by accident.
 
 #### PL11 · Recursive CTEs
 
@@ -772,12 +810,28 @@ source:        census/crdb-transactional.md §2.11
 
 ### 2.4 The four contest-named CockroachDB tools
 
-The Official Rules name four and require at least two. **All four are used, and each is used a
-different way — which is the finding, not the count.** All four are REPO under R2: the live
-origin's request path opens a `psycopg` connection and reads SSM; it does not call MCP, does not
-run an ANN query, does not shell out to `ccloud` and does not load a skill. What the four carry
-instead is a transcript against the real managed cluster, which is a stronger artefact than a code
-path a judge cannot see.
+The Official Rules name four and require at least two. **Four are named here; three are exercised
+with a committed transcript and the fourth is shipped and not evidenced** — which, with the floor
+at two, is a margin stated rather than a count inflated. None of the four is LIVE under R2: the
+live origin's request path opens a `psycopg` connection and reads SSM; it does not call MCP, does
+not run an ANN query, does not shell out to `ccloud` and does not load a skill. What the first
+three carry instead is a transcript against the real managed cluster, which is a stronger artefact
+than a code path a judge cannot see.
+
+**This is the block the film's closing card `k3` prints from, and the four lines on that card
+resolve here, row for row.** Nothing is on the card that is not measured in this section, and no
+row on the card is in a better state than its row below.
+
+| what `k3` prints | the row it resolves to | the state on both |
+|---|---|---|
+| `Distributed Vector Indexing (C-SPANN)  EXERCISED  3 cspann, 4 VECTOR, 42809  evidence/aws/ann/` | **CT2** | REPO = EXERCISED |
+| `Managed MCP Server  EXERCISED  15 of 16, DIVERGED, published  evidence/mcp/` | **CT1** | REPO = EXERCISED |
+| `CockroachDB Cloud + ccloud CLI  EXERCISED  cluster list -o json, parsed  evidence/ccloud/` | **CT3** | REPO = EXERCISED |
+| `CockroachDB Agent Skills  DESIGNED  shipped, validated; NO RUN IS COMMITTED  skills/` | **CT4** | **DESIGNED** |
+
+The four one-line checks a judge can paste from that same frame, each with the first line it
+actually printed here on 2026-08-16, are in
+[`census/crdb-four-tools.md` §0.1](census/crdb-four-tools.md).
 
 #### CT1 · CockroachDB Cloud Managed MCP Server
 
@@ -861,28 +915,52 @@ source:        census/crdb-four-tools.md §3
 #### CT4 · CockroachDB Agent Skills Repo (Open Source)
 
 ```
-state:         REPO   (this census promotes the generator's DESIGNED — see under-claim U-C4, §4)
+state:         DESIGNED — the generator's verdict, kept, and the word the film's `k3` card
+               prints. **This row is NOT REPO.** REPO means "it ran, in this repository, with a
+               committed artefact"; no run of either assertion script is captured under
+               `evidence/`. The skills are shipped and not evidenced. An earlier draft of this
+               census promoted this row to REPO on the strength of a CI lane; the promotion is
+               withdrawn here — see U-C4 in §4, which now proposes the detector without
+               asserting the state.
 what it is:    two authored Agent Skills for building database-enforced refusals, published
                under Apache-2.0 through both the Agent Skills spec and a Claude Code plugin
                marketplace, each shipping a script that FAILS when the guarantee does not hold.
                A third is de-branded and staged for contribution, and not filed.
 where:         skills/designing-diachronic-gates/ · skills/designing-vector-recall-prefixes/
                skills/validate-spec.py · .github/workflows/skills.yml · .claude-plugin/marketplace.json
-verify in 60s: python skills/validate-spec.py skills/ --strict
-               →  3 skill(s), 0 error(s), 0 warning(s)
+verify in 60s: python -c "import json;print(json.load(open('evidence/tool-usage/
+               crdb-features.json'))['rows']['crdb_agent_skills']['verdict'])"
+               →  DESIGNED                                              (observed 2026-08-16)
+               python skills/validate-spec.py skills/ --strict
+               →  3 skill(s), 0 error(s), 0 warning(s)                  (observed 2026-08-16)
                python skills/designing-diachronic-gates/scripts/assert_gate_refuses.py --parser-self-test
                →  parser self-test: OK  (its last three lines assert that an ADMISSION is a FAIL)
 say this:      "We authored two CockroachDB Agent Skills and published them under Apache-2.0
                through both the Agent Skills spec and a Claude Code plugin marketplace. Each
                ships a script that fails when the guarantee does not hold, and the lane runs the
                failing half first: nine unwelding rows against a throwaway CockroachDB node,
-               four of which must ADMIT, plus nine planted violations each refused by name."
-never say:     "Our skill was merged upstream." Nothing is merged; the claims-grep fails the
+               four of which must ADMIT, plus nine planted violations each refused by name.
+               And we file it DESIGNED, not exercised, because no run of either script is
+               captured under evidence/ — it is a fourth tool past a floor of two, and it is not
+               promoted to lengthen a list."
+never say:     "All four contest tools are exercised." Three are. This one is DESIGNED, and the
+               `k3` card says so in the same capitals it says EXERCISED in.
+               "Our skill was merged upstream." Nothing is merged; the claims-grep fails the
                build on that sentence. "We contributed a skill to CockroachDB." It is staged and
                ready to file. "The skills lane is green at HEAD." The recorded green is at an
                older commit, which `docs/CI-STATE.md` itself calls five commits behind.
 source:        census/crdb-four-tools.md §4
 ```
+
+**Why the promotion was withdrawn rather than argued.** The case for it was real — the generator's
+own definition of EXERCISED is *"it ran, and a committed artefact **or a check in this repository**
+records the result"*, and `.github/workflows/skills.yml` is such a check. But the recorded green is
+at commit `2dc5c86`, which `docs/CI-STATE.md` itself calls five commits behind the tip it was
+measuring, and **the cure for that is a dispatch, not a sentence in a census.** A row promoted on
+an argument, on the one page a judge is pointed at for states, would be the single worst kind of
+error this document can make — and the fix costs nothing, because the floor is two and three are
+exercised. **Capturing a run to promote this row is explicitly out of scope for this wave**; the
+state is reported here, not created.
 
 ---
 
@@ -1483,13 +1561,20 @@ counted in one place. Two of the CockroachDB rows are deliberate, measured absen
 | CockroachDB — programmable | 10 | 2 | — | — | — | 12 |
 | CockroachDB — schema & index | 4 | 8* | — | — | — | 12 |
 | CockroachDB — transactional | 4 | 4 | — | 1 | 2 | 11* |
-| CockroachDB — the four named tools | — | 4 | — | — | — | 4 |
+| CockroachDB — the four named tools | — | 3 | — | 1† | — | 4 |
 | AWS — live request path | 6 | — | — | — | — | 6 |
 | AWS — applied | — | — | 8 | — | — | 8 |
 | AWS — repository | — | 6 | — | — | — | 6 |
 | AWS — declared | — | — | — | 6 | — | 6 |
 | AWS — checked and absent | — | — | — | — | 2 | 2 |
-| **total** | **24** | **24** | **8** | **7** | **4** | **67** |
+| **total** | **24** | **23** | **8** | **8** | **4** | **67** |
+
+† **CT4, Agent Skills, is the one tool row that is not REPO**, and it is counted in the DECLARED
+column because DECLARED is this page's bucket for the generator's `DESIGNED` (§0). The bucket is
+slightly harsher than the row: the scripts *do* run locally, which is why CT4's own words are
+**shipped and not evidenced** rather than *never run*. The count is deliberately taken at the
+harsher reading — **3 of the 4 contest tools carry a committed transcript, against a floor of
+two.**
 
 \* **Three rows carry two states each and are counted once, under the state that governs the
 sentence a close block would say.** SC10 is REPO for the foreign key and LIVE for the rows it
@@ -1497,7 +1582,7 @@ references; TX3 is REPO for the isolation downgrade that was exercised today and
 case that cannot build its world; TX6 is NOT-AVAILABLE for the restricted schema and LIVE for the
 unqualified builtin. The split *is* the point of those three rows, and flattening it would be
 exactly the over-claim they exist to prevent — so the count is conservative and the row text is
-not. Every column sums, and 24 + 24 + 8 + 7 + 4 = 67.
+not. Every column sums, and 24 + 23 + 8 + 8 + 4 = 67.
 
 **Four pairs are two halves of one fact and must never be counted twice, or told twice:**
 
@@ -1529,7 +1614,7 @@ state bucket, Service Quotas or Cost Explorer. The census is under-claiming, and
 | U-C1 | `crdb_plpgsql_functions` | LIVE | SQL: `pg_proc ⋈ pg_language WHERE lanname='plpgsql' AND prokind='f'` → expect **26** |
 | U-C2 | `crdb_plpgsql_procedures` | LIVE | same with `prokind='p'` → expect **2** |
 | U-C3 | `crdb_triggers` | LIVE | SQL: `count(*) FROM pg_trigger WHERE NOT tgisinternal` → **39**; `count(*) FROM information_schema.triggers` → **59**. Record **both** — recording one is how "59 triggers" became quotable |
-| U-C4 | `crdb_agent_skills` **(amend: DESIGNED → EXERCISED)** | REPO | two-part predicate. Part 1: `.github/workflows/skills.yml` contains `assert_gate_refuses.py`, `assert_prefix_index_used.py`, `--self-test --docker-only` and `must exit 1`. Part 2: the recorded green's **commit** is stored beside the run id, so a stale green can never masquerade as green at HEAD |
+| U-C4 | `crdb_agent_skills` — **detector only; the verdict stays DESIGNED** | **DESIGNED** | two-part predicate, proposed so the row's *basis* becomes machine-checkable, **not** so the verdict moves. Part 1: `.github/workflows/skills.yml` contains `assert_gate_refuses.py`, `assert_prefix_index_used.py`, `--self-test --docker-only` and `must exit 1`. Part 2: the recorded green's **commit** is stored beside the run id, so a stale green can never masquerade as green at HEAD. **Promotion is refused on Part 2's own evidence:** the recorded green is at `2dc5c86`, five commits behind. The verdict moves when a run is captured under `evidence/`, and this wave does not capture one |
 | U-C5 | `crdb_append_only_weld` | LIVE | SQL: `count(DISTINCT tgrelid) FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid WHERE NOT tgisinternal AND p.proname='fn_refuse_mutation'` → **17** |
 | U-C6 | `crdb_rls_force` | LIVE | SQL: `count(*) FROM pg_class WHERE relforcerowsecurity` **equals** `… WHERE relrowsecurity` → 4 = 4 |
 | U-C7 | `crdb_rls_policies` | LIVE | SQL: `count(*) FROM pg_policies` → **25**; `WHERE permissive='restrictive'` → **5** |
@@ -1593,9 +1678,11 @@ credential, and a judge holds the whole public surface.
 
 ## 5. THE OVER-CLAIM LIST — what a document asserts that a worker could not verify
 
-Every entry names who found it and what the honest version is. **Nothing in this list was fixed by
-this worker**: four of the files involved are ratchets, generators or evidence, and the rest are
-outside W7's two owned paths.
+Every entry names who found it and what the honest version is. **Nothing in O1–O17 was fixed by the
+worker who wrote them**: four of the files involved are ratchets, generators or evidence, and the
+rest are outside W7's two owned paths. **O18 and O19 are different — they were struck by the
+2026-08-16 adversarial audit against *this page*, and both are fixed here**, in the two places this
+page owns.
 
 | # | the claim | where it lives | what was measured | disposition |
 |---|---|---|---|---|
@@ -1616,6 +1703,8 @@ outside W7's two owned paths.
 | **O15** | KMS on the live request path | implied by `WithDecryption: true` + the `kms:Decrypt` grant | the applied parameter's **type was never read back**; if it is a plain String, no KMS call happens | **Recommended default: leave KMS out of the close block.** One read-only command settles it — escalation E-1 |
 | **O16** | evidence files that a judge will open and misread | `evidence/deploy/verify/post-apply-dry.json` (verdict `NOT SATISFIED`, 0 of 9) and `evidence/demo/judge-path-walk.json` (verdict `INCOMPLETE`) | both are superseded **in fact** by `evidence/demo/live-beats.json` (verdict `PROVEN`, `failures: []`) and by the apply — **but not in filename** | **No claim on this page depends on either.** A dated pointer in the place a judge looks first would close it; escalated as E-6 |
 | **O17** | *"these screens are the deployed console"* | the film uses `evidence/demo/operator-capture.json` | the capture states its own target: `base_url http://127.0.0.1:8741`, `emulator_header local_furl`, `is_the_deployed_url false` | **Say "filmed against a local emulator of the Function URL running the same handler."** The emulator imports the same handler module, so the screens are honest about the *application* and are not evidence about AWS |
+| **O18** | PL10's `verify in 60s` predicate — a `LIKE` prefix-match on the `mainline` name, answered *"nine rows, `rolcanlogin` false on all nine"* | **this page, PL10** (and `census/close-block.md:246`, not owned here) | that predicate returns **5** rows, `rolcanlogin` **true** on `mainline_api` and `mainline_judge` — so the published check refuted the published answer using the login this submission hands judges. The nine-name `IN` list at `census/crdb-programmable.md:827` returns **9 rows, `f` on all nine** | **FIXED HERE, 2026-08-16.** Predicate restored to the `IN` list with `ORDER BY 1`; the answer is unchanged at nine and is **not** softened to five, and `LIKE 'agent\_%'` is not substituted (it returns **10**). Output pasted under PL10 |
+| **O19** | CT4 Agent Skills carried as **REPO**, promoting the generator's `DESIGNED` | **this page, CT4 and U-C4** (and `census/crdb-four-tools.md` §4.1, also owned) | `evidence/tool-usage/crdb-features.json` → `rows.crdb_agent_skills.verdict` prints **`DESIGNED`**; no run of either assertion script is captured under `evidence/`. The promotion rested on a CI lane whose recorded green is at `2dc5c86`, five commits behind | **FIXED HERE, 2026-08-16 — downward.** CT4 is DESIGNED, U-C4 proposes the detector without asserting the state, the totals move 24→23 REPO and 7→8 DECLARED, and **no run was captured to promote the row.** Three of four tools carry a transcript against a floor of two |
 
 ---
 
@@ -1749,3 +1838,28 @@ No grant widened or narrowed. No commit. **No generator, ratchet or honesty docu
 were read only. No `continue-on-error`, no `|| true`. Two files written:
 `docs/submission/feature-census.md` and `docs/submission/census/close-block.md`. No scratch database
 was needed: every cluster probe is a `SELECT` over a catalog.
+
+### 8.1 · Amendment, 2026-08-16 — the close-card wave (worker W5)
+
+Two findings of the adversarial audit landed on this page: **S1**, PL10's role predicate, and the
+Agent Skills state (O18 and O19 in §5). Both are fixed above. Everything run for that amendment,
+from the same working directory:
+
+| # | command | what it printed |
+|---|---|---|
+| A1 | `cockroach sql -d mainline_demo` — the nine-name `IN` list with `ORDER BY 1` | **9 rows**, `rolcanlogin` `f` on every one — pasted in full under PL10 |
+| A2 | the same query with a `LIKE` prefix-match, run **once, to confirm the strike** | **5 rows**; `mainline_api` **t**, `mainline_judge` **t**, the other three `f`. This is why the predicate was replaced and why the answer was **not** softened to five |
+| A3 | `cockroach sql -d mainline_demo` — `pg_indexes ILIKE '%cspann%'`; `information_schema.columns` where the type is vector-ish | **3** `cspann` indexes; **4** `vector` columns + **1** `tsvector` — the numbers the `k3` card prints, re-confirmed rather than copied |
+| A4 | `grep -c 42809 evidence/aws/ann/explain-unhinted.txt`, then `grep -n "REFUSED BY THE SERVER"` | **3** occurrences of `42809`; the refusal itself at **`:205`** and **`:220`** |
+| A5 | the four card one-liners, verbatim (§0.1.1 of `census/crdb-four-tools.md`) | `15 / 16 DIVERGED — KNOWN GAP` · two `SQLSTATE 42809` lines · `['v26.2.5']` · **`DESIGNED`** |
+| A6 | `python scripts/submission/check_submission_prose.py` | `claim hygiene OK` · `submission prose OK`, **exit 0**, with both amended files present |
+| A7 | `python scripts/demo/claim_hygiene.py --check` on each amended file | `docs/submission/feature-census.md` → **3** findings, all `HYG-sha-literal`, all three the same stale-green skills commit — the one that now holds CT4 at DESIGNED; `census/crdb-four-tools.md` → **14**, all `HYG-sha-literal`. **Zero findings in any other family, including every must-not-claim rule.** `HYG-sha-literal` is the family the submission surface deliberately scopes out — a provenance disclosure's job is to quote git commits — and A6, the governing scan for `docs/submission/*.md`, exits 0. This row does not itself quote the commit, so the count it states stays true of the page that states it |
+| A8 | `pytest tests/deploy/test_docs_are_true.py tests/deploy/test_cost_model.py tests/release/test_honesty_is_checkable.py -q --junitxml` | **`tests=127 failures=0 errors=0 skipped=0`**, read out of the junit XML rather than off a terminal tail |
+
+**Every amendment in this wave moves a claim down or holds it flat. None moves one up.** The role
+count stays at nine because nine is what the correct predicate returns; Agent Skills goes from REPO
+to DESIGNED; the REPO total goes 24 → 23. **No run under `evidence/` was captured, generated or
+committed to promote a row, and no file under `evidence/`, `skills/` or `infra/` was written.** No
+`terraform`, no AWS call, no SSM access, no credential, no grant change, no commit. The film is not
+lengthened by anything on this page — 172 s total against a 174 s hard stop — because a card line
+costs layout, not seconds.
