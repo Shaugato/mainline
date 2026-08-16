@@ -1,0 +1,1989 @@
+{
+  "artefact": "live-semantics",
+  "schema": "mainline.evidence/live-semantics/1",
+  "generated_at": "2026-08-16T12:26:03.586481Z",
+  "generated_by": "scripts/proof/live_semantics.py",
+  "owner": "extra-credit worker W5",
+  "command": ".venv/Scripts/python.exe scripts/proof/live_semantics.py --base-url https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+  "base_url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+  "credentials_used": "none. No DSN, no AWS profile, no token, no environment variable, no SSM parameter, no knowledge of the seed — a stranger with the URL.",
+  "what_this_proves": "that six memory semantics named in README.md, docs/submission/DEVPOST.md and docs/submission/JUDGING-AXES.md are live, anonymous GETs on the deployed origin, and that the exact field each sentence leans on still reads what the sentence says it reads. The Functionality rule requires the project to function as depicted; this is the standing re-derivation of that.",
+  "rulings": {
+    "R4": "This run withheld nothing. The silence receipt is complete — it carries corpus_root, candidate_root, theta, s, n and a boundary proof — and its entries list is EMPTY, which the recall run corroborates from a different response with counts.n_silenced = 0. What is demonstrated is the apparatus: the arithmetic a withholding would have to publish, bound to a corpus root and a threshold, on a run that suppressed no precursor at all. A reader who takes the empty list for a list of withheld precursors has read it backwards, and any sentence in this repository that could be read that way is a false claim.",
+    "R5": "Every envelope states, field by field, whether a database column produced the value: a provenance array of chips (db:column, derived, db:constraint, staged) addressed by RFC 6901 pointer, plus a top-level staged flag. The silence payload answers staged: true and its staged_note names receipt.bound.statement as the one value in that response no column produced. That is quoted as a strength and never trimmed."
+  },
+  "deployment": {
+    "ok": true,
+    "database": "mainline_demo",
+    "deploy_chain_applied": 271,
+    "deploy_chain_files": 271,
+    "migrations_applied": 0,
+    "cluster_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "schema_fingerprint": "ec9b1ce70a8df066e5763056c5ad9376800ef5df9362f7d0502b1dc7e7450339",
+    "server_date": "2026-08-16T12:25:59.257650Z"
+  },
+  "semantics": [
+    {
+      "semantic": "provenance",
+      "sentence": "clause -> the incident that wrote it, and the digest of the quoted evidence",
+      "routes": [
+        "GET /v1/clauses/{clause_uuid}/ancestry"
+      ],
+      "curl": [
+        "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+      ],
+      "http_status": {
+        "GET /v1/clauses/{clause_uuid}/ancestry": 200
+      },
+      "proving_fields": [
+        {
+          "pointer": "/data/blame_edges/0/basis",
+          "observed": "asserted_document",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/blame_edges/0/evidence_quote_sha256",
+          "observed": "f83044c99f6eedbc228fe69ca2c03648da1ed274034d3710470feae25f2ea7c9",
+          "provenance_chip": "db:column",
+          "holds": true
+        }
+      ],
+      "assertions": [
+        "provenance_basis_is_an_asserted_document",
+        "provenance_carries_an_evidence_quote_digest"
+      ],
+      "all_hold": true
+    },
+    {
+      "semantic": "ancestry",
+      "sentence": "a commit DAG, walked: the memory names a clause VERSION, so it cannot slide",
+      "routes": [
+        "GET /v1/clauses/{clause_uuid}/ancestry"
+      ],
+      "curl": [
+        "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool"
+      ],
+      "http_status": {
+        "GET /v1/clauses/{clause_uuid}/ancestry": 200
+      },
+      "proving_fields": [
+        {
+          "pointer": "/data/commit_chain/0/control_delta",
+          "observed": "introduce",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/closure/depth",
+          "observed": 1,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/closure/ancestor_count",
+          "observed": 1,
+          "provenance_chip": "db:column",
+          "holds": true
+        }
+      ],
+      "assertions": [
+        "ancestry_commit_delta_is_introduce",
+        "ancestry_closure_depth",
+        "ancestry_closure_ancestor_count"
+      ],
+      "all_hold": true
+    },
+    {
+      "semantic": "severity floors",
+      "sentence": "a fatality's relevance never decays: the floor is a column with a stated basis",
+      "routes": [
+        "GET /v1/permits/{permit_id}/blocking-checks"
+      ],
+      "curl": [
+        "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool"
+      ],
+      "http_status": {
+        "GET /v1/permits/{permit_id}/blocking-checks": 200
+      },
+      "proving_fields": [
+        {
+          "pointer": "/data/checks/0/precursor/severity_gate",
+          "observed": 4,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/checks/0/precursor/severity_basis",
+          "observed": "human_rated",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/checks/0/origin",
+          "observed": "blame_ancestry",
+          "provenance_chip": "db:column",
+          "holds": true
+        }
+      ],
+      "assertions": [
+        "severity_floor_gate",
+        "severity_floor_basis",
+        "severity_floor_origin"
+      ],
+      "all_hold": true
+    },
+    {
+      "semantic": "logged silence",
+      "sentence": "what the recall declined to surface, with the arithmetic it would have to publish",
+      "routes": [
+        "GET /v1/permits/{permit_id}/silence"
+      ],
+      "curl": [
+        "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/silence' | python -m json.tool"
+      ],
+      "http_status": {
+        "GET /v1/permits/{permit_id}/silence": 200
+      },
+      "proving_fields": [
+        {
+          "pointer": "/data/receipt/corpus_root",
+          "observed": "91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/receipt/candidate_root",
+          "observed": "f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/receipt/theta",
+          "observed": 0.35,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/receipt/s",
+          "observed": 1,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/receipt/n",
+          "observed": 1,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/receipt/boundary_proof/leaf_s/leaf_hash_hex",
+          "observed": "f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/receipt/boundary_proof/leaf_s/index",
+          "observed": 0,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/receipt/policy_version",
+          "observed": "demo-recall-1.0",
+          "provenance_chip": "db:column",
+          "holds": true
+        }
+      ],
+      "assertions": [
+        "silence_corpus_root",
+        "silence_candidate_root",
+        "silence_theta",
+        "silence_s",
+        "silence_n",
+        "silence_boundary_proof_leaf_hash",
+        "silence_boundary_proof_leaf_index",
+        "silence_policy_version"
+      ],
+      "all_hold": true
+    },
+    {
+      "semantic": "retrieval accounting",
+      "sentence": "the retrieval run auditing itself: five counts and the digest of the plan it ran",
+      "routes": [
+        "GET /v1/recall-runs/{run_id}"
+      ],
+      "curl": [
+        "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool"
+      ],
+      "http_status": {
+        "GET /v1/recall-runs/{run_id}": 200
+      },
+      "proving_fields": [
+        {
+          "pointer": "/data/counts/n_candidates",
+          "observed": 1,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/counts/n_blocking",
+          "observed": 1,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/counts/n_advisory",
+          "observed": 0,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/counts/n_silenced",
+          "observed": 0,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/counts/n_deduped",
+          "observed": 0,
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/index_plan_digest",
+          "observed": "d98e50a8f7f84354b022ed0a86de9c8f49fbdf37f1fe6641012af3b63171439b",
+          "provenance_chip": "db:column",
+          "holds": true
+        }
+      ],
+      "assertions": [
+        "recall_n_candidates",
+        "recall_n_blocking",
+        "recall_n_advisory",
+        "recall_n_silenced",
+        "recall_n_deduped",
+        "recall_index_plan_digest"
+      ],
+      "all_hold": true
+    },
+    {
+      "semantic": "exposure",
+      "sentence": "who was shown the memory, when, and the digest of what they were shown",
+      "routes": [
+        "GET /v1/receipts/{receipt_id}"
+      ],
+      "curl": [
+        "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool"
+      ],
+      "http_status": {
+        "GET /v1/receipts/{receipt_id}": 200
+      },
+      "proving_fields": [
+        {
+          "pointer": "/data/receipt_digest",
+          "observed": "993c00c3f3c34a2bbf2bfd7646af7b5a51c594aa06f75fb6ce08cf4b5dd7af46",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/actor_sub",
+          "observed": "demo.signer",
+          "provenance_chip": "db:column",
+          "holds": true
+        },
+        {
+          "pointer": "/data/lines/0/payload_digest",
+          "observed": "d48e0eb951b8e97d09870808c023fa4f1b4cef31aa901d5046a713fc1af0c55b",
+          "provenance_chip": "db:column",
+          "holds": true
+        }
+      ],
+      "assertions": [
+        "exposure_receipt_digest",
+        "exposure_actor",
+        "exposure_line_digest"
+      ],
+      "all_hold": true
+    }
+  ],
+  "routes": {
+    "subjects": {
+      "route": "GET /v1/demo/subjects",
+      "why": "discovery — the only source of every identifier used below",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/subjects",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/demo/subjects' | python -m json.tool",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 8941,
+      "response_sha256": "d843c198ddc1effdd757d00230853eefa7e382c886340ec2de902da6bfb159af",
+      "read_at": "2026-08-16T12:25:58.624264Z",
+      "json_parse_error": null,
+      "is_mainline_envelope": true,
+      "envelope_note": null,
+      "resource": "demo_subjects",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/subjects.schema.json",
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T12:25:58.365217Z",
+      "server_date": "2026-08-16T12:25:58.365217Z",
+      "staged": false,
+      "staged_note": null,
+      "provenance_chips": [
+        {
+          "chip": "db:column",
+          "pointer": "/site_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/site_code"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/cr_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/check_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/receipt_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/clause_uuid"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/commit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/run_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/lesson_id"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/site/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/site/site_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/site/site_code"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/permit/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/ref_name"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/external_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/state"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/gate_epoch"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/permit/open_blocking"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/blocking_check/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/check_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/subject_kind"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/cr_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/clause_uuid"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/commit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/blocking_check/precursor_event_id"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/clause/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/clause_uuid"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/activity_root"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/head_commit"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/head_gen"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/clause/head_label"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/event/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/event_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/external_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/kind"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/event/severity_gate"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/change_request/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/cr_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/ref_name"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/external_ref"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/change_request/state"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/recall_run/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/recall_run/run_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/recall_run/policy_version"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/recall_run/index_generation"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subjects/exposure_receipt/count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/exposure_receipt/receipt_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/exposure_receipt/subject_kind"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/subjects/exposure_receipt/expires_at"
+        }
+      ],
+      "provenance_chip_count": 52,
+      "provenance_chip_kinds": [
+        "db:column",
+        "derived"
+      ],
+      "statement_refs": [
+        {
+          "kind": "table",
+          "object": "mainline.site",
+          "sql_published": "SELECT count(*) OVER ()  AS count,\n       s.site_id,\n       s.site_code\n  FROM mainline.site AS s\n ORDER BY s.site_code, s.site_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.permit",
+          "sql_published": "SELECT count(*) OVER ()  AS count,\n       p.permit_id,\n       p.ref_name,\n       p.external_ref,\n       p.state::text     AS state,\n       p.gate_epoch,\n       p.open_blocking\n  FROM mainline.permit AS p\n WHERE p.site_id = %s\n ORDER BY p.opened_at, p.permit_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.blocking_check",
+          "sql_published": "SELECT count(*) OVER ()        AS count,\n       bc.check_id,\n       bc.subject_kind::text   AS subject_kind,\n       bc.permit_id,\n       bc.cr_id,\n       bc.clause_uuid,\n       encode(bc.commit_id, 'hex') AS commit_id,\n       bc.precursor_event_id\n  FROM mainline.blocking_check AS bc\n  LEFT JOIN LATERAL (\n         SELECT d.disposition_id\n           FROM mainline.disposition AS d\n          WHERE d.check_id = bc.check_id AND d.retracted_by IS NULL\n          ORDER BY d.signed_at DESC\n          LIMIT 1\n       ) AS live ON true\n WHERE bc.permit_id = %s\n   AND live.disposition_id IS NULL\n ORDER BY bc.materialised_at, bc.check_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.clause",
+          "sql_published": "SELECT count(*) OVER ()               AS count,\n       c.clause_uuid,\n       c.activity_root,\n       encode(c.head_commit, 'hex')   AS head_commit,\n       cv.gen                         AS head_gen,\n       cv.printed_label               AS head_label\n  FROM mainline.clause AS c\n  LEFT JOIN mainline.clause_version AS cv\n         ON cv.clause_uuid = c.clause_uuid AND cv.commit_id = c.head_commit\n WHERE c.site_id = %s\n ORDER BY c.activity_root, c.clause_uuid\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.event",
+          "sql_published": "SELECT count(*) OVER ()  AS count,\n       e.event_id,\n       e.external_ref,\n       e.kind::text      AS kind,\n       e.severity_gate\n  FROM mainline.event AS e\n WHERE e.site_id = %s\n ORDER BY e.occurred_at, e.event_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.change_request",
+          "sql_published": "SELECT count(*) OVER ()  AS count,\n       cr.cr_id,\n       cr.ref_name,\n       cr.external_ref,\n       cr.state::text    AS state\n  FROM mainline.change_request AS cr\n WHERE cr.site_id = %s\n ORDER BY cr.opened_at, cr.cr_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline_meas.recall_run",
+          "sql_published": "SELECT count(*) OVER ()  AS count,\n       r.run_id,\n       r.policy_version,\n       r.index_generation\n  FROM mainline_meas.recall_run AS r\n WHERE r.permit_id = %s\n ORDER BY r.started_at, r.run_id\n LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.exposure_receipt",
+          "sql_published": "SELECT count(*) OVER ()      AS count,\n       x.receipt_id,\n       x.subject_kind::text  AS subject_kind,\n       x.expires_at\n  FROM mainline.exposure_receipt AS x\n WHERE x.permit_id = %s\n ORDER BY x.issued_at, x.receipt_id\n LIMIT 1"
+        },
+        {
+          "kind": "statement",
+          "object": "pg_catalog.to_regclass",
+          "sql_published": "SELECT to_regclass('mainline.site')             AS site,\n       to_regclass('mainline.permit')           AS permit,\n       to_regclass('mainline.blocking_check')   AS blocking_check,\n       to_regclass('mainline.clause')           AS clause,\n       to_regclass('mainline.event')            AS event,\n       to_regclass('mainline.change_request')   AS change_request,\n       to_regclass('mainline_meas.recall_run')  AS recall_run,\n       to_regclass('mainline.exposure_receipt') AS exposure_receipt"
+        }
+      ]
+    },
+    "health": {
+      "route": "GET /v1/health",
+      "why": "is the deployment up, and is the deployed chain the chain on disk",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/health' | python -m json.tool",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 410,
+      "response_sha256": "cad9e5f22d7b71c0f5b14784edb8e13ae536716eba4b1be0776630ace6465563",
+      "read_at": "2026-08-16T12:25:59.431267Z",
+      "json_parse_error": null,
+      "is_mainline_envelope": false,
+      "envelope_note": "/v1/health answers a bare object, not a MAINLINE envelope: no provenance array, no staged flag, no statement_refs. Recorded as a property of the route rather than as a failure, and the R5 assertions are scoped to the six that are envelopes.",
+      "resource": null,
+      "schema_id": null,
+      "envelope_version": null,
+      "observed_at": null,
+      "server_date": "2026-08-16T12:25:59.257650Z",
+      "staged": null,
+      "staged_note": null,
+      "provenance_chips": [],
+      "provenance_chip_count": 0,
+      "provenance_chip_kinds": [],
+      "statement_refs": []
+    },
+    "ancestry": {
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "why": "PROVENANCE and ANCESTRY — the incident that wrote the clause, and the commit DAG",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry' | python -m json.tool",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 3744,
+      "response_sha256": "4425cf95c5021fe89731354128d88f1ef8e1cc5aa4214127335f18e38d604d95",
+      "read_at": "2026-08-16T12:26:00.372557Z",
+      "json_parse_error": null,
+      "is_mainline_envelope": true,
+      "envelope_note": null,
+      "resource": "clause_ancestry",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/ancestry.schema.json",
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T12:26:00.066076Z",
+      "server_date": "2026-08-16T12:26:00.066076Z",
+      "staged": false,
+      "staged_note": null,
+      "provenance_chips": [
+        {
+          "chip": "db:column",
+          "pointer": "/clause_uuid"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/as_of_commit"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/corpus_root"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/closure"
+        },
+        {
+          "chip": "db:constraint",
+          "pointer": "/truncation/cap"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/truncation/truncated"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/truncation/ancestry_complete"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/truncation/spilled_count"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/events/0"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/blame_edges/0"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/commit_chain/0"
+        }
+      ],
+      "provenance_chip_count": 11,
+      "provenance_chip_kinds": [
+        "db:column",
+        "db:constraint",
+        "derived"
+      ],
+      "statement_refs": [
+        {
+          "kind": "view",
+          "object": "mainline.clause_blame_current",
+          "sql_published": "SELECT closure_gen, ancestor_events, ancestor_count, max_severity,\n       virulence::text                  AS virulence,\n       depth, truncated, computed_by, projector_ver, computed_at, site_id,\n       encode(as_of_commit, 'hex')      AS as_of_commit\n  FROM mainline.clause_blame_current\n WHERE clause_uuid = %s AND as_of_commit = decode(%s, 'hex')"
+        },
+        {
+          "kind": "view",
+          "object": "pg_catalog.pg_constraint",
+          "sql_published": "SELECT pg_get_constraintdef(con.oid) AS predicate\n  FROM pg_catalog.pg_constraint con\n  JOIN pg_catalog.pg_class      rel ON rel.oid = con.conrelid\n  JOIN pg_catalog.pg_namespace  nsp ON nsp.oid = rel.relnamespace\n WHERE nsp.nspname = 'mainline'\n   AND rel.relname = 'clause_blame_closure'\n   AND con.conname = 'ancestor_count_within_cap'"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.event",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.control_failure",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.event_edge",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.blame_edge",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.clause_version",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.commit_obj",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.ledger_checkpoint",
+          "sql_published": null
+        }
+      ]
+    },
+    "blocking_checks": {
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "why": "SEVERITY FLOORS — the obligation, and the severity a fatality pinned to it",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks' | python -m json.tool",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 2408,
+      "response_sha256": "dcd9f9a636d0b40d62f56fca298f5047baeb7d31afa97daa6fc192ec7d97ca3a",
+      "read_at": "2026-08-16T12:26:01.206943Z",
+      "json_parse_error": null,
+      "is_mainline_envelope": true,
+      "envelope_note": null,
+      "resource": "blocking_checks",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/blocking-check.schema.json",
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T12:26:01.028862Z",
+      "server_date": "2026-08-16T12:26:01.028862Z",
+      "staged": false,
+      "staged_note": null,
+      "provenance_chips": [
+        {
+          "chip": "db:column",
+          "pointer": "/subject_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/gate_epoch"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subject_kind"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/checks/0/open"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/checks/0/disposition_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/checks/0"
+        }
+      ],
+      "provenance_chip_count": 6,
+      "provenance_chip_kinds": [
+        "db:column",
+        "derived"
+      ],
+      "statement_refs": [
+        {
+          "kind": "table",
+          "object": "mainline.blocking_check",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.clause_version",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.event",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.disposition",
+          "sql_published": "SELECT d.disposition_id FROM mainline.disposition d WHERE d.check_id = bc.check_id AND d.retracted_by IS NULL ORDER BY d.signed_at DESC LIMIT 1"
+        },
+        {
+          "kind": "table",
+          "object": "mainline.permit",
+          "sql_published": null
+        }
+      ]
+    },
+    "recall_run": {
+      "route": "GET /v1/recall-runs/{run_id}",
+      "why": "RETRIEVAL ACCOUNTING — the retrieval pass auditing itself",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/recall-runs/dec0de00-0009-4000-8000-000000000001' | python -m json.tool",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 2223,
+      "response_sha256": "e8d2adde44a95328434b2af7f83e14eb2067fe2d74bc3ccf99dd3dbc2b491206",
+      "read_at": "2026-08-16T12:26:01.991095Z",
+      "json_parse_error": null,
+      "is_mainline_envelope": true,
+      "envelope_note": null,
+      "resource": "recall_run",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/recall-run.schema.json",
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T12:26:01.824579Z",
+      "server_date": "2026-08-16T12:26:01.824579Z",
+      "staged": false,
+      "staged_note": null,
+      "provenance_chips": [
+        {
+          "chip": "db:column",
+          "pointer": "/run_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/site_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/corpus_commit"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/policy_version"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/index_plan_digest"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/index_generation"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/arms_degraded"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/started_at"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/latency_ms"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counts/n_candidates"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counts/n_blocking"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counts/n_advisory"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counts/n_silenced"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counts/n_deduped"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counts/n_bonded_sev5"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/counts/n_bonded_sev5_blocking"
+        }
+      ],
+      "provenance_chip_count": 17,
+      "provenance_chip_kinds": [
+        "db:column"
+      ],
+      "statement_refs": [
+        {
+          "kind": "table",
+          "object": "mainline_meas.recall_run",
+          "sql_published": "SELECT run_id, permit_id, site_id,\n       encode(corpus_commit, 'hex')         AS corpus_commit,\n       policy_version,\n       encode(index_plan_digest, 'hex')     AS index_plan_digest,\n       index_generation,\n       n_candidates, n_blocking, n_advisory, n_silenced, n_deduped,\n       n_bonded_sev5, n_bonded_sev5_blocking,\n       arms_degraded, started_at, latency_ms\n  FROM mainline_meas.recall_run\n WHERE run_id = %s"
+        }
+      ]
+    },
+    "silence": {
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "why": "LOGGED SILENCE — what the recall declined to surface, with its arithmetic (R4)",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/silence",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/permits/dec0de00-0006-4000-8000-000000000001/silence' | python -m json.tool",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 2386,
+      "response_sha256": "7c895b364c780a08777a7f7ddf25528d0d530e70b7f0a30c95c178abb1837ad2",
+      "read_at": "2026-08-16T12:26:02.790140Z",
+      "json_parse_error": null,
+      "is_mainline_envelope": true,
+      "envelope_note": null,
+      "resource": "silence",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/silence.schema.json",
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T12:26:02.617055Z",
+      "server_date": "2026-08-16T12:26:02.617055Z",
+      "staged": true,
+      "staged_note": "receipt.bound.statement is the only value in this payload that no column produced. mainline_meas.silence_receipt carries silence_receipt_id, run_id, permit_id, corpus_root, candidate_root, theta, s, n, boundary_proof, policy_version and issued_at, and nothing else; silence.schema.json additionally requires bound.statement, the bounding sentence to be reproduced on every exhibit. It is copied verbatim from spec/wire/candidate-commitment.md and packages/trappoint-recall/src/trappoint_recall/per/receipt.py::PER_BOUND_SENTENCE. bound.index_generation and bound.index_plan_digest ARE columns, of mainline_meas.recall_run.",
+      "provenance_chips": [
+        {
+          "chip": "db:column",
+          "pointer": "/subject_id"
+        },
+        {
+          "chip": "derived",
+          "pointer": "/subject_kind"
+        },
+        {
+          "chip": "staged",
+          "pointer": "/receipt/bound/statement"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/receipt/bound/index_generation"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/receipt/bound/index_plan_digest"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/receipt"
+        }
+      ],
+      "provenance_chip_count": 6,
+      "provenance_chip_kinds": [
+        "db:column",
+        "derived",
+        "staged"
+      ],
+      "statement_refs": [
+        {
+          "kind": "table",
+          "object": "mainline_meas.silence_ledger",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline_meas.silence_receipt",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline_meas.recall_run",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.permit",
+          "sql_published": null
+        }
+      ]
+    },
+    "receipt": {
+      "route": "GET /v1/receipts/{receipt_id}",
+      "why": "EXPOSURE — who was shown the memory, digested per line",
+      "url": "https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+      "curl": "curl -s 'https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws/v1/receipts/dec0de00-0008-4000-8000-000000000001' | python -m json.tool",
+      "http_status": 200,
+      "method": "GET",
+      "response_bytes": 1817,
+      "response_sha256": "bbe547bc3d2efb0d9e91cd62509f4cd10bdd7cdc16b1e16c81d7fc2ca2e4dd09",
+      "read_at": "2026-08-16T12:26:03.580830Z",
+      "json_parse_error": null,
+      "is_mainline_envelope": true,
+      "envelope_note": null,
+      "resource": "exposure_receipt",
+      "schema_id": "https://console.mainline.trappoint.org/contracts/1.0/exposure.schema.json",
+      "envelope_version": 1,
+      "observed_at": "2026-08-16T12:26:03.410852Z",
+      "server_date": "2026-08-16T12:26:03.410852Z",
+      "staged": false,
+      "staged_note": null,
+      "provenance_chips": [
+        {
+          "chip": "db:column",
+          "pointer": "/receipt_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/permit_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/actor_sub"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/issued_at"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/issued_hlc"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/expires_at"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/corpus_root"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/silence_receipt_id"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/policy_version"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/total_tokens"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/receipt_digest"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/swept_at"
+        },
+        {
+          "chip": "db:column",
+          "pointer": "/lines/0"
+        }
+      ],
+      "provenance_chip_count": 13,
+      "provenance_chip_kinds": [
+        "db:column"
+      ],
+      "statement_refs": [
+        {
+          "kind": "table",
+          "object": "mainline.exposure_receipt",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.exposure_line",
+          "sql_published": null
+        },
+        {
+          "kind": "table",
+          "object": "mainline.receipt_expiry",
+          "sql_published": null
+        }
+      ]
+    }
+  },
+  "claims": [
+    {
+      "id": "health_is_ok",
+      "semantic": "precondition",
+      "route": "GET /v1/health",
+      "pointer": "/ok",
+      "test": "equals",
+      "expected": true,
+      "observed": true,
+      "provenance_chip": null,
+      "holds": true,
+      "says_who": "docs/demo/DEMO-READY.md",
+      "why": "a semantic cannot be live on an origin that is not"
+    },
+    {
+      "id": "provenance_basis_is_an_asserted_document",
+      "semantic": "provenance",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "pointer": "/data/blame_edges/0/basis",
+      "test": "equals",
+      "expected": "asserted_document",
+      "observed": "asserted_document",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the blame edge says WHY it exists, and the answer is a document somebody asserted — not a similarity score, which is what a vector store would have offered instead"
+    },
+    {
+      "id": "provenance_carries_an_evidence_quote_digest",
+      "semantic": "provenance",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "pointer": "/data/blame_edges/0/evidence_quote_sha256",
+      "test": "sha256",
+      "expected": "a lowercase 64-hex sha256",
+      "observed": "f83044c99f6eedbc228fe69ca2c03648da1ed274034d3710470feae25f2ea7c9",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the quote the attribution rests on is digested, so 'that is not what the report said' is a checkable claim rather than an argument"
+    },
+    {
+      "id": "ancestry_commit_delta_is_introduce",
+      "semantic": "ancestry",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "pointer": "/data/commit_chain/0/control_delta",
+      "test": "equals",
+      "expected": "introduce",
+      "observed": "introduce",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the commit chain records what each version DID to the control, not merely that it changed: this one introduced it"
+    },
+    {
+      "id": "ancestry_closure_depth",
+      "semantic": "ancestry",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "pointer": "/data/closure/depth",
+      "test": "equals",
+      "expected": 1,
+      "observed": 1,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the ancestry is projected into a closure the gate reads in one lookup, and the closure states how far it walked"
+    },
+    {
+      "id": "ancestry_closure_ancestor_count",
+      "semantic": "ancestry",
+      "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+      "pointer": "/data/closure/ancestor_count",
+      "test": "equals",
+      "expected": 1,
+      "observed": 1,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "how many events reach this clause version — the number the copy prints"
+    },
+    {
+      "id": "severity_floor_gate",
+      "semantic": "severity floors",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "pointer": "/data/checks/0/precursor/severity_gate",
+      "test": "equals",
+      "expected": 4,
+      "observed": 4,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.3 (DEVPOST axis-1 OPEN THIS TO CHECK IT)",
+      "why": "THE FIELD THAT DECIDES AXIS ONE. If this number were the client's own, memory here would be a cache and the axis-one claim would be falsified"
+    },
+    {
+      "id": "severity_floor_basis",
+      "semantic": "severity floors",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "pointer": "/data/checks/0/precursor/severity_basis",
+      "test": "equals",
+      "expected": "human_rated",
+      "observed": "human_rated",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.3 (DEVPOST axis-1 OPEN THIS TO CHECK IT)",
+      "why": "and the basis of that severity is a column beside it, not an assumption"
+    },
+    {
+      "id": "severity_floor_origin",
+      "semantic": "severity floors",
+      "route": "GET /v1/permits/{permit_id}/blocking-checks",
+      "pointer": "/data/checks/0/origin",
+      "test": "equals",
+      "expected": "blame_ancestry",
+      "observed": "blame_ancestry",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.3 (DEVPOST axis-1 OPEN THIS TO CHECK IT)",
+      "why": "the obligation cites the memory as its cause: it exists BECAUSE of the ancestry"
+    },
+    {
+      "id": "silence_corpus_root",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/corpus_root",
+      "test": "sha256",
+      "expected": "a lowercase 64-hex sha256",
+      "observed": "91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the receipt is bound to a corpus root: it is about a stated body of memory, not about whatever happened to be indexed"
+    },
+    {
+      "id": "silence_candidate_root",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/candidate_root",
+      "test": "sha256",
+      "expected": "a lowercase 64-hex sha256",
+      "observed": "f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "and to the candidate set the pass actually scored"
+    },
+    {
+      "id": "silence_theta",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/theta",
+      "test": "equals",
+      "expected": 0.35,
+      "observed": 0.35,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the threshold the withholding decision was made at, published rather than implied"
+    },
+    {
+      "id": "silence_s",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/s",
+      "test": "equals",
+      "expected": 1,
+      "observed": 1,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "how many candidates cleared the threshold"
+    },
+    {
+      "id": "silence_n",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/n",
+      "test": "equals",
+      "expected": 1,
+      "observed": 1,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "out of how many were scored — s of n is the arithmetic, and both are columns"
+    },
+    {
+      "id": "silence_boundary_proof_leaf_hash",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/boundary_proof/leaf_s/leaf_hash_hex",
+      "test": "sha256",
+      "expected": "a lowercase 64-hex sha256",
+      "observed": "f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the boundary proof pins the LAST candidate that cleared theta into the Merkle tree, so the cut can be verified rather than believed"
+    },
+    {
+      "id": "silence_boundary_proof_leaf_index",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/boundary_proof/leaf_s/index",
+      "test": "present",
+      "expected": "a non-null",
+      "observed": 0,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "and names which leaf that was"
+    },
+    {
+      "id": "silence_policy_version",
+      "semantic": "logged silence",
+      "route": "GET /v1/permits/{permit_id}/silence",
+      "pointer": "/data/receipt/policy_version",
+      "test": "present",
+      "expected": "a non-null",
+      "observed": "demo-recall-1.0",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §2 EC-2",
+      "why": "under which retrieval policy the withholding decision was taken"
+    },
+    {
+      "id": "recall_n_candidates",
+      "semantic": "retrieval accounting",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "pointer": "/data/counts/n_candidates",
+      "test": "equals",
+      "expected": 1,
+      "observed": 1,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "how many memories the pass surfaced"
+    },
+    {
+      "id": "recall_n_blocking",
+      "semantic": "retrieval accounting",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "pointer": "/data/counts/n_blocking",
+      "test": "equals",
+      "expected": 1,
+      "observed": 1,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "how many of them block — the retrieval decided this, not a human"
+    },
+    {
+      "id": "recall_n_advisory",
+      "semantic": "retrieval accounting",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "pointer": "/data/counts/n_advisory",
+      "test": "equals",
+      "expected": 0,
+      "observed": 0,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "how many were advisory only"
+    },
+    {
+      "id": "recall_n_silenced",
+      "semantic": "retrieval accounting",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "pointer": "/data/counts/n_silenced",
+      "test": "equals",
+      "expected": 0,
+      "observed": 0,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "how many were suppressed — none, and R4 is the sentence that says so out loud"
+    },
+    {
+      "id": "recall_n_deduped",
+      "semantic": "retrieval accounting",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "pointer": "/data/counts/n_deduped",
+      "test": "equals",
+      "expected": 0,
+      "observed": 0,
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "how many were folded into another finding"
+    },
+    {
+      "id": "recall_index_plan_digest",
+      "semantic": "retrieval accounting",
+      "route": "GET /v1/recall-runs/{run_id}",
+      "pointer": "/data/index_plan_digest",
+      "test": "sha256",
+      "expected": "a lowercase 64-hex sha256",
+      "observed": "d98e50a8f7f84354b022ed0a86de9c8f49fbdf37f1fe6641012af3b63171439b",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §4.4 (README's six live GETs)",
+      "why": "the digest of the plan the pass ran, so the retrieval is REPRODUCIBLE rather than recalled — the difference between a memory system and a log of one"
+    },
+    {
+      "id": "exposure_receipt_digest",
+      "semantic": "exposure",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "pointer": "/data/receipt_digest",
+      "test": "sha256",
+      "expected": "a lowercase 64-hex sha256",
+      "observed": "993c00c3f3c34a2bbf2bfd7646af7b5a51c594aa06f75fb6ce08cf4b5dd7af46",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §2 EC-2",
+      "why": "the digest of what the signer was shown, so 'I was never told' is checkable"
+    },
+    {
+      "id": "exposure_actor",
+      "semantic": "exposure",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "pointer": "/data/actor_sub",
+      "test": "present",
+      "expected": "a non-null",
+      "observed": "demo.signer",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §2 EC-2",
+      "why": "and WHO was shown it: a memory nobody was shown cannot bind anybody"
+    },
+    {
+      "id": "exposure_line_digest",
+      "semantic": "exposure",
+      "route": "GET /v1/receipts/{receipt_id}",
+      "pointer": "/data/lines/0/payload_digest",
+      "test": "sha256",
+      "expected": "a lowercase 64-hex sha256",
+      "observed": "d48e0eb951b8e97d09870808c023fa4f1b4cef31aa901d5046a713fc1af0c55b",
+      "provenance_chip": "db:column",
+      "holds": true,
+      "says_who": "docs/submission/extra-credit-plan.md §2 EC-2",
+      "why": "digested per line, not per receipt, so one line can be produced without the rest"
+    }
+  ],
+  "cross_response_identities": [
+    {
+      "id": "the_obligation_names_the_recall_run",
+      "claim": "the obligation cites the retrieval pass that found it",
+      "left": "GET /v1/permits/{permit_id}/blocking-checks/data/checks/0/recall_run_id",
+      "right": "GET /v1/recall-runs/{run_id}/data/run_id",
+      "left_value": "dec0de00-0009-4000-8000-000000000001",
+      "right_value": "dec0de00-0009-4000-8000-000000000001",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "the_obligation_names_the_blamed_event",
+      "claim": "the obligation's precursor is the event on the blame edge",
+      "left": "GET /v1/permits/{permit_id}/blocking-checks/data/checks/0/precursor_event_id",
+      "right": "GET /v1/clauses/{clause_uuid}/ancestry/data/blame_edges/0/event_id",
+      "left_value": "dec0de00-0005-4000-8000-000000000001",
+      "right_value": "dec0de00-0005-4000-8000-000000000001",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "the_obligation_cites_the_blamed_commit",
+      "claim": "the obligation cites the clause VERSION the blame edge names",
+      "left": "GET /v1/permits/{permit_id}/blocking-checks/data/checks/0/commit_id",
+      "right": "GET /v1/clauses/{clause_uuid}/ancestry/data/blame_edges/0/commit_id",
+      "left_value": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "right_value": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "the_silence_receipt_is_of_that_run",
+      "claim": "the silence receipt is about the retrieval pass that produced the obligation",
+      "left": "GET /v1/permits/{permit_id}/silence/data/receipt/run_id",
+      "right": "GET /v1/recall-runs/{run_id}/data/run_id",
+      "left_value": "dec0de00-0009-4000-8000-000000000001",
+      "right_value": "dec0de00-0009-4000-8000-000000000001",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "the_silence_receipt_is_bound_to_the_index_plan",
+      "claim": "the receipt is bound to the digest of the plan the run recorded",
+      "left": "GET /v1/permits/{permit_id}/silence/data/receipt/bound/index_plan_digest",
+      "right": "GET /v1/recall-runs/{run_id}/data/index_plan_digest",
+      "left_value": "d98e50a8f7f84354b022ed0a86de9c8f49fbdf37f1fe6641012af3b63171439b",
+      "right_value": "d98e50a8f7f84354b022ed0a86de9c8f49fbdf37f1fe6641012af3b63171439b",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "the_exposure_receipt_names_that_silence_receipt",
+      "claim": "what the signer was shown names the silence receipt for the same run",
+      "left": "GET /v1/receipts/{receipt_id}/data/silence_receipt_id",
+      "right": "GET /v1/permits/{permit_id}/silence/data/receipt/silence_receipt_id",
+      "left_value": "dec0de00-000a-4000-8000-000000000001",
+      "right_value": "dec0de00-000a-4000-8000-000000000001",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "the_exposure_receipt_is_over_the_same_corpus",
+      "claim": "and it is over the corpus root the silence receipt is bound to",
+      "left": "GET /v1/receipts/{receipt_id}/data/corpus_root",
+      "right": "GET /v1/permits/{permit_id}/silence/data/receipt/corpus_root",
+      "left_value": "91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329",
+      "right_value": "91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "the_exposure_line_names_the_obligation",
+      "claim": "the receipt line names the obligation itself: the receipt is about THIS memory",
+      "left": "GET /v1/receipts/{receipt_id}/data/lines/0/check_id",
+      "right": "GET /v1/permits/{permit_id}/blocking-checks/data/checks/0/check_id",
+      "left_value": "dec0de00-0007-4000-8000-000000000001",
+      "right_value": "dec0de00-0007-4000-8000-000000000001",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    },
+    {
+      "id": "retrieval_and_exposure_share_the_policy",
+      "claim": "the receipt was issued under the policy the retrieval ran under",
+      "left": "GET /v1/receipts/{receipt_id}/data/policy_version",
+      "right": "GET /v1/recall-runs/{run_id}/data/policy_version",
+      "left_value": "demo-recall-1.0",
+      "right_value": "demo-recall-1.0",
+      "holds": true,
+      "cannot_hold_by_construction": true
+    }
+  ],
+  "silence_ledger": {
+    "ruling": "R4 (docs/submission/extra-credit-plan.md §1)",
+    "sentence": "This run withheld nothing. The silence receipt is complete — it carries corpus_root, candidate_root, theta, s, n and a boundary proof — and its entries list is EMPTY, which the recall run corroborates from a different response with counts.n_silenced = 0. What is demonstrated is the apparatus: the arithmetic a withholding would have to publish, bound to a corpus root and a threshold, on a run that suppressed no precursor at all. A reader who takes the empty list for a list of withheld precursors has read it backwards, and any sentence in this repository that could be read that way is a false claim.",
+    "entries_in_the_silence_payload": 0,
+    "entries_read_from": "GET /v1/permits/{permit_id}/silence /data/entries",
+    "n_silenced_in_the_recall_run": 0,
+    "n_silenced_read_from": "GET /v1/recall-runs/{run_id} /data/counts/n_silenced",
+    "agree": true,
+    "receipt_is_complete": {
+      "corpus_root": "91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329",
+      "candidate_root": "f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab",
+      "theta": 0.35,
+      "s": 1,
+      "n": 1,
+      "boundary_proof": {
+        "leaf_s": {
+          "index": 0,
+          "leaf_hash_hex": "f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab",
+          "path_hex": [],
+          "score": 0.35
+        },
+        "leaf_s_plus_1": null
+      },
+      "policy_version": "demo-recall-1.0",
+      "issued_at": "2026-08-02T03:00:05Z"
+    },
+    "why_two_responses": "one endpoint asserting a withholding count is a fact about one reader; two endpoints agreeing about it is a fact about the database"
+  },
+  "provenance_and_staging": {
+    "ruling": "R5 (docs/submission/extra-credit-plan.md §1)",
+    "sentence": "Every envelope states, field by field, whether a database column produced the value: a provenance array of chips (db:column, derived, db:constraint, staged) addressed by RFC 6901 pointer, plus a top-level staged flag. The silence payload answers staged: true and its staged_note names receipt.bound.statement as the one value in that response no column produced. That is quoted as a strength and never trimmed.",
+    "chips_per_response": {
+      "subjects": {
+        "count": 52,
+        "kinds": [
+          "db:column",
+          "derived"
+        ]
+      },
+      "ancestry": {
+        "count": 11,
+        "kinds": [
+          "db:column",
+          "db:constraint",
+          "derived"
+        ]
+      },
+      "blocking_checks": {
+        "count": 6,
+        "kinds": [
+          "db:column",
+          "derived"
+        ]
+      },
+      "recall_run": {
+        "count": 17,
+        "kinds": [
+          "db:column"
+        ]
+      },
+      "silence": {
+        "count": 6,
+        "kinds": [
+          "db:column",
+          "derived",
+          "staged"
+        ]
+      },
+      "receipt": {
+        "count": 13,
+        "kinds": [
+          "db:column"
+        ]
+      }
+    },
+    "staged_per_response": {
+      "subjects": false,
+      "ancestry": false,
+      "blocking_checks": false,
+      "recall_run": false,
+      "silence": true,
+      "receipt": false
+    },
+    "staged_true_on": [
+      "silence"
+    ],
+    "staged_notes": {
+      "silence": "receipt.bound.statement is the only value in this payload that no column produced. mainline_meas.silence_receipt carries silence_receipt_id, run_id, permit_id, corpus_root, candidate_root, theta, s, n, boundary_proof, policy_version and issued_at, and nothing else; silence.schema.json additionally requires bound.statement, the bounding sentence to be reproduced on every exhibit. It is copied verbatim from spec/wire/candidate-commitment.md and packages/trappoint-recall/src/trappoint_recall/per/receipt.py::PER_BOUND_SENTENCE. bound.index_generation and bound.index_plan_digest ARE columns, of mainline_meas.recall_run."
+    },
+    "health_is_not_an_envelope": "/v1/health answers a bare object, not a MAINLINE envelope: no provenance array, no staged flag, no statement_refs. Recorded as a property of the route rather than as a failure, and the R5 assertions are scoped to the six that are envelopes."
+  },
+  "request_discipline": {
+    "rule": "seven GETs and nothing else. No POST, no PUT, no DELETE, no write of any kind, and no header but accept.",
+    "authority": "the founder's standing prohibition; docs/submission/extra-credit-plan.md §6",
+    "declared_routes": [
+      "GET /v1/clauses/{clause_uuid}/ancestry",
+      "GET /v1/demo/subjects",
+      "GET /v1/health",
+      "GET /v1/permits/{permit_id}/blocking-checks",
+      "GET /v1/permits/{permit_id}/silence",
+      "GET /v1/recall-runs/{run_id}",
+      "GET /v1/receipts/{receipt_id}"
+    ],
+    "requests_sent": [
+      {
+        "method": "GET",
+        "path": "/v1/demo/subjects",
+        "route": "GET /v1/demo/subjects",
+        "status": "200"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/health",
+        "route": "GET /v1/health",
+        "status": "200"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry",
+        "route": "GET /v1/clauses/{clause_uuid}/ancestry",
+        "status": "200"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks",
+        "route": "GET /v1/permits/{permit_id}/blocking-checks",
+        "status": "200"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/recall-runs/dec0de00-0009-4000-8000-000000000001",
+        "route": "GET /v1/recall-runs/{run_id}",
+        "status": "200"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/permits/dec0de00-0006-4000-8000-000000000001/silence",
+        "route": "GET /v1/permits/{permit_id}/silence",
+        "status": "200"
+      },
+      {
+        "method": "GET",
+        "path": "/v1/receipts/dec0de00-0008-4000-8000-000000000001",
+        "route": "GET /v1/receipts/{receipt_id}",
+        "status": "200"
+      }
+    ],
+    "total_requests": 7,
+    "methods": [
+      "GET"
+    ],
+    "write_requests_sent": 0,
+    "routes_sent_match_routes_declared": true,
+    "identifiers": {
+      "resolved_from": "GET /v1/demo/subjects",
+      "values": {
+        "clause_uuid": "dec0de00-0004-4000-8000-000000000001",
+        "permit_id": "dec0de00-0006-4000-8000-000000000001",
+        "run_id": "dec0de00-0009-4000-8000-000000000001",
+        "receipt_id": "dec0de00-0008-4000-8000-000000000001"
+      },
+      "not_one_of_these_is_a_literal_in_this_program": true
+    },
+    "credentials_used": "none. No DSN, no AWS profile, no token, no environment variable, no SSM parameter, no knowledge of the seed — a stranger with the URL."
+  },
+  "source_audit": {
+    "claim": "no identifier and no origin in this artefact originates in scripts/proof/live_semantics.py. The EXPECTED VALUES do, deliberately and by name: they are the contract the submission copy states, and a checker that only records what it was told cannot go red.",
+    "source": "D:/CoackroachDBxAWS/mainline/scripts/proof/live_semantics.py",
+    "source_sha256": "a02b29ea742dc95eb780ed5402e3224de58eb4fdcba2c2acadc5fa3aea555811",
+    "source_bytes": 57148,
+    "uuid_literals_in_the_source": 0,
+    "origin_host_occurrences_in_the_source": 0,
+    "contrast": "scripts/proof/memory_loop.py makes the STRONGER claim — that no measured value at all comes from its source — and audits 79 values to prove it. This file does not borrow that claim, because it would be false here."
+  },
+  "assertions": [
+    {
+      "id": "every_route_answered_200",
+      "claim": "all seven GETs answered 200",
+      "holds": true,
+      "observed": "subjects=200, health=200, ancestry=200, blocking_checks=200, recall_run=200, silence=200, receipt=200"
+    },
+    {
+      "id": "exactly_the_seven_declared_routes_were_sent",
+      "claim": "seven GETs and nothing else. No POST, no PUT, no DELETE, no write of any kind, and no header but accept.",
+      "holds": true,
+      "observed": "7 requests, methods ['GET']"
+    },
+    {
+      "id": "no_write_request_was_sent",
+      "claim": "this program issues no POST, PUT or DELETE, of any shape, ever",
+      "holds": true,
+      "observed": "write_requests_sent=0"
+    },
+    {
+      "id": "the_deployed_chain_is_the_chain_on_disk",
+      "claim": "deploy_chain_applied equals deploy_chain_files",
+      "holds": true,
+      "observed": "271/271"
+    },
+    {
+      "id": "health_is_ok",
+      "claim": "a semantic cannot be live on an origin that is not",
+      "holds": true,
+      "observed": "True"
+    },
+    {
+      "id": "provenance_basis_is_an_asserted_document",
+      "claim": "the blame edge says WHY it exists, and the answer is a document somebody asserted — not a similarity score, which is what a vector store would have offered instead",
+      "holds": true,
+      "observed": "'asserted_document'"
+    },
+    {
+      "id": "provenance_carries_an_evidence_quote_digest",
+      "claim": "the quote the attribution rests on is digested, so 'that is not what the report said' is a checkable claim rather than an argument",
+      "holds": true,
+      "observed": "'f83044c99f6eedbc228fe69ca2c03648da1ed274034d3710470feae25f2ea7c9'"
+    },
+    {
+      "id": "ancestry_commit_delta_is_introduce",
+      "claim": "the commit chain records what each version DID to the control, not merely that it changed: this one introduced it",
+      "holds": true,
+      "observed": "'introduce'"
+    },
+    {
+      "id": "ancestry_closure_depth",
+      "claim": "the ancestry is projected into a closure the gate reads in one lookup, and the closure states how far it walked",
+      "holds": true,
+      "observed": "1"
+    },
+    {
+      "id": "ancestry_closure_ancestor_count",
+      "claim": "how many events reach this clause version — the number the copy prints",
+      "holds": true,
+      "observed": "1"
+    },
+    {
+      "id": "severity_floor_gate",
+      "claim": "THE FIELD THAT DECIDES AXIS ONE. If this number were the client's own, memory here would be a cache and the axis-one claim would be falsified",
+      "holds": true,
+      "observed": "4"
+    },
+    {
+      "id": "severity_floor_basis",
+      "claim": "and the basis of that severity is a column beside it, not an assumption",
+      "holds": true,
+      "observed": "'human_rated'"
+    },
+    {
+      "id": "severity_floor_origin",
+      "claim": "the obligation cites the memory as its cause: it exists BECAUSE of the ancestry",
+      "holds": true,
+      "observed": "'blame_ancestry'"
+    },
+    {
+      "id": "silence_corpus_root",
+      "claim": "the receipt is bound to a corpus root: it is about a stated body of memory, not about whatever happened to be indexed",
+      "holds": true,
+      "observed": "'91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329'"
+    },
+    {
+      "id": "silence_candidate_root",
+      "claim": "and to the candidate set the pass actually scored",
+      "holds": true,
+      "observed": "'f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab'"
+    },
+    {
+      "id": "silence_theta",
+      "claim": "the threshold the withholding decision was made at, published rather than implied",
+      "holds": true,
+      "observed": "0.35"
+    },
+    {
+      "id": "silence_s",
+      "claim": "how many candidates cleared the threshold",
+      "holds": true,
+      "observed": "1"
+    },
+    {
+      "id": "silence_n",
+      "claim": "out of how many were scored — s of n is the arithmetic, and both are columns",
+      "holds": true,
+      "observed": "1"
+    },
+    {
+      "id": "silence_boundary_proof_leaf_hash",
+      "claim": "the boundary proof pins the LAST candidate that cleared theta into the Merkle tree, so the cut can be verified rather than believed",
+      "holds": true,
+      "observed": "'f23c05695dd3e22bbf58905c877632d6420fac41f817a43842ccc634b40c26ab'"
+    },
+    {
+      "id": "silence_boundary_proof_leaf_index",
+      "claim": "and names which leaf that was",
+      "holds": true,
+      "observed": "0"
+    },
+    {
+      "id": "silence_policy_version",
+      "claim": "under which retrieval policy the withholding decision was taken",
+      "holds": true,
+      "observed": "'demo-recall-1.0'"
+    },
+    {
+      "id": "recall_n_candidates",
+      "claim": "how many memories the pass surfaced",
+      "holds": true,
+      "observed": "1"
+    },
+    {
+      "id": "recall_n_blocking",
+      "claim": "how many of them block — the retrieval decided this, not a human",
+      "holds": true,
+      "observed": "1"
+    },
+    {
+      "id": "recall_n_advisory",
+      "claim": "how many were advisory only",
+      "holds": true,
+      "observed": "0"
+    },
+    {
+      "id": "recall_n_silenced",
+      "claim": "how many were suppressed — none, and R4 is the sentence that says so out loud",
+      "holds": true,
+      "observed": "0"
+    },
+    {
+      "id": "recall_n_deduped",
+      "claim": "how many were folded into another finding",
+      "holds": true,
+      "observed": "0"
+    },
+    {
+      "id": "recall_index_plan_digest",
+      "claim": "the digest of the plan the pass ran, so the retrieval is REPRODUCIBLE rather than recalled — the difference between a memory system and a log of one",
+      "holds": true,
+      "observed": "'d98e50a8f7f84354b022ed0a86de9c8f49fbdf37f1fe6641012af3b63171439b'"
+    },
+    {
+      "id": "exposure_receipt_digest",
+      "claim": "the digest of what the signer was shown, so 'I was never told' is checkable",
+      "holds": true,
+      "observed": "'993c00c3f3c34a2bbf2bfd7646af7b5a51c594aa06f75fb6ce08cf4b5dd7af46'"
+    },
+    {
+      "id": "exposure_actor",
+      "claim": "and WHO was shown it: a memory nobody was shown cannot bind anybody",
+      "holds": true,
+      "observed": "'demo.signer'"
+    },
+    {
+      "id": "exposure_line_digest",
+      "claim": "digested per line, not per receipt, so one line can be produced without the rest",
+      "holds": true,
+      "observed": "'d48e0eb951b8e97d09870808c023fa4f1b4cef31aa901d5046a713fc1af0c55b'"
+    },
+    {
+      "id": "the_obligation_names_the_recall_run",
+      "claim": "the obligation cites the retrieval pass that found it",
+      "holds": true,
+      "observed": "dec0de00-0009-4000-8000-000000000001"
+    },
+    {
+      "id": "the_obligation_names_the_blamed_event",
+      "claim": "the obligation's precursor is the event on the blame edge",
+      "holds": true,
+      "observed": "dec0de00-0005-4000-8000-000000000001"
+    },
+    {
+      "id": "the_obligation_cites_the_blamed_commit",
+      "claim": "the obligation cites the clause VERSION the blame edge names",
+      "holds": true,
+      "observed": "9f12114dc1a94f43ffe3eaae9f95b861efa7a6a88d7a9d90b1196aa06cd49a39"
+    },
+    {
+      "id": "the_silence_receipt_is_of_that_run",
+      "claim": "the silence receipt is about the retrieval pass that produced the obligation",
+      "holds": true,
+      "observed": "dec0de00-0009-4000-8000-000000000001"
+    },
+    {
+      "id": "the_silence_receipt_is_bound_to_the_index_plan",
+      "claim": "the receipt is bound to the digest of the plan the run recorded",
+      "holds": true,
+      "observed": "d98e50a8f7f84354b022ed0a86de9c8f49fbdf37f1fe6641012af3b63171439b"
+    },
+    {
+      "id": "the_exposure_receipt_names_that_silence_receipt",
+      "claim": "what the signer was shown names the silence receipt for the same run",
+      "holds": true,
+      "observed": "dec0de00-000a-4000-8000-000000000001"
+    },
+    {
+      "id": "the_exposure_receipt_is_over_the_same_corpus",
+      "claim": "and it is over the corpus root the silence receipt is bound to",
+      "holds": true,
+      "observed": "91e35cc5f40d964894b6444daac027309a05f6a0bd268d750a51e88d9fb35329"
+    },
+    {
+      "id": "the_exposure_line_names_the_obligation",
+      "claim": "the receipt line names the obligation itself: the receipt is about THIS memory",
+      "holds": true,
+      "observed": "dec0de00-0007-4000-8000-000000000001"
+    },
+    {
+      "id": "retrieval_and_exposure_share_the_policy",
+      "claim": "the receipt was issued under the policy the retrieval ran under",
+      "holds": true,
+      "observed": "demo-recall-1.0"
+    },
+    {
+      "id": "the_silence_ledger_agrees_with_the_recall_run",
+      "claim": "R4: the silence payload's entries count equals the run's n_silenced, and the two came off different responses",
+      "holds": true,
+      "observed": "entries=0 n_silenced=0"
+    },
+    {
+      "id": "every_envelope_published_its_provenance_chips",
+      "claim": "R5: each of the six envelope responses states, field by field, whether a database column produced the value",
+      "holds": true,
+      "observed": "{\"subjects\": 52, \"ancestry\": 11, \"blocking_checks\": 6, \"recall_run\": 17, \"silence\": 6, \"receipt\": 13}"
+    },
+    {
+      "id": "exactly_one_payload_declares_itself_staged",
+      "claim": "R5: the silence payload answers staged true; the other five answer false",
+      "holds": true,
+      "observed": "{\"subjects\": false, \"ancestry\": false, \"blocking_checks\": false, \"recall_run\": false, \"silence\": true, \"receipt\": false}"
+    },
+    {
+      "id": "the_staged_note_names_the_field_no_column_produced",
+      "claim": "R5: the note names receipt.bound.statement rather than merely flagging",
+      "holds": true,
+      "observed": "'receipt.bound.statement is the only value in this payload that no column produced. mainline_meas.silence_receipt carries'"
+    },
+    {
+      "id": "the_staged_value_is_chipped_staged_in_the_provenance_array",
+      "claim": "R5: and the chip array points at it by RFC 6901 pointer, not by prose",
+      "holds": true,
+      "observed": "[{\"chip\": \"staged\", \"pointer\": \"/receipt/bound/statement\"}]"
+    },
+    {
+      "id": "no_identifier_is_a_literal_in_this_source",
+      "claim": "no identifier and no origin in this artefact originates in scripts/proof/live_semantics.py. The EXPECTED VALUES do, deliberately and by name: they are the contract the submission copy states, and a checker that only records what it was told cannot go red.",
+      "holds": true,
+      "observed": "uuids=0 origin_host=0"
+    }
+  ],
+  "assertions_total": 45,
+  "assertions_held": 45,
+  "assertions_failed": [],
+  "verdict": "PROVEN",
+  "not_proven_by_this_artefact": [
+    "Not that the world these semantics are about is anyone's. The corpus, the site, the operator and the incident were authored for this repository — docs/HONESTY.md §SYNTHETIC — and the payloads say so in their own title and evidence_summary fields, which begin with the word SYNTHETIC. What is proven is that the deployment answers these six questions about that world with these fields.",
+    "Not the ACT half of the loop. That is POST /v1/demo/gate-run, it is proven in evidence/demo/live-beats.json, and this program sends no POST at all — so a reader who wants the refusal's MUS and NAA must read that file, not this one.",
+    "Not that a screen renders any of this. No browser ran; this is an HTTP client. That an operator surface displays these bytes is a separate claim with separate evidence.",
+    "Not a latency figure. No duration is recorded here at all, because a GET envelope on this API carries no server-measured duration and a wall clock wearing a server's name is how a demo narrates its own reveal delay as database latency.",
+    "Not that these semantics hold for every subject. One seeded subject was read, once, and every identifier it was read by is recorded in the subject block.",
+    "Not that the store is CockroachDB rather than any PostgreSQL-wire server. What is recorded is the cluster_version string the deployment reported about itself."
+  ],
+  "if_this_goes_red": "an assertion is never tuned to recover a verdict. Each claim carries says_who naming the document whose sentence would become false; edit that sentence, or repair the deployment, and re-run.",
+  "reproduce": {
+    "command": ".venv/Scripts/python.exe scripts/proof/live_semantics.py --base-url https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws",
+    "needs": "python 3.13 and the URL. No credential, no database, no AWS access.",
+    "expect": "exit 0 and VERDICT PROVEN, with different read_at stamps",
+    "reader": "docs/demo/LIVE-SEMANTICS.md"
+  }
+}

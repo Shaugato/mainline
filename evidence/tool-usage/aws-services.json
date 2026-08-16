@@ -11,16 +11,16 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7823,
+    "files_scanned": 7884,
     "files_by_category": {
-      "config": 4865,
-      "docs": 403,
+      "config": 4892,
+      "docs": 423,
       "migration": 271,
-      "other": 421,
-      "python": 1287,
+      "other": 427,
+      "python": 1293,
       "sql": 131,
       "terraform": 29,
-      "typescript": 396,
+      "typescript": 398,
       "workflow": 20
     },
     "skipped_binary": 27,
@@ -96,10 +96,10 @@
         "must_contain": "Refuse any model identifier",
         "subject_holds": true
       },
-      "file_count": 344,
+      "file_count": 355,
       "files_by_category": {
-        "config": 91,
-        "docs": 81,
+        "config": 92,
+        "docs": 91,
         "migration": 2,
         "other": 5,
         "python": 152,
@@ -135,10 +135,10 @@
         "must_contain": "amazon.titan-embed-text-v2:0",
         "subject_holds": true
       },
-      "file_count": 73,
+      "file_count": 76,
       "files_by_category": {
         "config": 20,
-        "docs": 25,
+        "docs": 28,
         "migration": 1,
         "other": 1,
         "python": 22,
@@ -171,10 +171,10 @@
         "must_contain": "class ListwiseReranker",
         "subject_holds": true
       },
-      "file_count": 23,
+      "file_count": 25,
       "files_by_category": {
         "config": 2,
-        "docs": 18,
+        "docs": 20,
         "python": 2,
         "workflow": 1
       },
@@ -205,10 +205,10 @@
         "must_contain": "aws_s3_bucket_object_lock_configuration",
         "subject_holds": true
       },
-      "file_count": 134,
+      "file_count": 139,
       "files_by_category": {
-        "config": 35,
-        "docs": 41,
+        "config": 38,
+        "docs": 43,
         "migration": 5,
         "other": 4,
         "python": 33,
@@ -244,10 +244,10 @@
         "must_contain": "ECDSA_SHA_256",
         "subject_holds": true
       },
-      "file_count": 45,
+      "file_count": 48,
       "files_by_category": {
         "config": 19,
-        "docs": 10,
+        "docs": 13,
         "python": 9,
         "terraform": 7
       },
@@ -278,10 +278,10 @@
         "must_contain": "aws_cloudtrail",
         "subject_holds": true
       },
-      "file_count": 38,
+      "file_count": 40,
       "files_by_category": {
         "config": 19,
-        "docs": 14,
+        "docs": 16,
         "python": 3,
         "terraform": 2
       },
@@ -312,10 +312,10 @@
         "must_contain": "authorization_type",
         "subject_holds": true
       },
-      "file_count": 42,
+      "file_count": 45,
       "files_by_category": {
         "config": 10,
-        "docs": 20,
+        "docs": 23,
         "other": 1,
         "python": 2,
         "terraform": 9
@@ -347,10 +347,10 @@
         "must_contain": "aws_cloudfront_distribution",
         "subject_holds": true
       },
-      "file_count": 99,
+      "file_count": 103,
       "files_by_category": {
         "config": 15,
-        "docs": 54,
+        "docs": 58,
         "other": 8,
         "python": 10,
         "terraform": 11,
@@ -383,11 +383,11 @@
         "must_contain": "def _guard",
         "subject_holds": true
       },
-      "file_count": 115,
+      "file_count": 125,
       "files_by_category": {
         "config": 20,
-        "docs": 45,
-        "other": 12,
+        "docs": 51,
+        "other": 16,
         "python": 27,
         "terraform": 10,
         "workflow": 1
@@ -419,10 +419,10 @@
         "must_contain": "aws_iam_role",
         "subject_holds": true
       },
-      "file_count": 37,
+      "file_count": 40,
       "files_by_category": {
         "config": 9,
-        "docs": 14,
+        "docs": 17,
         "other": 1,
         "python": 5,
         "terraform": 8
@@ -454,10 +454,10 @@
         "must_contain": "ssm:GetParameter",
         "subject_holds": true
       },
-      "file_count": 26,
+      "file_count": 28,
       "files_by_category": {
         "config": 4,
-        "docs": 17,
+        "docs": 19,
         "other": 1,
         "terraform": 4
       },
@@ -488,10 +488,10 @@
         "must_contain": "EventBridge",
         "subject_holds": true
       },
-      "file_count": 32,
+      "file_count": 34,
       "files_by_category": {
         "config": 2,
-        "docs": 12,
+        "docs": 14,
         "migration": 2,
         "other": 3,
         "python": 13

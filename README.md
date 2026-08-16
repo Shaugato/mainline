@@ -78,13 +78,30 @@ credential, no AWS access, no database:
 | `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url <the URL above>` | the four beats off the deployed URL, each with the SQLSTATE the database produced → `evidence/demo/live-beats.json`. [`docs/demo/LIVE-BEATS.md`](docs/demo/LIVE-BEATS.md) |
 | `.venv/Scripts/python.exe scripts/proof/memory_loop.py --base-url <the URL above>` | STORE → RETRIEVE → ACT, forty rows with a table, a column and a timestamp behind each → `evidence/demo/memory-loop.json`. [`docs/demo/MEMORY-LOOP.md`](docs/demo/MEMORY-LOOP.md) |
 
-The memory loop is the one worth running. An incident in **2019** named a clause; seven years
-later a permit relies on that clause; a retrieval pass finds the incident and **ten seconds**
-later the finding becomes an obligation on the permit — and from that instant a `CHECK` in the
-database will not let the permit be issued. Those ten seconds are a subtraction of two columns
-off two live routes, not a sentence
-[src: evidence/demo/memory-loop.json#gap.seconds]. No endpoint was added to make any of it
-filmable.
+**The memory loop is the one worth running, and its answer is already committed: `verdict
+PROVEN`, 23 of 23 assertions held, 0 failed**
+[src: evidence/demo/memory-loop.json#verdict,
+evidence/demo/memory-loop.json#assertions_held] — run on 2026-08-15 with `base_url` set to the
+demo URL above, not to a local emulator
+[src: evidence/demo/memory-loop.json#base_url]. An incident in **2019** named a clause; seven
+years later a permit relies on that clause; a retrieval pass finds the incident and **ten
+seconds** later the finding becomes an obligation on the permit — and from that instant a
+`CHECK` in the database will not let the permit be issued. Those ten seconds are a subtraction
+of two columns off two live routes, not a sentence
+[src: evidence/demo/memory-loop.json#gap.seconds] — `mainline.blocking_check.materialised_at`
+off `GET /v1/permits/{permit_id}/blocking-checks`, minus `mainline_meas.recall_run.started_at`
+off `GET /v1/recall-runs/{run_id}`, with `stated_anywhere_in_this_program: false` recorded in
+the very file that computes it.
+
+**And the program that writes that file audits itself.** Its `self_audit` block makes the
+claim *"no value in this artefact originates in `scripts/proof/memory_loop.py`"* and then backs
+it: **79 values audited, 0 of them found in the source** —
+`values_audited: 79`, `values_found_in_the_source: []`, `uuid_literals_in_the_source: 0`,
+beside the source's own `sha256` and byte count
+[src: evidence/demo/memory-loop.json#self_audit]. A proof script that could have hard-coded its
+own answer, and demonstrably did not. **No endpoint was added to make any of it filmable** —
+the artefact's own ruling `R7` reads *"the loop needs no new endpoint; every word is already a
+live GET"* [src: evidence/demo/memory-loop.json#ruling.R7].
 
 ---
 
@@ -303,18 +320,45 @@ disagree. The short version, because it should not be buried:
 
 No shipping permit system can express that, because every one of them is **synchronic** — it gates on the current state of the world. MAINLINE is **diachronic**: it gates on *ancestry*.
 
-## Why this is memory, not workflow
+## Why this is memory, not workflow — and every line below is a URL, not a claim
 
-The memory is not a panel next to the transaction. It is a **precondition of the state transition**, enforced as a database invariant under `SERIALIZABLE` — not as a UI nag that can be dismissed.
+The memory is not a panel next to the transaction. It is a **precondition of the state
+transition**, enforced as a database invariant under `SERIALIZABLE` — not as a UI nag that can
+be dismissed. The memory also has *semantics* rather than being a document store — and each
+semantic is a live, anonymous `GET` on the deployed origin. Measured 2026-08-16; substitute the
+demo URL for `$B` and the seeded permit `dec0de00-0006-4000-8000-000000000001` for `$P`.
 
-The memory also has *semantics* rather than being a document store:
+| semantic | the command | what comes back |
+|---|---|---|
+| **provenance** — clause → the incident that wrote it | `curl $B/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry` | a `blame_edge` with `basis: asserted_document` and an `evidence_quote_sha256` |
+| **ancestry** — a commit DAG, walked | same route | `commit_chain` with `control_delta: introduce`, and a `closure` of `depth 1`, `ancestor_count 1` |
+| **severity floors** — a fatality's relevance never decays | `curl $B/v1/permits/$P/blocking-checks` | `severity_gate: 4`, `severity_basis: human_rated`, `origin: blame_ancestry` |
+| **logged silence** — what the recall *declined* to surface, with its arithmetic | `curl $B/v1/permits/$P/silence` | a Merkle receipt: `corpus_root`, `candidate_root`, `theta 0.35`, `s 1`, `n 1`, a boundary proof |
+| **retrieval accounting** — the run auditing itself | `curl $B/v1/recall-runs/dec0de00-0009-4000-8000-000000000001` | `n_candidates 1 · n_blocking 1 · n_advisory 0 · n_silenced 0 · n_deduped 0`, plus the `index_plan_digest` |
+| **the act** — recall conditioning the write | `curl -XPOST $B/v1/demo/gate-run -d '{}'` | the refusal's `mus` and `naa` |
 
-- **provenance** — clause → the incident that wrote it
-- **ancestry** — a commit DAG, walked, not a "related documents" list
-- **severity floors** — a fatality's relevance never decays
-- **archival bonds** — recall keyed to an activity taxonomy, not to keywords
-- **fixity** — as-documented reconciled against as-operated
-- **logged silence** — every precursor the system *declined* to surface is recorded, with its arithmetic
+**Read the silence receipt honestly, because we do.** On this seeded run the receipt is
+complete and `entries` is **empty** — `n_silenced: 0`, nothing was withheld. What is
+demonstrated is the *apparatus*: the arithmetic a withholding would have to publish, bound to
+a corpus root and a threshold, on a run that withheld nothing. And the receipt says which of
+its own fields no column produced: `staged: true`, with a `staged_note` naming
+`receipt.bound.statement` as the single value in that payload that the database did not
+author. **Every one of those responses carries a `provenance` array of per-field chips —
+`db:column`, `derived`, `staged` — so you never have to guess which half of an answer came
+from the database.**
+
+**Two semantics this section used to list are design, and they stay on the page saying exactly
+that.** **Archival bonds** — recall keyed to an activity taxonomy, not to keywords — and
+**fixity** — as-documented reconciled against as-operated — are **not** among the routes on the
+deployed origin, and neither is a row in the table above. What is live is their *accounting*,
+and it reads zero on both: `GET /v1/recall-runs/…` carries `n_bonded_sev5: 0` and
+`n_bonded_sev5_blocking: 0` — severity-5 events bonded to the permit's activity node, the arm
+the `bonded_fatalities_all_blocking` `CHECK` governs
+[src: spec/invariants/I13-silence-logged.md] — and `GET /v1/audit` returns
+`mainline_audit.v_fixity_coverage` with an empty `rows` array. **A counter reading zero and a
+view with no rows demonstrate nothing, and this page will not present them as though they
+did.** They are dropped from the claim, not from the design; deleting them would hide a gap and
+giving them a route would invent one.
 
 ## Architecture in one layer diagram
 

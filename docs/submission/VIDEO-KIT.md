@@ -5,6 +5,243 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # VIDEO KIT — the capture runbook
 
+## 00 · THE FIVE VIDEO SUB-RULES — the pre-upload checklist
+
+> **Read this section LAST, immediately before you paste the link into the submission form.**
+> Everything after §0 is about *making* the film. This section is about the five rules the
+> finished file has to satisfy, and **four of the five can only be broken after the shoot** —
+> in the export, in the upload, and in the visibility setting. A perfect capture uploaded
+> Private is a disqualified entry.
+
+**Verbatim from the Official Rules** ([`cockroachdb-ai.devpost.com/rules`](https://cockroachdb-ai.devpost.com/rules); quoted
+character-for-character in [`compliance-plan.md`](compliance-plan.md) §1.3, which is the
+rules-compliance lead's transcription and the authority for this section). The video:
+
+> * "should be less than three (3) minutes. Judges are not required to watch beyond three minutes"
+> * "must include footage that shows the Project functioning on the device for which it was built"
+> * "must include footage showing the CockroachDB memory layer at work"
+> * "must be uploaded to and made publicly visible on YouTube or Vimeo and a link to the video must be provided on the submission form"
+> * "must not include third party trademarks, or copyrighted music or other material unless the Entrant has permission to use such material."
+
+### The checklist
+
+| # | rule | what satisfies it here | check it by |
+|---|---|---|---|
+| V1 | **< 3 minutes** | the cut is **171 s = 2:51**, 9 s under | read the duration off the **exported file**, not the shot list — see §00.1 |
+| V2 | **footage of the Project functioning on the device it was built for** | beat 2, `s08`–`s12` — the refusal and the raw-SQL bypass, on the pinned node | §B.7 prints the frame; §00.3 ties it to the live origin |
+| V3 | **footage showing the CockroachDB memory layer at work** | beat 1 blame-walk, beat 3 disposition, beat 5 `EXPLAIN` over `@cue_scoped_idx` | §C.2, §C.4, §C.6 — and **beat 1 still has no surface** (§G item 3) |
+| V4 | **uploaded and publicly visible on YouTube or Vimeo, link on the form** | Unlisted is enough; **Private is not** | §00.2 — the logged-out check |
+| V5 | **no third-party trademarks, no copyrighted music** | no logos in frame, **no music track at all** | §00.4 |
+
+- [ ] **V1** duration of the exported file is under 3:00
+- [ ] **V2** beat 2 is in the cut
+- [ ] **V3** a CockroachDB memory surface is in the cut
+- [ ] **V4** uploaded, and the pasted URL opens in a **logged-out** browser
+- [ ] **V5** no logo in any frame; no music on the audio track
+- [ ] **F** every shot is reachable on the live origin (§00.3)
+
+---
+
+### 00.1 · V1 — the ceiling is the rule, and 9 seconds is thin
+
+**Re-derived today, 2026-08-16**, by the validator that CI runs:
+
+```bash
+D:/CoackroachDBxAWS/mainline/.venv/Scripts/python.exe verticals/mainline/demo/script/validate_shotlist.py
+```
+
+**RAN 2026-08-16**, exit **0**: `submission.total_s 171`, `submission.shots 25`,
+`submission.vo_words 304`, `submission.headroom_s 9`.
+
+**171 s is 2:51, not 2:52.** The figure carried into this wave was "2:52 with 8 seconds of
+headroom"; the validator says 171 s and 9 s. One second, in our favour, and it is recorded
+rather than smoothed over because the whole point of quoting a number is that somebody can
+re-run the command. **Either way the conclusion is identical and it is the one that matters:
+the margin is thin, an overrun is a real risk, and the ceiling is a rule and not a target.**
+
+**The 9 seconds is headroom on the PLAN, not on the FILE.** `SHOT-LIST.yaml` sums the
+*intended* durations. The rule applies to the duration of the thing you upload. Those two
+numbers come apart the moment a read runs long, and §0.2 already names exactly where:
+`s24-rubber-stamp` is 16 words in 5 s — **3.20 w/s, 80 % above the film's average** — and at
+the average rate that line takes **9 s**. That one shot, read at a natural pace, spends the
+entire headroom. `s04-architecture` at 2.80 w/s is the second.
+
+So: **read the duration off the export.** If it is at or over 3:00, do not upload it and do
+not hope a judge is lenient — the rule says judges are *not required* to watch past three
+minutes, so an overrun does not merely risk disqualification, it silently truncates whatever
+you put last. The end card is last. The scope-cut ladder in §E is pre-committed for exactly
+this and step 1 costs the film nothing a viewer will miss.
+
+---
+
+### 00.2 · V4 — THE FIRST QUIET TRAP: "publicly visible" is not the same as Public
+
+**YouTube has three visibility settings and only one of them fails.**
+
+| setting | satisfies "publicly visible"? | why |
+|---|---|---|
+| **Public** | yes | listed and searchable |
+| **Unlisted** | **yes** — and this is the conventional hackathon choice | anyone with the link can watch with **no login**, which is what the rule protects |
+| **Private** | **NO — this disqualifies the video** | only named Google accounts can open it; a judge sees "Video unavailable" |
+
+Vimeo's equivalents behave the same way; a password-protected Vimeo video is a Private video
+with extra steps and fails for the same reason.
+
+**Here is why this is a trap rather than a setting.** To the founder who uploaded it — signed
+in, on the account that owns the video — **Private, Unlisted and Public all look identical.**
+The video plays. The page renders. Nothing warns you. The failure is invisible from the only
+browser you are likely to test it in, and it is indistinguishable from a mistyped URL: both
+produce a judge staring at an error page, and neither produces a message to you.
+
+**THE CHECK — do this before the form is submitted, not after:**
+
+- [ ] Copy the URL **from the submission form field itself**, not from the YouTube tab, not
+      from your clipboard, and not from this page. The value that matters is the one that
+      will be submitted.
+- [ ] Open a **private / incognito window**, or a browser you are not signed into. On
+      Windows: `Ctrl+Shift+N` in Chrome or Edge, `Ctrl+Shift+P` in Firefox.
+- [ ] **Confirm you are logged out** — the account avatar must be absent. An incognito window
+      that inherited a session proves nothing, which is the second-order version of this
+      same trap.
+- [ ] Paste the URL. **The video must play.** Not "load a page" — play.
+- [ ] Confirm the title is the right film and the duration is the one you exported.
+
+If it does not play, the cause is one of exactly two things and both are yours to fix in
+under a minute: the visibility is Private, or the URL is wrong. Fix it, then **run the check
+again from the form field** — not from memory of having fixed it.
+
+---
+
+### 00.3 · THE FUNCTIONALITY RULE — every shot is a promise
+
+> "The Project must be capable of being successfully installed and running consistently on
+> the platform for which it is intended and **must function as depicted in the video and/or
+> expressed in the text description**."
+
+This is the rule that turns the film from a description into a commitment. **A judge who sees
+a screen in the video may open the demo and look for it.** So the standing requirement for
+this kit is:
+
+> **Every shot must depict something reachable on the live origin
+> `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`, or be
+> visibly a terminal against a local node — never a screen that exists only in the tree.**
+
+**Measured by this worker on 2026-08-16 with `curl` against that origin**, no credential,
+`authorization_type = NONE`:
+
+| request | result | what it means for the film |
+|---|---|---|
+| `GET /` | **200**, 4,749 B, `<title>MAINLINE console</title>` | the console shell serves |
+| `GET /judge` | **200**, 4,749 B | same shell — SPA route |
+| `GET /console` | **200**, 4,749 B | same shell — SPA route |
+| `GET /v1/health` | **200** | the health surface answers |
+| `GET /v1/demo/gate-run` | **405** | **POST-only — see the warning below** |
+| `GET /operator.html` | **200**, 5,097 B, `<title>Control of Work</title>` | **the operator surface is on the origin** — see below |
+| `GET /assets/operator-D24tzVGh.js` | **200**, 96,734 B | the operator bundle serves |
+| `GET /assets/operator-DTSzHtCs.css` | **200**, 33,043 B | its stylesheet serves |
+
+`POST /v1/demo/gate-run` returning a real beat array was measured today by the
+rules-compliance lead ([`compliance-plan.md`](compliance-plan.md) §0 Finding 1) and is
+committed as a transcript at `evidence/demo/live-beats.json` (2026-08-15,
+`target_is_local_emulator: false`, `failures: []`). **This worker did not issue that POST**,
+and the row above says so rather than borrowing someone else's measurement as its own.
+
+#### ⚠ `gate-run` is POST-only. Do not film it as a browser navigation.
+
+`GET /v1/demo/gate-run` answers **405**, measured above. So a shot that shows the four beats
+arriving by *typing the URL into an address bar* depicts something that does not happen —
+and it is checkable in ten seconds by any judge who tries it, which makes it exactly the
+kind of small, verifiable falsehood the prohibitions in this repository exist to prevent.
+
+Film it as what it is: a `POST`. `curl -sS -X POST <origin>/v1/demo/gate-run`, or the
+console's own button, or `scripts/proof/live_beats.py --base-url <origin>`. All three are
+honest depictions; an address bar is not.
+
+#### The operator screens ARE on the origin — corrected today
+
+[`JUDGE-START.md`](JUDGE-START.md) stop 6 has said, since 2026-08-15, that
+`GET /operator.html` "returns the console shell byte-for-byte identical to `GET /`", i.e.
+the SPA fallback, and that the two operator screens are "in the tree and not on the origin
+yet". **Re-measured 2026-08-16, that is no longer true**, and the correction runs in the
+helpful direction:
+
+* `GET /` → 4,749 B, `sha256` prefix `9bd68bcdf30799d3b57c9e35`, title **MAINLINE console**
+* `GET /operator.html` → **5,097 B**, `sha256` prefix `37454502e640e505c35b28c8`, title
+  **Control of Work**
+
+Different length, different digest, different title, and it carries its own bundle
+(`./assets/operator-D24tzVGh.js`, 96,734 B, `200`) rather than the console's. **It is not the
+fallback.** The film's setting — the permit-to-work and management-of-change screens the
+story actually happens in (§C.7) — is therefore served by the live origin, and the biggest
+Functionality-rule exposure this kit had is closed. JUDGE-START.md carries the same
+correction.
+
+**One honest limit on that, which the film must not overrun.** `#/permit` and `#/change` are
+**hash fragments**, resolved client-side inside that bundle; a hash is never sent to the
+server, so the checks above prove the *document and its assets* serve and prove nothing about
+what either route renders. Before filming an operator screen, **open
+`<origin>/operator.html#/permit` in a browser and look at it.** That is the check, it takes
+fifteen seconds, and no `curl` substitutes for it.
+
+---
+
+### 00.4 · V5 — THE SECOND QUIET TRAP: logos and music are checkable frame by frame
+
+The rule bars "third party trademarks, or copyrighted music or other material unless the
+Entrant has permission to use such material." **A film shot in a console is a film full of
+other people's marks unless somebody is deliberately keeping them out**, and unlike a claim
+in prose, this one is verified by *looking* — a judge can scrub the timeline.
+
+**Read the rule correctly first, so the shoot does not overcorrect.** Naming CockroachDB and
+AWS in the voice-over and on screen is not only allowed, it is *required* — the Submission
+Requirements say to "Identify which CockroachDB tools you used" and "which AWS Services tools
+you used". Word marks used to identify the sponsor technologies you actually used are the
+normal, expected content of a hackathon video. **The checkable risk is imagery: logos,
+branding and third-party chrome.**
+
+**NO LOGOS.** Not in a frame, not in a corner, not in a card:
+
+* **No AWS logo, no CockroachDB logo**, no Cockroach Labs wordmark-as-graphic, no partner
+  badges — including on the title card, the architecture card and the end card, which is
+  where a designer's instinct puts them.
+* **No browser chrome**, which carries the browser's own mark, the OS mark, extension icons
+  and — worst — whatever is in the other tabs and the bookmarks bar.
+* **No OS taskbar, no Start button, no notification toasts, no IDE splash screen**, no
+  Docker Desktop window, no cloud-console header.
+
+**§A.1 already bans all of this** — one terminal, full screen, no tabs, no taskbar,
+notifications off — and it was written for *framing* reasons. It happens to do almost all of
+the trademark work as a side effect. **Following §A.1 exactly is the control.** The residual
+risk is the shots §A.1 does not govern: the three static cards (§G item 2, still unauthored),
+the honesty card, and the end card. Those are authored by hand, and a hand reaching for a
+logo is the failure mode.
+
+**NO MUSIC. None. Not a bed, not a sting, not an intro, not royalty-free, not "no copyright"
+library music.**
+
+* `SHOT-LIST.yaml` specifies no music track — `budget.export` (line 90) names
+  `loudness_lufs: -16` and `true_peak_dbtp: -1`, which are **voice** levels, and there is no
+  `music` or `soundtrack` key anywhere in the file. Confirmed by `grep` on 2026-08-16.
+  **So the current state is compliant, and the only way this rule gets broken is by somebody
+  adding music in the edit.**
+* "Royalty-free" is not the same as "licensed to you", and "no copyright" is a YouTube search
+  term rather than a legal status. Both still require the Entrant to hold permission, and a
+  submission that has to argue about a licence has already lost the minute it costs to argue.
+* **The film does not need it.** §0.2 records two deliberate `·hold` marks in `VO.md`, at
+  `s06` and `s20`, where the frame is held in silence — *"the silence is part of the shot. Do
+  not fill it."* Music would fill exactly those two moments, and they are load-bearing.
+* Captions are burned in and judges watch muted (§0.2), so a music bed is inaudible to a
+  large part of the audience and a rules exposure for all of it.
+
+**The one permitted piece of on-screen text stays**: the end card's licence triple, spelled
+out once in §C.7, is **our own** licensing, and the watermark
+`SYNTHETIC CORPUS · KESTREL RESOURCES IS FICTIONAL` is ours. Neither is a third-party mark,
+and neither is spelled a second time here — the licence identifiers are ratcheted repository
+surface (`scripts/qa/check_reuse.py`, metric `non_spdx_spelling.*`), so this section points
+at §C.7 rather than restating them.
+
+---
+
 The script is finished. `verticals/mainline/demo/script/` holds a locked voice-over
 (`VO.md`), the submission cut (`SHOT-LIST.yaml`), a minimum-winnable cut
 (`SHOT-LIST-MWS.yaml`), the camera strings, the generated cut diff and a validator that
@@ -302,6 +539,19 @@ over `scripts/deploy/local_furl.py`, a local emulator of a Lambda Function URL, 
 so in their own `target_is_local_emulator` field. A green acceptance run against a socket on
 your own laptop is not a demo URL, and putting one on the end card would be the single
 checkable falsehood in the film.
+
+**Nor is it softened by the fact that a real origin now exists — and read this before
+concluding the card must be bare.** The apply landed on `2026-08-14`
+(`evidence/deploy/APPLIED.md`: `24 created, 0 changed, 0 destroyed`), the Function URL it
+produced answers `ok true` with `deploy_chain 271/271` (`evidence/deploy/live-health.json`),
+and the four beats come back from it at verdict `PROVEN`
+(`evidence/deploy/live-gate-run.json`). **So the missing thing is the *submitted value*, not
+the deployment** — `SUBMISSION.json` still holds `UNRESOLVED` in `demo_url`, and that file,
+not this page and not an evidence artefact, is what the card is read from. The rule is
+therefore unchanged and its reason is now narrower: film `s25` last, read the value out of
+`SUBMISSION.json` on the day, and if its owner has written the hostname by then the card
+carries it. Do not copy a hostname onto the card from `APPLIED.md`, `LIVE.md` or this
+paragraph — that is the second write point this repository refuses to have.
 
 ### And the one that is easiest to get wrong because it sounds modest
 
@@ -1369,7 +1619,15 @@ them"* is true and is the sentence to use.
 **`s19-beat5-mcp-connect`** — K6 · 8 s · capture #17 · **Cloud, not local**
 
 * **Command** — in Claude Code: `/mcp`, then prompt 1. The connection details are in
-  `verticals/mainline/demo/judge/MCP-CONFIG.md`. Declared, not run here.
+  `verticals/mainline/demo/judge/MCP-CONFIG.md`. **Film this one live.** This line read
+  *"Declared, not run here"* until `2026-08-16`, and the condition that held it there is now
+  discharged: the same exchange ran against `https://cockroachlabs.cloud/mcp` that morning and
+  its transcript is committed under `evidence/mcp/` — **including this shot's own question**
+  (`auditor-live.json` → `Q7`, quoted below). The old annotation is named rather than deleted,
+  because it was a statement about *this page's capture pass* and never about the tool — the
+  **Backing artefact** bullet below is what it meant, and it is left standing. If the
+  connection cannot be made on the day, take the **Fallback** below unchanged; the VO does not
+  move either way.
 * **Shot** — `cockroachdb-cloud: connected`, then a `select_query` against
   `mainline_audit.v_disposition_coverage` showing surfaced / dispositioned / orphans with
   `ancestry_complete`.
@@ -1377,6 +1635,124 @@ them"* is true and is the sentence to use.
 * **Fallback** — if publishing a key is forbidden, record the MCP session against the
   throwaway `mainline-verify` cluster plus our own read-only endpoints, and `VERIFY.md` states
   exactly why.
+* **Backing artefact — what "Declared, not run here" did and did not mean, while it stood.**
+  It was a statement about **this page's capture pass**, never about the tool — which is why
+  discharging it changed a shooting instruction and changed no claim. The Managed MCP Server is an
+  **EXERCISED** row in the census, and the transcript is committed:
+  `evidence/deploy/judge-run.json` records a session against `https://cockroachlabs.cloud/mcp`
+  — protocol `2025-06-18`, `serverInfo` `cockroachdb-cloud` `1.0.0`, `tools/list` returning
+  `12` tools, `sql_identity` `managed-mcp` — driving the 16-question judge pack against the
+  live Basic cluster `7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e`: **`15` of `16` PASS, verdict
+  `DIVERGED — KNOWN GAP`**, the one FAIL (`N01`) preserved. `evidence/deploy/judge-access.json`
+  → `mcp_channel` carries the same handshake independently (`reachable true`, `591.1` ms).
+  **And, captured `2026-08-16`, `evidence/mcp/` holds the same pack re-run through the pack's
+  own runner** — `pack-run.json`, `07:33:46Z`, `15` of `16`, `exit_code` `1`, verdict
+  `DIVERGED — KNOWN GAP`, `N01` still the one FAIL — beside `session.json` (`07:33:26Z`;
+  handshake `305.3` ms, `12` tools, `0` of the `3` write verbs called) and
+  `tools-schema.json` (`07:33:27Z`; its own `tools/list` round trip, `236.7` ms). **Take each
+  latency from the file that carries it.** `session.json` logs a *second* `tools/list` in its
+  own `http_exchanges` at `270.8` ms — a different call, seconds apart — and an earlier
+  version of this bullet quoted `236.7` against `session.json`, where a judge opening it to
+  check would have found `270.8` instead. The number was real and the citation was wrong,
+  which is the failure mode this page exists to catch. What is *not* recorded is a capture of
+  **this shot on camera**, because no footage
+  of this film exists at all. **A judge can open every one of those files in under a minute;
+  the Functionality rule is satisfied by the transcript, not by the take.**
+* **Cleared for a live take — the condition that was open on this beat is now MET, and here is
+  the file that closes it.** The rule was: the VO and the Fallback may change only once a
+  same-day transcript covering *this beat's own question* is committed under `evidence/mcp/`,
+  because the rules require the project to *"function as depicted in the video"* and a beat
+  shown as live must be backed by a file a judge can open. **Both halves have landed, on
+  `2026-08-16`:**
+
+  - the session / tool-schema / pack-run transcript that was owed — `session.json`
+    (`07:33:26Z`), `tools-schema.json` (`07:33:27Z`, all `12` tools with their full
+    `inputSchema`), `pack-run.json` (`07:33:46Z`);
+  - **this shot's own view, answered live.** `evidence/mcp/auditor-live.json`
+    (`2026-08-16T07:24:31Z`) question **`Q7`** routes the free text *"are dispositions keeping
+    up with what was surfaced?"* onto `mainline_audit.v_disposition_coverage` — `select_query`,
+    `1` row, `397` bytes, `599.5` ms — and the row it returns carries `surfaced 2`,
+    `dispositioned 0`, `orphans 2`, `ancestry_complete true`. **That is exactly the shot
+    described above**, and its completeness state is `complete`: *"COMPLETE — all 1 returned
+    rows report ancestry_complete = true."*
+
+  The rest of that file: `10` free-text questions, of which **`9` route onto contracted
+  `mainline_audit` views and the tenth (`Q10`) onto a pinned `explain_query`** over
+  `mainline.event_cue_embedding@cue_scoped_idx`; `routed_correctly: true` on all `10`; and one
+  further question refused outright as an `UnroutableQuestion`. `budget-live.json`, same
+  instant, measures `13` views on the wire, `0` breached, largest response `517` bytes against
+  the server's `10240`-byte cap — **read with that file's own caveat that `8` of the `13`
+  returned zero rows, so part of that green is emptiness rather than headroom.**
+
+* **The VO and the Fallback nevertheless stay byte-for-byte, and the reason is not the
+  transcript — it is that this page does not own them.** The canonical VO for this shot is
+  `verticals/mainline/demo/script/SHOT-LIST.yaml:457` and `VO.md`, and
+  `verticals/mainline/demo/script/validate_shotlist.py` asserts those two hold the same string
+  and that `word_count` equals the words actually in it. **This page is a mirror of that
+  string, not its source.** Editing the mirror alone would desynchronise three copies and turn
+  a validated line into an unvalidated one — the same half-correction
+  `docs/demo/ON-SCREEN-CLAIMS.md` § *Discrepancies filed, not smoothed* refuses elsewhere. So
+  the line above is reproduced exactly as the shot list holds it.
+
+* **One defect in that VO line, filed rather than half-fixed — and it is an overclaim, so read
+  it before the take.** The VO says *"read-only"*. **The Managed MCP Server is not read-only.**
+  Its measured tool list carries `create_database`, `create_table` and `insert_rows`
+  (`evidence/mcp/tools-schema.json` → `write_tools_present`, which is a **list naming those
+  three**, not a count — open it and you get the names, not the number `3`), and
+  `evidence/deploy/judge-run.json` → `managed_mcp_availability` records `create_database`
+  returning `{"success": true}` against the live demo cluster on 2026-08-11 — a database was
+  created and dropped in the same session. What *is* read-only is **our use of it**: this
+  capture called `0` of the `3` write verbs, and the client aborts such a call before
+  transmission (`evidence/mcp/session.json` → `read_only.enforced_how`). A judge who hears
+  *"read-only"* and opens `evidence/mcp/README.md` meets a section headed *"The three write
+  verbs, and why they were never called"* — a contradiction findable in under a minute, on the
+  highest-risk surface in the submission. **Owed, in one change, to the owner of
+  `SHOT-LIST.yaml`:** replace the `vo` string in `SHOT-LIST.yaml:457`, the matching line in
+  `VO.md`, and the mirror in this page's §B stopwatch table and here, with a line of the
+  **same 13-word budget** so nothing in the timing moves:
+
+  > Hand it to an auditor. CockroachDB's own managed MCP — not our surface.
+
+  `word_count` stays `13` under `validate_shotlist.py`'s own rule (`len(vo.split())`, which
+  counts the em dash as a word), `dur` stays `8 s` and the rate stays `1.62` w/s. The claim it
+  makes — *a surface we did not write* — is the one `auditor-live.json` actually supports, and
+  it is the criterion-1 claim rather than a weaker security one. **Until that one change lands
+  in all four places, film the line as written and keep the word "read-only" out of the
+  overlay, the caption and the end card.**
+
+* **A second thing owed to the same file, and it is worth more than the VO word.** This shot
+  is filed as `judging_criterion: Readiness` at `SHOT-LIST.yaml:459`. **That is the wrong
+  axis, and it is the wrong axis in the direction that costs most.** What the beat shows is a
+  general-purpose MCP client interrogating our memory layer over CockroachDB's own managed
+  endpoint — *store → retrieve → act, through a surface we did not write* — which is
+  **Agentic Memory Design**, criterion 1. The official rules break ties
+  **lexicographically** with Agentic Memory Design **first** and Product Readiness **fourth**,
+  so filing this beat under Readiness spends our single most agentic shot on the weakest of
+  the axes it could serve — and Readiness is the axis this submission openly concedes.
+  `"Memory design"` is already a legal value in that file (`3` shots carry it) and
+  `validate_shotlist.py` only requires the key to be present — it enumerates no values and
+  counts no criteria (`REQUIRED_FIELDS`, `:78-89`), so the change is one word and breaks
+  nothing. **Owed to the owner of `SHOT-LIST.yaml`, alongside the VO change above:**
+  `SHOT-LIST.yaml:459`, `Readiness` → `"Memory design"`. Filed rather than reached into,
+  because this page is a mirror of that file and a mirror that edits itself desynchronises
+  the thing it mirrors.
+
+  Re-derive before the take rather than trusting any sentence above — these are dated
+  measurements, not standing guarantees:
+
+  ```bash
+  ls evidence/mcp/                                            # the same-day transcript
+  python -c "import json;d=json.load(open('evidence/mcp/auditor-live.json'));q=[x for x in d['questions'] if x['id']=='Q7'][0];print(q['routing']['target'],q['rows'])"
+  ```
+* **Caption guard — the one sentence this beat must not imply.** We are filming **our own**
+  key against **our own** cluster. The overlay may say *"CockroachDB's own managed MCP server —
+  we did not write this surface"*; it may **not** say, or let a viewer infer, that a judge can
+  read MAINLINE's ledger over MCP with a credential we supply. They cannot: the key is an
+  account-level Cloud service-account credential carrying `create_database`, `create_table` and
+  `insert_rows`, and `evidence/deploy/judge-access.json` records
+  `mcp_channel.credential_publishable: false`. **Reading our ledger is the `mainline_judge`
+  pgwire login**, and `docs/demo/ON-SCREEN-CLAIMS.md` carries the same prohibition so the two
+  pages cannot drift.
 
 **`s20-beat5-explain`** — K4 · 8 s · capture #18 · **STATE A (the local fallback is verified)**
 
@@ -1487,6 +1863,18 @@ them"* is true and is the sentence to use.
 * **VO** — "Repo, demo, read-only endpoint. Verify it yourself."
 * **Fallback** — **film it last.** If `demo_url` still reads `UNRESOLVED`, the card carries the
   repository and the MCP line only and the VO drops one word (§0.3).
+* **Claim guard on the MCP one-liner — read this before setting the card.** The VO says
+  *"read-only endpoint. Verify it yourself."* **The read-only endpoint a stranger can actually
+  verify is the `mainline_judge` pgwire login, not the `claude mcp add` one-liner.** That
+  one-liner (`MCP-CONFIG.md` §1) needs the viewer's **own** CockroachDB Cloud service-account
+  key; pasted as printed, with our `mcp-cluster-id` and no key of their own, it reaches nothing,
+  and we do not publish ours — `evidence/deploy/judge-access.json` records
+  `mcp_channel.credential_publishable: false`. A card that puts `claude mcp add` directly under
+  *"verify it yourself"* invites precisely the inference the submission may not make.
+  **The fix costs no timing and no VO word:** set the card's third line to the `mainline_judge`
+  connection line from `docs/deploy/JUDGE-PACK.md` §2, and keep `claude mcp add` only if the
+  card labels it *"your own cluster"*. This is the fallback branch's highest-risk frame,
+  because when `demo_url` is `UNRESOLVED` the MCP line is one of **two** things left on screen.
 
 **The watermark is on every frame:** `SYNTHETIC CORPUS · KESTREL RESOURCES IS FICTIONAL`
 (`SHOT-LIST.yaml: watermark`). Captions are burned in — judges watch muted.
@@ -1739,7 +2127,50 @@ pinned local node; everything marked READ was read back from a committed file.
 
 **Not run, and named as such:** `s12`'s `DROP CONSTRAINT` (destructive by design; the seeder
 verifies the constraint from the catalogue instead), every console path, the MCP session, the
-changefeed, and the custodian patrol. Each is marked *declared, not run here* where it appears.
+changefeed, and the custodian patrol. Each is marked *declared, not run here* where it appears
+— **except the MCP session, whose beat now reads *film this one live*** (§C.6), because a
+same-day transcript landed under `evidence/mcp/` on `2026-08-16`. It is still not run *by this
+page's verification pass*, which is the only thing this table reports, and the paragraph below
+is the reason that distinction has to be spelled out rather than left to the phrase.
+
+**"Not run" here means *not run by this page's verification pass* — read it that way for the
+MCP session, because the other reading would be false.** The Managed MCP Server is an
+**EXERCISED** row in `evidence/tool-usage/crdb-features.json`, and its transcript is committed
+twice over: `evidence/deploy/judge-run.json`, a 16-question pack driven over
+`https://cockroachlabs.cloud/mcp` against the live Basic cluster on `2026-08-11` — `15` of `16`
+PASS, verdict `DIVERGED — KNOWN GAP` — and `evidence/mcp/`, the same pack re-run on
+`2026-08-16` through the pack's own runner to the same `15` of `16` and the same verdict, beside
+a general-counsel auditor session and a byte-budget probe of `13` audit views. What this
+kit did not do is *capture that session on camera*. The changefeed is the genuinely different
+case and the distinction is worth keeping straight: it reads `DESIGNED`, `SHOW CHANGEFEED JOBS`
+returns `0`, and `kv.rangefeed.enabled` is `false` on the pinned node.
+
+### H.1 · ADDENDUM — the 2026-08-16 revision that added §00
+
+§00 (the pre-upload checklist) was added on **2026-08-16** by the compliance worker, under
+[`compliance-plan.md`](compliance-plan.md) §1.3 and §1.4. It added no shot, no second and no
+voice-over word. Its own ledger, same rule as above:
+
+| § | command or file | verdict |
+|---|---|---|
+| 00.1 | `validate_shotlist.py` | **RAN 2026-08-16** · exit 0 · `submission.total_s 171` (**2:51**), `shots 25`, `vo_words 304`, `headroom_s 9` |
+| 00.3 | `curl` → `GET /`, `/judge`, `/console`, `/v1/health` | **RAN 2026-08-16** · all **200**; `/` is 4,749 B, title `MAINLINE console` |
+| 00.3 | `curl` → `GET /v1/demo/gate-run` | **RAN 2026-08-16** · **405** — the POST-only finding |
+| 00.3 | `curl` → `GET /operator.html` | **RAN 2026-08-16** · **200**, 5,097 B, title `Control of Work`, digest differs from `/` — **not the SPA fallback** |
+| 00.3 | `curl` → the three `/assets/operator-*` files | **RAN 2026-08-16** · **200** · 96,734 B JS, 33,043 B CSS, 771 B polyfill |
+| 00.3 | `POST /v1/demo/gate-run` | **NOT RUN BY THIS WORKER** · measured today by the compliance lead; committed transcript `evidence/demo/live-beats.json` (2026-08-15) |
+| 00.4 | `grep -niE "music\|audio\|bed\|soundtrack\|lufs" SHOT-LIST.yaml` | **RAN 2026-08-16** · no music or soundtrack key; `budget.export` line 90 sets voice levels only |
+
+**Two figures moved and neither was smoothed over.** The running time carried into this wave
+was *2:52 with 8 s of headroom*; the validator says **171 s = 2:51 with 9 s**. And
+`JUDGE-START.md`'s 2026-08-15 claim that `/operator.html` is the console shell byte-for-byte
+is **false as of today** — it is a distinct 5,097-byte document titled *Control of Work* with
+its own bundle. The second correction closes this kit's largest Functionality-rule exposure,
+and it is recorded in both files rather than in the one it flatters.
+
+**What §00 did NOT do:** it touched no infrastructure, no Terraform, no budget, no alarm and
+no SSM parameter; it issued only `GET`s against a public `authorization_type = NONE` origin;
+and it printed no credential.
 
 **And the thing this page did not do: it did not record a video.** No footage exists. The kit
 is the preparation; the film is the founder's.

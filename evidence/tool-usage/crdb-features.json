@@ -11,16 +11,16 @@
   "scan": {
     "root": "<repository root>",
     "method": "filesystem walk, NOT the git index. A count here will not equal `git grep -l <pattern> | wc -l`: the walk sees files that are present but not yet committed, and it prunes directories git tracks (out_mainline/, out_trappoint_ref/, .hypothesis-corpus/). The walk is the right unit for a submission document, because a judge checks out a working tree.",
-    "files_scanned": 7823,
+    "files_scanned": 7884,
     "files_by_category": {
-      "config": 4865,
-      "docs": 403,
+      "config": 4892,
+      "docs": 423,
       "migration": 271,
-      "other": 421,
-      "python": 1287,
+      "other": 427,
+      "python": 1293,
       "sql": 131,
       "terraform": 29,
-      "typescript": 396,
+      "typescript": 398,
       "workflow": 20
     },
     "skipped_binary": 27,
@@ -96,13 +96,13 @@
         "must_contain": "cockroachdb/cockroach:v26.2.5",
         "subject_holds": true
       },
-      "file_count": 426,
+      "file_count": 448,
       "files_by_category": {
-        "config": 79,
-        "docs": 140,
+        "config": 88,
+        "docs": 152,
         "migration": 59,
         "other": 26,
-        "python": 89,
+        "python": 90,
         "sql": 23,
         "typescript": 3,
         "workflow": 7
@@ -134,15 +134,15 @@
         "must_contain": "isolation",
         "subject_holds": true
       },
-      "file_count": 240,
+      "file_count": 263,
       "files_by_category": {
-        "config": 34,
-        "docs": 79,
+        "config": 41,
+        "docs": 87,
         "migration": 15,
-        "other": 13,
-        "python": 69,
+        "other": 14,
+        "python": 74,
         "sql": 8,
-        "typescript": 18,
+        "typescript": 20,
         "workflow": 4
       },
       "representative_paths": [
@@ -172,10 +172,10 @@
         "must_contain": "P0001",
         "subject_holds": true
       },
-      "file_count": 126,
+      "file_count": 128,
       "files_by_category": {
-        "config": 3,
-        "docs": 17,
+        "config": 4,
+        "docs": 18,
         "migration": 46,
         "other": 6,
         "python": 27,
@@ -208,13 +208,13 @@
         "must_contain": "gate_closed_when_issued",
         "subject_holds": true
       },
-      "file_count": 309,
+      "file_count": 330,
       "files_by_category": {
-        "config": 61,
-        "docs": 109,
+        "config": 65,
+        "docs": 120,
         "migration": 7,
-        "other": 31,
-        "python": 60,
+        "other": 35,
+        "python": 62,
         "sql": 6,
         "typescript": 32,
         "workflow": 3
@@ -246,13 +246,13 @@
         "must_contain": "VECTOR INDEX ce_ann",
         "subject_holds": true
       },
-      "file_count": 151,
+      "file_count": 160,
       "files_by_category": {
-        "config": 19,
-        "docs": 48,
+        "config": 20,
+        "docs": 55,
         "migration": 14,
         "other": 2,
-        "python": 61,
+        "python": 62,
         "sql": 4,
         "typescript": 2,
         "workflow": 1
@@ -284,10 +284,10 @@
         "must_contain": "AS OF SYSTEM TIME",
         "subject_holds": true
       },
-      "file_count": 84,
+      "file_count": 85,
       "files_by_category": {
         "config": 15,
-        "docs": 33,
+        "docs": 34,
         "migration": 1,
         "other": 3,
         "python": 29,
@@ -322,10 +322,10 @@
         "must_contain": "follower_read_timestamp()",
         "subject_holds": true
       },
-      "file_count": 12,
+      "file_count": 13,
       "files_by_category": {
         "config": 1,
-        "docs": 2,
+        "docs": 3,
         "migration": 2,
         "other": 1,
         "python": 6
@@ -357,10 +357,10 @@
         "must_contain": "FORCE ROW LEVEL SECURITY",
         "subject_holds": true
       },
-      "file_count": 44,
+      "file_count": 46,
       "files_by_category": {
         "config": 5,
-        "docs": 16,
+        "docs": 18,
         "migration": 13,
         "other": 1,
         "python": 8,
@@ -393,10 +393,10 @@
         "must_contain": "SHOW CREATE ALL SCHEMAS",
         "subject_holds": true
       },
-      "file_count": 69,
+      "file_count": 71,
       "files_by_category": {
-        "config": 8,
-        "docs": 17,
+        "config": 9,
+        "docs": 18,
         "migration": 10,
         "other": 4,
         "python": 26,
@@ -429,10 +429,10 @@
         "must_contain": "FORBIDDEN_SCHEMAS",
         "subject_holds": true
       },
-      "file_count": 82,
+      "file_count": 89,
       "files_by_category": {
-        "config": 15,
-        "docs": 27,
+        "config": 18,
+        "docs": 31,
         "migration": 9,
         "other": 3,
         "python": 27,
@@ -498,13 +498,13 @@
         "must_contain": "0.6.12",
         "subject_holds": true
       },
-      "file_count": 68,
+      "file_count": 77,
       "files_by_category": {
-        "config": 15,
-        "docs": 23,
+        "config": 16,
+        "docs": 28,
         "migration": 3,
         "other": 1,
-        "python": 24,
+        "python": 27,
         "typescript": 1,
         "workflow": 1
       },
@@ -535,13 +535,13 @@
         "must_contain": "cockroachlabs.cloud/mcp",
         "subject_holds": true
       },
-      "file_count": 192,
+      "file_count": 215,
       "files_by_category": {
-        "config": 28,
-        "docs": 42,
+        "config": 37,
+        "docs": 51,
         "migration": 45,
         "other": 4,
-        "python": 63,
+        "python": 68,
         "sql": 3,
         "typescript": 7
       },
@@ -572,10 +572,10 @@
         "must_contain": "_SQLSTATE",
         "subject_holds": true
       },
-      "file_count": 19,
+      "file_count": 21,
       "files_by_category": {
         "config": 5,
-        "docs": 12,
+        "docs": 14,
         "workflow": 2
       },
       "representative_paths": [

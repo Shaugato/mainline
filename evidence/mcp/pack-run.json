@@ -1,0 +1,279 @@
+{
+  "schema": "mainline.evidence.mcp/1",
+  "artefact": "pack-run",
+  "generated_at": "2026-08-16T07:33:46Z",
+  "generated_by": "scripts/submission/capture_mcp_evidence.py",
+  "pack": "verticals/mainline/demo/judge/QUESTIONS.yaml",
+  "channel": "mcp",
+  "endpoint": "https://cockroachlabs.cloud/mcp",
+  "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+  "database": "mainline_demo",
+  "ran": true,
+  "reason": "executed against cluster 7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e, database mainline_demo, over https://cockroachlabs.cloud/mcp",
+  "verbs_used": [
+    "explain_query",
+    "select_query"
+  ],
+  "verbs_are_read_only": true,
+  "questions": 16,
+  "positive": 12,
+  "negative": 4,
+  "passed": 15,
+  "total": 16,
+  "counts": {
+    "answered": 12,
+    "refused": 3,
+    "skipped": 0,
+    "error": 1
+  },
+  "exit_code": 1,
+  "exit_code_reading": "checked and at least one question did not behave — see the results",
+  "wall_seconds": 9.2,
+  "entry_point": {
+    "command": "python verticals/mainline/demo/judge/cli.py run --via mcp",
+    "routes_into": "verticals/mainline/demo/judge/runner.py::run_via_mcp",
+    "why_this_path": "the pack's own runner carries three checks the ad-hoc client that produced evidence/deploy/judge-run.json on 2026-08-11 did not: the envelope validator (mainline_mcp.limits.enforce_statement on every statement before it is sent), the drift check that binds each EXPLAIN to a literal of the dimension the real migrations declare, and the truncation guard that flags any result returning exactly the 25-row page as possibly truncated.",
+    "envelope_page_rows": 25
+  },
+  "cli_run": {
+    "command": "python verticals/mainline/demo/judge/cli.py run --via mcp",
+    "environment_required": [
+      "MAINLINE_MCP_API_KEY (or CC_API_KEY, read from .env by this script)",
+      "MAINLINE_MCP_CLUSTER_ID",
+      "MAINLINE_MCP_DATABASE"
+    ],
+    "exit_code": 1,
+    "exit_code_reading": "checked and at least one question did not behave — see the results",
+    "wall_seconds": 10.4,
+    "stdout": [
+      "channel: mcp",
+      "executed against cluster 7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e, database mainline_demo, over https://cockroachlabs.cloud/mcp",
+      "",
+      "  ANSWERED   Q01  rows=1  bytes=425  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q02  rows=0  bytes=109  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q03  rows=1  bytes=462  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q04  rows=1  bytes=349  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q05  rows=0  bytes=109  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q05F  rows=0  bytes=109  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q06  rows=1  bytes=470  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q07  rows=1  bytes=507  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q08  rows=0  bytes=110  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q09  rows=0  bytes=110  row count is under the page, so the page is the whole answer",
+      "  ANSWERED   Q10  bytes=1030  plan contains ['vector search', 'prefix spans']",
+      "  ANSWERED   Q10C  bytes=906  plan contains ['vector search', 'prefix spans']",
+      "  ERROR      N01  rows=1  bytes=123  THE SERVER ANSWERED. This statement must fail; that it did not is the most serious result this pack can produce.",
+      "  REFUSED    N02  server refused: query references a restricted schema: access to \"crdb_internal\" is blocked for security reasons",
+      "  REFUSED    N03  server refused: query references a restricted schema: access to \"pg_catalog\" is blocked for security reasons",
+      "  REFUSED    N04  server refused: query references a restricted schema: access to \"information_schema\" is blocked for security reasons",
+      "",
+      "12 answered, 3 refused, 0 skipped, 1 errors"
+    ],
+    "stderr": []
+  },
+  "cli_run_note": "the same entry point, executed as a subprocess so the transcript a judge sees when they type the command is committed verbatim. It is a SECOND live run, not a rendering of the structured one below; the two ran minutes apart against the same cluster and the row counts are what they were at each moment.",
+  "results": [
+    {
+      "qid": "Q01",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 1,
+      "response_bytes": 425,
+      "elapsed_ms": 1178.6,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q02",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 0,
+      "response_bytes": 109,
+      "elapsed_ms": 596.8,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q03",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 1,
+      "response_bytes": 462,
+      "elapsed_ms": 584.0,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q04",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 1,
+      "response_bytes": 349,
+      "elapsed_ms": 600.5,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q05",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 0,
+      "response_bytes": 109,
+      "elapsed_ms": 616.6,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q05F",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 0,
+      "response_bytes": 109,
+      "elapsed_ms": 584.3,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q06",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 1,
+      "response_bytes": 470,
+      "elapsed_ms": 583.3,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q07",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 1,
+      "response_bytes": 507,
+      "elapsed_ms": 614.7,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q08",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 0,
+      "response_bytes": 110,
+      "elapsed_ms": 565.7,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q09",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": 0,
+      "response_bytes": 110,
+      "elapsed_ms": 580.7,
+      "possibly_truncated": false,
+      "detail": "row count is under the page, so the page is the whole answer"
+    },
+    {
+      "qid": "Q10",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": null,
+      "response_bytes": 1030,
+      "elapsed_ms": 613.0,
+      "possibly_truncated": false,
+      "detail": "plan contains ['vector search', 'prefix spans']",
+      "plan_text": [
+        "{\"rows\":[{\"info\":\"distribution: local\"},{\"info\":\"\"},{\"info\":\"• top-k\"},{\"info\":\"│ estimated row count: 1\"},{\"info\":\"│ order: +column12\"},{\"info\":\"│ k: 10\"},{\"info\":\"│\"},{\"info\":\"└── • render\"},{\"info\":\"    │\"},{\"info\":\"    └── • lookup join\"},{\"info\":\"        │ table: event_cue_embedding@event_cue_embedding_pk\"},{\"info\":\"        │ equality: (cue_id) = (cue_id)\"},{\"info\":\"        │ equality cols are key\"},{\"info\":\"        │\"},{\"info\":\"        └── • vector search\"},{\"info\":\"              table: event_cue_embedding@cue_scoped_idx\"},{\"info\":\"              target count: 10\"},{\"info\":\"              prefix spans: [/'00000000-0000-4000-8000-000000000001'/'00000000-0000-4000-8000-000000000001'/'control_failure' - /'00000000-0000-4000-8000-000000000001'/'00000000-0000-4000-8000-000000000001'/'control_failure']\"}]}"
+      ]
+    },
+    {
+      "qid": "Q10C",
+      "outcome": "answered",
+      "expected": "answered",
+      "verdict": "PASS",
+      "rows": null,
+      "response_bytes": 906,
+      "elapsed_ms": 673.5,
+      "possibly_truncated": false,
+      "detail": "plan contains ['vector search', 'prefix spans']",
+      "plan_text": [
+        "{\"rows\":[{\"info\":\"distribution: local\"},{\"info\":\"\"},{\"info\":\"• top-k\"},{\"info\":\"│ estimated row count: 1\"},{\"info\":\"│ order: +column11\"},{\"info\":\"│ k: 10\"},{\"info\":\"│\"},{\"info\":\"└── • render\"},{\"info\":\"    │\"},{\"info\":\"    └── • lookup join\"},{\"info\":\"        │ table: event_cue_coarse@event_cue_coarse_pk\"},{\"info\":\"        │ equality: (cue_id) = (cue_id)\"},{\"info\":\"        │ equality cols are key\"},{\"info\":\"        │\"},{\"info\":\"        └── • vector search\"},{\"info\":\"              table: event_cue_coarse@cue_sweep_idx\"},{\"info\":\"              target count: 10\"},{\"info\":\"              prefix spans: [/'00000000-0000-4000-8000-000000000001' - /'00000000-0000-4000-8000-000000000001']\"}]}"
+      ]
+    },
+    {
+      "qid": "N01",
+      "outcome": "error",
+      "expected": "refused",
+      "verdict": "FAIL",
+      "rows": 1,
+      "response_bytes": 123,
+      "elapsed_ms": 594.6,
+      "possibly_truncated": false,
+      "detail": "THE SERVER ANSWERED. This statement must fail; that it did not is the most serious result this pack can produce."
+    },
+    {
+      "qid": "N02",
+      "outcome": "refused",
+      "expected": "refused",
+      "verdict": "PASS",
+      "rows": null,
+      "response_bytes": null,
+      "elapsed_ms": null,
+      "possibly_truncated": false,
+      "detail": "server refused: query references a restricted schema: access to \"crdb_internal\" is blocked for security reasons"
+    },
+    {
+      "qid": "N03",
+      "outcome": "refused",
+      "expected": "refused",
+      "verdict": "PASS",
+      "rows": null,
+      "response_bytes": null,
+      "elapsed_ms": null,
+      "possibly_truncated": false,
+      "detail": "server refused: query references a restricted schema: access to \"pg_catalog\" is blocked for security reasons"
+    },
+    {
+      "qid": "N04",
+      "outcome": "refused",
+      "expected": "refused",
+      "verdict": "PASS",
+      "rows": null,
+      "response_bytes": null,
+      "elapsed_ms": null,
+      "possibly_truncated": false,
+      "detail": "server refused: query references a restricted schema: access to \"information_schema\" is blocked for security reasons"
+    }
+  ],
+  "divergences": [
+    {
+      "qid": "N01",
+      "observed": "error, rows=1",
+      "expected": "refused",
+      "disposition": "real_gap",
+      "by_design": false,
+      "reading": "mainline_qa IS readable by the Managed MCP identity. N01 claims an MCP identity cannot read per-person deliberation measurement; measured, it runs successfully. GRANTS.yaml S14 and the pack envelope both assert this is impossible. It is not. The read-only mainline_judge login this submission actually publishes refuses the same statement at SQLSTATE 42501 — measured on 2026-08-11 and recorded in evidence/deploy/judge-run.json under divergences — so the credential a judge is handed is the tighter of the two. That does not make N01 a pass, and it is not scored as one here."
+    }
+  ],
+  "verdict": "DIVERGED — KNOWN GAP",
+  "verdict_reading": "the pack does not round a divergence off. N01 asserts that an MCP identity cannot read mainline_qa; measured, it can. That is a real gap in this deployment's grants and it is recorded rather than closed by revoking a grant on submission eve.",
+  "credential_hygiene": {
+    "assertion": "no field in this file is credential-shaped",
+    "method": "the serialised artefact was searched for (a) the live Managed-MCP service-account key verbatim, as a substring so a value embedded in a longer string is caught too, (b) any connection string whose userinfo still carries a password rather than the redacted form, and (c) any bare token of 24+ characters mixing upper case, lower case and digits — the shape a generated secret has. UUIDs are excluded by shape, not by an allowlist of values, which is why the cluster id survives the scan. bytes_scanned counts the artefact body as it was scanned, before this block was appended; after the write the file was re-read FROM DISK and scanned again, and a disagreement deletes the file rather than reporting a pass.",
+    "self_scanned": true,
+    "bytes_scanned": 12430,
+    "key_was_in_scope_this_run": true,
+    "matches": 0,
+    "holds": true
+  }
+}

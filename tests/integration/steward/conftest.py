@@ -33,7 +33,7 @@ for _src in (
     if _src.is_dir() and str(_src) not in sys.path:
         sys.path.insert(0, str(_src))
 
-from mainline_mcp.client import Client, RawResponse  # noqa: E402
+from mainline_mcp.client import DEFAULT_DIALECT, Client, RawResponse  # noqa: E402
 from mainline_mcp.limits import READ_VERBS, WRITE_VERB  # noqa: E402
 from mainline_steward import default_lock  # noqa: E402
 
@@ -79,7 +79,10 @@ class RecordingTransport:
     def call_tool(self, name: str, arguments: Mapping[str, Any]) -> RawResponse:
         """Answer one call, recording it first."""
         self.calls.append((name, dict(arguments)))
-        statement = str(arguments.get("statement", ""))
+        # Keyed off the dialect, not a literal: the live SQL argument is ``query``
+        # (measured 2026-08-16) and a fixture that hard-codes the old name routes
+        # everything to the empty fallback instead of failing loudly.
+        statement = str(arguments.get(DEFAULT_DIALECT.statement, ""))
         for view in self._failing:
             if view in statement:
                 payload = {

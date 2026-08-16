@@ -34,6 +34,31 @@ verification rather than a size check:
 The worst observed row is recorded on every measurement, breach or not, because the
 accepted residual in AR-6 is that a single pathological row — one very long site code —
 can spike one view, and the cause has to be nameable when it happens.
+
+WHAT THE 2026-08-16 LIVE RUN CHANGED
+-------------------------------------
+This module had never run against ``cockroachlabs.cloud/mcp`` before 2026-08-16. Two
+things the first live run corrected, both of them the endpoint proving the code wrong:
+
+1. **``select_query`` requires ``database``.** The prober never sent one, so it could not
+   have measured a single view live. It is now a keyword argument, defaulting to ``None``
+   so the offline suites are untouched.
+
+2. **``truncation_flag_present`` used to say ``True`` about a view with no rows.** The
+   old expression was ``all(flag in row for row in rows) if rows else True`` — vacuously
+   true over an empty sequence. Measured on the live demo cluster: **eight of the thirteen
+   contracted views return zero rows**, and exactly one of those eight also contracts a
+   completeness flag — ``v_weakenings_without_disposition``, the flagship. So the boolean
+   about to be written into a committed evidence artefact was ``true``, for the one
+   question this whole surface exists to answer, on the strength of no rows at all.
+
+   It is now ``bool | None``. ``None`` means *there were no rows to observe the flag on*,
+   and it is also what the error paths write, because a call that returned nothing
+   observed nothing — the old ``False`` there asserted the column was missing, which is a
+   different claim and one nobody had made. ``None`` is **not** scored as a breach: an
+   empty view has genuinely nothing to truncate. It is never scored as a confirmation
+   either. :attr:`ViewMeasurement.truncation_flag_note` says which of the four cases
+   applies, in words, on every measurement.
 """
 
 from __future__ import annotations
@@ -114,7 +139,7 @@ class ViewMeasurement:
     row_count: int | None
     worst_row: WorstRow | None
     truncation_flag: str | None
-    truncation_flag_present: bool
+    truncation_flag_present: bool | None
     incomplete_rows: int | None
     elapsed_ms: float
     breaches: tuple[Breach, ...]
@@ -128,6 +153,22 @@ class ViewMeasurement:
     def headroom_bytes(self) -> int:
         """Bytes remaining before the server's cap, which is the number that matters."""
         return MAX_RESPONSE_BYTES - self.response_bytes
+
+    @property
+    def truncation_flag_note(self) -> str:
+        """One sentence saying exactly what was observed about the completeness flag."""
+        if self.truncation_flag is None:
+            return "the contract declares no completeness flag for this view"
+        if self.truncation_flag_present is None:
+            return (
+                f"no rows were returned, so {self.truncation_flag!r} was not observed on "
+                "anything; this is neither a confirmation nor a breach"
+            )
+        if self.truncation_flag_present:
+            return f"{self.truncation_flag!r} was present on all {self.row_count} returned rows"
+        return (
+            f"the contract promises {self.truncation_flag!r} and the returned rows do not carry it"
+        )
 
     def render(self) -> str:
         """One table row for the report."""
@@ -149,6 +190,7 @@ class BudgetReport:
     byte_budget: int
     row_budget: int
     cluster_id: str
+    database: str | None = None
 
     @property
     def ok(self) -> bool:
@@ -199,6 +241,7 @@ class BudgetReport:
         """Return a serialisable form, so a nightly run can be diffed against the last one."""
         return {
             "cluster_id": self.cluster_id,
+            "database": self.database,
             "byte_budget": self.byte_budget,
             "row_budget": self.row_budget,
             "server_cap_bytes": MAX_RESPONSE_BYTES,
@@ -213,6 +256,7 @@ class BudgetReport:
                     "elapsed_ms": round(m.elapsed_ms, 3),
                     "truncation_flag": m.truncation_flag,
                     "truncation_flag_present": m.truncation_flag_present,
+                    "truncation_flag_note": m.truncation_flag_note,
                     "incomplete_rows": m.incomplete_rows,
                     "worst_row": (
                         None
@@ -261,12 +305,29 @@ class BudgetProber:
         *,
         byte_budget: int = BUDGET_RESPONSE_BYTES,
         row_budget: int = BUDGET_ROWS,
+        database: str | None = None,
     ) -> None:
-        """Bind a client and a catalogue; nothing is measured until :meth:`run`."""
+        """Bind a client and a catalogue; nothing is measured until :meth:`run`.
+
+        Args:
+            client: a connected client.
+            catalogue: the loaded audit-surface contract.
+            byte_budget: our budget, 80 % of the server cap by default.
+            row_budget: our row budget; an audit view is aggregate-first.
+            database: the database to send with every ``select_query``. **Required
+                against the live endpoint** — measured 2026-08-16 from the server's own
+                JSON Schema. ``None`` sends none, which is what the offline suites want.
+        """
         self._client = client
         self._catalogue = catalogue
         self._byte_budget = byte_budget
         self._row_budget = row_budget
+        self._database = database
+
+    @property
+    def database(self) -> str | None:
+        """The database sent with every measurement, or ``None`` when none is sent."""
+        return self._database
 
     def measure(self, view: ViewSpec) -> ViewMeasurement:
         """Issue one view's statement and measure what came back."""
@@ -279,6 +340,7 @@ class BudgetProber:
             # recorded as a `response_cap` breach two blocks below.
             result = self._client.select_query(
                 view.statement,
+                database=self._database,
                 max_rows=view.row_cap,
                 enforce_cap=False,
             )
@@ -291,7 +353,7 @@ class BudgetProber:
                 row_count=None,
                 worst_row=None,
                 truncation_flag=view.truncation_flag,
-                truncation_flag_present=False,
+                truncation_flag_present=None,
                 incomplete_rows=None,
                 elapsed_ms=self._client.last_elapsed_ms,
                 breaches=(
@@ -311,7 +373,7 @@ class BudgetProber:
                 row_count=None,
                 worst_row=None,
                 truncation_flag=view.truncation_flag,
-                truncation_flag_present=False,
+                truncation_flag_present=None,
                 incomplete_rows=None,
                 elapsed_ms=self._client.last_elapsed_ms,
                 breaches=(
@@ -357,7 +419,7 @@ class BudgetProber:
             )
 
         worst: WorstRow | None = None
-        flag_present = False
+        flag_present: bool | None = None
         incomplete: int | None = None
         if rows is None:
             breaches.append(
@@ -382,8 +444,8 @@ class BudgetProber:
                         detail="an audit view is aggregate-first; this one is returning detail",
                     )
                 )
-            if view.truncation_flag is not None:
-                flag_present = all(view.truncation_flag in row for row in rows) if rows else True
+            if view.truncation_flag is not None and rows:
+                flag_present = all(view.truncation_flag in row for row in rows)
                 if not flag_present:
                     breaches.append(
                         Breach(
@@ -420,4 +482,5 @@ class BudgetProber:
             byte_budget=self._byte_budget,
             row_budget=self._row_budget,
             cluster_id=self._client.cluster_id,
+            database=self._database,
         )

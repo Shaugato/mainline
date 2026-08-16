@@ -1,0 +1,495 @@
+{
+  "schema": "mainline.evidence.mcp/1",
+  "artefact": "tools-schema",
+  "generated_at": "2026-08-16T07:33:27Z",
+  "generated_by": "scripts/submission/capture_mcp_evidence.py",
+  "endpoint": "https://cockroachlabs.cloud/mcp",
+  "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+  "protocol_version": "2025-06-18",
+  "server_info": {
+    "name": "cockroachdb-cloud",
+    "version": "1.0.0"
+  },
+  "http_status": 200,
+  "elapsed_ms": 236.7,
+  "response_bytes": 7032,
+  "tool_count": 12,
+  "tool_names": [
+    "create_database",
+    "create_table",
+    "explain_query",
+    "get_cluster",
+    "get_table_schema",
+    "insert_rows",
+    "list_clusters",
+    "list_databases",
+    "list_tables",
+    "select_query",
+    "show_running_queries",
+    "show_statement"
+  ],
+  "why_the_full_schemas_are_here": "the argument names were the one thing no published document pinned precisely enough to be sure of, and a prose summary of a schema is a second guess. These are the server's own JSON Schemas as returned, so a reader settles the question here rather than by reading our reading of it.",
+  "tools": [
+    {
+      "name": "create_database",
+      "description": "Create a new database in the cluster",
+      "required": [
+        "database"
+      ],
+      "properties": [
+        "cluster_id",
+        "database"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database to create",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "create_table",
+      "description": "Create a new table in a database using a CREATE TABLE DDL statement. Only CREATE TABLE statements are allowed. Supports CREATE TABLE AS SELECT for creating tables from query results.",
+      "required": [
+        "database",
+        "ddl"
+      ],
+      "properties": [
+        "cluster_id",
+        "database",
+        "ddl"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database",
+            "type": "string"
+          },
+          "ddl": {
+            "description": "The CREATE TABLE DDL statement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "ddl"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "explain_query",
+      "description": "Show query execution plan without executing the query",
+      "required": [
+        "database",
+        "query"
+      ],
+      "properties": [
+        "cluster_id",
+        "database",
+        "query"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database",
+            "type": "string"
+          },
+          "query": {
+            "description": "The SQL query to explain",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "query"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_cluster",
+      "description": "Get detailed information for the CockroachDB cluster",
+      "required": [],
+      "properties": [
+        "cluster_id"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_table_schema",
+      "description": "Get detailed schema information for a table including columns and indexes",
+      "required": [
+        "database",
+        "table"
+      ],
+      "properties": [
+        "cluster_id",
+        "database",
+        "schema",
+        "table"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database",
+            "type": "string"
+          },
+          "schema": {
+            "description": "The schema name (defaults to 'public' if not specified)",
+            "type": "string"
+          },
+          "table": {
+            "description": "The name of the table",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "table"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "insert_rows",
+      "description": "Insert rows into an existing table. Only INSERT statements are allowed, including INSERT INTO ... VALUES and INSERT INTO ... SELECT.",
+      "required": [
+        "database",
+        "query"
+      ],
+      "properties": [
+        "cluster_id",
+        "database",
+        "query"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database",
+            "type": "string"
+          },
+          "query": {
+            "description": "The INSERT statement to execute. Include the full table name with optional schema prefix (e.g., 'INSERT INTO schema.table_name ...' or 'INSERT INTO table_name ...').",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "query"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_clusters",
+      "description": "List all CockroachDB clusters accessible to the authorized user",
+      "required": [],
+      "properties": [
+        "show_inactive"
+      ],
+      "input_schema": {
+        "properties": {
+          "show_inactive": {
+            "default": false,
+            "description": "If true, show clusters that have been deleted or failed to initialize.",
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_databases",
+      "description": "List all databases in the CockroachDB cluster.",
+      "required": [],
+      "properties": [
+        "cluster_id",
+        "limit",
+        "offset"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "limit": {
+            "default": 100,
+            "description": "Maximum results to return (default: 100, max: 10000)",
+            "maximum": 10000,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of results to skip (default: 0)",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "name": "list_tables",
+      "description": "List all tables in a database.",
+      "required": [
+        "database"
+      ],
+      "properties": [
+        "cluster_id",
+        "database",
+        "limit",
+        "offset"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database",
+            "type": "string"
+          },
+          "limit": {
+            "default": 100,
+            "description": "Maximum results to return (default: 100, max: 10000)",
+            "maximum": 10000,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of results to skip (default: 0)",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "database"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "select_query",
+      "description": "Execute a read-only SELECT query on the CockroachDB cluster.\nAutomatically adds LIMIT 25 if not specified. Maximum LIMIT is 10000.\nUse LIMIT with OFFSET for pagination (e.g., LIMIT 100 OFFSET 200).",
+      "required": [
+        "database",
+        "query"
+      ],
+      "properties": [
+        "cluster_id",
+        "database",
+        "query"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The name of the database",
+            "type": "string"
+          },
+          "query": {
+            "description": "The SQL query to execute (SELECT statements only). Use LIMIT/OFFSET in your query for pagination.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "query"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "name": "show_running_queries",
+      "description": "List currently executing queries on the cluster",
+      "required": [],
+      "properties": [
+        "cluster_id"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          }
+        },
+        "required": [],
+        "type": "object"
+      }
+    },
+    {
+      "name": "show_statement",
+      "description": "Execute a SHOW statement for introspection (e.g., SHOW SCHEMAS, SHOW INDEXES, SHOW REGIONS, SHOW CONSTRAINTS).\nResults are limited to 100 rows by default. Prefer list_databases, list_tables, or get_table_schema for those operations.",
+      "required": [
+        "query"
+      ],
+      "properties": [
+        "cluster_id",
+        "database",
+        "query"
+      ],
+      "input_schema": {
+        "properties": {
+          "cluster_id": {
+            "description": "CockroachDB cluster UUID. Required when the MCP config has no cluster_id; otherwise must be omitted.",
+            "type": "string"
+          },
+          "database": {
+            "description": "The database context for the SHOW statement (optional for cluster-level statements like SHOW DATABASES)",
+            "type": "string"
+          },
+          "query": {
+            "description": "The SHOW statement to execute (e.g., 'SHOW SCHEMAS', 'SHOW INDEXES FROM mytable', 'SHOW REGIONS', 'SHOW CREATE TABLE mytable', 'SHOW CONSTRAINTS FROM mytable')",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      }
+    }
+  ],
+  "our_typed_surface": {
+    "module": "packages/mainline-mcp/src/mainline_mcp/client.py",
+    "default_dialect": {
+      "statement": "query",
+      "database": "database",
+      "table": "table",
+      "rows": "rows",
+      "limit": "limit",
+      "cluster_id": "cluster_id",
+      "schema": "schema"
+    },
+    "documented_dialect": {
+      "statement": "statement",
+      "database": "database",
+      "table": "table",
+      "rows": "rows",
+      "limit": "limit",
+      "cluster_id": "cluster_id",
+      "schema": "schema"
+    },
+    "documented_dialect_note": "what this package shipped until 2026-08-16 and where the guess was wrong. It is kept, named and asserted against in tests so the repository cannot quietly erase a guess it published.",
+    "read_verbs": [
+      "list_databases",
+      "list_tables",
+      "get_table_schema",
+      "select_query",
+      "explain_query",
+      "show_statement",
+      "show_running_queries"
+    ],
+    "write_verb": "insert_rows"
+  },
+  "divergences": [
+    {
+      "id": "select_query.statement_is_named_query",
+      "tool": "select_query",
+      "live": "required ['database', 'query']",
+      "ours_before_2026_08_16": "{database, statement}",
+      "ours_now": "{database, query}",
+      "corrected": true,
+      "derived_from": "tools[select_query].input_schema.required contains 'query'",
+      "reading": "the one field that was wrong. A call carrying 'statement' returns {\"code\": 0, \"message\": \"must contain exactly one statement\"} — the bearer, the session and the cluster pin were all fine and the server simply saw no statement, because the property it reads was absent. ToolDialect existed so this correction would be one field value in one object, and it was."
+    },
+    {
+      "id": "select_query.has_no_limit_argument",
+      "tool": "select_query",
+      "live": "properties ['cluster_id', 'database', 'query'] — no 'limit'",
+      "live_says": "The SQL query to execute (SELECT statements only). Use LIMIT/OFFSET in your query for pagination.",
+      "ours": "ToolDialect.limit names an argument the read verbs do not have",
+      "corrected": true,
+      "derived_from": "'limit' not in tools[select_query].properties, and tools[select_query].input_schema.properties.query.description quoted in live_says names LIMIT/OFFSET inside the statement as the pagination mechanism",
+      "reading": "pagination on the read verbs is LIMIT/OFFSET inside the statement, which is what the pack has always written. The client's row ceiling is now enforced client-side and is ours, not an argument; 'limit' is a real integer property of list_databases and list_tables only."
+    },
+    {
+      "id": "insert_rows.takes_a_full_insert_statement",
+      "tool": "insert_rows",
+      "live": "required ['database', 'query']; properties ['cluster_id', 'database', 'query'] — no 'table', no 'rows'",
+      "live_says": "The INSERT statement to execute. Include the full table name with optional schema prefix (e.g., 'INSERT INTO schema.table_name ...' or 'INSERT INTO table_name ...').",
+      "ours": "insert_external_attestation() sends {table, rows} and names no table in any parameter",
+      "corrected": false,
+      "not_corrected_on_purpose": true,
+      "derived_from": "'table' not in tools[insert_rows].properties and 'rows' not in it",
+      "reading": "expressing our typed write on the live shape means constructing an INSERT statement — with a table name in it — inside the one method whose entire published guarantee is that 'insert into something else' is not a call the supported API can express. The guarantee is worth more than the call, so the divergence is recorded and the write is not sent. This capture never calls insert_rows at all."
+    },
+    {
+      "id": "show_verbs.have_no_limit_argument",
+      "tool": "show_statement, show_running_queries",
+      "live": "show_statement properties ['cluster_id', 'database', 'query']; show_running_queries properties ['cluster_id']",
+      "ours": "the client used to transmit 'limit' to both",
+      "corrected": true,
+      "derived_from": "'limit' not in tools[show_statement].properties and not in tools[show_running_queries].properties",
+      "reading": "the ceiling is still refused before transmission; it is simply no longer sent as an argument the server has no property for."
+    },
+    {
+      "id": "get_table_schema.defaults_to_public",
+      "tool": "get_table_schema",
+      "live": "properties ['cluster_id', 'database', 'schema', 'table']",
+      "live_says": "The schema name (defaults to 'public' if not specified)",
+      "ours": "the audit views live in mainline_audit",
+      "corrected": true,
+      "derived_from": "tools[get_table_schema].input_schema.properties.schema.description, quoted verbatim in live_says",
+      "reading": "a schema-less call cannot see the audit views at all. This is a live-surface fact worth recording because it silently answers a different question rather than failing."
+    }
+  ],
+  "write_tools_present": [
+    "create_database",
+    "create_table",
+    "insert_rows"
+  ],
+  "write_tools_called_by_this_capture": [],
+  "credential_hygiene": {
+    "assertion": "no field in this file is credential-shaped",
+    "method": "the serialised artefact was searched for (a) the live Managed-MCP service-account key verbatim, as a substring so a value embedded in a longer string is caught too, (b) any connection string whose userinfo still carries a password rather than the redacted form, and (c) any bare token of 24+ characters mixing upper case, lower case and digits — the shape a generated secret has. UUIDs are excluded by shape, not by an allowlist of values, which is why the cluster id survives the scan. bytes_scanned counts the artefact body as it was scanned, before this block was appended; after the write the file was re-read FROM DISK and scanned again, and a disagreement deletes the file rather than reporting a pass.",
+    "self_scanned": true,
+    "bytes_scanned": 16877,
+    "key_was_in_scope_this_run": true,
+    "matches": 0,
+    "holds": true
+  }
+}

@@ -711,6 +711,33 @@ on **2026-08-11** against the Basic cluster, `evidence/deploy/judge-access.json`
 | SQL identity | **`managed-mcp`** — a dedicated user, not `root`, not the database owner |
 | Pack result over MCP | **15 of 16 questions as expected**, against the live cluster, 281–968 ms per question (median 691 ms) |
 
+**Re-probed 2026-08-16, read verbs only, and the endpoint answered identically.** The 2026-08-11
+row above is the sixteen-question transcript and is not superseded by this; what the re-probe adds
+is a *fresh* reading of the same surface plus one thing 2026-08-11 never had — the tools' argument
+names taken from the server's own JSON Schema instead of from our reading of prose:
+
+```
+initialize        HTTP 200   protocolVersion 2025-06-18
+                             serverInfo {"name":"cockroachdb-cloud","version":"1.0.0"}
+tools/list        HTTP 200   12 tools, byte-identical to the 2026-08-11 list
+select_query      HTTP 200   SELECT current_user  ->  {"rows":[{"u":"managed-mcp"}]}
+select_query      HTTP 200   SELECT count(*) FROM mainline_audit.v_open_gate_summary
+                             ->  {"rows":[{"n":1}]}   566 ms
+```
+
+That last call is the whole demonstration in one line: **a general-counsel question — *what is the
+gate refusing right now?* — asked of a contracted `mainline_audit` view over CockroachDB's own
+managed endpoint, with none of our code in the read path.** The `1` is the demo's subject, the one
+permit that cannot merge, and it is the same row §2.4 step 2 returns over `psql`.
+
+**The argument names, measured 2026-08-16 from `tools/list`'s `inputSchema`:** `select_query`,
+`explain_query` and `insert_rows` each declare `required: ["database","query"]`; `cluster_id` is
+optional and its own description says it *"must be omitted"* when the MCP config pins a cluster,
+which the block below does; and **`select_query` has no `limit` argument at all** — pagination is
+`LIMIT`/`OFFSET` inside the statement. The field-by-field version, the negative call that pins it,
+and what the misleading `must contain exactly one statement` error actually means are
+[`MCP-CONFIG.md`](../../verticals/mainline/demo/judge/MCP-CONFIG.md) §1.2.
+
 ### The paste-ready configuration
 
 Drop this into your MCP client's server configuration. It is the exact wiring that produced
@@ -747,11 +774,77 @@ client's own secret store and never into a file you commit. Pointed at your own 
 authenticate, which is the intended outcome. We would rather show you the exact wiring and
 withhold the key than publish a key and describe it as narrower than it is.
 
-**Every field explained, the two argument-name traps that cost us a debugging session
-(`query` not `statement`; `database` is mandatory; `explain_query` prepends its own `EXPLAIN`),
-and the `psql` equivalent for a judge with no MCP client at all, are in
+**Every field explained, the argument names as measured on 2026-08-16 from the server's own
+`inputSchema` (`query` not `statement`; `database` mandatory; `cluster_id` omitted when the header
+pins the cluster; no `limit` on `select_query`; `explain_query` prepends its own `EXPLAIN`), and
+the `psql` equivalent for a judge with no MCP client at all, are in
 [`MCP-CONFIG.md`](../../verticals/mainline/demo/judge/MCP-CONFIG.md)** — which carries this same
-JSON block, field for field.
+JSON block and this same CLI form, character for character. The identity of the two blocks is not
+asserted here, it is checkable: that file's header carries a ten-line program that reads both files
+and prints `True` twice.
+
+### Reproduce the mechanism against your own cluster — one command
+
+The configuration above is a file to paste. This is the command that drives it, and it needs
+**your** key and **your** cluster, never ours. It is the same program that produced
+[`evidence/mcp/`](../../evidence/mcp/README.md), pointed at you instead of at us:
+
+```bash
+export CC_API_KEY=...                     # your own Cloud service-account key, your shell only
+python scripts/submission/capture_mcp_evidence.py \
+  --cluster-id YOUR-OWN-CLUSTER-UUID \
+  --database defaultdb \
+  --out /tmp/your-mcp-evidence
+```
+
+**Pass `--out`** — without it the program writes into `evidence/mcp/`, which is *our* committed
+transcript. Add `--no-pack` for the handshake and the twelve schemas alone. It prints as it goes,
+so you can compare line for line; against our cluster on 2026-08-16 it printed this:
+
+```
+capturing against https://cockroachlabs.cloud/mcp, cluster 7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e, database mainline_demo
+  handshake      HTTP 200 305.3 ms  protocol 2025-06-18  identity managed-mcp
+  tools/list     12 tools, 5 divergences
+  judge pack     15/16 — DIVERGED — KNOWN GAP (exit 1)
+  wrote evidence/mcp/session.json       5881 bytes  hygiene holds
+  wrote evidence/mcp/tools-schema.json  17829 bytes  hygiene holds
+  wrote evidence/mcp/pack-run.json      13382 bytes  hygiene holds
+  wrote evidence/mcp/README.md          10989 bytes  hygiene holds
+```
+
+Those four byte counts are the sizes of the committed files, so `ls -l evidence/mcp/` re-derives
+them on a fresh clone with no credential at all.
+
+**It cannot write to your cluster, and the prohibition is enforced rather than promised:** every
+outgoing request passes through a request hook that parses the JSON-RPC body and raises
+`WriteVerbAttempted` if the tool named is `insert_rows`, `create_database` or `create_table`. The
+key is read from `MAINLINE_MCP_API_KEY` falling back to `CC_API_KEY`, never from a command line, and
+every artefact is scanned for it before the write and re-scanned on disk after — a file that fails
+is deleted rather than shipped.
+
+If you would rather drive only the sixteen questions and write no evidence directory, the older
+entry point still works and takes the same key:
+
+```bash
+export CC_API_KEY=...                     # your own Cloud service-account key, your shell only
+python scripts/deploy/judge_access.py judge-run \
+  --via mcp \
+  --cluster-id YOUR-OWN-CLUSTER-UUID \
+  --mcp-database defaultdb \
+  --out your-mcp-run.json
+```
+
+**What to expect.** `initialize` → HTTP `200` with `protocolVersion 2025-06-18` and `serverInfo
+{"name":"cockroachdb-cloud","version":"1.0.0"}`; `tools/list` → the same **12** tools; `SELECT
+current_user` → your cluster's MCP identity; and `crdb_internal`, `pg_catalog` and
+`information_schema` → `query references a restricted schema`, which is a server-side property no
+grant of yours or ours can weaken. **The sixteen pack questions will mostly FAIL against your
+cluster, and that is the correct outcome** — they ask about `mainline_audit` views that exist only
+in our schema. What reproduces is the *mechanism*; our *data* is Path B, §2. With no key set the
+program records a NOT-RUN **with a reason** rather than a pass, in its own words: *"a green
+negative run with nothing to talk to asserts the opposite of what it claims."*
+[`MCP-CONFIG.md`](../../verticals/mainline/demo/judge/MCP-CONFIG.md) §1.3 is the long form, with
+the three environment-variable facts read out of the program rather than remembered.
 
 That 15-of-16 includes the two plan proofs (Q10, Q10C), which came back as real 18-row query
 plans showing a vector index scan — asked over CockroachDB's own managed endpoint with none of
@@ -762,10 +855,33 @@ our code in the path.
 Because the credential that reaches that endpoint is the account's **Cloud service-account key**,
 and the surface it opens is not read-only. Measured, with the same key:
 
-* the tool list carries `create_database`, `create_table` and `insert_rows`;
+* the tool list carries `create_database`, `create_table` and `insert_rows` — **re-confirmed
+  2026-08-16**, the same twelve tools with the same three write verbs among them;
+* `list_clusters` enumerates every cluster the account owns — also re-confirmed 2026-08-16;
 * `create_database` returned `{"success": true}` — a database really was created on the demo
-  cluster and dropped again in the same session;
-* `list_clusters` enumerates every cluster the account owns.
+  cluster and dropped again in the same session. **That reading is 2026-08-11 and is deliberately
+  not refreshed:** the 2026-08-16 re-probe called read verbs only. Re-running a destructive proof
+  against the submission's own demo cluster on submission eve, to make a page feel current, is not
+  a trade this project makes.
+
+`evidence/deploy/judge-access.json` records the conclusion as a field rather than a paragraph —
+`mcp_channel.credential_publishable` is `false`, with `mcp_channel.why_not_publishable` beside it
+giving the reason in the artefact's own words — so it is checkable without reading this sentence:
+
+```bash
+python -c "import json;print(json.load(open('evidence/deploy/judge-access.json'))['mcp_channel']['credential_publishable'])"
+# False
+```
+
+**One capability that is real, measured, and not in the demo's request path.** `insert_rows` is on
+the live tool list and its measured shape is `{database, query}`, a whole INSERT statement. This
+repository permits exactly one MCP write, to `mainline_meas.external_attestation`, and that
+method's published guarantee is that **no parameter of it names a table** — a property of the
+signature, not a run-time check. Speaking the live shape would mean building SQL inside that one
+method and trading the guarantee for a demonstration. We did not, so the typed write verb is not
+sent over the live surface: it is real code with a real suite against a constructed transport, and
+that is the whole of the claim. [`MCP-CONFIG.md`](../../verticals/mainline/demo/judge/MCP-CONFIG.md)
+§3.1 is the long form.
 
 [`FALLBACK.md`](../../verticals/mainline/demo/judge/FALLBACK.md) pre-committed to a degrade path if
 the key could not be published, on the assumption that the blocker would be Cockroach Labs' terms

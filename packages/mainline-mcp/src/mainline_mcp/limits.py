@@ -135,6 +135,70 @@ so a server on a different revision produces a recorded fact rather than a misma
 """
 
 
+# ── The live surface, MEASURED rather than read ──────────────────────────────────
+#
+# APPEND-ONLY BOUNDARY. `evidence/tool-usage/crdb-features.json` anchors published
+# citations at `limits.py:45` (MCP_ENDPOINT) and `limits.py:75` (FORBIDDEN_SCHEMAS).
+# Anything new goes BELOW this line so neither anchor moves. Everything in this block
+# was read out of the server's own `tools/list` JSON Schema on the date below, not out
+# of a document.
+
+SURFACE_MEASURED_AT: Final = "2026-08-16"
+"""The day ``initialize`` + ``tools/list`` were run against :data:`MCP_ENDPOINT`.
+
+The handshake returned ``protocolVersion 2025-06-18`` and
+``serverInfo {"name": "cockroachdb-cloud", "version": "1.0.0"}``.
+"""
+
+LIVE_TOOL_NAMES: Final = (
+    "create_database",
+    "create_table",
+    "explain_query",
+    "get_cluster",
+    "get_table_schema",
+    "insert_rows",
+    "list_clusters",
+    "list_databases",
+    "list_tables",
+    "select_query",
+    "show_running_queries",
+    "show_statement",
+)
+"""The twelve tools the server advertised on :data:`SURFACE_MEASURED_AT`, in name order.
+
+Note what is in here and not in :data:`READ_VERBS`: ``create_database``,
+``create_table``, ``get_cluster`` and ``list_clusters``. The credential that reaches this
+endpoint reaches those four as well, which is why it is an account-level key and why it
+is not the credential a judge is handed.
+"""
+
+MEASURED_REQUIRED_ARGUMENTS: Final = {
+    "explain_query": ("database", "query"),
+    "get_table_schema": ("database", "table"),
+    "insert_rows": ("database", "query"),
+    "list_databases": (),
+    "list_tables": ("database",),
+    "select_query": ("database", "query"),
+    "show_running_queries": (),
+    "show_statement": ("query",),
+}
+"""``inputSchema.required`` per tool, copied from the live schemas.
+
+The one that corrected this package: ``select_query`` requires ``query``, not
+``statement``. A call carrying ``statement`` returns
+``{"code": 0, "message": "must contain exactly one statement"}`` — the server sees no
+statement at all, because the property it reads is absent.
+"""
+
+LIST_MAX_ROWS: Final = 10_000
+"""Measured ceiling of the ``limit`` property on ``list_databases`` / ``list_tables``.
+
+Recorded because it is a fact, **not** because this client uses it:
+:data:`LIST_DEFAULT_ROWS` (100) remains the ceiling those two verbs enforce, and 100 is
+below 10 000. The rule that the client is never wider than the surface is unaffected.
+"""
+
+
 # ── Refusals ─────────────────────────────────────────────────────────────────────
 
 

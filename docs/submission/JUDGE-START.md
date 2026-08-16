@@ -24,6 +24,103 @@ its file disagree, **the file is right and this page is stale.**
 
 ---
 
+## Stop 0 · How long this stays up — the obligation runs to **2026-09-15**, not to 2026-08-18
+
+**This is the obligation no other file in this repository states.** It is recorded here
+because it binds us for four weeks *after* the deadline everyone is working to, and because
+the mechanism most likely to breach it is one we built on purpose.
+
+The Official Rules, verbatim:
+
+> "The Entrant must make the Project available free of charge and without any restriction,
+> for testing, evaluation and use by the Sponsor, Administrator and Judges **until the
+> Judging Period ends**."
+
+**Two dates, and the gap between them is the whole point:**
+
+| | date |
+|---|---|
+| Submission Period closes | **2026-08-18**, 17:00 EDT |
+| **Judging Period runs** | **2026-08-19 → 2026-09-15** |
+| **The origin must stay reachable until** | **2026-09-15** |
+
+**So the demo must answer for twenty-eight days after the submission deadline.** Not until we
+have submitted. Not until the video is uploaded. Until the Judging Period ends. A judge may
+open [`the demo URL`](https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws)
+for the first time in the second week of September, and it has to work then.
+
+**Nothing you need is behind a credential.** The Function URL is
+`authorization_type = NONE` — measured, and readable back off
+`aws_lambda_function_url.authorization_type` rather than off our intent
+(`infra/envs/demo/outputs.tf:148`). Every route in Stops 1–4 and 6 needs **no account, no
+key, no login and no email from us**. Stop 5's `mainline_judge` psql login is a *deeper,
+optional* path for reading our own Cloud ledger; it is not required to evaluate the project,
+and the rules' "if Entrant's website is private, include login credentials" clause does not
+bite, because the website is not private.
+
+### ⚠ The tension we are recording rather than resolving: the cost guard can take the demo down, and that would be a RULES BREACH
+
+The same apply that created the origin created a cost guard, and **it is live** — of the
+`24 created` resources in `evidence/deploy/APPLIED.md`, eleven are the API and **thirteen are
+the guard**. What it does, from `infra/envs/demo/README.md` §"This root can stop its own demo,
+and that is the point":
+
+* Seven CloudWatch alarms — the guard's three (invocations/60 s, invocations/3600 s, log
+  ingestion/300 s) plus `module.api`'s four (`-errors`, `-throttles`, `-duration-p99`,
+  `-concurrency`) — and one AWS Budget publish to one SNS topic.
+* Its subscriber calls `lambda:PutFunctionConcurrency(ReservedConcurrentExecutions=0)`.
+* **The URL then answers `HTTP 429` with no body, to everyone.**
+* **It is not self-clearing.** The responder holds an explicit `Deny` on
+  `DeleteFunctionConcurrency`, so it cannot undo its own stop. Recovery is a human running
+  `scripts/deploy/kill_switch.{sh,ps1} --restore` (`--status` reads state without changing
+  it).
+
+That trade — *"an outage is recoverable by one command and a bill is not"* — was chosen
+deliberately, and it is the right trade for an unauthenticated endpoint. **The rules do not
+care why the demo is down.** Between 2026-08-19 and 2026-09-15, a Function URL answering
+`429` is a Project not "available … without any restriction … for testing, evaluation and use
+by the Sponsor, Administrator and Judges". **A cost-guard stop in September is a rules breach,
+not a saving.**
+
+And the exposure is not hypothetical, because the guard's own README names it: the Function
+URL has no authentication by the founder's explicit choice, so **anyone at all can trip the
+burst alarm and take the demo down** — including a judge running the beats a few times, or
+several judges arriving at once.
+
+**What watches it, and the one thing that has to be true for that to work.**
+`.github/workflows/demo-health.yml` runs **hourly** and asserts `GET /` → 200,
+`GET /v1/health` → `ok: true` with a `server_date` fresh inside a 15-minute window, and
+`POST /v1/demo/gate-run` → the four beats by SQLSTATE. **It reads the URL out of
+`docs/submission/SUBMISSION.json` in the checkout, and GitHub fires `schedule:` from the
+default branch only.** So the heartbeat arms when — and only when — a resolved `demo_url`
+is on `master`. That field now holds the origin rather than `UNRESOLVED`; until it is
+committed and pushed, the lane is still failing for the "not deployed" reason and **nothing
+is watching the origin**. Check in one command:
+
+```bash
+gh api repos/Shaugato/mainline/contents/docs/submission/SUBMISSION.json \
+  --jq '.content' | base64 -d | jq -r .demo_url
+```
+
+**This page records the obligation; it does not act on it.** The actions belong to the
+founder and the orchestrator, and none of them is a documentation edit:
+
+1. **Get `demo_url` onto `master`** so the hourly heartbeat starts asserting against the
+   origin instead of failing for the wrong reason.
+2. **Decide the September posture before 2026-08-19** — who is notified when the guard
+   trips, and who runs `--restore`. An hourly red on a repository nobody is reading during
+   the judging window is not a monitor.
+3. **Do not let a cost ceiling silently outrank the availability rule.** If the budget's
+   backstop would fire inside the window, that is a decision to take deliberately and in
+   advance, not to discover from a judge's screenshot. `docs/deploy/COST-BOUND.md` is where
+   the bound is costed.
+
+*(Recorded under [`compliance-plan.md`](compliance-plan.md) Ruling 5. No infrastructure,
+budget or alarm was touched to write this — every figure above was read from committed
+Terraform, committed evidence and a public workflow file.)*
+
+---
+
 ## Stop 1 · The two documents that decide whether to believe the rest
 
 Read these before the code. They are the differentiator, and putting them anywhere but the
@@ -374,9 +471,31 @@ credential, no AWS access, no database, no build:
 **And the film is not shot in the MAINLINE console.** It is shot in the software the people in
 the story use — a permit-to-work screen at `/operator.html#/permit` and a management-of-change
 screen at `/operator.html#/change` — with the refusal landing inside those screens, because
-that is where a refusal lands in reality. Those two screens are **in the tree and not on the
-origin yet**: measured 2026-08-15, `GET /operator.html` returns the console shell byte-for-byte
-identical to `GET /`, which is the SPA fallback.
+that is where a refusal lands in reality.
+
+> ~~Those two screens are **in the tree and not on the origin yet**: measured 2026-08-15,
+> `GET /operator.html` returns the console shell byte-for-byte identical to `GET /`, which is
+> the SPA fallback.~~
+>
+> **SUPERSEDED — re-measured 2026-08-16, and the operator surface IS on the origin.**
+> `GET /operator.html` returns **200, 5,097 bytes**, `<title>Control of Work</title>`,
+> against `GET /` at **200, 4,749 bytes**, `<title>MAINLINE console</title>` — different
+> length, different SHA-256 (`37454502e640e505c35b28c8…` vs `9bd68bcdf30799d3b57c9e35…`),
+> and it loads its **own** bundle rather than the console's:
+> `GET /assets/operator-D24tzVGh.js` → **200, 96,734 B** and
+> `GET /assets/operator-DTSzHtCs.css` → **200, 33,043 B**. **It is not the SPA fallback.**
+> `/judge` and `/console` *are* the fallback and still return the console shell at 4,749
+> bytes, which is how the difference was isolated.
+>
+> **One limit, kept explicit.** `#/permit` and `#/change` are hash fragments resolved
+> client-side; a hash is never sent to the server, so the readings above prove the document
+> and its assets serve and prove **nothing** about what either route renders. Open
+> `<origin>/operator.html#/permit` in a browser to settle that — no `curl` can.
+>
+> Re-derive the whole finding in one command:
+> `curl -s -o /dev/null -w "%{http_code} %{size_download}\n" <origin>/operator.html`
+
+
 
 Five more, taken from [`docs/HONESTY.md`](../HONESTY.md). Nothing here is softened for a
 submission; if anything, read it first.

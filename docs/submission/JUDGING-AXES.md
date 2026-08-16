@@ -13,10 +13,21 @@ overview page renders two of the five differently; the Rules page is the authori
 criterion *text* is identical on both, and the discrepancy is recorded here rather than
 "fixed".
 
-**Equally weighted for the sum — and strictly ordered for the tie-break.** The Rules break a tie
-on the highest score in the *first applicable criterion listed*, then the next, in the order
-above. So Agentic Memory Design decides every tie, and Product Readiness — the axis this page
-concedes at §4 — is fourth, behind three axes this repository is strong on.
+**Equally weighted for the sum — and strictly ordered for the tie-break.** That ordering is not
+an inference from the list above, it is a rule, and this page now reproduces it verbatim instead
+of paraphrasing it — because the rule is what justifies this page's own shape, and a paraphrase
+of the sentence that decides the contest is not something a judge should have to take on trust.
+Official Rules §6, immediately below the criteria; the same text is quoted at
+[`docs/demo/research/r1-judging.md`](../demo/research/r1-judging.md) §1.2, with that page's own
+emphasis, which is dropped here so the sentence reads exactly as the Rules print it:
+
+<!-- prose-hygiene: quoting -->
+> **Tie Breaking** — For each Prize listed below, if two or more Submissions are tied, the tied Submission with the highest score in the first applicable criterion listed above will be considered the higher scoring Submission. In the event any ties remain, this process will be repeated, as needed, by comparing the tied Submissions' scores on the next applicable criterion. If two or more Submissions are tied on all applicable criteria, the panel of Judges will vote on the tied Submissions.
+
+So Agentic Memory Design decides every tie, and **Product Readiness** — the axis this page
+concedes at §4 — is **fourth**, behind three axes this repository is strong on. On a coarse
+star scale ties are the expected case rather than the exception, which is what makes the
+concession at §4 affordable: it is spent on the criterion the tie-break reaches last but one.
 
 **Each criterion is two sentences, and until now this page answered only the first of each.**
 The second sentence is where the scoring hook is, so §§1–5 each open by quoting it and
@@ -33,16 +44,29 @@ The counterweights are the point. A submission that argues five axes and concede
 asking to be disbelieved on all five. Every limitation below is one we published before a
 judge could find it, and each is a number with a file behind it.
 
-**Every relative path on this page was re-resolved against the working tree on `2026-08-15`,
-after this revision's edits: `65` links, `0` broken** — *it read `60` and `0` on `2026-08-14`;
-the count rose because this revision added links and the denominator is printed so the claim
-stays falsifiable.* The same walk over
-[`DEVPOST.md`](DEVPOST.md) returned `11` and `0`, over
-[`RULES-MATRIX.md`](RULES-MATRIX.md) `12` and `0`, and over
-[`docs/TOOL-USAGE.md`](../TOOL-USAGE.md) `40` and `0`.
-*(The same sentence read `2026-08-12` and gave no link count; a claim of "none broken" with no
-denominator is unfalsifiable, so the denominator is now printed.)* Every number carries the
-artefact that produced it. Digits inside `code spans` are
+**Every relative path on this page was re-resolved against the working tree on `2026-08-16`,
+after this revision's edits: `78` links, `0` broken** — *it read `70` and `0` earlier on
+`2026-08-16` before this revision, `65` and `0` on `2026-08-15`, and `60` and `0` on
+`2026-08-14`; the count rose because this revision added `8` links, and the denominator is
+printed so the claim stays falsifiable.* The walk is: take every `](target)` that is not
+`http`, `mailto` or a bare `#fragment`, strip any `#anchor`, and resolve what is left against
+the file's own directory — **and skip fenced blocks and inline code spans, because a
+`](target)` inside backticks is a *name*, exactly as a digit inside backticks is.** That last
+clause used to be unwritten, and it is the difference between a reproducible count and an
+unreproducible one: taken literally without it the walk scores this page's own description of
+the walk as a link and reports one break that is not one. Run before this revision's edits, the
+walk as now described reproduced this page's own `70` **exactly**, which is the only reason the
+readings below are comparable to the ones this sentence used to carry. Over
+[`RULES-MATRIX.md`](RULES-MATRIX.md) it returns `12` and `0`, unchanged. Over
+[`DEVPOST.md`](DEVPOST.md) it returns `12` and `0` today where this sentence recorded `11`, and
+over [`docs/TOOL-USAGE.md`](../TOOL-USAGE.md) `77` and `0` where the same walk read `75` about
+an hour earlier in the same session, and where this sentence recorded `71` today and `40` on
+`2026-08-15` — **both of those documents are being revised while this one is, so their figures
+are readings with a timestamp rather than properties of the repository**, and every reading is
+kept. A number that moved twice inside one hour is the clearest possible demonstration of why
+the timestamp is printed with it. *(The same sentence read `2026-08-12` and gave no link count; a claim of
+"none broken" with no denominator is unfalsifiable, so the denominator is now printed.)*
+Every number carries the artefact that produced it. Digits inside `code spans` are
 names (`v26.2.5`, SQLSTATE `23514`), not measurements. Where a figure below moved after an
 earlier version of this page quoted it, the stale figure is named rather than deleted.
 
@@ -85,19 +109,56 @@ falsified. **On *"at real scale"* this page concedes and does not argue**: the c
 authored, and there is no p50, no p99 and no load profile anywhere in this repository — the
 counterweight below is the same concession and it stays.
 
+**The criterion's *first* sentence, and the scope of its adjective.** *"Does CockroachDB
+play a meaningful, production-grade role as the agent's memory layer?"* — Official Rules §6,
+quoted at [`docs/demo/research/r1-judging.md`](../demo/research/r1-judging.md) §1.1.
+**That adjective governs the memory layer; §4's concession governs the custody store and the
+operator surface around it, and this page will not merge the two in either direction.** The
+memory layer is `SERIALIZABLE`; a named `CHECK` whose *name* is the deliverable —
+`gate_closed_when_issued`, `verticals/mainline/db/migrations/0050_permit.sql:114`; a
+composite foreign key `(permit_id, gate_epoch)` from `mainline.merge_record` onto
+`mainline.permit` with `ON UPDATE RESTRICT ON DELETE RESTRICT`,
+`verticals/mainline/db/migrations/0071a_epoch_pin_permit.sql:35-39`; a counter no client may
+write, projected by the trigger at `0120_trg_check_project.sql`; `FORCE ROW LEVEL SECURITY`
+on `mainline.permit`, `verticals/mainline/db/migrations/0181a_permit_rls_force.sql:54`, so
+owners are not exempt either; and a `271`-file migration chain applied `271` of `271`
+against managed CockroachDB Cloud ([`evidence/deploy/cloud-chain.json`](../../evidence/deploy/cloud-chain.json)).
+**What §4 concedes — loudly, and nothing here softens it — is the other half: `7` of `16`
+cryptographic custody checks never ran, and there is no p50, no p99 and no load profile.**
+Two sentences about two different things.
+
 | Artefact | What it earns |
 |---|---|
 | [`spec/TRAPPOINT-SPEC.md`](../../spec/TRAPPOINT-SPEC.md) §2 | The memory model is a **normative specification**, not an implementation detail: PROJECT · PIN · REFUSE, with rules `P-1`–`P-5` and `N-1`–`N-4`. `P-2` forbids deriving a gate value from the inserting row; `P-3` says absence of evidence **refuses, never admits**; `N-3` forbids `CASCADE` in both positions, because a cascade rewrites history. |
 | [`verticals/mainline/db/migrations/0120_trg_check_project.sql`](../../verticals/mainline/db/migrations/0120_trg_check_project.sql) + [`0115_fn_permit_merge_gate.sql`](../../verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql) + [`0050_permit.sql`](../../verticals/mainline/db/migrations/0050_permit.sql) | The three steps as shipped SQL: the trigger that projects a cross-row fact onto a scalar of the subject row, the gate function that **re-derives** rather than trusts it, and the plain-column `CHECK` that refuses for every writer forever. |
 | [`evidence/gate-refusal/proof-20260810T054407Z.json`](../../evidence/gate-refusal/proof-20260810T054407Z.json) | The design is not asserted, it is **executed**. `projection.severity`: the client supplied `0`, the trigger projected `4` onto a row the client never touched. A counter a client writes is a client's opinion; a counter a trigger writes is the database's. `10` projection assertions, all holding. |
+| [`evidence/demo/memory-loop.json`](../../evidence/demo/memory-loop.json) | **STORE → RETRIEVE → ACT executed against the deployed origin, not diagrammed.** `base_url` is the live Function URL, `generated_at 2026-08-15T14:18:20Z`: `40` rows over `5` live routes, every response `200`, **`verdict: PROVEN`, `assertions_total: 23`, `assertions_held: 23`, `assertions_failed: []`**. The RETRIEVE→ACT interval is a **subtraction of two columns off two live routes** — `mainline.blocking_check.materialised_at` minus `mainline_meas.recall_run.started_at`, `10.0` seconds at `#gap`, with `stated_anywhere_in_this_program: false` and both endpoints corroborated `AGREES` against the checked-in seed. And the program **audits itself**: `#self_audit` reports `values_audited: 79`, `values_found_in_the_source: []`, `uuid_literals_in_the_source: 0` against `scripts/proof/memory_loop.py` at `source_sha256 dc1935a6…` — **`0` of `79` audited values originate in the program that wrote the file.** A proof script that could have hard-coded its own answer and demonstrably did not. |
+| **the three live routes themselves** — anonymous, read-only, re-read `2026-08-16` | **`GET /v1/permits/{id}/blocking-checks`** returns `precursor.severity_gate: 4` with `precursor.severity_basis: "human_rated"` and the check's `origin: "blame_ancestry"` — a severity the client never supplied, on a row it never touched. **`GET /v1/recall-runs/{id}`** returns the retrieval run accounting for itself: `n_candidates 1 · n_blocking 1 · n_advisory 0 · n_silenced 0 · n_deduped 0`, plus `index_plan_digest d98e50a8…` and `index_generation g1`. **`GET /v1/permits/{id}/silence`** returns the Merkle silence receipt — `corpus_root`, `candidate_root`, `theta 0.35`, `s 1`, `n 1`, `boundary_proof.leaf_s.leaf_hash_hex`, `policy_version demo-recall-1.0` — **and `entries` is empty, because `n_silenced` is `0` on this run.** The apparatus is live; the list of withheld precursors is genuinely nil, and this page says so rather than implying a display of withheld precursors it does not have. |
+
+**Re-read those three yourself — no clone, no account, no credential.** With `$B` the demo
+URL and `$P` = `dec0de00-0006-4000-8000-000000000001`:
+
+```bash
+curl -s $B/v1/permits/$P/blocking-checks    # precursor.severity_gate 4 · severity_basis human_rated · origin blame_ancestry
+curl -s $B/v1/recall-runs/dec0de00-0009-4000-8000-000000000001   # the five counts + index_plan_digest
+curl -s $B/v1/permits/$P/silence            # the receipt — and entries: []
+```
+
+Two of those three are among the `5` routes `evidence/demo/memory-loop.json` walks;
+**`/silence` is not in that transcript at all**, and is quoted here as a live route rather
+than as a line of it.
 
 **Why the memory has semantics rather than being a document store:** provenance (clause → the
 incident that wrote it), ancestry (a commit DAG that is walked, not a "related documents"
 list), severity floors (a fatality's relevance never decays), archival bonds (recall keyed to
 an activity taxonomy, not keywords), fixity (as-documented reconciled against as-operated),
 and **logged silence** — every precursor the system *declined* to surface is recorded with
-its arithmetic. The last one is the unusual commitment: a recall system that cannot be
-audited on what it withheld is not auditable at all.
+its arithmetic, at `GET /v1/permits/{id}/silence`, live and anonymous. The last one is the
+unusual commitment: a recall system that cannot be audited on what it withheld is not
+auditable at all — **and on this seeded run the receipt is complete while `entries` is
+empty, because `n_silenced` is `0` and nothing was withheld**, so what is demonstrated is
+the arithmetic a withholding would have to publish, bound to a corpus root and a threshold,
+on a run that withheld nothing.
 
 **Honest counterweight.** The corpus is **authored** — the compressor-setpoint story is a
 designed worked example, no real incident, no real site, no real fatality
@@ -147,12 +208,33 @@ minted disposition id no other writer could hold
 | [`scripts/proof/gate_refusal.py`](../../scripts/proof/gate_refusal.py) → [`evidence/gate-refusal/proof-20260810T054407Z.json`](../../evidence/gate-refusal/proof-20260810T054407Z.json) | Three beats, one command. `23514` `gate_closed_when_issued` (source `reported`); then **the same permit refused again at `P0001` `mainline.fn_permit_merge_gate` after the projected counter was forged to zero out of band** (source `parsed`); then `00000` ADMITTED after one signed disposition. Verdict `PROVEN`, `0` caveats. |
 | [`docs/TOOL-USAGE.md`](../TOOL-USAGE.md) + [`evidence/tool-usage/`](../../evidence/tool-usage/) | The rules ask which CockroachDB and AWS services were used **and how**. `4` CockroachDB tools, `10` engine features accounted separately, `12` AWS services — each with a verdict of EXERCISED / DESIGNED / NOT-AVAILABLE and a file-and-line anchor. `python scripts/submission/capture_tool_evidence.py --check` exits 1 if any count is stale. |
 | [`packages/trappoint-migrate/src/trappoint_migrate/attest.py`](../../packages/trappoint-migrate/src/trappoint_migrate/attest.py) | The gate is **self-attesting**: `pg_get_triggerdef()` and `pg_get_functiondef()` are hashed into a chained schema attestation, so the gate's own source text is inside the record. Nobody quietly weakens the gate that prevents quietly weakening controls. A fallback records `attestation_grade="weak"` instead of pretending equivalence. |
+| [`evidence/deploy/judge-run.json`](../../evidence/deploy/judge-run.json) `#channels.mcp` | **The criterion's own text names the MCP Server, so here is the run.** The **Managed MCP Server** was exercised end-to-end against the live cluster: `endpoint https://cockroachlabs.cloud/mcp`, `protocol_version 2025-06-18`, `ran: true`, `sql_identity: "managed-mcp"` — not `root`, not the database owner, a purpose-built identity — `passed 15` of `total 16` pack questions, `generated_at 2026-08-11T00:23:29Z`. `#managed_mcp_availability` records that `initialize` returned HTTP `200` and a session id and that `tools/list` returned `12` tools. **Two caveats ride with every sentence of that, and neither is optional.** *(i)* The run's own `verdict` is **`DIVERGED — KNOWN GAP`** — divergence `N01`, where the `managed-mcp` identity **can** read `mainline_qa.v_disposition_profile`, which the design had asserted it could not; published at `#divergences`, `disposition: real_gap`, `by_design: false`, not reconciled away. *(ii)* The credential that reaches the endpoint is the account's Cloud service-account key, and `#managed_mcp_availability` records `credential_publishable: false` with its reasons. **So MCP is *demonstrated*, and it is *not* the judge access path** — that is the read-only `mainline_judge` SQL login at [`evidence/deploy/judge-access.json`](../../evidence/deploy/judge-access.json), and `#divergences` notes that this login refuses the very statement `N01` got away with, `42501`, no `USAGE` on the schema: **the credential this deployment actually publishes is the tighter of the two.** |
 
 **The detail worth a second look.** The middle beat is the whole architecture under attack. A
 "materialised conflict" design is only as good as its resistance to a forged projection, so
 the proof forges one. The gate re-derives the obligation count and refuses anyway: **P2
 projections are enforced, never trusted.** The third beat matters equally — a gate that
 always refuses is broken, not safe.
+
+**Using a tool correctly includes finding out when the tool is lying.**
+[`docs/regression/GUARD.md`](../regression/GUARD.md) § *Two things this guard found on its
+first run*: the PRIVILEGES family first asked `has_function_privilege(role, oid, 'EXECUTE')`,
+and the guard's plant **P2** — its own numbering, unrelated to spec rule `P-2` above —
+existed to make it answer `false` after a real `REVOKE`. On CockroachDB
+`v26.2.5` it answered **`true`** — for that role, for `root`, for `admin`, for `public`, for
+everybody — while the behavioural truth on the same scratch database was
+`REFUSED 42501 … does not have EXECUTE privilege on procedure merge_permit`. **A check built
+on it cannot fail, and a check that cannot fail is decoration.** It was replaced with a
+`SHOW GRANTS` read plus explicit role-membership expansion — which costs the two things the
+built-in would have done for free, stripping the signature off the object name and following
+`mainline_api`'s membership in `agent_gate`, `auditor_ro` and `svc_disposition` — **and which
+can go red.** `has_table_privilege` was put through the same control on the same database,
+tracked the behaviour exactly, and is still trusted for relations. This was found **by a
+plant, before the guard was ever run in anger**; without it the check would have been
+permanently, invisibly green. **The falsification is local-only** and `GUARD.md` says so in
+its own words: the same `REVOKE` was not performed against the Cloud cluster, because that
+would mutate a live deployment, so the cloud path was exercised read-only and the *proof of
+falsifiability* is the weaker, local claim.
 
 **Honest counterweight.** An earlier version of this page said the AWS half had **nothing** in
 the EXERCISED column. That was true when it was written and is not true now, and the honest
@@ -223,18 +305,59 @@ verdict `PROVEN`, `caveats: []`, chain `271/271`, `PROJECTION 10/10`,
 > change approved by people doing their jobs correctly, because the reason behind the rule
 > left with the person who wrote it.
 
-**The criterion's second sentence:** *"Is the use case meaningful, not just technically
-impressive?"*
+**The criterion's second sentence:** *"Is the use case meaningful, not just technically impressive?"*
+
+**Both sentences, verbatim, because on this axis alone they pull against each other.** Official
+Rules §6; the same text is quoted at
+[`docs/demo/research/r1-judging.md`](../demo/research/r1-judging.md) §1.1:
+
+<!-- prose-hygiene: quoting -->
+> **Real-World Impact** — "How big of an impact could the project have on real users or workflows? Is the use case meaningful, not just technically impressive?"
+
+**Why this is the sharpest sentence of the five, and why it is pointed at a project like this
+one.** The other four second sentences reward depth. This one is the single place on the score
+sheet where our own engineering can be held **against** us: `SERIALIZABLE` transactions, a
+projection trigger, a composite foreign key with `ON UPDATE RESTRICT`, C-SPANN vector indexes and
+a chained schema attestation are exactly the inventory that reads as *technically impressive* and
+proves nothing about whether anybody needed it. So this section does not answer the sentence with
+more mechanism. It answers with **who is worse off today without this, and what specifically
+changes for them** — and the mechanism appears only as the reason the change is not reversible by
+whoever is in a hurry.
+
+**What this is, in one sentence.** Safety knowledge in a regulated operation is *institutional
+memory in a person*, and the person leaves; what this builds instead is institutional memory as a
+**version-controlled repository whose commits are written by incidents**, with the gate that reads
+it enforced by the database rather than by the screen — so the memory is a **precondition of the
+permit**, not a panel beside it.
 
 **The answer.** The use case is the one where nobody is negligent. A permit is raised, every
 approver does their job, and the control that would have mattered is weakened anyway because the
 person who knew why it existed left in 2017 — that is the ordinary way a fatality's lesson is
 undone, and no shipping permit system can express it, because every one of them gates on the
-present state of the world rather than on ancestry. The demonstration is deliberately shot
-**inside a permit-to-work screen and a change-request screen** rather than inside our own
-console, because a control that only exists in a vendor's console is a control nobody meets at
-the moment of the decision. **What keeps this honest**: no real operator has used it, no real
-data is in it, and the counterweight below says so before a judge has to find it.
+present state of the world rather than on ancestry. The surfaces this is built to be met in are
+therefore **a permit-to-work screen and a change-request screen** rather than our own console,
+because a control that only exists in a vendor's console is a control nobody meets at the moment
+of the decision. **That framing is a design commitment, and the artefact behind it is not yet
+clean, so it is named here rather than left for a judge to find**: the scripted capture of those
+two screens,
+[`evidence/demo/operator-capture.json`](../../evidence/demo/operator-capture.json), was taken
+against a **local emulator** (`target.is_the_deployed_url: false`) and its own top-level `held`
+is **`false`** — `19` of its `20` assertions hold and the twentieth, `raw-payload-drawer-is-byte-identical`,
+does not. **What keeps this honest**: no real operator has used it, no real data is in it, and
+the counterweight below says so before a judge has to find it.
+
+**Who is worse off today, row by row — and every row's third column is a file, not an argument.**
+The last row is a limit rather than a claim, and it is inside the table on purpose: a table of
+beneficiaries with the "nobody yet" row moved to a footnote is an advertisement.
+
+| Who is harmed today, and how | What changes for them — the mechanism | Where it is measured |
+|---|---|---|
+| **The approver signing the permit.** The reason a control exists is in a closed investigation nobody opens at the moment of signing. Every approver does their job, the change is defensible, and the control is weakened anyway — the ordinary shape of the failure, and the one no shipping permit system expresses, because they gate on the present state of the world rather than on ancestry | the open obligation is a **row**, and the gate is a plain `CHECK` over a column of the subject row inside one `SERIALIZABLE` transaction — so the merge is **refused**, not annotated, not warned about, not left to the approver's judgement at the end of a shift. `23514` `gate_closed_when_issued`, `constraint_source: reported` | `evidence/demo/live-beats.json#gate_run.beats`, beat `2` of `4`. Taken over the public Function URL by a client the transcript describes as holding *"none - no DSN, no AWS profile, no token; a stranger with the URL"*, `target_is_local_emulator: false`, `verdict: PROVEN`, `failures: []` |
+| **The same approver, after somebody has quietly zeroed the counter.** This is how a control actually dies in a regulated operation: not overruled, made **invisible** — a disarmed projector, a back-office correction, a well-meant `UPDATE` — and everything downstream then reads clean and permits the change | the gate **re-derives** the obligation count from ancestry instead of trusting the column it is looking at, so the same merge is refused a **second** time on a forged input: `P0001` `mainline.fn_permit_merge_gate`, `constraint_source: parsed` — and the payload says `parsed` because the constraint name had to be read out of a `RAISE` rather than reported by the driver. A number a client can write is a client's opinion | the same file, beat `3` of `4`, named `projection_drift_attack` — the beat exists because the design was **attacked** rather than demonstrated. Re-run it yourself against the live origin: `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url <the demo URL>` |
+| **The investigator asking, years later, whether the lesson was applied.** Today the answer is an interview with whoever is still there. The question that cannot be answered from a document store is not *"what does the rule say"* but *"which incident wrote this clause, who was shown it, and how long after being shown it did anybody become bound by it"* | the loop is **four columns on live GETs**, not a narrative: the incident reference is `mainline.event.external_ref`, who was shown the memory is `mainline.exposure_receipt.actor_sub`, and the interval between reading and being bound is a **subtraction of two timestamps** — `mainline.blocking_check.materialised_at` minus `mainline_meas.recall_run.started_at` — computed by the reader rather than stated by the server | `evidence/demo/memory-loop.json#loop` — `40` rows over `5` routes, every response `200`, `23` of `23` assertions held, `verdict: PROVEN`. Each row prints the bare `curl` that re-reads it and **none of the `40` carries an authorization header**. The interval is at `#gap`: `10.0` seconds, and the file corroborates both endpoints against the checked-in seed rather than against itself |
+| **Nobody, yet — and that is the honest size of the claim.** No operator has used this and no operator's data is in it | *(no mechanism — this row exists to bound the three above)* | the three rows above measure that the mechanism **refuses**, not that it has ever refused for anybody. The corpus was authored for this repository and [`docs/HONESTY.md`](../HONESTY.md) § SYNTHETIC says so in its own words: the compressor-setpoint story is a designed worked example, no incident, no site, no fatality |
+
+**And the artefacts that carry the axis, with their paths:**
 
 | Artefact | What it earns |
 |---|---|
@@ -279,6 +402,13 @@ with no account of ours and no model call. A safety claim a buyer cannot re-run 
 The managed-cluster half is
 [`evidence/deploy/cloud-chain.json`](../../evidence/deploy/cloud-chain.json) —
 `files 271 · applied 271 · failed 0` against CockroachDB Cloud Basic in `aws-ap-southeast-1`.
+**And if you would rather open one file than run anything**, open
+[`evidence/demo/live-beats.json`](../../evidence/demo/live-beats.json) at `#gate_run.beats` and
+read the four `outcome` values in order: `read`, `refused`, `refused`, `admitted`. The second
+`refused` is the whole of the "meaningful, not just technically impressive" answer — it is the
+run where the gate's own input was falsified and the permit was refused anyway. If beat `3`
+reads `admitted`, the mechanism trusts a number a writer can set, the **second** row of the
+table above is false, and this axis should be marked down to whatever the prose alone is worth.
 
 ---
 
@@ -469,6 +599,19 @@ again after the number it reads has been falsified.**
 | [`skills/designing-diachronic-gates/`](../../skills/designing-diachronic-gates/) | The idiom is generalised out of the product into a **CockroachDB Agent Skill**, and it ships a program that falsifies it: [`scripts/assert_gate_refuses.py`](../../skills/designing-diachronic-gates/scripts/assert_gate_refuses.py) spins a throwaway node, replays an illegal history, and fails unless the expected SQLSTATE **and** constraint name are raised. A skill whose advice cannot be falsified is a blog post. |
 | [`skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py`](../../skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py) | The second skill encodes a platform fact discovered the hard way — a prefix-constrained ANN query uses the C-SPANN index **only when the index is named in the query** — and fails when the plan stops choosing it. An ANN query that quietly fell back to a scan is otherwise indistinguishable from one that did not. |
 | [`evidence/producers/producer-census-before.json`](../../evidence/producers/producer-census-before.json) | The most original *finding* in the build, and it is a negative result: **a defect census built from error messages measures only what the error messages can express.** CockroachDB names one absent relation per statement, so a table shadowed behind another in every view that joined them was invisible to a SQLSTATE census — permanently. The count read five; the truth was seven. |
+| [`docs/ci/anti-vacuity.md`](../ci/anti-vacuity.md) | **A standing census of whether each CI lane can prove it is *able* to fail** — one row per workflow, including the rows that admit no negative control exists. The shape is fixed: *copy the lane's real input, plant **one** violation per failure family, run **the lane's own checker**, and assert both that it exits non-zero **and** that the message names the planted family.* That last clause is the whole idea, and the census gives the reason in its own words: **"an assertion that a program failed, without checking why, passes when the program fails to start."** The count: **`7` lanes carry a standing negative-control job after that wave, against `3` before it** (`claims`, `judge-pack`, `submission`), **and the table names the `8` that still have none** — `ci`, `db`, `db-schema`, `boundary` (partial: planted-reach tests, no lane-level job), `custody-chain`, `schema`, `nightly-differential`, `demo-health` — rather than omitting them. A green lane that cannot go red occupies the place a check would occupy. |
+| [`evidence/mutation/README.md`](../../evidence/mutation/README.md) | **The mutation ratchet publishes Wilson lower bounds beside the point estimates, and deliberately gates nothing.** Three of three killed is a point estimate of `1.0` and a 95 % lower bound of **`0.438`**, and the README's reason is the unusual part: *"publishing `1.0` there is not optimism; it is a false statement about how much evidence exists."* Point estimates appear in every artefact labelled `point_estimate` and are never the claim; the interval is six lines of arithmetic in `wilson.py`, deliberately **not** `statsmodels`, so an opposing expert can check the bound with a calculator. And `mainline-mutation run` exits `0` whatever the kill rate is — **because the cheapest way to raise a mutation score is to delete the mutants you fail**, and a number that could stop a merge acquires an incentive to be high. The catalogue therefore keeps its survivors instead of tuning them away: `comparator_loosening` survives on `5` of `10` fixtures. The bounds are over a twelve-clause fixture corpus and the README says in its own voice that they generalise to nothing. |
+
+**One denominator on that census is drifting, and it is printed rather than smoothed.**
+Re-read `2026-08-16`, `docs/ci/anti-vacuity.md` §1 prints `17` workflow rows while its own
+summary sentence says *"eighteen"*, and `ls .github/workflows/*.yml` counts `20` files today —
+`aws-evidence`, `cluster-lane-bites` and `cluster-tests` are the three the table has not
+absorbed. **The `8` with no control are countable off the table exactly as printed above. The
+`7` is the census's own count and the table shows `8` lanes with a named job**, because
+`submission`'s row records its control as *"pre-existing; not owned by this wave and not
+re-examined here"* and the census's `7` counts what that wave stood up. Every one of those
+figures is a reading with a date rather than a property of the repository, which is exactly
+why the denominator is printed instead of the ratio alone.
 
 **Three smaller ideas that are unusual on their own.** *Refusal is structurally redundant* —
 an unwelding harness disables the trigger and drops the constraint, one at a time, and the

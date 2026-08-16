@@ -1,0 +1,802 @@
+{
+  "artefact": "evidence/mcp/auditor-live.json",
+  "contract": {
+    "contract_of_record": "spec/mcp/audit-surface.contract.yaml",
+    "contract_of_record_exists": false,
+    "loaded": "packages/mainline-mcp/tests/fixtures/audit-surface.contract.yaml",
+    "why": "spec/mcp/audit-surface.contract.yaml \u2014 the contract of record, owned by the fleet-contracts worker \u2014 is ABSENT from this tree. The catalogue was therefore loaded from the package's own reference fixture, whose header says in terms that it is a transcription of ARCHITECTURE.md \u00a717 and NOT the contract. Every budget verdict below is measured against that transcription. This is a divergence, recorded rather than closed: M3 does not own the contract's meaning and will not author one to make a run green."
+  },
+  "credential_hygiene": {
+    "assertion": "no field in this file is credential-shaped",
+    "bytes_scanned": 34157,
+    "holds": true,
+    "matches": 0,
+    "method": "the serialised artefact was searched for (a) the literal password this run issued, (b) any connection string whose userinfo still carries a password rather than the redacted form, and (c) any bare token of 24+ characters mixing upper case, lower case and digits \u2014 the shape secrets.token_urlsafe produces. UUIDs and hex digests are excluded by shape, not by an allowlist of values.",
+    "password_was_issued_this_run": true,
+    "self_scanned": true
+  },
+  "divergences": [
+    {
+      "check_in_under_a_minute": "ls spec/mcp/  ->  no such directory",
+      "consequence": "every budget and completeness verdict in these two artefacts is measured against a transcription of ARCHITECTURE.md \u00a717, not against a contract.",
+      "detail": "spec/mcp/audit-surface.contract.yaml is named by mainline_mcp.catalogue.CONTRACT_RELPATH, by tests/integration/mcp/test_audit_surface.py's skip reason, and by the package README. It is not present. The only two copies in the tree are test fixtures, and the one this run loaded says in its own header that it is NOT the contract.",
+      "id": "M3-D1",
+      "not_closed_because": "M3 does not own the contract's meaning. Authoring one to make a run green is exactly the move this repository refuses.",
+      "severity": "material",
+      "what": "the audit-surface contract of record does not exist in this tree"
+    },
+    {
+      "check_in_under_a_minute": "compare `columns_returned` per question in auditor-live.json against the `columns:` block of the loaded fixture.",
+      "consequence": "the completeness this surface can state is STRONGER than what these artefacts measured. Nothing here over-claims because of it \u2014 the error runs the safe way: 4 views are recorded as NO COMPLETENESS FLAG that in fact carry one, so every completeness statement in auditor-live.json is at worst an understatement.",
+      "detail": [
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "state",
+            "permits",
+            "open_blocking",
+            "open_residue",
+            "open_conflicts",
+            "open_warrants",
+            "unmodelled_assets",
+            "overrides_30d"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "countersigned",
+            "group_count",
+            "rows_complete",
+            "under_hold",
+            "unmet_floor"
+          ],
+          "observed_columns": [
+            "countersigned",
+            "group_count",
+            "open_blocking",
+            "open_conflicts",
+            "open_residue",
+            "open_warrants",
+            "overrides_30d",
+            "permits",
+            "rows_complete",
+            "site_id",
+            "state",
+            "under_hold",
+            "unmet_floor",
+            "unmodelled_assets"
+          ],
+          "observed_completeness_flags": [
+            "rows_complete"
+          ],
+          "view": "v_open_gate_summary"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "virulence",
+            "clause_versions",
+            "truncated_closures",
+            "max_depth",
+            "max_closure_gen",
+            "total_generations"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "ancestry_complete",
+            "group_count",
+            "last_computed_at",
+            "max_ancestors",
+            "max_severity",
+            "rows_complete"
+          ],
+          "observed_columns": [
+            "ancestry_complete",
+            "clause_versions",
+            "group_count",
+            "last_computed_at",
+            "max_ancestors",
+            "max_closure_gen",
+            "max_depth",
+            "max_severity",
+            "rows_complete",
+            "site_id",
+            "total_generations",
+            "truncated_closures",
+            "virulence"
+          ],
+          "observed_completeness_flags": [
+            "ancestry_complete",
+            "rows_complete"
+          ],
+          "view": "v_blame_coverage"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "q",
+            "surfaced",
+            "dispositioned",
+            "orphans",
+            "worst_ancestor",
+            "ancestry_complete"
+          ],
+          "declared_truncation_flag": "ancestry_complete",
+          "observed_but_undeclared": [
+            "generations_aligned",
+            "group_count",
+            "rows_complete",
+            "worst_severity"
+          ],
+          "observed_columns": [
+            "ancestry_complete",
+            "dispositioned",
+            "generations_aligned",
+            "group_count",
+            "orphans",
+            "q",
+            "rows_complete",
+            "site_id",
+            "surfaced",
+            "worst_ancestor",
+            "worst_severity"
+          ],
+          "observed_completeness_flags": [
+            "ancestry_complete",
+            "rows_complete"
+          ],
+          "view": "v_disposition_coverage"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "d",
+            "candidates",
+            "blocking",
+            "advisory",
+            "silenced",
+            "deduped",
+            "any_degraded"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "bonded_sev5",
+            "bonded_sev5_blocking",
+            "conserved",
+            "fatalities_all_blocking",
+            "group_count",
+            "index_generations",
+            "policy_versions",
+            "retrieval_complete",
+            "rows_complete",
+            "runs"
+          ],
+          "observed_columns": [
+            "advisory",
+            "any_degraded",
+            "blocking",
+            "bonded_sev5",
+            "bonded_sev5_blocking",
+            "candidates",
+            "conserved",
+            "d",
+            "deduped",
+            "fatalities_all_blocking",
+            "group_count",
+            "index_generations",
+            "policy_versions",
+            "retrieval_complete",
+            "rows_complete",
+            "runs",
+            "silenced",
+            "site_id"
+          ],
+          "observed_completeness_flags": [
+            "retrieval_complete",
+            "rows_complete"
+          ],
+          "view": "v_recall_conservation"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_code",
+            "tree_size",
+            "admissible_checkpoints",
+            "inadmissible_checkpoints",
+            "open_debt"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "canonicaliser_versions",
+            "checkpoints",
+            "group_count",
+            "last_issued_at",
+            "object_locked_checkpoints",
+            "oldest_open_debt_at",
+            "rows_complete",
+            "time_bounded_checkpoints",
+            "witness_complete"
+          ],
+          "observed_columns": [
+            "admissible_checkpoints",
+            "canonicaliser_versions",
+            "checkpoints",
+            "group_count",
+            "inadmissible_checkpoints",
+            "last_issued_at",
+            "object_locked_checkpoints",
+            "oldest_open_debt_at",
+            "open_debt",
+            "rows_complete",
+            "site_code",
+            "time_bounded_checkpoints",
+            "tree_size",
+            "witness_complete"
+          ],
+          "observed_completeness_flags": [
+            "rows_complete",
+            "witness_complete"
+          ],
+          "view": "v_ledger_health"
+        }
+      ],
+      "direction": "the SAFE direction: the surface is MORE honest than the contract describes. Every one of the 5 views that returned rows carries a `rows_complete` boolean (True), and 4 of them \u2014 ['v_blame_coverage', 'v_ledger_health', 'v_open_gate_summary', 'v_recall_conservation'] \u2014 declare `truncation_flag: null` in the loaded contract while in fact returning a completeness flag. The prober therefore did NOT read flags that were there.",
+      "id": "M3-D3",
+      "not_closed_because": "editing the contract to match the live surface would make the run green by changing the thing being tested. M3 does not own the contract's meaning.",
+      "severity": "material",
+      "what": "the live views return columns the loaded contract does not declare, including completeness flags on views the contract records as carrying none"
+    },
+    {
+      "check_in_under_a_minute": "grep '\"row_count\": 0' evidence/mcp/budget-live.json",
+      "consequence": "including the flagship question, v_weakenings_without_disposition. A zero-row answer is recorded as COMPLETENESS UNOBSERVED (vacuous), never as COMPLETE: the completeness flag was not observed on anything. Zero rows and zero-findings-verified-complete are different facts. This is a property of the cloud demo cluster's corpus, not of the surface.",
+      "detail": {
+        "empty_views": [
+          "v_weakenings_without_disposition",
+          "v_silence_summary",
+          "v_fixity_coverage",
+          "v_agent_actions",
+          "v_gate_latency_daily",
+          "v_txn_restart_daily",
+          "v_unused_indexes",
+          "v_changefeed_health"
+        ]
+      },
+      "id": "M3-D4",
+      "not_closed_because": "loading a corpus into the live cluster on submission eve is a write, and R4 permits read verbs only.",
+      "severity": "reportable",
+      "what": "8 of 13 contracted views returned ZERO rows"
+    }
+  ],
+  "generated_at": "2026-08-16T07:24:31Z",
+  "measurement_note": {
+    "what_response_bytes_measures": "len(HTTP response body) \u2014 the entire JSON-RPC envelope as it arrived, not a re-serialisation of the rows. That is the right unit, because the server's 10240-byte cap applies to what the server sends.",
+    "why_one_view_can_show_two_numbers_one_byte_apart": "the echoed JSON-RPC request `id` is inside the measured body. MEASURED 2026-08-16 by issuing the identical v_open_gate_summary statement twelve times on one session: 425 bytes on request ids 2 through 9, and 426 bytes on ids 10 through 13. The auditor pass and the budget pass are separate call sequences, so on some views they differ by exactly that one byte \u2014 the request counter crossing from one digit to two. It is not noise and it is not a rounding: it is what measuring the wire rather than the payload actually costs."
+  },
+  "persona": {
+    "all_routed_correctly": true,
+    "answerable_here": 10,
+    "no_path_from_question_text_to_sql": "every statement below is generated from a contracted ViewSpec or from VECTOR_PLAN_PROBE. The question text is used only to score the routing table.",
+    "questions_in_routing_table": 10,
+    "routing_is_deterministic": true,
+    "unanswerable_here": []
+  },
+  "produced_by": "worker M3 (mcp-real), MAINLINE hackathon submission wave",
+  "questions": [
+    {
+      "asked_as_free_text": "which weakenings of blood-written controls were never answered for?",
+      "canonical": "which weakenings of blood-written controls have no disposition?",
+      "columns_returned": [],
+      "completeness": {
+        "sentence": "COMPLETENESS UNOBSERVED \u2014 the view returned no rows, so 'ancestry_complete' was never observed on anything. Zero rows and zero-findings-verified-complete are different facts, and only the first one was measured.",
+        "state": "vacuous"
+      },
+      "elapsed_ms": 605.5,
+      "id": "Q1",
+      "response_bytes": 109,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q1",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_weakenings_without_disposition",
+        "target_kind": "view"
+      },
+      "row_count": 0,
+      "rows": [],
+      "statement_chars": 70,
+      "statement_sent": "SELECT * FROM mainline_audit.v_weakenings_without_disposition LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "The flagship question. A clause that weakened or removed a control written by a severity-4-or-worse incident, with no live disposition against it."
+    },
+    {
+      "asked_as_free_text": "what did you decline to surface, and with what arithmetic?",
+      "canonical": "what did you decline to surface, and with what arithmetic?",
+      "columns_returned": [],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 this view carries none by contract, so it cannot tell you whether anything was truncated.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 577.0,
+      "id": "Q2",
+      "response_bytes": 109,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q2",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_silence_summary",
+        "target_kind": "view"
+      },
+      "row_count": 0,
+      "rows": [],
+      "statement_chars": 55,
+      "statement_sent": "SELECT * FROM mainline_audit.v_silence_summary LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Silence is a row. The mean score, the mean threshold and the nearest miss are what turn 'we found nothing' into a checkable claim."
+    },
+    {
+      "asked_as_free_text": "how much witness debt is open on the ledger right now?",
+      "canonical": "is the ledger healthy?",
+      "columns_returned": [
+        "admissible_checkpoints",
+        "canonicaliser_versions",
+        "checkpoints",
+        "group_count",
+        "inadmissible_checkpoints",
+        "last_issued_at",
+        "object_locked_checkpoints",
+        "oldest_open_debt_at",
+        "open_debt",
+        "rows_complete",
+        "site_code",
+        "time_bounded_checkpoints",
+        "tree_size",
+        "witness_complete"
+      ],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 this view carries none by contract, so it cannot tell you whether anything was truncated.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 557.2,
+      "id": "Q3",
+      "response_bytes": 507,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q3",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_ledger_health",
+        "target_kind": "view"
+      },
+      "row_count": 1,
+      "rows": [
+        {
+          "admissible_checkpoints": 2,
+          "canonicaliser_versions": 1,
+          "checkpoints": 2,
+          "group_count": 1,
+          "inadmissible_checkpoints": 0,
+          "last_issued_at": "2026-08-01T01:30:00Z",
+          "object_locked_checkpoints": 0,
+          "oldest_open_debt_at": null,
+          "open_debt": 0,
+          "rows_complete": true,
+          "site_code": "dec0de00-0001-4000-8000-000000000001",
+          "time_bounded_checkpoints": 0,
+          "tree_size": 4,
+          "witness_complete": true
+        }
+      ],
+      "statement_chars": 53,
+      "statement_sent": "SELECT * FROM mainline_audit.v_ledger_health LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Checkpoint cadence, admissibility, and how much witness debt is open."
+    },
+    {
+      "asked_as_free_text": "what has the agent fleet actually been doing this week?",
+      "canonical": "what has the agent fleet been doing?",
+      "columns_returned": [],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 this view carries none by contract, so it cannot tell you whether anything was truncated.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 605.0,
+      "id": "Q4",
+      "response_bytes": 109,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q4",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_agent_actions",
+        "target_kind": "view"
+      },
+      "row_count": 0,
+      "rows": [],
+      "statement_chars": 53,
+      "statement_sent": "SELECT * FROM mainline_audit.v_agent_actions LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Which agent role used which tool, with what outcome, over the last week."
+    },
+    {
+      "asked_as_free_text": "what is the gate refusing right now, and where?",
+      "canonical": "what is blocking merges right now, and where?",
+      "columns_returned": [
+        "countersigned",
+        "group_count",
+        "open_blocking",
+        "open_conflicts",
+        "open_residue",
+        "open_warrants",
+        "overrides_30d",
+        "permits",
+        "rows_complete",
+        "site_id",
+        "state",
+        "under_hold",
+        "unmet_floor",
+        "unmodelled_assets"
+      ],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 this view carries none by contract, so it cannot tell you whether anything was truncated.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 603.2,
+      "id": "Q5",
+      "response_bytes": 425,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q5",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_open_gate_summary",
+        "target_kind": "view"
+      },
+      "row_count": 1,
+      "rows": [
+        {
+          "countersigned": 0,
+          "group_count": 1,
+          "open_blocking": 1,
+          "open_conflicts": 0,
+          "open_residue": 0,
+          "open_warrants": 0,
+          "overrides_30d": 0,
+          "permits": 1,
+          "rows_complete": true,
+          "site_id": "dec0de00-0001-4000-8000-000000000001",
+          "state": "dispositioned",
+          "under_hold": 0,
+          "unmet_floor": 0,
+          "unmodelled_assets": 0
+        }
+      ],
+      "statement_chars": 57,
+      "statement_sent": "SELECT * FROM mainline_audit.v_open_gate_summary LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Open permits by site and state, with the open blocking checks and overrides."
+    },
+    {
+      "asked_as_free_text": "where is the blame ancestry truncated?",
+      "canonical": "how complete is the blame ancestry, and where is it truncated?",
+      "columns_returned": [
+        "ancestry_complete",
+        "clause_versions",
+        "group_count",
+        "last_computed_at",
+        "max_ancestors",
+        "max_closure_gen",
+        "max_depth",
+        "max_severity",
+        "rows_complete",
+        "site_id",
+        "total_generations",
+        "truncated_closures",
+        "virulence"
+      ],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 this view carries none by contract, so it cannot tell you whether anything was truncated.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 562.5,
+      "id": "Q6",
+      "response_bytes": 462,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q6",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_blame_coverage",
+        "target_kind": "view"
+      },
+      "row_count": 1,
+      "rows": [
+        {
+          "ancestry_complete": true,
+          "clause_versions": 1,
+          "group_count": 1,
+          "last_computed_at": "2026-08-10T02:57:43.852434Z",
+          "max_ancestors": 1,
+          "max_closure_gen": 0,
+          "max_depth": 1,
+          "max_severity": 4,
+          "rows_complete": true,
+          "site_id": "dec0de00-0001-4000-8000-000000000001",
+          "total_generations": 0,
+          "truncated_closures": 0,
+          "virulence": "blood_major"
+        }
+      ],
+      "statement_chars": 54,
+      "statement_sent": "SELECT * FROM mainline_audit.v_blame_coverage LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Closure depth, generations and truncation, per site and virulence band."
+    },
+    {
+      "asked_as_free_text": "are dispositions keeping up with what was surfaced?",
+      "canonical": "are dispositions keeping up with what was surfaced?",
+      "columns_returned": [
+        "ancestry_complete",
+        "dispositioned",
+        "generations_aligned",
+        "group_count",
+        "orphans",
+        "q",
+        "rows_complete",
+        "site_id",
+        "surfaced",
+        "worst_ancestor",
+        "worst_severity"
+      ],
+      "completeness": {
+        "sentence": "COMPLETE \u2014 all 1 returned rows report ancestry_complete = true.",
+        "state": "complete"
+      },
+      "elapsed_ms": 599.5,
+      "id": "Q7",
+      "response_bytes": 397,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q7",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_disposition_coverage",
+        "target_kind": "view"
+      },
+      "row_count": 1,
+      "rows": [
+        {
+          "ancestry_complete": true,
+          "dispositioned": 0,
+          "generations_aligned": true,
+          "group_count": 1,
+          "orphans": 2,
+          "q": "2026-07-01T00:00:00Z",
+          "rows_complete": true,
+          "site_id": "dec0de00-0001-4000-8000-000000000001",
+          "surfaced": 2,
+          "worst_ancestor": "blood_major",
+          "worst_severity": 4
+        }
+      ],
+      "statement_chars": 60,
+      "statement_sent": "SELECT * FROM mainline_audit.v_disposition_coverage LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Surfaced against dispositioned by quarter, and the orphaned checks."
+    },
+    {
+      "asked_as_free_text": "were any recall arms degraded, and how much was conserved?",
+      "canonical": "how much of the recall was conserved, and did any arm degrade?",
+      "columns_returned": [
+        "advisory",
+        "any_degraded",
+        "blocking",
+        "bonded_sev5",
+        "bonded_sev5_blocking",
+        "candidates",
+        "conserved",
+        "d",
+        "deduped",
+        "fatalities_all_blocking",
+        "group_count",
+        "index_generations",
+        "policy_versions",
+        "retrieval_complete",
+        "rows_complete",
+        "runs",
+        "silenced",
+        "site_id"
+      ],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 this view carries none by contract, so it cannot tell you whether anything was truncated.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 562.1,
+      "id": "Q8",
+      "response_bytes": 517,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q8",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_recall_conservation",
+        "target_kind": "view"
+      },
+      "row_count": 1,
+      "rows": [
+        {
+          "advisory": 0,
+          "any_degraded": false,
+          "blocking": 1,
+          "bonded_sev5": 0,
+          "bonded_sev5_blocking": 0,
+          "candidates": 1,
+          "conserved": true,
+          "d": "2026-08-02T00:00:00Z",
+          "deduped": 0,
+          "fatalities_all_blocking": true,
+          "group_count": 1,
+          "index_generations": 1,
+          "policy_versions": 1,
+          "retrieval_complete": true,
+          "rows_complete": true,
+          "runs": 1,
+          "silenced": 0,
+          "site_id": "dec0de00-0001-4000-8000-000000000001"
+        }
+      ],
+      "statement_chars": 59,
+      "statement_sent": "SELECT * FROM mainline_audit.v_recall_conservation LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Candidates in, blocking and advisory out, deduped and silenced \u2014 per day."
+    },
+    {
+      "asked_as_free_text": "what did the fixity patrol never check at all?",
+      "canonical": "is fixity being checked, and what was never checked at all?",
+      "columns_returned": [],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 this view carries none by contract, so it cannot tell you whether anything was truncated.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 574.5,
+      "id": "Q9",
+      "response_bytes": 110,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q9",
+        "routed_correctly": true,
+        "target": "mainline_audit.v_fixity_coverage",
+        "target_kind": "view"
+      },
+      "row_count": 0,
+      "rows": [],
+      "statement_chars": 55,
+      "statement_sent": "SELECT * FROM mainline_audit.v_fixity_coverage LIMIT 25",
+      "tool": "select_query",
+      "why_an_auditor_asks_it": "Patrol completion and the share of in-scope items never checked."
+    },
+    {
+      "asked_as_free_text": "prove the vector search actually used an index \u2014 show me the plan.",
+      "canonical": "did the vector search actually use an index? show me the plan.",
+      "columns_returned": [
+        "info"
+      ],
+      "completeness": {
+        "sentence": "NO COMPLETENESS FLAG \u2014 a query plan carries none. The truncation risk here is the server's byte cap, and this plan arrived at 1006 bytes.",
+        "state": "no_flag"
+      },
+      "elapsed_ms": 605.3,
+      "id": "Q10",
+      "plan": {
+        "defined_in": "verticals/mainline/db/migrations/0041_event_cue_embedding.sql:46-56",
+        "hint_is_mandatory": "ADR 0002 GT-06/GT-06b: at demo corpus scale the optimizer does not choose the vector index unhinted. The index is traversed when named, and this assertion asserts traversal of the NAMED index.",
+        "holds": true,
+        "index_named_in_plan": true,
+        "index_pinned": "mainline.event_cue_embedding@cue_scoped_idx",
+        "missing_substrings": [],
+        "plan_text": "distribution: local\n\n\u2022 top-k\n\u2502 estimated row count: 1\n\u2502 order: +column12\n\u2502 k: 10\n\u2502\n\u2514\u2500\u2500 \u2022 render\n    \u2502\n    \u2514\u2500\u2500 \u2022 lookup join\n        \u2502 table: event_cue_embedding@event_cue_embedding_pk\n        \u2502 equality: (cue_id) = (cue_id)\n        \u2502 equality cols are key\n        \u2502\n        \u2514\u2500\u2500 \u2022 vector search\n              table: event_cue_embedding@cue_scoped_idx\n              target count: 10\n              prefix spans: [/'00000000-0000-0000-0000-000000000000'/'00000000-0000-0000-0000-000000000000'/'cue' - /'00000000-0000-0000-0000-000000000000'/'00000000-0000-0000-0000-000000000000'/'cue']",
+        "required_substrings": [
+          "vector search",
+          "prefix spans"
+        ],
+        "verdict_sentence": "PLAN PROVEN \u2014 the plan names mainline.event_cue_embedding@cue_scoped_idx and renders 'vector search', 'prefix spans'. The index was traversed, not scanned."
+      },
+      "response_bytes": 1006,
+      "routing": {
+        "deterministic": "cue-phrase and token scoring; no model, no sampling",
+        "resolved_to_question": "Q10",
+        "routed_correctly": true,
+        "target": "mainline.event_cue_embedding@cue_scoped_idx via explain_query",
+        "target_kind": "tool"
+      },
+      "row_count": 18,
+      "rows": null,
+      "statement_chars": 2304,
+      "statement_sent": "SELECT cue_id\n  FROM mainline.event_cue_embedding@cue_scoped_idx\n WHERE site_id = '00000000-0000-0000-0000-000000000000'\u2026 (2304 chars)",
+      "tool": "explain_query",
+      "why_an_auditor_asks_it": "The retrieval half of store-retrieve-act, and the only question whose answer is rendered by CockroachDB's optimizer rather than by our data. A recall claim that never proves the index was traversed is a claim about a scan."
+    }
+  ],
+  "r6_questions": {
+    "was_the_vector_index_actually_traversed": {
+      "holds": true,
+      "index": "mainline.event_cue_embedding@cue_scoped_idx",
+      "question_id": "Q10",
+      "tool": "explain_query"
+    },
+    "what_is_the_gate_refusing_right_now": {
+      "answered": true,
+      "completeness": "no_flag",
+      "how_to_read_them": "each counter is one of the plain-column CHECKs that refuse a merge. A non-zero counter is the gate refusing something right now, and it is the answer to the auditor's question rather than a description of one.",
+      "question_id": "Q5",
+      "the_five_counters": {
+        "any_counter_non_zero": true,
+        "per_row": [
+          {
+            "open_blocking": 1,
+            "open_conflicts": 0,
+            "open_residue": 0,
+            "open_warrants": 0,
+            "site_id": "dec0de00-0001-4000-8000-000000000001",
+            "state": "dispositioned",
+            "unmodelled_assets": 0
+          }
+        ]
+      },
+      "view": "mainline_audit.v_open_gate_summary"
+    },
+    "which_weakenings_were_never_answered_for": {
+      "answered": true,
+      "completeness": "vacuous",
+      "question_id": "Q1",
+      "read_this_carefully": "COMPLETENESS UNOBSERVED \u2014 the view returned no rows, so 'ancestry_complete' was never observed on anything. Zero rows and zero-findings-verified-complete are different facts, and only the first one was measured.",
+      "view": "mainline_audit.v_weakenings_without_disposition"
+    }
+  },
+  "reproduce": {
+    "api_calls": [
+      "catalogue = mainline_mcp.catalogue.load_contract(<contract path>)",
+      "client    = mainline_mcp.client.Client.connect(api_key=..., cluster_id=...)",
+      "persona   = mainline_mcp.auditor.AuditorPersona(client, catalogue, database=...)",
+      "persona.route(<free text>)   # -> the Question, deterministically",
+      "persona.answer(question)     # -> the Answer, with .completeness_sentence()",
+      "persona.brief()              # -> all of it, rendered"
+    ],
+    "credential_note": "The credential is an ACCOUNT-LEVEL CockroachDB Cloud service-account key. It reaches create_database, create_table and insert_rows, and list_clusters enumerates every cluster the account owns, so it is NOT publishable and no judge can read MAINLINE's ledger over MCP with a credential we hand them. A judge reads this transcript without any credential, or reads our ledger over the published read-only mainline_judge pgwire login. Those are the only two routes and there is no third.",
+    "provenance": "Produced by an M3 runner that imports only the package's public API \u2014 no private helper, no bespoke HTTP client. The exact call sequence is under `api_calls` below, and every statement it sent is quoted verbatim in this file, so a reader can check the artefact against the code without running anything.",
+    "with_your_own_cluster_and_your_own_key": "those six lines, against YOUR cluster with YOUR Cloud service-account key. That reproduces the MECHANISM \u2014 handshake, deterministic routing, generated statements, a completeness sentence on every answer. It does not reproduce our rows, and it cannot: see credential_note.",
+    "without_a_credential": "read this file. Every question, the target it routed to, the statement sent, the rows returned, the completeness sentence and the latency are all here."
+  },
+  "session": {
+    "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+    "database": "mainline_demo",
+    "dialect_statement_argument": "query",
+    "endpoint": "https://cockroachlabs.cloud/mcp",
+    "protocol_version": "2025-06-18",
+    "server_info": {
+      "name": "cockroachdb-cloud",
+      "version": "1.0.0"
+    },
+    "sql_identity": "managed-mcp",
+    "tool_count": 12,
+    "tools_advertised": [
+      "create_database",
+      "create_table",
+      "explain_query",
+      "get_cluster",
+      "get_table_schema",
+      "insert_rows",
+      "list_clusters",
+      "list_databases",
+      "list_tables",
+      "select_query",
+      "show_running_queries",
+      "show_statement"
+    ],
+    "whose_code_answers_the_question": "MAINLINE generates the statement and MAINLINE dials the HTTP. Everything that turns that statement into an answer \u2014 parse, authorise, plan, execute, encode, cap \u2014 is CockroachDB's own Managed MCP Server, running as its own SQL identity (managed-mcp) on a surface we did not write. That is the precise claim; the stronger-sounding 'none of our code is in the path' would not be true, because the client in this repository is what sent the request."
+  },
+  "unroutable_question_refused": {
+    "asked": "what is the weather in kalgoorlie tomorrow",
+    "refusal_message": "no contracted audit view answers 'what is the weather in kalgoorlie tomorrow'. Guessing one would answer a different question confidently, which is worse than refusing. Available \u2014 Q1: which weakenings of blood-written controls have no disposition?, Q2: what did you decline to surface, and with what arithmetic?, Q3: is the ledger healthy?, Q4: what has the agent fleet been doing?, Q5: what is bloc",
+    "refusal_type": "UnroutableQuestion",
+    "refused": true,
+    "why_this_matters": "a wrong view answered confidently is worse than no answer, so an unroutable question is a typed refusal and never a guess."
+  },
+  "what_this_is": "A general-counsel persona asking ten questions of CockroachDB's own Managed MCP Server. Each question is free text; each routes deterministically to exactly one contracted mainline_audit view \u2014 or, for Q10, to one EXPLAIN whose index is pinned \u2014 and each answer arrives with its completeness stated. This is the first time mainline_mcp.auditor has been run against the live endpoint: packages/mainline-mcp/README.md 'Verification status' lists the persona's routing and completeness rendering under what is proven OFFLINE against httpx.MockTransport, and docs/submission/mcp-real-plan.md records the same gap as defect D5."
+}

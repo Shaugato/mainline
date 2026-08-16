@@ -1,0 +1,285 @@
+{
+  "schema": "mainline.evidence.mcp.session-extract/1",
+  "artefact": "evidence/mcp/session-extract.json",
+  "generated_at": "2026-08-16T12:16:15Z",
+  "what_this_is": "A COPY. The two blocks below are the CockroachDB Managed MCP Server record from the 2026-08-11 judge-access run, reproduced here unaltered so that the first transcript and the same-day capture beside it can be compared without leaving this directory. It is filed here because that run's artefact is named for the program that produced it (judge access) rather than for the tool it exercised (MCP), and a reader looking for the MCP tool looks in a directory called mcp.",
+  "copied_not_re_run": "copied, not re-run. No MCP call, no network request and no credential read produced this file. Every value in `extract` was read out of the committed source named below and written back unchanged.",
+  "not_the_primary_artefact": "This file is neither the primary MCP evidence nor a replacement for anything. The same-day live capture in this directory \u2014 session.json, tools-schema.json, pack-run.json, auditor-live.json, budget-live.json \u2014 is the primary record, and evidence/deploy/judge-run.json remains the authoritative copy of what is reproduced here. If this file and its source ever disagree, the source is right and this file is wrong.",
+  "filed_after_the_readme_was_generated": "Disclosed rather than left to be noticed. evidence/mcp/README.md is a GENERATED file, written by scripts/submission/capture_mcp_evidence.py at 2026-08-16T07:33:26Z, and it enumerates the artefacts it did not itself write \u2014 at that moment, auditor-live.json and budget-live.json. This file was added later the same day and is therefore NOT in that list. The README is not wrong; it is a dated snapshot, and its own generator would list this file on the next run. It was not re-run to add it, because re-running it makes a live Managed-MCP call against the endpoint with the account credential, and no new call was authorised. A stale enumeration is the cheaper of the two costs, and it is cheaper still once it is written down.",
+  "source": {
+    "path": "evidence/deploy/judge-run.json",
+    "sha256": "851a0e1c7bce3dcc9dfd6a0cfebc15bd3a1a2aa384df5cd1c2464238a9b6e4ec",
+    "bytes": 16735,
+    "source_generated_at": "2026-08-11T00:23:29Z",
+    "source_verdict": "DIVERGED \u2014 KNOWN GAP",
+    "pointers_copied": [
+      "channels.mcp",
+      "managed_mcp_availability"
+    ],
+    "fidelity": "Values are identical and key order is preserved: the source was parsed with an order-preserving hook and the two sub-objects were re-serialised without edit. No key was added, removed, renamed or reordered inside `extract`. Verify with the command in `how_to_verify` rather than taking this sentence on trust."
+  },
+  "how_to_verify": {
+    "what_it_checks": "that both copied blocks still equal the source, and that the source file is the one whose sha256 is recorded above. Prints three values; all three must be True.",
+    "command": "python -c \"import json,hashlib; s=json.load(open('evidence/deploy/judge-run.json')); e=json.load(open('evidence/mcp/session-extract.json')); print(e['extract']['channels.mcp']==s['channels']['mcp'], e['extract']['managed_mcp_availability']==s['managed_mcp_availability'], hashlib.sha256(open('evidence/deploy/judge-run.json','rb').read()).hexdigest()==e['source']['sha256'])\"",
+    "expected_output": "True True True",
+    "needs": "the standard library, the repository, no network and no credential"
+  },
+  "the_two_caveats_that_ride_with_every_sentence": {
+    "divergence": "The run's own verdict is DIVERGED \u2014 KNOWN GAP, not PASS. Divergence N01: the managed-mcp identity CAN read mainline_qa.v_disposition_profile, which the pack's envelope and GRANTS.yaml S14 both assert it cannot. That is a real gap in the negative half of the reachability model and it is recorded as one, not rounded off. It is reproduced verbatim in `extract` below.",
+    "credential": "The credential that reaches this endpoint is the account's CockroachDB Cloud service-account key. Its tool list carries create_database, create_table and insert_rows, and list_clusters enumerates every cluster the account owns, so it is NOT publishable to anonymous judges and this repository does not publish it. Managed MCP is therefore DEMONSTRATED, and it is NOT the judge access path. The judge access path is the read-only mainline_judge SQL login, whose reach is the fourteen mainline_audit views and nothing else."
+  },
+  "why_this_copy_is_worth_keeping": {
+    "claim": "Two different MCP clients, five days apart, returned the same arithmetic and the same single divergence. The stability is the point: it is worth more than a fresh green would have been, because a number that does not move under a stricter client is a measurement rather than a coincidence.",
+    "2026-08-11": {
+      "source": "evidence/deploy/judge-run.json#channels.mcp",
+      "client": "an ad-hoc client inside scripts/deploy/judge_access.py",
+      "passed": 15,
+      "total": 16,
+      "verdict": "DIVERGED \u2014 KNOWN GAP",
+      "the_one_fail": "N01"
+    },
+    "2026-08-16": {
+      "source": "evidence/mcp/pack-run.json",
+      "client": "the pack's own runner via `python verticals/mainline/demo/judge/cli.py run --via mcp`, which carries the envelope validator, the migration drift check and the 25-row truncation guard that the 2026-08-11 client did not",
+      "passed": 15,
+      "total": 16,
+      "verdict": "DIVERGED \u2014 KNOWN GAP",
+      "the_one_fail": "N01"
+    },
+    "what_this_does_not_show": "Agreement between two runs is not proof that either is right. Both used the same service-account key against the same cluster, so a fault in the identity's grants would reproduce in both \u2014 and N01 is exactly such a fault, reproduced in both."
+  },
+  "produced_by": "worker W4, by copying two sub-objects out of the committed source with the standard library. There is no committed generator for this file: the command in `how_to_verify` IS the reproduction, and it re-derives the copy from the source rather than trusting it.",
+  "extract": {
+    "channels.mcp": {
+      "channel": "mcp",
+      "endpoint": "https://cockroachlabs.cloud/mcp",
+      "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+      "database": "mainline_demo",
+      "ran": true,
+      "results": [
+        {
+          "qid": "Q01",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 690.9,
+          "answered": true,
+          "rows": 1,
+          "bytes": 323,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q02",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 644.0,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q03",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 695.1,
+          "answered": true,
+          "rows": 1,
+          "bytes": 358,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q04",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 667.0,
+          "answered": true,
+          "rows": 1,
+          "bytes": 245,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q05",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 702.3,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q05F",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 667.2,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q06",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 634.8,
+          "answered": true,
+          "rows": 1,
+          "bytes": 368,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q07",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 705.3,
+          "answered": true,
+          "rows": 1,
+          "bytes": 405,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q08",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 690.6,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q09",
+          "verb": "select_query",
+          "negative": false,
+          "ms": 689.7,
+          "answered": true,
+          "rows": 0,
+          "bytes": 12,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q10",
+          "verb": "explain_query",
+          "negative": false,
+          "ms": 967.7,
+          "answered": true,
+          "rows": 18,
+          "bytes": 961,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "Q10C",
+          "verb": "explain_query",
+          "negative": false,
+          "ms": 719.1,
+          "answered": true,
+          "rows": 18,
+          "bytes": 837,
+          "expected": "answered",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N01",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 737.4,
+          "answered": true,
+          "rows": 1,
+          "bytes": 24,
+          "expected": "refused",
+          "verdict": "FAIL",
+          "why": "the statement ANSWERED (rows=1). A negative that returns an empty result has not been refused; zero rows and 'you may not ask' are different facts."
+        },
+        {
+          "qid": "N02",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 281.3,
+          "answered": false,
+          "refusal": "query references a restricted schema: access to \"crdb_internal\" is blocked for security reasons",
+          "expected": "refused",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N03",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 303.2,
+          "answered": false,
+          "refusal": "query references a restricted schema: access to \"pg_catalog\" is blocked for security reasons",
+          "expected": "refused",
+          "verdict": "PASS"
+        },
+        {
+          "qid": "N04",
+          "verb": "select_query",
+          "negative": true,
+          "ms": 347.9,
+          "answered": false,
+          "refusal": "query references a restricted schema: access to \"information_schema\" is blocked for security reasons",
+          "expected": "refused",
+          "verdict": "PASS"
+        }
+      ],
+      "protocol_version": "2025-06-18",
+      "server_info": {
+        "name": "cockroachdb-cloud",
+        "version": "1.0.0"
+      },
+      "tools": [
+        "create_database",
+        "create_table",
+        "explain_query",
+        "get_cluster",
+        "get_table_schema",
+        "insert_rows",
+        "list_clusters",
+        "list_databases",
+        "list_tables",
+        "select_query",
+        "show_running_queries",
+        "show_statement"
+      ],
+      "sql_identity": "managed-mcp",
+      "passed": 15,
+      "total": 16
+    },
+    "managed_mcp_availability": {
+      "question": "Is the CockroachDB Managed MCP Server available on the SERVERLESS/Basic tier, and can its credential be published to anonymous judges?",
+      "available_on_basic": true,
+      "how_established": "MCP initialize against https://cockroachlabs.cloud/mcp with the cluster's own Cloud service-account key returned HTTP 200 and a session id; tools/list returned 12 tools; 15 of 16 pack questions were then executed over it against the live Basic cluster.",
+      "plan_tier": "BASIC",
+      "sql_identity": "managed-mcp",
+      "gt10_answer": "GT-10, which FALLBACK.md records as unanswered and assumes pessimistically: the endpoint runs as the SQL user 'managed-mcp' \u2014 not root, not the database owner, a purpose-built identity.",
+      "credential_publishable": false,
+      "why_not_publishable": "The credential that reaches this endpoint is the account's Cloud service-account key, and the surface it opens is not read-only. FALLBACK.md's Branch A rests on the premise that the MCP write surface is 'insert-only and bound to mainline_meas.external_attestation'. Measured, the tool list carries ['create_database', 'create_table', 'insert_rows'] and `create_database` returned {\"success\": true} against the live demo cluster \u2014 a database was created and dropped again in the same session. `list_clusters` also enumerates every cluster the account owns. So the degrade to Branch B executes, but NOT for the anticipated reason: Managed MCP is available and works well; the key is simply far too powerful to hand to a stranger.",
+      "published_instead": "the read-only SQL login mainline_judge, whose reach is the fourteen mainline_audit views and nothing else, verified from the other side by `judge_access.py provision`.",
+      "write_tools_present": [
+        "create_database",
+        "create_table",
+        "insert_rows"
+      ]
+    }
+  },
+  "credential_hygiene": {
+    "assertion": "no field in this file is credential-shaped",
+    "method": "the serialised body was searched for (a) any connection string whose userinfo carries a password rather than the redacted form, and (b) any bare token of 24+ characters mixing upper case, lower case and digits \u2014 the shape a generated secret has. UUIDs are excluded by shape, not by an allowlist of values, which is why the cluster id survives the scan. bytes_scanned counts the body as scanned, before this block was appended.",
+    "self_scanned": true,
+    "bytes_scanned": 13482,
+    "key_was_in_scope_this_run": false,
+    "key_in_scope_note": "FALSE, and weaker than the source's own scan in exactly this respect. evidence/deploy/judge-run.json was written by a program that held the live key and could therefore search for it verbatim. This worker never read a credential, so the verbatim-substring leg of that method could not be run here and is not claimed. What was run is the shape-based leg, over a body every value of which was copied from a source that had already passed the stronger scan.",
+    "matches": 0,
+    "holds": true
+  }
+}

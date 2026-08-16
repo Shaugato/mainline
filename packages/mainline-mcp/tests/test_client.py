@@ -5,10 +5,16 @@
 ``TestStreamableHttp`` drives :class:`~mainline_mcp.client.HttpStreamableTransport` —
 the actual production transport, byte for byte — against ``httpx.MockTransport``. The
 handshake, the session header, the SSE framing and the cluster header are therefore
-covered offline. What such a test cannot cover is whether CockroachDB's own server names
-its ``select_query`` argument ``statement``; that one unverifiable detail is isolated in
-:class:`~mainline_mcp.client.ToolDialect` and is stated as unverified in the README and
-in ``VERIFY.md``, rather than being asserted here as though it were known.
+covered offline.
+
+The one thing such a test could never settle was what CockroachDB's own server calls its
+``select_query`` argument. That detail was isolated in
+:class:`~mainline_mcp.client.ToolDialect` and declared unverified rather than asserted
+here as though it were known. **On 2026-08-16 it was measured** against the live
+``tools/list`` schema, and it was ``query``, not ``statement``. ``TestTheMeasuredDialect``
+below is that measurement written down as an assertion: the wire names these tests check
+are now facts about the server, and the reading they replaced is pinned to
+:data:`~mainline_mcp.client.DOCUMENTED_DIALECT` so it cannot be quietly erased.
 """
 
 from __future__ import annotations
@@ -19,16 +25,22 @@ import json
 import httpx
 import pytest
 from mainline_mcp.client import (
+    DEFAULT_DIALECT,
+    DOCUMENTED_DIALECT,
     Client,
     HttpStreamableTransport,
+    ToolDialect,
     ToolResult,
     probe_insert_rows_unbound,
     probe_select_unscreened,
 )
 from mainline_mcp.limits import (
     EXTERNAL_ATTESTATION_TABLE,
+    LIVE_TOOL_NAMES,
     MAX_RESPONSE_BYTES,
+    MEASURED_REQUIRED_ARGUMENTS,
     READ_VERBS,
+    SURFACE_MEASURED_AT,
     WRITE_VERB,
     ClusterPinViolation,
     ForbiddenSchema,
@@ -40,17 +52,18 @@ from mainline_mcp.limits import (
 from conftest import StubResponse, StubTransport, rows_payload, text_payload
 
 PINNED = "cl-stub-0001"
+SQL_ARG = DEFAULT_DIALECT.statement
 
 
 class TestClusterPin:
     def test_a_different_cluster_id_is_refused_before_transmission(self, client, transport):
         with pytest.raises(ClusterPinViolation) as excinfo:
-            client.call("select_query", {"statement": "SELECT 1", "cluster_id": "cl-other"})
+            client.call("select_query", {SQL_ARG: "SELECT 1", "cluster_id": "cl-other"})
         assert "cl-other" in str(excinfo.value)
         assert transport.calls == []
 
     def test_the_pinned_cluster_id_passes(self, client, transport):
-        client.call("select_query", {"statement": "SELECT 1", "cluster_id": PINNED})
+        client.call("select_query", {SQL_ARG: "SELECT 1", "cluster_id": PINNED})
         assert len(transport.calls) == 1
 
     def test_the_pin_is_read_from_the_transport_not_re_declared(self, client):
@@ -68,7 +81,18 @@ class TestWriteBinding:
         client.insert_external_attestation([{"verifier": "acme", "outcome": "pass"}])
         tool, arguments = transport.calls[0]
         assert tool == WRITE_VERB
-        assert arguments["table"] == EXTERNAL_ATTESTATION_TABLE
+        assert arguments[DEFAULT_DIALECT.table] == EXTERNAL_ATTESTATION_TABLE
+
+    def test_the_write_shape_is_a_recorded_divergence_from_the_live_surface(self):
+        # Measured 2026-08-16: the live `insert_rows` requires {database, query} — a full
+        # INSERT statement — and has no `table` property. Speaking that shape means
+        # composing SQL with a table name in it inside the one method whose guarantee is
+        # that no parameter names a table. We did not. This test states the divergence so
+        # it is impossible to read the passing suite above as "the live write works".
+        assert MEASURED_REQUIRED_ARGUMENTS[WRITE_VERB] == ("database", "query")
+        assert DEFAULT_DIALECT.table not in MEASURED_REQUIRED_ARGUMENTS[WRITE_VERB]
+        parameters = set(inspect.signature(Client.insert_external_attestation).parameters)
+        assert parameters == {"self", "rows"}, "the typed write surface is unchanged"
 
     def test_an_empty_attestation_is_refused(self, client):
         with pytest.raises(WriteTargetRefused):
@@ -111,6 +135,142 @@ class TestReadVerbs:
             enforce_cap=False,
         )
         assert result.byte_count == MAX_RESPONSE_BYTES
+
+
+class TestTheMeasuredDialect:
+    """The 2026-08-16 measurement of the live ``tools/list`` schemas, as assertions.
+
+    Every value checked here was read out of ``inputSchema`` at
+    ``https://cockroachlabs.cloud/mcp``. None of it is a reading of prose.
+    """
+
+    def test_the_sql_argument_is_query_because_the_server_says_so(self, client, transport):
+        client.select_query("SELECT 1 AS one")
+        _, arguments = transport.calls[0]
+        assert "query" in arguments
+        assert "statement" not in arguments
+        assert arguments["query"] == "SELECT 1 AS one"
+
+    def test_the_guess_that_was_published_is_kept_and_differs_in_exactly_one_field(self):
+        # R3: the repository does not quietly erase a guess it published. The point of
+        # `ToolDialect` was that a live-surface difference would be one edit — this
+        # asserts it really was one, and names which.
+        differing = {
+            f
+            for f in ToolDialect.__dataclass_fields__
+            if getattr(DEFAULT_DIALECT, f) != getattr(DOCUMENTED_DIALECT, f)
+        }
+        assert differing == {"statement"}
+        assert DOCUMENTED_DIALECT.statement == "statement"
+        assert DEFAULT_DIALECT.statement == "query"
+
+    def test_select_query_sends_no_limit_argument_because_there_is_none(self, client, transport):
+        # The schema is {cluster_id, database, query} and says "Use LIMIT/OFFSET in your
+        # query for pagination." A `limit` argument here would be a fiction on the wire.
+        client.select_query("SELECT * FROM mainline_audit.v_ledger_health LIMIT 25")
+        _, arguments = transport.calls[0]
+        assert DEFAULT_DIALECT.limit not in arguments
+
+    def test_explain_query_sends_no_limit_argument_either(self, client, transport):
+        # A bare SELECT, not an EXPLAIN statement — see the next test.
+        client.explain_query("SELECT * FROM mainline_audit.v_ledger_health LIMIT 25")
+        _, arguments = transport.calls[0]
+        assert set(arguments) == {"query"}
+
+    def test_explain_query_does_not_rewrite_a_callers_sql(self, client, transport):
+        # Measured 2026-08-16: the server prepends EXPLAIN itself and answers a statement
+        # that already carries the keyword with "EXPLAIN is not allowed for EXPLAIN
+        # statements". This client does NOT strip the prefix — rewriting a caller's SQL
+        # is the silent helpfulness this package exists to refuse — so the statement goes
+        # out byte for byte and the divergence is documented instead.
+        sent_as = "EXPLAIN SELECT * FROM mainline_audit.v_ledger_health"
+        client.explain_query(sent_as)
+        assert transport.calls[0][1][DEFAULT_DIALECT.statement] == sent_as
+
+    def test_explain_analyze_is_still_refused_before_transmission(self, client, transport):
+        from mainline_mcp.limits import ExplainAnalyzeRefused
+
+        with pytest.raises(ExplainAnalyzeRefused):
+            client.explain_query("EXPLAIN ANALYZE SELECT * FROM mainline_audit.v_ledger_health")
+        assert transport.calls == []
+
+    def test_the_show_verbs_no_longer_send_a_limit_they_do_not_have(self, client, transport):
+        client.show_statement("SHOW DATABASES")
+        client.show_running_queries()
+        show_args = transport.calls[0][1]
+        running_args = transport.calls[1][1]
+        assert set(show_args) == {"query"}
+        assert running_args == {}
+
+    def test_the_show_ceiling_is_still_refused_even_though_it_is_not_transmitted(self, client):
+        from mainline_mcp.limits import RowLimitTooHigh
+
+        # Dropping the argument must not drop the refusal: the number is now ours.
+        with pytest.raises(RowLimitTooHigh):
+            client.show_statement("SHOW DATABASES", limit=101)
+        with pytest.raises(RowLimitTooHigh):
+            client.show_running_queries(limit=101)
+
+    def test_the_list_verbs_do_send_limit_because_that_one_is_real(self, client, transport):
+        client.list_databases(limit=7)
+        client.list_tables("mainline_demo", limit=7)
+        assert transport.calls[0][1] == {"limit": 7}
+        assert transport.calls[1][1] == {"database": "mainline_demo", "limit": 7}
+
+    def test_get_table_schema_can_name_a_schema_because_public_is_only_the_default(
+        self, client, transport
+    ):
+        client.get_table_schema("mainline_demo", "v_ledger_health")
+        client.get_table_schema("mainline_demo", "v_ledger_health", schema="mainline_audit")
+        assert transport.calls[0][1] == {"database": "mainline_demo", "table": "v_ledger_health"}
+        assert transport.calls[1][1] == {
+            "database": "mainline_demo",
+            "table": "v_ledger_health",
+            "schema": "mainline_audit",
+        }
+
+    def test_a_client_database_satisfies_the_required_argument(self, transport):
+        # `database` is REQUIRED on select_query and explain_query. Callers in this
+        # repository ask questions of views, not of databases, so the connection detail
+        # lives on the client.
+        client = Client(transport, database="mainline_demo")
+        client.select_query("SELECT 1 AS one")
+        _, arguments = transport.calls[0]
+        for required in MEASURED_REQUIRED_ARGUMENTS["select_query"]:
+            assert required in arguments
+        assert arguments["database"] == "mainline_demo"
+
+    def test_a_per_call_database_wins_over_the_client_default(self, transport):
+        client = Client(transport, database="mainline_demo")
+        client.select_query("SELECT 1 AS one", database="other_db")
+        assert transport.calls[0][1]["database"] == "other_db"
+
+    def test_with_no_database_the_argument_is_omitted_rather_than_invented(self, client, transport):
+        client.select_query("SELECT 1 AS one")
+        assert "database" not in transport.calls[0][1]
+
+    def test_the_unscreened_probe_carries_the_database_so_it_can_reach_the_server(self, transport):
+        client = Client(transport, database="mainline_demo")
+        probe_select_unscreened(
+            client,
+            "SELECT * FROM crdb_internal.jobs",
+            why="negative reachability: the server must be the one that refuses",
+        )
+        assert transport.calls[0][1]["database"] == "mainline_demo"
+
+    def test_the_measured_tool_list_is_the_twelve_the_server_advertised(self):
+        assert len(LIVE_TOOL_NAMES) == 12
+        assert set(READ_VERBS) <= set(LIVE_TOOL_NAMES)
+        assert WRITE_VERB in LIVE_TOOL_NAMES
+        # The four this client deliberately does not expose, and the reason the key is
+        # not publishable.
+        assert {"create_database", "create_table", "list_clusters", "get_cluster"} <= set(
+            LIVE_TOOL_NAMES
+        )
+        assert not ({"create_database", "create_table"} & set(READ_VERBS))
+
+    def test_the_measurement_is_dated(self):
+        assert SURFACE_MEASURED_AT == "2026-08-16"
 
 
 class TestRowExtraction:
@@ -177,7 +337,7 @@ class TestProbes:
             [{"a": 1}],
             why="negative reachability: the grant, not our client, must be what refuses",
         )
-        assert transport.calls[0][1]["table"] == "mainline.permit"
+        assert transport.calls[0][1][DEFAULT_DIALECT.table] == "mainline.permit"
 
 
 # ── the real transport, no socket ────────────────────────────────────────────────

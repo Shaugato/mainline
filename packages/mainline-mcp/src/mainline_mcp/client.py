@@ -27,13 +27,18 @@ method, that takes a mandatory ``why`` argument, and whose only two callers in t
 repository are tests.
 
 **Verification status.** The transport is built from the documented MCP Streamable HTTP
-transport and the documented CockroachDB Managed MCP surface. It has **not** been
-exercised against the live endpoint from this machine: no MCP service-account key exists
-here (``VERIFY.md``). It is exercised end-to-end offline against ``httpx.MockTransport``,
-including SSE framing, session-header propagation and the cluster pin, so the code path
-under test is the real one. Tool *argument names* are the one thing that could differ on
-the live service and are therefore isolated in :class:`ToolDialect`, injectable in one
-place, rather than being spelled inline in seven methods.
+transport. It is exercised end-to-end offline against ``httpx.MockTransport``, including
+SSE framing, session-header propagation and the cluster pin, so the code path under test
+is the real one.
+
+The tool *argument names* were the one thing that could differ on the live service, which
+is why they were isolated in :class:`ToolDialect` rather than spelled inline in seven
+methods. **On 2026-08-16 they were measured** against
+``https://cockroachlabs.cloud/mcp`` — ``initialize`` then ``tools/list``, read out of the
+server's own JSON Schema — and one of them was wrong. The correction was one field value
+in one object, which is what that isolation was for. The guess we published is kept, named
+and dated in :data:`DOCUMENTED_DIALECT`; the measured surface is
+:data:`DEFAULT_DIALECT`.
 """
 
 from __future__ import annotations
@@ -76,22 +81,87 @@ class ToolDialect:
     """The tool *argument names*, isolated so a live-surface difference is a one-line fix.
 
     Everything else in this package is derived from documented behaviour that a second
-    reader can check. These names are the part that a published document does not pin
-    precisely enough to be sure of, so they live here, in one object, with a default
-    that is our best reading of the documented surface — rather than being spelled
-    inline in seven methods where a correction would be seven edits and a guess would
-    look like a fact.
+    reader can check. These names were the part that no published document pinned
+    precisely enough to be sure of, so they live here, in one object, rather than being
+    spelled inline in seven methods where a correction would be seven edits and a guess
+    would look like a fact.
+
+    **The defaults below are now MEASURED, not read.** On 2026-08-16 an ``initialize`` +
+    ``tools/list`` against ``https://cockroachlabs.cloud/mcp`` returned twelve tools with
+    their JSON Schemas, and these values are copied out of ``inputSchema.properties``.
+    See :data:`DOCUMENTED_DIALECT` for what we had guessed and where the guess was wrong.
+
+    Field-by-field, against the schemas as measured:
+
+    ``statement``
+        ``"query"`` — required on ``select_query``, ``explain_query``, ``insert_rows``;
+        the only property of ``show_statement`` that is required.
+    ``database``
+        ``"database"`` — **required** on ``select_query``, ``explain_query``,
+        ``list_tables``, ``get_table_schema`` and ``insert_rows``; optional on
+        ``show_statement``; absent from ``list_databases`` and ``show_running_queries``.
+    ``schema``
+        ``"schema"`` — an optional property of ``get_table_schema`` only, documented as
+        defaulting to ``public``. ``mainline_audit`` is not ``public``, so a schema-less
+        call cannot see the audit views at all.
+    ``table``
+        ``"table"`` — required on ``get_table_schema``. It is **not** a property of
+        ``insert_rows``; see :meth:`Client.insert_external_attestation` and the README's
+        recorded divergence.
+    ``rows``
+        Not a property of any measured tool. Retained because the typed write surface it
+        serves is deliberately unchanged — see the divergence note on the write method.
+    ``limit``
+        ``"limit"`` — a real integer property of ``list_databases`` and ``list_tables``
+        (default 100, max 10000), alongside ``offset``. It is **not** a property of
+        ``select_query``, ``explain_query``, ``show_statement`` or
+        ``show_running_queries``; on ``select_query`` the schema says pagination is
+        ``LIMIT``/``OFFSET`` *inside the statement*.
+    ``cluster_id``
+        ``"cluster_id"`` — an optional property of every cluster-scoped tool, documented
+        as *"Required when the MCP config has no cluster_id; otherwise must be omitted."*
+        This client pins by the ``mcp-cluster-id`` header and therefore never sends it;
+        the field exists so :meth:`Client._screen_cluster` and the negative suite can
+        name it.
     """
 
-    statement: str = "statement"
+    statement: str = "query"
     database: str = "database"
     table: str = "table"
     rows: str = "rows"
     limit: str = "limit"
     cluster_id: str = "cluster_id"
+    schema: str = "schema"
 
 
 DEFAULT_DIALECT: Final = ToolDialect()
+"""The measured live surface, 2026-08-16. Used unless a caller injects another."""
+
+#: WHAT WE HAD GUESSED, KEPT ON PURPOSE.
+#:
+#: Until 2026-08-16 this package shipped ``statement="statement"`` and the README called
+#: the names "our best reading of the documented surface". The reading was wrong in
+#: exactly one field, and the server said so in five words: a ``select_query`` carrying
+#: ``{"database": ..., "statement": ...}`` returns
+#: ``{"code": 0, "message": "must contain exactly one statement"}`` — the session, the
+#: bearer and the cluster pin were all fine; the required ``query`` property was simply
+#: absent, so the server saw zero statements.
+#:
+#: Two further divergences were call sites rather than names, and are fixed at the call
+#: sites rather than here:
+#:
+#: * ``limit`` was being *sent* to ``show_statement`` and ``show_running_queries``, which
+#:   have no such property. It is no longer transmitted on those two verbs; the ceiling
+#:   is still refused client-side, and is now ours rather than an argument.
+#: * ``rows`` was being sent to ``insert_rows`` beside ``table``. The live shape is
+#:   ``{database, query}`` with a full INSERT statement. That call is **not** corrected,
+#:   because correcting it means building SQL inside the one method whose published
+#:   guarantee is that no parameter names a table. The divergence is recorded instead.
+#:
+#: This constant is not dead code with a comment on it: ``tests/test_client.py`` asserts
+#: that it differs from :data:`DEFAULT_DIALECT` in precisely the one field, so the
+#: repository cannot quietly erase a guess it published.
+DOCUMENTED_DIALECT: Final = ToolDialect(statement="statement")
 
 
 @dataclass(frozen=True, slots=True)
@@ -391,10 +461,29 @@ class ToolResult:
 class Client:
     """The read verbs, the one write verb, and every documented limit enforced first."""
 
-    def __init__(self, transport: Transport, *, dialect: ToolDialect = DEFAULT_DIALECT) -> None:
-        """Wrap a transport. The cluster pin is read from the transport, never re-declared."""
+    def __init__(
+        self,
+        transport: Transport,
+        *,
+        dialect: ToolDialect = DEFAULT_DIALECT,
+        database: str | None = None,
+    ) -> None:
+        """Wrap a transport. The cluster pin is read from the transport, never re-declared.
+
+        ``database`` is the measured consequence of 2026-08-16: the live ``select_query``
+        and ``explain_query`` schemas list ``database`` as **required**, and every caller
+        in this repository — the auditor, the prober, the judge-pack runner — asks its
+        question of a *view*, not of a database, and so never had one to pass. Carrying it
+        on the client rather than threading it through every call site keeps the question
+        the caller's and the connection detail ours. When it is unset the argument is
+        omitted, which is what this client did before the measurement and is therefore not
+        a behaviour change for any offline caller; against the live server an omitted
+        required argument produces the server's own error, which is a recorded fact rather
+        than a silent success.
+        """
         self._transport = transport
         self._dialect = dialect
+        self._database = database
         self._last_elapsed_ms: float = 0.0
 
     @classmethod
@@ -405,6 +494,7 @@ class Client:
         cluster_id: str,
         endpoint: str = MCP_ENDPOINT,
         timeout: float = REQUEST_TIMEOUT_SECONDS,
+        database: str | None = None,
     ) -> Client:
         """Build a client over a live Streamable-HTTP transport."""
         return cls(
@@ -413,7 +503,8 @@ class Client:
                 cluster_id=cluster_id,
                 endpoint=endpoint,
                 timeout=timeout,
-            )
+            ),
+            database=database,
         )
 
     @property
@@ -425,6 +516,15 @@ class Client:
     def dialect(self) -> ToolDialect:
         """The tool-argument names in use, read by the probes below."""
         return self._dialect
+
+    @property
+    def database(self) -> str | None:
+        """The database sent when a call does not name one, or ``None`` to omit it."""
+        return self._database
+
+    def _resolve_database(self, database: str | None) -> str | None:
+        """Per-call database, else the client's, else ``None`` meaning "omit"."""
+        return database if database is not None else self._database
 
     @property
     def transport(self) -> Transport:
@@ -486,24 +586,45 @@ class Client:
     # ── read verbs ───────────────────────────────────────────────────────────────
 
     def list_databases(self, *, limit: int = LIST_DEFAULT_ROWS) -> ToolResult:
-        """List databases on the pinned cluster."""
+        """List databases on the pinned cluster.
+
+        ``limit`` is a real property here — measured 2026-08-16, integer, "default: 100,
+        max: 10000". This client keeps its own ceiling at 100, which is below the
+        server's and therefore never widens it.
+        """
         rows = enforce_row_limit(limit, verb="list_databases", maximum=LIST_DEFAULT_ROWS)
         return self.call("list_databases", {self._dialect.limit: rows})
 
     def list_tables(self, database: str, *, limit: int = LIST_DEFAULT_ROWS) -> ToolResult:
-        """List tables in ``database``."""
+        """List tables in ``database``. ``database`` and ``limit`` are both measured real."""
         rows = enforce_row_limit(limit, verb="list_tables", maximum=LIST_DEFAULT_ROWS)
         return self.call(
             "list_tables",
             {self._dialect.database: database, self._dialect.limit: rows},
         )
 
-    def get_table_schema(self, database: str, table: str) -> ToolResult:
-        """Return the schema of one table."""
-        return self.call(
-            "get_table_schema",
-            {self._dialect.database: database, self._dialect.table: table},
-        )
+    def get_table_schema(
+        self,
+        database: str,
+        table: str,
+        *,
+        schema: str | None = None,
+    ) -> ToolResult:
+        """Return the schema of one table.
+
+        ``schema`` is optional on the wire and, measured 2026-08-16, *"defaults to
+        'public' if not specified"*. Every view this product exposes lives in
+        ``mainline_audit``, so omitting it is the difference between reading our audit
+        surface and reading nothing. It stays optional rather than required because the
+        server's default is a real default, not an error.
+        """
+        arguments: dict[str, Any] = {
+            self._dialect.database: database,
+            self._dialect.table: table,
+        }
+        if schema is not None:
+            arguments[self._dialect.schema] = schema
+        return self.call("get_table_schema", arguments)
 
     def select_query(
         self,
@@ -519,41 +640,82 @@ class Client:
         server's documented maximum first. A caller — including a contract file — that
         asks for a wider read than the surface can serve gets a refusal naming the
         server's limit, not a widened client.
+
+        There is no ``limit`` **argument** on this verb — measured 2026-08-16, the schema
+        carries exactly ``cluster_id``, ``database`` and ``query`` and says *"Use
+        LIMIT/OFFSET in your query for pagination."* So the row ceiling is enforced by
+        reading the ``LIMIT`` the caller wrote, which is what ``enforce_statement``
+        already did, and nothing about the ceiling is sent.
         """
         ceiling = min(max_rows, SELECT_MAX_ROWS)
         enforce_statement(statement, verb="select_query", max_rows=ceiling)
         arguments: dict[str, Any] = {self._dialect.statement: statement}
-        if database is not None:
-            arguments[self._dialect.database] = database
+        resolved = self._resolve_database(database)
+        if resolved is not None:
+            arguments[self._dialect.database] = resolved
         return self.call("select_query", arguments, enforce_cap=enforce_cap)
 
     def explain_query(self, statement: str, *, database: str | None = None) -> ToolResult:
         """Run one ``EXPLAIN``.
 
-        ``EXPLAIN ANALYZE`` is refused before transmission. The per-arm discipline that
-        keeps a plan inside the 10 KiB cap (decision A10 — one ANN arm per call, never a
-        twelve-arm ``UNION ALL``) belongs to ``packages/mainline-indextruth``, which is
-        this verb's only caller in the product.
+        **Pass the query to be explained, NOT an ``EXPLAIN`` statement.** Measured
+        2026-08-16: the property is documented as *"The SQL query to explain"*, the server
+        prepends ``EXPLAIN`` itself, and a statement that already begins with ``EXPLAIN``
+        comes back as ``EXPLAIN is not allowed for EXPLAIN statements``. A bare
+        ``SELECT * FROM mainline_audit.v_open_gate_summary LIMIT 25`` returned a 4 421-byte
+        plan on the same connection. This method does **not** strip a leading ``EXPLAIN``
+        for you: rewriting a caller's SQL is exactly the silent helpfulness this package
+        exists to refuse, so the divergence is stated here and the caller decides.
+
+        ``EXPLAIN ANALYZE`` is still refused before transmission — that screen is what
+        stops a caller who writes it from *executing* the query on a plan-shape call, and
+        it fires whether or not the server would have accepted the prefix.
+
+        The per-arm discipline that keeps a plan inside the 10 KiB cap (decision A10 — one
+        ANN arm per call, never a twelve-arm ``UNION ALL``) belongs to
+        ``packages/mainline-indextruth``, which is this verb's only caller in the product.
         """
         enforce_statement(statement, verb="explain_query", max_rows=SELECT_MAX_ROWS)
         arguments: dict[str, Any] = {self._dialect.statement: statement}
-        if database is not None:
-            arguments[self._dialect.database] = database
+        resolved = self._resolve_database(database)
+        if resolved is not None:
+            arguments[self._dialect.database] = resolved
         return self.call("explain_query", arguments)
 
-    def show_statement(self, statement: str, *, limit: int = SHOW_MAX_ROWS) -> ToolResult:
-        """Run one ``SHOW``, whose output the server caps at 100 rows."""
+    def show_statement(
+        self,
+        statement: str,
+        *,
+        limit: int = SHOW_MAX_ROWS,
+        database: str | None = None,
+    ) -> ToolResult:
+        """Run one ``SHOW``, whose output this client holds to 100 rows.
+
+        ``limit`` is **refused client-side and not transmitted.** Measured 2026-08-16,
+        this tool's schema is ``{cluster_id, database, query}`` with ``query`` the only
+        required property — there is no ``limit`` argument to carry a ceiling in. Keeping
+        the refusal while dropping the argument is the honest reading of that: the number
+        is now ours, enforced here, and no longer described as the server's.
+
+        ``database`` is optional on this verb by measurement — *"optional for
+        cluster-level statements like SHOW DATABASES"* — so it is optional here too.
+        """
         enforce_statement(statement, verb="show_statement", max_rows=SHOW_MAX_ROWS)
-        rows = enforce_row_limit(limit, verb="show_statement", maximum=SHOW_MAX_ROWS)
-        return self.call(
-            "show_statement",
-            {self._dialect.statement: statement, self._dialect.limit: rows},
-        )
+        enforce_row_limit(limit, verb="show_statement", maximum=SHOW_MAX_ROWS)
+        arguments: dict[str, Any] = {self._dialect.statement: statement}
+        resolved = self._resolve_database(database)
+        if resolved is not None:
+            arguments[self._dialect.database] = resolved
+        return self.call("show_statement", arguments)
 
     def show_running_queries(self, *, limit: int = SHOW_MAX_ROWS) -> ToolResult:
-        """List currently running queries, capped at 100 rows."""
-        rows = enforce_row_limit(limit, verb="show_running_queries", maximum=SHOW_MAX_ROWS)
-        return self.call("show_running_queries", {self._dialect.limit: rows})
+        """List currently running queries, held to 100 rows by this client.
+
+        Measured 2026-08-16, this tool's schema carries ``cluster_id`` and nothing else.
+        As with :meth:`show_statement`, ``limit`` is refused here and not sent.
+        """
+        enforce_row_limit(limit, verb="show_running_queries", maximum=SHOW_MAX_ROWS)
+        return self.call("show_running_queries", {})
 
     # ── the one write verb ───────────────────────────────────────────────────────
 
@@ -568,6 +730,18 @@ class Client:
         The target table is trigger-free by construction (risk AR-5): whether
         ``insert_rows`` fires server-side triggers is unverified, and the design is
         correct under either answer.
+
+        **A DIVERGENCE, RECORDED RATHER THAN CLOSED.** Measured 2026-08-16, the live
+        ``insert_rows`` schema is ``{cluster_id, database, query}`` with ``database`` and
+        ``query`` required, and ``query`` documented as *"The INSERT statement to
+        execute. Include the full table name with optional schema prefix …"*. There is no
+        ``table`` property and no ``rows`` property. Speaking that shape means composing
+        an INSERT statement — with a table name in it — inside the one method whose entire
+        published guarantee is that no parameter names a table. That guarantee is worth
+        more than the call, so this method is left exactly as it was, **this call has not
+        been sent to the live server, and no claim is made that it succeeds there.** The
+        divergence is stated in the package README and is the honest end of the sentence
+        the class docstring starts.
         """
         if not rows:
             raise WriteTargetRefused("an attestation with no rows records nothing")
@@ -609,11 +783,10 @@ def probe_select_unscreened(client: Client, statement: str, *, why: str) -> Tool
         max_rows=SELECT_MAX_ROWS,
         screen_schemas=False,
     )
-    return client.call(
-        "select_query",
-        {client.dialect.statement: statement},
-        enforce_cap=False,
-    )
+    arguments: dict[str, Any] = {client.dialect.statement: statement}
+    if client.database is not None:
+        arguments[client.dialect.database] = client.database
+    return client.call("select_query", arguments, enforce_cap=False)
 
 
 def probe_insert_rows_unbound(

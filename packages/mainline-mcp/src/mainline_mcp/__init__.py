@@ -15,7 +15,9 @@ Four things live here:
     One pinned cluster, one statement per call, one writable table. The write verb has no
     parameter that names a table: ``mainline_meas.external_attestation`` is a constant
     inside the method body, so "insert somewhere else" is not a call the supported API can
-    express.
+    express. The tool argument names are **measured** — ``DEFAULT_DIALECT``, read from the
+    live ``tools/list`` JSON Schema on ``SURFACE_MEASURED_AT`` — and the reading they
+    replaced is kept, named and dated in ``DOCUMENTED_DIALECT``.
 
 ``catalogue`` / ``budget``
     The audit-surface contract, loaded and made strict, and the prober that measures each
@@ -54,6 +56,8 @@ from .catalogue import (
     parse_contract,
 )
 from .client import (
+    DEFAULT_DIALECT,
+    DOCUMENTED_DIALECT,
     Client,
     HttpStreamableTransport,
     RawResponse,
@@ -69,13 +73,16 @@ from .limits import (
     BUDGET_ROWS,
     EXTERNAL_ATTESTATION_TABLE,
     FORBIDDEN_SCHEMAS,
+    LIVE_TOOL_NAMES,
     MAX_RESPONSE_BYTES,
     MAX_STATEMENT_CHARS,
     MCP_ENDPOINT,
+    MEASURED_REQUIRED_ARGUMENTS,
     NEVER_MCP_SCHEMAS,
     READ_VERBS,
     SELECT_MAX_ROWS,
     SHOW_MAX_ROWS,
+    SURFACE_MEASURED_AT,
     WRITE_VERB,
     ClusterPinViolation,
     EmptyStatement,
@@ -104,15 +111,20 @@ __all__ = [
     "AUDIT_SCHEMA",
     "BUDGET_RESPONSE_BYTES",
     "BUDGET_ROWS",
+    "DEFAULT_DIALECT",
+    "DOCUMENTED_DIALECT",
     "EXTERNAL_ATTESTATION_TABLE",
     "FORBIDDEN_SCHEMAS",
+    "LIVE_TOOL_NAMES",
     "MAX_RESPONSE_BYTES",
     "MAX_STATEMENT_CHARS",
     "MCP_ENDPOINT",
+    "MEASURED_REQUIRED_ARGUMENTS",
     "NEVER_MCP_SCHEMAS",
     "READ_VERBS",
     "SELECT_MAX_ROWS",
     "SHOW_MAX_ROWS",
+    "SURFACE_MEASURED_AT",
     "WRITE_VERB",
     "Answer",
     "AuditorPersona",

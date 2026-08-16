@@ -1,0 +1,805 @@
+{
+  "schema": "mainline.qa.mcp-live/1",
+  "SPDX-FileCopyrightText": "2026 MAINLINE contributors",
+  "SPDX-License-Identifier": "CC-BY-4.0",
+  "SPDX-note": "CC-BY-4.0, not the Apache-2.0 that qa/test-state.json and the ratchets declare, and the difference is deliberate. REUSE.toml grants `qa/*.json` CC-BY-4.0 and then names `qa/*-ratchet.json` and `qa/test-state.json` as the Apache-2.0 exceptions, because those three carry the licence in band and a contradicting glob would overrule their own text. This file is not a ratchet — it is a record of a run — so it takes the licence REUSE.toml already gives it, which is also the one that lets a judge quote and republish it with attribution.",
+  "generated_utc": "2026-08-16T07:35:56Z",
+  "generated_by": "worker M4, from the two --junitxml files named in `passes[*].argv`. There is no committed generator for this file: the two pytest commands below ARE the reproduction, and every count here was read out of a JUnit XML rather than off a terminal.",
+  "git_head_at_generation": "c951558",
+  "note": "A census, not a scoreboard. It records what the three MCP integration suites did on the day of writing, in BOTH of the passes that matter: the credential-less pass, which is the pass CI runs and in which every one of the 69 tests skips with a reason; and the credential-present pass, in which they reach https://cockroachlabs.cloud/mcp for the first time in this repository's history. The failure below is not an accident and is not being fixed by this worker — see `gaps`. A negative suite that has quietly gone green is the most dangerous artefact in this repository, because it reads as the strongest.",
+  "what_this_file_is_not": [
+    "It is not evidence of the MCP tool for a judge to read: that is evidence/mcp/ and evidence/deploy/judge-run.json. This file is a test census.",
+    "It is not a claim that a judge can reproduce the credential-present pass. The key is an account-level CockroachDB Cloud service-account key and is not publishable; evidence/deploy/judge-access.json records `credential_publishable: false`.",
+    "It is not a suite baseline. The repository's suite baseline is scripts/qa/regression_guard.py::SUITE_BASELINE, over different paths; see `regression_untouched`."
+  ],
+  "endpoint": {
+    "url": "https://cockroachlabs.cloud/mcp",
+    "transport": "MCP Streamable HTTP",
+    "protocol_version_negotiated": "2025-06-18",
+    "server_info": {
+      "name": "cockroachdb-cloud",
+      "version": "1.0.0"
+    },
+    "tools_advertised": 12,
+    "measured_utc": "2026-08-16T07:35:56Z"
+  },
+  "cluster": {
+    "id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+    "name": "mainline-dev",
+    "plan": "SERVERLESS",
+    "cloud_provider": "AWS",
+    "region": "aws-ap-southeast-1",
+    "cockroach_version": "v26.2.5",
+    "database": "mainline_demo",
+    "sql_identity_observed": "managed-mcp",
+    "identity_measured_by": "tests/integration/mcp/test_audit_surface.py::TestTheAuditSurfaceAnswers::test_the_identity_on_the_far_end_is_the_scoped_one, which runs SELECT current_user over the endpoint and asserts the answer",
+    "source_for_the_id": "evidence/ccloud/cluster-list.txt"
+  },
+  "tool": {
+    "python": "3.13.14",
+    "python_executable_is_venv": true,
+    "platform": "win32",
+    "pytest": "pytest 9.1.1"
+  },
+  "suites": {
+    "tests/integration/mcp/test_audit_surface.py": "POSITIVE. Can the audit surface be read over CockroachDB's own endpoint, by the scoped identity, inside our published byte budget, with its completeness stated.",
+    "tests/integration/mcp/test_negative_reachability.py": "NEGATIVE. What that identity must not reach: five blocked system schemas, mainline_qa (S14), a foreign cluster_id, two statements in one call.",
+    "tests/integration/mcp/test_live_dialect.py": "DIALECT. NEW. Pins limits.LIVE_TOOL_NAMES, limits.MEASURED_REQUIRED_ARGUMENTS and client.DEFAULT_DIALECT against the server's own tools/list inputSchema, so a renamed argument is found by a red test rather than by a judge."
+  },
+  "passes": {
+    "credential_absent": {
+      "means": "no MCP credential in the environment. THIS IS THE PASS CI RUNS, and every test skips with a reason. Nothing here passes vacuously: a green audit-surface run with nothing to talk to asserts nothing, and a green NEGATIVE run with nothing to talk to asserts the opposite of what it claims.",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "tests/integration/mcp",
+        "--crdb=none",
+        "-q",
+        "--no-header",
+        "-p",
+        "no:cacheprovider",
+        "--timeout=300",
+        "--junitxml=<out>"
+      ],
+      "environment": {
+        "MAINLINE_MCP_API_KEY": "unset",
+        "CC_API_KEY": "unset",
+        "MAINLINE_MCP_CLUSTER_ID": "unset",
+        "CRDB_CLUSTER": "unset"
+      },
+      "exit_code": 0,
+      "totals": {
+        "collected": 69,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 69,
+        "wall_clock_seconds": 0.33,
+        "passed": 0
+      },
+      "skip_reasons": [
+        {
+          "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test.",
+          "count": 33
+        },
+        {
+          "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims.",
+          "count": 20
+        },
+        {
+          "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing.",
+          "count": 16
+        }
+      ]
+    },
+    "credential_present": {
+      "means": "a CockroachDB Cloud service-account key and the cluster UUID were exported into the pytest subprocess. The key was never on a command line, never echoed, and never written to any artefact; see `credential_hygiene`.",
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "tests/integration/mcp",
+        "--crdb=none",
+        "-q",
+        "--no-header",
+        "-p",
+        "no:cacheprovider",
+        "--timeout=300",
+        "--junitxml=<out>"
+      ],
+      "environment": {
+        "CC_API_KEY": "set (69 chars, value never recorded)",
+        "MAINLINE_MCP_CLUSTER_ID": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+        "MAINLINE_MCP_DATABASE": "mainline_demo",
+        "MAINLINE_MCP_ALLOW_WRITE": "explicitly unset (ruling R4)"
+      },
+      "exit_code": 1,
+      "exit_meaning": "tests were collected and one failed; the failure is gap N01, below",
+      "totals": {
+        "collected": 69,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 17,
+        "wall_clock_seconds": 8.74,
+        "passed": 51
+      },
+      "skip_reasons": [
+        {
+          "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless.",
+          "count": 10
+        },
+        {
+          "reason": "R4: no live insert_rows this week — and measured 2026-08-16 the live shape is {database, query} with a whole INSERT statement, not the typed {table, rows} this client sends, so the call would be refused on argument shape and never reach the grant it claims to test. The divergence is asserted instead, without calling the verb, by test_live_dialect.py::TestTheWriteVerbDivergence.",
+          "count": 1
+        },
+        {
+          "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.permit)",
+          "count": 1
+        },
+        {
+          "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.disposition)",
+          "count": 1
+        },
+        {
+          "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.blocking_check)",
+          "count": 1
+        },
+        {
+          "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.ledger_leaf)",
+          "count": 1
+        },
+        {
+          "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline_meas.silence_ledger)",
+          "count": 1
+        },
+        {
+          "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline_qa.v_disposition_profile)",
+          "count": 1
+        }
+      ],
+      "failed_tests": [
+        "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_mainline_qa_is_unreachable_on_any_tier_ever"
+      ],
+      "errored_tests": []
+    }
+  },
+  "gaps": [
+    {
+      "id": "N01",
+      "one_line": "mainline_qa.v_disposition_profile IS readable by the managed-mcp identity; GRANTS.yaml S14 and the judge pack's envelope both assert it is not.",
+      "first_recorded": "2026-08-11 (evidence/deploy/judge-run.json)",
+      "reproduced_live": "2026-08-16",
+      "observed": "SELECT count(*) FROM mainline_qa.v_disposition_profile -> {\"rows\":[{\"count\":0}]}, isError false, 122 bytes. A row came back; the grant exists.",
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_mainline_qa_is_unreachable_on_any_tier_ever",
+      "status": "OPEN. The test FAILS, loudly, with the gap's name in its message.",
+      "why_it_was_not_closed": "Closing it means REVOKING a grant on submission eve. Ruling R7 reserves a grant change to the founder in either direction, and the founder has not made that call. The three ways to make this green — revoke the grant, weaken the assertion to accept 'relation does not exist', or drop the database so the relation vanishes — were each available and each refused, because all three produce a green that means the opposite of what the test claims.",
+      "blast_radius": "mainline_qa holds per-named-person deliberation measurement. The row count observed was 0 on this cluster, so no person-level row was exposed by this probe; the defect is the grant, not a disclosure."
+    }
+  ],
+  "measured_refusals": {
+    "note": "The server's own words, quoted rather than paraphrased, and re-read on the date above rather than trusted from the 2026-08-11 transcript. They are identical to it. Each is now asserted by the test that claims it: before today the negative helper accepted ANY error, which meant a wrong property name, a missing argument or a wrong database would all have been recorded as a security refusal.",
+    "restricted_schemas": {
+      "crdb_internal": "ToolCallFailed: tools/call: query references a restricted schema: access to \"crdb_internal\" is blocked for security reasons",
+      "information_schema": "ToolCallFailed: tools/call: query references a restricted schema: access to \"information_schema\" is blocked for security reasons",
+      "pg_catalog": "ToolCallFailed: tools/call: query references a restricted schema: access to \"pg_catalog\" is blocked for security reasons",
+      "pg_extension": "ToolCallFailed: tools/call: query references a restricted schema: access to \"pg_extension\" is blocked for security reasons",
+      "system": "ToolCallFailed: tools/call: query references a restricted schema: access to \"system\" is blocked for security reasons"
+    },
+    "foreign_cluster_id": "ToolCallFailed: tools/call: cluster_id is set in your MCP config; omit the cluster_id argument",
+    "two_statements_in_one_call": "ToolCallFailed: tools/call: must contain exactly one statement",
+    "a_cluster_name_in_the_header": "ToolCallFailed: initialize: HTTP 400: invalid cluster_id: must be a valid UUID, got \"mainline-dev\"",
+    "the_superseded_dialect": "select_query carrying {database, statement} -> ToolCallFailed: tools/call: must contain exactly one statement. The same sentence the server uses for a genuine two-statement breach, which is why the negative suite now needs a positive control before it believes anything it did not receive."
+  },
+  "what_the_live_surface_proved_wrong": [
+    {
+      "defect": "CRDB_CLUSTER is a cluster NAME, not a cluster id.",
+      "evidence": ".env sets CRDB_CLUSTER=mainline-dev; the endpoint answers `HTTP 400: invalid cluster_id: must be a valid UUID, got \"mainline-dev\"`.",
+      "consequence_before": "Both suites resolved that name as the cluster id, so a machine WITH a credential would have failed in fixture setup with an HTTP 400 — a red that says nothing about what the suite asserts.",
+      "fix": "The credential resolver requires a UUID and otherwise skips with a reason that names the defect and points at evidence/ccloud/cluster-list.txt."
+    },
+    {
+      "defect": "The database was never sent, and the server's fallback is not ours.",
+      "evidence": "select_query advertises `database` as required but does NOT error without it: `SELECT 1` succeeds, and `SELECT count(*) FROM mainline_qa.v_disposition_profile` returns `relation \"...\" does not exist`.",
+      "consequence_before": "THE WORST OF THE THREE. The negative suite would have read `relation does not exist` as proof that mainline_qa is unreachable — reporting a security property it had never observed, from a database it was never pointed at.",
+      "fix": "The client carries a database (MAINLINE_MCP_DATABASE, default mainline_demo), and a module-scoped positive control proves the identity and the schema reachability before any negative is believed."
+    },
+    {
+      "defect": "A refusal was never checked for being the right refusal.",
+      "evidence": "Three unrelated mistakes produce an error from this endpoint: a wrong property name, an absent relation, and an actual security refusal. Only the third is evidence.",
+      "consequence_before": "_assert_server_refused accepted all three equally.",
+      "fix": "Every probe now names the sentence it expects and fails when the server refuses for a different reason."
+    },
+    {
+      "defect": "A missing contract withdrew assertions that did not depend on it.",
+      "evidence": "spec/mcp/audit-surface.contract.yaml is absent (owned by the fleet-contracts worker, never landed), and it skipped the whole audit-surface module.",
+      "consequence_before": "The tool list and the audit views — neither of which needs a contract — went unasserted along with the byte budget.",
+      "fix": "The contract skip moved down onto the fixture that needs it. Five tests that need no contract now run live; the ten that do still skip, with the reason."
+    }
+  ],
+  "not_exercised": [
+    {
+      "what": "TestBudget (6) and TestAuditorPersona (3) and TestSurface::test_the_contract_still_covers_every_view_the_architecture_names",
+      "why": "spec/mcp/audit-surface.contract.yaml does not exist. The prober cannot invent a budget for a view it has never been told about, and inventing one from the package's test fixture would be measuring our own fixture.",
+      "state": "SKIPPED with that reason in both passes."
+    },
+    {
+      "what": "TestWriteSurface::test_insert_rows_is_rejected_outside_external_attestation (6 parametrisations) and TestExternalAttestation::test_the_one_permitted_write_succeeds",
+      "why": "Ruling R4: no live insert_rows, create_database or create_table this week. AND the probe could not have proved its claim anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. Six green rows would have recorded 'the server dislikes our JSON' under the heading 'the write surface is bound to one table'.",
+      "state": "SKIPPED with that reason in both passes. The MAINLINE_MCP_ALLOW_WRITE=1 escape hatch that used to enable the write is closed, not left ajar. What remains asserted is the divergence itself, read off insert_rows's schema without invoking it, by test_live_dialect.py::TestTheWriteVerbDivergence."
+    },
+    {
+      "what": "The auditor persona and the budget prober against live data.",
+      "why": "Same missing contract. Worker M3 DID run both live and filed evidence/mcp/auditor-live.json and evidence/mcp/budget-live.json, loading the package's reference fixture and recording that substitution as a divergence in the artefact itself. That is the right move for an evidence artefact and the wrong one for a test: a suite that loads our own fixture and calls the result a contract check is measuring us against us. So these ten stay skipped here and the live measurement lives there, where its caveat travels with it.",
+      "state": "SKIPPED in both passes; the live numbers are in evidence/mcp/auditor-live.json and evidence/mcp/budget-live.json, each carrying the fixture divergence."
+    }
+  ],
+  "regression_untouched": {
+    "claim": "Nothing here can move the repository's suite baseline, and the baseline was re-measured rather than assumed.",
+    "baseline_constant": "scripts/qa/regression_guard.py::SUITE_BASELINE",
+    "baseline_value": {
+      "collected": 1070,
+      "passed": 1069,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    "why_this_worker_cannot_move_it": "SUITE_PATHS is ('verticals/mainline/apps/demo-api/tests', 'tests/deploy'). All four files this worker owns are outside both.",
+    "measured": {
+      "argv": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "verticals/mainline/apps/demo-api/tests",
+        "tests/deploy",
+        "--crdb=reuse",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--timeout=900",
+        "--junitxml=<out>"
+      ],
+      "when_utc": "2026-08-16T06:57:00Z",
+      "collected": 1070,
+      "passed": 1069,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 1,
+      "wall_clock_seconds": 305.54,
+      "the_one_skip": "verticals/mainline/apps/demo-api/tests/test_gate_run.py::test_payload_validates_against_the_json_schema - 'jsonschema is not a workspace dependency'; the same skip the baseline names.",
+      "verdict": "unchanged, exactly: 1070 / 1069 / 0 / 0 / 1."
+    },
+    "other_gates_measured_after_the_change": [
+      {
+        "gate": "scripts/qa/skip_ratchet.py (ci.yml gate zero)",
+        "result": "OK - every cluster-shaped skip is attributed. 974 -> 244 executed by 9 lanes, 730 unlanded against a ceiling of 730, 0 unattributed.",
+        "why_it_did_not_move": "It reads three COMMITTED files - qa/ci-skip-census.json, qa/skip-ratchet.json and .github/workflows/*.yml as raw text - and runs no pytest. New tests reach it only when the census is regenerated. See `follow_ups_this_worker_did_not_take`."
+      },
+      {
+        "gate": "ruff check / ruff format on the three suites",
+        "result": "clean: `ruff check tests/integration/mcp` passes, `ruff format --check tests/integration/mcp` reports 3 files already formatted."
+      },
+      {
+        "gate": "scripts/qa/ruff_ratchet.py (whole repository)",
+        "result": "REFUSED, and NOT because of this worker. It reports 224 unformatted files repo-wide against a baseline of 0, spread over packages/trappoint-* (50), tests/ (107), verticals/ (53), scripts/ (8) and other/ (4). `ruff format --check .` names 225 files and NONE of them is under tests/integration/mcp. Pre-existing, tree-wide, and somebody's to re-take."
+      },
+      {
+        "gate": "scripts/qa/check_reuse.py",
+        "result": "REFUSED on metric non_spdx_spelling.FSL-1.1-ALv2 (baseline 1213, measured 1345). Neither file this worker added mentions FSL at all - one is Apache-2.0 (a .py header) and one is this file - so the +132 is not this worker's. Pre-existing."
+      }
+    ],
+    "mcp_directory_collection": {
+      "before": 31,
+      "after": 69,
+      "means": "collection ROSE by 38; nothing was deleted. The 'before' figure was measured by restoring both files from HEAD and running --collect-only, not by counting decorators."
+    }
+  },
+  "follow_ups_this_worker_did_not_take": [
+    {
+      "what": "qa/ci-skip-census.json and qa/skip-ratchet.json will need a --rebaseline the next time the census is regenerated.",
+      "measured": "Not projected - measured, by running scripts/qa/ci_skip_census.py to a scratch path and diffing it against the committed one. tests/integration/mcp rows: 31 committed (30 cluster-shaped; the odd one out is TestExternalAttestation::test_the_one_permitted_write_succeeds, whose old MAINLINE_MCP_ALLOW_WRITE reason named no cluster) -> 69 today, all 69 cluster-shaped. The census's `needs_a_credential_not_a_node` subset moves 33 -> 72, and all 39 of that +39 are in tests/integration/mcp, so the whole delta on that subset is attributable to this worker and nothing else is.",
+      "why_not_taken": "qa/skip-ratchet.json and scripts/qa/ci_skip_census.py belong to neither this worker nor this plan, and the ratchet's own policy says a ceiling 'may rise only through --rebaseline, which is a deliberate act'. The 39 are exactly the case that pattern's own entry already describes: 'CANNOT BE FIXED BY A CONTAINER ... asks for a CockroachDB Cloud credential, not for a node.'",
+      "note": "The committed census is stale independently of this change: 9839 collected on 2026-08-13, 11014 collected in the scratch regeneration today. That +1175 is the whole fleet's and cannot be attributed to any one worker. The +39 on the credential-shaped subset can.",
+      "command": "python scripts/qa/ci_skip_census.py && python scripts/qa/skip_ratchet.py --rebaseline"
+    },
+    {
+      "what": "spec/mcp/audit-surface.contract.yaml still does not exist.",
+      "consequence": "Ten of the sixty-nine tests skip for want of it, including every byte-budget and auditor-persona assertion. They are written, they are collected, and they will run the day the contract lands - the suite needs no further change.",
+      "owner": "the fleet-contracts worker (docs/leads/agents-mcp.md A12)."
+    }
+  ],
+  "credential_hygiene": {
+    "assertion": "no CockroachDB Cloud service-account key appears in this file",
+    "method": "after serialisation this file's own bytes were searched for (a) the literal value of CC_API_KEY as loaded from .env, and (b) the regex /CCDB1_[A-Za-z0-9_-]{8,}/, which is the shape a CockroachDB Cloud service-account key has. The writer refuses to leave the file on disk if either matches. bytes_scanned is the size of THIS FILE as written, computed to a fixed point so the number describes the file that carries it.",
+    "reproduce": "python -c \"import pathlib,re; b=pathlib.Path('qa/mcp-live.json').read_bytes(); print(len(b), len(re.findall(rb'CCDB1_[A-Za-z0-9_-]{8,}', b)))\"  # prints bytes_scanned then 0",
+    "self_scanned": true,
+    "bytes_scanned": 65235,
+    "credential_was_used_this_run": true,
+    "matches": 0,
+    "holds": true
+  },
+  "per_test": [
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestAuditorPersona::test_every_contracted_question_answers",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestAuditorPersona::test_every_rendered_answer_states_its_completeness",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestAuditorPersona::test_the_brief_is_one_call_per_question",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestBudget::test_contracted_completeness_flags_are_present_in_the_returned_rows",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestBudget::test_every_contracted_view_is_measured",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestBudget::test_every_row_count_was_determinable",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestBudget::test_no_view_exceeds_the_budget",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestBudget::test_the_budget_leaves_headroom_below_the_server_cap",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestBudget::test_the_worst_row_is_recorded_for_every_view_that_returned_rows",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.0,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestExternalAttestation::test_the_one_permitted_write_succeeds",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "R4: no live insert_rows this week — and measured 2026-08-16 the live shape is {database, query} with a whole INSERT statement, not the typed {table, rows} this client sends, so the call would be refused on argument shape and never reach the grant it claims to test. The divergence is asserted instead, without calling the verb, by test_live_dialect.py::TestTheWriteVerbDivergence."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestSurface::test_the_advertised_tools_include_every_verb_we_rely_on",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.849,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestSurface::test_the_contract_still_covers_every_view_the_architecture_names",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "no audit-surface contract at D:\\CoackroachDBxAWS\\mainline\\spec\\mcp\\audit-surface.contract.yaml: it is owned by the fleet-contracts worker, and the prober cannot invent a budget for a view it has never been told about. The tool list and the audit views above do not need it and are measured live regardless."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestTheAuditSurfaceAnswers::test_the_control_view_answers_in_this_database",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.587,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestTheAuditSurfaceAnswers::test_the_control_view_fits_the_budget_we_publish",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.609,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestTheAuditSurfaceAnswers::test_the_control_view_states_its_own_completeness",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.601,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing."
+    },
+    {
+      "test": "tests/integration/mcp/test_audit_surface.py::TestTheAuditSurfaceAnswers::test_the_identity_on_the_far_end_is_the_scoped_one",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.635,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because a green audit-surface run with nothing to talk to would assert nothing."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_absent_where_we_recorded_it_absent[cluster_id]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_absent_where_we_recorded_it_absent[database]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_absent_where_we_recorded_it_absent[limit]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_absent_where_we_recorded_it_absent[rows]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_absent_where_we_recorded_it_absent[schema]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_absent_where_we_recorded_it_absent[statement]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.003,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_absent_where_we_recorded_it_absent[table]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.002,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_present_where_we_send_it[cluster_id]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_present_where_we_send_it[database]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_present_where_we_send_it[limit]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_present_where_we_send_it[rows]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_present_where_we_send_it[schema]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_present_where_we_send_it[statement]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_each_dialect_field_is_present_where_we_send_it[table]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_select_query_still_paginates_inside_the_statement",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_the_sql_argument_is_named_what_our_dialect_calls_it[explain_query]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_the_sql_argument_is_named_what_our_dialect_calls_it[insert_rows]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_the_sql_argument_is_named_what_our_dialect_calls_it[select_query]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheDialectWeSend::test_the_superseded_guess_is_still_wrong",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheHandshake::test_the_protocol_revision_is_the_one_we_offer",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.54,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheHandshake::test_the_server_identifies_itself_as_the_one_we_recorded",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_every_verb_this_client_relies_on_is_still_there",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_advertised_names_are_exactly_the_ones_we_recorded",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.293,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[explain_query]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[get_table_schema]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[insert_rows]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[list_databases]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[list_tables]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[select_query]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[show_running_queries]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheToolList::test_the_required_arguments_are_the_ones_we_recorded[show_statement]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheWriteVerbDivergence::test_the_live_write_verb_takes_a_statement_and_not_a_table",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_live_dialect.py::TestTheWriteVerbDivergence::test_the_write_verb_still_wants_a_whole_insert_statement",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes, because asserting that our recorded schemas agree with a server we never contacted is a tautology, not a test."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestClusterPin::test_our_client_refuses_a_different_cluster_before_transmission",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestClusterPin::test_the_server_refuses_a_different_cluster_too",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.26,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestOtherRefusals::test_explain_analyze_is_unavailable",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestOtherRefusals::test_the_server_refuses_two_statements_too",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.244,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestOtherRefusals::test_two_statements_in_one_call_are_refused",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_a_system_schema_is_unreachable[crdb_internal]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 1.953,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_a_system_schema_is_unreachable[information_schema]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.244,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_a_system_schema_is_unreachable[pg_catalog]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.249,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_a_system_schema_is_unreachable[pg_extension]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.274,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_a_system_schema_is_unreachable[system]",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.26,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_mainline_qa_is_unreachable_on_any_tier_ever",
+      "credential_absent": "skipped",
+      "credential_present": "failed",
+      "seconds_credential_present": 0.586,
+      "reason": "AssertionError: a SELECT against mainline_qa.v_disposition_profile as managed-mcp — S14 says no MCP identity reads this schema on any tier, ever. THIS IS GAP N01 (evidence/deploy/judge-run.json, docs/TOOL-USAGE.md), open since 2026-08-11 and reproduced live on 2026-08-16. Closing it means REVOKING a grant, which ruling R7 reserves to the founder was NOT refused. The server answered: '{\"rows\":[{\"count\":0}]}'. This is a reachability failure, not a test failure. assert False + where False = ToolResult(tool='select_query', byte_count=122, is_error=False, text='{\"rows\":[{\"count\":0}]}', rows=({'count': 0},)).is_error"
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_our_client_refuses_the_same_schemas_without_a_network_call",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestSchemasAreUnreachable::test_the_qa_refusal_is_typed_as_ours_not_the_servers",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestWriteSurface::test_insert_rows_is_rejected_outside_external_attestation[mainline.blocking_check]",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.blocking_check)"
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestWriteSurface::test_insert_rows_is_rejected_outside_external_attestation[mainline.disposition]",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.disposition)"
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestWriteSurface::test_insert_rows_is_rejected_outside_external_attestation[mainline.ledger_leaf]",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.ledger_leaf)"
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestWriteSurface::test_insert_rows_is_rejected_outside_external_attestation[mainline.permit]",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline.permit)"
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestWriteSurface::test_insert_rows_is_rejected_outside_external_attestation[mainline_meas.silence_ledger]",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline_meas.silence_ledger)"
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestWriteSurface::test_insert_rows_is_rejected_outside_external_attestation[mainline_qa.v_disposition_profile]",
+      "credential_absent": "skipped",
+      "credential_present": "skipped",
+      "seconds_credential_present": 0.001,
+      "reason": "R4: no live insert_rows this week. And measured 2026-08-16 the probe could not prove what it claims anyway — the live insert_rows schema is {cluster_id, database, query} with a whole INSERT statement, while probe_insert_rows_unbound sends {table, rows}, so the server refuses on argument shape and never reaches the grant. The grant itself is asserted against GRANTS.yaml, not over the wire. (target: mainline_qa.v_disposition_profile)"
+    },
+    {
+      "test": "tests/integration/mcp/test_negative_reachability.py::TestWriteSurface::test_the_only_writable_table_is_the_one_the_architecture_names",
+      "credential_absent": "skipped",
+      "credential_present": "passed",
+      "seconds_credential_present": 0.001,
+      "reason": "no Managed-MCP credential: set MAINLINE_MCP_API_KEY and MAINLINE_MCP_CLUSTER_ID (or CC_API_KEY and CRDB_CLUSTER). This suite SKIPS rather than passes — a negative suite that goes green without ever trying asserts the opposite of what it claims."
+    }
+  ]
+}

@@ -31,6 +31,13 @@ file in the repository. That sentence read "six days" when it was written on 202
 clock is the one number here that moves without anybody editing anything, which is why it is
 generated in §2 and only paraphrased here.
 
+*Half of that hypothetical stopped being hypothetical on 2026-08-16: the demo **is** deployed
+and R2 **is** MET, with `2d 9h` on the clock. The paragraph above is kept unedited because its
+point survives its example — **the film is still not shot, R4 is still UNMET, and this document
+still says so in every place it is asked.** The test of the claim was never that some row is
+red; it is that no row goes green without a command a stranger can run. R2 went green behind
+`check_submission_ready.py --check-urls`, which fetches the URL and requires HTTP 200.*
+
 ---
 
 ## 0 · The state on 2026-08-14, in four sentences
@@ -38,9 +45,17 @@ generated in §2 and only paraphrased here.
 *This section was headed "the state on 2026-08-12" and is re-derived here rather than
 replaced: where a figure moved, both figures are given and the later one is dated.*
 
-**Six of the eight rules are MET. Two are UNMET, and only one of those is a Stage One
-pass/fail:** no demo is deployed (R2, Stage One), and the video has not been recorded (R4,
-not Stage One). Both are resolved by a person doing a thing, not by more engineering.
+**Updated 2026-08-16 — R2 closed, and the superseded sentence is kept beside it rather than
+overwritten.** This paragraph read, until today: *"**Six of the eight rules are MET. Two are
+UNMET, and only one of those is a Stage One pass/fail:** no demo is deployed (R2, Stage One),
+and the video has not been recorded (R4, not Stage One). Both are resolved by a person doing
+a thing, not by more engineering."* One of those two people did their thing.
+
+**Seven of the eight rules are MET. One is UNMET, and it is not a Stage One pass/fail:** the
+video has not been recorded (R4). **Both Stage One gates — R1 and R2 — are now closed**: the
+origin is deployed, `demo_url` holds it, and `check_submission_ready.py --check-urls` fetches
+it and gets `200`. R4 is still resolved by a person doing a thing rather than by more
+engineering, and nothing in this repository can resolve it.
 
 **R1 is now MET.** The repository is `PUBLIC` and carries Apache-2.0 — measured, not
 remembered, at the top of §1's transcript. Every sentence in this file that once read
@@ -94,12 +109,12 @@ authority that decided each one named.
 | # | Rule | Verdict | Deciding artefact | What it says |
 |---|---|---|---|---|
 | **R1** | Public repository with an open-source licence | **MET** | `gh repo view Shaugato/mainline --json visibility,licenseInfo` · `git ls-files LICENSE` · `LICENSE` · `docs/submission/LICENCE-CENSUS.md` | **Both halves met.** Public half: `visibility` is `PUBLIC`. Licence half: `LICENSE` is tracked (`git ls-files LICENSE` answers `LICENSE`), 11 357 bytes, reads as Apache-2.0, and GitHub independently resolves `licenseInfo.key` to `apache-2.0`. *The tree behind the URL was the audited tree when this cell was written on 2026-08-12: `git rev-list --left-right --count origin/master...HEAD` answered `0 0`. Re-derived 2026-08-14 it answers `0<TAB>4` — four commits are here and on no server — which is why `remote_sync` is a `FAIL` in §2 and clears on a push. R1's own two facts, a public repository and a tracked open-source licence, are unaffected: both are true of the tree the server already carries.* |
-| **R2** | A URL to a functional demo, free and unrestricted for judges | **UNMET — two halves, both open, for different reasons** | `docs/submission/SUBMISSION.json` → `demo_url` · `evidence/deploy/acceptance.json` · `evidence/deploy/terraform-plan-furl.txt` | **The origin does not exist.** `demo_url` holds the literal `UNRESOLVED`; `terraform apply` has never been run, so there is no MAINLINE Lambda, Function URL or bucket in the account. The plan that would create it is committed and reads **`Plan: 24 to add, 0 to change, 0 to destroy.`** at `evidence/deploy/terraform-plan-furl.txt:843` — **11** resources in `module.api[0]` and **13** in `module.guard[0]`, the cost guard that `infra/envs/demo/main.tf:631` instantiates — with `authorization_type = "NONE"` at `furl.txt:351`, in `ap-southeast-1`. **The app does not yet answer.** `acceptance.json`, generated `2026-08-13T01:47:58Z`, reads `NOT PROVEN` with **10** named failures: both runs now reach beat 4 and are refused `23503 disposition_signer_credential_id_fkey`, and neither carries a `clearance_digest`. Nothing in that file was relaxed to reach a green. **The access half IS answered** — see the row below the table. |
+| **R2** | A URL to a functional demo, free and unrestricted for judges | **MET — 2026-08-16. Both halves closed; the superseded cell is kept below the table** | `python scripts/submission/check_submission_ready.py --check-urls` · `docs/submission/SUBMISSION.json` → `demo_url` · `evidence/deploy/APPLIED.md` · `evidence/deploy/live-gate-run.json` | **The origin exists and `demo_url` holds it.** The gate's fetching mode is the command that overturns this row, and it prints `PASS    demo URL    https://…lambda-url.ap-southeast-1.on.aws -> HEAD 200` — it *fetches* rather than trusting the paste, which is the entire reason that flag exists. **The app answers.** Measured by hand the same day, unauthenticated: `200` on `/`, `/judge` and `/console`, and `POST /v1/demo/gate-run` returns HTTP `200` with a four-beat array at verdict **`PROVEN`**, the beats carrying real SQLSTATEs in order — `00000` read, `23514` refused, `P0001` refused, `00000` admitted — and the admission beat carrying a **server-computed `clearance_digest`**, which is the exhibit the older local artefact was refused for lacking (detail below the table). **"Free and unrestricted" is answered twice over:** the Function URL is `authorization_type = NONE`, so the demo needs no credential of ours at all, and the deeper ledger read has the `mainline_judge` login below. **What this row does NOT claim.** `python scripts/deploy/demo_acceptance.py --url <the URL>` — the deeper acceptance probe — was **not** run in the wave that flipped this cell, and `evidence/deploy/acceptance.json` is still the `2026-08-13T01:47:58Z` local-emulator artefact reading `NOT PROVEN` with 10 named failures. It was never relaxed to reach a green; it was **overtaken** by `evidence/deploy/live-gate-run.json`, which is the same four beats answered by the deployed origin at `PROVEN`. A reader who opens the older file first should meet that sentence rather than a contradiction. |
 | **R3** | A text description of the project's features | **MET** | `docs/submission/DEVPOST.md` · `python scripts/submission/check_submission_prose.py` | Re-derived 2026-08-14, later the same day: **53 343 bytes, 219 non-blank lines, 8 110 words, 2 fenced blocks** (`wc -c`, non-blank line count, whitespace-split words, and lines beginning with a triple backtick ÷ 2). Over the fifteen **paste blocks only** — which is what a judge reads — the page's own one-liner returns `15` blocks, `6 583` words, and an elevator pitch of `163` characters against a cap of `200`. The prose gate scans it against nine SUB rules and the claim-hygiene table and reports **0 violations in this file**. *This cell read `40 515 / 200 / 6 175 / 5` on 2026-08-12 and `46 885 / 209 / 7 165 / 2` earlier on 2026-08-14. The page grew when Limitations took six more gaps. The `5` fenced blocks never reproduced: no derivation attempted on this machine returns it, and rather than keep a figure that cannot be re-derived, the count and the command that produced it are both given above.* (The gate now exits **0** on the surfaces it scans: `submission prose OK`, `claim hygiene OK`, with the three `docs/HONESTY.md` `[HYG-sha-literal]` reds closed by that file's owner under RULING 5. It previously exited 1 on them; the rule was not narrowed.) |
 | **R4** | A demo video under three minutes, on YouTube or Vimeo | **UNMET** | `docs/submission/SUBMISSION.json` → `video_url` · `docs/submission/VIDEO-KIT.md` · `verticals/mainline/demo/script/SHOT-LIST.yaml` | `video_url` holds `UNRESOLVED`. The kit exists — VO, timings, seeded state, the sentences that may not be said on camera — and `.github/workflows/claims.yml` runs the shot-list validator, so a script that drifts past the three-minute budget is a red build rather than a discovery made during the upload. Two facts a reader should have. **Nothing in this repository can resolve this row.** And the kit defect this cell used to carry is **closed**: on 2026-08-12 `check_submission_prose.py` failed `VIDEO-KIT.md:179 [SUB-06-migration-count]`; re-run on 2026-08-14 the same program reports `submission prose OK` — **0** SUB violations across the 14 files it scans. *Earlier on 2026-08-14 it still exited `1` on three `docs/HONESTY.md` `[HYG-sha-literal]` reds; later the same day it exits **`0`**, because that file's owner closed them with the rule's own `claim-hygiene: quoting` escape hatch under RULING 5. The rule was not switched off, no scope list gained an entry, and the SHA is preserved so the two commands beside it still reproduce.* |
 | **R5** | A new project, created inside the submission window | **MET** | `docs/submission/DISCLOSURE.md` · `evidence/provenance/commit-window.json` | First commit `f80fefd`, authored **and** committed `2026-08-05T22:47:47+10:00` — inside the window, which opened `2026-08-05`. All **86** commits pass (`git rev-list --count HEAD`, re-derived 2026-08-14 later the same day; this cell said `47` on 2026-08-12 and `80` earlier on 2026-08-14 — it is a count of commits, so it rises on its own and the gate re-reads the history rather than this cell), and the check tests **both** the author date and the committer date, because a rebase moves one and not the other. The separate, earlier research repository is disclosed and holds no product code. |
-| **R6** | At least two CockroachDB tools | **MET** | `docs/TOOL-USAGE.md` Part 1 · `evidence/tool-usage/crdb-features.json` | Four tools documented and **three carry an EXERCISED verdict in the census**: the database itself (v26.2.5, `evidence/gate-refusal/`, a real refusal on a real cluster), CockroachDB Cloud with the `ccloud` CLI (`evidence/deploy/cloud-chain.json`), and the Managed MCP Server (`evidence/deploy/judge-run.json`: 15 of 16 pack questions PASS over `https://cockroachlabs.cloud/mcp`). The fourth, Agent Skills, reads DESIGNED and is not counted. The floor is two and it is cleared without the third. |
-| **R7** | At least one AWS service | **MET** | `evidence/deploy/aws-live.json` · `evidence/aws/probe/` · `evidence/tool-usage/aws-services.json` | Bedrock **executes** in `ap-southeast-2`. Four live calls, `calls_failed: []`, every one HTTP `200`, each with the AWS request id it returned: `sts:GetCallerIdentity` `04018eca-…`, `bedrock:ListFoundationModels` `d8c940e8-…`, `bedrock-runtime:InvokeModel` `b4d826e9-…` (Titan v2, a 1024-dimension embedding at L2 norm `1.0`), `bedrock-runtime:Converse` `3c7a283c-…` (Claude Haiku 4.5, `end_turn`). Total 1.75 s; the file's own verdict is `AWS BEDROCK EXECUTED`. The census marks **3 of 12** AWS rows EXERCISED, 8 DESIGNED because nothing is deployed, and 1 NOT-AVAILABLE because Bedrock Rerank is genuinely absent in the region. |
+| **R6** | At least two CockroachDB tools | **MET** | `docs/TOOL-USAGE.md` Part 1 · `evidence/tool-usage/crdb-features.json` | Four tools documented and **three carry an EXERCISED verdict in the census**: the database itself (v26.2.5, `evidence/gate-refusal/`, a real refusal on a real cluster), CockroachDB Cloud with the `ccloud` CLI (`evidence/deploy/cloud-chain.json`), and the Managed MCP Server (`evidence/deploy/judge-run.json`: 15 of 16 pack questions PASS over `https://cockroachlabs.cloud/mcp`, protocol `2025-06-18`, `sql_identity managed-mcp` — **with the run's own verdict left at `DIVERGED — KNOWN GAP` and the one FAIL, `N01`, preserved rather than rounded off**). The fourth, Agent Skills, reads DESIGNED and is not counted. The floor is two and it is cleared without the third. **The threshold is not where this row earns its points.** We clear ≥2 three times over, so the MCP line is worth nothing as a checkbox; it is worth something on **criterion 1**, because it is the only one of the four tools where our memory layer is interrogated through a surface **we did not write** — a general-purpose MCP client, over CockroachDB's own managed endpoint, answering audit questions off contracted `mainline_audit` views. **Captured `2026-08-16`**, `evidence/mcp/` adds a second transcript, filed under the tool's own name rather than under `deploy/`. `pack-run.json` (`07:33:46Z`) puts the same sixteen questions through the pack's **own** runner — envelope validator, drift check, truncation guard — and reaches the same `15` of `16`, `exit_code` `1`, verdict `DIVERGED — KNOWN GAP`, `N01` still the one FAIL five days and one deployment later. `auditor-live.json` (`07:24:31Z`) records a general-counsel persona putting `10` free-text questions to that server: `9` route deterministically onto contracted `mainline_audit` views and the tenth (`Q10`) onto a pinned `explain_query` over `mainline.event_cue_embedding@cue_scoped_idx`, `routed_correctly: true` on all `10`, with a further question refused outright as an `UnroutableQuestion` rather than answered against a guessed view. `budget-live.json` measures `13` views on the wire with `0` breaching the server's `10240`-byte cap — carrying its own caveat that `8` of the `13` returned zero rows, so part of that green is emptiness rather than headroom. Note what that does **not** say: the credential opening that endpoint is an account-level Cloud service-account key and is not published (`evidence/deploy/judge-access.json` → `mcp_channel.credential_publishable: false`). A judge reproduces the *mechanism* on their own cluster via `verticals/mainline/demo/judge/MCP-CONFIG.md` §1 and reads *our* data over the read-only `mainline_judge` login. |
+| **R7** | At least one AWS service | **MET** | `evidence/deploy/aws-live.json` · `evidence/aws/probe/` · `evidence/tool-usage/aws-services.json` | Bedrock **executes** in `ap-southeast-2`. Four live calls, `calls_failed: []`, every one HTTP `200`, each with the AWS request id it returned: `sts:GetCallerIdentity` `04018eca-…`, `bedrock:ListFoundationModels` `d8c940e8-…`, `bedrock-runtime:InvokeModel` `b4d826e9-…` (Titan v2, a 1024-dimension embedding at L2 norm `1.0`), `bedrock-runtime:Converse` `3c7a283c-…` (Claude Haiku 4.5, `end_turn`). Total 1.75 s; the file's own verdict is `AWS BEDROCK EXECUTED`. The census marks **6 of 12** AWS rows EXERCISED, **5** DESIGNED, and **1** NOT-AVAILABLE because Bedrock Rerank is genuinely absent in the region. *That triple read `3 / 8 / 1` until 2026-08-16, and the sentence carrying it explained the 8 as "DESIGNED because nothing is deployed" — a reason that expired with the apply of 2026-08-14, which moved Lambda, CloudWatch, IAM and SSM into the EXERCISED column. Re-derived today from the artefact rather than from this cell: `python -c "import json;print(json.load(open('evidence/tool-usage/aws-services.json'))['totals'])"` answers `{'rows': 12, 'by_verdict': {'EXERCISED': 6, 'DESIGNED': 5, 'NOT-AVAILABLE': 1}}`. This is the same correction the "Two counts that legitimately disagree" section below already recorded for the gate's `5` service **names** against the census's `6` EXERCISED **rows**; the two passages now agree, and they agree because both were re-read against the artefact, not against each other.* |
 | **R8** | Documentation of **which** CockroachDB tools and AWS services, and **how** | **MET, with a regeneration owed** | `docs/TOOL-USAGE.md` · `evidence/tool-usage/` · `python scripts/submission/capture_tool_evidence.py --check` | `TOOL-USAGE.md` is **92 665** bytes (80 819 on 2026-08-12, 87 355 earlier on 2026-08-14; it grew by each wave's corrections). The CockroachDB census holds 14 rows — 4 tools and 10 engine features accounted separately, 12 EXERCISED and 2 DESIGNED; the AWS census holds 12 service rows. Every row carries a verdict, a `file:line` that does the work, and an `evidence/` artefact or an explicit "none — not applied"; the gate confirms **24 of 24 cited artefacts are present on disk** — `21 of 21` until 2026-08-14, when the Cloud chain, the Cloud seed and the 2026-08-14 gate-refusal proof were cited by name. **The count rose and the denominator rose with it**, which is the only direction that means anything: the owed Cloud gate-run artefact is deliberately *not* named on that page, because a citation of a file that does not exist would have made this read `24 of 25`. `capture_tool_evidence.py --check` re-derives the counts from the tree with no network and no credential, and **exits 2 today, not 1** — and the reason changed as well as the number. On 2026-08-12 it exited `1` on one stale field (`files_scanned`, 7 388 committed against 7 390 fresh). On 2026-08-14 it refuses earlier and harder: **two anchors in `evidence/tool-usage/aws-services.json` have drifted off their subject** — `aws_lambda` cites `infra/modules/demo-api/main.tf:333` for `authorization_type` and that line now reads `handler = "mainline_demo_api.app.handler"`; `aws_ssm_parameter_store` cites `:215` for `ssm:GetParameter` and that line now reads `#`. *`scripts/aws/verify_evidence.py` failed the same two under `[CEN-ANCHORS]` when this cell was written; re-run later on 2026-08-14 it passes — `1016` assertions across `40` of `40` invariants — because it reads the JSON, and the JSON was edited to `:432`/`:280` while the generator that produces it still declares `:333`/`:215`. **Two programs that agreed now disagree, and the one still refusing is the one reading the authoritative side.** See "the regeneration R8 owes" below.* The generator writes nothing while an anchor is drifted, so **whether `files_scanned` is still fresh is `UNRESOLVED` today** — `--print` refuses too, and a figure nobody can re-derive on this machine does not go in this cell. That is a regeneration owed on `evidence/tool-usage/`, it is owned by the domain that owns the generator, and **the two anchors are the tree moving under a citation, which is the defect the census's own `anchor_must_contain` rule was added to catch.** It caught it. |
 
 ### The transcript — every verdict above, re-derived on 2026-08-12
@@ -229,9 +244,25 @@ them it mentions, so ten is its **ceiling**, not a census, and it prints `10` be
 page names all ten. The census walks the tree and
 emits one row per *distinct use*, so Bedrock appears three times — inference, embeddings and
 Rerank — and `evidence/tool-usage/aws-services.json#totals.rows` is `12`. The same arithmetic
-explains "2 AWS service(s) marked as having run" against the
-census's 3 EXERCISED rows: the gate counts the name **Amazon Bedrock** once, and two of the
-three EXERCISED rows are Bedrock.
+explains the gate's **"5 AWS service(s) marked as having run"** — Amazon Bedrock, Amazon
+CloudWatch, AWS Lambda, AWS IAM, AWS Systems Manager Parameter Store — against the census's
+**6** EXERCISED rows: the gate counts the name **Amazon Bedrock** once, and two of the six
+EXERCISED rows are Bedrock (`aws_bedrock_runtime` and `aws_bedrock_embeddings`). Six rows
+collapse onto five names, and the difference is exactly that one duplicate.
+
+**Both figures in that sentence moved, and the old pair is named rather than overwritten.** It
+read *"2 AWS service(s) marked as having run"* against *"the census's 3 EXERCISED rows"* until
+`2026-08-16`, when the claim audit re-derived them and found neither still held: the apply of
+`2026-08-14` put Lambda, CloudWatch, IAM and SSM into the EXERCISED column, so the pair is now
+`5` against `6`. **The explanation was right and its numbers were stale**, which is the more
+dangerous of the two failures on a page like this — a reader checks the arithmetic, finds it
+does not add up, and stops trusting the paragraph that was actually correct. Re-derive both
+sides rather than quoting this sentence:
+
+```bash
+python scripts/submission/check_submission_ready.py            # the gate's count, in the tool_usage row
+python -c "import json;print(json.load(open('evidence/tool-usage/aws-services.json'))['totals'])"
+```
 
 **Which side would have moved if one had to.** Neither, and the question was asked rather than
 assumed on 2026-08-14: the heading is *derived from the census*, so changing it to ten would
@@ -245,29 +276,77 @@ A reader who spots a discrepancy between two numbers in this file should get thi
 rather than a silent reconciliation, because the alternative is to make one of the two
 instruments lie.
 
-### Why R2 is the only Stage One row still open
+### The R2 cell as it read until 2026-08-16, kept rather than overwritten
+
+**A row that flips from UNMET to MET is the one row a reader is entitled to be suspicious
+of**, so the cell it replaced is reproduced here verbatim. It was correct when it was
+written; what changed is the world, not the standard.
+
+> **UNMET — two halves, both open, for different reasons.** *"**The origin does not exist.**
+> `demo_url` holds the literal `UNRESOLVED`; `terraform apply` has never been run, so there
+> is no MAINLINE Lambda, Function URL or bucket in the account. … **The app does not yet
+> answer.** `acceptance.json`, generated `2026-08-13T01:47:58Z`, reads `NOT PROVEN` with
+> **10** named failures: both runs now reach beat 4 and are refused `23503
+> disposition_signer_credential_id_fkey`, and neither carries a `clearance_digest`. Nothing
+> in that file was relaxed to reach a green."*
+
+Both halves were closed by **deploying and then measuring**, in that order, and neither was
+closed by editing a threshold. **The old cell named two specific defects, and both are absent
+from the live path — checked one at a time rather than inferred from a green verdict:**
+
+* *"refused `23503 disposition_signer_credential_id_fkey`"* — the string `23503` does not
+  occur anywhere in the live response. Beat 4 on the deployed origin is `admitted` at SQLSTATE
+  `00000`. That is a different fact from the same test being made easier.
+* *"neither carries a `clearance_digest`"* — the live admission beat **does** carry one, at
+  `data.beats[3].observed.merge_record.clearance_digest`: a 64-character server-computed hex
+  digest (`b3a490a9…4af8` on the run measured today), and the response's own `provenance`
+  array carries a pointer to that exact path. The old cell's standard was that *"an `ADMITTED`
+  with no server-computed exhibit is an assertion rather than evidence"* — the standard was
+  kept and the exhibit now exists.
+
+**The digest is deliberately quoted truncated and is not a number to check this row against**:
+it is computed per merge record, so it differs run to run, and a full value pasted here would
+be precisely the un-re-derivable figure this file refuses elsewhere. Re-derive the *shape* —
+a digest is present, at that path — by running the `POST` in the R2 row.
+
+### Stage One is now closed; R4 is the only rule still open
 
 R1 and R2 are the **Stage One pass/fail** gates: a submission that fails either is not
-assessed at all. **R1 closed on 2026-08-12.** R4 is a real gap and is not a Stage One gate.
+assessed at all. **R1 closed on 2026-08-12. R2 closed on 2026-08-16.** Both Stage One gates
+are now MET.
 
-What remains is one command the founder runs and one film the founder records:
+*This section was headed "Why R2 is the only Stage One row still open" and said "What remains
+is one command the founder runs and one film the founder records". The command has been run.
+The film has not.*
+
+**R4 is a real gap and is not a Stage One gate.** What remains:
 
 ```bash
-# R2 — the apply; it prints the hostname that becomes demo_url
-MAINLINE_APPLY_APPROVED=1 scripts/deploy/deploy.sh --expect-account <id>
-
-# R2 — and then the half an apply cannot deliver: the app has to ANSWER
-python scripts/deploy/demo_acceptance.py --url <the URL>
-python scripts/submission/check_submission_ready.py --check-urls
-
 # R4 — the shoot
 python scripts/submission/seed_demo_state.py     # the state on camera
 # record, upload UNLISTED, paste the URL into SUBMISSION.json
 ```
 
-Writing a hostname into `demo_url` before **both** R2 halves hold would turn §2 green and
-still hand a judge a page that answers `500`. That is the one failure `SUBMISSION.json`
-exists to prevent, and it is why `--check-urls` fetches rather than trusts.
+And the two commands that closed R2, kept so the claim stays checkable by a stranger:
+
+```bash
+# the apply that created the origin — ALREADY RUN; do not re-run to check this row
+MAINLINE_APPLY_APPROVED=1 scripts/deploy/deploy.sh --expect-account <id>
+
+# the check that overturns the row — read-only, safe, and the one to actually run
+python scripts/submission/check_submission_ready.py --check-urls
+```
+
+Writing a hostname into `demo_url` before **both** R2 halves held would have turned §2 green
+and still handed a judge a page that answers `500`. That is the one failure `SUBMISSION.json`
+exists to prevent, and it is why `--check-urls` fetches rather than trusts — so the value was
+written **first** and fetched **second**, and the row is green because the fetch came back
+`200`, not because the string is well-formed.
+
+**One obligation this closure creates rather than discharges.** The rules require the Project
+to stay available free of charge *"until the Judging Period ends"* — **2026-09-15**, four
+weeks past the deadline. R2 being MET today is necessary and not sufficient, and a cost-guard
+action that tears the origin down in September would be a **rules breach**, not a saving.
 
 ---
 
@@ -276,35 +355,86 @@ exists to prevent, and it is why `--check-urls` fetches rather than trusts.
 **The status column is not typed. It is generated.**
 
 <!-- BEGIN GENERATED: check_submission_ready.py --markdown -->
-Generated `2026-08-14T09:40:51Z` by `python scripts/submission/check_submission_ready.py --markdown`.
-Exit code at that instant: **1**, with **3** unresolved rows: `remote_sync`, `demo_url`,
-`video_url`. Two of those three are the founder's — an apply and a shoot. The third is a
-working tree four commits ahead of `origin/master` with uncommitted paths, and it clears on a
-push. **The same three rows, in the same states, as the 2026-08-12 and the earlier 2026-08-14
-generations**: nothing in this wave resolved a URL, and nothing was meant to. `remote_sync`
-moved from `WARN` to `FAIL` between those two runs because four commits landed here and on no
-server; the gate was not tightened.
+Generated `2026-08-16T12:05:56Z` by `python scripts/submission/check_submission_ready.py --markdown`.
+Exit code at that instant: **1**, with **2** unresolved rows: `remote_sync`, `video_url`.
+`video_url` is the founder's — a film that has not been shot. `remote_sync` is a working tree
+with uncommitted paths and it clears on a commit and a push; it moves under this table
+whenever anybody edits anything, which is precisely why it is generated and not typed.
+**`demo_url` resolved in this wave, and that is the one thing that changed.** No cell below was
+edited by hand; re-run the command and **the rows** are replaced wholesale. *The rows —
+not this narration, which is hand-written and dated and records which cells moved and why.
+See the corrected instruction under the table; the older wording said "the block", which
+would have taken this paragraph with it.*
+
+*This paragraph read, at `2026-08-16T10:04:24Z`: "Exit code at that instant: **1**, with **3**
+unresolved rows: `remote_sync`, `demo_url`, `video_url`. `demo_url` and `video_url` are the
+founder's — an apply that has landed but has not been *submitted*, and a film that has not been
+shot. … **Nothing in this wave resolved a URL, and nothing was meant to.**" A later wave was
+asked to, and did. The distinction that paragraph drew — between an apply that had **landed**
+and a URL that had been **submitted** — is exactly the gap that closed, and it is preserved
+because it is the reason the closure needed a wave of its own.*
+
+**Read the `demo_url` cell's parenthesis before reading the row as fully proven.** The block
+below is the output of the documented command, `--markdown` **alone**, so that a reader
+following the instruction under this table reproduces it byte-for-byte; that mode does not
+fetch, and the cell says so in its own words. Adding `--check-urls` upgrades exactly one cell
+and nothing else:
+
+```
+| `demo_url` | 2 - a URL to a functional demo app | **PASS** | https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws -> HEAD 200 | … |
+```
+
+That fetched form was measured on `2026-08-16` on this machine — no clock time is given for it
+because none was recorded, and an invented one would be the exact defect this file exists to
+catch. It is the form the row's own **Re-derive with** column names. Both are given rather than
+one, because a green row that was never fetched and a green row that was are different claims.
+
+*Two cells moved in this regeneration and both moved because an artefact moved, not because
+a cell was edited: `judge_access` reads `how 2069 chars` (it read `1528`) after the field was
+corrected to name one path to our data rather than "both paths", and `tool_usage` reads
+`34 of 34 cited artefacts present on disk` (it read `28 of 28`) after the `evidence/mcp/`
+capture was cited. **The denominator rose with the numerator**, which is the only direction
+that means anything.*
+
+*Re-derived again at `2026-08-16T10:32:18Z`, by the claim-audit pass rather than by the wave
+that wrote the block: the command was run twice — once before that pass edited anything and
+once after — and **the table came back byte-identical both times**, `3127` bytes, same exit
+code `1`, same three unresolved rows. That is the check that matters here, because the audit
+edited `docs/submission/SUBMISSION.json` in between, and a generated table that did **not**
+move proves the edit went where it was supposed to: into `notes.demo_url`, which the gate
+does not read, and not into a status the gate does. Re-derive it yourself with the command
+under this block and diff the result against the rows; if it differs, the block is stale and
+the rows are wrong, not the command.*
 
 | Row | Requirement | Status | Observed | Evidence | Re-derive with |
 |---|---|---|---|---|---|
 | `licence_file` | 1 - public repo with an open-source LICENSE file | **PASS** | 11357 bytes, reads as Apache-2.0 | `LICENSE`, `LICENSES/`, `docs/submission/LICENCE-CENSUS.md` | `ls -l LICENSE && python scripts/qa/check_reuse.py` |
-| `remote_sync` | 1 - public repo with an open-source LICENSE file | **FAIL** | 4 commits ahead of origin/master, 22 file(s) on this disk and on no server: .github/actions/build-demo-package/action.yml, .github/workflows/cluster-lane-bites.yml, .gitignore, collected.txt, and 18 more (6 under verticals/, 5 under docs/, 4 under tests/, 2 under .github/, 2 under qa/, and 3 other top-level path(s)) | the remote itself - there is no local artefact for this row | `git rev-list --left-right --count origin/master...HEAD` |
+| `remote_sync` | 1 - public repo with an open-source LICENSE file | **WARN** | in sync with origin/master, but 39 path(s) are uncommitted and will not be published: docs/TOOL-USAGE.md, docs/demo/ON-SCREEN-CLAIMS.md, docs/deploy/JUDGE-PACK.md, docs/submission/DEVPOST.md, and 35 more (15 under docs/, 10 under packages/, 5 under evidence/, 5 under tests/, 2 under verticals/, and 2 other top-level path(s)) | the remote itself - there is no local artefact for this row | `git rev-list --left-right --count origin/master...HEAD` |
 | `repo_public` | 1 - public repo with an open-source LICENSE file | **PASS** | PUBLIC [gh repo view Shaugato/mainline --json visibility, asked live], repo_url https://github.com/Shaugato/mainline | `qa/public-readiness.json`, `docs/submission/PUBLIC-READINESS.md` | `gh repo view Shaugato/mainline --json visibility` |
-| `demo_url` | 2 - a URL to a functional demo app | **FAIL** | demo_url is UNRESOLVED | `docs/submission/SUBMISSION.json` key `demo_url` | `python scripts/submission/check_submission_ready.py --check-urls` |
+| `demo_url` | 2 - a URL to a functional demo app | **PASS** | https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws (not fetched; pass --check-urls to require HTTP 200) | `docs/submission/SUBMISSION.json` key `demo_url` | `python scripts/submission/check_submission_ready.py --check-urls` |
 | `video_url` | 4 - demo video under 3 minutes on YouTube or Vimeo | **FAIL** | video_url is UNRESOLVED | `docs/submission/VIDEO-KIT.md`, `verticals/mainline/demo/script/SHOT-LIST.yaml` | `python scripts/submission/check_submission_ready.py --check-urls` |
-| `devpost_description` | 3 - text description of the features | **PASS** | docs/submission/DEVPOST.md: 53343 bytes, 219 non-blank lines | `docs/submission/DEVPOST.md` | `python scripts/submission/check_submission_prose.py` |
-| `tool_usage` | 5 - documented CockroachDB and AWS usage (>=2 CRDB tools, >=1 AWS, >=1 run) | **PASS** | 4 CockroachDB tools, 10 AWS services; 2 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch); 24 of 24 cited artefacts present on disk | `docs/TOOL-USAGE.md`, `evidence/tool-usage/` | `python scripts/submission/capture_tool_evidence.py --check` |
-| `judge_access` | 6 - free, unrestricted access for judges | **PASS** | resolved - credential required; how 463 chars, credentials_location 373 chars, and no credential value in the file | `docs/submission/SUBMISSION.json` key `judge_access`, `VERIFY.md` | `python scripts/submission/check_submission_ready.py --json` |
-| `disclosure` | 7 - created in the submission window; pre-existing code disclosed | **PASS** | docs/submission/DISCLOSURE.md present (20445 bytes); 86 commits, all inside the window | `docs/submission/DISCLOSURE.md`, `evidence/provenance/commit-window.json` | `python scripts/submission/provenance_census.py --check` |
-| `deadline` | deadline - 2026-08-18 17:00 EDT | **PASS** | 4d 11h to 2026-08-18 17:00 EDT (2026-08-18T21:00:00Z) | the official rules page | `python scripts/submission/check_submission_ready.py` |
+| `devpost_description` | 3 - text description of the features | **PASS** | docs/submission/DEVPOST.md: 88130 bytes, 337 non-blank lines | `docs/submission/DEVPOST.md` | `python scripts/submission/check_submission_prose.py` |
+| `tool_usage` | 5 - documented CockroachDB and AWS usage (>=2 CRDB tools, >=1 AWS, >=1 run) | **PASS** | 4 CockroachDB tools, 10 AWS services; 5 AWS service(s) marked as having run (Amazon Bedrock, Amazon CloudWatch, AWS Lambda, AWS IAM, AWS SSM Parameter Store); 34 of 34 cited artefacts present on disk | `docs/TOOL-USAGE.md`, `evidence/tool-usage/` | `python scripts/submission/capture_tool_evidence.py --check` |
+| `judge_access` | 6 - free, unrestricted access for judges | **PASS** | resolved - credential required; how 2548 chars, credentials_location 373 chars, and no credential value in the file | `docs/submission/SUBMISSION.json` key `judge_access`, `VERIFY.md` | `python scripts/submission/check_submission_ready.py --json` |
+| `disclosure` | 7 - created in the submission window; pre-existing code disclosed | **PASS** | docs/submission/DISCLOSURE.md present (28173 bytes); 101 commits, all inside the window | `docs/submission/DISCLOSURE.md`, `evidence/provenance/commit-window.json` | `python scripts/submission/provenance_census.py --check` |
+| `deadline` | deadline - 2026-08-18 17:00 EDT | **PASS** | 2d 8h to 2026-08-18 17:00 EDT (2026-08-18T21:00:00Z) | the official rules page | `python scripts/submission/check_submission_ready.py` |
 <!-- END GENERATED -->
 
-**To regenerate this table**, replace everything between the two HTML comments above with
-the output of:
+**To regenerate this table**, replace the rows only — everything from the `| Row |` header
+line down to the last table row, leaving the dated narration above it in place — with the
+output of:
 
 ```bash
 python scripts/submission/check_submission_ready.py --markdown
 ```
+
+*That instruction used to read "replace everything between the two HTML comments above",
+and it was wrong in a way that would have destroyed evidence: the narration between the
+`BEGIN GENERATED` marker and the `| Row |` header is hand-written and records which cells
+moved and why, and `--markdown` emits the table alone. Anyone following the old sentence
+literally would have deleted the record of every prior correction while believing they were
+regenerating. Corrected `2026-08-16` by the claim audit, which is the sort of thing an audit
+is for. The rows themselves are still generated wholesale and no cell is ever typed.*
 
 Do not edit a cell by hand. A hand-edited status column is a claim with nothing behind
 it, which is the one thing this repository is built not to ship.
@@ -368,41 +498,49 @@ Re-derive: `gh repo view Shaugato/mainline --json visibility` — a submitted st
 
 ### R2 — a URL to a functional demo, free and unrestricted for judges
 
-**UNMET, and precisely so.** Three things are named in the rule and they are in three
-different states.
+**MET as of 2026-08-16.** *This section opened "**UNMET, and precisely so.**" until today.*
+Three things are named in the rule and they are now in three states, all of them answered.
 
-* **The origin — missing.** Nothing is deployed. The demo URL will be a public **Lambda
-  Function URL** — HTTPS on an AWS-issued certificate, no account verification needed —
-  because a real `terraform apply` on 2026-08-10 was refused by AWS with `AccessDenied: Your
-  account must be verified before you can add new CloudFront resources`, quoted verbatim in
-  `docs/deploy/RUNBOOK.md`. CloudFront is therefore excluded from the plan, and the plan
-  reads **`Plan: 24 to add, 0 to change, 0 to destroy.`** — `evidence/deploy/terraform-plan-furl.txt:843`,
+* **The origin — exists.** The demo URL is a public **Lambda Function URL** — HTTPS on an
+  AWS-issued certificate, no account verification needed — because a real `terraform apply`
+  on 2026-08-10 was refused by AWS with `AccessDenied: Your account must be verified before
+  you can add new CloudFront resources`, quoted verbatim in `docs/deploy/RUNBOOK.md`.
+  CloudFront is therefore excluded from the plan, and the plan reads
+  **`Plan: 24 to add, 0 to change, 0 to destroy.`** — `evidence/deploy/terraform-plan-furl.txt:843`,
   **11** in `module.api[0]` and **13** in `module.guard[0]`. *This bullet said `11 to add`
-  until 2026-08-14. The 11 is real and is still there; it is the API module alone, and it
-  stopped being the plan's total when the cost guard was wired in at
-  `infra/envs/demo/main.tf:631`.* The estimate remains ~USD 0.02/month for the idle stack;
-  what an unbounded flood would cost is `docs/deploy/COST-BOUND.md`'s subject, not this row's.
-* **The acceptance — failing, and named.** `evidence/deploy/acceptance.json` reads
-  `NOT PROVEN` at `2026-08-13T01:47:58Z` with **10** named failures, against a local
-  Function-URL emulator serving the unmodified handler against the live Cloud database. Two
-  earlier symptoms are **gone**: the 404 on `POST /v1/demo/gate-run` recorded on 2026-08-10,
-  and the `KeyError: 0` in `demo_gate_run` recorded on 2026-08-12. Both runs now get all the
-  way to **beat 4** and are refused there — `23503 disposition_signer_credential_id_fkey`,
-  the server's own verdict `NOT PROVEN`, and no `clearance_digest` on the admission beat,
-  because an `ADMITTED` with no server-computed exhibit is an assertion rather than evidence.
-  **That is the last beat of the demo, so a judge cannot yet complete it.** That artefact
-  moves as the defect is fixed. **Where this section and that file disagree, the file is
-  right**; re-read it, or re-derive with `python scripts/deploy/demo_acceptance.py`.
-* **"Free and unrestricted for judges" — answered.** `judge_access` in
-  `docs/submission/SUBMISSION.json` names two paths a judge can take today against the live
-  ledger, and `evidence/deploy/judge-access.json` measured both directions of the read-only
-  login: **14 of 14** `mainline_audit` views readable, **11 of 11** base-table and write
-  attempts refused with the expected SQLSTATE, verdict `PROVEN`, `failures: []`. The demo
-  URL itself, when it exists, will need no credential at all — the plan sets
-  `authorization_type = NONE`.
+  until 2026-08-14, and read "Nothing is deployed" until 2026-08-16. The 11 is real and is
+  still there; it is the API module alone, and it stopped being the plan's total when the
+  cost guard was wired in at `infra/envs/demo/main.tf:631`.* The apply landed on 2026-08-14:
+  `evidence/deploy/APPLIED.md` records `terraform apply  24 created, 0 changed, 0 destroyed`
+  with 37 resources in state. The estimate remains ~USD 0.02/month for the idle stack; what
+  an unbounded flood would cost is `docs/deploy/COST-BOUND.md`'s subject, not this row's.
+* **The acceptance — answered on the live origin, with the older artefact left standing.**
+  `evidence/deploy/live-gate-run.json` is the four-beat run answered by the deployed URL at
+  verdict `PROVEN`, and a hand-run `POST /v1/demo/gate-run` on 2026-08-16 reproduces it:
+  HTTP `200`, four beats, SQLSTATEs `00000` / `23514` / `P0001` / `00000`, outcomes `read` /
+  `refused` / `refused` / `admitted`. **The older artefact was not deleted and was not
+  edited.** `evidence/deploy/acceptance.json` still reads `NOT PROVEN` at
+  `2026-08-13T01:47:58Z` with **10** named failures against a *local Function-URL emulator*,
+  including the beat-4 refusal `23503 disposition_signer_credential_id_fkey`. That file
+  describes the emulator on 2026-08-13; the live origin is a different subject measured on a
+  different day, and beat 4 on it is `admitted`. **Where this section and an artefact
+  disagree, the artefact is right** — so read both, and note which one names the live URL.
+  `python scripts/deploy/demo_acceptance.py --url <the URL>` is the probe that would refresh
+  the older file; it was **not** run by the wave that closed this row.
+* **"Free and unrestricted for judges" — answered, and now measured rather than planned.**
+  `judge_access` in `docs/submission/SUBMISSION.json` names exactly **one** published path to
+  our ledger — the read-only `mainline_judge` pgwire login — and
+  `evidence/deploy/judge-access.json` measured both directions of it: **14 of 14**
+  `mainline_audit` views readable, **11 of 11** base-table and write attempts refused with the
+  expected SQLSTATE, verdict `PROVEN`, `failures: []`. *That sentence said the field "names
+  two paths" until 2026-08-16; it named MCP as a second path to our data, and MCP is not one —
+  see the `judge_access.how` row in §4.* The demo URL itself needs no credential at all:
+  `authorization_type = NONE`, and an unauthenticated fetch on 2026-08-16 returned `200` on
+  `/`, `/judge` and `/console`.
 
 Re-derive: `python scripts/submission/check_submission_ready.py --check-urls`, which fetches
-the URL and requires HTTP 200 rather than trusting that it was pasted correctly.
+the URL and requires HTTP 200 rather than trusting that it was pasted correctly. It prints
+`PASS    demo URL    https://…lambda-url.ap-southeast-1.on.aws -> HEAD 200`.
 
 ### R3 — a text description of the features
 
@@ -509,7 +647,7 @@ lowering the check to buy a green is forbidden.
 | member | value shape | why it is what it is |
 |---|---|---|
 | `required` | `true`, a real JSON boolean | reading **our** ledger takes **our** login; the gate refuses the string `"false"`, which is truthy in most languages that will read this file |
-| `how` | 463 characters naming both paths and the artefact that measured them | a sentence a judge can act on without asking us a question |
+| `how` | 2 548 characters, re-derived 2026-08-16 (`len(json.load(open(...))['judge_access']['how'])`); it read `2 069` and `1 528` earlier the same day, and `463` when this row was written, before the MCP ruling was spelled out in band | a sentence a judge can act on without asking us a question. **It names exactly ONE path to our data** — the read-only `mainline_judge` pgwire login — and says in terms that the Managed MCP Server is a *separate* path that reaches none of our data with any credential we publish. The earlier `463`-character version said "both paths", which a judge could read as an offer to open our ledger over MCP. That offer does not exist and the field no longer implies it. *The move from `2 069` to `2 548` is the last sentence being upgraded from a plan to a measurement: it said the Function URL "is `authorization_type NONE`", and now also records that an unauthenticated fetch on 2026-08-16 answered `200` on `/`, `/judge` and `/console` and that an unauthenticated `POST /v1/demo/gate-run` answered `200` at verdict `PROVEN`. Rule §1.5 asks for access "free of charge and without any restriction"; that is the difference between asserting it and having tried it.* |
 | `credentials_location` | 373 characters, a **pointer** | it names the submission form's credentials field and the command that generates the value — never the value |
 
 **No credential value is ever written into `SUBMISSION.json`.** The file is world-readable
@@ -553,7 +691,7 @@ a value changes.
 | `unresolved_sentinel` | string | the literal an unresolved field holds: `UNRESOLVED` |
 | `never_write_a_credential_here` | string | the standing rule, in band, where a person editing the file will see it |
 | `a_field_is_resolved_only_when_it_is_proven` | string | why two fields still hold the sentinel: the fact is not true yet, not untyped |
-| `demo_url` | string | rule R2. `UNRESOLVED` until deployed **and** answering |
+| `demo_url` | string | rule R2. `UNRESOLVED` until deployed **and** answering — **resolved 2026-08-16**; the rule is unchanged and is what made the wait correct |
 | `repo_url` | string | the URL a judge opens. **Resolved**, and the repository behind it is public |
 | `video_url` | string | rule R4. `UNRESOLVED` until uploaded |
 | `judge_access.required` | boolean, or `UNRESOLVED` | whether a judge needs a credential at all |

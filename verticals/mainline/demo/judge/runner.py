@@ -28,11 +28,25 @@ negatives: over pgwire as cluster admin they succeed, so they are reported ``ski
 with that reason rather than run and scored. The byte counts it reports are a JSON
 serialisation of the rows — a proxy for the MCP response body and explicitly not the MCP
 wire size.
+
+**THE DATABASE IS LOAD-BEARING ON THE MCP CHANNEL, and omitting it is worse than an
+error.** Measured against ``https://cockroachlabs.cloud/mcp`` on 2026-08-16: the
+``select_query`` schema lists ``database`` as required, but a call that omits it is not
+rejected — it is answered, resolved against ``system``. ``SELECT current_database()``
+returns ``system``, and ``SELECT count(*) FROM mainline_audit.v_open_gate_summary`` comes
+back ``relation "mainline_audit.v_open_gate_summary" does not exist``. For a positive that
+is a confusing failure; for a **negative** it is a manufactured pass, because "that
+relation does not exist here" and "you may not read this" are different facts and only one
+of them is the property the question claims. So this channel binds the database on the
+client — :meth:`mainline_mcp.client.Client.connect` takes it, and
+``probe_select_unscreened`` reads it back off the client, so the negatives carry it too —
+and refuses to run at all if it cannot.
 """
 
 from __future__ import annotations
 
 import importlib
+import inspect
 import json
 import os
 from collections.abc import Mapping, Sequence
@@ -47,6 +61,12 @@ from .pack import Pack, Question
 DSN_VARIABLES: Final = ("TRAPPOINT_DSN", "MAINLINE_DSN", "COCKROACH_URL")
 MCP_KEY_VARIABLE: Final = "MAINLINE_MCP_API_KEY"
 MCP_CLUSTER_VARIABLE: Final = "MAINLINE_MCP_CLUSTER_ID"
+MCP_DATABASE_VARIABLE: Final = "MAINLINE_MCP_DATABASE"
+
+#: The database the demo's audit views live in. Overridable by
+#: :data:`MCP_DATABASE_VARIABLE` so this pack points at somebody else's cluster without an
+#: edit — a judge running it against their own deployment names their own database.
+DEFAULT_MCP_DATABASE: Final = "mainline_demo"
 
 ANSWERED: Final = "answered"
 REFUSED: Final = "refused"
@@ -65,6 +85,10 @@ class RunResult:
     rows: int | None = None
     response_bytes: int | None = None
     possibly_truncated: bool = False
+    #: Wall-clock milliseconds of the tool call, read off the client after it returned.
+    #: ``None`` on the SQL channel and on any question that never reached the wire, so a
+    #: missing number reads as "not measured" rather than as a fast call.
+    elapsed_ms: float | None = None
     plan_text: str = field(repr=False, default="")
 
     @property
@@ -308,6 +332,36 @@ def _mcp_modules() -> tuple[Any, Any] | None:
     return mcp_client, mcp_limits
 
 
+def _explain_body(statement: str) -> str:
+    r"""Strip a leading ``EXPLAIN`` — the live tool prepends its own.
+
+    Measured 2026-08-16 against ``https://cockroachlabs.cloud/mcp``: passing a statement
+    that already begins with ``EXPLAIN`` returns ``EXPLAIN is not allowed for EXPLAIN
+    statements``. The pack writes Q10 and Q10C as complete ``EXPLAIN\nSELECT …``
+    statements because that is what a pgwire client sends, so the separator here is a
+    **newline** and a ``startswith("EXPLAIN ")`` test alone silently does nothing.
+    """
+    text = statement.strip()
+    head, _, tail = text.partition("\n")
+    if head.strip().upper() == "EXPLAIN":
+        return tail.lstrip()
+    if text.upper().startswith("EXPLAIN "):
+        return text[len("EXPLAIN ") :].lstrip()
+    return text
+
+
+def _elapsed_ms(client: Any) -> float | None:
+    """Milliseconds of the call that just returned, or ``None`` if the client tracks none.
+
+    Read **after** the call and only on a path where a call returned. A client that raised
+    leaves its previous timing in place, so recording it there would attribute one
+    question's latency to another — worse than recording nothing, because a number in an
+    evidence file is read as measured.
+    """
+    value = getattr(client, "last_elapsed_ms", None)
+    return round(float(value), 1) if isinstance(value, int | float) else None
+
+
 def _mcp_positive(client: Any, question: Question, *, repo_root: Path) -> RunResult:
     if question.verb == "explain_query":
         bound, _ = bind_and_measure(question, repo_root=repo_root)
@@ -318,7 +372,7 @@ def _mcp_positive(client: Any, question: Question, *, repo_root: Path) -> RunRes
                 outcome=SKIPPED,
                 detail="the statement could not be bound to literals; see the drift check",
             )
-        result = client.explain_query(bound.sql.rstrip(";"))
+        result = client.explain_query(_explain_body(bound.sql.rstrip(";")))
         required = required_plan_substrings(repo_root)
         missing = [s for s in required if s not in result.text]
         outcome = ERROR if (missing or not required) else ANSWERED
@@ -335,9 +389,11 @@ def _mcp_positive(client: Any, question: Question, *, repo_root: Path) -> RunRes
             outcome=outcome,
             detail=detail,
             response_bytes=result.byte_count,
+            elapsed_ms=_elapsed_ms(client),
             plan_text=result.text,
         )
     result = client.select_query(question.sql.rstrip(";"), max_rows=env.SELECT_PAGE_ROWS)
+    elapsed = _elapsed_ms(client)
     rows = result.row_count
     truncated = False
     note = "rows could not be parsed out of the response envelope"
@@ -351,6 +407,7 @@ def _mcp_positive(client: Any, question: Question, *, repo_root: Path) -> RunRes
         rows=rows,
         response_bytes=result.byte_count,
         possibly_truncated=truncated,
+        elapsed_ms=elapsed,
     )
 
 
@@ -362,11 +419,20 @@ def _mcp_negative(client: Any, probe: Any, question: Question) -> RunResult:
     try:
         result = probe(client, question.sql.rstrip(";"), why=why)
     except Exception as exc:  # noqa: BLE001 - a transport failure is a result, not a crash
+        # `ToolCallFailed` carries the server's own sentence in `.message`. Quoting it
+        # verbatim is the whole value of a negative: "query references a restricted schema"
+        # is evidence, "an exception was raised" is not. Anything without a `.message` did
+        # not get an answer at all, and says so in different words.
+        spoken = getattr(exc, "message", None)
         return RunResult(
             qid=question.qid,
             channel="mcp",
             outcome=REFUSED,
-            detail=f"refused before an answer came back: {type(exc).__name__}: {exc}",
+            detail=(
+                f"server refused: {str(spoken)[:200]}"
+                if spoken is not None
+                else f"refused before an answer came back: {type(exc).__name__}: {exc}"
+            ),
         )
     if result.is_error:
         return RunResult(
@@ -375,6 +441,7 @@ def _mcp_negative(client: Any, probe: Any, question: Question) -> RunResult:
             outcome=REFUSED,
             detail=f"server refused: {result.text[:200]}",
             response_bytes=result.byte_count,
+            elapsed_ms=_elapsed_ms(client),
         )
     return RunResult(
         qid=question.qid,
@@ -386,10 +453,30 @@ def _mcp_negative(client: Any, probe: Any, question: Question) -> RunResult:
         ),
         rows=result.row_count,
         response_bytes=result.byte_count,
+        elapsed_ms=_elapsed_ms(client),
     )
 
 
-def run_via_mcp(pack: Pack, *, repo_root: Path) -> RunReport:
+def _mcp_one(client: Any, question: Question, *, repo_root: Path) -> RunResult:
+    """One positive question, with a transport or limit failure recorded, not raised.
+
+    :func:`_sql_one` has always had this guard; the MCP path did not, and a live run is
+    exactly where it matters. A ``ToolCallFailed`` on question five used to abandon the
+    other eleven, so the run produced no transcript at all — the worst outcome for an
+    evidence capture, because a recorded failure is worth more than a run nobody can read.
+    """
+    try:
+        return _mcp_positive(client, question, repo_root=repo_root)
+    except Exception as exc:  # noqa: BLE001 - the client's exception tree is the server's
+        return RunResult(
+            qid=question.qid,
+            channel="mcp",
+            outcome=ERROR,
+            detail=f"{type(exc).__name__}: {exc}",
+        )
+
+
+def run_via_mcp(pack: Pack, *, repo_root: Path, database: str | None = None) -> RunReport:
     """Run the pack over the Managed MCP endpoint, or report precisely why it did not."""
     modules = _mcp_modules()
     if modules is None:
@@ -417,19 +504,45 @@ def run_via_mcp(pack: Pack, *, repo_root: Path) -> RunReport:
             ),
             results=(),
         )
+    resolved_database = database or os.environ.get(MCP_DATABASE_VARIABLE) or DEFAULT_MCP_DATABASE
+    if "database" not in inspect.signature(mcp_client.Client.connect).parameters:
+        # Refusing is the honest branch, not the cautious one. Without a bound database the
+        # server answers every statement against `system`, where none of these relations
+        # exist — and a negative that comes back "relation does not exist" would be scored
+        # REFUSED, which is a pass this pack would not have earned. See the module docstring.
+        return RunReport(
+            channel="mcp",
+            ran=False,
+            reason=(
+                "mainline_mcp.client.Client.connect does not accept a `database`, so a bound "
+                "database could not be established and NOTHING was sent. Unbound, the server "
+                "resolves against `system`: the positives fail with 'relation does not exist' "
+                "and the negatives PASS for that same wrong reason, which is worse than not "
+                "running."
+            ),
+            results=(),
+        )
     results: list[RunResult] = []
-    client = mcp_client.Client.connect(api_key=api_key, cluster_id=cluster_id)
+    client = mcp_client.Client.connect(
+        api_key=api_key, cluster_id=cluster_id, database=resolved_database
+    )
     try:
         for question in pack:
             if question.is_negative:
+                # The probe reads the database back off the client, so the negatives are
+                # asked in the same place as the positives. A negative asked somewhere else
+                # is a different question with the same name.
                 results.append(_mcp_negative(client, mcp_client.probe_select_unscreened, question))
             else:
-                results.append(_mcp_positive(client, question, repo_root=repo_root))
+                results.append(_mcp_one(client, question, repo_root=repo_root))
     finally:
         client.close()
     return RunReport(
         channel="mcp",
         ran=True,
-        reason=f"executed against cluster {cluster_id} over {env.MCP_ENDPOINT}",
+        reason=(
+            f"executed against cluster {cluster_id}, database {resolved_database}, "
+            f"over {env.MCP_ENDPOINT}"
+        ),
         results=tuple(results),
     )

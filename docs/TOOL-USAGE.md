@@ -51,7 +51,7 @@ must not require those cloud services in order to check it.
 > searching for the quoted text, not by counting an offset — and both censuses were
 > regenerated from it. **Nothing under `infra/` was edited to make a citation true.**
 > `--check` now exits `0`, `scan.files_scanned` is
-> 7823 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] again rather than
+> 7884 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] again rather than
 > `UNRESOLVED`, and no verdict or count on this page ever rested on any of those four line
 > numbers.
 >
@@ -135,7 +135,7 @@ checkout with no secrets configured, alongside a red half that plants one defect
 and requires the matching invariant to fire.
 
 **Scan set for every count below**: a filesystem walk of
-7823 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] text files, caches
+7884 [src: evidence/tool-usage/crdb-features.json#scan.files_scanned] text files, caches
 and build output pruned, of which
 271 [src: evidence/tool-usage/crdb-features.json#scan.files_by_category.migration] are
 migrations and 29 [src: evidence/tool-usage/crdb-features.json#scan.files_by_category.terraform]
@@ -159,6 +159,32 @@ archaeology exercise.
 
 # Part 1 · CockroachDB — four tools
 
+**The floor is two; this section documents four — and it introduces them in the order the
+judging criterion names them, not the order we happened to build them.** The Technological
+Implementation criterion enumerates exactly three: *"the integration with CockroachDB tools
+(**distributed vector index, MCP Server, ccloud CLI**)"*. **Agent Skills is not in that
+list.** It is named separately in the submission requirements, so it earns the ≥ two-tool
+floor and is documented fourth, *beyond* it — and it is also the only one of the four whose
+verdict is not EXERCISED, so last is where it belongs on both counts. The numbered `Tool N`
+headings below are kept at their existing numbers because other documents cite them; this
+table, not the heading order, is the criterion's order.
+
+**And it answers the question the requirement actually asks**, which is sharper than a
+feature list: *"Identify which CockroachDB tools you used … and how — **what did the agent
+actually do with them?**"* So every row below says what an **agent did**, not what the
+repository contains.
+
+| # | tool, in the criterion's own order | verdict | **what the agent actually did with it** |
+|---|---|---|---|
+| 1 | **Distributed vector index** — C-SPANN `VECTOR INDEX` | **EXERCISED** | The agent's **recall path issues prefix-constrained ANN queries** over the clause-embedding sidecars — the index named in the statement (`FROM ce@ce_ann`) with every prefix column pinned to a single value — to fetch the precursor clauses it then reasons over. **It does not trust its own recall:** the plan is read back and asserted, because the unhinted plan is a declared `FULL SCAN` that returns plausible rows, so a silent degradation would be indistinguishable from working retrieval. Measured on the pinned local node 2026-08-12 (`• vector search` hinted, `FULL SCAN` unhinted), and `skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py` is the committed assertion that goes red when the plan stops choosing the index. See *Tool 1 → C-SPANN vector index*. |
+| 2 | **MCP Server** — CockroachDB Cloud Managed MCP | **EXERCISED** | An MCP client dialled **CockroachDB's own managed endpoint** and drove the sixteen-question judge pack over `select_query` and `explain_query` against the live Basic cluster — reading MAINLINE's contracted `mainline_audit` views **with none of our code in the read path**. It asked the general-counsel question *what is the gate refusing right now?* and `v_open_gate_summary` answered with one row, `open_blocking = 1`. **Read verbs only: no write verb was ever sent**, and the capture program enforces that at the transport rather than promising it. See *Tool 3*. |
+| 3 | **`ccloud` CLI** | **EXERCISED** | Ran `ccloud auth whoami` then `ccloud cluster list -o json` and **parsed the structured output rather than screen-scraping it**, reading the cluster's version, region, plan and `spend_limit` off JSON. Then it did the harder thing: on measuring that `0.6.12` **cannot authenticate headlessly**, it did not claim the capability — headless paths use the Cloud REST API with the same key, and the limitation is published. See *Tool 2*. |
+| 4 | **Agent Skills** — beyond the floor, not in the criterion | **DESIGNED** | **Nothing this repository records — stated plainly rather than dressed up.** Two authored skills and one staged upstream contribution are written for an agent to consume, and each ships an *executable assertion* instead of advice. But **no run of either script is captured under `evidence/`**, so the honest answer to *what did the agent do with them* is: they are shipped and not yet evidenced. This row is **not** promoted to EXERCISED to make the table look even. See *Tool 4*. |
+
+Every claim in that table is unpacked, with its file, line and committed artefact, in the
+section it points to. The feedback the rules invite on these same tools is at the end of
+this Part.
+
 ## Tool 1 · CockroachDB itself (v26.2.5)
 
 **The product's central claim is a database refusal, so the database is not a datastore
@@ -171,7 +197,7 @@ that was written to respect it.
 **Where it runs.** A local single-node `cockroachdb/cockroach:v26.2.5` pinned at
 `compose.yaml:31`, and CockroachDB Cloud Basic cluster `mainline-dev` in
 `aws-ap-southeast-1` (Singapore). The pinned version string appears in
-426 [src: evidence/tool-usage/crdb-features.json#rows.crdb_database.file_count] files.
+448 [src: evidence/tool-usage/crdb-features.json#rows.crdb_database.file_count] files.
 
 **And, since 2026-08-13, in CI.** `.github/workflows/cluster-tests.yml` starts the same
 pinned image on the runner and runs the demo API's suite against it at `--crdb=reuse`. Before
@@ -229,15 +255,15 @@ numbers.
 
 | feature | verdict | files | anchor |
 |---|---|---|---|
-| SERIALIZABLE isolation | EXERCISED | 240 [src: evidence/tool-usage/crdb-features.json#rows.crdb_serializable.file_count] | `packages/trappoint-model/src/trappoint_model/cluster.py:222` |
-| PL/pgSQL triggers & functions | EXERCISED | 126 [src: evidence/tool-usage/crdb-features.json#rows.crdb_triggers.file_count] | `verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:77` |
-| Named CHECK constraints | EXERCISED | 309 [src: evidence/tool-usage/crdb-features.json#rows.crdb_check_constraints.file_count] | `verticals/mainline/db/migrations/0050_permit.sql:114` |
-| C-SPANN vector index | EXERCISED | 151 [src: evidence/tool-usage/crdb-features.json#rows.crdb_vector_index.file_count] | `verticals/mainline/db/migrations/0031_clause_embedding.sql:149` |
-| `AS OF SYSTEM TIME` | EXERCISED | 84 [src: evidence/tool-usage/crdb-features.json#rows.crdb_as_of_system_time.file_count] | `packages/trappoint-conformance/cases/cf46_time_travel_cannot_reach.py:106` |
-| Follower reads | EXERCISED | 12 [src: evidence/tool-usage/crdb-features.json#rows.crdb_follower_reads.file_count] | `verticals/mainline/db/migrations/0180c_role_agent_patroller.sql:37` |
-| Row-level security | EXERCISED | 44 [src: evidence/tool-usage/crdb-features.json#rows.crdb_row_level_security.file_count] | `verticals/mainline/db/migrations/0181a_permit_rls_force.sql:54` |
-| `SHOW CREATE` self-attestation | EXERCISED | 69 [src: evidence/tool-usage/crdb-features.json#rows.crdb_show_create.file_count] | `packages/trappoint-migrate/src/trappoint_migrate/attest.py:243` |
-| `crdb_internal` | EXERCISED | 82 [src: evidence/tool-usage/crdb-features.json#rows.crdb_internal.file_count] | `packages/mainline-mcp/src/mainline_mcp/limits.py:75` |
+| SERIALIZABLE isolation | EXERCISED | 263 [src: evidence/tool-usage/crdb-features.json#rows.crdb_serializable.file_count] | `packages/trappoint-model/src/trappoint_model/cluster.py:222` |
+| PL/pgSQL triggers & functions | EXERCISED | 128 [src: evidence/tool-usage/crdb-features.json#rows.crdb_triggers.file_count] | `verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:77` |
+| Named CHECK constraints | EXERCISED | 330 [src: evidence/tool-usage/crdb-features.json#rows.crdb_check_constraints.file_count] | `verticals/mainline/db/migrations/0050_permit.sql:114` |
+| C-SPANN vector index | EXERCISED | 160 [src: evidence/tool-usage/crdb-features.json#rows.crdb_vector_index.file_count] | `verticals/mainline/db/migrations/0031_clause_embedding.sql:149` |
+| `AS OF SYSTEM TIME` | EXERCISED | 85 [src: evidence/tool-usage/crdb-features.json#rows.crdb_as_of_system_time.file_count] | `packages/trappoint-conformance/cases/cf46_time_travel_cannot_reach.py:106` |
+| Follower reads | EXERCISED | 13 [src: evidence/tool-usage/crdb-features.json#rows.crdb_follower_reads.file_count] | `verticals/mainline/db/migrations/0180c_role_agent_patroller.sql:37` |
+| Row-level security | EXERCISED | 46 [src: evidence/tool-usage/crdb-features.json#rows.crdb_row_level_security.file_count] | `verticals/mainline/db/migrations/0181a_permit_rls_force.sql:54` |
+| `SHOW CREATE` self-attestation | EXERCISED | 71 [src: evidence/tool-usage/crdb-features.json#rows.crdb_show_create.file_count] | `packages/trappoint-migrate/src/trappoint_migrate/attest.py:243` |
+| `crdb_internal` | EXERCISED | 89 [src: evidence/tool-usage/crdb-features.json#rows.crdb_internal.file_count] | `packages/mainline-mcp/src/mainline_mcp/limits.py:75` |
 | CHANGEFEED / CDC | **DESIGNED** | 7 [src: evidence/tool-usage/crdb-features.json#rows.crdb_changefeed.file_count] | `verticals/mainline/db/migrations/0168_v_changefeed_health.sql:37` |
 
 Now the *how*, which is the part the rule actually asks for.
@@ -502,7 +528,7 @@ on it.
 **Verdict: EXERCISED.** [`evidence/ccloud/cluster-list.txt`](../evidence/ccloud/cluster-list.txt)
 is a verbatim captured transcript of `ccloud auth whoami` followed by
 `ccloud cluster list -o json`, ANSI spinner frames stripped and nothing else altered. The
-term appears in 68 [src: evidence/tool-usage/crdb-features.json#rows.crdb_cloud_ccloud.file_count]
+term appears in 77 [src: evidence/tool-usage/crdb-features.json#rows.crdb_cloud_ccloud.file_count]
 files across the tree.
 
 ```json
@@ -577,7 +603,7 @@ not the managed one — and the difference is load-bearing, because a single nod
 
 ---
 
-## Tool 3 · CockroachDB Managed MCP Server — **EXERCISED**, promoted 2026-08-12
+## Tool 3 · CockroachDB Managed MCP Server — **EXERCISED**, promoted 2026-08-12, surface re-measured 2026-08-16
 
 **Endpoint** `https://cockroachlabs.cloud/mcp`, MCP **Streamable HTTP**, `Authorization:
 Bearer <service-account key>`, and an `mcp-cluster-id` header pinning exactly one cluster —
@@ -604,14 +630,148 @@ left open pessimistically — the endpoint runs as the SQL user `managed-mcp`, n
 not the database owner — and one it had left open optimistically: the MCP credential is
 **not publishable to anonymous judges**, so this channel cannot be the judge access path.
 
-**What did *not* change with the promotion.** `tests/integration/mcp` still *skips with a
-reason* when no key is present rather than passing vacuously, so the **suites** remain
-unexercised in CI even though the endpoint is not. A green audit-surface run with nothing to
-talk to asserts nothing, and a green *negative* run with nothing to talk to asserts the
-opposite of what it claims.
+### Re-taken 2026-08-16 — and the primary artefact is now `evidence/mcp/`
+
+**The two `evidence/deploy/` files cited above are not superseded, not moved and not
+replaced.** They are the 2026-08-11 transcript; they are cited from this page, from
+[`docs/demo/ON-SCREEN-CLAIMS.md`](demo/ON-SCREEN-CLAIMS.md) and from
+[`MCP-CONFIG.md`](../verticals/mainline/demo/judge/MCP-CONFIG.md), and every citation to them
+on this page still lands. [`evidence/mcp/`](../evidence/mcp/README.md) is **additive**: it is
+where a judge looking for *the MCP tool* will actually look, which is the defect it closes —
+the older transcript is filed under a directory whose name says *deployment*.
+
+**And the 2026-08-11 record is now legible from inside that directory too, as a copy that says
+on its own face that it is one.**
+[`evidence/mcp/session-extract.json`](../evidence/mcp/session-extract.json) reproduces the
+`channels.mcp` and `managed_mcp_availability` blocks of
+[`evidence/deploy/judge-run.json`](../evidence/deploy/judge-run.json) unaltered — key order
+preserved, no value edited — inside an envelope carrying the source path, the source file's
+SHA-256 `851a0e1c…a9b6e4ec`, and the words *copied, not re-run*. **No MCP call, no network
+request and no credential read produced it**, and that is the whole of its provenance. It
+earns its place by making one comparison checkable without leaving the directory: the
+`15`-of-`16` and the single divergence `N01` that **both** captures report — the four figures
+already cited above, off `judge-run.json#channels.mcp.passed` / `.total` and
+`pack-run.json#passed` / `#total` — sit side by side in its
+`why_this_copy_is_worth_keeping` block, each labelled with the client that produced it. The block also states what the agreement does
+*not* show: both runs used the same key against the same cluster, so a fault in that
+identity's grants reproduces in both — and `N01` is exactly such a fault. Check the copy
+against its source in one command, no credential and no network:
+
+```bash
+python -c "import json,hashlib; s=json.load(open('evidence/deploy/judge-run.json')); e=json.load(open('evidence/mcp/session-extract.json')); print(e['extract']['channels.mcp']==s['channels']['mcp'], e['extract']['managed_mcp_availability']==s['managed_mcp_availability'], hashlib.sha256(open('evidence/deploy/judge-run.json','rb').read()).hexdigest()==e['source']['sha256'])"
+#  ->  True True True
+```
+
+**Both caveats ride with that copy, as they ride with every MCP sentence on this page.** The
+run it reproduces carries the verdict **`DIVERGED — KNOWN GAP`** for divergence `N01`, where
+the `managed-mcp` identity **can** read `mainline_qa.v_disposition_profile` although the
+pack's envelope asserted it could not. And the credential that reaches this endpoint is the
+account's Cloud service-account key, which is **not publishable to anonymous judges** — so
+Managed MCP is *demonstrated*, and it is **not** the judge access path. That path is the
+read-only `mainline_judge` SQL login, whose reach is the fourteen `mainline_audit` views and
+nothing else.
+
+Taken on 2026-08-16 against the same Basic cluster, **read verbs only**, and it adds four
+things the 2026-08-11 pass did not have:
+
+| what was taken | artefact | what it adds |
+|---|---|---|
+| the handshake and the SQL identity | [`evidence/mcp/session.json`](../evidence/mcp/session.json) | `protocolVersion 2025-06-18`, `serverInfo cockroachdb-cloud 1.0.0`, HTTP `200`, and `sql_identity` `managed-mcp` re-read on the day of submission rather than remembered |
+| the twelve tools **with their full `inputSchema`** | [`evidence/mcp/tools-schema.json`](../evidence/mcp/tools-schema.json) | the argument names as the server declares them — the section below — plus a divergence block *derived from the schemas in the same file* rather than asserted |
+| the sixteen-question pack, driven through **the pack's own runner** | [`evidence/mcp/pack-run.json`](../evidence/mcp/pack-run.json) | `python verticals/mainline/demo/judge/cli.py run --via mcp` → `runner.run_via_mcp`, so the envelope validator, the migration drift check and the 25-row truncation guard are all in the path. **The 2026-08-11 transcript carried none of the three** — it came from a 40-line ad-hoc client inside `scripts/deploy/judge_access.py` |
+| a general-counsel persona and a byte-budget prober, **live** | [`evidence/mcp/auditor-live.json`](../evidence/mcp/auditor-live.json), [`evidence/mcp/budget-live.json`](../evidence/mcp/budget-live.json) | both modules were previously proven only against a constructed transport. Ten questions routed deterministically to contracted views, and 13 [src: evidence/mcp/budget-live.json#verdict.views_measured] views measured on the wire |
+
+**The fresh pack run returns the same arithmetic as the old one, and that is the point.**
+15 [src: evidence/mcp/pack-run.json#passed] PASS of
+16 [src: evidence/mcp/pack-run.json#total], verdict `DIVERGED — KNOWN GAP`, the same single
+divergence `N01`. Five days, a different client, a stricter validator, and the number did not
+move — which is worth more than a fresh green would have been. Only two verbs were used,
+`select_query` and `explain_query`; no write verb was called, and the capture program enforces
+that at the transport rather than promising it.
+
+**Read the budget verdict with its own caveat, which the artefact prints beside it.** All
+13 [src: evidence/mcp/budget-live.json#verdict.views_measured] views measured came in under
+budget and 0 [src: evidence/mcp/budget-live.json#verdict.views_breached] breached — but
+8 [src: evidence/mcp/budget-live.json#verdict.how_much_this_green_actually_proves.views_that_returned_zero_rows]
+of them **returned no rows**, and a zero-row view costs `110` bytes because it is an empty
+envelope. Its green proves the view is *reachable* and its statement *accepted*; it does not
+prove the view stays inside `8192` bytes with data in it. The verdict that carries weight is
+over the 5 [src: evidence/mcp/budget-live.json#verdict.how_much_this_green_actually_proves.views_that_returned_any_rows]
+views that returned rows, and the largest of those was
+517 [src: evidence/mcp/budget-live.json#verdict.largest_response.response_bytes] bytes.
+
+And one answer worth quoting, because it is the demonstration rather than a description of
+one: over the live endpoint, `mainline_audit.v_open_gate_summary` returned a single row with
+`open_blocking = 1` — **a general-counsel question, *what is the gate refusing right now?*,
+answered by CockroachDB's own managed endpoint out of a contracted view, with none of
+MAINLINE's code in the read path.** The companion question — *which weakenings over severe
+blame ancestry were never answered for?* — returned **no rows**, and the artefact records its
+completeness as `vacuous` rather than as a clean bill of health: zero rows and
+zero-findings-verified-complete are different facts, and only the first one was measured.
+
+### The argument names — MEASURED 2026-08-16 from the server's own `inputSchema`
+
+**This is the correction that matters on this page, and it is a correction to *us*.** Until
+2026-08-16 the argument names in this repository were *our best reading of the documented
+surface* — prose, interpreted, never put against the wire. On 2026-08-16 they were taken
+instead from the `inputSchema` the server itself returns in `tools/list`, which is a stronger
+source than either our reading or any published document, because it is the thing the server
+validates against. Quoted from that response, recorded in
+[`evidence/mcp/tools-schema.json`](../evidence/mcp/tools-schema.json):
+
+```
+select_query   required: ["database","query"]
+   query        "The SQL query to execute (SELECT statements only). Use LIMIT/OFFSET in
+                 your query for pagination."
+   cluster_id   "Required when the MCP config has no cluster_id; otherwise must be omitted."
+explain_query  required: ["database","query"]
+insert_rows    required: ["database","query"]
+```
+
+Four readings, and the third and fourth are the ones a reader should not skip:
+
+1. **The statement goes under `query`, and `database` is mandatory.** All three SQL verbs
+   declare exactly `["database","query"]`. This package shipped `statement=` until
+   2026-08-16; the name lived in a single injectable `ToolDialect` object precisely so a
+   live-surface difference would be one field rather than seven hidden guesses, and it was.
+   The superseded names are **kept, named and asserted against** in that module rather than
+   erased, so the repository cannot quietly delete a guess it published.
+2. **`cluster_id` is optional and, when the configuration pins a cluster in the
+   `mcp-cluster-id` header, must be *omitted*** — its own description says so.
+3. **`select_query` has no `limit` argument at all.** Pagination is `LIMIT`/`OFFSET` inside
+   the statement. Our row ceiling is therefore ours, enforced client-side, and not a
+   parameter of the server's; `limit` is a real property of `list_databases` and
+   `list_tables` only.
+4. **`insert_rows` takes a whole INSERT statement, not a `{table, rows}` pair** — and that
+   one is **not corrected, on purpose**. See the write surface below.
+
+The negative that pins the whole reading is the call that fails:
+
+```
+select_query {"database":"mainline_demo","statement":"SELECT 1 AS one"}
+   ->  {"code": 0, "message": "must contain exactly one statement"}
+```
+
+That message is misleading about its own cause — the statement is well-formed and there is
+exactly one of it. The server is reporting that the `query` property was **absent**, and the
+count it complains about is a count of zero. The field-by-field version, and what to type
+instead, is [`MCP-CONFIG.md`](../verticals/mainline/demo/judge/MCP-CONFIG.md) §1.2.
+
+**What did *not* change with the promotion, restated with the 2026-08-16 measurement beside
+it.** `tests/integration/mcp` still *skips with a reason* when no key is present rather than
+passing vacuously, and **that is still the pass CI runs**: with no credential in the
+environment, `69` tests collect and all `69` skip, each carrying the reason its own fixture
+writes. A green audit-surface run with nothing to talk to asserts nothing, and a green
+*negative* run with nothing to talk to asserts the opposite of what it claims. What is new is
+that on 2026-08-16 the same three suites were also run **with** a credential, and that census
+is committed at [`qa/mcp-live.json`](../qa/mcp-live.json): `69` collected, `51` passed, `17`
+skipped, **`1` failed**. The one failure is `N01` — the same gap, failing loudly, with the
+gap's name in its message. **It is not on the repository's tracked baseline** (`SUITE_PATHS`
+is `verticals/mainline/apps/demo-api/tests` and `tests/deploy`, and `tests/integration/mcp` is
+in neither), and it is recorded rather than made green.
 
 The MCP-facing surface — the client plus the `mainline_audit` schema it reads — appears in
-192 [src: evidence/tool-usage/crdb-features.json#rows.crdb_managed_mcp.file_count] files.
+215 [src: evidence/tool-usage/crdb-features.json#rows.crdb_managed_mcp.file_count] files.
 
 ### How: every documented limit is a type, not a comment
 
@@ -630,17 +790,33 @@ naming the limit, instead of arriving later as a truncated string:
 **The `10 KiB` cap is the load-bearing one, because the server truncates rather than
 raising.** A truncated answer to *"how many recalled precursors went undispositioned?"* is
 not a smaller answer — it is a **wrong** one, and it looks exactly like a right one. So the
-nine `mainline_audit` views are shaped aggregate-first to ≤`25` rows and measured at
+contracted `mainline_audit` views are shaped aggregate-first to ≤`25` rows and measured at
 ≤`8192` bytes — `80 %` of the cap, deliberately, so that corpus growth breaches the budget
 in CI
 rather than in front of a judge.
 `packages/mainline-mcp/src/mainline_mcp/budget.py` is the prober that measures actual
-response bytes per view and records the worst observed row.
+response bytes per view and records the worst observed row, and on 2026-08-16 it measured
+13 [src: evidence/mcp/budget-live.json#verdict.views_measured] of them **on the wire**
+rather than against a fixture.
 
-The nine views, and the question each answers, are tabulated in
-[`VERIFY.md`](../VERIFY.md) Tier 3. Two of them carry `ancestry_complete`; when it is false
-the counts beneath are **lower bounds** and the view says so rather than rounding the
-problem away.
+**This page said `nine` here until 2026-08-16, and the number is corrected rather than
+quietly refreshed, because the live capture is what caught it.** The contracted surface is
+`ARCHITECTURE_VIEWS` at `packages/mainline-mcp/src/mainline_mcp/catalogue.py:49`, which
+carries **thirteen** names; the budget prober measured all thirteen, which is why the figure
+above and the figure in the section on the fresh capture are now the same number instead of
+two numbers a reader has to reconcile. [`VERIFY.md`](../VERIFY.md) Tier 3 tabulates **nine**
+of them with the question each answers. The four it does not name are
+`v_gate_latency_daily`, `v_txn_restart_daily`, `v_unused_indexes` and `v_changefeed_health`
+— every one of which returned **zero rows** in the live run, so the un-tabulated four are
+also the four with the least to say. **`VERIFY.md` is not this document's to edit**, so the
+shortfall is recorded here rather than closed by hand, exactly as the ADR `0045` note above
+records a cross-domain correction without making it.
+
+Two of the thirteen carry `ancestry_complete` — `v_weakenings_without_disposition` and
+`v_disposition_coverage`, per the `truncation_flag` field on each measurement in
+[`evidence/mcp/budget-live.json`](../evidence/mcp/budget-live.json). When it is false the
+counts beneath are **lower bounds** and the view says so rather than rounding the problem
+away.
 
 ### The negatives are the interesting half
 
@@ -653,10 +829,39 @@ runtime check. `tests/integration/mcp/test_negative_reachability.py` asserts the
 live endpoint deliberately **bypassing our own client-side screen**, because a control that
 lives only in our client is a control an attacker skips by not using our client.
 
+**Re-read from the live server on 2026-08-16, in its own words rather than paraphrased**, and
+identical to the 2026-08-11 transcript. Five schemas are refused **by the server, by name,
+before SQL privilege is consulted** — `crdb_internal`, `information_schema`, `pg_catalog`,
+`pg_extension` and `system`, each *"query references a restricted schema: access to `X` is
+blocked for security reasons"*. That is a stronger guarantee than a grant, because no
+privilege change on our side can weaken it. Two more refusals were measured the same day: a
+`cluster_id` argument passed while the header pins the cluster returns *"cluster_id is set in
+your MCP config; omit the cluster_id argument"*, and a cluster **name** in the header is
+refused at `initialize` with HTTP `400`, *"must be a valid UUID"*.
+
+**One trap in that list is worth publishing, because it nearly made a negative suite lie.**
+Two statements in one call and the *superseded* `statement=` dialect return the **same
+sentence** — `must contain exactly one statement`. A negative helper that accepted any error
+would have recorded a wrong property name as a security refusal, which is a green that
+asserts the opposite of what it claims. The suites now require a positive control before
+believing anything they did not receive.
+
 The single permitted write exists so a third party's agent can record the outcome of *its
 own* verification into our log — their claim about our log, never our claim about the
 world. Insert-only is an exact match for append-only archival memory, which is why it is
 the only write surface there is.
+
+**And the write verb is real, measured, and deliberately not in the demo's request path.**
+`insert_rows` is on the live tool list and its measured shape is `{database, query}` — a whole
+INSERT statement, with a table name inside it. Our `insert_external_attestation` sends
+`{table, rows}`, and its published guarantee is that **no parameter of it names a table**:
+"insert into something else" is not a call the supported API can express, which is a property
+of the signature rather than a check at run time. Speaking the live shape means building SQL
+inside that one method and trading the guarantee for a demonstration. **We did not make that
+trade**, so the typed write verb is not sent over the live surface — it is real code with a
+real suite against a constructed transport, the divergence is recorded in
+[`evidence/mcp/tools-schema.json`](../evidence/mcp/tools-schema.json) rather than smoothed
+over, and this sentence is the whole of the claim.
 
 ### The pessimistic assumption we published instead of guessing
 
@@ -670,7 +875,7 @@ never receives an account on any tier, and MCP is never marketed as site-scoped.
 ## Tool 4 · CockroachDB Agent Skills — DESIGNED
 
 Two authored skills plus one staged upstream contribution;
-19 [src: evidence/tool-usage/crdb-features.json#rows.crdb_agent_skills.file_count] files
+21 [src: evidence/tool-usage/crdb-features.json#rows.crdb_agent_skills.file_count] files
 name them.
 
 | skill | what it teaches | its executable assertion |
@@ -687,6 +892,123 @@ post; each of these ships a program that goes red when the guarantee stops holdi
 also encode a *recovery* step most guidance omits: `P0001` carries no
 `diag.constraint_name`, so the raising object has to be recovered from the message text,
 and `skills/designing-diachronic-gates/scripts/assert_gate_refuses.py:57` is the regex that does it.
+
+---
+
+## Feedback on the CockroachDB AI tools — offered because the rules invite it
+
+The submission requirements list *"feedback on the CockroachDB AI tools or features"* as
+optional. We have unusually specific material, because every item below **changed how this
+system is built** rather than being an opinion about it. Each names the artefact or the line
+that establishes it, so none of it has to be taken on trust.
+
+### 1 · The `10240`-byte MCP response cap **truncates rather than raising** — and two silent narrowings compose
+
+This is the finding we would most like to see changed, and the one that shaped the schema.
+
+`MAX_RESPONSE_BYTES = 10_240` at
+`packages/mainline-mcp/src/mainline_mcp/limits.py:60` carries the docstring *"At or above
+this the answer may have been TRUNCATED."* **A truncated answer to *"how many recalled
+precursors went undispositioned?"* is not a smaller answer — it is a wrong one, and it is
+byte-for-byte indistinguishable from a right one.** There is no flag in the response saying
+the result was cut.
+
+A second narrowing compounds it, and we only found this by reading the live `inputSchema`
+on 2026-08-16 rather than the prose. `select_query` declares exactly three properties —
+`cluster_id`, `database`, `query` — so **it has no `limit` argument at all**, and its own
+description reads: *"Automatically adds LIMIT 25 if not specified. Maximum LIMIT is
+10000."* Both statements are quoted from
+[`evidence/mcp/tools-schema.json`](../evidence/mcp/tools-schema.json), which records the
+server's full schemas verbatim. So an agent that asks an aggregate question and does not
+itself count rows can be silently limited **and** silently truncated, and receives a
+well-formed page that looks like a complete answer.
+
+**What we did about it, since the platform will not tell us.** The contracted
+`mainline_audit` views are shaped aggregate-first to our own budget of `8192` bytes —
+`80 %` of the cap, at
+`packages/mainline-mcp/src/mainline_mcp/limits.py:109` — so corpus growth breaches the
+budget **in CI rather than in front of a judge**; and the judge pack's runner carries a
+truncation guard (`verticals/mainline/demo/judge/runner.py:160`,
+`_truncation_verdict`) that flags any result of *exactly* the page size as *possibly
+truncated* instead of reporting the page as the whole answer. Neither of those is a
+mitigation we would need if the response said so itself.
+
+**The ask, concretely:** a `truncated: true` field on the response envelope, or an error
+rather than a quiet cut. Either one converts a wrong answer into a handleable one. The
+row-count default would be easier to reason about as an explicit, echoed value too.
+
+### 2 · The SQL identity behind `select_query` is undocumented — which is how `N01` happened
+
+Which SQL identity the Managed MCP Server runs as is not stated anywhere we could find, so
+this repository published a **pessimistic assumption** instead of a guess: `VERIFY.md`
+treats the MCP identity as admin-equivalent, assumes RLS does not apply, and never markets
+MCP as site-scoped.
+
+Measurement then settled it in two directions at once, and both are recorded.
+[`evidence/deploy/judge-run.json`](../evidence/deploy/judge-run.json) establishes the good
+news — the endpoint runs as the purpose-built SQL user `managed-mcp`, **not `root` and not
+the database owner**. And it establishes the gap: **`N01`**, the one FAIL in `15` of `16`,
+where the `managed-mcp` identity **can** read `mainline_qa.v_disposition_profile` although
+the pack's envelope asserted it could not. The run's own verdict is left at
+**`DIVERGED — KNOWN GAP`** rather than rounded off, and the fresh 2026-08-16 capture in
+[`evidence/mcp/pack-run.json`](../evidence/mcp/pack-run.json) reproduces the same single
+divergence with a stricter client.
+
+**The ask:** publish the identity `select_query` executes as and the grants it holds. A
+consumer cannot model the negative half of its own reachability — the half that says what an
+agent *must not* reach — against an identity whose privileges are undocumented. Note that
+the read-only `mainline_judge` pgwire login this submission actually publishes refuses the
+same statement at SQLSTATE `42501`, so the credential a judge is handed is the tighter of
+the two; that does not make `N01` a pass and it is not scored as one.
+
+### 3 · One error message is misleading about its own cause
+
+Sending the statement under the wrong property name returns:
+
+```
+select_query {"database":"mainline_demo","statement":"SELECT 1 AS one"}
+   ->  {"code": 0, "message": "must contain exactly one statement"}
+```
+
+The statement is well-formed and there is exactly one of it. The server is reporting that
+the **`query` property was absent**, and the count it complains about is a count of *zero*.
+Worse for a test suite: **two statements in one call returns the same sentence**, so a
+negative helper that accepted any error would record a wrong property name as a security
+refusal — a green assertion that means the opposite of what it claims. **The ask:** name the
+missing property. This one cost real time, and it is the reason the 2026-08-11 transcript
+was driven by an ad-hoc client rather than by the pack's own runner.
+
+### 4 · `ccloud 0.6.12` has no headless service-account authentication
+
+The single largest blocker to an *agent* driving the CLI, recorded at
+`evidence/ccloud/README.md:37`: `ccloud auth` exposes only `login` / `logout` / `whoami`,
+`login` is browser-based, **`CC_API_KEY` in the environment is ignored**, and the cached
+session is scoped to an interactive Windows logon. `0.7.0`, `0.8.0`, `0.9.0` and `1.0.0` all
+`404` from `binaries.cockroachdb.com`. So an agent cannot drive `ccloud` headlessly from a
+cold start, and this project does not claim that it does — headless paths use the Cloud REST
+API with the same key. Separately, `/auditlogentries`, `/auditlogs`, `/audit-logs` and the
+cluster-scoped variant all `404` on Basic, which leaves the *"custody of the custodian"*
+design with no control-plane input source on this tier. **The ask:** honour `CC_API_KEY` for
+non-interactive use.
+
+### 5 · What we would keep exactly as it is
+
+Feedback that is only complaints is not feedback. The Managed MCP Server's **server-side
+schema blocklist is a better control than a grant**, and it should stay: `crdb_internal`,
+`information_schema`, `pg_catalog`, `pg_extension` and `system` are each refused **by the
+server, by name, before SQL privilege is consulted** — *"query references a restricted
+schema: access to `X` is blocked for security reasons"*. That is stronger than anything we
+could configure, because **no privilege change on our side can weaken it**, and it is the
+half of the reachability model that measured clean on both runs. Pinning the cluster by the
+`mcp-cluster-id` header rather than by URL is the right shape too: a cluster *name* in that
+header is refused at `initialize` with HTTP `400`, *"must be a valid UUID"*.
+
+**One thing this section does not do is launder a gap into a compliment.** The suites that
+would exercise the negative half — `tests/integration/mcp` — still *skip with a reason* when
+no key is present rather than passing vacuously, and that remains the pass CI runs; the
+live-credential census is committed separately at [`qa/mcp-live.json`](../qa/mcp-live.json)
+with its `1` failure, which is `N01` above, failing loudly with the gap's name in its
+message. The detail is under *Tool 3*.
 
 ---
 
@@ -759,22 +1081,31 @@ discrepancy is visible from either page.
 > correct the two copies together. Recorded as owed in
 > [`docs/demo/ON-SCREEN-CLAIMS.md`](demo/ON-SCREEN-CLAIMS.md) § *Discrepancies filed, not
 > smoothed*.
+>
+> **Second annotation, 2026-08-16, because one of those two figures moved again and this page
+> is why.** Re-run today the gate prints *"`5` AWS service(s) marked as having run …; `34` of
+> `34` cited artefacts present on disk"*. The `5` is unchanged and the arithmetic above still
+> reconciles it. The `28` became `34` because **Tool 3 gained six citations into
+> [`evidence/mcp/`](../evidence/mcp/README.md)** — the day-of-submission MCP capture — and all
+> six resolve, which is the whole of the movement. The `2026-08-15` reading above is left
+> exactly as it was taken: it was true on its date, and a figure that is silently refreshed
+> stops being a measurement.
 
 | service | verdict | files | mechanism (`file:line`) | evidence |
 |---|---|---|---|---|
-| Bedrock — Claude inference | **EXERCISED** | 344 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_runtime.file_count] | `packages/mainline-agentkit/src/mainline_agentkit/transport.py:273` | [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — `Converse` `200`, **request id `3c7a283c-9f67-4d98-aa8f-26490d54d32d`**, `stop_reason end_turn`; also [`evidence/aws/probe/raw-haiku-converse.json`](../evidence/aws/probe/raw-haiku-converse.json), [`evidence/aws/agent/live-run.json`](../evidence/aws/agent/live-run.json) |
-| Bedrock — embeddings | **EXERCISED** | 73 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_embeddings.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:55` | [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — Titan v2 `InvokeModel` `200`, **request id `b4d826e9-03ba-4368-9687-f00cc28a98ef`**, `1024`-d; and [`evidence/aws/probe/raw-titan-invoke.json`](../evidence/aws/probe/raw-titan-invoke.json) — **request id `6dcdcdf0-38d3-453f-a476-fa69b2d87863`**; also [`evidence/aws/embeddings/manifest.json`](../evidence/aws/embeddings/manifest.json), [`evidence/aws/ann/ann-proof.json`](../evidence/aws/ann/ann-proof.json) |
-| CloudWatch | **EXERCISED** (metrics read; alarms now applied, never fired) | 115 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudwatch.file_count] | `scripts/aws/cloudwatch_evidence.py:299` | [`evidence/aws/cloudwatch/bedrock-metrics.json`](../evidence/aws/cloudwatch/bedrock-metrics.json), [`evidence/aws/cloudwatch/reconciliation.json`](../evidence/aws/cloudwatch/reconciliation.json); the log group, four alarms and dashboard are among the 24 created in [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md), and **no artefact records any alarm transitioning to `ALARM`** |
+| Bedrock — Claude inference | **EXERCISED** | 355 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_runtime.file_count] | `packages/mainline-agentkit/src/mainline_agentkit/transport.py:273` | [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — `Converse` `200`, **request id `3c7a283c-9f67-4d98-aa8f-26490d54d32d`**, `stop_reason end_turn`; also [`evidence/aws/probe/raw-haiku-converse.json`](../evidence/aws/probe/raw-haiku-converse.json), [`evidence/aws/agent/live-run.json`](../evidence/aws/agent/live-run.json) |
+| Bedrock — embeddings | **EXERCISED** | 76 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_embeddings.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/providers/bedrock_titan.py:55` | [`evidence/deploy/aws-live.json`](../evidence/deploy/aws-live.json) — Titan v2 `InvokeModel` `200`, **request id `b4d826e9-03ba-4368-9687-f00cc28a98ef`**, `1024`-d; and [`evidence/aws/probe/raw-titan-invoke.json`](../evidence/aws/probe/raw-titan-invoke.json) — **request id `6dcdcdf0-38d3-453f-a476-fa69b2d87863`**; also [`evidence/aws/embeddings/manifest.json`](../evidence/aws/embeddings/manifest.json), [`evidence/aws/ann/ann-proof.json`](../evidence/aws/ann/ann-proof.json) |
+| CloudWatch | **EXERCISED** (metrics read; alarms now applied, never fired) | 125 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudwatch.file_count] | `scripts/aws/cloudwatch_evidence.py:299` | [`evidence/aws/cloudwatch/bedrock-metrics.json`](../evidence/aws/cloudwatch/bedrock-metrics.json), [`evidence/aws/cloudwatch/reconciliation.json`](../evidence/aws/cloudwatch/reconciliation.json); the log group, four alarms and dashboard are among the 24 created in [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md), and **no artefact records any alarm transitioning to `ALARM`** |
 | **Bedrock — `cohere.embed-v4`** | **REFUSED in-region** | *(counted in the embeddings row)* | `scripts/aws/_common.py::CROSS_REGION_PREFIXES` | [`evidence/aws/probe/raw-cohere-refusal.json`](../evidence/aws/probe/raw-cohere-refusal.json) — `400`, **request id `a826eb16-e813-45aa-932e-4696e9979087`**; [`evidence/aws/bench/residency-finding.json`](../evidence/aws/bench/residency-finding.json) |
-| **Bedrock Rerank** | **NOT-AVAILABLE** | 23 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_rerank.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/rerank/listwise.py:77` | absent in `ap-southeast-2`; no dependency taken. [`evidence/aws/probe/model-availability.json`](../evidence/aws/probe/model-availability.json) is the live census it is absent from |
-| S3 + Object Lock | DESIGNED | 134 [src: evidence/tool-usage/aws-services.json#rows.aws_s3_object_lock.file_count] | `infra/modules/evidence-store/main.tf:100` | none — not applied; the live check is one of the seven that did not run. *One S3 bucket does exist — the Terraform **state** bucket in [`APPLIED.md`](../evidence/deploy/APPLIED.md), no Object Lock, no checkpoint — and it promotes nothing* |
-| KMS | DESIGNED | 45 [src: evidence/tool-usage/aws-services.json#rows.aws_kms.file_count] | `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` | none — unit-tested against an injected client only |
-| CloudTrail | DESIGNED | 38 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudtrail.file_count] | `infra/envs/evidence/main.tf:114` | none — no trail exists in the account |
-| Lambda | **EXERCISED** | 42 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:432` (the authorisation decision); the function opens at `:326` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — *"terraform apply 24 created, 0 changed, 0 destroyed"*, `37` resources in state; [`evidence/deploy/live-health.json`](../evidence/deploy/live-health.json) — `ok true`, `deploy_chain 271/271`; [`evidence/deploy/live-gate-run.json`](../evidence/deploy/live-gate-run.json) — four beats, verdict `PROVEN`; [`evidence/deploy/judge-walk.json`](../evidence/deploy/judge-walk.json). The plan it was applied from is [`terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843`, `Plan: 24 to add, 0 to change, 0 to destroy.` — `11` in `module.api[0]`, `13` in `module.guard[0]` |
-| CloudFront + OAC | DESIGNED | 99 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudfront.file_count] | `infra/modules/demo-site/main.tf:299` | none — **excluded from the plan**, and not by choice: `403 AccessDenied`, account not verified for new CloudFront resources. See below |
-| IAM | **EXERCISED** (the allow half only) | 37 [src: evidence/tool-usage/aws-services.json#rows.aws_iam.file_count] | `infra/modules/demo-api/main.tf:260` (the role that was created and assumed); the deny-first document is `infra/modules/evidence-store/main.tf:145` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — the role, its inline `dsn_access` policy and the managed attachment are 3 of the 24 created (plan lines `195`, `237`, `270`); the role was assumed and its one grant used, per `live-health.json`. **The deny-first evidence-store policies are still unapplied** and Rego asserts them against plan fixtures, offline |
-| SSM Parameter Store | **EXERCISED** | 26 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:280` (the grant); the signed call is `…/demo-api/src/mainline_demo_api/db.py:214` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) with the parameter ABSENT — `ok=false reason="dsn_unset"`, `ParameterNotFound` — and [`evidence/deploy/live-health.json`](../evidence/deploy/live-health.json) with it present — `ok true`. The plan sets `MAINLINE_DSN_PARAM` and no `MAINLINE_DSN` (`terraform-plan-furl.txt:325`), so there is no other path to that answer |
-| EventBridge | DESIGNED | 32 [src: evidence/tool-usage/aws-services.json#rows.aws_eventbridge.file_count] | `verticals/mainline/apps/steward/schedules.yaml:14` | none — and there is no `aws_cloudwatch_event_*` resource anywhere under `infra/` |
+| **Bedrock Rerank** | **NOT-AVAILABLE** | 25 [src: evidence/tool-usage/aws-services.json#rows.aws_bedrock_rerank.file_count] | `verticals/mainline/packages/mainline-recall-agent/src/mainline_recall_agent/rerank/listwise.py:77` | absent in `ap-southeast-2`; no dependency taken. [`evidence/aws/probe/model-availability.json`](../evidence/aws/probe/model-availability.json) is the live census it is absent from |
+| S3 + Object Lock | DESIGNED | 139 [src: evidence/tool-usage/aws-services.json#rows.aws_s3_object_lock.file_count] | `infra/modules/evidence-store/main.tf:100` | none — not applied; the live check is one of the seven that did not run. *One S3 bucket does exist — the Terraform **state** bucket in [`APPLIED.md`](../evidence/deploy/APPLIED.md), no Object Lock, no checkpoint — and it promotes nothing* |
+| KMS | DESIGNED | 48 [src: evidence/tool-usage/aws-services.json#rows.aws_kms.file_count] | `packages/trappoint-ledger/src/trappoint_ledger/signer.py:63` | none — unit-tested against an injected client only |
+| CloudTrail | DESIGNED | 40 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudtrail.file_count] | `infra/envs/evidence/main.tf:114` | none — no trail exists in the account |
+| Lambda | **EXERCISED** | 45 [src: evidence/tool-usage/aws-services.json#rows.aws_lambda.file_count] | `infra/modules/demo-api/main.tf:432` (the authorisation decision); the function opens at `:326` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — *"terraform apply 24 created, 0 changed, 0 destroyed"*, `37` resources in state; [`evidence/deploy/live-health.json`](../evidence/deploy/live-health.json) — `ok true`, `deploy_chain 271/271`; [`evidence/deploy/live-gate-run.json`](../evidence/deploy/live-gate-run.json) — four beats, verdict `PROVEN`; [`evidence/deploy/judge-walk.json`](../evidence/deploy/judge-walk.json). The plan it was applied from is [`terraform-plan-furl.txt`](../evidence/deploy/terraform-plan-furl.txt)`:843`, `Plan: 24 to add, 0 to change, 0 to destroy.` — `11` in `module.api[0]`, `13` in `module.guard[0]` |
+| CloudFront + OAC | DESIGNED | 103 [src: evidence/tool-usage/aws-services.json#rows.aws_cloudfront.file_count] | `infra/modules/demo-site/main.tf:299` | none — **excluded from the plan**, and not by choice: `403 AccessDenied`, account not verified for new CloudFront resources. See below |
+| IAM | **EXERCISED** (the allow half only) | 40 [src: evidence/tool-usage/aws-services.json#rows.aws_iam.file_count] | `infra/modules/demo-api/main.tf:260` (the role that was created and assumed); the deny-first document is `infra/modules/evidence-store/main.tf:145` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) — the role, its inline `dsn_access` policy and the managed attachment are 3 of the 24 created (plan lines `195`, `237`, `270`); the role was assumed and its one grant used, per `live-health.json`. **The deny-first evidence-store policies are still unapplied** and Rego asserts them against plan fixtures, offline |
+| SSM Parameter Store | **EXERCISED** | 28 [src: evidence/tool-usage/aws-services.json#rows.aws_ssm_parameter_store.file_count] | `infra/modules/demo-api/main.tf:280` (the grant); the signed call is `…/demo-api/src/mainline_demo_api/db.py:214` | [`evidence/deploy/APPLIED.md`](../evidence/deploy/APPLIED.md) with the parameter ABSENT — `ok=false reason="dsn_unset"`, `ParameterNotFound` — and [`evidence/deploy/live-health.json`](../evidence/deploy/live-health.json) with it present — `ok true`. The plan sets `MAINLINE_DSN_PARAM` and no `MAINLINE_DSN` (`terraform-plan-furl.txt:325`), so there is no other path to that answer |
+| EventBridge | DESIGNED | 34 [src: evidence/tool-usage/aws-services.json#rows.aws_eventbridge.file_count] | `verticals/mainline/apps/steward/schedules.yaml:14` | none — and there is no `aws_cloudwatch_event_*` resource anywhere under `infra/` |
 
 **Four `mechanism` cells have moved in this module, and every old value is named rather
 than erased.** On 2026-08-14 the Lambda row cited `infra/modules/demo-api/main.tf:310`,

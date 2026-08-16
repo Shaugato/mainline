@@ -1,0 +1,162 @@
+{
+  "schema": "mainline.evidence.mcp/1",
+  "artefact": "session",
+  "generated_at": "2026-08-16T07:33:26Z",
+  "generated_by": "scripts/submission/capture_mcp_evidence.py",
+  "endpoint": "https://cockroachlabs.cloud/mcp",
+  "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+  "cluster_name": "mainline-dev",
+  "database": "mainline_demo",
+  "handshake": {
+    "offered_protocol_version": "2025-06-18",
+    "negotiated_protocol_version": "2025-06-18",
+    "server_named_the_revision": true,
+    "server_info": {
+      "name": "cockroachdb-cloud",
+      "version": "1.0.0"
+    },
+    "http_status": 200,
+    "http_elapsed_ms": 305.3,
+    "wall_ms_including_notifications_initialized": 573.1,
+    "response_bytes": 208,
+    "content_type": "text/event-stream",
+    "authorization_scheme": "Bearer",
+    "mcp_cluster_id_header": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+    "cluster_header_matches_pin": true
+  },
+  "identity": {
+    "sql_identity": "managed-mcp",
+    "bound_database": "mainline_demo",
+    "reading": "the account-level Cloud service-account key resolves to the SQL login 'managed-mcp' on this cluster. That login is NOT the credential this submission publishes; see the README and R5."
+  },
+  "probes": [
+    {
+      "label": "sql_identity",
+      "sql": "SELECT current_user AS sql_identity, current_database() AS bound_database",
+      "why": "which login the account key resolves to, and where it is pointed",
+      "ok": true,
+      "ms": 600.8,
+      "response_bytes": 180,
+      "detail": "answered",
+      "rows": [
+        {
+          "sql_identity": "managed-mcp",
+          "bound_database": "mainline_demo"
+        }
+      ]
+    },
+    {
+      "label": "audit_view_reachable",
+      "sql": "SELECT count(*) AS n FROM mainline_audit.v_open_gate_summary LIMIT 1",
+      "why": "the gate summary is the view the demo's first question reads",
+      "ok": true,
+      "ms": 576.8,
+      "response_bytes": 118,
+      "detail": "answered",
+      "rows": [
+        {
+          "n": 1
+        }
+      ]
+    }
+  ],
+  "tool_count": 12,
+  "tools": [
+    "create_database",
+    "create_table",
+    "explain_query",
+    "get_cluster",
+    "get_table_schema",
+    "insert_rows",
+    "list_clusters",
+    "list_databases",
+    "list_tables",
+    "select_query",
+    "show_running_queries",
+    "show_statement"
+  ],
+  "read_only": {
+    "tools_called_by_this_capture": [
+      "select_query"
+    ],
+    "write_tools_on_the_live_list": [
+      "create_database",
+      "create_table",
+      "insert_rows"
+    ],
+    "write_tools_called": [],
+    "enforced_how": "an httpx request hook parses every outgoing JSON-RPC body and raises WriteVerbAttempted before transmission if the tool named is one of the three write verbs. The prohibition is executed, not promised."
+  },
+  "credential": {
+    "read_from_variable": "CC_API_KEY",
+    "value_recorded": false,
+    "publishable": false,
+    "why_not_publishable": "it is an account-level CockroachDB Cloud service-account key, not a database login. Its own tool list carries create_database, create_table and insert_rows, and list_clusters enumerates every cluster the account owns."
+  },
+  "http_exchanges": [
+    {
+      "jsonrpc_method": "initialize",
+      "tool": null,
+      "http_status": 200,
+      "elapsed_ms": 305.3,
+      "response_bytes": 208,
+      "content_type": "text/event-stream",
+      "authorization_scheme": "Bearer",
+      "mcp_cluster_id_header": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+      "cluster_header_matches_pin": true
+    },
+    {
+      "jsonrpc_method": "notifications/initialized",
+      "tool": null,
+      "http_status": 202,
+      "elapsed_ms": 266.7,
+      "response_bytes": 0,
+      "content_type": "",
+      "authorization_scheme": "Bearer",
+      "mcp_cluster_id_header": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+      "cluster_header_matches_pin": true
+    },
+    {
+      "jsonrpc_method": "tools/call",
+      "tool": "select_query",
+      "http_status": 200,
+      "elapsed_ms": 600.4,
+      "response_bytes": 180,
+      "content_type": "text/event-stream",
+      "authorization_scheme": "Bearer",
+      "mcp_cluster_id_header": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+      "cluster_header_matches_pin": true
+    },
+    {
+      "jsonrpc_method": "tools/call",
+      "tool": "select_query",
+      "http_status": 200,
+      "elapsed_ms": 576.3,
+      "response_bytes": 118,
+      "content_type": "text/event-stream",
+      "authorization_scheme": "Bearer",
+      "mcp_cluster_id_header": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+      "cluster_header_matches_pin": true
+    },
+    {
+      "jsonrpc_method": "tools/list",
+      "tool": null,
+      "http_status": 200,
+      "elapsed_ms": 270.8,
+      "response_bytes": 7032,
+      "content_type": "text/event-stream",
+      "authorization_scheme": "Bearer",
+      "mcp_cluster_id_header": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+      "cluster_header_matches_pin": true
+    }
+  ],
+  "credential_hygiene": {
+    "assertion": "no field in this file is credential-shaped",
+    "method": "the serialised artefact was searched for (a) the live Managed-MCP service-account key verbatim, as a substring so a value embedded in a longer string is caught too, (b) any connection string whose userinfo still carries a password rather than the redacted form, and (c) any bare token of 24+ characters mixing upper case, lower case and digits — the shape a generated secret has. UUIDs are excluded by shape, not by an allowlist of values, which is why the cluster id survives the scan. bytes_scanned counts the artefact body as it was scanned, before this block was appended; after the write the file was re-read FROM DISK and scanned again, and a disagreement deletes the file rather than reporting a pass.",
+    "self_scanned": true,
+    "bytes_scanned": 4930,
+    "key_was_in_scope_this_run": true,
+    "matches": 0,
+    "holds": true
+  }
+}

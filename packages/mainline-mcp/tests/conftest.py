@@ -24,7 +24,7 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from mainline_mcp.catalogue import Catalogue, load_contract  # noqa: E402
-from mainline_mcp.client import Client, RawResponse  # noqa: E402
+from mainline_mcp.client import DEFAULT_DIALECT, Client, RawResponse  # noqa: E402
 from mainline_mcp.limits import READ_VERBS, WRITE_VERB  # noqa: E402
 
 FIXTURES = _HERE.parent / "fixtures"
@@ -98,7 +98,10 @@ def view_router(
     """Route ``select_query`` by the view name that appears in the statement."""
 
     def handler(arguments: Mapping[str, Any]) -> StubResponse:
-        statement = str(arguments.get("statement", ""))
+        # Keyed off the dialect rather than a literal: the SQL argument name is a
+        # measured property of the live server (``query`` since 2026-08-16), and a
+        # fixture that hard-codes it silently stops routing the day the real one moves.
+        statement = str(arguments.get(DEFAULT_DIALECT.statement, ""))
         for view, response in by_view.items():
             if view in statement:
                 return response

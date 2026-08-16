@@ -1,0 +1,572 @@
+{
+  "artefact": "evidence/mcp/budget-live.json",
+  "budget": {
+    "breach_kinds": [
+      "byte_budget",
+      "row_budget",
+      "row_count_undetermined",
+      "truncation_flag_missing",
+      "tool_error",
+      "response_cap"
+    ],
+    "byte_budget": 8192,
+    "headroom_policy": "fail at 80% of the cap so the alarm fires with 20% left (AR-6)",
+    "row_budget": 25,
+    "server_cap_bytes": 10240
+  },
+  "contract": {
+    "contract_of_record": "spec/mcp/audit-surface.contract.yaml",
+    "contract_of_record_exists": false,
+    "loaded": "packages/mainline-mcp/tests/fixtures/audit-surface.contract.yaml",
+    "why": "spec/mcp/audit-surface.contract.yaml \u2014 the contract of record, owned by the fleet-contracts worker \u2014 is ABSENT from this tree. The catalogue was therefore loaded from the package's own reference fixture, whose header says in terms that it is a transcription of ARCHITECTURE.md \u00a717 and NOT the contract. Every budget verdict below is measured against that transcription. This is a divergence, recorded rather than closed: M3 does not own the contract's meaning and will not author one to make a run green."
+  },
+  "credential_hygiene": {
+    "assertion": "no field in this file is credential-shaped",
+    "bytes_scanned": 24954,
+    "holds": true,
+    "matches": 0,
+    "method": "the serialised artefact was searched for (a) the literal password this run issued, (b) any connection string whose userinfo still carries a password rather than the redacted form, and (c) any bare token of 24+ characters mixing upper case, lower case and digits \u2014 the shape secrets.token_urlsafe produces. UUIDs and hex digests are excluded by shape, not by an allowlist of values.",
+    "password_was_issued_this_run": true,
+    "self_scanned": true
+  },
+  "divergences": [
+    {
+      "check_in_under_a_minute": "ls spec/mcp/  ->  no such directory",
+      "consequence": "every budget and completeness verdict in these two artefacts is measured against a transcription of ARCHITECTURE.md \u00a717, not against a contract.",
+      "detail": "spec/mcp/audit-surface.contract.yaml is named by mainline_mcp.catalogue.CONTRACT_RELPATH, by tests/integration/mcp/test_audit_surface.py's skip reason, and by the package README. It is not present. The only two copies in the tree are test fixtures, and the one this run loaded says in its own header that it is NOT the contract.",
+      "id": "M3-D1",
+      "not_closed_because": "M3 does not own the contract's meaning. Authoring one to make a run green is exactly the move this repository refuses.",
+      "severity": "material",
+      "what": "the audit-surface contract of record does not exist in this tree"
+    },
+    {
+      "check_in_under_a_minute": "compare `columns_returned` per question in auditor-live.json against the `columns:` block of the loaded fixture.",
+      "consequence": "the completeness this surface can state is STRONGER than what these artefacts measured. Nothing here over-claims because of it \u2014 the error runs the safe way: 4 views are recorded as NO COMPLETENESS FLAG that in fact carry one, so every completeness statement in auditor-live.json is at worst an understatement.",
+      "detail": [
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "state",
+            "permits",
+            "open_blocking",
+            "open_residue",
+            "open_conflicts",
+            "open_warrants",
+            "unmodelled_assets",
+            "overrides_30d"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "countersigned",
+            "group_count",
+            "rows_complete",
+            "under_hold",
+            "unmet_floor"
+          ],
+          "observed_columns": [
+            "countersigned",
+            "group_count",
+            "open_blocking",
+            "open_conflicts",
+            "open_residue",
+            "open_warrants",
+            "overrides_30d",
+            "permits",
+            "rows_complete",
+            "site_id",
+            "state",
+            "under_hold",
+            "unmet_floor",
+            "unmodelled_assets"
+          ],
+          "observed_completeness_flags": [
+            "rows_complete"
+          ],
+          "view": "v_open_gate_summary"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "virulence",
+            "clause_versions",
+            "truncated_closures",
+            "max_depth",
+            "max_closure_gen",
+            "total_generations"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "ancestry_complete",
+            "group_count",
+            "last_computed_at",
+            "max_ancestors",
+            "max_severity",
+            "rows_complete"
+          ],
+          "observed_columns": [
+            "ancestry_complete",
+            "clause_versions",
+            "group_count",
+            "last_computed_at",
+            "max_ancestors",
+            "max_closure_gen",
+            "max_depth",
+            "max_severity",
+            "rows_complete",
+            "site_id",
+            "total_generations",
+            "truncated_closures",
+            "virulence"
+          ],
+          "observed_completeness_flags": [
+            "ancestry_complete",
+            "rows_complete"
+          ],
+          "view": "v_blame_coverage"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "q",
+            "surfaced",
+            "dispositioned",
+            "orphans",
+            "worst_ancestor",
+            "ancestry_complete"
+          ],
+          "declared_truncation_flag": "ancestry_complete",
+          "observed_but_undeclared": [
+            "generations_aligned",
+            "group_count",
+            "rows_complete",
+            "worst_severity"
+          ],
+          "observed_columns": [
+            "ancestry_complete",
+            "dispositioned",
+            "generations_aligned",
+            "group_count",
+            "orphans",
+            "q",
+            "rows_complete",
+            "site_id",
+            "surfaced",
+            "worst_ancestor",
+            "worst_severity"
+          ],
+          "observed_completeness_flags": [
+            "ancestry_complete",
+            "rows_complete"
+          ],
+          "view": "v_disposition_coverage"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_id",
+            "d",
+            "candidates",
+            "blocking",
+            "advisory",
+            "silenced",
+            "deduped",
+            "any_degraded"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "bonded_sev5",
+            "bonded_sev5_blocking",
+            "conserved",
+            "fatalities_all_blocking",
+            "group_count",
+            "index_generations",
+            "policy_versions",
+            "retrieval_complete",
+            "rows_complete",
+            "runs"
+          ],
+          "observed_columns": [
+            "advisory",
+            "any_degraded",
+            "blocking",
+            "bonded_sev5",
+            "bonded_sev5_blocking",
+            "candidates",
+            "conserved",
+            "d",
+            "deduped",
+            "fatalities_all_blocking",
+            "group_count",
+            "index_generations",
+            "policy_versions",
+            "retrieval_complete",
+            "rows_complete",
+            "runs",
+            "silenced",
+            "site_id"
+          ],
+          "observed_completeness_flags": [
+            "retrieval_complete",
+            "rows_complete"
+          ],
+          "view": "v_recall_conservation"
+        },
+        {
+          "declared_but_absent": [],
+          "declared_columns": [
+            "site_code",
+            "tree_size",
+            "admissible_checkpoints",
+            "inadmissible_checkpoints",
+            "open_debt"
+          ],
+          "declared_truncation_flag": null,
+          "observed_but_undeclared": [
+            "canonicaliser_versions",
+            "checkpoints",
+            "group_count",
+            "last_issued_at",
+            "object_locked_checkpoints",
+            "oldest_open_debt_at",
+            "rows_complete",
+            "time_bounded_checkpoints",
+            "witness_complete"
+          ],
+          "observed_columns": [
+            "admissible_checkpoints",
+            "canonicaliser_versions",
+            "checkpoints",
+            "group_count",
+            "inadmissible_checkpoints",
+            "last_issued_at",
+            "object_locked_checkpoints",
+            "oldest_open_debt_at",
+            "open_debt",
+            "rows_complete",
+            "site_code",
+            "time_bounded_checkpoints",
+            "tree_size",
+            "witness_complete"
+          ],
+          "observed_completeness_flags": [
+            "rows_complete",
+            "witness_complete"
+          ],
+          "view": "v_ledger_health"
+        }
+      ],
+      "direction": "the SAFE direction: the surface is MORE honest than the contract describes. Every one of the 5 views that returned rows carries a `rows_complete` boolean (True), and 4 of them \u2014 ['v_blame_coverage', 'v_ledger_health', 'v_open_gate_summary', 'v_recall_conservation'] \u2014 declare `truncation_flag: null` in the loaded contract while in fact returning a completeness flag. The prober therefore did NOT read flags that were there.",
+      "id": "M3-D3",
+      "not_closed_because": "editing the contract to match the live surface would make the run green by changing the thing being tested. M3 does not own the contract's meaning.",
+      "severity": "material",
+      "what": "the live views return columns the loaded contract does not declare, including completeness flags on views the contract records as carrying none"
+    },
+    {
+      "check_in_under_a_minute": "grep '\"row_count\": 0' evidence/mcp/budget-live.json",
+      "consequence": "including the flagship question, v_weakenings_without_disposition. A zero-row answer is recorded as COMPLETENESS UNOBSERVED (vacuous), never as COMPLETE: the completeness flag was not observed on anything. Zero rows and zero-findings-verified-complete are different facts. This is a property of the cloud demo cluster's corpus, not of the surface.",
+      "detail": {
+        "empty_views": [
+          "v_weakenings_without_disposition",
+          "v_silence_summary",
+          "v_fixity_coverage",
+          "v_agent_actions",
+          "v_gate_latency_daily",
+          "v_txn_restart_daily",
+          "v_unused_indexes",
+          "v_changefeed_health"
+        ]
+      },
+      "id": "M3-D4",
+      "not_closed_because": "loading a corpus into the live cluster on submission eve is a write, and R4 permits read verbs only.",
+      "severity": "reportable",
+      "what": "8 of 13 contracted views returned ZERO rows"
+    }
+  ],
+  "generated_at": "2026-08-16T07:24:31Z",
+  "measurement_note": {
+    "what_response_bytes_measures": "len(HTTP response body) \u2014 the entire JSON-RPC envelope as it arrived, not a re-serialisation of the rows. That is the right unit, because the server's 10240-byte cap applies to what the server sends.",
+    "why_one_view_can_show_two_numbers_one_byte_apart": "the echoed JSON-RPC request `id` is inside the measured body. MEASURED 2026-08-16 by issuing the identical v_open_gate_summary statement twelve times on one session: 425 bytes on request ids 2 through 9, and 426 bytes on ids 10 through 13. The auditor pass and the budget pass are separate call sequences, so on some views they differ by exactly that one byte \u2014 the request counter crossing from one digit to two. It is not noise and it is not a rounding: it is what measuring the wire rather than the payload actually costs."
+  },
+  "measurements": {
+    "byte_budget": 8192,
+    "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+    "database": "mainline_demo",
+    "ok": true,
+    "row_budget": 25,
+    "server_cap_bytes": 10240,
+    "views": [
+      {
+        "breaches": [],
+        "elapsed_ms": 642.996,
+        "headroom_bytes": 9814,
+        "incomplete_rows": null,
+        "response_bytes": 426,
+        "row_count": 1,
+        "statement": "SELECT * FROM mainline_audit.v_open_gate_summary LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_open_gate_summary",
+        "worst_row": {
+          "bytes": 284,
+          "index": 0,
+          "key": "site_id='dec0de00-0001-4000-8000-000000000001', state='dispositioned'"
+        }
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 596.595,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_weakenings_without_disposition LIMIT 25",
+        "truncation_flag": "ancestry_complete",
+        "truncation_flag_note": "no rows were returned, so 'ancestry_complete' was not observed on anything; this is neither a confirmation nor a breach",
+        "truncation_flag_present": null,
+        "view": "v_weakenings_without_disposition",
+        "worst_row": null
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 594.806,
+        "headroom_bytes": 9777,
+        "incomplete_rows": null,
+        "response_bytes": 463,
+        "row_count": 1,
+        "statement": "SELECT * FROM mainline_audit.v_blame_coverage LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_blame_coverage",
+        "worst_row": {
+          "bytes": 321,
+          "index": 0,
+          "key": "site_id='dec0de00-0001-4000-8000-000000000001', virulence='blood_major'"
+        }
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 619.184,
+        "headroom_bytes": 9843,
+        "incomplete_rows": 0,
+        "response_bytes": 397,
+        "row_count": 1,
+        "statement": "SELECT * FROM mainline_audit.v_disposition_coverage LIMIT 25",
+        "truncation_flag": "ancestry_complete",
+        "truncation_flag_note": "'ancestry_complete' was present on all 1 returned rows",
+        "truncation_flag_present": true,
+        "view": "v_disposition_coverage",
+        "worst_row": {
+          "bytes": 259,
+          "index": 0,
+          "key": "site_id='dec0de00-0001-4000-8000-000000000001', q='2026-07-01T00:00:00Z'"
+        }
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 581.784,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_silence_summary LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_silence_summary",
+        "worst_row": null
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 562.085,
+        "headroom_bytes": 9723,
+        "incomplete_rows": null,
+        "response_bytes": 517,
+        "row_count": 1,
+        "statement": "SELECT * FROM mainline_audit.v_recall_conservation LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_recall_conservation",
+        "worst_row": {
+          "bytes": 367,
+          "index": 0,
+          "key": "site_id='dec0de00-0001-4000-8000-000000000001', d='2026-08-02T00:00:00Z'"
+        }
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 594.295,
+        "headroom_bytes": 9732,
+        "incomplete_rows": null,
+        "response_bytes": 508,
+        "row_count": 1,
+        "statement": "SELECT * FROM mainline_audit.v_ledger_health LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_ledger_health",
+        "worst_row": {
+          "bytes": 366,
+          "index": 0,
+          "key": "site_code='dec0de00-0001-4000-8000-000000000001', tree_size=4"
+        }
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 578.072,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_fixity_coverage LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_fixity_coverage",
+        "worst_row": null
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 561.111,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_agent_actions LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_agent_actions",
+        "worst_row": null
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 623.887,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_gate_latency_daily LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_gate_latency_daily",
+        "worst_row": null
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 599.505,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_txn_restart_daily LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_txn_restart_daily",
+        "worst_row": null
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 618.455,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_unused_indexes LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_unused_indexes",
+        "worst_row": null
+      },
+      {
+        "breaches": [],
+        "elapsed_ms": 587.427,
+        "headroom_bytes": 10130,
+        "incomplete_rows": null,
+        "response_bytes": 110,
+        "row_count": 0,
+        "statement": "SELECT * FROM mainline_audit.v_changefeed_health LIMIT 25",
+        "truncation_flag": null,
+        "truncation_flag_note": "the contract declares no completeness flag for this view",
+        "truncation_flag_present": null,
+        "view": "v_changefeed_health",
+        "worst_row": null
+      }
+    ]
+  },
+  "produced_by": "worker M3 (mcp-real), MAINLINE hackathon submission wave",
+  "rendered": "MCP audit-surface budget \u2014 cluster 7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e\nbudget: 8192 bytes / 25 rows (server cap 10240 bytes)\n\nview                                 rows    bytes worst row  verdict\n---------------------------------------------------------------------\nv_open_gate_summary                     1      426       284  ok\nv_weakenings_without_disposition        0      110         -  ok\nv_blame_coverage                        1      463       321  ok\nv_disposition_coverage                  1      397       259  ok\nv_silence_summary                       0      110         -  ok\nv_recall_conservation                   1      517       367  ok\nv_ledger_health                         1      508       366  ok\nv_fixity_coverage                       0      110         -  ok\nv_agent_actions                         0      110         -  ok\nv_gate_latency_daily                    0      110         -  ok\nv_txn_restart_daily                     0      110         -  ok\nv_unused_indexes                        0      110         -  ok\nv_changefeed_health                     0      110         -  ok\n\nlargest response: v_recall_conservation at 517 bytes, 9723 bytes of headroom below the server cap",
+  "reproduce": {
+    "api_calls": [
+      "catalogue = mainline_mcp.catalogue.load_contract(<contract path>)",
+      "client    = mainline_mcp.client.Client.connect(api_key=..., cluster_id=...)",
+      "report    = mainline_mcp.budget.BudgetProber(client, catalogue, database=...).run()",
+      "report.render()   # the table reproduced verbatim under `rendered`",
+      "report.to_json()  # the object reproduced verbatim under `measurements`"
+    ],
+    "credential_note": "The credential is an ACCOUNT-LEVEL CockroachDB Cloud service-account key. It reaches create_database, create_table and insert_rows, and list_clusters enumerates every cluster the account owns, so it is NOT publishable and no judge can read MAINLINE's ledger over MCP with a credential we hand them. A judge reads this transcript without any credential, or reads our ledger over the published read-only mainline_judge pgwire login. Those are the only two routes and there is no third.",
+    "provenance": "Produced by an M3 runner that imports only the package's public API \u2014 no private helper, no bespoke HTTP client. The exact call sequence is under `api_calls` below, and every statement it sent is quoted verbatim in this file, so a reader can check the artefact against the code without running anything.",
+    "without_a_credential": "read this file. Every measured byte count, row count, worst row and verdict is here."
+  },
+  "session": {
+    "cluster_id": "7cfc9ee9-f9b4-413d-bcad-d81fca2c6c7e",
+    "database": "mainline_demo",
+    "dialect_statement_argument": "query",
+    "endpoint": "https://cockroachlabs.cloud/mcp",
+    "protocol_version": "2025-06-18",
+    "server_info": {
+      "name": "cockroachdb-cloud",
+      "version": "1.0.0"
+    },
+    "sql_identity": "managed-mcp",
+    "tool_count": 12,
+    "tools_advertised": [
+      "create_database",
+      "create_table",
+      "explain_query",
+      "get_cluster",
+      "get_table_schema",
+      "insert_rows",
+      "list_clusters",
+      "list_databases",
+      "list_tables",
+      "select_query",
+      "show_running_queries",
+      "show_statement"
+    ],
+    "whose_code_answers_the_question": "MAINLINE generates the statement and MAINLINE dials the HTTP. Everything that turns that statement into an answer \u2014 parse, authorise, plan, execute, encode, cap \u2014 is CockroachDB's own Managed MCP Server, running as its own SQL identity (managed-mcp) on a surface we did not write. That is the precise claim; the stronger-sounding 'none of our code is in the path' would not be true, because the client in this repository is what sent the request."
+  },
+  "verdict": {
+    "breach_kinds_observed": [],
+    "how_much_this_green_actually_proves": {
+      "read_this_before_quoting_the_verdict": "A zero-row view costs 110 bytes on the wire \u2014 an empty envelope. Its 'ok' verdict proves the view is REACHABLE and its statement is ACCEPTED; it does not prove the view stays inside 8192 bytes when it has data in it, because it had none. The verdict that carries weight is the one over the views that returned rows, and the largest of those is named above. Recording this distinction is the point: an all-green run whose green comes from emptiness is the worst artefact in a repository, because it reads as the strongest.",
+      "views_inside_budget": 13,
+      "views_that_returned_any_rows": 5,
+      "views_that_returned_zero_rows": 8
+    },
+    "largest_response": {
+      "headroom_bytes": 9723,
+      "response_bytes": 517,
+      "view": "v_recall_conservation"
+    },
+    "ok": true,
+    "row_counts_undetermined": [],
+    "views_breached": 0,
+    "views_measured": 13,
+    "worst_row_across_all_views": {
+      "bytes": 367,
+      "index": 0,
+      "key": "site_id='dec0de00-0001-4000-8000-000000000001', d='2026-08-02T00:00:00Z'",
+      "view": "v_recall_conservation"
+    }
+  },
+  "what_this_is": "Every contracted mainline_audit view measured over the live Managed MCP Server: the bytes that actually arrived on the wire, the rows recovered from the envelope, the worst observed row, and the verdict against our 8192-byte / 25-row budget. The budget is 80% of the server's 10240-byte cap because the server TRUNCATES rather than raising: a truncated answer to 'how many recalled precursors went undispositioned' is not a smaller answer, it is a wrong one that looks exactly like a right one. This is the first time mainline_mcp.budget has been run against the live endpoint: packages/mainline-mcp/README.md 'Verification status' lists the prober's verdicts under what is proven OFFLINE at fixed byte counts, and docs/submission/mcp-real-plan.md records the same gap as defect D5."
+}
