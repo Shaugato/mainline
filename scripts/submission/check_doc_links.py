@@ -88,6 +88,8 @@ EXIT_USAGE = 2
 JUDGE_FACING: tuple[str, ...] = (
     "README.md",
     "VERIFY.md",
+    "ROADMAP.md",
+    "docs/submission/SUBMIT.md",
     "docs/submission/JUDGE-START.md",
     "docs/submission/FIRST-FIVE-MINUTES.md",
     "docs/submission/DEVPOST.md",

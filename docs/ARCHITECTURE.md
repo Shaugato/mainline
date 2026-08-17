@@ -45,7 +45,8 @@ database and is transcribed in `evidence/gate-refusal/`.)*
 
 ## Why no existing system does this
 
-Every permit-to-work system that ships today asks the same shape of question before it lets
+Every permit-to-work system we surveyed — six products, read against HSG250's thirteen essential
+elements — asks the same shape of question before it lets
 work start: **is the world all right at this moment?** Are the isolations in place. Is the gas
 test still in date. Is the welder's ticket valid. Those are good questions and this system
 asks them too.
@@ -57,7 +58,7 @@ request is reasonable.
 
 The question that fails is a different kind: **how did this rule get to be the way it is?**
 Judged-on-how-it-got-here is called **diachronic**. It is a question about the past of the
-rule rather than the state of the plant, and no shipping permit system can express it —
+rule rather than the state of the plant, and none of the products we surveyed can express it —
 because to express it you need the rule to remember what caused it to be written, and to
 still be remembering it five years after the author has gone.
 
@@ -106,19 +107,15 @@ Chapter 01 is the full mechanism. Every term used above is defined in the
 
 ## A note for anyone who went looking for this file before
 
-**There is no pre-existing `ARCHITECTURE.md` in this repository, and this page is not a
-summary of one.** `README.md:443` says where it went, in the repository's own words:
-
-> Design corpus: `ARCHITECTURE.md` and `BUILD_PLAN.md` live in a companion research
-> repository, not this one.
-
-That is accurate and it is confirmed here: a search of the whole tree for any file whose name
-contains `architect` returns nothing but the plan this wave was written from. So if a
-reference sent you looking for a design document that is not here, this is why.
+**This page was written on 2026-08-18 and there was no `ARCHITECTURE.md` in this repository
+before it.** Older documents in the tree refer to one; what they mean is the design corpus in a
+companion research repository, alongside `BUILD_PLAN.md`. Neither is here. So if a reference sent
+you looking for a design document you could not find, this is why — and this page is not a
+summary of it.
 
 What *is* here is the layer that matters most for checking a claim — a precise, dense,
 already-written corpus that this page and its five chapters link down into rather than
-replace. Nothing in it was edited by this wave. The main entries are
+replace. Nothing in it was edited when this page was written. The main entries are
 [`spec/TRAPPOINT-SPEC.md`](../spec/TRAPPOINT-SPEC.md) and the sixteen invariants beside it,
 [`docs/deploy/gate-run-contract.md`](deploy/gate-run-contract.md),
 [`docs/demo/LIVE-SEMANTICS.md`](demo/LIVE-SEMANTICS.md),

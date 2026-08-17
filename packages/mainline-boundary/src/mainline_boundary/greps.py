@@ -676,7 +676,11 @@ def _names_in(node: ast.AST) -> list[tuple[str, int]]:
 # 4. The must-not-claim list
 # ---------------------------------------------------------------------------
 
-CLAIM_TARGET_FILES: tuple[str, ...] = ("README.md", "VERIFY.md")
+#: `ROADMAP.md` was added 2026-08-18, the day it was created. It is a root-level outward-facing
+#: page that `README.md` links to twice, and it holds the limitations that moved OFF the README --
+#: which is precisely the shape of file a forbidden claim would migrate into unnoticed. A page
+#: outside this tuple is a page where the register asserts nothing.
+CLAIM_TARGET_FILES: tuple[str, ...] = ("README.md", "VERIFY.md", "ROADMAP.md")
 CLAIM_TARGET_DIRS: tuple[str, ...] = ("docs/deck", "docs/submission")
 
 GLOBAL_NEGATION = re.compile(

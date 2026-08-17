@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # Why ancestry
 
 A number in a maintenance procedure reads `135`. The manufacturer's figure is `150`. An
-engineer raises it back — technically correct, and every permit system on the market would
+engineer raises it back — technically correct, and every permit system we surveyed would
 approve the job.
 
 The number was lowered years ago, after a fire, by an author who wrote down why and then

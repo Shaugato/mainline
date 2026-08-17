@@ -21,9 +21,11 @@ specifies 150, and the alarm trips on hot afternoons. The clause on their screen
 at 135 °C"* and gives no reason. The fire is two documents and three clause numbers away, written by
 somebody who no longer works there.
 
-**Every permit-to-work system on the market approves that change.** Each checks the world as it is
-now — isolation in place, gas test valid, signature present. None can answer *why is this limit
-here*. The answer existed and somebody wrote it down. Nothing carried it to the person who needed it.
+**Every permit-to-work system we surveyed approves that change.** We read six commercial products
+against HSG250, the UK Health and Safety Executive's guide.[^src-survey] It lists the thirteen
+essential elements of a permit form. Each system checks the world as it is now: isolation in place,
+gas test valid, signature present. **None of the thirteen is *why*.** The answer existed and
+somebody wrote it down. Nothing carried it to the person who needed it.
 
 ## What this is
 
@@ -78,6 +80,7 @@ Those rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMI
 | `scripts/proof/live_beats.py --base-url <the address above>` | drives use case one off the deployed address and records the SQLSTATE the database produced for each beat |
 | `scripts/proof/memory_loop.py --base-url <the address above>` | STORE → RETRIEVE → ACT — an incident names a clause, a retrieval pass finds it, and it becomes an obligation that blocks the permit |
 
+[^src-survey]: `docs/demo/research/r3-operator.md` §1–§2 — HSG250 Figure 1's thirteen elements transcribed verbatim, and six products read from their own documentation: iPermit/IAMTech, Evotix, Intelex, DNV Synergi Life, FacilityBot and pisys. **We could not obtain product screenshots** — every vendor gates them behind a demo request — so this is what their documentation states, not what we saw on a screen. Six products is what we read; it is not a census of the market.
 [^src-fiction]: This is `docs/submission/MUST-NOT-CLAIM.md` §3 in that section's own wording.
 [^src-story]: Every date, label and setpoint above is transcribed from `verticals/mainline/fixtures/corpus/answer-key/spine.json` — `dates`, `revisions` and `proposed_2026`. The quoted revision-history line is `commit_message_2013` in `verticals/mainline/demo/script/CAMERA-STRINGS.yaml`, whose own header calls the arrow and the em dash load-bearing; `verticals/mainline/demo/script/validate_shotlist.py` asserts it byte-equal across the shot list.
 [^src-gate]: `scripts/proof/gate_refusal.py` attempts the merge over SQL with no console and no application in the path, and records the refusal `23514 gate_closed_when_issued` [src: evidence/gate-refusal/proof-20260810T054407Z.json]. What that run does and does not entitle us to say is in the sections below.
@@ -89,7 +92,7 @@ Those rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMI
 A **`CHECK` constraint** is a rule the database applies to every write, from every client, with no way to
 ask it nicely. Application code can be patched, bypassed or forgotten; a `CHECK` cannot. So the design is
 one move: take a fact that lives across many rows, write it as a number on the row being written, and put
-a `CHECK` on that number. Every shipping permit system is **synchronic** — it gates on the current state
+a `CHECK` on that number. Every permit system we surveyed is **synchronic** — it gates on the current state
 of the world. This one is **diachronic**: it gates on *blame ancestry*, the chain of past events that
 wrote the rule. Three steps, each stated plainly and then precisely.
 
@@ -279,20 +282,20 @@ that no longer exists.**
 [`docs/HONESTY.md`](docs/HONESTY.md) is what is proven, what is authored and what is not built, every number carrying the
 artefact that produced it — and `tests/release/test_honesty_is_checkable.py` fails the build when a number and its source
 disagree. [`docs/submission/MUST-NOT-CLAIM.md`](docs/submission/MUST-NOT-CLAIM.md) prints the flattering sentence we may
-not say beside the true one. **The six lines below summarise those two pages and do not replace them.**
+not say beside the true one. **The two bullets below summarise those two pages and do not replace them.**
 
-* **The conformance suite has never been demonstrated.** Of 71 declared cases, a first census records 55 that could not run at all, 6 red and 10 that held [src: qa/conformance-census.json#totals]. A modest first result is not a passing suite.
-* **The corpus is authored, and the model transcripts are recorded cassettes** — saved request-and-response pairs replayed offline. A green agent test shows our code handles that recorded exchange; it shows nothing about a live model today.
 * **The reference-ledger keys are named `NOT-SECRET` because they are** — published on purpose, so a stranger can verify the offline bundle without asking anyone for a credential.
-* **Lint and types are counted, not clean** — frozen ratchets that may fall and may not rise: 671 `ruff check` findings [src: qa/ruff-ratchet.json#lint.total] and 0 `mypy` errors [src: qa/mypy-ratchet.json#total_errors] over the 660 files mypy checks. The lint half is red today.
 * **Every timing in the demo is a local timing** — one single-node CockroachDB in Docker on one laptop. Inference runs on Bedrock in Sydney while the database is in Singapore, so end-to-end Australian residency is false here and the hop is unmeasured under load.
-* **Nothing has ever run against CockroachDB Cloud in CI.** The cluster exists and a captured human session is under `evidence/ccloud/`. No automated lane has ever pointed at it.
+
+**What is not built yet, and what we are doing next, is in [`ROADMAP.md`](ROADMAP.md).** It carries the conformance
+suite, the recorded model transcripts, the counted lint findings, and the automated CI lane that has never pointed at
+the managed cluster.
 
 ## Repository, licence, status, corrections
 
 | Path | Contents | Licence |
 |---|---|---|
-| `spec/` · `packages/trappoint-*` · `skills/` · `scripts/` | the substrate anyone may fork: specification, invariants, SQL templates, gate runtime, offline verifier, Model Context Protocol surface, conformance suite, Agent Skills, and the proof | Apache-2.0 |
+| `spec/` · `packages/trappoint-*` · `skills/` · `scripts/` | the substrate anyone may fork: specification, invariants, SQL templates, gate runtime, offline verifier, Model Context Protocol surface, the proof, and two things that are on disk without being demonstrated — Agent Skills (**DESIGNED**) and a conformance suite that runs **10 of its 71 declared cases** [src: qa/conformance-census.json#totals] | Apache-2.0 |
 | `verticals/mainline/` · `infra/` | the product: domain lattice, gate service, recall agent, custody relay, console, OpenTofu modules | LicenseRef-FSL-1.1-ALv2 |
 | `evidence/` · `qa/` · `docs/` | transcripts, captured tool evidence, a reference ledger a stranger can check offline, the counted ratchets, and every decision record | CC-BY-4.0 |
 
@@ -307,11 +310,8 @@ cannot carry a header, [`docs/submission/LICENSING.md`](docs/submission/LICENSIN
 [`docs/CI-STATE.md`](docs/CI-STATE.md) before drawing a conclusion from a colour: some reds report a true
 incompleteness — seven of sixteen custody checks unwritten — and others are jobs that died in the runner's network.
 
-**This page's own gate is one of the reds.** `scripts/submission/check_readme_readability.py` asks seven mechanical
-questions about whether a stranger can read this file. Six are green. The seventh, a byte ceiling of 26,000, is **red at
-about 30,000** — the number we set before writing, and the page did not fit inside it without deleting claims that carry
-their evidence. We left the ceiling where it was and the file over it, rather than move a number to make a red go away
-or quietly drop a citation. The layer-1 budget, which is the one that governs the first sixty seconds, is green.
+[`ROADMAP.md`](ROADMAP.md) accounts for one more red that neither of those categories covers: this page's own
+readability gate.
 
 **Corrections.** One row per claim this page used to make and no longer does — collected, not deleted.
 

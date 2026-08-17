@@ -59,6 +59,7 @@ EXIT_USAGE = 2
 #: with the MNC families, so scanning it twice is two different questions, not one twice.
 TARGET_GLOBS: tuple[str, ...] = (
     "README.md",
+    "ROADMAP.md",
     "docs/submission/*.md",
     "docs/TOOL-USAGE.md",
 )
@@ -319,7 +320,24 @@ def is_register(text: str) -> bool:
 
 
 def scan_text(path: Path, text: str, hygiene: ModuleType) -> list[Finding]:
-    """Apply the SUB rules to one file, honouring each rule's own negation policy."""
+    """Apply the SUB rules to one file, honouring each rule's own negation policy.
+
+    A KNOWN BLIND SPOT, RECORDED 2026-08-18 RATHER THAN LEFT AS FOLKLORE. This scans PHYSICAL
+    lines, so a rule's negation exemption only sees the words on the same wrapped line. That
+    cuts both ways and the second way is the dangerous one:
+
+    * A sanctioned sentence that happens to wrap FIRES. `ROADMAP.md` hit this the first time
+      it was scanned: it carried SUB-09's `say_instead` verbatim, hard-wrapped, and the word
+      `Nothing` landed on the line above the match. Worked around by keeping the sentence on
+      one line, which is a convention and not a fix.
+    * A real claim whose disclaimer sits ONE LINE AWAY passes, and nothing reports that it
+      passed for a reason nobody chose.
+
+    `scripts/submission/check_readme_readability.py` made the opposite call for its own
+    families and wrote down why -- where a line ends is a fact about the author's editor and
+    not about the prose -- and this program should be moved onto the same block model. It has
+    not been, because doing it an hour before a deadline is how a checker starts lying.
+    """
     findings: list[Finding] = []
     for line_no, raw in enumerate(text.splitlines(), start=1):
         line = raw.strip()

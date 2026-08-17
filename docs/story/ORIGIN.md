@@ -10,7 +10,7 @@ alarm is set to trip at `135`. The manufacturer's manual says `150`. They propos
 back to `150`.
 
 Everything about that is defensible. The number they are moving to is the manufacturer's own.
-The equipment register agrees with them. Every permit-and-change system on the market would
+The equipment register agrees with them. Every permit-and-change system we surveyed would
 let it through, because every one of them asks the same question — *does the paperwork in
 front of me satisfy today's rules?* It does.
 
@@ -90,7 +90,7 @@ puts it in one line — *an attacker who owns the counter does not own the gate.
 
 ## Checking the present, and checking the past
 
-Every permit and document-control system that ships today is **synchronic** — it checks the
+Every permit and document-control system we surveyed is **synchronic** — it checks the
 world as it is right now: isolation in place, gas test valid, signature present. MAINLINE is
 **diachronic** — it checks what a decision depends on and what happened to it — and that
 argument, with the dated prior-art sweep behind it, is stated at full depth in
