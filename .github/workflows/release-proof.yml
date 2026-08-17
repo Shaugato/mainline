@@ -73,7 +73,7 @@ jobs:
     # is a floating tag, and dev/CI schema skew is the drift the schema fingerprint
     # exists to catch, not to introduce.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Read the ONE version constant out of compose.yaml
         id: image
@@ -158,7 +158,7 @@ jobs:
           docker exec mainline-crdb ./cockroach sql --insecure -e \
             "SHOW ZONE CONFIGURATION FOR RANGE default;"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -203,7 +203,7 @@ jobs:
       # step before it was red is how a lane becomes unfalsifiable.
       - name: Upload the evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gate-refusal-evidence-${{ github.run_id }}
           path: |
@@ -406,7 +406,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Read the ONE version constant out of compose.yaml
         id: image
@@ -460,7 +460,7 @@ jobs:
           done
           docker exec mainline-crdb-red ./cockroach sql --insecure -e "SELECT version();"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
