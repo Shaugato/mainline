@@ -41,7 +41,7 @@ Homepage = "https://github.com/Shaugato/mainline"
 trappoint-render = "trappoint_sql.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.16.3"]
 
 [build-system]
 requires = ["hatchling>=1.27"]
