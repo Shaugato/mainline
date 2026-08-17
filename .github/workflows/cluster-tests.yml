@@ -111,7 +111,7 @@ jobs:
       COLLECTED_FLOOR: "445"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ── CONTRACT B, copied from `db-schema.yml:310-450`. Five steps, and the fourth
       #    is the one that matters. ────────────────────────────────────────────────────
@@ -484,7 +484,7 @@ jobs:
         # one problem. `ignore` would be wrong the other way — a missing artefact after a
         # run that DID reach pytest is worth a line in the log.
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cluster-lane-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -538,7 +538,7 @@ jobs:
         # purpose — that one is what pytest said, this one is what CockroachDB said, and
         # the whole point of R8 is that those two are not the same document.
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cluster-engine-${{ github.run_id }}-${{ github.run_attempt }}
           path: crdb-engine.log
