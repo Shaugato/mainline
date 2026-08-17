@@ -40,7 +40,7 @@ Homepage = "https://github.com/Shaugato/mainline"
 trappoint-jcs = { workspace = true }
 
 [dependency-groups]
-dev = ["pytest>=8.2", "hypothesis>=6.100"]
+dev = ["pytest>=8.2", "hypothesis>=6.165.7"]
 
 [build-system]
 requires = ["hatchling>=1.27"]

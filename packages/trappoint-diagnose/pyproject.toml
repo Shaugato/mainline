@@ -55,7 +55,7 @@ Homepage = "https://github.com/Shaugato/mainline"
 trappoint-diagnose = "trappoint_diagnose.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6", "psycopg[binary]>=3.3.4"]
+dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.16.3", "psycopg[binary]>=3.3.4"]
 
 [build-system]
 requires = ["hatchling>=1.27"]

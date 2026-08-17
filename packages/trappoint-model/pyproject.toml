@@ -33,7 +33,7 @@ classifiers = [
 # four refusal codes were not, and a blanket-retry helper makes that unobservable.
 dependencies = [
   "psycopg[binary]>=3.3.4",
-  "hypothesis>=6.165",
+  "hypothesis>=6.165.7",
 ]
 
 [project.urls]

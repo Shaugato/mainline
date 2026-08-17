@@ -48,7 +48,7 @@ Homepage = "https://github.com/Shaugato/mainline"
 trappoint_testkit = "trappoint_testkit.plugin"
 
 [dependency-groups]
-dev = ["pytest>=8.2", "pytest-timeout>=2.3", "mypy>=1.11", "ruff>=0.6"]
+dev = ["pytest>=8.2", "pytest-timeout>=2.3", "mypy>=1.11", "ruff>=0.16.3"]
 
 [build-system]
 requires = ["hatchling>=1.27"]
