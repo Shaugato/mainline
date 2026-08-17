@@ -1,0 +1,208 @@
+<!--
+SPDX-FileCopyrightText: 2026 MAINLINE contributors
+SPDX-License-Identifier: CC-BY-4.0
+
+MAINLINE — architecture diagram for the CockroachDB x AWS hackathon, optional
+requirement 6: "an architectural diagram showing how CockroachDB, AWS services,
+and your agent interact."
+
+Self-contained: no external font, no remote image, no script, no third-party logo
+or trademark. Colours are declared explicitly and the page is painted on an opaque
+panel, so it reads the same on a light or a dark host background.
+
+The text caption that carries this diagram without the picture — for a phone, a
+screen reader or a printed page — is docs/submission/DIAGRAMS.md section 1.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1104" width="1240" height="1104"
+     role="img" aria-labelledby="ttl dsc">
+  <title id="ttl">MAINLINE architecture: how a judge's request reaches a refusal</title>
+  <desc id="dsc">A judge's browser or curl, holding no credential, calls a public AWS Lambda Function URL in ap-southeast-1. The Lambda runs the demo API and reads its database connection string from AWS Systems Manager Parameter Store. It speaks to CockroachDB Cloud Basic over pgwire, where three steps make the refusal: a trigger projects the count of unanswered obligations onto the row being written, a composite foreign key pins a finished merge to its epoch, and a named CHECK constraint refuses. Amazon CloudWatch holds the function's log group and alarms and separately reads the AWS/Bedrock counters. Drawn outside the request path, in a dashed panel: MAINLINE's recall agent with Amazon Bedrock in ap-southeast-2, the CockroachDB Cloud Managed MCP Server, and CockroachDB Agent Skills which is designed and not exercised.</desc>
+
+  <style>
+    .bg      { fill: #F6F5F0; }
+    .frame   { fill: none; stroke: #DCD8CB; stroke-width: 1; }
+    .panel   { fill: #FFFFFF; stroke: #C3BEAF; stroke-width: 1.25; }
+    .panelhi { fill: #FFFFFF; stroke: #6F6959; stroke-width: 1.75; }
+    .inner   { fill: #FBFAF6; stroke: #CFCABB; stroke-width: 1; }
+    .outside { fill: #ECEAE1; stroke: #A29C8B; stroke-width: 1.5; stroke-dasharray: 7 5; }
+    .outbox  { fill: #F7F6F1; stroke: #C0BAA9; stroke-width: 1; }
+    .rule    { stroke: #CFCABB; stroke-width: 1; }
+
+    text     { font-family: "Inter", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+               fill: #1C1B18; }
+    .h1      { font-size: 26px; font-weight: 700; letter-spacing: -0.2px; }
+    .sub     { font-size: 12.5px; fill: #4A473E; }
+    .sect    { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; fill: #7A7565; }
+    .bt      { font-size: 15px; font-weight: 650; }
+    .bt2     { font-size: 13.5px; font-weight: 650; }
+    .bt3     { font-size: 16px; font-weight: 700; }
+    .body    { font-size: 12.5px; fill: #35322B; }
+    .body12  { font-size: 12px; fill: #35322B; }
+    .small   { font-size: 11px; fill: #57544B; }
+    .foot    { font-size: 11px; fill: #6B6759; }
+    .mono    { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+               font-size: 11px; fill: #7A3A31; }
+    .step    { font-size: 13px; font-weight: 700; fill: #8C3A2C; letter-spacing: 0.4px; }
+    .arrow   { stroke: #5E5A4E; stroke-width: 1.8; fill: none; }
+    .arrowd  { stroke: #8A8576; stroke-width: 1.5; fill: none; stroke-dasharray: 4 4; }
+  </style>
+
+  <defs>
+    <marker id="ah" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,4 L0,8 z" fill="#5E5A4E"/>
+    </marker>
+    <marker id="ahd" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,4 L0,8 z" fill="#8A8576"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1240" height="1104"/>
+  <rect class="frame" x="0.5" y="0.5" width="1239" height="1103"/>
+
+  <!-- ── header ────────────────────────────────────────────────────────────── -->
+  <text class="h1" x="40" y="48">MAINLINE — how a judge's request reaches a refusal</text>
+  <text class="sub" x="40" y="74">Everything above the dashed panel is on the live request path a judge can call today. The dashed panel is real in this repository and is not called while a judge is looking.</text>
+  <text class="sub" x="40" y="93">Service and product names are plain text; no logo or trademark appears in this image. Every label's source is listed in docs/submission/DIAGRAMS.md.</text>
+  <line class="rule" x1="40" y1="108" x2="1200" y2="108"/>
+
+  <text class="sect"  x="40" y="130">THE DEMO'S REQUEST PATH</text>
+  <text class="small" x="252" y="130">— no agent and no model runs here; the four beats a judge presses are SQL. MAINLINE's agent is in the dashed panel at the foot.</text>
+
+  <!-- ── A · the caller ────────────────────────────────────────────────────── -->
+  <rect class="panel" x="40" y="140" width="580" height="70" rx="5"/>
+  <text class="bt"   x="58" y="167">A judge's browser, or curl</text>
+  <text class="body" x="58" y="190">No account. No login. No credential of ours. Nothing to install.</text>
+
+  <path class="arrow" d="M330,210 L330,250" marker-end="url(#ah)"/>
+  <text class="small" x="344" y="227">HTTPS, anonymous</text>
+  <text class="small" x="344" y="243">GET /v1/health   ·   POST /v1/demo/gate-run</text>
+
+  <!-- ── B · the Function URL ──────────────────────────────────────────────── -->
+  <rect class="panel" x="40" y="252" width="580" height="82" rx="5"/>
+  <text class="bt"   x="58" y="279">AWS Lambda Function URL — ap-southeast-1 (Singapore)</text>
+  <text class="body" x="58" y="302">authorization_type = NONE — open on purpose. An IAM-signed URL with nothing</text>
+  <text class="body" x="58" y="320">authorised to sign for it would be a demo nobody, including a judge, could reach.</text>
+
+  <path class="arrow" d="M330,334 L330,360" marker-end="url(#ah)"/>
+
+  <!-- ── C · the Lambda ────────────────────────────────────────────────────── -->
+  <rect class="panel" x="40" y="362" width="580" height="100" rx="5"/>
+  <text class="bt"   x="58" y="389">AWS Lambda — the demo API</text>
+  <text class="body" x="58" y="412">Python 3.13 on arm64 · 256 MB · 14-second timeout · ap-southeast-1 (Singapore)</text>
+  <text class="body" x="58" y="430">It carries no AWS SDK. The one AWS call it makes — to Parameter Store, right —</text>
+  <text class="body" x="58" y="448">is signed by hand, so the package behaves the same on a laptop and in Lambda.</text>
+
+  <!-- Lambda → Parameter Store -->
+  <path class="arrow" d="M620,412 L672,412" marker-end="url(#ah)"/>
+
+  <!-- Lambda → CloudWatch (logs) -->
+  <path class="arrowd" d="M620,390 L650,390 L650,240 L672,240" marker-end="url(#ahd)"/>
+  <text class="small" x="644" y="336" transform="rotate(-90 644 336)">logs</text>
+
+  <!-- ── E · CloudWatch ────────────────────────────────────────────────────── -->
+  <rect class="panel" x="680" y="140" width="520" height="186" rx="5"/>
+  <text class="bt"   x="698" y="167">Amazon CloudWatch</text>
+  <text class="body" x="698" y="191">The function's log group and its four metric alarms exist in the account.</text>
+  <text class="body" x="698" y="209">No record in this repository shows any alarm ever firing, so what is</text>
+  <text class="body" x="698" y="227">evidenced here is the alarm, never the threshold.</text>
+  <text class="body" x="698" y="253">Separately, and off the request path: read-only calls read the</text>
+  <text class="body" x="698" y="271">AWS/Bedrock counters — invocations and token counts — that witness the</text>
+  <text class="body" x="698" y="289">model runs in the dashed panel below. Those counters are the one witness</text>
+  <text class="body" x="698" y="307">in this project that AWS wrote and we did not.</text>
+
+  <!-- ── D · Parameter Store ───────────────────────────────────────────────── -->
+  <rect class="panel" x="680" y="362" width="520" height="100" rx="5"/>
+  <text class="bt"   x="698" y="389">AWS Systems Manager Parameter Store</text>
+  <text class="body" x="698" y="412">Holds the database connection string, encrypted. The function reads it</text>
+  <text class="body" x="698" y="430">once when it starts cold, then keeps it in memory. It is never an</text>
+  <text class="body" x="698" y="448">environment variable, so it is not in the configuration anyone can list.</text>
+
+  <path class="arrow" d="M330,462 L330,500" marker-end="url(#ah)"/>
+  <text class="small" x="344" y="479">pgwire over TLS   ·   same region</text>
+
+  <!-- ── F · CockroachDB ───────────────────────────────────────────────────── -->
+  <rect class="panelhi" x="40" y="502" width="1160" height="302" rx="6"/>
+  <text class="bt3"    x="64" y="530">CockroachDB Cloud — Basic tier</text>
+  <text class="body12" x="64" y="552">cluster mainline-dev · database mainline_demo · CockroachDB CCL v26.2.5 · aws-ap-southeast-1 (Singapore) · migration chain 271 of 271 applied</text>
+
+  <!-- step 1 -->
+  <rect class="inner" x="64" y="566" width="344" height="180" rx="4"/>
+  <text class="step"   x="80" y="590">1 · PROJECT</text>
+  <text class="body12" x="80" y="612">Two triggers — rules the database runs itself</text>
+  <text class="body12" x="80" y="628">on every write. One fills in an obligation's</text>
+  <text class="body12" x="80" y="644">severity from the record of what caused the</text>
+  <text class="body12" x="80" y="660">rule, overwriting whatever the writer gave it.</text>
+  <text class="body12" x="80" y="676">The other adds one to a plain count on the</text>
+  <text class="body12" x="80" y="692">permit row. Neither takes the writer's word.</text>
+  <text class="mono"   x="80" y="714">check_project · check_materialised</text>
+
+  <path class="arrow" d="M412,650 L442,650" marker-end="url(#ah)"/>
+
+  <!-- step 2 -->
+  <rect class="inner" x="448" y="566" width="344" height="180" rx="4"/>
+  <text class="step"   x="464" y="590">2 · PIN</text>
+  <text class="body12" x="464" y="612">The same trigger ticks an epoch — a counter</text>
+  <text class="body12" x="464" y="628">that rises whenever a new obligation appears.</text>
+  <text class="body12" x="464" y="644">A finished merge takes a composite foreign key</text>
+  <text class="body12" x="464" y="660">onto the permit and the epoch it finished</text>
+  <text class="body12" x="464" y="676">under, so a new obligation cannot be attached</text>
+  <text class="body12" x="464" y="692">to a merge already done. Not refused: it</text>
+  <text class="body12" x="464" y="708">cannot be expressed.</text>
+  <text class="mono"   x="464" y="730">epoch_pin_permit (permit_id, gate_epoch)</text>
+
+  <path class="arrow" d="M796,650 L826,650" marker-end="url(#ah)"/>
+
+  <!-- step 3 -->
+  <rect class="inner" x="832" y="566" width="344" height="180" rx="4"/>
+  <text class="step"   x="848" y="590">3 · REFUSE</text>
+  <text class="body12" x="848" y="612">A named CHECK constraint rejects the write: a</text>
+  <text class="body12" x="848" y="628">permit may not reach merged while that count is</text>
+  <text class="body12" x="848" y="644">above zero. SQLSTATE 23514 is the five-character</text>
+  <text class="body12" x="848" y="660">code a database returns for a violated CHECK.</text>
+  <text class="body12" x="848" y="676">Forge the count and the gate's own function</text>
+  <text class="body12" x="848" y="692">re-derives it and raises P0001 instead.</text>
+  <text class="mono"   x="848" y="714">gate_closed_when_issued</text>
+  <text class="mono"   x="848" y="730">mainline.fn_permit_merge_gate</text>
+
+  <text class="body12" x="64" y="772">Beat three forges the projected count to zero and tries the merge again. It is refused anyway, because the gate re-derives the count rather than trusting it.</text>
+  <text class="body12" x="64" y="790">All four beats run in one SERIALIZABLE transaction that ends in ROLLBACK — persisted: false. Use case 2, the change request, refuses the same way and has no admission beat.</text>
+
+  <!-- ── G · outside the request path ──────────────────────────────────────── -->
+  <rect class="outside" x="40" y="822" width="1160" height="240" rx="6"/>
+  <text class="sect"   x="64" y="852">OUTSIDE THE DEMO'S REQUEST PATH — REAL IN THIS REPOSITORY, NOT CALLED WHILE A JUDGE IS LOOKING</text>
+  <text class="body12" x="64" y="874">The four beats a judge presses are SQL against CockroachDB and call no model. Drawing Amazon Bedrock inside the path above would be an overclaim.</text>
+
+  <rect class="outbox" x="64" y="888" width="344" height="158" rx="4"/>
+  <text class="bt2"    x="80" y="912">The recall agent · Amazon Bedrock</text>
+  <text class="body12" x="80" y="934">The program that reads the site's memory runs</text>
+  <text class="body12" x="80" y="950">here in the repository, not in the Lambda</text>
+  <text class="body12" x="80" y="966">above. It calls Amazon Bedrock — Claude to</text>
+  <text class="body12" x="80" y="982">reason, Titan Text Embeddings v2 for the</text>
+  <text class="body12" x="80" y="998">numbers that stand for a clause — in region</text>
+  <text class="body12" x="80" y="1014">ap-southeast-2 (Sydney). It then searches</text>
+  <text class="body12" x="80" y="1030">CockroachDB's vector index for nearby clauses.</text>
+
+  <rect class="outbox" x="448" y="888" width="344" height="158" rx="4"/>
+  <text class="bt2"    x="464" y="912">CockroachDB Cloud Managed MCP Server</text>
+  <text class="body12" x="464" y="934">A second channel, separate from the path</text>
+  <text class="body12" x="464" y="950">above, and it has been exercised: 15 of 16</text>
+  <text class="body12" x="464" y="966">questions answered, with the run's own verdict</text>
+  <text class="body12" x="464" y="982">left at DIVERGED — KNOWN GAP. It needs our</text>
+  <text class="body12" x="464" y="998">CockroachDB Cloud key, which we cannot</text>
+  <text class="body12" x="464" y="1014">publish — so it can never be the way a judge</text>
+  <text class="body12" x="464" y="1030">gets in.</text>
+
+  <rect class="outbox" x="832" y="888" width="344" height="158" rx="4"/>
+  <text class="bt2"    x="848" y="912">CockroachDB Agent Skills — DESIGNED</text>
+  <text class="body12" x="848" y="934">Written, on disk, each shipping a script a</text>
+  <text class="body12" x="848" y="950">reader can run. No run of either is recorded</text>
+  <text class="body12" x="848" y="966">under evidence/. It is drawn here as a note</text>
+  <text class="body12" x="848" y="982">rather than as a path, because nothing in</text>
+  <text class="body12" x="848" y="998">this repository has exercised it. A box with</text>
+  <text class="body12" x="848" y="1014">an arrow into the picture would be a claim</text>
+  <text class="body12" x="848" y="1030">we have not earned.</text>
+
+  <text class="foot" x="40" y="1086">MAINLINE · CockroachDB x AWS, "Build with Agentic Memory" · the file and line behind every label on this diagram is listed in docs/submission/DIAGRAMS.md section 1.</text>
+</svg>

@@ -176,7 +176,7 @@ repository contains.
 
 | # | tool, in the criterion's own order | verdict | **what the agent actually did with it** |
 |---|---|---|---|
-| 1 | **Distributed vector index** — C-SPANN `VECTOR INDEX` | **EXERCISED** | The agent's **recall path issues prefix-constrained ANN queries** over the clause-embedding sidecars — the index named in the statement (`FROM ce@ce_ann`) with every prefix column pinned to a single value — to fetch the precursor clauses it then reasons over. **It does not trust its own recall:** the plan is read back and asserted, because the unhinted plan is a declared `FULL SCAN` that returns plausible rows, so a silent degradation would be indistinguishable from working retrieval. Measured on the pinned local node 2026-08-12 (`• vector search` hinted, `FULL SCAN` unhinted), and `skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py` is the committed assertion that goes red when the plan stops choosing the index. See *Tool 1 → C-SPANN vector index*. |
+| 1 | **Distributed vector index** — C-SPANN `VECTOR INDEX` | **EXERCISED** | The agent's **recall path issues prefix-constrained ANN queries** over the clause-embedding sidecars — the index named in the statement (`FROM ce@ce_ann`) with every prefix column pinned to a single value — to fetch the precursor clauses it then reasons over. **It does not trust its own recall:** the plan is read back and asserted, because a plan that degrades to a declared `FULL SCAN` returns plausible rows, so a silent degradation would be indistinguishable from working retrieval. Pinning the prefix is what makes the index traverse; **the hint is belt-and-braces, and the claim that it was load-bearing is struck** — `docs/upstream/STRIKE-LEDGER.md` §2 (F03). `skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py` is the committed assertion that goes red when the plan stops choosing the index. See *Tool 1 → C-SPANN vector index*. |
 | 2 | **MCP Server** — CockroachDB Cloud Managed MCP | **EXERCISED** | An MCP client dialled **CockroachDB's own managed endpoint** and drove the sixteen-question judge pack over `select_query` and `explain_query` against the live Basic cluster — reading MAINLINE's contracted `mainline_audit` views **with none of our code in the read path**. It asked the general-counsel question *what is the gate refusing right now?* and `v_open_gate_summary` answered with one row, `open_blocking = 1`. **Read verbs only: no write verb was ever sent**, and the capture program enforces that at the transport rather than promising it. See *Tool 3*. |
 | 3 | **`ccloud` CLI** | **EXERCISED** | Ran `ccloud auth whoami` then `ccloud cluster list -o json` and **parsed the structured output rather than screen-scraping it**, reading the cluster's version, region, plan and `spend_limit` off JSON. Then it did the harder thing: on measuring that `0.6.12` **cannot authenticate headlessly**, it did not claim the capability — headless paths use the Cloud REST API with the same key, and the limitation is published. See *Tool 2*. |
 | 4 | **Agent Skills** — beyond the floor, not in the criterion | **DESIGNED** | **Nothing this repository records — stated plainly rather than dressed up.** Two authored skills and one staged upstream contribution are written for an agent to consume, and each ships an *executable assertion* instead of advice. But **no run of either script is captured under `evidence/`**, so the honest answer to *what did the agent do with them* is: they are shipped and not yet evidenced. This row is **not** promoted to EXERCISED to make the table look even. See *Tool 4*. |
@@ -358,16 +358,25 @@ EXPLAIN … FROM ce@ce_ann WHERE site=… AND       →  • vector search
                                                                    - /'s1'/'hot-work']
 ```
 
-The unhinted plan does not merely omit the index — it is a declared **`FULL SCAN`**, which
-is the failure mode worth naming: an ANN query that silently degrades to a full scan returns
-plausible rows and hides a design error behind them.
+Note what differs between those two statements: it is **not only the hint**. The first also
+leaves the prefix columns unconstrained. Read as a hint-versus-no-hint comparison it is not a
+controlled one, and we published it as such for ten days.
 
-**The index is chosen only when explicitly hinted**, and only with every prefix column
-constrained to a single value. That is a platform fact with a design consequence: the
-recall path writes the hint, and an ANN query that quietly fell back to a full scan would
-otherwise be indistinguishable from one that did not.
-`skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py` exists to
-fail when the plan stops using the index.
+**Corrected 2026-08-18.** A controlled sweep — same filters, hint removed, row counts 0, 200,
+1,100 and 5,300 — shows the optimizer choosing `ce_ann` **without being asked**, at every size
+including the 5,200 our earlier note named. The claim *"the index is chosen only when explicitly
+hinted"* is **struck**, not softened: [`docs/upstream/STRIKE-LEDGER.md`](upstream/STRIKE-LEDGER.md)
+§2, finding F03. The artefact we had cited as its proof,
+[`evidence/aws/ann/explain-unhinted.txt`](../evidence/aws/ann/explain-unhinted.txt), records the
+refutation in its own body.
+
+**What survives, and is the load-bearing half:** the index is traversed when every prefix column
+is pinned to a single value, and a declared `FULL SCAN` is the failure mode worth naming, because
+an ANN query that silently degrades to one returns plausible rows and hides a design error behind
+them. So the recall path pins the prefix, keeps the hint as belt-and-braces, and asserts the plan
+rather than trusting it —
+`skills/designing-vector-recall-prefixes/scripts/assert_prefix_index_used.py` exists to fail when
+the plan stops using the index.
 
 #### `AS OF SYSTEM TIME` and follower reads — including where they stop
 

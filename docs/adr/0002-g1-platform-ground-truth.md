@@ -17,7 +17,7 @@ Executed against the live cluster. Every row below was **run**, not read from do
 | GT-03 | `feature.vector_index.enabled` | **`true` by default** | No cluster-setting change needed; the feasibility pass's correction holds |
 | GT-04 | `VECTOR(n)` + prefix-column vector index on **Basic** | **Created** | **The single largest platform risk is retired.** No paid tier, no self-hosting |
 | GT-05 | Vector inserts (5,200 rows, batched) | OK | `IMPORT INTO` avoidance strategy is sound |
-| GT-06 | Prefix-constrained ANN, **unhinted** | **Index NOT used** — plan is `top-k → render → filter → scan` | **See "The finding" below** |
+| GT-06 | Prefix-constrained ANN, **unhinted** | **Index NOT used** — plan is `top-k → render → filter → scan` | ⚠ **SUPERSEDED 2026-08-18 — did not reproduce.** See the correction below |
 | GT-06b | Same query with `@index_name` hint | **Index used** | ANN traversal works; the optimizer is the variable, not the index |
 | GT-07 | `gc.ttlseconds` | **4500** (75 minutes) | Tighter than the 14400 assumed in ARCHITECTURE.md §5 |
 | GT-08 | PL/pgSQL trigger with `RAISE EXCEPTION` | OK | The PROJECT and REFUSE halves of TRAPPOINT are available |
@@ -32,6 +32,19 @@ Executed against the live cluster. Every row below was **run**, not read from do
 Session variables observed, confirming the ANN machinery is present and tunable: `vector_search_beam_size = 32`, `vector_search_rerank_multiplier = 50`.
 
 ## The finding that changes a design decision
+
+> ⚠ **SUPERSEDED 2026-08-18. GT-06 did not reproduce, and this section is kept as the record of
+> what we believed on the day, not as a statement of fact.** A controlled sweep — same filters,
+> hint removed, at 0, 200, 1,100 and 5,300 rows — shows the optimizer choosing the vector index
+> **unasked**, including at the 5,200 named below. A CockroachDB Cloud run on 2026-08-11 had
+> already recorded `GT-06 reproduces: False` and nobody joined it up.
+> Full account: [`docs/upstream/STRIKE-LEDGER.md`](../upstream/STRIKE-LEDGER.md) §2, finding F03.
+>
+> **The decision below still stands, for a different and narrower reason.** The recall arms pin
+> the index and assert the plan — not because the optimizer needs persuading, but because a plan
+> that degrades to a scan returns plausible rows, and an assertion is how that gets noticed. What
+> is load-bearing is pinning every **prefix column** to a single value; the `@idx_name` hint is
+> belt-and-braces.
 
 **At 5,200 rows the optimizer does not choose the vector index.** The unhinted plan filters *after* scanning. The index is traversed only when named explicitly (`FROM tbl@idx_name`).
 

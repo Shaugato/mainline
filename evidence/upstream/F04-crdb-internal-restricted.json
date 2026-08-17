@@ -1,0 +1,700 @@
+{
+  "generated_by": "scripts/upstream/repro_vector_and_catalogue.py",
+  "generated_at": "2026-08-17T17:18:50Z",
+  "started_at": "2026-08-17T17:18:04Z",
+  "exam": {
+    "name": "local single-node CCL",
+    "server_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "dsn_shape": "postgresql://root@localhost:26257/<scratch>?sslmode=disable",
+    "scratch_database": "upstream_f03_98b6e74a",
+    "scratch_database_dropped": true,
+    "vector_search_beam_size": "32",
+    "vector_search_rerank_multiplier": "50"
+  },
+  "not_measured_here": [
+    "CockroachDB Cloud Basic -- not re-run today; see arms labelled ARCHIVED-EVIDENCE",
+    "the mainline_demo database -- never touched by this program"
+  ],
+  "finding": "F04",
+  "title": "The bookkeeping tables, and the alternative the refusal does not name",
+  "arms": {
+    "local_single_node_today": {
+      "label": "REPRODUCED-TODAY",
+      "tier": "local single-node CCL",
+      "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "role": "root",
+      "measured_on": "2026-08-17T17:18:04Z",
+      "default_session_state": {
+        "statement": "SHOW allow_unsafe_internals",
+        "answered": true,
+        "sqlstate": "00000",
+        "columns": [
+          "allow_unsafe_internals"
+        ],
+        "rows": [
+          [
+            "off"
+          ]
+        ],
+        "row_count": 1,
+        "ms": 0.8
+      },
+      "restricted_by_default": [
+        {
+          "target": "crdb_internal.tables",
+          "statement": "SELECT count(*) FROM crdb_internal.tables",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 0.9
+        },
+        {
+          "target": "crdb_internal.table_indexes",
+          "statement": "SELECT count(*) FROM crdb_internal.table_indexes",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 0.7
+        },
+        {
+          "target": "crdb_internal.jobs",
+          "statement": "SELECT count(*) FROM crdb_internal.jobs",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 0.6
+        },
+        {
+          "target": "crdb_internal.gossip_nodes",
+          "statement": "SELECT count(*) FROM crdb_internal.gossip_nodes",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 0.8
+        },
+        {
+          "target": "crdb_internal.cluster_id()",
+          "statement": "SELECT crdb_internal.cluster_id()",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 1.1
+        },
+        {
+          "target": "system.namespace",
+          "statement": "SELECT count(*) FROM system.namespace",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 1.0
+        }
+      ],
+      "not_restricted": [
+        {
+          "target": "information_schema.tables",
+          "statement": "SELECT count(*) FROM information_schema.tables",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "count"
+          ],
+          "rows": [
+            [
+              338
+            ]
+          ],
+          "row_count": 1,
+          "ms": 4.7
+        },
+        {
+          "target": "pg_catalog.pg_class",
+          "statement": "SELECT count(*) FROM pg_catalog.pg_class",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "count"
+          ],
+          "rows": [
+            [
+              370
+            ]
+          ],
+          "row_count": 1,
+          "ms": 6.7
+        }
+      ],
+      "same_question_asked_a_supported_way": {
+        "question_a": "Which indexes does this table have?",
+        "question_b": "Which of them is a vector index?",
+        "restricted_route": {
+          "target": "crdb_internal.table_indexes",
+          "statement": "SELECT index_name, index_type FROM crdb_internal.table_indexes WHERE descriptor_name = 't_clause_embedding'",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 0.8
+        },
+        "supported_route_names": {
+          "target": "SHOW INDEXES -- question (a), which indexes exist",
+          "statement": "SELECT DISTINCT index_name FROM [SHOW INDEXES FROM t_clause_embedding] ORDER BY index_name",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "index_name"
+          ],
+          "rows": [
+            [
+              "t_ann"
+            ],
+            [
+              "t_clause_embedding_pk"
+            ]
+          ],
+          "row_count": 2,
+          "ms": 19.5
+        },
+        "supported_route_full_row": {
+          "target": "SHOW INDEXES -- every column it returns, for the vector index",
+          "statement": "SELECT * FROM [SHOW INDEXES FROM t_clause_embedding] WHERE index_name = 't_ann'",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "table_name",
+            "index_name",
+            "non_unique",
+            "seq_in_index",
+            "column_name",
+            "definition",
+            "direction",
+            "storing",
+            "implicit",
+            "visible",
+            "visibility"
+          ],
+          "rows": [
+            [
+              "t_clause_embedding",
+              "t_ann",
+              true,
+              5,
+              "commit_id",
+              "commit_id",
+              "ASC",
+              false,
+              true,
+              true,
+              1.0
+            ],
+            [
+              "t_clause_embedding",
+              "t_ann",
+              true,
+              1,
+              "site_id",
+              "site_id",
+              "ASC",
+              false,
+              false,
+              true,
+              1.0
+            ],
+            [
+              "t_clause_embedding",
+              "t_ann",
+              true,
+              2,
+              "activity_root",
+              "activity_root",
+              "ASC",
+              false,
+              false,
+              true,
+              1.0
+            ],
+            [
+              "t_clause_embedding",
+              "t_ann",
+              true,
+              3,
+              "embedding",
+              "embedding",
+              "ASC",
+              false,
+              false,
+              true,
+              1.0
+            ],
+            [
+              "t_clause_embedding",
+              "t_ann",
+              true,
+              4,
+              "clause_uuid",
+              "clause_uuid",
+              "ASC",
+              false,
+              true,
+              true,
+              1.0
+            ]
+          ],
+          "row_count": 5,
+          "ms": 20.7
+        },
+        "supported_route_type": {
+          "target": "SHOW CREATE TABLE -- question (b), which one is a vector index",
+          "statement": "SELECT create_statement FROM [SHOW CREATE TABLE t_clause_embedding]",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "create_statement"
+          ],
+          "rows": [
+            [
+              "CREATE TABLE public.t_clause_embedding (\n\tclause_uuid UUID NOT NULL DEFAULT gen_random_uuid(),\n\tcommit_id INT8 NOT NULL,\n\tsite_id UUID NOT NULL,\n\tactivity_root STRING NOT NULL,\n\tembedding VECTOR(1024) NOT NULL,\n\tCONSTRAINT t_clause_embedding_pk PRIMARY KEY (clause_uuid ASC, commit_id ASC),\n\tVECTOR INDEX t_ann (site_id, activity_root, embedding vector_cosine_ops)\n) WITH (schema_locked = true);"
+            ]
+          ],
+          "row_count": 1,
+          "ms": 45.8
+        },
+        "postgres_shaped_route": {
+          "target": "pg_catalog access method -- the PostgreSQL-shaped route",
+          "statement": "SELECT c.relname, am.amname FROM pg_class c JOIN pg_index ix ON c.oid = ix.indexrelid LEFT JOIN pg_am am ON c.relam = am.oid WHERE ix.indrelid = 't_clause_embedding'::regclass",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "relname",
+            "amname"
+          ],
+          "rows": [
+            [
+              "t_clause_embedding_pk",
+              "prefix"
+            ],
+            [
+              "t_ann",
+              "prefix"
+            ]
+          ],
+          "row_count": 2,
+          "ms": 13.1
+        },
+        "facts": {
+          "show_indexes_lists_the_vector_index": true,
+          "show_indexes_columns": [
+            "table_name",
+            "index_name",
+            "non_unique",
+            "seq_in_index",
+            "column_name",
+            "definition",
+            "direction",
+            "storing",
+            "implicit",
+            "visible",
+            "visibility"
+          ],
+          "show_indexes_says_which_kind_of_index_it_is": false,
+          "show_create_table_says_vector_index": true,
+          "postgres_route_names_an_access_method": true
+        },
+        "named_in_the_refusal_message": false
+      },
+      "plan_gist_round_trip": {
+        "question": "Can a query plan be reduced to a short quotable string, and can that string be turned back into a readable plan through a surface that is open by default?",
+        "produce": {
+          "statement": "EXPLAIN (GIST) SELECT 1",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "info"
+          ],
+          "rows": [
+            [
+              "AgICAgYC"
+            ]
+          ],
+          "row_count": 1,
+          "ms": 1.1
+        },
+        "gist": "AgICAgYC",
+        "decode": {
+          "statement": "SELECT crdb_internal.decode_plan_gist('AgICAgYC')",
+          "answered": false,
+          "sqlstate": "42501",
+          "error_class": "InsufficientPrivilege",
+          "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+          "ms": 1.0
+        },
+        "facts": {
+          "gist_can_be_produced": true,
+          "gist_can_be_read_back_with_the_session_at_its_default": false,
+          "decoder_lives_in_the_restricted_schema": true
+        }
+      },
+      "escape_hatch": {
+        "session_variable": "allow_unsafe_internals",
+        "default_value": {
+          "statement": "SHOW allow_unsafe_internals",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "allow_unsafe_internals"
+          ],
+          "rows": [
+            [
+              "off"
+            ]
+          ],
+          "row_count": 1,
+          "ms": 0.8
+        },
+        "scope": "session only; this connection is closed at the end of the run",
+        "set": {
+          "statement": "SET allow_unsafe_internals = true",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [],
+          "rows": [],
+          "row_count": 0,
+          "ms": 1.2
+        },
+        "reread": {
+          "statement": "SHOW allow_unsafe_internals",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "allow_unsafe_internals"
+          ],
+          "rows": [
+            [
+              "on"
+            ]
+          ],
+          "row_count": 1,
+          "ms": 0.9
+        },
+        "after": [
+          {
+            "target": "crdb_internal.tables",
+            "statement": "SELECT count(*) FROM crdb_internal.tables",
+            "answered": true,
+            "sqlstate": "00000",
+            "columns": [
+              "count"
+            ],
+            "rows": [
+              [
+                3316
+              ]
+            ],
+            "row_count": 1,
+            "ms": 691.6
+          },
+          {
+            "target": "crdb_internal.table_indexes",
+            "statement": "SELECT count(*) FROM crdb_internal.table_indexes",
+            "answered": true,
+            "sqlstate": "00000",
+            "columns": [
+              "count"
+            ],
+            "rows": [
+              [
+                2
+              ]
+            ],
+            "row_count": 1,
+            "ms": 4.0
+          },
+          {
+            "target": "crdb_internal.jobs",
+            "statement": "SELECT count(*) FROM crdb_internal.jobs",
+            "answered": true,
+            "sqlstate": "00000",
+            "columns": [
+              "count"
+            ],
+            "rows": [
+              [
+                219172
+              ]
+            ],
+            "row_count": 1,
+            "ms": 492.0
+          },
+          {
+            "target": "crdb_internal.gossip_nodes",
+            "statement": "SELECT count(*) FROM crdb_internal.gossip_nodes",
+            "answered": true,
+            "sqlstate": "00000",
+            "columns": [
+              "count"
+            ],
+            "rows": [
+              [
+                1
+              ]
+            ],
+            "row_count": 1,
+            "ms": 1.7
+          },
+          {
+            "target": "crdb_internal.cluster_id()",
+            "statement": "SELECT crdb_internal.cluster_id()",
+            "answered": true,
+            "sqlstate": "00000",
+            "columns": [
+              "crdb_internal.cluster_id"
+            ],
+            "rows": [
+              [
+                "<redacted: identifies this local cluster, not the finding>"
+              ]
+            ],
+            "row_count": 1,
+            "ms": 10.5
+          },
+          {
+            "target": "system.namespace",
+            "statement": "SELECT count(*) FROM system.namespace",
+            "answered": true,
+            "sqlstate": "00000",
+            "columns": [
+              "count"
+            ],
+            "rows": [
+              [
+                3522
+              ]
+            ],
+            "row_count": 1,
+            "ms": 2.7
+          }
+        ],
+        "what_the_restricted_table_would_have_said": {
+          "target": "crdb_internal.table_indexes, read with the hatch open",
+          "statement": "SELECT index_name, index_type FROM crdb_internal.table_indexes WHERE descriptor_name = 't_clause_embedding'",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "index_name",
+            "index_type"
+          ],
+          "rows": [
+            [
+              "t_clause_embedding_pk",
+              "primary"
+            ],
+            [
+              "t_ann",
+              "secondary"
+            ]
+          ],
+          "row_count": 2,
+          "ms": 4.2
+        },
+        "what_the_restricted_table_holds_in_full": {
+          "target": "crdb_internal.table_indexes, EVERY column, read with the hatch open",
+          "statement": "SELECT * FROM crdb_internal.table_indexes WHERE descriptor_name = 't_clause_embedding'",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [
+            "descriptor_id",
+            "descriptor_name",
+            "index_id",
+            "index_name",
+            "index_type",
+            "is_unique",
+            "is_inverted",
+            "is_sharded",
+            "is_visible",
+            "visibility",
+            "shard_bucket_count",
+            "created_at",
+            "create_statement"
+          ],
+          "rows": [
+            [
+              119840,
+              "t_clause_embedding",
+              1,
+              "t_clause_embedding_pk",
+              "primary",
+              true,
+              false,
+              false,
+              true,
+              1.0,
+              null,
+              "2026-08-17 17:18:35.152363",
+              "CREATE UNIQUE INDEX t_clause_embedding_pk ON public.t_clause_embedding (clause_uuid ASC, commit_id ASC)"
+            ],
+            [
+              119840,
+              "t_clause_embedding",
+              2,
+              "t_ann",
+              "secondary",
+              false,
+              false,
+              false,
+              true,
+              1.0,
+              null,
+              "2026-08-17 17:18:35.152363",
+              "CREATE VECTOR INDEX t_ann ON public.t_clause_embedding (site_id, activity_root, embedding vector_cosine_ops)"
+            ]
+          ],
+          "row_count": 2,
+          "ms": 4.0,
+          "facts": {
+            "columns": [
+              "descriptor_id",
+              "descriptor_name",
+              "index_id",
+              "index_name",
+              "index_type",
+              "is_unique",
+              "is_inverted",
+              "is_sharded",
+              "is_visible",
+              "visibility",
+              "shard_bucket_count",
+              "created_at",
+              "create_statement"
+            ],
+            "any_cell_says_vector": true,
+            "a_typed_column_says_vector": false,
+            "only_a_printed_ddl_string_says_vector": true,
+            "index_type_values": {
+              "t_clause_embedding_pk": "primary",
+              "t_ann": "secondary"
+            }
+          }
+        },
+        "reset": {
+          "statement": "SET allow_unsafe_internals = false",
+          "answered": true,
+          "sqlstate": "00000",
+          "columns": [],
+          "rows": [],
+          "row_count": 0,
+          "ms": 0.7
+        }
+      }
+    },
+    "cloud_basic_archived": {
+      "label": "ARCHIVED-EVIDENCE",
+      "re_run_today": false,
+      "why_not_re_run": "Re-running would mean issuing queries against a shared live cluster. The artefacts are cited by path and timestamp instead.",
+      "records": [
+        {
+          "source": "evidence/deploy/judge-run.json",
+          "pointer": "negative probe N02",
+          "artefact_timestamp_utc": "2026-08-11T00:23:29Z",
+          "tier": "CockroachDB Cloud Basic, aws-ap-southeast-1 (Singapore)",
+          "role": "mainline_judge",
+          "channel": "direct SQL (pgwire)",
+          "sqlstate": "42501",
+          "refusal_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative."
+        },
+        {
+          "source": "evidence/deploy/judge-access.json",
+          "pointer": "probe.negatives -> crdb_internal.jobs, crdb_internal.tables",
+          "artefact_timestamp_utc": "2026-08-11T00:23:29Z",
+          "tier": "CockroachDB Cloud Basic, aws-ap-southeast-1 (Singapore)",
+          "role": "mainline_judge",
+          "channel": "direct SQL (pgwire)",
+          "statements": [
+            "SELECT count(*) FROM crdb_internal.jobs",
+            "SELECT count(*) FROM crdb_internal.tables"
+          ],
+          "sqlstate": "42501",
+          "refusal_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for ",
+          "note": "This artefact stores the message truncated at 200 chars; judge-run.json holds it whole."
+        },
+        {
+          "source": "evidence/mcp/pack-run.json",
+          "pointer": "cli_run.stdout, negative probe N02",
+          "tier": "CockroachDB Cloud Basic, aws-ap-southeast-1 (Singapore)",
+          "channel": "CockroachDB managed MCP server",
+          "sqlstate": null,
+          "refusal_verbatim": "query references a restricted schema: access to \"crdb_internal\" is blocked for security reasons",
+          "note": "Different wording, different layer: the MCP tool refuses before the SQL layer does."
+        },
+        {
+          "source": "docs/demo/film/VO-CLOSE.md",
+          "lines": "1249",
+          "tier": "local single-node CCL (the node this script also uses)",
+          "channel": "direct SQL (pgwire)",
+          "observation": "crdb_internal.table_indexes was refused with InsufficientPrivilege and a hint pointing at allow_unsafe_internals; SHOW INDEXES answered the same question."
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "original_claim": "crdb_internal and system are restricted on Basic tier, so cluster-shape questions a tutorial would answer are unavailable on the tier a hackathon entrant actually uses.",
+    "restated_claim": "On v26.2.5 crdb_internal and system are closed by default -- on Cloud Basic (archived) and on a local single-node cluster where the connected user is root (measured today). The refusal names a session variable that reopens them and does NOT name the supported read-only alternative, which for index metadata is SHOW CREATE TABLE.",
+    "targets_probed": 6,
+    "targets_refused_42501": 6,
+    "refusal_is_tier_specific": false,
+    "restriction_also_present_on_local_self_hosted_single_node": true,
+    "distinct_refusal_messages": [
+      "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative."
+    ],
+    "escape_hatch_works_locally": true,
+    "escape_hatch_targets_answered_after_set": 6,
+    "escape_hatch_tried_on_cloud_basic": false,
+    "supported_alternative_answers_which_indexes_exist": true,
+    "supported_alternative_answers_which_kind_of_index_it_is": true,
+    "show_indexes_alone_answers_the_kind_question": false,
+    "supported_alternative_named_in_the_refusal_message": false,
+    "plan_gist_can_be_produced": true,
+    "plan_gist_can_be_read_back_by_default": false,
+    "restricted_table_does_carry_an_index_type_column": true,
+    "restricted_table_index_type_values": [
+      [
+        "t_clause_embedding_pk",
+        "primary"
+      ],
+      [
+        "t_ann",
+        "secondary"
+      ]
+    ],
+    "restricted_table_columns": [
+      "descriptor_id",
+      "descriptor_name",
+      "index_id",
+      "index_name",
+      "index_type",
+      "is_unique",
+      "is_inverted",
+      "is_sharded",
+      "is_visible",
+      "visibility",
+      "shard_bucket_count",
+      "created_at",
+      "create_statement"
+    ],
+    "restricted_table_would_have_identified_the_vector_index": true,
+    "any_typed_catalogue_column_identifies_a_vector_index": false,
+    "only_a_printed_ddl_string_identifies_a_vector_index": true,
+    "label": "REPRODUCED-TODAY"
+  },
+  "teardown": {
+    "created": "upstream_f03_98b6e74a",
+    "dropped": "upstream_f03_98b6e74a",
+    "dropped_in_finally_block": true,
+    "confirmed_absent": true,
+    "stale_scratch_databases_swept_at_startup": []
+  }
+}

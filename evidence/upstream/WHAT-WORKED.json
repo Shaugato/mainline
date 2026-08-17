@@ -1,0 +1,265 @@
+{
+  "document": "docs/upstream/WHAT-WORKED.md",
+  "label": "REPRODUCED-TODAY",
+  "measured_on": "local single-node CockroachDB CCL",
+  "server_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+  "client": "psycopg 3.3.4",
+  "host_os": "Windows 11",
+  "measured_at_utc": "2026-08-17T17:21:08.114321+00:00",
+  "scratch_database_created": "upstream_f07_d93b03bb",
+  "scratch_roles_created": [],
+  "script": "scripts/upstream/repro_semantics_and_praise.py",
+  "entry_1_rule_and_trigger_in_the_database": {
+    "holds": true,
+    "writer": "root",
+    "honest_write_refused_by_the_rule": {
+      "ok": false,
+      "sqlstate": "23514",
+      "rows": null,
+      "constraint": "demo_gate_closed_when_issued",
+      "message": "failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))"
+    },
+    "forged_write_refused_by_the_stored_program": {
+      "ok": false,
+      "sqlstate": "P0001",
+      "rows": null,
+      "constraint": null,
+      "message": "DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero"
+    },
+    "rule_as_shown_by_the_database": "CREATE TABLE public.subject (\n\tid INT8 NOT NULL,\n\tstate STRING NOT NULL DEFAULT 'open':::STRING,\n\topen_blocking INT8 NOT NULL DEFAULT 0:::INT8,\n\tCONSTRAINT subject_pkey PRIMARY KEY (id ASC),\n\tCONSTRAINT demo_gate_closed_when_issued CHECK ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))\n) WITH (schema_locked = true);",
+    "with_the_trigger_removed": {
+      "ok": false,
+      "sqlstate": "23514",
+      "rows": null,
+      "constraint": "demo_gate_closed_when_issued",
+      "message": "failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))"
+    },
+    "with_the_rule_removed": {
+      "ok": false,
+      "sqlstate": "P0001",
+      "rows": null,
+      "constraint": null,
+      "message": "DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero"
+    },
+    "scope": "This is a four-table toy inside a scratch database. It shows what the platform gives you. It is NOT the product's structural-redundancy claim, which is made in exactly one place -- packages/trappoint-conformance/unweld/harness.py -- and nowhere else, per spec section 3.2.",
+    "steps": [
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28
+    ]
+  },
+  "entry_2_serializable_by_default": {
+    "holds": true,
+    "default_transaction_isolation": "serializable",
+    "transaction_isolation_inside_an_untouched_transaction": "serializable",
+    "collision_probe": {
+      "attempted": true,
+      "sqlstate": "40001",
+      "note": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=f47f4d00 key=/Table/119848/1/901/0 iso=Serializable pri=0.07058159 epo=0 ts=1786987270.274114580,2 min=1786987270.274114580,0 seq=2} lock=true stat=PENDING rts=1786987270.274114580,0 gul=1786987270.774114580,0 obs={n1@1786987270.274114580,0}"
+    },
+    "scope": "This says the strongest level is the default and cost nothing to obtain. It does NOT say the level is what makes our gate correct: docs/architecture/01-the-mechanism.md:269-274 records that the gate stays welded at READ COMMITTED, because the conflict is materialised in a row rather than inferred.",
+    "steps": [
+      29,
+      30,
+      31
+    ]
+  },
+  "entry_3_precise_sqlstates": {
+    "holds": true,
+    "check_refusal_carries_its_name": true,
+    "procedure_refusal_carries_no_name": true,
+    "codes_this_product_puts_on_screen": {
+      "23514 / gate_closed_when_issued": "verticals/mainline/db/migrations/0050_permit.sql:114",
+      "23514 / cr_gate_closed_when_merged": "verticals/mainline/db/migrations/0051_change_request.sql:85",
+      "P0001 / mainline.fn_permit_merge_gate": "verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:44",
+      "P0001 / mainline.fn_cr_merge_gate": "verticals/mainline/db/migrations/0116_fn_cr_merge_gate.sql:44",
+      "42501 on a privilege refusal": "not reproduced by this program -- it needs a second database user, and this program creates nothing outside its one scratch database. Reproduced live by scripts/upstream/repro_privileges.py; the transcript is in evidence/upstream/F01-has-function-privilege.json. Named as a constant at verticals/mainline/apps/demo-api/src/mainline_demo_api/cr_gate_run.py:222"
+    },
+    "where_they_go_on_screen": "verticals/mainline/apps/console/src/design/primitives/Sqlstate.tsx:36-58",
+    "steps": [
+      32,
+      33
+    ]
+  },
+  "transcript": [
+    {
+      "step": 15,
+      "what": "a table with one named rule written into its own definition",
+      "sql": "CREATE TABLE subject ( id INT8 PRIMARY KEY, state STRING NOT NULL DEFAULT 'open', open_blocking INT8 NOT NULL DEFAULT 0, CONSTRAINT demo_gate_closed_when_issued CHECK (state <> 'merged' OR open_blocking = 0))",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 16,
+      "what": "the rows the counter is supposed to be counting",
+      "sql": "CREATE TABLE obligation (id INT8 PRIMARY KEY, subject_id INT8 NOT NULL, settled BOOL NOT NULL DEFAULT false)",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 17,
+      "what": "a small program stored in the database that recounts them",
+      "sql": "CREATE FUNCTION fn_demo_merge_gate() RETURNS TRIGGER LANGUAGE PLpgSQL AS $fn$ DECLARE v_derived INT8; BEGIN SELECT count(*) INTO v_derived FROM obligation o WHERE o.subject_id = (NEW).id AND NOT o.settled; IF v_derived <> 0 AND (NEW).open_blocking = 0 THEN RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'DEMO: merge refused by fn_demo_merge_gate' || ' - re-derived open obligation count is ' || v_derived::STRING || ' while the projected counter reads zero'; END IF; RETURN NEW; END $fn$",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 18,
+      "what": "weld it to the table, on the one transition it is about",
+      "sql": "CREATE TRIGGER demo_merge_gate BEFORE UPDATE ON subject FOR EACH ROW WHEN ((NEW).state = 'merged' AND (OLD).state <> 'merged') EXECUTE FUNCTION fn_demo_merge_gate()",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 19,
+      "what": "one subject, not yet issued, with one thing outstanding",
+      "sql": "INSERT INTO subject VALUES (1, 'open', 1)",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 20,
+      "what": "the outstanding thing itself",
+      "sql": "INSERT INTO obligation VALUES (1, 1, false)",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 21,
+      "what": "who is writing",
+      "sql": "SELECT current_user",
+      "result": "root",
+      "error": null,
+      "note": "a plain database client. No application code of ours is on this path -- the statements below are typed straight at the database"
+    },
+    {
+      "step": 22,
+      "what": "merge while the counter honestly reads 1",
+      "sql": "UPDATE subject SET state = 'merged' WHERE id = 1",
+      "result": null,
+      "error": "23514 failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))",
+      "note": "refused by the rule in the table definition"
+    },
+    {
+      "step": 23,
+      "what": "merge again with the counter forged to 0",
+      "sql": "UPDATE subject SET state = 'merged', open_blocking = 0 WHERE id = 1",
+      "result": null,
+      "error": "P0001 DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero",
+      "note": "the rule in the table is now satisfied; the stored program recounts and refuses"
+    },
+    {
+      "step": 24,
+      "what": "the rule as anyone with a SQL prompt can read it back",
+      "sql": "SELECT create_statement FROM [SHOW CREATE TABLE subject]",
+      "result": [
+        [
+          "CREATE TABLE public.subject (\n\tid INT8 NOT NULL,\n\tstate STRING NOT NULL DEFAULT 'open':::STRING,\n\topen_blocking INT8 NOT NULL DEFAULT 0:::INT8,\n\tCONSTRAINT subject_pkey PRIMARY KEY (id ASC),\n\tCONSTRAINT demo_gate_closed_when_issued CHECK ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))\n) WITH (schema_locked = true);"
+        ]
+      ],
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 25,
+      "what": "drop the trigger, leaving only the rule in the table",
+      "sql": "DROP TRIGGER demo_merge_gate ON subject",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 26,
+      "what": "merge honestly, with no trigger left",
+      "sql": "UPDATE subject SET state = 'merged' WHERE id = 1",
+      "result": null,
+      "error": "23514 failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))",
+      "note": null
+    },
+    {
+      "step": 27,
+      "what": "put the trigger back and drop the rule instead",
+      "sql": "ALTER TABLE subject DROP CONSTRAINT demo_gate_closed_when_issued",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 28,
+      "what": "merge with a forged counter, with no rule left",
+      "sql": "UPDATE subject SET state = 'merged', open_blocking = 0 WHERE id = 1",
+      "result": null,
+      "error": "P0001 DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero",
+      "note": null
+    },
+    {
+      "step": 29,
+      "what": "first statement on a brand-new connection: what is the default?",
+      "sql": "SHOW default_transaction_isolation",
+      "result": "serializable",
+      "error": null,
+      "note": "no SET was issued on this connection before this statement"
+    },
+    {
+      "step": 30,
+      "what": "and inside an explicit transaction where we still issued no SET",
+      "sql": "BEGIN; SHOW transaction_isolation",
+      "result": "serializable",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 31,
+      "what": "two transactions racing on the same rows, to see what a collision is called",
+      "sql": "two sessions: read, read, write, commit, write, commit",
+      "result": {
+        "attempted": true,
+        "sqlstate": "40001",
+        "note": "restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=f47f4d00 key=/Table/119848/1/901/0 iso=Serializable pri=0.07058159 epo=0 ts=1786987270.274114580,2 min=1786987270.274114580,0 seq=2} lock=true stat=PENDING rts=1786987270.274114580,0 gul=1786987270.774114580,0 obs={n1@1786987270.274114580,0}"
+      },
+      "error": null,
+      "note": "40001 is the code the retry loop retries, and the only one it retries (packages/trappoint-core/src/trappoint_core/retry.py:173)"
+    },
+    {
+      "step": 32,
+      "what": "the rule's refusal, as the driver hands it over",
+      "sql": null,
+      "result": {
+        "sqlstate": "23514",
+        "constraint_name_field": "demo_gate_closed_when_issued",
+        "message_text": "failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))"
+      },
+      "error": null,
+      "note": "the NAME arrives in its own field. The message text does not contain it -- it carries the expanded expression instead, which is why our code reads the field and never parses the message (verticals/mainline/apps/demo-api/src/mainline_demo_api/refusal.py:184-197)"
+    },
+    {
+      "step": 33,
+      "what": "the stored program's refusal, as the driver hands it over",
+      "sql": null,
+      "result": {
+        "sqlstate": "P0001",
+        "constraint_name_field": null,
+        "message_text": "DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero"
+      },
+      "error": null,
+      "note": "no constraint name, because there is no constraint. That absence is why our own RAISE writes 'refused by <schema>.<function>' into the message and treats the function name as the exhibit (verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:38-42)"
+    }
+  ]
+}

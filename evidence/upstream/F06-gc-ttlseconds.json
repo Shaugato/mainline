@@ -1,0 +1,133 @@
+{
+  "finding": "F06",
+  "node": {
+    "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "exam": "local single-node CockroachDB CCL",
+    "not_measured_on": "CockroachDB Cloud (Basic or otherwise): no Cloud statement is issued here",
+    "dsn_host": "localhost:26257",
+    "measured_at_utc": "2026-08-17T17:21:01Z"
+  },
+  "zone_provenance": {
+    "measured_at_utc": "2026-08-17T17:21:07Z",
+    "range_default": {
+      "asked_about": "RANGE default",
+      "target": "RANGE default",
+      "inherited": false,
+      "raw_config": "ALTER RANGE default CONFIGURE ZONE USING\n\trange_min_bytes = 134217728,\n\trange_max_bytes = 536870912,\n\tgc.ttlseconds = 4500,\n\tnum_replicas = 1,\n\tconstraints = '[]',\n\tlease_preferences = '[]'",
+      "gc_ttlseconds_via_cloud_chain_regex": 4500
+    },
+    "fresh_database_before": {
+      "asked_about": "DATABASE upstream_f05_7d40b678",
+      "target": "RANGE default",
+      "inherited": true,
+      "raw_config": "ALTER RANGE default CONFIGURE ZONE USING\n\trange_min_bytes = 134217728,\n\trange_max_bytes = 536870912,\n\tgc.ttlseconds = 4500,\n\tnum_replicas = 1,\n\tconstraints = '[]',\n\tlease_preferences = '[]'",
+      "gc_ttlseconds_via_cloud_chain_regex": 4500
+    },
+    "fresh_database_after_explicit_pin": {
+      "asked_about": "DATABASE upstream_f05_7d40b678",
+      "target": "DATABASE upstream_f05_7d40b678",
+      "inherited": false,
+      "raw_config": "ALTER DATABASE upstream_f05_7d40b678 CONFIGURE ZONE USING\n\trange_min_bytes = 134217728,\n\trange_max_bytes = 536870912,\n\tgc.ttlseconds = 4500,\n\tnum_replicas = 1,\n\tconstraints = '[]',\n\tlease_preferences = '[]'",
+      "gc_ttlseconds_via_cloud_chain_regex": 4500
+    },
+    "the_point": {
+      "value_before_anyone_configured_it": 4500,
+      "value_after_we_configured_it": 4500,
+      "values_are_identical": true,
+      "target_before": "RANGE default",
+      "target_after": "DATABASE upstream_f05_7d40b678",
+      "targets_are_identical": false,
+      "reading": "the regex used by scripts/deploy/cloud_chain.py:1029 returns the same number in both states. Only the target column separates 'the platform gave me this' from 'we set this'."
+    }
+  },
+  "new_object_time_travel": {
+    "attempts": [
+      {
+        "offset": "-30s",
+        "statement": "SELECT count(*) FROM \"upstream_f05_7d40b678\".public.t AS OF SYSTEM TIME '-30s'",
+        "ok": false,
+        "sqlstate": "3D000",
+        "error": "database \"upstream_f05_7d40b678\" does not exist"
+      },
+      {
+        "offset": "-2h",
+        "statement": "SELECT count(*) FROM \"upstream_f05_7d40b678\".public.t AS OF SYSTEM TIME '-2h'",
+        "ok": false,
+        "sqlstate": "3D000",
+        "error": "database \"upstream_f05_7d40b678\" does not exist"
+      },
+      {
+        "offset": "-5h",
+        "statement": "SELECT count(*) FROM \"upstream_f05_7d40b678\".public.t AS OF SYSTEM TIME '-5h'",
+        "ok": false,
+        "sqlstate": "3D000",
+        "error": "database \"upstream_f05_7d40b678\" does not exist"
+      }
+    ]
+  },
+  "retention_refusal": {
+    "available": true,
+    "candidates_tried": [],
+    "table": "\"w1_credentials_9c1ec080bd16\".\"mainline\".\"activity_node\"",
+    "attempts": [
+      {
+        "offset": "-1h",
+        "ok": true,
+        "rows": 0
+      },
+      {
+        "offset": "-2h",
+        "statement": "SELECT count(*) FROM \"w1_credentials_9c1ec080bd16\".\"mainline\".\"activity_node\" AS OF SYSTEM TIME '-2h'",
+        "ok": false,
+        "sqlstate": "XXUUU",
+        "error": "batch timestamp 1786980068.060494030,0 must be after replica GC threshold 1786982723.630688620,0 (r9533: /{Table/1248-Max})"
+      },
+      {
+        "offset": "-5h",
+        "statement": "SELECT count(*) FROM \"w1_credentials_9c1ec080bd16\".\"mainline\".\"activity_node\" AS OF SYSTEM TIME '-5h'",
+        "ok": false,
+        "sqlstate": "XXUUU",
+        "error": "batch timestamp 1786969268.061629960,0 must be after replica GC threshold 1786982723.630688620,0 (r9533: /{Table/1248-Max})"
+      },
+      {
+        "offset": "-24h",
+        "statement": "SELECT count(*) FROM \"w1_credentials_9c1ec080bd16\".\"mainline\".\"activity_node\" AS OF SYSTEM TIME '-24h'",
+        "ok": false,
+        "sqlstate": "XXUUU",
+        "error": "batch timestamp 1786900868.062711307,0 must be after replica GC threshold 1786982723.630688620,0 (r9533: /{Table/1248-Max})"
+      }
+    ],
+    "mentions_gc_ttlseconds": false,
+    "mentions_table_name": false,
+    "sqlstates": [
+      "XXUUU"
+    ],
+    "derived_window_seconds": [
+      {
+        "offset": "-2h",
+        "batch_timestamp": 1786980068.060494,
+        "gc_threshold": 1786982723.6306887,
+        "window_seconds": 4544.4
+      },
+      {
+        "offset": "-5h",
+        "batch_timestamp": 1786969268.06163,
+        "gc_threshold": 1786982723.6306887,
+        "window_seconds": 4544.4
+      },
+      {
+        "offset": "-24h",
+        "batch_timestamp": 1786900868.0627112,
+        "gc_threshold": 1786982723.6306887,
+        "window_seconds": 4544.4
+      }
+    ]
+  },
+  "scratch_database": {
+    "name": "upstream_f05_7d40b678",
+    "created": true,
+    "dropped": true
+  },
+  "what_this_does_not_establish": "Nothing here is a reading of CockroachDB Cloud. This script cannot and does not establish what gc.ttlseconds reads on an unconfigured Cloud Basic database, and the sentence 'gc.ttlseconds defaults to 4500 on Basic' is not supported by it or by any artefact in this repository.",
+  "elapsed_seconds": 136.0
+}

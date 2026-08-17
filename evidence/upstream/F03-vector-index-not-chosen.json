@@ -1,0 +1,279 @@
+{
+  "generated_by": "scripts/upstream/repro_vector_and_catalogue.py",
+  "generated_at": "2026-08-17T17:18:50Z",
+  "started_at": "2026-08-17T17:18:04Z",
+  "exam": {
+    "name": "local single-node CCL",
+    "server_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "dsn_shape": "postgresql://root@localhost:26257/<scratch>?sslmode=disable",
+    "scratch_database": "upstream_f03_98b6e74a",
+    "scratch_database_dropped": true,
+    "vector_search_beam_size": "32",
+    "vector_search_rerank_multiplier": "50"
+  },
+  "not_measured_here": [
+    "CockroachDB Cloud Basic -- not re-run today; see arms labelled ARCHIVED-EVIDENCE",
+    "the mainline_demo database -- never touched by this program"
+  ],
+  "finding": "F03",
+  "title": "The vector index and the query planner's choice",
+  "arms": {
+    "local_single_node_today": {
+      "label": "STRUCK",
+      "tier": "local single-node CCL",
+      "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+      "measured_on": "2026-08-17T17:18:04Z",
+      "checkpoints": [
+        {
+          "rows_in_table": 0,
+          "rows_matching_both_prefix_columns": 0,
+          "statistics_refreshed": true,
+          "unhinted": {
+            "source": "t_clause_embedding",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 1\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "d2e3e06860d0ba9999564e0f78dac52af977cbc853ba98215867fd33a74fee4d",
+            "plan_lines": 18
+          },
+          "hinted": {
+            "source": "t_clause_embedding@t_ann",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding@t_ann\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 1\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "d2e3e06860d0ba9999564e0f78dac52af977cbc853ba98215867fd33a74fee4d",
+            "plan_lines": 18
+          },
+          "plans_are_identical": true
+        },
+        {
+          "rows_in_table": 200,
+          "rows_matching_both_prefix_columns": 67,
+          "statistics_refreshed": true,
+          "unhinted": {
+            "source": "t_clause_embedding",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 10\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "0f56d3a4f8de4e0dec67121629525b8ee0eca0a468fc3d5fd71f0742604369ca",
+            "plan_lines": 18
+          },
+          "hinted": {
+            "source": "t_clause_embedding@t_ann",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding@t_ann\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 10\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "0f56d3a4f8de4e0dec67121629525b8ee0eca0a468fc3d5fd71f0742604369ca",
+            "plan_lines": 18
+          },
+          "plans_are_identical": true
+        },
+        {
+          "rows_in_table": 1100,
+          "rows_matching_both_prefix_columns": 367,
+          "statistics_refreshed": true,
+          "unhinted": {
+            "source": "t_clause_embedding",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 10\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "0f56d3a4f8de4e0dec67121629525b8ee0eca0a468fc3d5fd71f0742604369ca",
+            "plan_lines": 18
+          },
+          "hinted": {
+            "source": "t_clause_embedding@t_ann",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding@t_ann\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 10\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "0f56d3a4f8de4e0dec67121629525b8ee0eca0a468fc3d5fd71f0742604369ca",
+            "plan_lines": 18
+          },
+          "plans_are_identical": true
+        },
+        {
+          "rows_in_table": 5300,
+          "rows_matching_both_prefix_columns": 1767,
+          "statistics_refreshed": true,
+          "unhinted": {
+            "source": "t_clause_embedding",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 10\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "0f56d3a4f8de4e0dec67121629525b8ee0eca0a468fc3d5fd71f0742604369ca",
+            "plan_lines": 18
+          },
+          "hinted": {
+            "source": "t_clause_embedding@t_ann",
+            "statement": "SELECT clause_uuid, commit_id, embedding <=> %(vec)s AS dist\n  FROM t_clause_embedding@t_ann\n WHERE site_id = %(site)s AND activity_root = %(root)s\n ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+            "explained": true,
+            "plan_text": "distribution: local\n\n• top-k\n│ estimated row count: 10\n│ order: +dist\n│ k: 10\n│\n└── • render\n    │\n    └── • lookup join\n        │ table: t_clause_embedding@t_clause_embedding_pk\n        │ equality: (clause_uuid, commit_id) = (clause_uuid, commit_id)\n        │ equality cols are key\n        │\n        └── • vector search\n              table: t_clause_embedding@t_ann\n              target count: 10\n              prefix spans: [/'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill' - /'5b144fe2-c64e-54a4-8b7c-2e3eb31497b6'/'/mill']",
+            "facts": {
+              "has_vector_search_node": true,
+              "traverses_the_vector_index": true,
+              "has_prefix_spans": true,
+              "has_full_scan_node": false,
+              "has_filter_node": false,
+              "index_recommendation_count": 0,
+              "index_recommendations": []
+            },
+            "plan_digest_sha256": "0f56d3a4f8de4e0dec67121629525b8ee0eca0a468fc3d5fd71f0742604369ca",
+            "plan_lines": 18
+          },
+          "plans_are_identical": true
+        }
+      ],
+      "prefix_counterfactual": {
+        "statement": "EXPLAIN SELECT clause_uuid FROM t_clause_embedding@t_ann WHERE activity_root = %(root)s ORDER BY embedding <=> %(vec)s LIMIT %(k)s",
+        "refused": true,
+        "sqlstate": "42809",
+        "server_message_verbatim": "index \"t_ann\" cannot be used for this query"
+      }
+    },
+    "cloud_basic_archived": {
+      "label": "ARCHIVED-EVIDENCE",
+      "re_run_today": false,
+      "why_not_re_run": "Re-running would mean driving load against a shared live cluster. The artefacts are cited by path and timestamp instead.",
+      "records": [
+        {
+          "source": "docs/adr/0002-g1-platform-ground-truth.md",
+          "lines": "18-19, 36",
+          "measured_on": "2026-08-07",
+          "tier": "CockroachDB Cloud Basic, aws-ap-southeast-1 (Singapore)",
+          "version": "CockroachDB CCL v26.2.5",
+          "has_captured_transcript": false,
+          "claim": "GT-06: at ~5,200 rows a prefix-constrained vector search, unhinted, does NOT use the vector index; the plan is top-k -> render -> filter -> scan. GT-06b: naming the index makes it traverse."
+        },
+        {
+          "source": "evidence/aws/ann/explain-unhinted.txt",
+          "companion": "evidence/aws/ann/ann-proof.json",
+          "lines": "Appendix A",
+          "measured_on": "2026-08-11",
+          "artefact_timestamp_utc": "2026-08-11T04:07:47Z",
+          "sweep_timestamp_utc": "2026-08-11T02:25:36Z",
+          "tier": "CockroachDB Cloud Basic, aws-ap-southeast-1 (Singapore)",
+          "version": "CockroachDB CCL v26.2.5",
+          "has_captured_transcript": true,
+          "claim": "The unhinted plan ALSO traverses the vector index, at every row count swept (0, 200, 1100, 5300), including GT-06's own ~5,200. Recorded verbatim in the artefact as 'GT-06 reproduces: False'."
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "original_claim": "At demo scale (~5,200 rows) the optimizer does not choose the vector index; the unhinted plan filters after scanning.",
+    "unhinted_traversed_the_index_at_every_row_count": true,
+    "hinted_traversed_the_index_at_every_row_count": true,
+    "row_counts_swept": [
+      0,
+      200,
+      1100,
+      5300
+    ],
+    "original_claim_reproduced_locally": false,
+    "label": "STRUCK",
+    "prefix_rule_enforced_by_the_server": true,
+    "prefix_rule_sqlstate": "42809",
+    "index_recommendation_emitted_alongside_a_vector_plan": false
+  },
+  "plan_gist_round_trip": {
+    "question": "Can a query plan be reduced to a short quotable string, and can that string be turned back into a readable plan through a surface that is open by default?",
+    "produce": {
+      "statement": "EXPLAIN (GIST) SELECT 1",
+      "answered": true,
+      "sqlstate": "00000",
+      "columns": [
+        "info"
+      ],
+      "rows": [
+        [
+          "AgICAgYC"
+        ]
+      ],
+      "row_count": 1,
+      "ms": 1.1
+    },
+    "gist": "AgICAgYC",
+    "decode": {
+      "statement": "SELECT crdb_internal.decode_plan_gist('AgICAgYC')",
+      "answered": false,
+      "sqlstate": "42501",
+      "error_class": "InsufficientPrivilege",
+      "server_message_verbatim": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative.",
+      "ms": 1.0
+    },
+    "facts": {
+      "gist_can_be_produced": true,
+      "gist_can_be_read_back_with_the_session_at_its_default": false,
+      "decoder_lives_in_the_restricted_schema": true
+    }
+  },
+  "teardown": {
+    "created": "upstream_f03_98b6e74a",
+    "dropped": "upstream_f03_98b6e74a",
+    "dropped_in_finally_block": true,
+    "confirmed_absent": true,
+    "stale_scratch_databases_swept_at_startup": []
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "finding": "F07",
+  "title": "a nested call that cannot be resolved is reported under the name of the function that could",
+  "label": "REPRODUCED-TODAY",
+  "measured_on": "local single-node CockroachDB CCL",
+  "server_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+  "client": "psycopg 3.3.4",
+  "host_os": "Windows 11",
+  "measured_at_utc": "2026-08-17T17:21:08.114321+00:00",
+  "scratch_database_created": "upstream_f07_d93b03bb",
+  "scratch_roles_created": [],
+  "script": "scripts/upstream/repro_semantics_and_praise.py",
+  "measurement": {
+    "verdict": "OUTER-NAME-ATTRIBUTION-CONFIRMED",
+    "why": "the same defect reported two ways on one node: bare it says 'unknown signature: convert_from(string, string)'; nested inside split_part it says 'split_part(): unknown signature: convert_from(string, string) (returning <string>)'",
+    "column_types": [
+      [
+        "body",
+        "text"
+      ],
+      [
+        "id",
+        "bigint"
+      ],
+      [
+        "root_hash",
+        "bytea"
+      ]
+    ],
+    "convert_from_overloads": [
+      [
+        "convert_from(bytea, text)"
+      ]
+    ],
+    "bare_call": {
+      "ok": false,
+      "sqlstate": "42883",
+      "rows": null,
+      "constraint": null,
+      "message": "unknown signature: convert_from(string, string)"
+    },
+    "nested_in_split_part": {
+      "ok": false,
+      "sqlstate": "42883",
+      "rows": null,
+      "constraint": null,
+      "message": "split_part(): unknown signature: convert_from(string, string) (returning <string>)"
+    },
+    "nested_two_deep": {
+      "ok": false,
+      "sqlstate": "42883",
+      "rows": null,
+      "constraint": null,
+      "message": "upper(): split_part(): unknown signature: convert_from(string, string) (returning <string>)"
+    },
+    "nested_in_length": {
+      "ok": false,
+      "sqlstate": "42883",
+      "rows": null,
+      "constraint": null,
+      "message": "length(): unknown signature: convert_from(string, string)"
+    },
+    "encode_instead_of_convert_from": {
+      "ok": false,
+      "sqlstate": "42883",
+      "rows": null,
+      "constraint": null,
+      "message": "split_part(): unknown signature: encode(string, string) (returning <string>)"
+    },
+    "repair_with_bytes_cast": {
+      "ok": true,
+      "sqlstate": "00000",
+      "rows": [
+        [
+          "deadbeef"
+        ]
+      ],
+      "constraint": null,
+      "message": null
+    },
+    "what_the_product_ships": {
+      "ok": true,
+      "sqlstate": "00000",
+      "rows": [
+        [
+          "deadbeef"
+        ]
+      ],
+      "constraint": null,
+      "message": null
+    },
+    "claim_A_explicit_string_cast_required": {
+      "holds": false,
+      "note": "does not hold: convert_from applied to a bytes column resolves inside split_part with no cast at all, and reports its return type as 'text'",
+      "uncast_on_bytes_column": {
+        "ok": true,
+        "sqlstate": "00000",
+        "rows": [
+          [
+            ""
+          ]
+        ],
+        "constraint": null,
+        "message": null
+      },
+      "reported_return_type": "text"
+    },
+    "claim_B_local_versus_cloud_divergence": {
+      "holds": false,
+      "note": "does not hold as a platform difference: on this one node, the statement fails on a text column and resolves on a bytes column. The variable that changed between our two runs was the column type, which our own comment records (demo_world.sql:848-850, 'a scratch table written from memory made the same mistake').",
+      "cloud_arm_re_run_today": false,
+      "why_not_re_run": "running this statement on CockroachDB Cloud means driving DDL or seeds at a shared live cluster, which the critique plan forbids (R4)"
+    },
+    "steps": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  "transcript": [
+    {
+      "step": 2,
+      "what": "create a table shaped like the one the original statement ran against",
+      "sql": "CREATE TABLE checkpoint (id INT8 PRIMARY KEY, body STRING NOT NULL, root_hash BYTES NOT NULL)",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 3,
+      "what": "put one row in it, with a three-line note in body",
+      "sql": "INSERT INTO checkpoint VALUES (1, 'mainline/site' || chr(10) || '2' || chr(10) || 'deadbeef' || chr(10), b'\\x01\\x02')",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 4,
+      "what": "read the column types from the catalogue rather than assuming them",
+      "sql": "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'checkpoint' ORDER BY column_name",
+      "result": [
+        [
+          "body",
+          "text"
+        ],
+        [
+          "id",
+          "bigint"
+        ],
+        [
+          "root_hash",
+          "bytea"
+        ]
+      ],
+      "error": null,
+      "note": "body is text and root_hash is bytea; the original comment says this was checked rather than assumed, and this is that check"
+    },
+    {
+      "step": 5,
+      "what": "ask the database which argument types convert_from actually accepts",
+      "sql": "SELECT p.proname || '(' || pg_catalog.pg_get_function_arguments(p.oid) || ')' FROM pg_proc p WHERE p.proname = 'convert_from'",
+      "result": [
+        [
+          "convert_from(bytea, text)"
+        ]
+      ],
+      "error": null,
+      "note": "one overload only: it takes raw bytes, so handing it text is our error and the database is right to refuse"
+    },
+    {
+      "step": 6,
+      "what": "THE MISTAKE, BARE: hand a text column to convert_from",
+      "sql": "SELECT convert_from(checkpoint.body, 'utf8') FROM checkpoint",
+      "result": null,
+      "error": "42883 unknown signature: convert_from(string, string)",
+      "note": "clear and correct: it names convert_from, which is the call that is wrong"
+    },
+    {
+      "step": 7,
+      "what": "THE FINDING: the identical mistake with split_part wrapped around it",
+      "sql": "SELECT split_part(convert_from(checkpoint.body, 'utf8'), chr(10), 3) FROM checkpoint",
+      "result": null,
+      "error": "42883 split_part(): unknown signature: convert_from(string, string) (returning <string>)",
+      "note": "same defect, same SQLSTATE, but the message now opens with the name of the function that resolved fine"
+    },
+    {
+      "step": 8,
+      "what": "and one level deeper again, to see whether the outer names accumulate",
+      "sql": "SELECT upper(split_part(convert_from(checkpoint.body, 'utf8'), chr(10), 3)) FROM checkpoint",
+      "result": null,
+      "error": "42883 upper(): split_part(): unknown signature: convert_from(string, string) (returning <string>)",
+      "note": null
+    },
+    {
+      "step": 9,
+      "what": "a different outer function, to show the prefix is the caller and not split_part in particular",
+      "sql": "SELECT length(convert_from(checkpoint.body, 'utf8')) FROM checkpoint",
+      "result": null,
+      "error": "42883 length(): unknown signature: convert_from(string, string)",
+      "note": null
+    },
+    {
+      "step": 10,
+      "what": "a different inner function, to show this is not about convert_from in particular",
+      "sql": "SELECT split_part(encode(checkpoint.body, 'base64'), chr(10), 1) FROM checkpoint",
+      "result": null,
+      "error": "42883 split_part(): unknown signature: encode(string, string) (returning <string>)",
+      "note": null
+    },
+    {
+      "step": 11,
+      "what": "the repair: give convert_from the bytes it asked for",
+      "sql": "SELECT split_part(convert_from(checkpoint.body::BYTES, 'utf8'), chr(10), 3) FROM checkpoint",
+      "result": [
+        [
+          "deadbeef"
+        ]
+      ],
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 12,
+      "what": "what the product ships instead: no convert_from at all, because body is already text",
+      "sql": "SELECT split_part(checkpoint.body, chr(10), 3) FROM checkpoint",
+      "result": [
+        [
+          "deadbeef"
+        ]
+      ],
+      "error": null,
+      "note": "verticals/mainline/db/seeds/demo/demo_world.sql:855"
+    },
+    {
+      "step": 13,
+      "what": "claim A: does convert_from's result need an explicit ::STRING before split_part accepts it?",
+      "sql": "SELECT split_part(convert_from(checkpoint.root_hash, 'utf8'), chr(10), 3) FROM checkpoint",
+      "result": [
+        [
+          ""
+        ]
+      ],
+      "error": null,
+      "note": "no cast anywhere in this statement; if it resolves, claim A does not hold"
+    },
+    {
+      "step": 14,
+      "what": "claim A, asked directly: what type does convert_from say it returns?",
+      "sql": "SELECT pg_typeof(convert_from(checkpoint.root_hash, 'utf8')) FROM checkpoint",
+      "result": [
+        [
+          "text"
+        ]
+      ],
+      "error": null,
+      "note": null
+    }
+  ]
+}

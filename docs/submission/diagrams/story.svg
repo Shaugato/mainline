@@ -1,0 +1,173 @@
+<!--
+SPDX-FileCopyrightText: 2026 MAINLINE contributors
+SPDX-License-Identifier: CC-BY-4.0
+
+MAINLINE — the layer-1 picture: four panels a person with no background in this
+project reads in about twenty seconds. No technical term appears anywhere in this
+file, on purpose.
+
+The story is an authored worked example. Kestrel Resources, Marrindal and the
+incident number are invented; every date and number below is transcribed from the
+project's own corpus. The refusal the fourth panel ends on is not invented.
+
+Self-contained: no external font, no remote image, no script, no third-party logo
+or trademark. Colours are declared explicitly and the page is painted on an opaque
+panel, so it reads the same on a light or a dark host background.
+
+The text caption that carries this diagram without the picture — for a phone, a
+screen reader or a printed page — is docs/submission/DIAGRAMS.md section 2.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 606" width="1240" height="606"
+     role="img" aria-labelledby="stt std">
+  <title id="stt">Why a database sometimes has to say no — a story in four steps</title>
+  <desc id="std">Four panels. June 2013: a seal on a big machine catches fire and two contractors working nearby are burned; the alarm that should have warned them was set too high. August 2013: an engineer lowers the alarm from 150 degrees to 135 so it trips sooner, and writes down why — the record keeps one line saying it was lowered after the seal fire, two contractors burned. 2021: that engineer leaves, everyone who was in the room leaves, and the rule stays behind as a bare number on a form with nothing on the screen saying why. 2026: another engineer proposes putting the alarm back to 150, and he is not careless because the manufacturer's manual says 150 — but the record still knows about the fire and nobody has answered for it, so the change will not save until someone answers for the fire by name and in writing.</desc>
+
+  <style>
+    .bg    { fill: #F6F5F0; }
+    .frame { fill: none; stroke: #DCD8CB; stroke-width: 1; }
+    .card  { fill: #FFFFFF; stroke: #C3BEAF; stroke-width: 1.25; }
+    .card4 { fill: #FFFFFF; stroke: #8C3A2C; stroke-width: 1.75; }
+    .sep   { stroke: #DCD8CB; stroke-width: 1; }
+
+    text   { font-family: "Inter", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+             fill: #1C1B18; }
+    .h1    { font-size: 28px; font-weight: 700; letter-spacing: -0.2px; }
+    .sub   { font-size: 14px; fill: #4A473E; }
+    .yr    { font-size: 21px; font-weight: 700; fill: #6B6558; letter-spacing: 0.4px; }
+    .yr4   { font-size: 21px; font-weight: 700; fill: #8C3A2C; letter-spacing: 0.4px; }
+    .hd    { font-size: 15.5px; font-weight: 700; }
+    .hd4   { font-size: 15.5px; font-weight: 700; fill: #8C3A2C; }
+    .bd    { font-size: 12.5px; fill: #35322B; }
+    .tick  { font-size: 12.5px; fill: #6B6558; }
+    .tickb { font-size: 12.5px; font-weight: 700; fill: #1C1B18; }
+    .close { font-size: 15px; font-weight: 650; }
+    .note  { font-size: 12.5px; fill: #57544B; }
+
+    .glyph { fill: #6B6558; }
+    .paper { fill: #FFFFFF; stroke: #A29C8B; stroke-width: 1.25; }
+    .pline { stroke: #C3BEAF; stroke-width: 2.5; stroke-linecap: round; }
+    .scale { stroke: #A29C8B; stroke-width: 2; stroke-linecap: round; }
+    .drop  { stroke: #B4392C; stroke-width: 2.2; fill: none; }
+    .bar   { fill: #B4392C; }
+    .sig   { stroke: #6B6558; stroke-width: 1.8; fill: none; stroke-linecap: round; }
+  </style>
+
+  <defs>
+    <marker id="dn" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,4 L0,8 z" fill="#B4392C"/>
+    </marker>
+    <marker id="gy" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="7" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,4 L0,8 z" fill="#A29C8B"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1240" height="606"/>
+  <rect class="frame" x="0.5" y="0.5" width="1239" height="605"/>
+
+  <text class="h1"  x="40" y="48">Why a database sometimes has to say no</text>
+  <text class="sub" x="40" y="76">A made-up story, in four steps. The refusal it ends with is real, and the record of it is in this project.</text>
+  <line class="sep" x1="40" y1="92" x2="1200" y2="92"/>
+
+  <!-- ══ PANEL 1 · June 2013 ══════════════════════════════════════════════════ -->
+  <rect class="card" x="40" y="112" width="272" height="410" rx="6"/>
+  <text class="yr" x="176" y="147" text-anchor="middle">June 2013</text>
+  <line class="sep" x1="58" y1="163" x2="294" y2="163"/>
+
+  <!-- flame, and two people beside it -->
+  <path d="M176,178 C179,197 195,205 199,221 C204,241 191,257 176,257 C161,257 148,241 153,221
+           C156,208 168,199 176,178 Z" fill="#B4392C"/>
+  <path d="M176,213 C178,224 187,228 188,237 C190,247 184,254 176,254 C168,254 162,247 164,237
+           C165,229 174,224 176,213 Z" fill="#E8A23A"/>
+  <circle class="glyph" cx="124" cy="230" r="6"/>
+  <path class="glyph" d="M115,256 L115,247 A9,10 0 0 1 133,247 L133,256 Z"/>
+  <circle class="glyph" cx="228" cy="230" r="6"/>
+  <path class="glyph" d="M219,256 L219,247 A9,10 0 0 1 237,247 L237,256 Z"/>
+
+  <text class="hd" x="58" y="300">A fire, and two</text>
+  <text class="hd" x="58" y="320">people hurt</text>
+  <text class="bd" x="58" y="350">A seal on a big machine catches</text>
+  <text class="bd" x="58" y="368">fire. Two contractors working</text>
+  <text class="bd" x="58" y="386">nearby are burned.</text>
+  <text class="bd" x="58" y="414">The alarm that should have warned</text>
+  <text class="bd" x="58" y="432">them was set too high.</text>
+
+  <!-- ══ PANEL 2 · August 2013 ════════════════════════════════════════════════ -->
+  <rect class="card" x="336" y="112" width="272" height="410" rx="6"/>
+  <text class="yr" x="472" y="147" text-anchor="middle">August 2013</text>
+  <line class="sep" x1="354" y1="163" x2="590" y2="163"/>
+
+  <!-- a scale, and the setting brought down -->
+  <line class="scale" x1="424" y1="186" x2="424" y2="258"/>
+  <line class="scale" x1="416" y1="190" x2="432" y2="190"/>
+  <line class="scale" x1="416" y1="254" x2="432" y2="254"/>
+  <path class="drop" d="M424,200 L424,244" marker-end="url(#dn)"/>
+  <text class="tick"  x="442" y="195">150 °C</text>
+  <text class="tickb" x="442" y="259">135 °C</text>
+
+  <text class="hd" x="354" y="300">It is fixed — and the</text>
+  <text class="hd" x="354" y="320">reason written down</text>
+  <text class="bd" x="354" y="350">An engineer lowers the alarm from</text>
+  <text class="bd" x="354" y="368">150 °C to 135 °C, so it trips</text>
+  <text class="bd" x="354" y="386">sooner and gives people time to</text>
+  <text class="bd" x="354" y="404">get out.</text>
+  <text class="bd" x="354" y="432">He writes down why. The record</text>
+  <text class="bd" x="354" y="450">keeps one line: lowered after the</text>
+  <text class="bd" x="354" y="468">seal fire, two contractors burned.</text>
+
+  <!-- ══ PANEL 3 · 2021 ═══════════════════════════════════════════════════════ -->
+  <rect class="card" x="632" y="112" width="272" height="410" rx="6"/>
+  <text class="yr" x="768" y="147" text-anchor="middle">2021</text>
+  <line class="sep" x1="650" y1="163" x2="886" y2="163"/>
+
+  <!-- the page stays; the person goes -->
+  <rect class="paper" x="694" y="186" width="54" height="70" rx="3"/>
+  <line class="pline" x1="706" y1="204" x2="736" y2="204"/>
+  <line class="pline" x1="706" y1="218" x2="736" y2="218"/>
+  <line class="pline" x1="706" y1="232" x2="726" y2="232"/>
+  <g opacity="0.35">
+    <circle class="glyph" cx="812" cy="212" r="8"/>
+    <path class="glyph" d="M800,256 L800,240 A12,13 0 0 1 824,240 L824,256 Z"/>
+  </g>
+  <path class="scale" d="M762,222 L790,222" marker-end="url(#gy)"/>
+
+  <text class="hd" x="650" y="300">The one who knew</text>
+  <text class="hd" x="650" y="320">it leaves</text>
+  <text class="bd" x="650" y="350">He moves on. Everyone who was in</text>
+  <text class="bd" x="650" y="368">the room moves on.</text>
+  <text class="bd" x="650" y="396">The rule stays behind as a bare</text>
+  <text class="bd" x="650" y="414">number on a form. Nothing on the</text>
+  <text class="bd" x="650" y="432">screen says why it is 135 °C.</text>
+  <text class="bd" x="650" y="460">Normally this is where the reason</text>
+  <text class="bd" x="650" y="478">is lost for good.</text>
+
+  <!-- ══ PANEL 4 · 2026 ═══════════════════════════════════════════════════════ -->
+  <rect class="card4" x="928" y="112" width="272" height="410" rx="6"/>
+  <text class="yr4" x="1064" y="147" text-anchor="middle">2026</text>
+  <line class="sep" x1="946" y1="163" x2="1182" y2="163"/>
+
+  <!-- the form, barred; and the signature that lifts the bar -->
+  <rect class="paper" x="1020" y="182" width="88" height="62" rx="3"/>
+  <line class="pline" x1="1032" y1="198" x2="1096" y2="198"/>
+  <line class="pline" x1="1032" y1="228" x2="1080" y2="228"/>
+  <rect class="bar" x="1008" y="208" width="112" height="9" rx="2"/>
+  <path class="sig" d="M1036,258 q9,-11 18,0 t17,-1 t13,-5"/>
+  <line class="scale" x1="1030" y1="266" x2="1098" y2="266"/>
+
+  <text class="hd4" x="946" y="300">The database</text>
+  <text class="hd4" x="946" y="320">says no</text>
+  <text class="bd" x="946" y="350">An engineer proposes putting the</text>
+  <text class="bd" x="946" y="368">alarm back to 150 °C. He is not</text>
+  <text class="bd" x="946" y="386">careless — the maker's manual</text>
+  <text class="bd" x="946" y="404">says 150 °C.</text>
+  <text class="bd" x="946" y="432">The record still knows about the</text>
+  <text class="bd" x="946" y="450">fire, and nobody has answered for</text>
+  <text class="bd" x="946" y="468">it. So the change will not save.</text>
+  <text class="bd" x="946" y="486">Someone has to answer for the fire</text>
+  <text class="bd" x="946" y="504">first — by name, in writing.</text>
+
+  <!-- ══ closing ══════════════════════════════════════════════════════════════ -->
+  <text class="close" x="40" y="554">That last step is the whole point. It is not a reminder placed next to the button. It is a condition of the button working.</text>
+  <text class="note"  x="40" y="580">The people, the plant and the incident number in this story are invented. The refusal is not: it happens on a real database, and the record of it is in this project.</text>
+</svg>

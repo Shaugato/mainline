@@ -5,6 +5,46 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # JUDGE START
 
+## Sixty seconds first — no jargon, and nothing to install
+
+**A crew is about to open a machine and work inside it.** Somebody has to approve that job
+before it starts. In most organisations the approval is a signature on a form, and the form
+knows nothing about the past. (Throughout this page, **merge** is the moment that approval is
+recorded and the work is allowed to begin.)
+
+**In March 2019 a worker was hurt doing this same kind of work.** The machine was declared
+locked off without anyone confirming it was actually at zero pressure, and residual hydraulic
+pressure released while a guard was being removed. The investigation into it named the written
+rule that was meant to prevent exactly that: *"Before any intrusive work, stored energy shall
+be isolated, locked and verified at zero by a competent person."*
+
+**Seven years later a new job relies on that same rule, and nobody has answered for the 2019
+failure on this particular job.** The approver presses merge. **The database refuses to store
+the row.** Not a warning banner, not a policy service that the next code path can go around —
+the storage engine itself declines, and hands back the one unanswered item that caused it.
+
+Then somebody tries the obvious way round: reach into the database and set the counter that
+the rule checks down to zero. **It refuses a second time**, because it does not believe that
+counter — it recounts the underlying rows itself. Only after a competent person signs a proper
+answer to the 2019 debt does the same merge go through. A gate that always refuses would be
+broken rather than safe, so that third attempt succeeding is part of the claim, not a
+footnote.
+
+**That story is invented, and the data says so about itself.** The incident row is titled
+`SYNTHETIC — Stored energy release during intrusive work` and its own narrative field reads
+*"No real incident, no real site, no real fatality: this narrative was written for the
+MAINLINE demonstration and describes nobody"*
+(`verticals/mainline/db/seeds/demo/demo_world.sql:275`). **The three refusals are not
+invented.** They happen on a public server, to anyone, with no account and no key.
+
+**What to click.** Open the demo URL in the next paragraph. There is no sign-in step, because
+there is no sign-in: everything down to Stop 5 needs no account, no key and no email from us.
+If you would rather read than run, Stop 3 is those same three refusals as a committed
+transcript, and the five items directly below are the parts of this project that are hardest
+to find anywhere else.
+
+---
+
 **One path, six stops, no credential until stop 5.** Everything up to and including the
 command that reproduces this project's central claim needs nothing from us — no account, no
 key, no login, no email. The repository is public: `github.com/Shaugato/mainline`, Apache-2.0,
@@ -21,6 +61,229 @@ value, the route or file it came from, and the one command that regenerates it.
 
 Every figure below resolves to a file in this repository, named beside it. If a figure and
 its file disagree, **the file is right and this page is stale.**
+
+---
+
+## ⭐ FIVE THINGS HERE THAT YOU ARE UNLIKELY TO SEE IN ANOTHER ENTRY
+
+**Read this block before the stops if you only have five minutes.** Each item is already
+committed. **No new run is asked of you and none was made to write this** — every command
+below reads a file that is in your clone, or an artefact already taken against the public
+origin. Each item gets three lines: what it means if you have never seen software do it, how
+it actually works, and the one command that lets you check us.
+
+---
+
+### 1 · A test lane that plants a fault in itself to prove it is still able to fail
+
+**What this means if you have never seen a project do this.** A green tick normally means *the
+check ran and found nothing*. It can also mean *the check is broken and found nothing*. Those
+two look identical from outside. So each check is broken on purpose, on every run, and
+required to notice.
+
+**How it works.** A **negative control** here means one fixed procedure: copy a lane's real
+input into a scratch directory, plant exactly one defect of a kind that lane claims to catch,
+run the lane's *own* checker against the mutated copy, and require it both to exit non-zero
+**and** to name the planted defect in its output. That last clause is the load-bearing one:
+**an assertion that a program failed, without checking why, passes when the program fails to
+start.** That is not hypothetical here. The `console` lane's first three attempts all exited
+non-zero for reasons that were *not* the plant — a lockfile check inside `pnpm`, a mirror
+test, a scratch copy at the wrong directory depth — and a control that had asserted only
+`returncode != 0` would have called all three green
+([`docs/ci/anti-vacuity.md`](../ci/anti-vacuity.md) §5.2).
+
+**Check us.** [`docs/ci/anti-vacuity.md`](../ci/anti-vacuity.md) is one row per workflow in
+the repository, including the rows that admit no such control exists.
+
+```bash
+grep -n "standing negative control" docs/ci/anti-vacuity.md
+```
+
+Line 55 reads *"Seven lanes have a standing negative control after this wave, against three
+before it."* The sentence immediately after it is the reason to read the page: **"Eight of the
+eighteen workflows still have none, and the rows above say so rather than omitting them."**
+
+**The same page, §7.3, records the same discipline turned on one of our own numbers.** The
+`mutation-ratchet` lane damages the product deliberately and measures what proportion of the
+damage the test suite catches, reported as a **Wilson lower bound** — a conservative floor on
+a proportion given how many samples were taken, so it is the figure you can defend rather than
+the raw ratio. Undamaged: `0.909774`. With one rule switched off: `0.802164`. The finding is
+not the gap; it is that the lane's *assertion* about that gap was **satisfiable three ways
+without its claim being true**, and a replay over six fixtures shows the old logic passing
+three of them. It was tightened, and **it is still never a gate** — it reports, it does not
+block.
+
+---
+
+### 2 · A planted fault that caught a defect in CockroachDB's own permission function
+
+**What this means if you have never seen this.** We set a trap for our own code, and caught
+the database instead — before the guard had ever run in anger.
+
+**How it works.** The regression guard's privileges family asked CockroachDB
+`has_function_privilege('<role>', '<procedure>', 'EXECUTE')` — *may that role run this stored
+procedure?* Plant **P2** was built to make that answer `false`: revoke the permission for
+real, then require the guard to go red. It would not. The built-in answered `true` for the
+revoked role, for `root`, for `admin` and for `public`, while the behavioural truth of the
+same call, on the same database, was — verbatim from
+[`docs/regression/GUARD.md`](../regression/GUARD.md) line 378:
+
+```
+CALL as probe: REFUSED 42501 user w_rg_probe does not have EXECUTE privilege on procedure merge_permit
+```
+
+(`42501` is the five-character code the database attaches to *"you do not have permission to
+do that"*.) **A check built on it cannot fail, and a check that cannot fail is decoration.**
+It was replaced with a `SHOW GRANTS` read plus explicit role-membership expansion, which
+*can* go red.
+
+**And we then narrowed our own claim about it, which is the part worth your attention.** We
+had written that the built-in answers `true` *"for everybody"*. Re-measured on `2026-08-17`
+against CockroachDB CCL `v26.2.5`, that is too broad: only the **role-named** three-argument
+form is blind. The two-argument form, where a user asks about *itself*, answers correctly —
+`false` for the refused user. The defect is smaller and more specific than we said, and two
+controls rule out the dull explanation that the function never resolves its arguments (a
+made-up routine raises `42883`, a made-up role raises `42704`). On the same database, in the
+same session, `has_table_privilege` gets the identical question right.
+[`docs/upstream/STRIKE-LEDGER.md`](../upstream/STRIKE-LEDGER.md) §3 row 1 records the
+retraction; [`findings/F01`](../upstream/findings/F01-has-function-privilege.md) carries the
+measurement and the transcript. **`docs/regression/GUARD.md` still carries the wider wording
+at its lines 381–382; it belongs to another domain and is reported here rather than edited.**
+The collected feedback for CockroachDB gathers this with the other findings under
+`docs/upstream/`.
+
+**Check us.**
+
+```bash
+sed -n '370,394p' docs/regression/GUARD.md
+```
+
+---
+
+### 3 · Two documents whose whole job is to say what is *not* built
+
+**What this means if you have never seen this.** Most submissions carry a limitations
+paragraph. Here the limitations are longer than the feature list, and one of the two documents
+is enforced by a test that fails the build.
+
+**How it works.** [`docs/HONESTY.md`](../HONESTY.md) requires every quantity on it to carry an
+inline reference to the file under `qa/` or `evidence/` that produced it.
+`tests/release/test_honesty_is_checkable.py` reads the document, follows every reference, and
+fails the build when a number and its source disagree, when a cited file is gone, when a number
+carries no reference at all — and, the newest rule, when evidence *appears* that the document
+has not absorbed. Its own opening: **"This is not a disclaimer. A disclaimer is prose nobody
+can falsify."** Its `## NOT YET BUILT` section runs from line 557 to line 1109.
+
+[`docs/CI-STATE.md`](../CI-STATE.md) is the file to read *before* the Actions tab, because the
+tab is red on purpose in places and this is what separates the two kinds of red — something is
+broken, versus a ratchet holding a line not yet earned. Its measured board, verbatim:
+
+> `20 workflows        8 GREEN        12 RED        0 never-run`
+
+and the caveat printed under it: **"no lane in this repository has ever run at local HEAD …
+*A repair without a run id is a plan.*"**
+
+**Neither file was touched by this page or by the wave that wrote this block.** They are
+quoted here and never softened.
+
+**Check us.**
+
+```bash
+grep -n "^## " docs/HONESTY.md docs/CI-STATE.md
+```
+
+---
+
+### 4 · A refusal that hands back the smallest set of blocking reasons — and admits when it cannot compute the way out
+
+**What this means if you have never seen this.** When software says no, it usually just says
+no. This one names the single fact that is blocking you and what would unblock it — and when
+it cannot work that out, it says *that* instead of guessing.
+
+**Two plain glosses before the acronyms.** A **minimal unsatisfiable set** (**MUS**) is the
+smallest group of facts that together make a request impossible: take any one of them away and
+it becomes possible again. A **nearest admissible alternative** (**NAA**) is the smallest
+change that would let the same request through.
+
+**How it works, measured on the public origin.** `POST /v1/demo/gate-run` runs four beats in
+one transaction that rolls itself back, needs no credential, and records `persisted: false`.
+
+* **Beat 2 — the plain `CHECK` refusal**, SQLSTATE `23514`, constraint
+  `gate_closed_when_issued`. Its MUS is **one** atom: `kind: obligation`,
+  `origin: blame_ancestry`, `severity: 4`, detail *"open at gate_epoch 1; no live
+  disposition"*. Its NAA is `kind: dispose_obligations`, `cardinality: 1`, described as
+  *"1 obligation(s) remain open on this subject; disposing of exactly those restores
+  admissibility"*. `naa_reason` is `null` — an alternative *was* computed, so there is no
+  reason to record.
+* **Beat 3 — the same merge with the counter forced to zero**, SQLSTATE `P0001`, raised by
+  `mainline.fn_permit_merge_gate`. Here `diagnosis` is `"none"`, `naa` is `null`, and
+  **`naa_reason` is `"not_computable"`**. The single MUS atom is `kind: capability_gap`,
+  naming the function and stating that the general algorithm is QuickXplain over savepoint
+  probes, *"in a separate transaction and never on the completion path"*. **On its strongest
+  refusal, the system reports that it cannot compute a nearest admissible answer rather than
+  inventing one.**
+
+**Check us.** Two committed transcripts, both taken against the public origin with no
+credential: `evidence/deploy/cr-gate-live.json` (`POST /v1/demo/gate-run` → `200`,
+`2026-08-16`) and `evidence/demo/live-beats.json` (`target_is_local_emulator: false`,
+`2026-08-15`).
+
+```bash
+python -c "import json;b=json.load(open('evidence/deploy/cr-gate-live.json'))['gate_run']['body']['data']['beats'];print(b[1]['refusal']['naa']['description']);print(b[2]['refusal']['naa'], b[2]['refusal']['naa_reason'])"
+```
+
+It prints the NAA description, then `None not_computable`.
+
+**One thing about that file, so it is not misread.** `cr-gate-live.json`'s own top-level
+`verdict` is `UNANSWERABLE`, and that answers a *different* question — whether the **change
+request** gate can be driven end to end over HTTP. It cannot:
+`POST /v1/change-requests/{id}/merge` returns `404`, and the 404 body declares the whole route
+table, which is how the absence was confirmed rather than assumed. The `gate_run` block quoted
+above is a separate `200` inside the same file.
+
+---
+
+### 5 · A severity the database derived from the past, that no human typed
+
+**What this means if you have never seen this.** The number that closed the gate was not in
+the request. The database worked it out from a years-old incident and wrote it onto a row the
+caller never touched.
+
+**Two plain glosses.** **Blame ancestry** is the chain from a written rule back through the
+incidents that were investigated and named it — who blamed what, kept as rows rather than as
+prose. **Projection** here means the database computing a value from those rows and storing it
+at the instant the triggering row is inserted, instead of the application computing it and
+sending it in.
+
+**How it works.** One `INSERT INTO mainline.blocking_check`, with no other statement between
+the before and after readings, fired the `AFTER INSERT` trigger `check_materialised`
+(`mainline.fn_check_materialised`, migration `0121_trg_check_materialised.sql`). Across that
+single statement: `open_blocking` moved `0 → 1`; the gate epoch moved `0 → 1`; one
+`check_opened` row was emitted into `mainline_ops.outbox`; and a severity of **4** was
+projected onto the check, banded `blood_major` — **where the client had supplied `0`**. Ten
+assertions were declared and ten held. **The client did not write the number that closed the
+gate. The database did.**
+
+**Check us.** `evidence/gate-refusal/proof-20260810T054407Z.json#projection`. **That artefact's
+`cluster.database` reads `w_W8`, a throwaway local database — this is a LOCAL proof and this
+block does not say otherwise**, exactly as Stop 3 does not. The same projection block, `10` of
+`10`, appears in the newest committed proof (`proof-20260814T032418Z.json`) and in the printed
+transcript quoted at Stop 4.
+
+```bash
+python -c "import json;p=json.load(open('evidence/gate-refusal/proof-20260810T054407Z.json'))['projection'];print(p['severity']);print(sum(a['holds'] for a in p['assertions']),'of',len(p['assertions']),'assertions held')"
+```
+
+It prints `{'supplied_by_this_script': 0, 'projected_onto_the_check': 4, …}` and then
+`10 of 10 assertions held`.
+
+---
+
+**What these five do not say.** Agent Skills is **designed and not exercised**. Bedrock runs
+in this repository and **not in the demo's request path** — both halves of that sentence
+always. The change request has **no admission beat** and says so. The Managed MCP pack is
+`15` of `16` at `DIVERGED — KNOWN GAP`, and the one failure is preserved rather than rounded
+off (Stop 5). Nothing in this block promotes any of those.
 
 ---
 
@@ -308,9 +571,11 @@ already running — `docker compose -f compose.yaml config`, exit
 
 *Proves:* the node is pinned, not floating. The compose file names
 `cockroachdb/cockroach:v26.2.5` exactly, and `crdb-align` sets the local cluster's
-`gc.ttlseconds` to 4500 — the value CockroachDB Cloud Basic enforces — because the local
-default is the *more permissive* of the two and a time-travel assumption that is legal on a
-laptop should not be legal only there.
+`gc.ttlseconds` to 4500 — a deliberately tight retention window — because the local default is
+the *more permissive* of the two and a time-travel assumption that is legal on a laptop should
+not be legal only there. This page used to call 4500 *the value CockroachDB Cloud Basic
+enforces*; that is **withdrawn**, because 4500 was a value we had set ourselves and read back
+[src: `docs/upstream/STRIKE-LEDGER.md` §3 claim 4].
 
 **4 · the one command that is the whole point:**
 

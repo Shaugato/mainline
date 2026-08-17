@@ -15,10 +15,18 @@ the form.
 SQLSTATE `23514`, a setpoint of `150` — not measurements. A bare number is a measurement and
 carries its file. If you edit a number, re-derive it first; the discipline is the product.
 
-Measured over the paste blocks only on `2026-08-16`: **16 blocks, 11,194 words**, elevator
-pitch **163 characters** against a cap of 200, one sentence. *That total read `10,575` earlier
-the same day and was re-derived with the command below rather than left standing. The `619`
-words between the two readings are almost all in the axis-1 block: the live STORE → RETRIEVE
+Measured over the paste blocks only on `2026-08-17`: **20 blocks, 13,450 words**, elevator
+pitch **163 characters** against a cap of 200, one sentence. *It read **16 blocks, 11,194
+words** on `2026-08-16`, and the `2,256` words between the two readings are four new blocks
+and no edit to any old one* — a sixty-second opener that goes above *Inspiration* and replaces
+nothing under it, the architecture caption that answers optional requirement 6, the CockroachDB
+feedback that answers optional requirement 7, and the testing instructions the rules' access
+clause asks for, which this page had never carried as pasteable copy. **Not one of the sixteen
+earlier blocks was rewritten, shortened or re-ordered**, which is why the elevator-pitch
+character count below is unchanged and why the five criterion blocks still stand where they
+stood. *The `11,194` figure read `10,575` earlier on `2026-08-16` and was re-derived with the
+command below rather than left standing. The `619`
+words between those two readings are almost all in the axis-1 block: the live STORE → RETRIEVE
 → ACT loop with its committed transcript, the refusal's MUS and NAA including the third beat's
 `naa_reason: "not_computable"`, a paragraph scoping the criterion's own words "production-grade
 role as the agent's memory layer" to the memory layer, and a replaced `OPEN THIS TO CHECK IT`
@@ -136,6 +144,32 @@ is a promotion, and a promotion is the one edit this page forbids outright.
 
 ---
 
+## The twelve words this page cannot avoid
+
+**This section is not pasted anywhere.** It is here so the person filling in the form — and
+anyone reading this file cold — can check a word without leaving the page. Every paste block
+below either glosses these words in the same sentence it uses them, or does not use them. The
+fuller vocabulary, twenty-four terms each with the table or route that makes it a real thing,
+is [`docs/architecture/GLOSSARY.md`](../architecture/GLOSSARY.md); no gloss here may
+contradict one there.
+
+| Word | In one clause |
+|---|---|
+| **obligation** | Something that has to be settled before a permit may be issued — usually a past incident this job resembles, attached to the permit as a row. Table `mainline.blocking_check`. |
+| **disposition** | The signed answer to exactly one obligation: a named competent person recording what they did about it. It is the only way an obligation closes. Table `mainline.disposition`. |
+| **precursor** | The earlier event an obligation points back at — the incident this job resembles. It is what carries the severity that arms the refusal. |
+| **blame ancestry** | The chain of earlier versions and earlier incidents a rule descends from, walked as a graph at the moment the question is asked. `git blame`, for a safety rule. |
+| **projection** | A value the database writes onto a row *by itself*, derived from other rows, overwriting whatever the writer supplied. The count of open obligations on a permit is one. |
+| **epoch** | A counter on the permit (`gate_epoch`) that goes up every time a new obligation arrives, so an obligation that turns up after a permit was issued cannot be quietly attached to it. |
+| **SQLSTATE** | The five-character code a SQL database returns to say what it did — `00000` accepted, `23514` a `CHECK` rule refused it, `P0001` a stored procedure refused it. The code comes from the database; an English message could come from anywhere. |
+| **synchronic** | Judged on how the world is **now**: isolation in place, gas test in date, signature present. That is every permit system shipping today. |
+| **diachronic** | Judged on how it **got here**: why does this rule say 135, and who paid for that number. |
+| **MUS** | Minimal unsatisfiable subset — the shortest set of facts that together force the refusal. Drop any one of them and the write would have gone through. |
+| **NAA** | Nearest admissible alternative — the closest version of the request the database **would** have accepted. Where it cannot be computed the answer is `null` with a reason attached, never a guess. |
+| **C-SPANN** | CockroachDB's vector index type, used here to find the past incidents a new job resembles. |
+
+---
+
 ## Elevator pitch
 
 <!-- PASTE -->
@@ -144,11 +178,41 @@ Every permit system gates on the present; MAINLINE gates on ancestry — the dat
 
 ---
 
+## Read this first — the sixty-second version
+
+> **THIS BLOCK GOES AT THE VERY TOP OF THE *About the project* BODY, ABOVE *Inspiration*.**
+> It is the only block on this page written for a reader who has never seen the project and
+> does not work with databases. It uses no term it has not just defined, and every fact in it
+> carries the file it was transcribed from. **It replaces nothing** — *Inspiration* and
+> everything after it stay exactly as they are, underneath it.
+
+<!-- PASTE -->
+
+**Read this knowing the story is invented.** Kestrel Resources is fictional and `INC-2013-044` never happened. The mechanism is real; the inputs were written by us (`docs/HONESTY.md` § SYNTHETIC).
+
+In 2011 a gas plant sets the high-temperature alarm on a compressor seal to 150 °C. On `2013-06-12` that seal catches fire and two contractors are burned; nobody dies. On `2013-08-04` an engineer lowers the alarm to 135 °C, saving one line with the change: *"Lowered 150 → 135 after seal fire INC-2013-044 — two contractors burned."* Then ordinary things happen to that rule: in 2016 it is renumbered from 7.3 to 5.2.1, in 2019 it moves into another standard and becomes 9.2.1, and in 2021 the engineer leaves the company.
+
+Today somebody proposes putting the alarm back to 150 °C. They are not careless: the manufacturer specifies 150, and 135 trips alarms on hot afternoons that people have started ignoring. The rule on their screen says *"shall be set at 135 °C"* and gives no reason.
+
+**Every permit-to-work system on the market approves that change.** A permit to work is the written authorisation without which nobody starts a dangerous job, and all of them ask one question: *is the world all right at this moment?* Isolations in place, gas test in date, ticket valid. Every one of those checks passes, because nothing about the plant today is wrong. None of them can answer *why is this limit here.*
+
+**MAINLINE makes that answer a condition of the write.** Every rule carries a pointer to the event that caused it to be written. Issuing a permit is handled the way a change to source code is handled — as a merge — and before it lands, the database looks up what wrote each rule the job leans on. Any earlier event nobody has answered for becomes an **obligation**: one open question attached to that permit. While it is open, **the database refuses to record the permit as issued.**
+
+*Refuses* is the load-bearing word. Not a banner beside an Approve button, which a tired person dismisses at 04:00; not a check in our application, which a migration script would go around. It is a rule inside CockroachDB, applied to every writer including us — switch our screens off and the permit still will not issue. A named competent person must first sign what they intend to do about the 2013 fire; that signed answer is a **disposition**, and once it exists the same merge goes through.
+
+An old lesson a new job cannot get around, enforced by the database rather than remembered by a person. **Check it in a minute, with no account of ours:** `POST /v1/demo/gate-run` on the demo URL replays that argument in four steps and ends in `ROLLBACK`, so `persisted` comes back `false` and your visit leaves nothing behind.
+
+*Dates, setpoints and the quoted line are transcribed from `spine.json` and `CAMERA-STRINGS.yaml` under `verticals/mainline/` (`commit_message_2013`, asserted byte-equal across four files). The refusal is `23514 gate_closed_when_issued` [src: `evidence/gate-refusal/proof-20260810T054407Z.json`]. The invented incident is severity `4` — two contractors, partial-thickness burns.*
+
+---
+
 ## Inspiration
 
 <!-- PASTE -->
 
-An engineer raises a compressor alarm setpoint from `135` back to the manufacturer's `150` — a routine change, technically correct, and every permit-to-work system on the market would approve it. MAINLINE runs `blame` on the clause instead, and finds it was lowered on `2013-06-12` after a seal fire, by an author who left the company in `2017`, with the message *"Lowered 150 to 135 after seal fire INC-2013-044 — two contractors burned."* The permit merge is then **mechanically refused by the database** — not flagged, refused — until a named competent person signs a disposition against a thirteen-year-old death.
+*(The scenario is invented — Kestrel Resources and Marrindal are fictional and `INC-2013-044` never happened. The mechanism is real; the inputs are authored.)*
+
+An engineer raises a compressor alarm setpoint from `135` back to the manufacturer's `150` — a routine change, technically correct, and every permit-to-work system on the market would approve it. MAINLINE runs `blame` on the clause instead. A seal fire burned two contractors on `2013-06-12`; the alarm was lowered because of it on `2013-08-04`, with the message *"Lowered 150 → 135 after seal fire INC-2013-044 — two contractors burned."*; and that author left the company on `2021-07-16`. The permit merge is then **mechanically refused by the database** — not flagged, refused — until a named competent person signs a disposition against a thirteen-year-old fire.
 
 Every shipping permit system is **synchronic**: it gates on the current state of the world — isolation in place, gas test valid, signature present. None can express *why* a rule says what it says, so the memory of an incident decays to nothing the day its author resigns. MAINLINE is **diachronic**: it gates on **ancestry**. Recall is therefore not a panel beside the decision but a **precondition of the state transition**, enforced under `SERIALIZABLE`. A document shown next to an "Approve" button is a UI nag, and a UI nag gets dismissed. An invariant does not.
 
@@ -448,23 +512,219 @@ cockroachdb, cockroachdb-cloud, ccloud-cli, cockroachdb-mcp-server, model-contex
 
 ---
 
+## Architecture — the diagram, and a caption that works without it
+
+> **THIS ANSWERS SUBMISSION REQUIREMENT 6, WHICH IS OPTIONAL.** Verbatim, as the
+> completeness lead fetched it from `https://cockroachdb-ai.devpost.com/` on `2026-08-17`
+> and recorded at [`extra-credit-plan.md`](extra-credit-plan.md) §0: *"Optional: Include an
+> architectural diagram showing how CockroachDB, AWS services, and your agent interact."*
+>
+> **There are three drawings and they agree with each other.** Checked `2026-08-17`, all
+> three present:
+> **(a) the image** — [`docs/submission/diagrams/architecture.svg`](diagrams/architecture.svg),
+> self-contained, no external font, no script, no logo or trademark, and its own footer states
+> the boundary this caption states: *"Everything above the dashed panel is on the live request
+> path a judge can call today. The dashed panel is real in this repository and is not called
+> while a judge is looking."* **This is the file to attach.**
+> **(b) the request path in text** at
+> [`docs/architecture/02-the-request-path.md`](../architecture/02-the-request-path.md) §2,
+> every box a file, a URL or a database object at a stated path.
+> **(c) the component map** at [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) §*The component
+> map*, three layers with the licence boundary on it.
+> **Attach (a), link (b) and (c), and paste the caption below into the body.** Keep the text
+> pair as well as the image: a fenced diagram renders in GitHub's rendered view, in GitHub's
+> raw view, in a terminal and in a printed PDF, which an image does not — and a judge reading
+> on a phone or with a screen reader gets the caption instead of nothing.
+> **And read [`DIAGRAMS.md`](DIAGRAMS.md) before you upload anything.** It is the drawings'
+> own document: §1.3 lists every element with whether a judge's request touches it, §1.5 gives
+> the source of each label's wording, §1.4 says what the diagram deliberately does not draw,
+> and §3.3 covers what to do if a destination will not take `.svg`. *(That file had not landed
+> when this note was first written and had by the time it was checked again; both readings are
+> kept, which is this page's rule for every status on it.)*
+> **Do not commission a prettier picture that claims an arrow none of the three has.**
+
+<!-- PASTE -->
+
+**Architecture — what talks to what when a judge presses the button.** The drawing is `docs/submission/diagrams/architecture.svg`, and the same picture is a text diagram at `docs/architecture/02-the-request-path.md` §2, with a wider one — the component map, three layers and the licence boundary — at `docs/ARCHITECTURE.md`. Every box in all three is a file, a URL or a database object that exists at a stated path. **This caption is written so that a reader who never sees the picture still knows what the arrows are**, which is also what a screen reader gets.
+
+**In the demo's request path — five hops, and that is all of them.** **(1)** A judge, using `curl` or the console page in a browser tab, sends `POST /v1/demo/gate-run` over TLS with no API key, no cookie and an empty body. **(2)** An **AWS Lambda Function URL** in `ap-southeast-1` (Singapore) receives it. Its `authorization_type` is `NONE` — anyone at all may call it, by the founder's choice (`infra/envs/demo/variables.tf:105`). **(3)** **AWS Lambda** runs one Python handler, `arm64`, with no web framework in it: the deployment package's entire declared dependency list is `psycopg==3.3.4` and `psycopg-binary==3.3.4` (`verticals/mainline/apps/demo-api/pyproject.toml:47-50`). **(4)** That handler makes exactly one AWS API call — **AWS Systems Manager Parameter Store**, a single `GetParameter` for the SecureString holding the database connection string, signed by hand out of `hashlib` and `hmac` rather than through an SDK. **(5)** **CockroachDB `v26.2.5`, Cloud Basic tier, `aws-ap-southeast-1`**, database `mainline_demo`, where the refusal physically lives as three independent objects: a `CHECK` constraint, a trigger, and a function. The answer comes back out the same wire carrying the database's own five-character SQLSTATE and the constraint's own name, composed by nobody. **Amazon CloudWatch** takes the logs and holds the alarms for that function; it is not in the path of the answer.
+
+**Not in the demo's request path — and the diagram says so on its own face rather than leaving it to be discovered.** **Amazon Bedrock** — Claude inference and Amazon Titan v2 embeddings, both in `ap-southeast-2` (Sydney) — **is real in this repository and is not called while a judge is looking.** Both halves of that sentence are true and neither is separable from the other: the calls happened, returned HTTP `200`, and carry AWS request ids this repository could not have minted (`evidence/aws/probe/bedrock-probe.json`); and the four beats the origin answers are SQL against CockroachDB and call no model at all. It is checkable rather than asserted — there is no `boto3` in the dependency list above, and `grep -rin bedrock verticals/mainline/apps/demo-api/src/` returns nothing. Also outside the request path, and on the drawing as such: the **CockroachDB Managed MCP Server**, which a judge reaches with their own cluster and their own key; **Amazon S3 with Object Lock, AWS KMS, AWS CloudTrail, Amazon EventBridge and Amazon CloudFront**, all five `DESIGNED` and none applied — there is no MAINLINE evidence bucket, no signing key, no trail and no distribution; and there is no CDN, no S3 bucket and no API Gateway in front of the origin, which is why one Function URL serves both the JSON API and the console page.
+
+**Where the agent is on that drawing.** The half of the agent this demo exercises is its **memory** — what it stored, what it retrieved, and the write it was then blocked on. That loop is three read-only `GET`s against the same origin and it is recorded at `evidence/demo/memory-loop.json`: `verdict PROVEN`, `23` of `23` assertions holding. The half of the agent that calls a model is the half named in the paragraph above as not being in the request path. And the two CockroachDB Agent Skills that generalise the idiom out of the product are real files a judge can read and run, each shipping a script that fails when its guarantee stops holding — **the census marks that tool `DESIGNED`, not `EXERCISED`, because no run of either script is captured under `evidence/`**, and this caption does not upgrade it.
+
+**Read the drawing with the verdicts beside it.** `docs/TOOL-USAGE.md` gives every CockroachDB tool and AWS service a verdict of `EXERCISED`, `DESIGNED` or `NOT-AVAILABLE` with the file and line that does the work, and *What actually ran*, above, reads both censuses out row by row. An arrow on a diagram is a drawing decision; a verdict in a census is a measurement.
+
+---
+
+## Feedback for CockroachDB — the optional requirement, actually answered
+
+> **THIS ANSWERS SUBMISSION REQUIREMENT 7, WHICH IS OPTIONAL.** Verbatim, same source and
+> same date as the block above: *"Optional: Provide feedback on the CockroachDB AI tools or
+> features."*
+>
+> **The full answer is [`docs/upstream/COCKROACHDB-FINDINGS.md`](../upstream/COCKROACHDB-FINDINGS.md)**,
+> the triage page written so one maintainer can read seven reports in a sitting, with
+> [`COCKROACHDB-FIELD-NOTES.md`](../upstream/COCKROACHDB-FIELD-NOTES.md) as the
+> plain-language front door beside it — six findings, one struck, three things that worked,
+> each with a program that reproduces it. It was re-checked by a worker who wrote none of it
+> ([`scripts/upstream/verify_field_notes.py`](../../scripts/upstream/verify_field_notes.py),
+> output [`evidence/upstream/verification.json`](../../evidence/upstream/verification.json)),
+> and that verification is the reason one finding was struck and six further sentences were
+> withdrawn from inside the survivors. **Two things not to write anywhere:** that these have
+> been sent to Cockroach Labs — they have not, and this document set is the thing we would
+> send; and any finding without the label its own file carries, since one of the three below
+> is `ARCHIVED-EVIDENCE` rather than reproduced today and says so in the copy.
+
+<!-- PASTE -->
+
+**Feedback for CockroachDB, and the first item is one we got wrong.** We built on CockroachDB `v26.2.5` for several weeks and kept a list of sharp edges. Before publishing we re-ran every item from a cold shell: **seven candidates, six published, one struck**, plus six sentences withdrawn from inside the survivors. The struck one was ours — we had published that the planner would not choose our vector index unless the statement named it; it chose it unasked, twice (`docs/upstream/STRIKE-LEDGER.md` §2).
+
+**`has_function_privilege()` cannot answer `false` in the form a checking program has to use.** *Expected:* revoking `EXECUTE` on a stored procedure makes the role-named call answer `false`. *Measured:* with `EXECUTE` revoked from everyone and the engine itself refusing the call with `42501`, the role-named form still answered `true` — for that login and for `root`, `admin` and `public`. The self-asking form answered correctly, and `has_table_privilege` passed the identical control. Our guard was built on the blind form and could never have gone red; one documentation line would have saved us the afternoon. (`findings/F01`, `REPRODUCED-TODAY`.)
+
+**Two catalogue surfaces spell one routine two different ways.** *Expected:* `SHOW GRANTS` and `information_schema.routines` agree on a routine's name. *Measured:* the first gives the full argument list, the second the bare name, neither carries the other's spelling, and comparing them as text produces false alarms forever. A stable object-id column on `SHOW GRANTS` would end the class. (`findings/F02`, `REPRODUCED-TODAY`.)
+
+**The ceiling on schema objects arrives as unrelated test failures.** *Expected:* a warning on the way up to roughly 20,000 objects. *Measured:* thirteen broken tests and most of an hour blaming an innocent code change. The refusal at the ceiling is excellent; nothing counts down to it, and the count that would tell you where you stand lives in `crdb_internal`, closed by default. A `NOTICE` at 80 % would have cost minutes. The mess was ours — the shape of finding out is what we send. (`findings/F05`; its central refusal is filed under ***Reported, not reproduced on this machine*, label `ARCHIVED-EVIDENCE`** — not re-triggered here, since doing so means creating twenty thousand schema objects on purpose.)
+
+**All six, each with a program that reproduces it: `docs/upstream/COCKROACHDB-FINDINGS.md`.** Read its opening section on what the platform got right before the complaints — three things that carried this product, measured the same way. **None of this has been sent to Cockroach Labs; it is the thing we would send.**
+
+---
+
+## Testing instructions — how a judge reaches this, and what each route costs them
+
+> **THE CREDENTIAL IS FILLED IN BY THE FOUNDER AND NEVER FROM THIS REPOSITORY.** The
+> `mainline_judge` password is generated by
+> `python scripts/deploy/judge_access.py provision --rotate --show-password`, printed once to
+> that run's terminal, and written to no file here, no evidence artefact and no environment
+> variable ([`SUBMISSION.json`](SUBMISSION.json) → `judge_access.credentials_location`, in
+> that field's own words: *"This key is a pointer; it must never hold the value it points
+> at."*). **It does not appear on this page and must not be typed into it.** Paste the block
+> below into the form's testing-instructions field if the form has one, and otherwise into
+> the *About the project* body; put the password into the form's own credentials field.
+>
+> **The substance below is `SUBMISSION.json` → `judge_access`, which is that file's to write
+> and not this page's.** If the two ever disagree, that file is right.
+
+<!-- PASTE -->
+
+**Testing instructions — four routes, and three of them need nothing from us at all.**
+
+**1 · The deployed demo. No credential, no account, no sign-up, nothing to install.** The Lambda Function URL's `authorization_type` is `NONE`, and as of `2026-08-16` that is measured rather than planned: an unauthenticated fetch answered HTTP `200` on `/`, on `/judge` and on `/console`. Open the demo URL in a browser for the console, or:
+
+```
+curl -s        <demo_url>/v1/health
+curl -s -X POST <demo_url>/v1/demo/gate-run
+```
+
+The first answers `ok true`, `database mainline_demo`, the cluster version, and `deploy_chain_applied 271` of `deploy_chain_files 271`. The second returns the argument in four beats — `00000`, then `23514 gate_closed_when_issued`, then `P0001 mainline.fn_permit_merge_gate` against a blocking count forged to zero out of band, then `00000` once a signed answer exists — at `verdict PROVEN`, inside one `SERIALIZABLE` transaction that ends in `ROLLBACK`. So `persisted` comes back `false`, nothing is saved, and there is no reset button and no per-visitor state: the next reader meets the same permit with the same open obligation, untouched. *(That is a statement about state, not about throughput — this repository publishes no load profile and no p50, and `Limitations` says so.)* **Two ways to get this wrong in under a minute.** `/v1/demo/gate-run` is `POST`-only and answers a `GET` with `405` — that is a route declining a method, which only a route that exists can do, and it is not the path being absent. And the origin serves the console's document shell for any path it does not recognise, so a `200` from a path invented on the spot is that shell rather than an endpoint: **read the body, not the status code.**
+
+**2 · On your own laptop, with no account of ours and no model call.** Clone the repository, start a local CockroachDB, and run `python scripts/proof/gate_refusal.py --dsn postgresql://root@localhost:26257/defaultdb?sslmode=disable`. It applies the migration chain into a throwaway database of its own, attempts the merge three times, and prints a verdict on the last line. `VERIFY.md` orders three tiers of checking by how much you have to take on faith, and this is Tier 2. This is the route we would most like a sceptic to take, because it needs nothing from us: a safety claim a buyer cannot re-run is marketing.
+
+**3 · The read-only ledger login — the one route on this list that is not anonymous, and the only thing in this submission that needs a credential.** The `mainline_judge` login reads MAINLINE's live CockroachDB Cloud ledger in any SQL client, and its password is in this form's credentials field and appears nowhere in the repository. `docs/deploy/JUDGE-PACK.md` §2 is the instructions. Measured `2026-08-11`, that login read all `14` `mainline_audit` views and was refused on all `11` of the `11` forbidden statements put to it — base tables, an `INSERT`, a `CREATE TABLE`, a `DROP VIEW`, a forbidden schema and `crdb_internal` — each refusal recorded with its own SQLSTATE (`evidence/deploy/judge-access.json`).
+
+**4 · The CockroachDB Managed MCP Server, against your own cluster with your own key.** `verticals/mainline/demo/judge/MCP-CONFIG.md` §1 is a copy-pasteable configuration that reproduces the *mechanism* and reaches none of our data. That is deliberate: the key which opens `https://cockroachlabs.cloud/mcp` is an account-level Cloud service-account key whose measured tool list carries `create_database`, `create_table` and `insert_rows`, so `evidence/deploy/judge-access.json` records `mcp_channel.credential_publishable: false` and we do not hand it out. The sessions we drove over that endpoint are committed instead — `evidence/deploy/judge-run.json` on `2026-08-11` and `evidence/mcp/pack-run.json` on `2026-08-16`, five days and one deployment apart, both reaching `15` of `16` pack questions at verdict `DIVERGED — KNOWN GAP`, with the one FAIL preserved rather than rounded off.
+
+**Expect the asymmetry, because it is chosen rather than accidental: the demo is open to anyone with no credential of ours, and the ledger takes the read-only login above.** Nothing else in this submission asks a judge for anything.
+
+---
+
 ## Field-by-field checklist for the person pasting
 
-| Devpost field | Source above | Still needed |
+**This is a complete enumeration, and the fields that stay empty are enumerated too, each
+with the reason.** A field this page prepared copy for and the form turns out not to have
+costs nothing; the reverse costs the submission. **Where a form field's exact name cannot be
+verified without logging in to Devpost, the row says `form-field name unverified` and the
+copy is ready either way** — no field name below is asserted that has not been seen.
+
+### A · The *About the project* body — eighteen blocks, in this order
+
+Paste them in the order below. **Three rules survive from every earlier version of this
+table and none of them is relaxed by the blocks added on `2026-08-17`:** the five *Judged on*
+blocks go in axis order `1`–`5` because the rules weight the five criteria equally and each
+block is the only place one of them is answered directly; *What actually ran* stays **last**,
+because it is the close block and it is the one a judge can check against two committed JSON
+files in a minute; and **nothing here is cut to make room.** If the total must come down, cut
+*Challenges we ran into* and *How we built it* first — their artefact detail is duplicated at
+greater length in [`JUDGING-AXES.md`](JUDGING-AXES.md) and
+[`docs/TOOL-USAGE.md`](../TOOL-USAGE.md).
+
+| # | Block on this page | Why it is in this position |
+|---:|---|---|
+| 1 | *Read this first — the sixty-second version* | **New on `2026-08-17`.** The only block written for a reader who has never met the project. It goes above *Inspiration* and replaces nothing under it |
+| 2 | *Inspiration* | the synchronic/diachronic contrast, for a reader who now has the story — **read the defect note at the foot of this section before pasting this one** |
+| 3 | *What it does* | the mechanism in three steps, and the transcript |
+| 4 | *How we built it* | the two censuses, tool by tool, with verdicts |
+| 5 | *Challenges we ran into* | first candidate for the knife if the total must fall |
+| 6 | *Accomplishments that we're proud of* | second candidate |
+| 7 | *What we learned* | — |
+| 8 | *What's next for MAINLINE* | — |
+| 9 | *Limitations — read this before you believe any of it* | **do not cut.** A submission that surfaces its own gaps outscores one where a judge finds them |
+| 10–14 | the five *Judged on* blocks, axis `1` to axis `5` | **do not cut.** Each answers one criterion alone, so a judge scoring axis 3 never has to read axes 1, 2, 4 and 5 |
+| 15 | *Architecture — the diagram, and a caption that works without it* | **New on `2026-08-17`.** Answers optional requirement 6; goes after the axis blocks so it reads as evidence rather than as an introduction |
+| 16 | *Feedback for CockroachDB* | **New on `2026-08-17`.** Answers optional requirement 7 |
+| 17 | *Testing instructions* | **New on `2026-08-17`.** Goes into the form's own testing-instructions field **if the form has one**; into the body here if it does not |
+| 18 | *What actually ran — the two censuses, verdict by verdict* | **last, always.** And **if it must be shortened, shorten the bases and never the verdict labels**: a row that loses its `DESIGNED` is a promotion, and a promotion is the one edit this page forbids outright |
+
+### B · Every other field on the form, including the ones left empty
+
+| Devpost field | Copy on this page | State, and what is still needed |
 |---|---|---|
-| Elevator pitch | *Elevator pitch* | — |
-| Inspiration | *Inspiration* | — |
-| What it does | *What it does* | — |
-| How we built it | *How we built it* | — |
-| Challenges we ran into | *Challenges we ran into* | — |
-| Accomplishments | *Accomplishments that we're proud of* | — |
-| What we learned | *What we learned* | — |
-| What's next | *What's next for MAINLINE*, then *Limitations*, then the five *Judged on* blocks, then *What actually ran* | paste all eight, in that order — the five axis blocks in axis order `1`–`5`, and *What actually ran* last, because it is the close block and it is the one a judge can check against two committed JSON files in a minute |
-| Built With | *Built With* | — — but read the note above that block before editing it. It holds only rows the censuses mark `EXERCISED`; a tag field cannot carry a verdict, so a `DESIGNED` row put back here would be a promotion. The `DESIGNED` rows are named, labelled, in *What actually ran* |
-| Try it out — repo link | `docs/submission/SUBMISSION.json` → `repo_url` | **resolved and public** — `https://github.com/Shaugato/mainline` opens for a judge with no account. An earlier version of this row said it `404`s until a visibility flip; the flip has happened |
-| Try it out — demo link | `docs/submission/SUBMISSION.json` → `demo_url` | **resolved on `2026-08-16`** to the Lambda Function URL, which answered `200` on `/`, `/console`, `GET /v1/health` and `POST /v1/demo/gate-run` the same day with no credential. This row said `UNRESOLVED` — *"nothing is applied"* — and that stopped being true when `terraform apply` ran on `2026-08-14`; the stale wording is named here rather than quietly swapped. **Take the current value from `SUBMISSION.json`, never from this row**; that file is the single write point and this row is a snapshot |
-| Video demo link | `docs/submission/SUBMISSION.json` → `video_url` | still held `UNRESOLVED` on `2026-08-16` — the film has not been recorded and no worker on this submission can record it. Kit is in [`VIDEO-KIT.md`](VIDEO-KIT.md); the founder records it. Same rule: read the value from `SUBMISSION.json` |
-| Judge access / testing instructions | `docs/submission/SUBMISSION.json` → `judge_access` | **resolved** — both paths named; the `mainline_judge` password goes in the form's credentials field and **never** in this repository |
+| Project title (*form-field name unverified*) | — | **`MAINLINE`.** The repository name, the name every document on this page uses, and the name in `https://github.com/Shaugato/mainline`. Nothing further is owed |
+| Elevator pitch, 200-character cap | *Elevator pitch* | **ready** — `163` characters, one sentence, re-derived by the command in this page's preamble on the day this line was written |
+| About the project — the body | table A above | **ready** — eighteen blocks, in that order |
+| Built With | *Built With* | **ready, and read the note above that block before editing it.** It holds only rows the two censuses mark `EXERCISED`; a tag field cannot carry a verdict, so a `DESIGNED` row put back here would be a promotion. The `DESIGNED` rows are named and labelled in *What actually ran* |
+| Try it out — repo link | [`SUBMISSION.json`](SUBMISSION.json) → `repo_url` | **resolved and public** — `https://github.com/Shaugato/mainline` opens for a judge with no account. An earlier version of this row said it `404`s until a visibility flip; the flip has happened |
+| Try it out — demo link | [`SUBMISSION.json`](SUBMISSION.json) → `demo_url` | **resolved on `2026-08-16`** to the Lambda Function URL, which answered `200` on `/`, `/console`, `GET /v1/health` and `POST /v1/demo/gate-run` the same day with no credential. This row said `UNRESOLVED` — *"nothing is applied"* — and that stopped being true when `terraform apply` ran on `2026-08-14`; the stale wording is named here rather than quietly swapped. **Take the current value from `SUBMISSION.json`, never from this row**; that file is the single write point and this row is a snapshot |
+| Video demo link | [`SUBMISSION.json`](SUBMISSION.json) → `video_url` | **THE ONE OUTSTANDING BLOCKING ROW.** It still held the literal `UNRESOLVED` on `2026-08-16` — the film has not been recorded and no worker on this submission can record it. Kit is in [`VIDEO-KIT.md`](VIDEO-KIT.md); the founder records it. **The rules require it publicly visible on YouTube or Vimeo — an *unlisted* upload is public enough and a *private* one is not**, and that distinction has ended more hackathon entries than any missing feature. Same rule as every URL here: read the value from `SUBMISSION.json` |
+| Testing instructions / judge access (*form-field name unverified*) | *Testing instructions* | **ready** — four routes, three of them anonymous. Substance is [`SUBMISSION.json`](SUBMISSION.json) → `judge_access`, which is that file's to write |
+| Judge credentials (*form-field name unverified*) | **deliberately absent from this page** | **the founder fills this, from a terminal, not from this repository.** The `mainline_judge` password is generated by `python scripts/deploy/judge_access.py provision --rotate --show-password`, printed once, and written to no file, no artefact and no environment variable. **A credential value must never be typed into this page** |
+| Image gallery / thumbnail (*form-field name unverified*) | [`diagrams/architecture.svg`](diagrams/architecture.svg) and [`diagrams/story.svg`](diagrams/story.svg) | **UPLOAD REQUIRED — and with the film unrecorded these are the only pictures a judge gets.** Both landed `2026-08-17` and both were absent when this table was first written; the earlier reading — *"there is no `.svg` and no `.png` anywhere in this tree"* — is named rather than quietly swapped. `architecture.svg` is the thumbnail: it carries the request-path boundary on its own face. **If the field declines `.svg`, export a raster copy rather than redrawing.** A screenshot of the console at `/console` on the live origin is a legitimate third image |
+| Team members / collaborators (*form-field name unverified*) | **not this page's** | the founder's to fill. No copy is owed and none is prepared |
+| Prize categories, opt-ins, and any organiser-defined field not enumerated above | **none prepared** | **unknown until the form is open**, and deliberately not guessed at. If one turns up asking for something this page has not written, the material is almost certainly already in [`docs/TOOL-USAGE.md`](../TOOL-USAGE.md), [`RULES-MATRIX.md`](RULES-MATRIX.md) or [`docs/HONESTY.md`](../HONESTY.md) |
+
+### C · The seven submission requirements, and where each one is answered
+
+Requirements 1–7 are the contest's own, quoted verbatim by the completeness lead at
+[`extra-credit-plan.md`](extra-credit-plan.md) §0 from a fetch of
+`https://cockroachdb-ai.devpost.com/` on `2026-08-17`. **Two of the seven are marked optional
+and both are answered rather than skipped.**
+
+| # | Requirement | Where it is answered | State |
+|---:|---|---|---|
+| 1 | public repo with README, dependencies, setup | `repo_url`, and the README at that URL | **MET** — `PUBLIC`, Apache-2.0, `LICENSE` tracked at `11357` bytes |
+| 2 | a functional demo URL | `demo_url`, and *Testing instructions* route 1 | **MET** — answered `200` unauthenticated on `2026-08-16`, and from outside our own network on `2026-08-17` |
+| 3 | a video under three minutes, publicly visible | `video_url` | **NOT DONE** — the one outstanding blocking row, above |
+| 4 | which CockroachDB tools, and how | *How we built it*, *What actually ran*, and [`docs/TOOL-USAGE.md`](../TOOL-USAGE.md) | **MET** — four named tools, three `EXERCISED`, Agent Skills `DESIGNED` and labelled so |
+| 5 | which AWS services, and how | same three | **MET** — `12` service rows: `6` `EXERCISED`, `5` `DESIGNED`, `1` `NOT-AVAILABLE` |
+| 6 | **optional** — an architectural diagram: CockroachDB × AWS × the agent | *Architecture — the diagram, and a caption that works without it* | **ANSWERED** — an image at [`diagrams/architecture.svg`](diagrams/architecture.svg), the same picture in text at two places, and a caption that stands with no picture at all |
+| 7 | **optional** — feedback on the CockroachDB AI tools or features | *Feedback for CockroachDB* | **ANSWERED** — three findings in the block, six in [`docs/upstream/COCKROACHDB-FINDINGS.md`](../upstream/COCKROACHDB-FINDINGS.md), one struck and kept on the page |
+
+### D · A defect in an existing block on this page, found and now corrected
+
+**The *Inspiration* block carried four statements that the authored corpus contradicts.** The
+wave that found them worked insert-only and reported them here rather than reaching into an
+existing `<!-- PASTE -->` block. **They were applied on 2026-08-18**, so the block above and the
+*sixty-second version* now agree, and the same four corrections went into `docs/ARCHITECTURE.md`
+and `docs/story/ORIGIN.md`, which carried some of them too. The table stays because a page whose
+method is *name the superseded reading* does not delete its own.
+
+| The *Inspiration* block used to say | The corpus says | Where |
+|---|---|---|
+| the clause was lowered on `2013-06-12` | `2013-06-12` is the **incident** date. The clause was lowered on `2013-08-04` | `spine.json#dates` → `incident`, `strengthen_commit`; `anchors.yaml:68` → `{effective_on: 2013-08-04, driven_by_event: INC-2013-044}` |
+| an author who left the company in `2017` | `2021-07-16`. `2017` matches no date in the corpus at all — `2016-11-21` is the retypeset and `2019-02-19` is the split | `spine.json#dates` → `author_separated` |
+| a disposition against a *"thirteen-year-old death"* | **nobody dies.** Severity `4`, two contractors, partial-thickness burns — and the corpus comments that the potential is `4` and not `5` **deliberately** | `anchors.yaml:196`; `CAMERA-STRINGS.yaml:78` → `incident_summary_line`; `MUST-NOT-CLAIM.md` §3 forbids inventing a fatality |
+| *"Lowered 150 to 135 …"* | *"Lowered 150 → 135 …"* — U+2192, asserted byte-equal across four files, with the corpus file's own header calling the punctuation load-bearing and saying *"Do not 'fix' the punctuation"* | `CAMERA-STRINGS.yaml:64-65` |
+
+**What the *Inspiration* block reads now**, in place of those four:
+
+> MAINLINE runs `blame` on the clause instead. A seal fire burned two contractors on
+> `2013-06-12`; the alarm was lowered because of it on `2013-08-04`, with the message
+> *"Lowered 150 → 135 after seal fire INC-2013-044 — two contractors burned."*; and that author
+> left the company on `2021-07-16`. The permit merge is then **mechanically refused by the
+> database** — not flagged, refused — until a named competent person signs a disposition against
+> a thirteen-year-old fire.
+
+**Paste block 1 and block 2 as they stand.** They agree with each other and with the corpus.
 
 > **Do not paste a URL that is not resolved**, and do not read a URL's status out of the
 > table above — it is a snapshot and it can drift.

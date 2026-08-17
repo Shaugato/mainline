@@ -5,156 +5,238 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # MAINLINE
 
-**Institutional safety memory as a version-controlled repository whose commits are written by incidents.**
+**Read the story below knowing it is invented.** Kestrel Resources is fictional, Marrindal is
+fictional, `INC-2013-044` never happened. The mechanism is real; the inputs are authored.[^src-fiction]
 
-Every clause of a procedure, setpoint, isolation standard and critical control carries a **blame pointer to the event that wrote it**. The permit-to-work is a **protected branch**. Its merge is *refused by the database* until every recalled precursor carries a signed disposition.
+In 2011 a gas plant sets the alarm on a compressor seal to 150 °C. On 2013-06-12 that seal catches
+fire and two contractors are burned. On 2013-08-04 an engineer lowers the alarm to 135 °C. The
+revision history carries one line: *"Lowered 150 → 135 after seal fire INC-2013-044 — two contractors
+burned."*[^src-story]
 
-Recall is not displayed beside the decision. **Recall is a precondition of the decision.**
+Then ordinary things happen to the clause. In 2016 it is retypeset and renumbered from 7.3 to 5.2.1.
+In 2019 it moves into a different standard and becomes 9.2.1. In 2021 the engineer leaves the company.
 
-If you are judging this, [`docs/submission/JUDGE-START.md`](docs/submission/JUDGE-START.md)
-is ninety seconds: what to look at, what to run, and what we are not claiming. If you paused
-the film on a number, [`docs/demo/JUDGE-90-SECONDS.md`](docs/demo/JUDGE-90-SECONDS.md) is one
-row per frame — the exact value, the route or file it came from, and the one command that
-regenerates it.
+Today someone proposes putting the alarm back to 150 °C. They are not careless. The manufacturer
+specifies 150, and the alarm trips on hot afternoons. The clause on their screen reads *"shall be set
+at 135 °C"* and gives no reason. The fire is two documents and three clause numbers away, written by
+somebody who no longer works there.
 
-**What the rules ask for, and where each one is:**
+**Every permit-to-work system on the market approves that change.** Each checks the world as it is
+now — isolation in place, gas test valid, signature present. None can answer *why is this limit
+here*. The answer existed and somebody wrote it down. Nothing carried it to the person who needed it.
 
-| Required | Where it is |
+## What this is
+
+MAINLINE holds a site's safety memory underneath the systems that site already uses. Every clause of a procedure
+carries a pointer to the event that caused it to be written. We call that pointer **blame** — who wrote this line, and why.
+
+A permit to work is then handled like a change to code, and issuing it is a merge. Before that merge lands, the
+database looks up what wrote each clause the permit leans on. Any earlier event nobody has answered for becomes an
+**obligation** — one open question attached to that permit. While an obligation is open, the permit cannot be issued.
+A named competent person has to record a **disposition** first: a signed answer to that one question.
+
+The load-bearing word is *cannot*. This is not a banner somebody dismisses, and not a check in application code that
+a second program could skip. It is a rule held inside CockroachDB, applied to every writer including ours. Switch
+the user interface off and the permit still will not issue.[^src-gate]
+
+**The reminder is not shown beside the decision. It is a precondition of the decision.**
+
+Two pages belong before the rest of this one. [`docs/HONESTY.md`](docs/HONESTY.md) sets out what is proven, what is
+authored and what is not built; [`docs/submission/MUST-NOT-CLAIM.md`](docs/submission/MUST-NOT-CLAIM.md) lists the
+flattering sentences this project is not entitled to say, beside the true ones.
+
+## See it refuse — live, with no account
+
+Open the address below in any browser. There is nothing to install and nobody to sign up with.
+
+| Devpost asks for | This entry |
 |---|---|
-| **Demo URL** | **`https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`** — answering `ok: true`, database `mainline_demo`, deploy chain `271` of `271` files [src: evidence/demo/live-beats.json#world.health]. `SUBMISSION.json` still holds the sentinel; see below |
-| **Judge access — free and unrestricted** | the URL above takes no account, no login and no credential of ours — [`docs/demo/JUDGE-90-SECONDS.md`](docs/demo/JUDGE-90-SECONDS.md) is the ninety-second walk, and the read-only SQL login into the same cluster is [`docs/deploy/JUDGE-PACK.md`](docs/deploy/JUDGE-PACK.md) §2 |
-| **Video, under 3 minutes** | `UNRESOLVED` |
+| **Demo URL** | `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws` |
+| **Judge access — free and unrestricted** | No account, no login, no credential of ours; the origin takes anonymous callers by design.[^src-open] Reading our ledger in your own SQL client is a separate read-only login, in [`docs/deploy/JUDGE-PACK.md`](docs/deploy/JUDGE-PACK.md) §2 |
+| **Video, under three minutes** | `UNRESOLVED` |
 | **Which CockroachDB tools and AWS services, and how** | [`docs/TOOL-USAGE.md`](docs/TOOL-USAGE.md) — every tool and every service with a file, a line number, and a verdict saying whether it has actually run |
-| **Repository and licence** | `https://github.com/Shaugato/mainline` — **public since 2026-08-11** · root [`LICENSE`](LICENSE) is Apache-2.0 |
+| **Repository and licence** | `https://github.com/Shaugato/mainline`, public since 2026-08-11; the root [`LICENSE`](LICENSE) is Apache-2.0 |
 
-`UNRESOLVED` is a **literal token**, not a placeholder somebody forgot to replace. Those rows
-render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMISSION.json), the one file
-in this repository where a submission URL may be written, and every field in it starts life as
-that exact string. ~~Those three fields still hold `UNRESOLVED` because nothing is deployed and
-no film exists.~~ **SUPERSEDED 2026-08-15: the demo is deployed and the four beats have been
-driven through it** — `verdict: PROVEN`, `target_is_local_emulator: false`, eleven requests, no
-credential [src: evidence/demo/live-beats.json#verdict]. `demo_url` in that file is
-nevertheless **still the sentinel**, because resolving it is the submission domain's act and
-not this page's, and the two disagree until its owner resolves it. **Where they disagree, the
-wire wins and this paragraph is the record of the disagreement.** `video_url` is genuinely
-unresolved: the film has not been uploaded. A submission checklist that looks finished before
-it is finished is the one failure mode this repository is built to refuse — including when the
-thing being described is the submission.
+Those rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMISSION.json), the one file where a submission address may be written; this page never edits it. `UNRESOLVED` is a **literal token** that file writes into every such field at birth, not a placeholder somebody forgot to replace. `video_url` still holds it because the film has not been recorded.[^src-video]
 
-`python scripts/submission/check_submission_ready.py` reads that file, prints exactly what is
-missing and what would resolve it, and reports **0 rows NOT CHECKED** — because a question
-nobody could answer is an unresolved row, never a pass.
+**What a judge presses.** Each run is a short sequence of steps, and we call each step a **beat**. A **SQLSTATE** is the five-character code the database itself returns for a step; `00000` means the write went through. The refusal comes from a `CHECK` constraint — a rule the database enforces on every write, from every client. An **obligation** is a lesson from a past incident that this job has not answered yet. Beat three is an attack: the cached count of open obligations is forced to zero out of band, then the merge is tried again. `persisted: false` means the whole run rolls back and leaves the world as it found it.
 
-## The live demo, and the two screens the film is shot in
-
-**This is not a tour of the MAINLINE console.** It is the software the people in the story
-actually use, with the refusal landing *inside* it — because that is where a refusal lands in
-reality. MAINLINE is infrastructure; you see it by seeing what it stops.
-
-| screen | who is using it | route |
+| | **1 · Permit to work** | **2 · Management of change** |
 |---|---|---|
-| **Permit to work** | a site supervisor issuing a permit | `/operator.html#/permit` |
-| **Management of change** | a safety engineer editing a clause | `/operator.html#/change` |
+| **Who is on the screen** | a site supervisor issuing a permit to work | a safety engineer merging a change to a written procedure |
+| **What to press** | `/operator.html#/permit`, or `POST /v1/demo/gate-run` | `/operator.html#/change`, or `POST /v1/demo/cr-gate-run` |
+| **What the database answers** | read `00000` · merge refused **`23514`** on `gate_closed_when_issued` · forged count refused **`P0001`** from `mainline.fn_permit_merge_gate` · admit `00000` · `persisted: false` | read `00000` · merge refused **`23514`** on `cr_gate_closed_when_merged` · forged count refused **`P0001`** from `mainline.fn_cr_merge_gate` · `persisted: false` |
+| **Artefact** | [`evidence/demo/live-beats.json`](evidence/demo/live-beats.json) — `verdict PROVEN`, `2026-08-15T14:11:35Z`, `base_url` is the address above, `target_is_local_emulator false`, no credential used | [`qa/live2.json`](qa/live2.json) — `verdict PROVEN`, `2026-08-16T21:11:57Z`; where it ran is settled in [`LIVE-STATUS.md`](docs/submission/LIVE-STATUS.md) §2 |
 
-`operator.html` is a second HTML entry point in the same Vite build — the file is
-`verticals/mainline/apps/console/operator.html` and the router is
-`src/operator/route.ts` — deliberately not a page inside the console, and carrying no vendor
-mark. **Every refusal on those screens comes back over HTTP from the deployed API and carries
-the SQLSTATE the database produced.** Nothing is mocked, staged or timed with a `setTimeout`;
-open devtools and you meet a real request and a real answer.
+**Two things we will not round up**, both in full in [`docs/submission/LIVE-STATUS.md`](docs/submission/LIVE-STATUS.md). Use case two plays three beats and declines two — `admission_beat: null` and `kernel_procedure_beat: null` — each with the reason its own payload gives, because a beat dressed to look passing would be a fabricated exhibit. And we have driven use case one over the public address but not use case two, so we claim the first beat-for-beat over that address and not the second.
 
-**Those two screens are in this tree and are not on the deployed origin yet, and this page will
-not let you find that out by clicking.** Measured 2026-08-15: `GET /operator.html` on the live
-URL returns the console shell **byte-for-byte identical** to `GET /` — the single-page fallback,
-which is what a not-yet-deployed second entry point looks like. The **API** half is live and is
-what the three commands below prove; the screens ship when the orchestrator redeploys.
-
-**Three commands hand a judge the same evidence, with a URL and nothing else.** No account, no
-credential, no AWS access, no database:
+**Three read-only commands hand a judge the same evidence**, with the address and nothing else — no account, no AWS access, no database of ours. Each is documented under [`docs/demo/`](docs/demo/):
 
 | command | what it answers |
 |---|---|
-| `.venv/Scripts/python.exe scripts/demo/demo_ready.py` | *is the world ready to film?* — eight facts, read-only, zero writes. [`docs/demo/DEMO-READY.md`](docs/demo/DEMO-READY.md) |
-| `.venv/Scripts/python.exe scripts/proof/live_beats.py --base-url <the URL above>` | the four beats off the deployed URL, each with the SQLSTATE the database produced → `evidence/demo/live-beats.json`. [`docs/demo/LIVE-BEATS.md`](docs/demo/LIVE-BEATS.md) |
-| `.venv/Scripts/python.exe scripts/proof/memory_loop.py --base-url <the URL above>` | STORE → RETRIEVE → ACT, forty rows with a table, a column and a timestamp behind each → `evidence/demo/memory-loop.json`. [`docs/demo/MEMORY-LOOP.md`](docs/demo/MEMORY-LOOP.md) |
+| `scripts/demo/demo_ready.py` | *is the world ready to film?* — eight facts, read-only, zero writes |
+| `scripts/proof/live_beats.py --base-url <the address above>` | drives use case one off the deployed address and records the SQLSTATE the database produced for each beat |
+| `scripts/proof/memory_loop.py --base-url <the address above>` | STORE → RETRIEVE → ACT — an incident names a clause, a retrieval pass finds it, and it becomes an obligation that blocks the permit |
 
-**The memory loop is the one worth running, and its answer is already committed: `verdict
-PROVEN`, 23 of 23 assertions held, 0 failed**
-[src: evidence/demo/memory-loop.json#verdict,
-evidence/demo/memory-loop.json#assertions_held] — run on 2026-08-15 with `base_url` set to the
-demo URL above, not to a local emulator
-[src: evidence/demo/memory-loop.json#base_url]. An incident in **2019** named a clause; seven
-years later a permit relies on that clause; a retrieval pass finds the incident and **ten
-seconds** later the finding becomes an obligation on the permit — and from that instant a
-`CHECK` in the database will not let the permit be issued. Those ten seconds are a subtraction
-of two columns off two live routes, not a sentence
-[src: evidence/demo/memory-loop.json#gap.seconds] — `mainline.blocking_check.materialised_at`
-off `GET /v1/permits/{permit_id}/blocking-checks`, minus `mainline_meas.recall_run.started_at`
-off `GET /v1/recall-runs/{run_id}`, with `stated_anywhere_in_this_program: false` recorded in
-the very file that computes it.
+[^src-fiction]: This is `docs/submission/MUST-NOT-CLAIM.md` §3 in that section's own wording.
+[^src-story]: Every date, label and setpoint above is transcribed from `verticals/mainline/fixtures/corpus/answer-key/spine.json` — `dates`, `revisions` and `proposed_2026`. The quoted revision-history line is `commit_message_2013` in `verticals/mainline/demo/script/CAMERA-STRINGS.yaml`, whose own header calls the arrow and the em dash load-bearing; `verticals/mainline/demo/script/validate_shotlist.py` asserts it byte-equal across the shot list.
+[^src-gate]: `scripts/proof/gate_refusal.py` attempts the merge over SQL with no console and no application in the path, and records the refusal `23514 gate_closed_when_issued` [src: evidence/gate-refusal/proof-20260810T054407Z.json]. What that run does and does not entitle us to say is in the sections below.
+[^src-open]: `docs/submission/SUBMISSION.json#judge_access.how` — the Function URL is `authorization_type NONE`; `evidence/demo/live-beats.json#credentials_used` reads `none - no DSN, no AWS profile, no token; a stranger with the URL`.
+[^src-video]: `docs/submission/SUBMISSION.json#notes.video_url`. The long form of the sentinel story is [`docs/submission/JUDGE-START.md`](docs/submission/JUDGE-START.md), lines 485–502.
 
-**And the program that writes that file audits itself.** Its `self_audit` block makes the
-claim *"no value in this artefact originates in `scripts/proof/memory_loop.py`"* and then backs
-it: **79 values audited, 0 of them found in the source** —
-`values_audited: 79`, `values_found_in_the_source: []`, `uuid_literals_in_the_source: 0`,
-beside the source's own `sha256` and byte count
-[src: evidence/demo/memory-loop.json#self_audit]. A proof script that could have hard-coded its
-own answer, and demonstrably did not. **No endpoint was added to make any of it filmable** —
-the artefact's own ruling `R7` reads *"the loop needs no new endpoint; every word is already a
-live GET"* [src: evidence/demo/memory-loop.json#ruling.R7].
+## How it works
 
----
+A **`CHECK` constraint** is a rule the database applies to every write, from every client, with no way to
+ask it nicely. Application code can be patched, bypassed or forgotten; a `CHECK` cannot. So the design is
+one move: take a fact that lives across many rows, write it as a number on the row being written, and put
+a `CHECK` on that number. Every shipping permit system is **synchronic** — it gates on the current state
+of the world. This one is **diachronic**: it gates on *blame ancestry*, the chain of past events that
+wrote the rule. Three steps, each stated plainly and then precisely.
 
-## Clone it, then four commands — no account, no credential
+**PROJECT.** When an obligation appears, the database itself writes onto the permit how many are
+outstanding. An *obligation* is a lesson a past incident left behind that someone must sign off; a
+*projection* is that cross-row fact copied onto a plain column of the subject row. A row-level trigger
+derives it from an authoritative table, never from whoever is writing, and overwrites any supplied value
+unconditionally, so a correct guess confers no privilege [src: spec/invariants/I02-projected-refusal.md].
+
+**PIN.** Once a permit is merged, nobody can quietly attach a new obligation to it. An *epoch* is a counter that ticks
+every time a new obligation lands. The merge record takes a composite foreign key onto `(subject_id, gate_epoch)` that
+refuses both updates and deletes, which makes attaching an obligation to a completed transition physically impossible
+rather than merely disallowed [src: spec/invariants/I03-epoch-pin.md].
+
+**REFUSE.** The merge is then refused by the constraint, for every writer, forever. A plain-column `CHECK` named
+`gate_closed_when_issued` reads `(state != 'merged') OR (open_blocking = 0)`, raises SQLSTATE `23514` — the code the SQL
+standard gives a violated `CHECK` — and names itself in the error text [src: evidence/gate-refusal/proof-20260816T151248Z.json#refusal].
+
+**The attack we run against our own gate.** `just prove` does not stop at that refusal. It forces `open_blocking` to zero
+out of band — the exact tampering a `CHECK` alone cannot catch, since `(open_blocking = 0)` is now satisfied — and
+attempts the merge again. It is refused anyway, `P0001` from `mainline.fn_permit_merge_gate`: *re-derived open obligation
+count is 1 while the projected counter reads zero* [src: evidence/gate-refusal/proof-20260816T151248Z.json#drift_refusal].
+The function re-derives the count from the base tables rather than trusting the column. **Projections are enforced, never
+trusted.** Both refusals are ledgered and read back, each naming the smallest unmet obligation set that explains it.
+
+**What the trigger actually did, in the committed run.** `open_blocking` went 0 → 1 and `gate_epoch` 0 → 1. One row of
+kind `check_opened` landed in the **changefeed** — the table other systems subscribe to for a live feed of what changed.
+Severity **4** was projected onto a row
+where the client supplied **0**, and ten of ten assertions held
+[src: evidence/gate-refusal/proof-20260816T151248Z.json#projection]. A counter a client writes is a client's opinion; a
+counter a trigger writes is the database's.
+
+**One refusal in this demo is the application's, and we will not round it up.** A signer setting an obligation aside must
+give a reason code. The database does not check that the code was ever offered — Python closes that gap, not a
+constraint [src: docs/submission/MUST-NOT-CLAIM.md §14].
+
+**Six more things about the gate**, each with what was measured rather than what was intended — including the two results
+weaker than we hoped for — are in [`docs/submission/GATE-PROPERTIES.md`](docs/submission/GATE-PROPERTIES.md).
+
+```
+verticals/mainline/    the product (LicenseRef-FSL-1.1-ALv2)                                    ── runs on ──▼
+packages/trappoint-*   the substrate — a spec, a SQL template, a conformance suite (Apache-2.0) ── enforced by ──▼
+CockroachDB v26.2.5    constraints, triggers, changefeeds, and SERIALIZABLE — an isolation level
+                       under which concurrent writes behave as if run one after another.
+                       The refusal happens here, not above it.
+```
+
+## What it is built on
+
+Three words carry the tables below. **EXERCISED** — it ran, and a committed file in this
+repository records the result. **DESIGNED** — the code or configuration is finished and on disk,
+and nothing we recorded has run it end to end. **NOT-AVAILABLE** — we checked on this platform,
+it was absent, and nothing here was built on it.
+
+**Four CockroachDB tools**, in the order the judging criterion names them. A **vector index** is a
+second copy of a table's data, arranged so that *find the rows most similar to this one* can be
+answered without reading every row.
+
+| # | tool | verdict | what the agent actually did with it |
+|---|---|---|---|
+| 1 | Distributed vector index — C-SPANN `VECTOR INDEX` | **EXERCISED** | The retrieval step asks for the most similar earlier clauses with every prefix column pinned to one value, then reads the query plan back and asserts the index was chosen — because a query that quietly fell back to a scan returns plausible rows and hides the failure behind them. |
+| 2 | MCP Server — CockroachDB Cloud's managed Model Context Protocol endpoint | **EXERCISED** | An MCP client dialled CockroachDB's own managed endpoint and drove a sixteen-question judge pack over read verbs only. The capture program enforces that at the transport rather than promising it. |
+| 3 | `ccloud` CLI | **EXERCISED** | Ran `ccloud auth whoami`, then `ccloud cluster list -o json`, and parsed the structured output instead of screen-scraping it. |
+| 4 | Agent Skills | **DESIGNED** | **Nothing this repository records has run them.** Two authored skills and one staged upstream contribution are on disk, each shipping a script that fails when its guarantee does not hold. No run of either is captured under `evidence/`, and this row is not promoted to make the table look even. |
+
+**Twelve AWS services: six EXERCISED, five DESIGNED, one NOT-AVAILABLE**
+[src: evidence/tool-usage/aws-services.json#totals.by_verdict]. What moved: Bedrock inference,
+Bedrock embeddings and CloudWatch metric reads, then Lambda, AWS IAM and Systems Manager Parameter
+Store on a `terraform apply` that created real resources [src: evidence/deploy/APPLIED.md]. What
+did not: **S3 with Object Lock, KMS, CloudTrail, CloudFront and EventBridge** are DESIGNED — no
+evidence bucket, no signing key, no trail, no distribution, no schedule rule. Bedrock Rerank is
+NOT-AVAILABLE: AWS does not offer it where our inference runs.
+
+**CloudFront is not DESIGNED by choice; it is blocked.** A real apply returned `AccessDenied: Your
+account must be verified before you can add new CloudFront resources.`, kept verbatim with its
+`RequestID` in [`docs/deploy/RUNBOOK.md`](docs/deploy/RUNBOOK.md) Appendix A. Only AWS Support can
+lift that hold, so the demo's origin is the Lambda Function URL itself. **The IAM row is narrower
+than its title**: what ran is the execution role's single allow, and the deny-first evidence-store
+policies remain unapplied.
+
+**Bedrock executes in this repository and NOT in the demo request path.** Inference runs in Sydney,
+`ap-southeast-2`, while the database is in Singapore, `aws-ap-southeast-1`, because `ap-southeast-2`
+is Advanced-tier only on CockroachDB Cloud.
+
+Every row's file and line is in [`docs/TOOL-USAGE.md`](docs/TOOL-USAGE.md), which also files the
+database itself as a fourth tool and the vector index as an engine feature.
+`python scripts/aws/verify_evidence.py` re-checks the censuses with the standard library alone —
+no credential, no network — and fails if any EXERCISED row's cited artefact is missing.
+
+## How we got here, and what we found out about CockroachDB
+
+We did not begin with a database idea. We began by reading how permits are issued. The UK Health and Safety
+Executive's guide HSG250 lists thirteen essential elements of a permit form. Six permit products say what
+they block on — *"locks permit progress until all mandatory checks are completed"*
+[src: docs/demo/research/r3-operator.md §1–§2]. Every one of those checks is about the present, and none of
+the thirteen is *why*. The information is not missing — somebody wrote it down — it is unreachable at the
+moment of the decision, and a rule keeps its authority only while somebody remembers where it came from.
+
+The obvious answer is to show the reason beside the Approve button. We did not build that. An agent writes over whatever
+surface it can reach, and it does not stop being an agent when it uses `psql`, so a panel can be dismissed and a
+retrieval can go unread [src: docs/submission/JUDGING-AXES.md §1]. The only version nobody can dismiss is one where the
+refusal is a property of the write itself, so this memory lives in constraints and triggers, not in application code
+[src: spec/invariants/I02-projected-refusal.md]. That made the database the product — which is why the findings below
+cost us real time.
+
+### Seven things we measured on CockroachDB v26.2.5. Six survived a re-check. One did not.
+
+**Full write-up: [`docs/upstream/COCKROACHDB-FINDINGS.md`](docs/upstream/COCKROACHDB-FINDINGS.md).** Before publishing
+any of it, one person who had written none of the findings re-ran every one from a cold shell, with the explicit job of
+striking things — [`scripts/upstream/verify_field_notes.py`](scripts/upstream/verify_field_notes.py), output at
+[`evidence/upstream/verification.json`](evidence/upstream/verification.json). **A re-check that strikes nothing did not
+happen.** This one struck one whole finding and narrowed six individual claims inside the survivors.
+
+* **F01** — asked whether a *named* user may run a routine, the database answers `true` even after that user's `EXECUTE` was revoked and the engine itself refuses the call `42501`. **A permission check built on that form can never fail.**
+* **F02** — two catalogue surfaces spell one routine two ways and neither carries the other's spelling. No error, just a wrong answer. Mostly our bug — but nothing ships to normalise them.
+* **F04** `42501` — `crdb_internal` and `system` are closed by default, and the refusal names an escape hatch it calls *not recommended* without ever naming the supported alternative.
+* **F05** `53400` — the ~20,000 schema-object ceiling is excellent when you hit it and invisible on the way up. Our own scratch databases walked into it.
+* **F06** `XXUUU` — a zone-configuration readout returns the same number whether you inherited it or set it yourself.
+* **F07** `42883` — when one call is nested inside another and the *inner* one fails, the message leads with the *outer* function's name.
+* Two about the tooling rather than the engine. The managed MCP endpoint caps responses at 10,240 bytes, and a cut answer is indistinguishable from a complete one — so we shaped our views to 80 % of the cap. And `ccloud` 0.6.12 has no headless login, so an agent cannot drive it from a cold start.
+
+**F03 was struck, and it had been on this page for ten days.** We had written that at ~5,200 rows the optimizer would not
+choose the vector index unless the statement named it. **We tried twice to reproduce that, and both times the database
+chose the index unasked** — at 0, 200, 1,100 and 5,300 rows. Worse, the artefact this page cited as its proof,
+[`evidence/aws/ann/explain-unhinted.txt`](evidence/aws/ann/explain-unhinted.txt), says so in its own body: *GT-06 did not
+reproduce*. **A claim whose own cited evidence contradicts it is worse than no claim.** We struck it rather than
+softening it into something vague and true, because that is how a document stops being checkable. Six further claims
+were narrowed the same way — including *"`gc.ttlseconds` defaults to 4500 on Cloud Basic"*, withdrawn entirely once we
+found 4500 was a value **we** had set [src: docs/upstream/STRIKE-LEDGER.md].
+
+**What we would keep unchanged.** `CHECK` constraints and PL/pgSQL triggers under `SERIALIZABLE` carry this product, and
+the refusal names the constraint that raised it — precise enough to put on screen: `23514 gate_closed_when_issued`
+[src: docs/deploy/cloud-database.md]. **None of this has been reported to Cockroach Labs yet**; the one thing staged
+upstream is an unrelated skill contribution [src: docs/upstream/proposal-issue.md].
+
+## Check us — clone it and reproduce the refusal
 
 ```bash
 git clone -c core.longpaths=true https://github.com/Shaugato/mainline.git
 ```
 
-**The flag is there because this repository has paths Windows will refuse under a long
-destination, and we would rather say so than let you find out at checkout.** The longest
-tracked path is
-141 characters [src: qa/judge-dry-run.json#path_lengths.max_tracked_path_chars] —
-`skills/upstream/cockroachdb-resilience-and-disaster-recovery/verifying-a-restore-by-merkle-root/scripts/verify_restore_merkle_root.py.license`
-— against a Windows `MAX_PATH` of 260. A program without long-path support needs
-`len(destination) + 1 + len(path)` to stay at or under 259, which leaves a clone destination
-of
-117 characters [src: qa/judge-dry-run.json#path_lengths.max_safe_clone_prefix_chars].
+**The flag is not decoration.** Windows refuses a file path over 260 characters and the longest path here is 141, leaving
+117 for the directory you clone into. Three real clones bracket that: 111 characters cloned cleanly, 122 failed with
+`Filename too long`, and with the flag that same 122 cloned clean [src: qa/judge-dry-run.json#path_lengths]. **The flag
+fixes `git` and nothing else**, so clone somewhere short, such as `D:\m`. On macOS and Linux it does nothing.
 
-**This paragraph used to say 214 characters, and name a console replay fixture whose filename
-was derived from the HTTP request it recorded.** That fixture is no longer tracked and is not
-on disk. `git log --all --diff-filter=A` finds the commit that added it and nothing has
-tracked it since, so the number it supported went with it. The artefact still records `214` under
-`clone_threshold.longest_tracked_path_chars`, because that is the path the clone
-binary-search was run against — **so the 44/45 thresholds it published describe a tree that
-no longer exists, and this page no longer quotes them.** The citation on the old sentence
-pointed at `path_lengths.max_tracked_path_chars`, which has read `141` throughout. A number
-that is right for a different field is the quietest kind of wrong.
-
-Re-measured on 2026-08-12 with real clones of this tree, three probes rather than a binary
-search — so these are a bracket, not a threshold:
-
-| destination | `dest + 1 + 141` | `core.longpaths` | result |
-|---|---|---|---|
-| 111 chars | 253 | `false` | clone exits 0, tree clean, longest file readable by a plain `open()` |
-| 122 chars | 264 | `false` | `error: unable to create file …: Filename too long`, exit 128, 7 437 dirty paths |
-| 122 chars | 264 | `true` | clone exits 0, **tree clean**, and a plain `open()` still raises `FileNotFoundError` |
-
-The arithmetic puts the boundary at 117/118 and the artefact's own
-`max_safe_clone_prefix_chars` agrees; the bracket is what was actually observed.
-
-**The flag fixes `git`, not everything else** — the half a mitigation notice usually omits,
-and the third row above is it. With the flag the checkout completes and `git status` is
-clean, and a file whose full path exceeds what Windows hands an ordinary program is still
-unreadable by one. Clone into something short — `D:\m`, `C:\src\m` — if you want every file
-readable by every tool. On macOS and Linux the flag is a no-op.
-
-### The four commands, and the same four without `just`
-
-Both columns are first-class. `just` and `uv` are **not** installed on the machine every
-number on this page was measured on [src: qa/judge-dry-run.json#host.tools_on_path], so the
-right-hand column is the one that was actually executed. The proof needs Docker and a Python
-interpreter, and nothing else.
+Then four commands, needing Docker, a Python interpreter, and no account of ours. Both columns are first-class, and the plain column is the one that actually ran: `just` and `uv` are not installed on the machine every number here was measured on [src: qa/judge-dry-run.json#host.tools_on_path].
 
 | The recipe | The same thing, plain |
 |---|---|
@@ -163,60 +245,12 @@ interpreter, and nothing else.
 | `just up` | `docker compose -f compose.yaml up -d --wait`<br>then `docker compose -f compose.yaml run --rm crdb-align` |
 | `just prove` | `python scripts/proof/gate_refusal.py --dsn "postgresql://root@localhost:26257/defaultdb?sslmode=disable"` |
 
-Four things that column is honest about.
+* **`doctor.py` exits 1 on this machine, and it is right to.** The only rows it fails are `uv` and `just`; it prints a numbered remedy under each and does not block the proof.
+* **The install step is not optional.** This page once said the proof needed nothing but the interpreter, and a recorded dry run falsified that: without it the script stops at `ModuleNotFoundError: No module named 'psycopg'` [src: qa/judge-dry-run.json#runs].
+* **`crdb-align` pins the local node's `gc.ttlseconds` to 4500 seconds** — a deliberately tight retention window, so a time-travel assumption that passes on a laptop's roomy default is exercised against a tight one. This page used to call 4500 *the value Cloud Basic enforces*; that is withdrawn, because 4500 was a value we had set ourselves [src: docs/upstream/STRIKE-LEDGER.md §3 claim 4].
 
-* **`python scripts/qa/doctor.py` exits 1 on this machine, and it is right to.** The only rows
-  it fails are `uv` and `just`; it prints a numbered remedy under each and it does not block
-  the proof.
-* **The install step is not optional.** An earlier version of this page said the proof needed
-  "nothing but the interpreter". A recorded dry run falsified that
-  [src: qa/judge-dry-run.json#runs], and re-running it today into a brand-new
-  `python -m venv` falsifies it again — with a different module name, because the import
-  order moved:
-
-  ```
-  $ <fresh-venv>/python scripts/proof/gate_refusal.py --dsn …
-  File "scripts/proof/gate_refusal.py", line 125, in <module>
-      import psycopg
-  ModuleNotFoundError: No module named 'psycopg'
-  ```
-
-  The recorded run stopped at `No module named 'trappoint_migrate'`; today it stops one
-  import earlier. Same lesson, different line, and the line is printed rather than
-  remembered. The pip line above installs that one distribution and what it pulls in —
-  measured `psycopg`, `psycopg-binary`, `psycopg-pool`, `typing-extensions`, `tzdata` and
-  `trappoint-migrate` itself, six packages in **19.7 s** on this machine. `just setup` does
-  the fuller job: it installs `uv` if absent, then `uv sync --all-packages` across every
-  workspace member.
-* **`crdb-align`** pins the local node's `gc.ttlseconds` to 4500, the value CockroachDB Cloud
-  Basic enforces, so a time-travel assumption that is legal on your laptop is not one that
-  fails in the cloud. The local default is the *more permissive* of the two.
-
-What each step cost when it was recorded — one clone of `HEAD`, one shared local node, other
-jobs running against the same container, so every figure is an upper bound rather than a
-benchmark [src: qa/judge-dry-run.json#operator_notes] — beside what the same command cost
-today, run from the clean virtual environment described above:
-
-| Step | Exit | Recorded | Measured 2026-08-12 |
-|---|---|---|---|
-| `python scripts/qa/doctor.py` | 1, on `uv` and `just` only | 2.788 s [src: qa/judge-dry-run.json#runs.1.steps.0.duration_s] | 1, same two rows |
-| `docker compose -f compose.yaml config` | 0 | 0.472 s [src: qa/judge-dry-run.json#runs.1.steps.1.duration_s] | 0, 0.9 s |
-| `python -m pip install -e packages/trappoint-migrate` | 0 | *(not timed by any artefact)* | 0, 19.7 s |
-| `python scripts/proof/gate_refusal.py …` | 0, `VERDICT PROVEN` | 70.351 s [src: qa/judge-dry-run.json#runs.1.steps.2.duration_s] | 0, **106.2 s** |
-| `python -m pytest --crdb=none --collect-only -q` | 0 | 30.112 s [src: qa/judge-dry-run.json#runs.1.steps.3.duration_s] | 0, 13.7 s, 9 324 tests |
-
-That recording names the commit it ran against
-[src: qa/judge-dry-run.json#source.head], and the migration tree has grown since, so the
-page warned you to expect the proof step to take **longer** than the recorded figure. **It
-does: 106.2 seconds against 70.351.** The right-hand column is one run on one busy laptop
-and is not a benchmark either; it is here because a page that tells you a command works owes
-you the evidence that somebody ran it. The full account — what a judge sees on a clean
-machine, and where it goes wrong — is
-[`docs/submission/FIRST-FIVE-MINUTES.md`](docs/submission/FIRST-FIVE-MINUTES.md).
-
-`just prove` bootstraps a throwaway database, applies the migration chain, and attempts the
-same merge three times. This is the run committed under
-[`evidence/gate-refusal/`](evidence/gate-refusal/):
+`just prove` builds a throwaway database, applies the migration chain, and attempts the same merge three times: refused,
+refused again with the counter forged, then admitted. This is the committed run, in [`evidence/gate-refusal/`](evidence/gate-refusal/):
 
 ```
 chain         271/271 applied, 0 failed, 63.094s
@@ -227,249 +261,65 @@ ADMISSION     ADMITTED [00000]
 VERDICT       PROVEN
 ```
 
-Re-run on `2026-08-12` from the clean virtual environment above, exit 0, and it printed the
-same six lines — `chain 271/271 applied, 0 failed, 55.611s`, the same two SQLSTATEs, the same
-`caveats (none)`, `VERDICT PROVEN` — into a new file beside the others in
-[`evidence/gate-refusal/`](evidence/gate-refusal/). **Only the timings and the database name
-differ, and the script chooses both.**
+[`VERIFY.md`](VERIFY.md) orders three ways of checking us by how much you have to take on faith, **and records what each
+returns today rather than what it should return**. Tier 2 is the four commands above and asks for nothing: no credential,
+no model call, 106 s, exit 0, `VERDICT PROVEN`. Tier 1 is an offline bundle check that **exits 1** — `16 checks · 8
+passed · 1 failed · 7 not checked`, seven of them cryptographic checks we have not written. Tier 3 points your own agent
+at CockroachDB's managed endpoint with none of our code in the path, and was **not run** for this revision.
 
-Three attempts, and the third is the one that matters. A gate that always refuses is a
-broken gate, not a safe one. The first refusal is a plain `CHECK` constraint. The second
-is the gate catching a *forged projection* — the counter was set to zero out of band and
-the merge was refused anyway, because the function re-derives the count instead of
-trusting the column. The third is the same history admitted after one signed disposition.
+Two artefacts repay opening on their own. [`evidence/gate-refusal/`](evidence/gate-refusal/) is what one cluster did at
+one instant — the SQLSTATE, the constraint name, the counter either side of a single insert, and the caveats the run
+could not honestly avoid. Earlier runs are kept beside the current one, because a document whose credibility rests on
+showing its own movement may not quietly delete where it moved from. [`qa/test-state.json`](qa/test-state.json) is the
+per-package test census with every skip's reason — and it **predates the producer migrations, so it describes a tree
+that no longer exists.**
 
-Read the `PROJECTION` line before the refusals. The script inserted one blocking check and
-touched nothing else; the database moved the counter from
-0 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.open_blocking.before] to
-1 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.open_blocking.after],
-bumped the gate epoch, emitted the CDC row, and projected a severity of
-4 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.severity.projected_onto_the_check]
-onto a row the client had left at
-0 [src: evidence/gate-refusal/proof-20260810T054407Z.json#projection.severity.supplied_by_this_script].
-A counter a client writes is a client's opinion. A counter a trigger writes is the database's.
+## What we are not claiming
 
-[`docs/release/QUICKSTART.md`](docs/release/QUICKSTART.md) is the long version of the four
-commands.
+[`docs/HONESTY.md`](docs/HONESTY.md) is what is proven, what is authored and what is not built, every number carrying the
+artefact that produced it — and `tests/release/test_honesty_is_checkable.py` fails the build when a number and its source
+disagree. [`docs/submission/MUST-NOT-CLAIM.md`](docs/submission/MUST-NOT-CLAIM.md) prints the flattering sentence we may
+not say beside the true one. **The six lines below summarise those two pages and do not replace them.**
 
-## Read this before you believe any of it
+* **The conformance suite has never been demonstrated.** Of 71 declared cases, a first census records 55 that could not run at all, 6 red and 10 that held [src: qa/conformance-census.json#totals]. A modest first result is not a passing suite.
+* **The corpus is authored, and the model transcripts are recorded cassettes** — saved request-and-response pairs replayed offline. A green agent test shows our code handles that recorded exchange; it shows nothing about a live model today.
+* **The reference-ledger keys are named `NOT-SECRET` because they are** — published on purpose, so a stranger can verify the offline bundle without asking anyone for a credential.
+* **Lint and types are counted, not clean** — frozen ratchets that may fall and may not rise: 671 `ruff check` findings [src: qa/ruff-ratchet.json#lint.total] and 0 `mypy` errors [src: qa/mypy-ratchet.json#total_errors] over the 660 files mypy checks. The lint half is red today.
+* **Every timing in the demo is a local timing** — one single-node CockroachDB in Docker on one laptop. Inference runs on Bedrock in Sydney while the database is in Singapore, so end-to-end Australian residency is false here and the hop is unmeasured under load.
+* **Nothing has ever run against CockroachDB Cloud in CI.** The cluster exists and a captured human session is under `evidence/ccloud/`. No automated lane has ever pointed at it.
 
-**[`docs/HONESTY.md`](docs/HONESTY.md)** — what is proven, what is synthetic, what is not
-built, and where the machine is. Every number in it carries an inline reference to the
-file under `qa/` or `evidence/` that produced it, and
-`tests/release/test_honesty_is_checkable.py` fails the build when a number and its source
-disagree. The short version, because it should not be buried:
-
-* Seven tables in the schema had **no migration at all** — their triggers, views and RLS
-  policies were written and their producer never was. The producers have since landed, and
-  the committed proof records 271 of 271
-  applied [src: evidence/gate-refusal/proof-20260810T054407Z.json#chain.applied_count] with
-  0 failures [src: evidence/gate-refusal/proof-20260810T054407Z.json#chain.failed_count].
-  Read that as a *census*, not a deployment: the applier that produced it continues past
-  every failure. The forward-only runner a deployment actually uses has been driven and
-  wrote no artefact under `qa/` or `evidence/`, so `docs/HONESTY.md` prints no figure for it
-  and neither does this page.
-* **The conformance suite had never been run to completion** for the whole of this build —
-  against a bare node its cases error rather than skip. A first census now exists,
-  [`qa/conformance-census.json`](qa/conformance-census.json), taken against a fully migrated
-  schema: of 71 declared cases it records 55 that could not run at all, 6 red and 10 that
-  held. `docs/HONESTY.md` still describes the suite as undemonstrated and has not absorbed
-  that census yet. A modest first result is a different artefact from no result, and it is
-  nowhere near a passing suite.
-* The corpus is **authored**, the model transcripts are **recorded cassettes**, and the
-  reference-ledger keys are named `NOT-SECRET` because they are — published on purpose so a
-  stranger can verify the offline bundle without asking anyone for a credential.
-* The test suite is censused **per package, twice** — with no database and with one shared
-  node — and every skip is published with the reason string its own fixture wrote. The
-  counts, including the target that does not finish at all, are in
-  [`qa/test-state.json`](qa/test-state.json). That census **predates the producer migrations
-  and has not been retaken**, so it describes a tree that no longer exists.
-* Lint and types are **counted, not clean**: frozen ratchets that may fall and not rise, in
-  `qa/ruff-ratchet.json` and `qa/mypy-ratchet.json`. The ruff ratchet is **red today**, on a
-  wave whose total went down, because it gates per rule rather than on a headline sum.
-* Inference runs on **Bedrock in `ap-southeast-2` (Sydney)** while the database is in
-  **`aws-ap-southeast-1` (Singapore)**, because `ap-southeast-2` is Advanced-tier only on
-  CockroachDB Cloud.
-  There is no end-to-end Australian residency; that claim is false here.
-  The cross-region hop is unmeasured under load, and **every timing in the demo is a local
-  timing** — a single-node CockroachDB in Docker on one laptop.
-* ~~**Bedrock genuinely executes, and nothing else on AWS does.**~~ **SUPERSEDED — a Lambda
-  Function URL now serves the demo, and the apply that created it has run.**
-  [`evidence/deploy/aws-live.json`](evidence/deploy/aws-live.json) still records the four live
-  Bedrock-and-STS calls with their AWS request ids — `sts:GetCallerIdentity`,
-  `bedrock:ListFoundationModels`, a Titan v2 embedding (1024-d, L2 norm 1.0) and a Claude
-  Haiku 4.5 `Converse` that returned `end_turn` — `calls_failed: []`, whole probe under one
-  cent. Beside it, [`evidence/deploy/LIVE.md`](evidence/deploy/LIVE.md) and
-  [`evidence/demo/live-beats.json`](evidence/demo/live-beats.json) record eleven requests
-  answered by the public Function URL over the internet, `target_is_local_emulator: false`.
-  **CloudFront is still not `DESIGNED`-by-choice but blocked**: the account carries a
-  verification hold — `AccessDenied: Your account must be verified before you can add new
-  CloudFront resources.` — proven by a real apply attempt and kept verbatim with its
-  `RequestID` in [`docs/deploy/RUNBOOK.md`](docs/deploy/RUNBOOK.md) Appendix A, so the origin
-  is the Function URL itself. **Which AWS row is EXERCISED and which is still DESIGNED is not
-  this page's to assert** — the census is
-  [`evidence/tool-usage/aws-services.json`](evidence/tool-usage/aws-services.json), re-derived
-  with `python scripts/submission/capture_tool_evidence.py --check`, and a row promoted on a
-  memory of a deploy would be worse than a row left honest.
-
----
-
-## The one-sentence version
-
-> An engineer raises a routine, entirely defensible change to a compressor alarm setpoint. The system runs `blame` on the clause. It was written 2013-06-12 by an author who left the company in 2017, with the commit message *"Lowered 150 to 135 after seal fire INC-2013-044 — two contractors burned."* The permit merge is mechanically refused until a named competent person signs a disposition against a thirteen-year-old death.
-
-No shipping permit system can express that, because every one of them is **synchronic** — it gates on the current state of the world. MAINLINE is **diachronic**: it gates on *ancestry*.
-
-## Why this is memory, not workflow — and every line below is a URL, not a claim
-
-The memory is not a panel next to the transaction. It is a **precondition of the state
-transition**, enforced as a database invariant under `SERIALIZABLE` — not as a UI nag that can
-be dismissed. The memory also has *semantics* rather than being a document store — and each
-semantic is a live, anonymous `GET` on the deployed origin. Measured 2026-08-16; substitute the
-demo URL for `$B` and the seeded permit `dec0de00-0006-4000-8000-000000000001` for `$P`.
-
-| semantic | the command | what comes back |
-|---|---|---|
-| **provenance** — clause → the incident that wrote it | `curl $B/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry` | a `blame_edge` with `basis: asserted_document` and an `evidence_quote_sha256` |
-| **ancestry** — a commit DAG, walked | same route | `commit_chain` with `control_delta: introduce`, and a `closure` of `depth 1`, `ancestor_count 1` |
-| **severity floors** — a fatality's relevance never decays | `curl $B/v1/permits/$P/blocking-checks` | `severity_gate: 4`, `severity_basis: human_rated`, `origin: blame_ancestry` |
-| **logged silence** — what the recall *declined* to surface, with its arithmetic | `curl $B/v1/permits/$P/silence` | a Merkle receipt: `corpus_root`, `candidate_root`, `theta 0.35`, `s 1`, `n 1`, a boundary proof |
-| **retrieval accounting** — the run auditing itself | `curl $B/v1/recall-runs/dec0de00-0009-4000-8000-000000000001` | `n_candidates 1 · n_blocking 1 · n_advisory 0 · n_silenced 0 · n_deduped 0`, plus the `index_plan_digest` |
-| **the act** — recall conditioning the write | `curl -XPOST $B/v1/demo/gate-run -d '{}'` | the refusal's `mus` and `naa` |
-
-**Read the silence receipt honestly, because we do.** On this seeded run the receipt is
-complete and `entries` is **empty** — `n_silenced: 0`, nothing was withheld. What is
-demonstrated is the *apparatus*: the arithmetic a withholding would have to publish, bound to
-a corpus root and a threshold, on a run that withheld nothing. And the receipt says which of
-its own fields no column produced: `staged: true`, with a `staged_note` naming
-`receipt.bound.statement` as the single value in that payload that the database did not
-author. **Every one of those responses carries a `provenance` array of per-field chips —
-`db:column`, `derived`, `staged` — so you never have to guess which half of an answer came
-from the database.**
-
-**Two semantics this section used to list are design, and they stay on the page saying exactly
-that.** **Archival bonds** — recall keyed to an activity taxonomy, not to keywords — and
-**fixity** — as-documented reconciled against as-operated — are **not** among the routes on the
-deployed origin, and neither is a row in the table above. What is live is their *accounting*,
-and it reads zero on both: `GET /v1/recall-runs/…` carries `n_bonded_sev5: 0` and
-`n_bonded_sev5_blocking: 0` — severity-5 events bonded to the permit's activity node, the arm
-the `bonded_fatalities_all_blocking` `CHECK` governs
-[src: spec/invariants/I13-silence-logged.md] — and `GET /v1/audit` returns
-`mainline_audit.v_fixity_coverage` with an empty `rows` array. **A counter reading zero and a
-view with no rows demonstrate nothing, and this page will not present them as though they
-did.** They are dropped from the claim, not from the design; deleting them would hide a gap and
-giving them a route would invent one.
-
-## Architecture in one layer diagram
-
-```
-verticals/mainline/   ← the product (FSL-1.1-ALv2)
-        │  runs on
-        ▼
-packages/trappoint-*  ← the substrate: a spec, a SQL template, a conformance suite (Apache-2.0)
-        │  enforced by
-        ▼
-CockroachDB v26.2     ← the memory layer. Constraints, triggers, SERIALIZABLE, C-SPANN vectors,
-                        changefeeds, RLS. The refusal happens here, not in application code.
-```
-
-### TRAPPOINT — the kernel
-
-The substrate is not a library; it is a **specification with a conformance suite**. One idiom, three steps:
-
-> **PROJECT** — a row-level trigger writes the cross-row fact onto a scalar column of the subject row, derived from an authoritative table, *never from the inserter*.
-> **PIN** — a completed transition takes a composite foreign key onto `(subject_id, epoch)`; any new obligation increments the epoch; `ON UPDATE RESTRICT` makes attaching an obligation to a completed transition *physically impossible*.
-> **REFUSE** — a plain-column `CHECK` over the projected scalar refuses the write, for every writer, forever.
-
-Four properties make it load-bearing:
-
-| Property | Why it matters |
-|---|---|
-| The projected counter is a **materialised conflict** | The gate stays welded even if isolation is downgraded to `READ COMMITTED` |
-| Refusal is **structurally redundant** | Proven by an unwelding harness: disable the trigger, drop the constraint — one at a time — and the write *still* fails |
-| The ledger is **gap-free by compare-and-swap, not by sequence** | `CREATE SEQUENCE` is banned, because sequence updates are not rolled back. A gap therefore *means* tampering |
-| The gate is **self-attesting** | `pg_get_triggerdef()` is snapshotted into the ledger on every migration. Nobody quietly weakens the gate that prevents quietly weakening controls |
-
-Every refusal emits a **minimal unsatisfiable subset** and, where computable, the nearest admissible alternative. A gate that only says "no" gets routed around — and an invariant that is routed around is not an invariant.
-
-The second line of `just prove` is that claim under attack rather than at rest:
-`mainline.fn_permit_merge_gate` is handed a projected counter that says zero, re-derives
-the obligation count for itself, finds one, and refuses with `P0001`. **P2 projections are
-enforced, never trusted.**
-
-## Repository layout
+## Repository, licence, status, corrections
 
 | Path | Contents | Licence |
 |---|---|---|
-| `spec/` | TRAPPOINT specification, invariants `I01–I16`, SQLSTATE contract, wire formats | Apache-2.0 |
-| `packages/trappoint-*` | Substrate: SQL templates, gate runtime, offline verifier, recall prefix builder, MCP surface, conformance suite | Apache-2.0 |
-| `skills/` | CockroachDB Agent Skills, upstream-PR-shaped | Apache-2.0 |
-| `scripts/` | The proof, the doctor, the censuses, the ratchets | Apache-2.0 |
-| `verticals/mainline/` | The product: domain lattice, gate service, recall agent, custody relay, console | LicenseRef-FSL-1.1-ALv2 |
-| `infra/` | OpenTofu modules and environments | LicenseRef-FSL-1.1-ALv2 |
-| `evidence/` | Transcripts, captured tool evidence, and a signed reference ledger any stranger can verify offline | CC-BY-4.0 |
-| `qa/` | The counted ratchets and the censuses — every number, and the command that re-derives it | CC-BY-4.0 prose, Apache-2.0 ratchets |
-| `docs/` | Architecture decision records, honesty, submission | CC-BY-4.0 |
+| `spec/` · `packages/trappoint-*` · `skills/` · `scripts/` | the substrate anyone may fork: specification, invariants, SQL templates, gate runtime, offline verifier, Model Context Protocol surface, conformance suite, Agent Skills, and the proof | Apache-2.0 |
+| `verticals/mainline/` · `infra/` | the product: domain lattice, gate service, recall agent, custody relay, console, OpenTofu modules | LicenseRef-FSL-1.1-ALv2 |
+| `evidence/` · `qa/` · `docs/` | transcripts, captured tool evidence, a reference ledger a stranger can check offline, the counted ratchets, and every decision record | CC-BY-4.0 |
 
-The import boundaries are enforced by `import-linter` in CI, and they are simultaneously the **layer** boundary, the **licence** boundary, and the **liability** boundary. `.importlinter` contract 1 forbids any `trappoint_*` distribution from importing any `mainline_*` module, which is what makes the Apache-2.0 half genuinely forkable rather than nominally so.
+**That layer boundary is also the licence boundary**, enforced by `import-linter` in CI: contract 1 of `.importlinter`
+refuses the build when an Apache-2.0 distribution imports a Functional Source License one, so the substrate stays
+forkable. The root [`LICENSE`](LICENSE) is Apache-2.0, so GitHub shows that badge without a judge opening a file — true,
+and not the whole tree. [`LICENSES/`](LICENSES) holds every text, [`REUSE.toml`](REUSE.toml) annotates the files that
+cannot carry a header, [`docs/submission/LICENSING.md`](docs/submission/LICENSING.md) is the full account, and
+[`TRADEMARKS.md`](TRADEMARKS.md) governs the names.
 
-## Verifying without trusting us
+**Status.** Pre-alpha. The Actions tab is red in places, and one of those reds means nothing at all. Read
+[`docs/CI-STATE.md`](docs/CI-STATE.md) before drawing a conclusion from a colour: some reds report a true
+incompleteness — seven of sixteen custody checks unwritten — and others are jobs that died in the runner's network.
 
-[`VERIFY.md`](VERIFY.md) is the three tiers, ordered by how much you have to take on
-faith. **Tier 2 is the one that reproduces the refusal above on your laptop** — clone, bring
-the node up, run the proof — and it needs no account of ours and no model call. It is the
-four commands on this page.
+**This page's own gate is one of the reds.** `scripts/submission/check_readme_readability.py` asks seven mechanical
+questions about whether a stranger can read this file. Six are green. The seventh, a byte ceiling of 26,000, is **red at
+about 30,000** — the number we set before writing, and the page did not fit inside it without deleting claims that carry
+their evidence. We left the ceiling where it was and the file over it, rather than move a number to make a red go away
+or quietly drop a citation. The layer-1 budget, which is the one that governs the first sixty seconds, is green.
 
-Tier 1 is an offline bundle check with no credential and no network, and `VERIFY.md` records
-what it actually returns today: `16 checks | 8 passed | 1 failed | 7 not checked`, **exit
-1**. Seven cryptographic checks are unimplemented and one canonicaliser check has gone red on
-real drift. It is a genuine offline verification of the Merkle structure and it is **not** a
-verified ledger, and that page will not let you read it as one.
+**Corrections.** One row per claim this page used to make and no longer does — collected, not deleted.
 
-Two artefacts are worth opening on their own:
-
-* [`evidence/gate-refusal/`](evidence/gate-refusal/) — a transcript of what one cluster
-  did at one instant, with the SQLSTATE, the constraint name, the projection readings
-  either side of a single insert, and the caveats the run could not honestly avoid. The
-  earlier runs are kept beside the current one on purpose: a document whose credibility
-  rests on showing its own movement may not quietly delete where it moved from.
-* [`qa/test-state.json`](qa/test-state.json) — passed, failed, errored and skipped per
-  package, **with every skip's reason string**, taken twice: once with no database
-  available and once against a live node. Rendered as
-  [`docs/release/test-state.md`](docs/release/test-state.md).
-
-## Status
-
-Pre-alpha. Under active construction. Design corpus: `ARCHITECTURE.md` and `BUILD_PLAN.md` live in a companion research repository, not this one; they were produced by a 40-agent design operation and hardened by an adversarial review (28 findings) plus an independent feasibility verification.
-
-**The Actions tab is red in places, on purpose, and one of the reds means nothing at all.**
-Before drawing a conclusion from a colour, read [`docs/CI-STATE.md`](docs/CI-STATE.md): it
-names every lane, separates the reds that report a true incompleteness — seven of sixteen
-custody checks unwritten, a reference vertical with no producer, 21 of 30 invariants pending,
-~~no demo to health-check~~ — from the ones whose jobs died in the runner's network before
-executing a single check. A red that reports true incompleteness **stays** red here, with a
-sharper message. *(The struck item is the one that moved: there is a demo to health-check now,
-and `GET /v1/health` on it answers `ok: true` [src: evidence/demo/live-beats.json#world.health].
-Whether the lane itself has been pointed at it is `docs/CI-STATE.md`'s to say and not this
-page's — a green badge asserted from a README is exactly the failure this repository refuses.)*
-
-**Nothing here claims what it cannot prove**, and the claims that are not proven are
-listed by name in [`docs/HONESTY.md`](docs/HONESTY.md) rather than left out.
-
-## Licence
-
-The root [`LICENSE`](LICENSE) is **Apache-2.0** — the licence of the substrate, which is the
-part of this repository a stranger may fork unconditionally. **GitHub detects it**, so the
-badge in the About panel at the top right of the repository page reads Apache-2.0 without a
-judge having to open a file: `gh repo view Shaugato/mainline --json visibility,licenseInfo`
-answers `{"visibility":"PUBLIC","licenseInfo":{"key":"apache-2.0"}}`, re-derived and recorded
-in [`docs/submission/JUDGING-AXES.md`](docs/submission/JUDGING-AXES.md) §4. **That badge is
-true and it is not the whole tree**, which is why this section exists rather than stopping at
-the badge. The tree is multi-licensed by
-directory: the table above is the summary, `LICENSES/` holds every licence text, and
-[`docs/submission/LICENSING.md`](docs/submission/LICENSING.md) is the full account — including
-why `LICENSES/` carries both `FSL-1.1-ALv2.txt` and `LicenseRef-FSL-1.1-ALv2.txt` with
-byte-identical contents. The headers in the tree use the bare spelling; REUSE requires the
-`LicenseRef-` form; shipping both and publishing the split as a counted number was chosen over
-a mass edit of the files that disagree. `REUSE.toml` carries the annotations for files that
-cannot hold a header. [`TRADEMARKS.md`](TRADEMARKS.md) governs the names.
+| This page used to say | What is true | Evidence |
+|---|---|---|
+| the vector index is not chosen unless the statement names it | **struck** — the optimizer chose it unasked at every size we swept. Pinning the *prefix columns* is what matters | `docs/upstream/STRIKE-LEDGER.md` §2 |
+| `gc.ttlseconds` defaults to 4500 on CockroachDB Cloud Basic | **withdrawn** — 4500 was a value we set ourselves, read back as if it were the platform's | `docs/upstream/STRIKE-LEDGER.md` §3 |
+| the longest tracked path is 214 characters | those replay frames were renamed to content-addressed names. The longest tracked path is 141 and the safe clone prefix 117 — arithmetic over the tracked paths, since the probe has not been re-run | `qa/judge-dry-run.json#superseded_observations` |
+| Bedrock genuinely executes, and nothing else on AWS does | a Lambda Function URL now serves the demo and the apply that created it has run: eleven requests answered over the internet, `target_is_local_emulator: false` | `evidence/deploy/aws-live.json` |
+| the proof needs nothing but the interpreter | it needs one editable install as well; a recorded dry run falsified the claim twice | `qa/judge-dry-run.json#runs` |
+| the operator screens are not deployed | measured again 2026-08-17: `/operator.html` is served and matches this tree byte-for-byte | `docs/submission/LIVE-STATUS.md` §3 |

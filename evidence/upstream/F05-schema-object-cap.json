@@ -1,0 +1,166 @@
+{
+  "finding": "F05",
+  "node": {
+    "version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+    "exam": "local single-node CockroachDB CCL",
+    "not_measured_on": "CockroachDB Cloud (Basic or otherwise): no Cloud statement is issued here",
+    "dsn_host": "localhost:26257",
+    "measured_at_utc": "2026-08-17T17:21:01Z"
+  },
+  "ceiling": {
+    "measured_at_utc": "2026-08-17T17:21:01Z",
+    "ceiling_setting": "sql.schema.approx_max_object_count",
+    "ceiling": 20000,
+    "databases": [
+      "defaultdb",
+      "mainline_demo",
+      "postgres",
+      "system",
+      "w1_credentials_9c1ec080bd16",
+      "w1_no_seed_d2a5ddd092e1",
+      "w2_defeaters_9c1ec080bd16",
+      "w3_demo_api_9c1ec080bd16",
+      "w_w1_rowfactory_1548212dd882",
+      "w_w4_api_transitions_1548212dd882",
+      "w_w4_base",
+      "w_w4_race",
+      "w_w4_race2",
+      "w_w4_race3",
+      "w_w4_refusal_that_writes",
+      "w_w4stab_a",
+      "w_w4stab_e1",
+      "w_w4stab_e2",
+      "w_w4stab_g",
+      "w_w4stab_shared",
+      "w_w5",
+      "w_w5_bare",
+      "w_w5_marker_elsewhere",
+      "w_w5_migrate_up",
+      "w_w5_order_w1",
+      "w_w5_order_w4",
+      "w_w5_txn_w1",
+      "w_w5_txn_w4",
+      "w_w6",
+      "w_w6_api_transitions",
+      "w_w6_con_one",
+      "w_w6_con_two",
+      "w_w6_falsification_audit",
+      "w_w7",
+      "w_w7_borrow",
+      "w_w8",
+      "w_w9"
+    ],
+    "database_count": 37,
+    "scratch_shaped": [
+      "w1_credentials_9c1ec080bd16",
+      "w1_no_seed_d2a5ddd092e1",
+      "w2_defeaters_9c1ec080bd16",
+      "w3_demo_api_9c1ec080bd16",
+      "w_w1_rowfactory_1548212dd882",
+      "w_w4_api_transitions_1548212dd882",
+      "w_w4_base",
+      "w_w4_race",
+      "w_w4_race2",
+      "w_w4_race3",
+      "w_w4_refusal_that_writes",
+      "w_w4stab_a",
+      "w_w4stab_e1",
+      "w_w4stab_e2",
+      "w_w4stab_g",
+      "w_w4stab_shared",
+      "w_w5",
+      "w_w5_bare",
+      "w_w5_marker_elsewhere",
+      "w_w5_migrate_up",
+      "w_w5_order_w1",
+      "w_w5_order_w4",
+      "w_w5_txn_w1",
+      "w_w5_txn_w4",
+      "w_w6",
+      "w_w6_api_transitions",
+      "w_w6_con_one",
+      "w_w6_con_two",
+      "w_w6_falsification_audit",
+      "w_w7",
+      "w_w7_borrow",
+      "w_w8",
+      "w_w9"
+    ],
+    "scratch_shaped_count": 33,
+    "counted": {
+      "tables": 2916,
+      "schemas": 195,
+      "routines": 728,
+      "databases": 37,
+      "total": 3876,
+      "method": "sum over every database of information_schema.tables + .schemata + .routines, excluding the schemas ('information_schema', 'pg_catalog', 'pg_extension', 'crdb_internal'), plus one per database",
+      "is_approximation": true,
+      "why_approximate": "the server counts descriptors; this counts catalogue rows. User-defined types are not counted. Expect this to differ from the number the server prints when it refuses a CREATE."
+    },
+    "skipped": [],
+    "headroom": 16124,
+    "percent_of_ceiling": 19.4,
+    "heaviest_databases": [
+      {
+        "database": "w3_demo_api_9c1ec080bd16",
+        "objects": 146
+      },
+      {
+        "database": "w_w6",
+        "objects": 146
+      },
+      {
+        "database": "w_w7",
+        "objects": 145
+      },
+      {
+        "database": "mainline_demo",
+        "objects": 144
+      },
+      {
+        "database": "w1_credentials_9c1ec080bd16",
+        "objects": 144
+      },
+      {
+        "database": "w1_no_seed_d2a5ddd092e1",
+        "objects": 144
+      },
+      {
+        "database": "w2_defeaters_9c1ec080bd16",
+        "objects": 144
+      },
+      {
+        "database": "w_w1_rowfactory_1548212dd882",
+        "objects": 144
+      },
+      {
+        "database": "w_w4_api_transitions_1548212dd882",
+        "objects": 144
+      },
+      {
+        "database": "w_w4_base",
+        "objects": 144
+      }
+    ]
+  },
+  "catalogue_gauge": {
+    "question": "can a reader read their own object count?",
+    "crdb_internal": {
+      "ok": false,
+      "sqlstate": "42501",
+      "error": "Access to crdb_internal and system is restricted. HINT: These interfaces are unsupported in production. To proceed, set the session variable allow_unsafe_internals = true (not recommended), or contact Cockroach Labs for a supported alternative."
+    }
+  },
+  "warning_on_the_way_up": {
+    "statement": "CREATE DATABASE upstream_f05_7d40b678",
+    "ok": true,
+    "notices_emitted": [],
+    "notice_count": 0
+  },
+  "scratch_database": {
+    "name": "upstream_f05_7d40b678",
+    "created": true,
+    "dropped": true
+  },
+  "elapsed_seconds": 136.0
+}

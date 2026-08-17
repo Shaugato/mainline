@@ -3,426 +3,281 @@ SPDX-FileCopyrightText: 2026 MAINLINE contributors
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# EXTRA-CREDIT PLAN — what earns points beyond the requirements, ranked by measured value
+# SUBMISSION-COMPLETENESS PLAN — every field filled, the optional ones too, and the rare things put where a judge will meet them
 
-**Extra-credit lead · 2026-08-16 · repo `D:/CoackroachDBxAWS/mainline`, master at HEAD ·
-live origin `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`**
+**Submission-completeness lead · 2026-08-17 · repo `D:/CoackroachDBxAWS/mainline`, master at
+`9e91467` · live origin
+`https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws`**
 
-Every number on this page was measured today against the live origin, the committed tree, or
-the contest's own pages. Nothing here is re-derived from another document's summary.
+**This file replaces the extra-credit plan dated 2026-08-16, which was executed.** That wave's
+output is in the tree — the axis-1 paragraphs are in `DEVPOST.md`, the six live GETs are in
+`README.md`, `evidence/mcp/` exists, and its claim ledger is preserved at
+`docs/submission/EXTRA-CREDIT-CLAIMS.md`. **Nothing that wave wrote is undone here.** Its eight
+rulings (R1–R8) still bind; where this page rules on the same question it says so.
 
----
-
-## 0 · THE FINDING THAT REORDERS THE WHOLE PLAN
-
-**The scoring facts, re-read from the source rather than from our own notes.** The Official
-Rules page (<https://cockroachdb-ai.devpost.com/rules>, fetched 2026-08-16) gives criterion 1
-as:
-
-> **Agentic Memory Design** — *"Does CockroachDB play a meaningful, production-grade role as
-> the agent's memory layer?"*
-
-and criterion 2 as:
-
-> **Technological Implementation** — *"Is the integration with CockroachDB tools (distributed
-> vector index, MCP Server, ccloud CLI) quality software engineering?"*
-
-and the tie-break as: *judges compare scores on the first criterion listed; if ties persist the
-process repeats with the next.* The overview page
-(<https://cockroachdb-ai.devpost.com/>) confirms the four CockroachDB tools (Managed MCP
-Server · Distributed Vector Indexing · ccloud CLI · Agent Skills Repo), the ≥1 AWS service
-rule, and lists **tool identification documentation** as a submission requirement — which
-`docs/TOOL-USAGE.md` already satisfies and which most entrants will not have at all. The
-Functionality rule reads *"must function as depicted in the video and/or expressed in the text
-description"*. Deadline **2026-08-18 17:00 EDT**.
-
-**Now the finding.** This project's problem is not that it lacks axis-one material. It is that
-**the axis-one material it already has, live and anonymous, is almost entirely absent from the
-submission page.** Measured:
-
-| axis-one artefact | live / committed? | mentions in `DEVPOST.md` |
-|---|---|---:|
-| `evidence/demo/memory-loop.json` — STORE → RETRIEVE → ACT against the live URL, `verdict PROVEN`, `23` of `23` assertions held | committed, `base_url` is the live origin | **0** |
-| `evidence/demo/live-beats.json` — the four beats off the deployed URL | committed | **0** |
-| `GET /v1/permits/{id}/silence` — the Merkle silence receipt | **live, anonymous** | **0** |
-| `GET /v1/recall-runs/{id}` — the retrieval run's own accounting | **live, anonymous** | **0** |
-| `GET /v1/clauses/{uuid}/ancestry` — blame edge + closure + commit chain | **live, anonymous** | **0** |
-| the refusal payload's **MUS** and **NAA** | **live, anonymous** | **0** (one sentence in `README.md:349`) |
-
-Re-derive the zeros:
-`grep -c "memory-loop\|live-beats\|/silence" docs/submission/DEVPOST.md` → `0`, `0`, `0`.
-
-**So the highest-value hours left are surfacing hours, not building hours.** That conclusion is
-not a compromise forced by the deadline; it is what the measurement says. An hour spent adding
-a sixth AWS service moves axis 2 by nothing a judge will notice. An hour spent putting a
-`curl` command next to the sentence "logged silence — every precursor the system declined to
-surface is recorded, with its arithmetic" moves the axis that decides every tie, and it moves it
-from *asserted* to *demonstrable*, which is the exact distinction the Functionality rule draws.
+Every measurement below was taken today by this lead, not copied from another document.
 
 ---
 
-## 1 · RULINGS — what the brief left open, decided, with authority named
+## 0 · WHAT I MEASURED TODAY, AND THE THREE THINGS IT CHANGES
 
-**R1 · The brief's Managed-MCP premise is stale. The gap is presentational, not evidential.**
-The brief states there is *"no recorded end-to-end call — no `evidence/mcp/`"*. The second half
-is true; the first half is not. **Authority:** `evidence/deploy/judge-run.json`, measured today,
-carries `channels.mcp` = `{"channel": "mcp", "endpoint": "https://cockroachlabs.cloud/mcp",
-"ran": true, "protocol_version": "2025-06-18", "sql_identity": "managed-mcp", "passed": 15,
-"total": 16}` at `generated_at 2026-08-11T00:23:29Z`, with a `managed_mcp_availability` block
-recording that `initialize` returned HTTP `200` and a session id and that `tools/list` returned
-`12` tools. `docs/TOOL-USAGE.md:1317` already strikes the limitation through and §Tool 3
-promoted `crdb_managed_mcp` DESIGNED → EXERCISED on `2026-08-12`. **The whole of the gap is
-that the evidence is filed under a filename that says *deploy*.** Ruling: we surface it; we do
-not re-run it. See R2.
+**Measurement 1 — the origin answers from outside our network.** Fetched
+`GET /v1/health` from a host that is not ours and holds no credential of ours, `2026-08-17`:
 
-**R2 · No new Managed-MCP capture is authorised.** **Authority:** the founder's absolute
-prohibition on touching AWS, writing SSM, or printing a credential, plus the fact that a second
-capture could *disagree* with the committed one two days before the deadline with no time to
-reconcile. `evidence/mcp/` will be a **pointer directory** — a README plus a verbatim,
-unaltered extract of the committed `channels.mcp` block — and it will say on its own face that
-it is a pointer and name the file it points at.
-
-**R3 · `docs/submission/SUBMISSION.json` is not edited by this wave, including its `notes`.**
-**Authority:** that file's own single-write-point doctrine and the founder's *do not commit /
-the orchestrator deploys* rule. It nonetheless carries a sentence that is now false:
-`notes.demo_url` opens *"Unresolved because `terraform apply` has not been run: no MAINLINE
-Lambda, no Function URL, no bucket exists in the account."* — contradicted by
-`evidence/deploy/APPLIED.md` (`24 created, 0 changed, 0 destroyed`) and by the origin
-answering `ok true` today. W6 **reports** this contradiction with the exact replacement text and
-hands it to the orchestrator. W6 does **not** apply it, and nobody writes `demo_url`.
-
-**R4 · Any sentence about the silence ledger must state that the demo run silenced nothing.**
-**Authority:** measured 2026-08-16. `GET /v1/permits/dec0de00-0006-4000-8000-000000000001/silence`
-returns a complete receipt — `corpus_root`, `candidate_root`, `theta 0.35`, `s 1`, `n 1`,
-`boundary_proof.leaf_s.leaf_hash_hex`, `policy_version demo-recall-1.0` — **and `entries: []`**,
-corroborated by `GET /v1/recall-runs/{id}` giving `counts.n_silenced: 0`. The *mechanism* is
-live; the *list* is empty. A sentence implying withheld precursors are on display would be a
-false claim under `MUST-NOT-CLAIM.md` family 10. The true sentence is written in §4 below and
-every worker copies it rather than paraphrasing it.
-
-**R5 · The `staged: true` flag is quoted as a strength, never trimmed.** **Authority:** the live
-payload's own `staged_note`, which names `receipt.bound.statement` as the one value in that
-response that no database column produced. Copy that quotes the receipt quotes the note in the
-same breath. A payload that flags its own non-column field is rarer than the receipt itself.
-
-**R6 · "Production-grade" is scoped to the memory layer, and axis 4's concession does not
-move.** **Authority:** the Rules' criterion-1 text quoted in §0 — the phrase *production-grade*
-sits inside **criterion one**, applied to *the agent's memory layer*, not inside criterion four.
-The submission concedes Production Readiness globally and loudly (axis 4 opens *"Score this one
-down"*), and **nothing anywhere draws the line that keeps that concession out of axis 1.** Ruling:
-axis 1 gains one scoping sentence naming what *is* production-grade about the memory layer;
-`docs/HONESTY.md`, `docs/CI-STATE.md` and the axis-4 block are not touched, softened or
-re-scoped by anyone in this wave.
-
-**R7 · No sixth AWS service, no fifth CockroachDB tool, no redeploy, no grant widening.**
-**Authority:** the lexicographic tie-break plus the founder's prohibitions. The
-`materialise_checks` / `exposure_receipt` INSERT gap stays exactly as open as it is.
-
-**R8 · Beat 3's degraded refusal is quoted as a feature, not omitted.** **Authority:** the live
-payload measured 2026-08-16 — on the projection-drift attack the refusal returns
-`"naa": null`, `"naa_reason": "not_computable"`, and `mus[0].kind: "capability_gap"`. A refusal
-that says it cannot compute the alternative rather than inventing one is the argument; hiding it
-would be the opposite of the argument.
-
----
-
-## 2 · THE RANKED LIST — three we do, then the ones we deliberately do not
-
-### DO — EC-1 · The live memory loop becomes the axis-one headline
-
-`evidence/demo/memory-loop.json`, generated `2026-08-15T14:18:20Z` against `base_url` = the live
-Function URL: **`verdict PROVEN`, `assertions_total 23`, `assertions_held 23`,
-`assertions_failed []`.** Its `self_audit` block asserts *"no value in this artefact originates
-in `scripts/proof/memory_loop.py`"* and backs it with `values_audited: 79`,
-`values_found_in_the_source: []`, `uuid_literals_in_the_source: 0`, and the source's own
-sha256. Its `gap` block computes RETRIEVE → ACT as `10.0` seconds by subtracting
-`mainline_meas.recall_run.started_at` (off `GET /v1/recall-runs/{run_id}`) from
-`mainline.blocking_check.materialised_at` (off `GET /v1/permits/{permit_id}/blocking-checks`),
-with `stated_anywhere_in_this_program: false` and a corroboration against the checked-in seed
-reading `AGREES`. Its rulings include **R7: *"the loop needs no new endpoint; every word is
-already a live GET."***
-
-That is the criterion-1 question answered by one committed artefact and one command, and
-`DEVPOST.md` does not mention it. **Value: highest available.** **Risk: zero** — the artefact
-exists, is committed, and is not regenerated by this wave.
-
-### DO — EC-2 · Six memory semantics, each with the live GET that returns it
-
-`README.md` §*Why this is memory, not workflow* lists six semantics as bare bullets. Every one
-is a live, anonymous route on the deployed origin. Measured 2026-08-16:
-
-| semantic | live route | the field that proves it |
-|---|---|---|
-| **provenance** | `GET /v1/clauses/{uuid}/ancestry` | `blame_edges[0].basis: "asserted_document"`, `evidence_quote_sha256` |
-| **ancestry** | same route | `commit_chain[0].control_delta: "introduce"`, `closure.depth 1`, `closure.ancestor_count 1` |
-| **severity floors** | `GET /v1/permits/{id}/blocking-checks` | `precursor.severity_gate: 4`, `severity_basis: "human_rated"`, `origin: "blame_ancestry"` |
-| **logged silence** | `GET /v1/permits/{id}/silence` | `corpus_root`, `candidate_root`, `theta 0.35`, `s 1`, `n 1` — **and `entries: []`, see R4** |
-| **retrieval accounting** | `GET /v1/recall-runs/{run_id}` | `n_candidates 1 · n_blocking 1 · n_advisory 0 · n_silenced 0 · n_deduped 0`, `index_plan_digest` |
-| **the act** | `POST /v1/demo/gate-run` | `refusal.mus[…]` and `refusal.naa`, see EC-3 |
-
-And every one of those payloads carries a `provenance` array of per-field chips —
-`{"chip": "db:column", "pointer": "/receipt/bound/index_plan_digest"}`,
-`{"chip": "derived", "pointer": "/subject_kind"}`,
-`{"chip": "staged", "pointer": "/receipt/bound/statement"}` — so the response states, field by
-field, whether a database column produced it. **Value: converts six asserted semantics into six
-`curl`-able ones on the tie-breaking axis.** **Risk: zero** — read-only GETs, no writes, no
-credentials, nothing deployed.
-
-### DO — EC-3 · The MUS and the NAA — the *act* half — promoted out of one README line
-
-Live, measured 2026-08-16, `POST /v1/demo/gate-run` beat 2:
-
-```
-"mus": [{"kind": "obligation", "origin": "blame_ancestry", "severity": 4,
-         "virulence": "blood_major", "detail": "open at gate_epoch 1; no live disposition"}]
-"naa": {"kind": "dispose_obligations", "cardinality": 1,
-        "description": "1 obligation(s) remain open on this subject; disposing of exactly
-                        those restores admissibility",
-        "legal_kinds": ["applied","mitigated","mechanism_absent","escalated","emergency_override"]}
+```json
+{"ok":true,"database":"mainline_demo",
+ "cluster_version":"CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 …)",
+ "deploy_chain_applied":271,"deploy_chain_files":271,
+ "schema_fingerprint":"ec9b1ce7…","server_date":"2026-08-17T15:08:16.662624Z"}
 ```
 
-and beat 3, the attack, degrades honestly per R8: `"naa": null`,
-`"naa_reason": "not_computable"`, `mus[0].kind: "capability_gap"`. This is the entire
-*retrieval-conditioned action* claim, live and anonymous, and it currently appears once, in
-`README.md` line 349, and nowhere on the submission page. **Value: high.** **Risk: zero.**
+That is the R2 mechanical requirement discharged from the judge's side of the wire rather than
+from ours. **It is not permission to stop checking it** — see W4.
 
-### DO NOT — and here is why, so nobody re-proposes them at 02:00
+**Measurement 2 — the submission requirements, re-read from the source today, are seven items
+and two of them are optional.** Fetched from `https://cockroachdb-ai.devpost.com/`, verbatim:
 
-| proposal | verdict | why |
-|---|---|---|
-| Re-run the MCP pack to create a fresh `evidence/mcp/` capture | **NO** | needs a Cloud service-account key and a live network run; could produce an artefact that *disagrees* with the committed one with no time to reconcile. Fails test two. R2. |
-| Deploy `operator.html` so the two screens exist on the origin | **NO** | a redeploy, which is absolutely prohibited. `README.md` already publishes the gap (`GET /operator.html` returns the shell byte-for-byte identical to `GET /`), and a published gap outscores a rushed deploy that breaks a working demo. |
-| Widen the `materialise_checks` / `exposure_receipt` INSERT grant so the loop writes live | **NO** | founder's call, unmade. The loop is already `PROVEN` read-only — the write would add nothing a judge scores and would widen the write surface of an unauthenticated endpoint. |
-| Add a sixth AWS service or a fifth CockroachDB tool | **NO** | breadth on axis 2 behind depth on axis 1 is the worst hour available under a lexicographic tie-break. R7. |
-| Re-run the mutation ratchet or the regression guard for fresher numbers | **NO** | both are standing measurements with committed artefacts. A fresh red at T-2 days is a cost with no upside, and the guard is *already* red for a true reason it publishes. |
-| Rewrite the axis-4 block to sound better now the origin is live | **NO** | axis 4 is fourth. Its concession is the reason the other four are believed. R6 — the fix is a scoping sentence in axis **1**, not a softening in axis 4. |
+> 6. *"Optional: Include an architectural diagram showing how CockroachDB, AWS services, and
+>    your agent interact."*
+> 7. *"Optional: Provide feedback on the CockroachDB AI tools or features."*
 
-### THE UNDER-SOLD RARITIES — placed by quotation, not by new work
+**Both are unmet in substance, and the repository does not know it.** `RULES-MATRIX.md` §1.2
+marks the diagram row *"present"* — but the only architecture diagram in the tree is
+`README.md:365`, three ASCII boxes reading *product → substrate → CockroachDB*. **It contains no
+AWS service and no agent**, which are two of the three things the requirement names. And the
+feedback row reads *"worth doing"*; `docs/upstream/` holds one Agent-Skill proposal and nothing
+else. There is no document anywhere in this repository that collects what we learned about the
+platform. The founder asked for exactly that, in his own words, and the contest asks for it too.
+**Two asks converge on one missing file. That is the highest-value hour on this board.**
 
-These are real, committed, and none is on the submission page. They are assigned to workers
-below as *quotations of existing artefacts*, never as new runs.
+**Measurement 3 — the rarest things we own are invisible where a judge lands.**
+`grep -ci "anti-vacuity\|has_function_privilege\|naa_reason\|Wilson"` over the two documents a
+judge actually opens first:
 
-1. **The anti-vacuity census** (`docs/ci/anti-vacuity.md`) — one row per workflow, asking
-   whether each lane can *prove it is able to fail*. Shape: *copy the lane's real input, plant
-   ONE violation per failure family, run the lane's OWN checker, assert it exits non-zero **and**
-   that the message names the planted family.* **`7` of `18` workflows have a standing negative
-   control after that wave, against `3` before it, and the table names the `8` that still have
-   none.** The last clause is the rare part: *"an assertion that a program failed, without
-   checking why, passes when the program fails to start."*
-2. **`has_function_privilege` is a stub on CockroachDB `v26.2.5`** (`docs/regression/GUARD.md`
-   §*Two things this guard found on its first run*). Plant P2 was built to make it answer
-   `false` after a real `REVOKE`; it answered `true` — for that role, for `root`, for `admin`,
-   for `public`, for everybody, while the behavioural truth was `REFUSED 42501`. *"A check built
-   on it cannot fail, and a check that cannot fail is decoration."* Replaced with `SHOW GRANTS`
-   plus explicit role-membership expansion, which *can* go red. Found by a plant, before the
-   guard was ever run in anger.
-3. **The mutation ratchet publishes Wilson lower bounds and refuses to be a gate**
-   (`evidence/mutation/README.md`). Three of three killed is a point estimate of `1.0` and a 95 %
-   lower bound of `0.438`, *"and publishing `1.0` there is not optimism; it is a false statement
-   about how much evidence exists."* It exits `0` whatever the kill rate is, because *"the
-   cheapest way to raise a mutation score is to delete the mutants the system fails on"* — and
-   it keeps them: `comparator_loosening` survives on five of ten fixtures.
-4. **`staged: true` inside a live API payload** — R5.
-5. **Severity was DERIVED, not typed** — the client supplied `0`, the trigger projected `4` onto
-   a row the client never touched, `10` of `10` projection assertions holding. Already in both
-   axis-1 blocks; it stays, and EC-2's `severity_basis: "human_rated"` off the live route is now
-   the *live* corroboration of it.
+| document | hits |
+|---|---:|
+| `docs/submission/JUDGE-START.md` | **0** |
+| `docs/submission/FIRST-FIVE-MINUTES.md` | **0** |
+| `README.md` | **0** |
+
+All four artefacts are real, committed and verified today: `docs/ci/anti-vacuity.md:55` reads
+*"Seven lanes have a standing negative control after this wave, against three before it"*;
+`docs/regression/GUARD.md:370` is headed *"`has_function_privilege` is a stub on CockroachDB
+v26.2.5"* and quotes the behavioural truth at `:378`,
+`CALL as probe: REFUSED 42501 user w_rg_probe does not have EXECUTE privilege on procedure
+merge_permit`. They reached `DEVPOST.md` in the last wave. **They did not reach the pages a judge
+opens before `DEVPOST.md`.**
 
 ---
 
-## 3 · MANAGED MCP — the honest paragraph, since the premise changed
+## 1 · THE READABILITY BAR — and the single ruling that makes it safe
 
-Facts, all from `evidence/deploy/judge-run.json` and `docs/TOOL-USAGE.md` §Tool 3, measured
-today:
+The founder read our own briefing and said: *"Even after going through your briefing, I'm finding
+a very hard time to understand."* **That is the bar. We are failing it, and the failure is not
+imprecision — it is that a first-time reader meets layer 3 first.**
 
-* endpoint `https://cockroachlabs.cloud/mcp`, MCP **Streamable HTTP**, protocol `2025-06-18`,
-  an `mcp-cluster-id` header pinning exactly one cluster
-* `initialize` → HTTP `200` + a session id; `tools/list` → `12` tools
-* the endpoint runs as the SQL user **`managed-mcp`** — not `root`, not the database owner —
-  which answers day-1 check GT-10 that `FALLBACK.md` recorded as unanswered and assumed
-  pessimistically
-* **`15` of `16`** pack questions PASS over the managed endpoint against the live Basic cluster
-* server-side limits are read from `packages/mainline-mcp/src/mainline_mcp/limits.py`: `1`
-  statement per call, `16384`-char statements, `20` s timeout, a **`10240`-byte response cap**,
-  and a schema blocklist including `crdb_internal` and `pg_catalog`
+**RULING A — LAYERING IS ADDITIVE. NO WORKER IN THIS WAVE DELETES OR REWRITES AN EXISTING
+PRECISE CLAIM.** Layer 1 goes *in front of* layer 2 and layer 3, never *instead of* them. A
+worker who cannot make a sentence both true and simple writes two sentences and keeps both.
+**Authority:** the founder's own instruction — *"the fix is layering, not simplifying"* and
+*"never weaken a claim to make it readable"* — plus the plain risk that a wave which rewrites
+`DEVPOST.md` at T-1 day breaks a page that already passes `check_submission_prose.py` at zero
+violations. This ruling is also what makes six workers safe to run concurrently: an insert
+cannot collide with another insert the way two rewrites of one paragraph can.
 
-**And the two caveats that ride with every sentence, per the no-false-claim rule.** The run's own
-verdict is **`DIVERGED — KNOWN GAP`** — divergence `N01`, the `managed-mcp` identity *can* read
-`mainline_qa.v_disposition_profile`, which the design had assumed it could not. And the MCP
-credential is the account's Cloud service-account key, so it is **not publishable to anonymous
-judges** — MCP is therefore *demonstrated*, and it is **not** the judge access path. The judge
-access path is the read-only `mainline_judge` SQL login.
+**The three layers, and who owes which:**
 
-The claim we are allowed to make, in one line: **"The Managed MCP Server was exercised
-end-to-end against the live cluster as the `managed-mcp` SQL identity — 15 of 16 pack questions
-pass, the sixteenth is a divergence we publish, and the credential is not one we can hand a
-stranger."**
+| layer | reader | test it must pass | owed by |
+|---|---|---|---|
+| **1** | a non-technical person, sixty seconds | a person, a situation, a consequence — no term used before it is defined | W1, W3, W5, W6 |
+| **2** | a technical reader | the constraint, the trigger, the SQLSTATE, why it cannot be bypassed | W1, W2, W5 |
+| **3** | a reviewer checking a claim | the file, the line, the transcript — **already exists and is not weakened by anybody** | all |
 
----
-
-## 4 · THE COPY — hand these to the workers verbatim
-
-### 4.1 · `DEVPOST.md` → *Judged on — Agentic Memory Design* — two paragraphs to INSERT
-
-> **The loop is not a diagram; it is three live GETs and a committed transcript.** STORE →
-> RETRIEVE → ACT runs against the deployed origin and writes
-> `evidence/demo/memory-loop.json`: `verdict PROVEN`, `23` of `23` assertions held, `0` failed.
-> An incident dated `2019-03-14` names a clause; seven years later a permit relies on that
-> clause; the retrieval pass finds the incident and **ten seconds** later the finding is an
-> obligation the database will not let the permit be issued around. Those ten seconds are a
-> **subtraction of two columns off two live routes** —
-> `mainline_meas.recall_run.started_at` from `GET /v1/recall-runs/{run_id}`, and
-> `mainline.blocking_check.materialised_at` from `GET /v1/permits/{permit_id}/blocking-checks`
-> — with `stated_anywhere_in_this_program: false` in the artefact that computes it. The program
-> that writes that file audits **itself**: `values_audited: 79`,
-> `values_found_in_the_source: []`, `uuid_literals_in_the_source: 0`. A proof script that could
-> have hard-coded its own answer, and demonstrably did not. **No endpoint was added to make any
-> of this filmable** — the artefact's own ruling `R7` says the loop needed none.
->
-> **The refusal is not a "no"; it is a minimal unsatisfiable set and the nearest admissible
-> alternative.** `POST /v1/demo/gate-run` returns, for the blocked merge, a `mus` naming the one
-> obligation — `origin: blame_ancestry`, `severity: 4`, `virulence: blood_major`, `detail: "open
-> at gate_epoch 1; no live disposition"` — and an `naa` of `cardinality 1` describing the exact
-> smallest repair, with the five dispositions the law of this system permits
-> (`applied`, `mitigated`, `mechanism_absent`, `escalated`, `emergency_override`). A gate that
-> only says "no" gets routed around, and an invariant that is routed around is not an invariant.
-> **On the third beat — the attack — the payload degrades honestly rather than guessing:**
-> `naa: null`, `naa_reason: "not_computable"`, `mus[0].kind: "capability_gap"`. A refusal that
-> tells you it cannot compute the alternative is worth more than one that invents it.
-
-### 4.2 · `DEVPOST.md` → axis-1 scoping sentence (per R6) — INSERT before the OPEN THIS line
-
-> **On the criterion's own words — *"a meaningful, production-grade role as the agent's memory
-> layer"* — the scope of that adjective is the memory layer, and this submission is careful
-> about which half it is claiming.** The memory layer is `SERIALIZABLE`, a named `CHECK` whose
-> name is the deliverable, a composite foreign key onto `(subject_id, gate_epoch)` with
-> `ON UPDATE RESTRICT`, a counter no client may write, row-level security with `FORCE`, and a
-> `271`-file migration chain applied `271` of `271` against managed CockroachDB Cloud. **What
-> axis 4 concedes — and it concedes it loudly — is the custody store and the operator surface
-> around that layer: `7` of `16` cryptographic custody checks unwritten, no p50, no p99, no load
-> profile.** Those are two different sentences about two different things, and this page will
-> not merge them in either direction.
-
-### 4.3 · `DEVPOST.md` → axis-1 `OPEN THIS TO CHECK IT` — REPLACE the existing line
-
-> **OPEN THIS TO CHECK IT — no clone, no account, no credential, one command:**
-> `curl -s <demo_url>/v1/permits/dec0de00-0006-4000-8000-000000000001/blocking-checks`.
-> The field that decides this axis is `precursor.severity_gate`. It reads `4` with
-> `severity_basis: "human_rated"` and `origin: "blame_ancestry"` — a value the client never
-> supplied and a trigger projected onto a row the client never touched
-> (`evidence/gate-refusal/proof-20260810T054407Z.json#projection`, `10` of `10` assertions
-> holding). **If that number is the client's own, memory here is a cache and this axis is
-> falsified.** Then `spec/TRAPPOINT-SPEC.md` §2 for the normative `PROJECT · PIN · REFUSE`
-> rules the projection obeys.
-
-### 4.4 · `README.md` → replace the six bare bullets with the six live GETs
-
-> ### Why this is memory, not workflow — and every line below is a URL, not a claim
->
-> The memory is not a panel next to the transaction. It is a **precondition of the state
-> transition**, enforced as a database invariant under `SERIALIZABLE`. The memory also has
-> *semantics* rather than being a document store — and each semantic is a live, anonymous
-> `GET` on the deployed origin. Measured `2026-08-16`; substitute the demo URL for `$B` and the
-> seeded permit `dec0de00-0006-4000-8000-000000000001` for `$P`.
->
-> | semantic | the command | what comes back |
-> |---|---|---|
-> | **provenance** — clause → the incident that wrote it | `curl $B/v1/clauses/dec0de00-0004-4000-8000-000000000001/ancestry` | a `blame_edge` with `basis: asserted_document` and an `evidence_quote_sha256` |
-> | **ancestry** — a commit DAG, walked | same route | `commit_chain` with `control_delta: introduce`, and a `closure` of `depth 1`, `ancestor_count 1` |
-> | **severity floors** — a fatality's relevance never decays | `curl $B/v1/permits/$P/blocking-checks` | `severity_gate: 4`, `severity_basis: human_rated`, `origin: blame_ancestry` |
-> | **logged silence** — what the recall *declined* to surface, with its arithmetic | `curl $B/v1/permits/$P/silence` | a Merkle receipt: `corpus_root`, `candidate_root`, `theta 0.35`, `s 1`, `n 1`, a boundary proof |
-> | **retrieval accounting** — the run auditing itself | `curl $B/v1/recall-runs/dec0de00-0009-4000-8000-000000000001` | `n_candidates 1 · n_blocking 1 · n_advisory 0 · n_silenced 0 · n_deduped 0`, plus the `index_plan_digest` |
-> | **the act** — recall conditioning the write | `curl -XPOST $B/v1/demo/gate-run -d '{}'` | the refusal's `mus` and `naa` |
->
-> **Read the silence receipt honestly, because we do.** On this seeded run the receipt is
-> complete and `entries` is **empty** — `n_silenced: 0`, nothing was withheld. What is
-> demonstrated is the *apparatus*: the arithmetic a withholding would have to publish, bound to
-> a corpus root and a threshold, on a run that withheld nothing. And the receipt says which of
-> its own fields no column produced: `staged: true`, with a `staged_note` naming
-> `receipt.bound.statement` as the single value in that payload that the database did not
-> author. **Every one of those responses carries a `provenance` array of per-field chips —
-> `db:column`, `derived`, `staged` — so you never have to guess which half of an answer came
-> from the database.**
-
-### 4.5 · The one-line claims — for the form, the README badge line, and the film's close block
-
-Each is followed by the artefact that survives the question *"show me"*. **Use them exactly.**
-
-1. "STORE → RETRIEVE → ACT is a committed transcript against the deployed URL: `PROVEN`, `23`
-   of `23` assertions." — `evidence/demo/memory-loop.json`
-2. "The RETRIEVE → ACT gap is a subtraction of two columns off two live routes, not a sentence:
-   `10` seconds." — same file, `#gap`
-3. "The proof script audits itself: `79` values, `0` of them originating in the program." —
-   same file, `#self_audit`
-4. "Every refusal returns a minimal unsatisfiable set and the nearest admissible alternative —
-   and returns `naa_reason: not_computable` rather than a guess when it cannot." — live
-   `POST /v1/demo/gate-run`
-5. "Severity was derived by a trigger from blame closure, not typed by a client: supplied `0`,
-   projected `4`." — `evidence/gate-refusal/proof-20260810T054407Z.json#projection`
-6. "The Managed MCP Server was exercised end-to-end as the `managed-mcp` SQL identity: `15` of
-   `16` pack questions pass, and the sixteenth is a divergence we publish." —
-   `evidence/deploy/judge-run.json#channels.mcp`
-7. "`7` of `18` workflows carry a job whose only purpose is to prove that lane can go red — and
-   the census names the `8` that still have none." — `docs/ci/anti-vacuity.md`
-8. "`has_function_privilege` is a stub on `v26.2.5`: it answered `true` after a real `REVOKE`
-   while the call itself was refused `42501`. A check built on it cannot fail. We found it with
-   a plant and replaced it." — `docs/regression/GUARD.md`
-9. "Mutation scores are published as Wilson lower bounds and gate nothing, because the cheapest
-   way to raise a mutation score is to delete the mutants you fail." —
-   `evidence/mutation/README.md`
-10. "The demo origin answers `GET /v1/health` with `deploy_chain 271/271` and
-    `POST /v1/demo/gate-run` with verdict `PROVEN`, in one `SERIALIZABLE` transaction that ends
-    in `ROLLBACK` — so a hundred judges may press it at once." — `evidence/deploy/live-health.json`,
-    `evidence/deploy/live-gate-run.json`
-
-### 4.6 · `evidence/mcp/README.md` — the pointer file's opening, verbatim
-
-> **This directory holds no capture of its own, and that is deliberate.** The live Managed MCP
-> session against `https://cockroachlabs.cloud/mcp` was recorded on `2026-08-11` and lives in
-> `evidence/deploy/judge-run.json` under `channels.mcp`, because the program that made the call
-> was the judge-access prober and evidence is filed under the program that produced it. This
-> file exists because a reader looking for MCP evidence looks for a directory named `mcp`, and
-> finding none is indistinguishable from there being none. **Nothing here was re-run to create
-> it.** The extract below is copied byte-for-byte from that file; if the two ever disagree, that
-> file is authoritative and this one is wrong.
+**Terms that may not appear without a plain-language gloss at first use**, taken from the
+founder's list and extended by what I found in the tree: `projection`, `blame ancestry`,
+`defeater`, `epoch`, `disposition`, `obligation`, `canonicalisation`, `MUS`, `NAA`, `diachronic`,
+`synchronic`, `negative control`, `anti-vacuity`, `Wilson lower bound`, `SQLSTATE`, `C-SPANN`,
+`projected counter`, `precursor`. A worker who cannot gloss one in a clause does not use it in
+layer 1.
 
 ---
 
-## 5 · THE SIX WORKERS — disjoint paths, literally enumerated
+## 2 · RULINGS — what the brief left open, decided, with authority named
 
-No worker touches a path owned by another. **Every brief repeats the three standing rules.**
+**R-A · Layering is additive.** Above. Binds every worker.
+
+**R-B · `DEVPOST.md` is this wave's, and it is worked insert-only.** **Authority:** my scope is
+*"fill every field the Devpost form asks for, including the optional ones, and produce the copy"*
+— that copy lives in exactly one file. W1 owns it. **Under R-A, W1 inserts new blocks and edits
+exactly one existing structure: the *Field-by-field checklist for the person pasting* table at
+the foot, which is the completeness lead's own instrument.** No existing `<!-- PASTE -->` block is
+rewritten, shortened, or re-ordered by this wave.
+
+**R-C · The two optional requirements are DONE, not advised.** **Authority:** the founder —
+*"anything they say optional, we should go for it"* — and the verbatim requirement text in §0.
+W5 draws the diagram; W2 writes the feedback; W1 turns each into a paste block. **A pointer to a
+README section is not a diagram, and a promise to write feedback is not feedback.**
+
+**R-D · Every CockroachDB finding is re-verified before it is published, and one that cannot be
+reproduced is published as unreproduced rather than dropped.** **Authority:** the founder's
+*"verify every one before publishing it; do not publish one you cannot reproduce"*, and the
+harder reason: this document is the one a CockroachDB engineer will read most carefully, and a
+finding they cannot reproduce costs us more credibility than the other six earn. **The register
+is a bug report from a grateful user, not a complaint.** Each finding states what we expected,
+what we measured, the command, what it cost, and what would have been better. **Any finding W2
+cannot stand behind goes into a section headed *"Reported, not reproduced on this machine"* with
+the reason. That section existing is worth more than seven clean findings.**
+
+**R-E · No new measurement against AWS, no redeploy, no credential, no grant.** **Authority:**
+the founder's absolute prohibitions. Read-only HTTPS `GET` against the public origin is the only
+network access this wave takes, and `POST /v1/demo/gate-run` is permitted only because it ends in
+`ROLLBACK` and persists nothing (`persisted false`, measured). **Nobody runs `terraform`, writes
+an SSM parameter, prints a credential, or commits.**
+
+**R-F · The two criterion-name spellings that came back from two contest pages are NOT
+reconciled by this wave.** **Authority:** `docs/submission/compliance-plan.md` Ruling 3 read the
+`/rules` page verbatim on `2026-08-16` and got *"Technological Implementation"* and *"Product
+Readiness"*; my fetch of the overview page today came back through a summarising model and
+rendered them *"Technical Implementation"* and *"Production Readiness"*. **A summariser's output
+is not verbatim text and I will not overturn a verbatim reading with it.** The existing spellings
+stand everywhere. No worker changes an axis name, and W4 records the discrepancy as a
+*question for the founder*, not a defect.
+
+**R-G · `evidence/**`, `qa/**`, `infra/**`, `.github/**`, `spec/**`, `packages/**`, `tests/**`,
+`verticals/**`, `docs/HONESTY.md`, `docs/CI-STATE.md`, `docs/submission/SUBMISSION.json`,
+`docs/submission/MUST-NOT-CLAIM.md`, `docs/submission/RULES-MATRIX.md`,
+`docs/submission/JUDGING-AXES.md`, `docs/TOOL-USAGE.md`, `docs/submission/EXTRA-CREDIT-CLAIMS.md`
+and `README.md` are untouched by every worker in this wave.** **Authority:** each is another
+domain's single write point, several are under the founder's explicit prohibition, and `README.md`
+is the file most likely to be owned by a sibling lead this wave. **Where a worker finds a defect
+in one of them it REPORTS it with the exact replacement text and hands it to the orchestrator.**
+That is W4's standing job and any worker may add to its list.
+
+**R-H · The new script W4 writes is not wired into CI.** **Authority:** the no-regression rule.
+Baseline is `1070` collected / `1069` passed / `0` failed / `0` errors and a new lane is the
+cheapest way to break it at T-1 day. W4's checker is a standalone tool with its own `--self-test`
+that plants a broken link and asserts the checker refuses. It is added to no workflow.
+
+**R-I · `capture_tool_evidence.py --check` will report `STALE` on `files_scanned` after this
+wave, and that is expected.** **Authority:** `DEVPOST.md`'s own words — *"a `STALE` naming only
+`files_scanned` is a tree that grew, not a verdict that moved"*. Every worker adds files.
+**Nobody regenerates `evidence/tool-usage/` to make it green** — that file is another domain's
+and regenerating it is how a green gets bought. W4 records the expectation so a later reader does
+not meet it as new breakage.
+
+**R-J · Nothing is promoted.** Agent Skills stays `DESIGNED`. Bedrock stays *real in this
+repository and not in the demo's request path*. The change request stays *no admission beat*.
+Managed MCP stays `15` of `16` at `DIVERGED — KNOWN GAP`. **A verdict that moves in this wave is
+a defect in this wave.**
+
+---
+
+## 3 · THE COMPLETENESS TABLE — every field, and its state today
+
+Requirements 1–7 are the contest's own, verbatim from §0. The rest are Devpost's standard form.
+**Where a form field's exact name cannot be verified without logging in, it is marked so and the
+copy is written anyway** — a field we prepared for and did not need costs nothing; the reverse
+costs the submission.
+
+| # | field | state today | owed |
+|---|---|---|---|
+| 1 | public repo URL, README, deps, setup | **MET** — public, Apache-2.0, `LICENSE` tracked, 11 357 bytes | W4 re-verifies |
+| 2 | functional demo URL | **MET** — answered from outside our network today (§0) | W4 re-verifies |
+| 3 | video < 3 min, publicly visible on YouTube/Vimeo | **NOT DONE** — `video_url` is `UNRESOLVED`; only the founder can close it | W4 makes the **Unlisted-not-Private** instruction unmissable |
+| 4 | which CockroachDB tools, and how | **MET** — `docs/TOOL-USAGE.md` | — |
+| 5 | which AWS services, and how | **MET** — same | — |
+| 6 | **optional** — architectural diagram: CockroachDB × AWS × the agent | **UNMET IN SUBSTANCE** — the only diagram has no AWS and no agent | **W5** |
+| 7 | **optional** — feedback on the CockroachDB AI tools | **ABSENT** — no such document exists | **W2** |
+| — | elevator pitch (200 char cap) | MET — `163` characters | — |
+| — | About the project — the seven standard headings | MET, and **unreadable cold** | **W1** adds layer 1 in front |
+| — | Built With | MET — `27` tags, `EXERCISED` rows only | — |
+| — | Try it out links | MET — repo + demo | W1 enumerates |
+| — | Testing instructions / judge credentials | resolved in `SUBMISSION.json`; **no paste block exists** | **W1** |
+| — | image gallery / thumbnail (*field name unverified*) | **EMPTY** — and with no film yet, it is the only visual a judge gets | **W5** |
+| — | the story of how we got here | **ABSENT** — founder ask #2 | **W6** |
+
+---
+
+## 4 · THE UNDER-SOLD RARITIES — what W3 places, and the one test each had to pass
+
+Each is real, committed, verified today, and **absent from the two pages a judge opens first.**
+They are placed by quotation of an existing artefact. **No new run is authorised for any of them.**
+
+1. **A CI lane that plants a defect and proves the hermetic lane could not have seen it.**
+   `docs/ci/anti-vacuity.md` — one row per workflow, asking whether the lane can prove it is
+   *able to fail*. `7` of `18` workflows carry a standing negative control after that wave,
+   against `3` before it, **and the table names the `8` that still have none.** The rare clause
+   is the last one: *an assertion that a program failed, without checking why, passes when the
+   program fails to start.*
+2. **A regression guard that caught a stub in the database's own privilege function.**
+   `docs/regression/GUARD.md` §*Two things this guard found on its first run*. Plant P2 was built
+   to make `has_function_privilege` answer `false` after a real `REVOKE`. It answered `true` —
+   for that role, for `root`, for `admin`, for `public` — while the behavioural truth of the same
+   call was `REFUSED 42501`. **Found by a planted violation before the guard had ever run in
+   anger**, and replaced with `SHOW GRANTS` plus explicit role-membership expansion, which can go
+   red.
+3. **Honesty documents that name what is not built.** `docs/HONESTY.md`, `docs/CI-STATE.md`, and
+   `DEVPOST.md`'s *Limitations* — eleven gaps, each with the command that re-derives it.
+   **Untouched by this wave; quoted, never softened.**
+4. **A refusal that returns a minimal unsatisfiable set and the nearest admissible alternative** —
+   and returns `naa_reason: "not_computable"` rather than inventing one when it cannot compute it.
+   Live and anonymous on `POST /v1/demo/gate-run`.
+5. **A severity that a trigger derived from blame closure rather than a human typing it** — the
+   client supplied `0`, the trigger projected `4` onto a row the client never touched.
+   `evidence/gate-refusal/proof-20260810T054407Z.json#projection`, `10` of `10` assertions.
+
+**The test every one of them had to pass to be on this list, and the two proposals that failed
+it.** *Can it be finished and verified before the deadline without risking a working demo?*
+**RECOMMENDED AGAINST:** deploying `operator.html` so the two screens exist on the origin (a
+redeploy — prohibited, and `README.md` already publishes the gap); and re-running the mutation
+ratchet or the regression guard for fresher numbers (a fresh red at T-1 day is a cost with no
+upside, and both are standing measurements with committed artefacts).
+
+---
+
+## 5 · THE SIX WORKERS — disjoint, literally enumerated
+
+No path appears twice. **Every brief carries the readability bar and the no-overclaim rule.**
 
 | # | worker | owns, exactly |
 |---|---|---|
-| W1 | Axis-one on the submission page | `docs/submission/DEVPOST.md` |
-| W2 | The README's six live GETs | `README.md` |
-| W3 | The score-sheet document | `docs/submission/JUDGING-AXES.md` |
-| W4 | Managed MCP, surfaced | `docs/TOOL-USAGE.md`, `evidence/mcp/README.md`, `evidence/mcp/README.md.license`, `evidence/mcp/session-extract.json`, `evidence/mcp/session-extract.json.license` |
-| W5 | The measurement that makes W1–W3 safe | `scripts/proof/live_semantics.py`, `evidence/demo/live-semantics.json`, `evidence/demo/live-semantics.json.license`, `docs/demo/LIVE-SEMANTICS.md` |
-| W6 | The claim ledger and the verification sweep | `docs/submission/EXTRA-CREDIT-CLAIMS.md` |
+| **W1** | The Devpost form, every field including the optional ones | `docs/submission/DEVPOST.md` |
+| **W2** | The CockroachDB findings — the feedback requirement, actually answered | `docs/upstream/COCKROACHDB-FINDINGS.md` |
+| **W3** | The five rarities, where a judge lands | `docs/submission/JUDGE-START.md`, `docs/submission/FIRST-FIVE-MINUTES.md` |
+| **W4** | The mechanical sweep nobody runs until it is too late | `docs/submission/MECHANICAL-SWEEP.md`, `scripts/submission/check_doc_links.py` |
+| **W5** | The architecture diagram, and the gallery a judge sees instead of a film | `docs/submission/DIAGRAMS.md`, `docs/submission/diagrams/architecture.svg`, `docs/submission/diagrams/story.svg` |
+| **W6** | The story of how we got here, and the ledger that keeps it honest | `docs/submission/HOW-WE-GOT-HERE.md`, `docs/submission/COMPLETENESS-LEDGER.md` |
 
-**Nobody touches:** `docs/HONESTY.md`, `docs/CI-STATE.md`, `docs/submission/SUBMISSION.json`,
-`docs/submission/MUST-NOT-CLAIM.md`, `qa/**`, `infra/**`, `verticals/**`, `spec/**`,
-`packages/**`, `tests/**`, `.github/workflows/**`, `docs/demo/film/**`.
+**Ordering.** W2 and W5 first — they are the two optional requirements and they are the only
+items on this board that are *absent* rather than *unreadable*. W1 depends on both (it pastes
+what they produce) and runs after them. W3, W4 and W6 are parallel; **W6 runs its ledger last**,
+reads every other worker's output and edits none of it.
 
-**W1–W3 are not blocked on W5.** Every value they need is measured in §2 and §4 of this page.
-W5's artefact is the standing re-derivation, and W6 reconciles the two.
+**Every new file carries an inline SPDX header** in the comment syntax of its format —
+`<!-- … -->` for Markdown and SVG, `#` for Python — matching the tree's existing convention. **No
+`.license` sidecars**; those are for JSON, which none of these are.
 
 ---
 
-## 6 · THE THREE RULES EVERY WORKER OBEYS
+## 6 · THE FOUR RULES EVERY WORKER OBEYS
 
-1. **NO FALSE CLAIM.** Never claim a service, feature, tool or number that did not actually
-   run. If something is real but not in the demo's request path, say exactly that — the
-   repository already uses that construction for Bedrock and it reads as confidence, not
-   hedging. Every number carries the artefact that produced it. Digits inside `code spans` are
-   names, not measurements.
-2. **NO REGRESSION.** Baseline **1070 collected / 1069 passed / 0 failed / 0 errors**. Gate
-   proof stays `PROVEN` caveat-free. `DEFAULT_MAX_RESPONSE_BYTES == 136 * 1024` does not move.
-   The console bundle headroom guard fails below `1,024` bytes and must not be approached.
-   `continue-on-error` and `|| true` are banned. Do not weaken `HONESTY.md`, `CI-STATE.md` or
-   any ratchet. Do not widen a database grant.
-3. **NO DEPLOY.** Never `terraform apply`, never redeploy, never touch AWS, never write an SSM
-   parameter, never print a credential. Read-only HTTP GETs against the public origin are the
-   only network access permitted, and `POST /v1/demo/gate-run` is permitted only because it
-   ends in `ROLLBACK`. **Do not commit** — leave the tree for the orchestrator.
+1. **THE READABILITY BAR.** A non-technical reader must understand the problem, why it matters,
+   and what we built, in sixty seconds — concrete before abstract, a person and a situation and a
+   consequence before any mechanism. **No term is used before it is defined** (the list is in §1).
+   **No marketing voice** — "revolutionary", "seamless", "unprecedented" would destroy more
+   credibility than any missing feature. **Layering is additive (R-A): you add layer 1 in front,
+   you never delete a precise claim to make room for a friendly one.** If a sentence cannot be
+   both true and simple, write two sentences.
+2. **NO OVERCLAIM.** Never claim a service, feature, tool or number that did not actually run.
+   Agent Skills is **DESIGNED**, not exercised. Bedrock runs **in this repository and not in the
+   demo's request path** — both halves of that sentence, always. The change request has **no
+   admission beat** and says so. Managed MCP is **`15` of `16`** at `DIVERGED — KNOWN GAP`. Every
+   number carries the artefact that produced it, **even in layer 1** — moved to a footnote or a
+   link, never dropped. Digits inside `code spans` are names, not measurements.
+3. **NO REGRESSION.** Baseline **1070 collected / 1069 passed / 0 failed / 0 errors**. Gate proof
+   stays `PROVEN`, caveats none. `DEFAULT_MAX_RESPONSE_BYTES == 136 * 1024` does not move. Do not
+   weaken `HONESTY.md`, `CI-STATE.md` or any ratchet. Do not widen a database grant. Do not add a
+   CI lane. `continue-on-error` and `|| true` are banned.
+4. **NO DEPLOY, NO COMMIT.** Never `terraform apply`, never redeploy, never touch AWS, never write
+   an SSM parameter, never print a credential. Read-only HTTPS `GET` against the public origin is
+   the only network access permitted. **Leave the tree for the orchestrator.**

@@ -680,9 +680,14 @@ CLAIM_TARGET_FILES: tuple[str, ...] = ("README.md", "VERIFY.md")
 CLAIM_TARGET_DIRS: tuple[str, ...] = ("docs/deck", "docs/submission")
 
 GLOBAL_NEGATION = re.compile(
-    r"(?i)\b(never|not|no|cannot|can't|without|refus\w+|declin\w+|out of scope|"
-    r"must[- ]not|do(es)? not|is not|are not|weaker|instead of|rather than)\b"
+    r"(?i)\b(never|not|no|nothing|none|neither|cannot|can't|without|refus\w+|declin\w+|"
+    r"out of scope|must[- ]not|do(es)? not|is not|are not|weaker|instead of|rather than)\b"
 )
+# `nothing`, `none` and `neither` were added 2026-08-18. Two `never say:` blocks -- documents
+# that QUOTE a forbidden sentence in order to forbid it -- were being reported as making the
+# claim, because their disclaimer reads *"Nothing is merged"* and `\bno\b` does not match
+# inside `Nothing`. A rule that fires on its own prohibition list teaches people to ignore it.
+# These three are unambiguous negations; the fix is vocabulary, not an exemption for a file.
 
 
 @dataclass(frozen=True, slots=True)

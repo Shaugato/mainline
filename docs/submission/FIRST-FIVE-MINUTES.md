@@ -5,6 +5,46 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # The judge's first five minutes
 
+## Sixty seconds first — what these five minutes are five minutes *of*
+
+**A crew is about to open a machine and work inside it, and somebody has to approve the job
+before it starts.** In most organisations that approval is a signature on a form, and the form
+knows nothing about the past.
+
+**In March 2019 a worker was hurt doing this same kind of work.** The machine was declared
+locked off without anyone confirming it was actually at zero pressure, and residual hydraulic
+pressure released while a guard was being removed. The investigation named the written rule
+meant to prevent exactly that: *"Before any intrusive work, stored energy shall be isolated,
+locked and verified at zero by a competent person."*
+
+**Seven years later a new job relies on that same rule, and nobody has answered for the 2019
+failure on this particular job. The approver records the approval — and the database refuses
+to store it.** Not a warning banner, not a policy service that another code path can go
+around: the storage engine itself declines the write, and returns the one unanswered item that
+caused it. Set the counter it checks down to zero by hand, and it refuses a second time,
+because it recounts the underlying rows instead of believing the counter. Sign a proper answer
+to the 2019 debt and it admits the very same job — a gate that always refuses would be broken
+rather than safe.
+
+**The story is invented, and the data says so about itself.** The incident row is titled
+`SYNTHETIC — Stored energy release during intrusive work` and its own narrative field reads
+*"No real incident, no real site, no real fatality: this narrative was written for the MAINLINE
+demonstration and describes nobody"*
+(`verticals/mainline/db/seeds/demo/demo_world.sql:275`). **The three refusals are not
+invented**, and once the setup steps in §2 are taken, one command reproduces all three on your
+own hardware, against a database you started yourself.
+
+**What to click.** Nothing on this page needs an account, a key, or any credential of ours.
+§2 is the four commands and §3 is what the last one printed. **This page is the unflattering
+version**: it is a recording of a program that cloned this repository into a temporary
+directory and ran those commands, including every way they went wrong — a clone that failed on
+a path length, a proof that died on a missing import, a `pytest` too old to start collecting.
+If you want the short path instead, [`JUDGE-START.md`](JUDGE-START.md) is ninety seconds, then
+five minutes, then an optional credentialled step — and its opening block names the five parts
+of this project that are hardest to find anywhere else.
+
+---
+
 **Not a claim. A recording.** Every row below came out of a program that cloned this
 repository into a temporary directory and ran, inside that clone, the exact commands
 `README.md` and `docs/release/QUICKSTART.md` tell a stranger to run. The exit codes, the

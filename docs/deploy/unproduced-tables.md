@@ -246,8 +246,9 @@ Against the pinned local node — Docker `mainline-crdb`, `cockroachdb/cockroach
 > the `gc.ttlseconds = 4500` pin below is a property of the database, not of the container,
 > and must be re-asserted on whichever node is actually answering.
 
-with `gc.ttlseconds` pinned to **4500**, the value Cloud Basic enforces, so a local pass is
-not a pass under a more permissive setting.
+with `gc.ttlseconds` pinned to **4500**, a deliberately tight retention window, so a local pass
+is not a pass under a more permissive setting. (*"the value Cloud Basic enforces"* is withdrawn:
+4500 was a value we set — `docs/upstream/STRIKE-LEDGER.md` §3 claim 4.)
 
 | Check | Result |
 |---|---|

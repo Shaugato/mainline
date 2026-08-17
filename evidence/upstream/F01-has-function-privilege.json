@@ -1,0 +1,342 @@
+{
+  "finding": "F01",
+  "title": "has_function_privilege does not track EXECUTE behaviour on procedures",
+  "label": "REPRODUCED-TODAY",
+  "finding_measured_on": "local single-node CockroachDB CCL",
+  "server_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+  "client": "psycopg 3.3.4",
+  "host_os": "Windows 11",
+  "measured_at_utc": "2026-08-17T17:26:30.158507+00:00",
+  "scratch_database_created": "upstream_f01_deb8e9c0",
+  "scratch_role_created": "upstream_probe_deb8e9c0",
+  "script": "scripts/upstream/repro_privileges.py",
+  "measurement": {
+    "verdict": "STUB-CONFIRMED",
+    "why": "the probe was genuinely refused with 42501, and the role-named form of has_function_privilege answered true for the probe, for root, for admin and for public -- including for the role that had just been refused",
+    "procedure": "mainline.merge_permit(UUID, BYTES, STRING, STRING, JSONB, BYTES, INT2, BYTES)",
+    "procedure_oid": 219858,
+    "acl_after_revoke": null,
+    "acl_lifecycle_grant_then_revoke": {
+      "after_revoke": null,
+      "after_grant": null,
+      "after_second_revoke": null
+    },
+    "acl_surfaces_compared": {
+      "pg_proc.proacl": null,
+      "pg_class.relacl": null
+    },
+    "role_named_form_answers": {
+      "upstream_probe_deb8e9c0/signature": true,
+      "upstream_probe_deb8e9c0/oid": true,
+      "root/signature": true,
+      "root/oid": true,
+      "admin/signature": true,
+      "admin/oid": true,
+      "public/signature": true,
+      "public/oid": true
+    },
+    "role_named_form_signature_only": {
+      "upstream_probe_deb8e9c0": true,
+      "root": true,
+      "admin": true,
+      "public": true
+    },
+    "current_user_form_answers": {
+      "upstream_probe_deb8e9c0": false,
+      "root": true
+    },
+    "the_two_forms_disagree": true,
+    "argument_resolution_controls": {
+      "nonexistent_procedure": {
+        "error": "42883 unknown function: mainline.no_such_routine_at_all()"
+      },
+      "nonexistent_role": {
+        "error": "42704 role 'no_such_role_upstream_probe_deb8e9c0' does not exist"
+      }
+    },
+    "behavioural_truth_of_CALL": {
+      "refused": true,
+      "sqlstate": "42501",
+      "message": "user upstream_probe_deb8e9c0 does not have EXECUTE privilege on procedure merge_permit"
+    },
+    "steps": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ]
+  },
+  "negative_control_has_table_privilege": {
+    "answers": {
+      "SELECT": true,
+      "INSERT": false
+    },
+    "behaviour": {
+      "SELECT": {
+        "refused": false,
+        "sqlstate": null
+      },
+      "INSERT": {
+        "refused": true,
+        "sqlstate": "42501",
+        "message": "user upstream_probe_deb8e9c0 does not have INSERT privilege on relation permit"
+      }
+    },
+    "tracks_behaviour": true,
+    "steps": [
+      31,
+      32,
+      33,
+      34,
+      35
+    ]
+  },
+  "transcript": [
+    {
+      "step": 8,
+      "what": "revoke EXECUTE on the procedure from public",
+      "sql": "REVOKE EXECUTE ON PROCEDURE mainline.merge_permit(UUID, BYTES, STRING, STRING, JSONB, BYTES, INT2, BYTES) FROM public",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 9,
+      "what": "revoke EXECUTE on the procedure from upstream_probe_deb8e9c0",
+      "sql": "REVOKE EXECUTE ON PROCEDURE mainline.merge_permit(UUID, BYTES, STRING, STRING, JSONB, BYTES, INT2, BYTES) FROM upstream_probe_deb8e9c0",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 10,
+      "what": "read the procedure's access-control list after the revoke",
+      "sql": "SELECT p.proacl::TEXT FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'mainline' AND p.proname = 'merge_permit'",
+      "result": null,
+      "error": null,
+      "note": "an access-control list (ACL) is the row of who-may-do-what the database keeps for an object; NULL here would mean 'nobody ever set one', which is the state the counter-reading in docs/demo/cr-gate-measurements.md was measured in"
+    },
+    {
+      "step": 11,
+      "what": "resolve the procedure to its internal id (OID)",
+      "sql": null,
+      "result": 219858,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 12,
+      "what": "has_function_privilege('upstream_probe_deb8e9c0', <signature>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, %s, 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 13,
+      "what": "has_function_privilege('upstream_probe_deb8e9c0', <oid>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, (SELECT p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'mainline' AND p.proname = 'merge_permit'), 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 14,
+      "what": "has_function_privilege('root', <signature>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, %s, 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 15,
+      "what": "has_function_privilege('root', <oid>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, (SELECT p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'mainline' AND p.proname = 'merge_permit'), 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 16,
+      "what": "has_function_privilege('admin', <signature>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, %s, 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 17,
+      "what": "has_function_privilege('admin', <oid>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, (SELECT p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'mainline' AND p.proname = 'merge_permit'), 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 18,
+      "what": "has_function_privilege('public', <signature>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, %s, 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 19,
+      "what": "has_function_privilege('public', <oid>, 'EXECUTE')",
+      "sql": "SELECT has_function_privilege(%s::STRING, (SELECT p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'mainline' AND p.proname = 'merge_permit'), 'EXECUTE')",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 20,
+      "what": "resolution control -- has_function_privilege with a nonexistent procedure",
+      "sql": null,
+      "result": null,
+      "error": "42883 unknown function: mainline.no_such_routine_at_all()",
+      "note": "an error is correct: the argument genuinely does not resolve, so it IS being looked up"
+    },
+    {
+      "step": 21,
+      "what": "resolution control -- has_function_privilege with a nonexistent role",
+      "sql": null,
+      "result": null,
+      "error": "42704 role 'no_such_role_upstream_probe_deb8e9c0' does not exist",
+      "note": "an error is correct: the argument genuinely does not resolve, so it IS being looked up"
+    },
+    {
+      "step": 22,
+      "what": "compare where the two functions would read from: the procedure's stored permission row vs the table's",
+      "sql": "SELECT (SELECT p.proacl::TEXT FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace         WHERE n.nspname = 'mainline' AND p.proname = 'merge_permit') AS proacl,        (SELECT c.relacl::TEXT FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace         WHERE n.nspname = 'mainline' AND c.relname = 'permit') AS relacl",
+      "result": {
+        "pg_proc.proacl": null,
+        "pg_class.relacl": null
+      },
+      "error": null,
+      "note": "the table has been granted SELECT and revoked nothing; the procedure has had EXECUTE revoked from everyone"
+    },
+    {
+      "step": 23,
+      "what": "become upstream_probe_deb8e9c0 for the next statement",
+      "sql": "SET ROLE upstream_probe_deb8e9c0",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 24,
+      "what": "confirm who we are now",
+      "sql": "SELECT current_user",
+      "result": "upstream_probe_deb8e9c0",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 25,
+      "what": "CALL the procedure as the probe role",
+      "sql": "CALL mainline.merge_permit('00000000-0000-0000-0000-000000000000'::UUID, b'', 'a', 'b', '{}'::JSONB, b'', 1::INT2, b'')",
+      "result": null,
+      "error": "42501 user upstream_probe_deb8e9c0 does not have EXECUTE privilege on procedure merge_permit",
+      "note": null
+    },
+    {
+      "step": 26,
+      "what": "stop being the probe role",
+      "sql": "RESET ROLE",
+      "result": "ok",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 27,
+      "what": "has_function_privilege(<signature>, 'EXECUTE') -- no role named -- asked by upstream_probe_deb8e9c0",
+      "sql": null,
+      "result": false,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 28,
+      "what": "has_function_privilege(<signature>, 'EXECUTE') -- no role named -- asked by root",
+      "sql": null,
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 29,
+      "what": "the procedure's stored permission row after grant",
+      "sql": "GRANT EXECUTE ON PROCEDURE mainline.merge_permit(UUID, BYTES, STRING, STRING, JSONB, BYTES, INT2, BYTES) TO upstream_probe_deb8e9c0",
+      "result": null,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 30,
+      "what": "the procedure's stored permission row after second revoke",
+      "sql": "REVOKE EXECUTE ON PROCEDURE mainline.merge_permit(UUID, BYTES, STRING, STRING, JSONB, BYTES, INT2, BYTES) FROM upstream_probe_deb8e9c0",
+      "result": null,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 31,
+      "what": "has_table_privilege('upstream_probe_deb8e9c0', 'mainline.permit', 'SELECT')",
+      "sql": "SELECT has_table_privilege(%s, 'mainline.permit', %s)",
+      "result": true,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 32,
+      "what": "has_table_privilege('upstream_probe_deb8e9c0', 'mainline.permit', 'INSERT')",
+      "sql": "SELECT has_table_privilege(%s, 'mainline.permit', %s)",
+      "result": false,
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 33,
+      "what": "actually run a SELECT on mainline.permit as the probe role",
+      "sql": "SELECT count(*) FROM mainline.permit",
+      "result": "SUCCEEDED (1,)",
+      "error": null,
+      "note": null
+    },
+    {
+      "step": 34,
+      "what": "actually run a INSERT on mainline.permit as the probe role",
+      "sql": "INSERT INTO mainline.permit (permit_id, label) VALUES ('00000000-0000-0000-0000-0000000000ff'::UUID, 'control')",
+      "result": null,
+      "error": "42501 user upstream_probe_deb8e9c0 does not have INSERT privilege on relation permit",
+      "note": null
+    },
+    {
+      "step": 35,
+      "what": "stop being the probe role",
+      "sql": "RESET ROLE",
+      "result": "ok",
+      "error": null,
+      "note": null
+    }
+  ]
+}

@@ -1,0 +1,452 @@
+{
+  "what_this_is": "An independent re-run, by the worker who wrote none of the findings, of every reproduction program in this wave. A finding survives only if its file exists, carries exactly one honesty label, names a version and a hosting tier, and its program actually demonstrates the claim rather than merely exiting with status zero.",
+  "generated_utc": "2026-08-17T17:22:26.980197+00:00",
+  "verifier": "scripts/upstream/verify_field_notes.py",
+  "node_version": "CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)",
+  "system_users_restricted_on_this_local_node": "42501 Access to crdb_internal and system is restricted.",
+  "dsn_database": "defaultdb (local single-node); no Cloud cluster and no mainline_demo were touched",
+  "databases_before": [
+    "defaultdb",
+    "mainline_demo",
+    "postgres",
+    "system",
+    "w1_credentials_9c1ec080bd16",
+    "w1_no_seed_d2a5ddd092e1",
+    "w2_defeaters_9c1ec080bd16",
+    "w3_demo_api_9c1ec080bd16",
+    "w_w1_rowfactory_1548212dd882",
+    "w_w4_api_transitions_1548212dd882",
+    "w_w4_base",
+    "w_w4_race",
+    "w_w4_race2",
+    "w_w4_race3",
+    "w_w4_refusal_that_writes",
+    "w_w4stab_a",
+    "w_w4stab_e1",
+    "w_w4stab_e2",
+    "w_w4stab_g",
+    "w_w4stab_shared",
+    "w_w5",
+    "w_w5_bare",
+    "w_w5_marker_elsewhere",
+    "w_w5_migrate_up",
+    "w_w5_order_w1",
+    "w_w5_order_w4",
+    "w_w5_txn_w1",
+    "w_w5_txn_w4",
+    "w_w6",
+    "w_w6_api_transitions",
+    "w_w6_con_one",
+    "w_w6_con_two",
+    "w_w6_falsification_audit",
+    "w_w7",
+    "w_w7_borrow",
+    "w_w8",
+    "w_w9"
+  ],
+  "databases_after": [
+    "defaultdb",
+    "mainline_demo",
+    "postgres",
+    "system",
+    "w1_credentials_9c1ec080bd16",
+    "w1_no_seed_d2a5ddd092e1",
+    "w2_defeaters_9c1ec080bd16",
+    "w3_demo_api_9c1ec080bd16",
+    "w_w1_rowfactory_1548212dd882",
+    "w_w4_api_transitions_1548212dd882",
+    "w_w4_base",
+    "w_w4_race",
+    "w_w4_race2",
+    "w_w4_race3",
+    "w_w4_refusal_that_writes",
+    "w_w4stab_a",
+    "w_w4stab_e1",
+    "w_w4stab_e2",
+    "w_w4stab_g",
+    "w_w4stab_shared",
+    "w_w5",
+    "w_w5_bare",
+    "w_w5_marker_elsewhere",
+    "w_w5_migrate_up",
+    "w_w5_order_w1",
+    "w_w5_order_w4",
+    "w_w5_txn_w1",
+    "w_w5_txn_w4",
+    "w_w6",
+    "w_w6_api_transitions",
+    "w_w6_con_one",
+    "w_w6_con_two",
+    "w_w6_falsification_audit",
+    "w_w7",
+    "w_w7_borrow",
+    "w_w8",
+    "w_w9"
+  ],
+  "databases_created_and_left_behind": [],
+  "databases_removed": [],
+  "roles_left_behind": [],
+  "no_orphans": true,
+  "pre_existing_orphan_scratch_databases": [
+    "w1_credentials_9c1ec080bd16",
+    "w1_no_seed_d2a5ddd092e1",
+    "w2_defeaters_9c1ec080bd16",
+    "w3_demo_api_9c1ec080bd16",
+    "w_w1_rowfactory_1548212dd882",
+    "w_w4_api_transitions_1548212dd882",
+    "w_w4_base",
+    "w_w4_race",
+    "w_w4_race2",
+    "w_w4_race3",
+    "w_w4_refusal_that_writes",
+    "w_w4stab_a",
+    "w_w4stab_e1",
+    "w_w4stab_e2",
+    "w_w4stab_g",
+    "w_w4stab_shared",
+    "w_w5",
+    "w_w5_bare",
+    "w_w5_marker_elsewhere",
+    "w_w5_migrate_up",
+    "w_w5_order_w1",
+    "w_w5_order_w4",
+    "w_w5_txn_w1",
+    "w_w5_txn_w4",
+    "w_w6",
+    "w_w6_api_transitions",
+    "w_w6_con_one",
+    "w_w6_con_two",
+    "w_w6_falsification_audit",
+    "w_w7",
+    "w_w7_borrow",
+    "w_w8",
+    "w_w9"
+  ],
+  "what_worked_document": {
+    "present": true,
+    "links_checked": 26,
+    "links_broken": []
+  },
+  "w5_own_documents": {
+    "COCKROACHDB-FIELD-NOTES.md": {
+      "present": true,
+      "links_checked": 13,
+      "links_broken": []
+    },
+    "STRIKE-LEDGER.md": {
+      "present": true,
+      "links_checked": 20,
+      "links_broken": []
+    },
+    "LINK-BLOCK.md": {
+      "present": true,
+      "links_checked": 10,
+      "links_broken": []
+    }
+  },
+  "w5_own_documents_all_links_resolve": true,
+  "repro_runs": {
+    "repro_privileges.py": {
+      "script": "repro_privileges.py",
+      "path": "D:\\CoackroachDBxAWS\\mainline\\scripts\\upstream\\repro_privileges.py",
+      "present": true,
+      "exit_code": 0,
+      "stdout": "==============================================================================\nF01 / F02 REPRODUCTION -- has_function_privilege, and our own naive comparison\n==============================================================================\n  node         CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)\n  started      2026-08-17T17:17:54.205151+00:00\n  CREATED DB   upstream_f01_190425fe\n  CREATED ROLE upstream_probe_190425fe\n  [ 1] create the throwaway user and the throwaway database\n       ->     'ok'\n       note   a scratch database is a throwaway database created for one measurement and dropped after it\n\n-- fixture -- one schema, one table, one procedure, one throwaway user\n\n  [ 2] create the schema\n       ->     'ok'\n  [ 3] create the table the control is measured on\n       ->     'ok'\n  [ 4] put one row in it\n       ->     'ok'\n  [ 5] create the procedure, with the signature the product actually ships\n       ->     'ok'\n  [ 6] let the probe user reach the schema\n       ->     'ok'\n  [ 7] let the probe user SELECT the table -- half of the negative control\n       ->     'ok'\n\n-- F01 -- can the database tell us the truth about who may run a procedure?\n\n  [ 8] revoke EXECUTE on the procedure from public\n       ->     'ok'\n  [ 9] revoke EXECUTE on the procedure from upstream_probe_190425fe\n       ->     'ok'\n  [10] read the procedure's access-control list after the revoke\n       ->     None\n       note   an access-control list (ACL) is the row of who-may-do-what the database keeps for an object; NULL here would mean 'nobody ever set one', which is the state the counter-reading in docs/demo/cr-gate-measurements.md was measured in\n  [11] resolve the procedure to its internal id (OID)\n       ->     219837\n  [12] has_function_privilege('upstream_probe_190425fe', <signature>, 'EXECUTE')\n       ->     True\n  [13] has_function_privilege('upstream_probe_190425fe', <oid>, 'EXECUTE')\n       ->     True\n  [14] has_function_privilege('root', <signature>, 'EXECUTE')\n       ->     True\n  [15] has_function_privilege('root', <oid>, 'EXECUTE')\n       ->     True\n  [16] has_function_privilege('admin', <signature>, 'EXECUTE')\n       ->     True\n  [17] has_function_privilege('admin', <oid>, 'EXECUTE')\n       ->     True\n  [18] has_function_privilege('public', <signature>, 'EXECUTE')\n       ->     True\n  [19] has_function_privilege('public', <oid>, 'EXECUTE')\n       ->     True\n  [20] resolution control -- has_function_privilege with a nonexistent procedure\n       ERROR  42883 unknown function: mainline.no_such_routine_at_all()\n       note   an error is correct: the argument genuinely does not resolve, so it IS being looked up\n  [21] resolution control -- has_function_privilege with a nonexistent role\n       ERROR  42704 role 'no_such_role_upstream_probe_190425fe' does not exist\n       note   an error is correct: the argument genuinely does not resolve, so it IS being looked up\n  [22] compare where the two functions would read from: the procedure's stored permission row vs the table's\n       ->     {'pg_proc.proacl': None, 'pg_class.relacl': None}\n       note   the table has been granted SELECT and revoked nothing; the procedure has had EXECUTE revoked from everyone\n  [23] become upstream_probe_190425fe for the next statement\n       ->     'ok'\n  [24] confirm who we are now\n       ->     'upstream_probe_190425fe'\n  [25] CALL the procedure as the probe role\n       ERROR  42501 user upstream_probe_190425fe does not have EXECUTE privilege on procedure merge_permit\n  [26] stop being the probe role\n       ->     'ok'\n  [27] has_function_privilege(<signature>, 'EXECUTE') -- no role named -- asked by upstream_probe_190425fe\n       ->     False\n  [28] has_function_privilege(<signature>, 'EXECUTE') -- no role named -- asked by root\n       ->     True\n  [29] the procedure's stored permission row after grant\n       ->     None\n  [30] the procedure's stored permission row after second revoke\n       ->     None\n\n  F01 VERDICT: STUB-CONFIRMED\n    the probe was genuinely refused with 42501, and the role-named form of has_function_privilege answered true for the probe, for root, for admin and for public -- including for the role that had just been refused\n    REFINEMENT: the two-argument form (no role named) answered False for the same\n    probe, on the same procedure, in the same session. Only the role-named form is blind.\n\n\n-- F01 negative control -- the same question, asked about a table\n\n  [31] has_table_privilege('upstream_probe_190425fe', 'mainline.permit', 'SELECT')\n       ->     True\n  [32] has_table_privilege('upstream_probe_190425fe', 'mainline.permit', 'INSERT')\n       ->     False\n  [33] actually run a SELECT on mainline.permit as the probe role\n       ->     'SUCCEEDED (1,)'\n  [34] actually run a INSERT on mainline.permit as the probe role\n       ERROR  42501 user upstream_probe_190425fe does not have INSERT privilege on relation permit\n  [35] stop being the probe role\n       ->     'ok'\n\n  CONTROL: has_table_privilege tracks behaviour = True\n    (SELECT says True and the query works; INSERT says False and the statement is refused)\n\n\n-- F02 -- two catalogue surfaces, one procedure, two spellings\n\n  [36] grant EXECUTE on the procedure to upstream_probe_190425fe\n       ->     'ok'\n  [37] CALL the procedure as the probe role, now that EXECUTE is granted\n       ->     'SUCCEEDED'\n  [38] how SHOW GRANTS spells the procedure\n       ->     ['merge_permit(uuid, bytea, text, text, jsonb, bytea, int2, bytea)']\n       note   columns: ['database_name', 'schema_name', 'object_name', 'object_type', 'grantee', 'privilege_type', 'is_grantable']\n  [39] how information_schema.routines spells the same procedure\n       ->     ['merge_permit']\n  [40] every column information_schema.routines offers, looking for one that carries the signature\n       ->     ['as_locator', 'character_maximum_length', 'character_octet_length', 'character_set_catalog', 'character_set_name', 'character_set_schema', 'collation_catalog', 'collation_name', 'collation_schema', 'created', 'data_type', 'datetime_precision', 'dtd_identifier', 'external_language', 'external_name', 'interval_precision', 'interval_type', 'is_deterministic', 'is_implicitly_invocable', 'is_null_call', 'is_udt_dependent', 'is_user_defined_cast', 'last_altered', 'max_dynamic_result_sets', 'maximum_cardinality', 'module_catalog', 'module_name', 'module_schema', 'new_savepoint_level', 'numeric_precision', 'numeric_precision_radix', 'numeric_scale', 'parameter_style', 'result_cast_as_locator', 'result_cast_char_max_length', 'result_cast_char_octet_length', 'result_cast_char_set_catalog', 'result_cast_char_set_name', 'result_cast_char_set_schema', 'result_cast_collation_catalog', 'result_cast_collation_name', 'result_cast_collation_schema', 'result_cast_datetime_precision', 'result_cast_dtd_identifier', 'result_cast_from_data_type', 'result_cast_interval_precision', 'result_cast_interval_type', 'result_cast_maximum_cardinality', 'result_cast_numeric_precision', 'result_cast_numeric_precision_radix', 'result_cast_numeric_scale', 'result_cast_scope_catalog', 'result_cast_scope_name', 'result_cast_scope_schema', 'result_cast_type_udt_catalog', 'result_cast_type_udt_name', 'result_cast_type_udt_schema', 'routine_body', 'routine_catalog', 'routine_definition', 'routine_name', 'routine_schema', 'routine_type', 'schema_level_routine', 'scope_catalog', 'scope_name', 'scope_schema', 'security_type', 'specific_catalog', 'specific_name', 'specific_schema', 'sql_data_access', 'sql_path', 'to_sql_specific_catalog', 'to_sql_specific_name', 'to_sql_specific_schema', 'type_udt_catalog', 'type_udt_name', 'type_udt_schema', 'udt_catalog', 'udt_name', 'udt_schema']\n  [41] does a built-in exist that renders the argument list, so a normaliser can be hand-built?\n       ->     'uuid, bytea, text, text, jsonb, bytea, int2, bytea'\n  [42] our original naive check: is the information_schema name present in the SHOW GRANTS names?\n       ->     {'looked_for': 'merge_permit', 'looked_in': ['merge_permit(uuid, bytea, text, text, jsonb, bytea, int2, bytea)'], 'matched': False}\n       note   this is our bug, reproduced verbatim, not a platform defect\n  [43] the same check after stripping the argument list off the SHOW GRANTS name\n       ->     {'looked_in': ['merge_permit'], 'matched': True}\n\n  F02 VERDICT: SPELLINGS-DIFFER\n    SHOW GRANTS says ['merge_permit(uuid, bytea, text, text, jsonb, bytea, int2, bytea)'], information_schema.routines says ['merge_permit']; the probe demonstrably ran the procedure, and the naive comparison still reported it as not granted\n\n  wrote D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\F01-has-function-privilege.json\n  wrote D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\F02-show-grants-signature.json\n\n==============================================================================\nVERDICTS\n==============================================================================\n  F01  observed STUB-CONFIRMED   published finding claims STUB-CONFIRMED\n  F02  observed SPELLINGS-DIFFER published finding claims SPELLINGS-DIFFER\n  has_table_privilege negative control tracks behaviour: True\n\n  OK: both published findings still reproduce.\n  DROPPED DB   upstream_f01_190425fe\n  DROPPED ROLE upstream_probe_190425fe\n  scratch databases left behind by this run: 0\n{\n  \"f01\": \"STUB-CONFIRMED\",\n  \"f02\": \"SPELLINGS-DIFFER\",\n  \"control_tracks\": true\n}\n",
+      "stderr": "",
+      "started_utc": "2026-08-17T17:17:53.624670+00:00",
+      "duration_s": 10.32
+    },
+    "repro_vector_and_catalogue.py": {
+      "script": "repro_vector_and_catalogue.py",
+      "path": "D:\\CoackroachDBxAWS\\mainline\\scripts\\upstream\\repro_vector_and_catalogue.py",
+      "present": true,
+      "exit_code": 0,
+      "stdout": "======================================================================================\nrepro_vector_and_catalogue.py -- F03 (query plan) and F04 (bookkeeping tables)\n======================================================================================\n  started            2026-08-17T17:18:04Z\n  server             CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)\n  exam               local single-node CCL (not CockroachDB Cloud)\n  row-count sweep    [0, 200, 1100, 5300]\n\nCREATED SCRATCH DATABASE  upstream_f03_98b6e74a\n\nF03 -- does the planner pick the vector index without being told?\n  creating table t_clause_embedding with a vector index named t_ann (1024 dimensions)\n    rows=0     unhinted traverses t_ann: True   hinted traverses t_ann: True\n  inserting 200 rows to reach 200\n    rows=200   unhinted traverses t_ann: True   hinted traverses t_ann: True\n  inserting 900 rows to reach 1100\n    rows=1100  unhinted traverses t_ann: True   hinted traverses t_ann: True\n  inserting 4200 rows to reach 5300\n    rows=5300  unhinted traverses t_ann: True   hinted traverses t_ann: True\n  counterfactual (index named, one prefix column dropped from WHERE): REFUSED 42809\n\nF04 -- what will the database tell you about itself?\n  asking the restricted bookkeeping tables, with the session left at its default\n    crdb_internal.tables             REFUSED 42501\n    crdb_internal.table_indexes      REFUSED 42501\n    crdb_internal.jobs               REFUSED 42501\n    crdb_internal.gossip_nodes       REFUSED 42501\n    crdb_internal.cluster_id()       REFUSED 42501\n    system.namespace                 REFUSED 42501\n  asking the surfaces that are not restricted\n    information_schema.tables        ANSWERED\n    pg_catalog.pg_class              ANSWERED\n  asking the same question a supported way\n    crdb_internal.table_indexes   REFUSED 42501\n    SHOW INDEXES                  ANSWERED   names the vector index: True   says it is a VECTOR index: False\n    SHOW CREATE TABLE             ANSWERED   says it is a VECTOR index: True\n    pg_catalog access method      ANSWERED   names an access method: True\n  can a plan's short identity be produced, and read back?\n    EXPLAIN (GIST)                ANSWERED   gist: AgICAgYC\n    crdb_internal.decode_plan_gist REFUSED 42501\n  trying the escape hatch the refusal message names, on this session only\n    crdb_internal.tables             ANSWERED\n    crdb_internal.table_indexes      ANSWERED\n    crdb_internal.jobs               ANSWERED\n    crdb_internal.gossip_nodes       ANSWERED\n    crdb_internal.cluster_id()       ANSWERED\n    system.namespace                 ANSWERED\n    crdb_internal.table_indexes, every column      ANSWERED   a typed column says vector: False   only a printed DDL string says it: True\n    crdb_internal.table_indexes, columns index_name/index_type  ANSWERED -> [['t_clause_embedding_pk', 'primary'], ['t_ann', 'secondary']]\n\n--------------------------------------------------------------------------------------\nVERDICTS -- computed from the run above, not asserted ahead of it\n--------------------------------------------------------------------------------------\n  F03  local label                        STRUCK\n       original claim reproduced locally  False\n       unhinted used the index everywhere True\n       prefix rule refused by the server  True (42809)\n  F04  local label                        REPRODUCED-TODAY\n       targets refused 42501              6 of 6\n       restriction is tier-specific       False\n       SHOW INDEXES answers 'which'       True\n       SHOW INDEXES answers 'what kind'   False\n       SHOW CREATE answers 'what kind'    True\n       plan gist can be produced          True\n       plan gist can be read back         False\n\nWROTE  D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\F03-vector-index-not-chosen.json\nWROTE  D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\F04-crdb-internal-restricted.json\nDROPPED SCRATCH DATABASE  upstream_f03_98b6e74a\nCONFIRMED GONE            upstream_f03_98b6e74a  (rows still naming it: 0)\n",
+      "stderr": "",
+      "started_utc": "2026-08-17T17:18:03.943641+00:00",
+      "duration_s": 46.86
+    },
+    "repro_limits.py": {
+      "script": "repro_limits.py",
+      "path": "D:\\CoackroachDBxAWS\\mainline\\scripts\\upstream\\repro_limits.py",
+      "present": true,
+      "exit_code": 0,
+      "stdout": "node   CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)\nexam   local single-node CockroachDB, NOT CockroachDB Cloud\n\nF05  ceiling            20000 (sql.schema.approx_max_object_count)\nF05  databases          37, of which 33 are scratch-shaped\nF05  counted objects    3876 (approximate), 19.4% of the ceiling\nF05  headroom           16124\nF05  crdb_internal      refused 42501\nF05  CREATE upstream_f05_7d40b678  ok, 0 notice(s) from the server\n\nF06  RANGE default      gc.ttlseconds = 4500\nF06  fresh database     gc.ttlseconds = 4500, target = 'RANGE default' (nobody configured this database)\nF06  after our pin      gc.ttlseconds = 4500, target = 'DATABASE upstream_f05_7d40b678'\nF06  new-object AOST    -30s -> 3D000, -2h -> 3D000, -5h -> 3D000\nF06  retention refusal  ['XXUUU'] | names gc.ttlseconds: False | names the table: False | window derived from the message: [{'offset': '-2h', 'batch_timestamp': 1786980068.060494, 'gc_threshold': 1786982723.6306887, 'window_seconds': 4544.4}, {'offset': '-5h', 'batch_timestamp': 1786969268.06163, 'gc_threshold': 1786982723.6306887, 'window_seconds': 4544.4}, {'offset': '-24h', 'batch_timestamp': 1786900868.0627112, 'gc_threshold': 1786982723.6306887, 'window_seconds': 4544.4}]\nF05  DROP upstream_f05_7d40b678  done - this script leaves no database behind\n\nwrote D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\F05-schema-object-cap.json\nwrote D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\F06-gc-ttlseconds.json\nOK  every load-bearing probe answered\n",
+      "stderr": "",
+      "started_utc": "2026-08-17T17:18:50.801996+00:00",
+      "duration_s": 136.68
+    },
+    "repro_semantics_and_praise.py": {
+      "script": "repro_semantics_and_praise.py",
+      "path": "D:\\CoackroachDBxAWS\\mainline\\scripts\\upstream\\repro_semantics_and_praise.py",
+      "present": true,
+      "exit_code": 0,
+      "stdout": "==============================================================================\nF07 REPRODUCTION, AND THE THREE THINGS THAT WORKED\n==============================================================================\n  node        CockroachDB CCL v26.2.5 (x86_64-pc-linux-gnu, built 2026/07/28 18:56:00, go1.25.5)\n  tier        local single-node CockroachDB CCL\n  started     2026-08-17T17:21:08.114321+00:00\n  CREATED DB  upstream_f07_d93b03bb\n  [ 1] create the scratch database everything below lives inside\n       sql    CREATE DATABASE upstream_f07_d93b03bb\n       ->     'ok'\n       note   a scratch database is a throwaway database made for one measurement and dropped straight after; this one is dropped in a finally block\n\n-- F07 -- the error names the function that worked, not the one that did not\n\n  [ 2] create a table shaped like the one the original statement ran against\n       sql    CREATE TABLE checkpoint (id INT8 PRIMARY KEY, body STRING NOT NULL, root_hash BYTES NOT NULL)\n       ->     'ok'\n  [ 3] put one row in it, with a three-line note in body\n       sql    INSERT INTO checkpoint VALUES (1, 'mainline/site' || chr(10) || '2' || chr(10) || 'deadbeef' || chr(10), b'\\x01\\x02')\n       ->     'ok'\n  [ 4] read the column types from the catalogue rather than assuming them\n       sql    SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'checkpoint' ORDER BY column_name\n       ->     [['body', 'text'], ['id', 'bigint'], ['root_hash', 'bytea']]\n       note   body is text and root_hash is bytea; the original comment says this was checked rather than assumed, and this is that check\n  [ 5] ask the database which argument types convert_from actually accepts\n       sql    SELECT p.proname || '(' || pg_catalog.pg_get_function_arguments(p.oid) || ')' FROM pg_proc p WHERE p.proname = 'convert_from'\n       ->     [['convert_from(bytea, text)']]\n       note   one overload only: it takes raw bytes, so handing it text is our error and the database is right to refuse\n  [ 6] THE MISTAKE, BARE: hand a text column to convert_from\n       sql    SELECT convert_from(checkpoint.body, 'utf8') FROM checkpoint\n       ERROR  42883 unknown signature: convert_from(string, string)\n       note   clear and correct: it names convert_from, which is the call that is wrong\n  [ 7] THE FINDING: the identical mistake with split_part wrapped around it\n       sql    SELECT split_part(convert_from(checkpoint.body, 'utf8'), chr(10), 3) FROM checkpoint\n       ERROR  42883 split_part(): unknown signature: convert_from(string, string) (returning <string>)\n       note   same defect, same SQLSTATE, but the message now opens with the name of the function that resolved fine\n  [ 8] and one level deeper again, to see whether the outer names accumulate\n       sql    SELECT upper(split_part(convert_from(checkpoint.body, 'utf8'), chr(10), 3)) FROM checkpoint\n       ERROR  42883 upper(): split_part(): unknown signature: convert_from(string, string) (returning <string>)\n  [ 9] a different outer function, to show the prefix is the caller and not split_part in particular\n       sql    SELECT length(convert_from(checkpoint.body, 'utf8')) FROM checkpoint\n       ERROR  42883 length(): unknown signature: convert_from(string, string)\n  [10] a different inner function, to show this is not about convert_from in particular\n       sql    SELECT split_part(encode(checkpoint.body, 'base64'), chr(10), 1) FROM checkpoint\n       ERROR  42883 split_part(): unknown signature: encode(string, string) (returning <string>)\n  [11] the repair: give convert_from the bytes it asked for\n       sql    SELECT split_part(convert_from(checkpoint.body::BYTES, 'utf8'), chr(10), 3) FROM checkpoint\n       ->     [['deadbeef']]\n  [12] what the product ships instead: no convert_from at all, because body is already text\n       sql    SELECT split_part(checkpoint.body, chr(10), 3) FROM checkpoint\n       ->     [['deadbeef']]\n       note   verticals/mainline/db/seeds/demo/demo_world.sql:855\n\n  -- the same run, testing two claims the original note was read as making --\n\n  [13] claim A: does convert_from's result need an explicit ::STRING before split_part accepts it?\n       sql    SELECT split_part(convert_from(checkpoint.root_hash, 'utf8'), chr(10), 3) FROM checkpoint\n       ->     [['']]\n       note   no cast anywhere in this statement; if it resolves, claim A does not hold\n  [14] claim A, asked directly: what type does convert_from say it returns?\n       sql    SELECT pg_typeof(convert_from(checkpoint.root_hash, 'utf8')) FROM checkpoint\n       ->     [['text']]\n\n  F07 VERDICT: OUTER-NAME-ATTRIBUTION-CONFIRMED\n    the same defect reported two ways on one node: bare it says 'unknown signature: convert_from(string, string)'; nested inside split_part it says 'split_part(): unknown signature: convert_from(string, string) (returning <string>)'\n    claim A (an explicit ::STRING is required): does not hold: convert_from applied to a bytes column resolves inside split_part with no cast at all, and reports its return type as 'text'\n    claim B (local resolves, Cloud refuses):    does not hold as a platform difference: on this one node, the statement fails on a text column and resolves on a bytes column. The variable that changed between our two runs was the column type, which our own comment records (demo_world.sql:848-850, 'a scratch table written from memory made the same mistake').\n\n\n-- WORKED 1 -- the rule lives in the table, and the table is what refuses\n\n  [15] a table with one named rule written into its own definition\n       sql    CREATE TABLE subject ( id INT8 PRIMARY KEY, state STRING NOT NULL DEFAULT 'open', open_blocking INT8 NOT NULL DEFAULT 0, CONSTRAINT demo_gate_closed_when_issued CHECK (state <> 'merged' OR open_blocking = 0))\n       ->     'ok'\n  [16] the rows the counter is supposed to be counting\n       sql    CREATE TABLE obligation (id INT8 PRIMARY KEY, subject_id INT8 NOT NULL, settled BOOL NOT NULL DEFAULT false)\n       ->     'ok'\n  [17] a small program stored in the database that recounts them\n       sql    CREATE FUNCTION fn_demo_merge_gate() RETURNS TRIGGER LANGUAGE PLpgSQL AS $fn$ DECLARE v_derived INT8; BEGIN SELECT count(*) INTO v_derived FROM obligation o WHERE o.subject_id = (NEW).id AND NOT o.settled; IF v_derived <> 0 AND (NEW).open_blocking = 0 THEN RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'DEMO: merge refused by fn_demo_merge_gate' || ' - re-derived open obligation count is ' || v_derived::STRING || ' while the projected counter reads zero'; END IF; RETURN NEW; END $fn$\n       ->     'ok'\n  [18] weld it to the table, on the one transition it is about\n       sql    CREATE TRIGGER demo_merge_gate BEFORE UPDATE ON subject FOR EACH ROW WHEN ((NEW).state = 'merged' AND (OLD).state <> 'merged') EXECUTE FUNCTION fn_demo_merge_gate()\n       ->     'ok'\n  [19] one subject, not yet issued, with one thing outstanding\n       sql    INSERT INTO subject VALUES (1, 'open', 1)\n       ->     'ok'\n  [20] the outstanding thing itself\n       sql    INSERT INTO obligation VALUES (1, 1, false)\n       ->     'ok'\n  [21] who is writing\n       sql    SELECT current_user\n       ->     'root'\n       note   a plain database client. No application code of ours is on this path -- the statements below are typed straight at the database\n  [22] merge while the counter honestly reads 1\n       sql    UPDATE subject SET state = 'merged' WHERE id = 1\n       ERROR  23514 failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))\n       note   refused by the rule in the table definition\n  [23] merge again with the counter forged to 0\n       sql    UPDATE subject SET state = 'merged', open_blocking = 0 WHERE id = 1\n       ERROR  P0001 DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero\n       note   the rule in the table is now satisfied; the stored program recounts and refuses\n  [24] the rule as anyone with a SQL prompt can read it back\n       sql    SELECT create_statement FROM [SHOW CREATE TABLE subject]\n       ->     [[\"CREATE TABLE public.subject (\\n\\tid INT8 NOT NULL,\\n\\tstate STRING NOT NULL DEFAULT 'open':::STRING,\\n\\topen_blocking INT8 NOT NULL DEFAULT 0:::INT8,\\n\\tCONSTRAINT subject_pkey PRIMARY KEY (id ASC),\\n\\tCONSTRAINT demo_gate_closed_when_issued CHECK ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))\\n) WITH (schema_locked = true);\"]]\n\n  -- take one mechanism away at a time and re-run the same illegal history --\n\n  [25] drop the trigger, leaving only the rule in the table\n       sql    DROP TRIGGER demo_merge_gate ON subject\n       ->     'ok'\n  [26] merge honestly, with no trigger left\n       sql    UPDATE subject SET state = 'merged' WHERE id = 1\n       ERROR  23514 failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))\n  [27] put the trigger back and drop the rule instead\n       sql    ALTER TABLE subject DROP CONSTRAINT demo_gate_closed_when_issued\n       ->     'ok'\n  [28] merge with a forged counter, with no rule left\n       sql    UPDATE subject SET state = 'merged', open_blocking = 0 WHERE id = 1\n       ERROR  P0001 DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero\n\n  WORKED 1: holds -- honest write 23514 on 'demo_gate_closed_when_issued'; forged write P0001; trigger removed 23514; rule removed P0001\n\n\n-- WORKED 2 -- the strongest setting is the one you get without asking\n\n  [29] first statement on a brand-new connection: what is the default?\n       sql    SHOW default_transaction_isolation\n       ->     'serializable'\n       note   no SET was issued on this connection before this statement\n  [30] and inside an explicit transaction where we still issued no SET\n       sql    BEGIN; SHOW transaction_isolation\n       ->     'serializable'\n  [31] two transactions racing on the same rows, to see what a collision is called\n       sql    two sessions: read, read, write, commit, write, commit\n       ->     {'attempted': True, 'sqlstate': '40001', 'note': 'restart transaction: TransactionRetryWithProtoRefreshError: TransactionRetryError: retry txn (RETRY_SERIALIZABLE): \"sql txn\" meta={id=f47f4d00 key=/Table/119848/1/901/0 iso=Serializable pri=0.07058159 epo=0 ts=1786987270.274114580,2 min=1786987270.274114580,0 seq=2} lock=true stat=PENDING rts=1786987270.274114580,0 gul=1786987270.774114580,0 obs={n1@1786987270.274114580,0}'}\n       note   40001 is the code the retry loop retries, and the only one it retries (packages/trappoint-core/src/trappoint_core/retry.py:173)\n\n  WORKED 2: holds -- default 'serializable', inside a transaction 'serializable', collision reported as '40001'\n\n\n-- WORKED 3 -- the codes are exact, and one of them carries a name\n\n  [32] the rule's refusal, as the driver hands it over\n       ->     {'sqlstate': '23514', 'constraint_name_field': 'demo_gate_closed_when_issued', 'message_text': \"failed to satisfy CHECK constraint ((state != 'merged':::STRING) OR (open_blocking = 0:::INT8))\"}\n       note   the NAME arrives in its own field. The message text does not contain it -- it carries the expanded expression instead, which is why our code reads the field and never parses the message (verticals/mainline/apps/demo-api/src/mainline_demo_api/refusal.py:184-197)\n  [33] the stored program's refusal, as the driver hands it over\n       ->     {'sqlstate': 'P0001', 'constraint_name_field': None, 'message_text': 'DEMO: merge refused by fn_demo_merge_gate - re-derived open obligation count is 1 while the projected counter reads zero'}\n       note   no constraint name, because there is no constraint. That absence is why our own RAISE writes 'refused by <schema>.<function>' into the message and treats the function name as the exhibit (verticals/mainline/db/migrations/0115_fn_permit_merge_gate.sql:38-42)\n\n  WORKED 3: holds -- 23514 arrives carrying 'demo_gate_closed_when_issued'; P0001 arrives carrying None\n\n  wrote D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\F07-convert-from-untyped.json\n  wrote D:\\CoackroachDBxAWS\\mainline\\evidence\\upstream\\WHAT-WORKED.json\n\n==============================================================================\nVERDICTS\n==============================================================================\n  F07      observed OUTER-NAME-ATTRIBUTION-CONFIRMED published finding claims OUTER-NAME-ATTRIBUTION-CONFIRMED\n  WORKED 1 rule and trigger refuse on their own      True\n  WORKED 2 SERIALIZABLE is the default               True\n  WORKED 3 the codes are exact and one is named      True\n\n  OK: the finding still reproduces and all three praise entries still measure true.\n  DROPPED DB  upstream_f07_d93b03bb\n  scratch databases left behind by this run: 0\n  scratch roles created by this run: 0\n{\n  \"f07\": \"OUTER-NAME-ATTRIBUTION-CONFIRMED\",\n  \"worked_1_rule_and_trigger\": true,\n  \"worked_2_serializable_default\": true,\n  \"worked_3_precise_codes\": true\n}\n",
+      "stderr": "",
+      "started_utc": "2026-08-17T17:21:07.482423+00:00",
+      "duration_s": 2.52
+    }
+  },
+  "w5_rederivation_f01": {
+    "scratch_database": "upstream_v5_11eb6f4b50ec",
+    "probe_role": "upstream_v5_probe_11eb6f4b50ec",
+    "created": true,
+    "dropped": true,
+    "role_dropped": true,
+    "call_routine": {
+      "refused": true,
+      "sqlstate": "42501",
+      "message": "user upstream_v5_probe_11eb6f4b50ec does not have EXECUTE privilege on procedure merge_permit"
+    },
+    "select_table": {
+      "refused": true,
+      "sqlstate": "42501",
+      "message": "user upstream_v5_probe_11eb6f4b50ec does not have SELECT privilege on relation permit_table"
+    },
+    "has_function_privilege_three_arg_named_role": {
+      "upstream_v5_probe_11eb6f4b50ec": true,
+      "root": true,
+      "admin": true,
+      "public": true
+    },
+    "has_function_privilege": {
+      "upstream_v5_probe_11eb6f4b50ec": true,
+      "root": true,
+      "admin": true,
+      "public": true
+    },
+    "has_function_privilege_two_arg_self": false,
+    "has_table_privilege": {
+      "upstream_v5_probe_11eb6f4b50ec": false,
+      "root": true,
+      "admin": true,
+      "public": false
+    },
+    "three_arg_form_contradicts_behaviour": true,
+    "two_arg_form_tracks_behaviour": true,
+    "control_tracks_behaviour": true,
+    "verdict": "NARROWER-THAN-CLAIMED",
+    "verdict_why": "the original claim was that the predicate is a stub that can never fail. It is not. Asked by a role about ITSELF (two-argument form) it answered false and tracked behaviour correctly. Asked by somebody else ABOUT a named role (three-argument form) it answered true for the very role whose CALL had just been refused with 42501. So the sweeping claim is wrong and a narrower one is right.",
+    "skipped": false
+  },
+  "findings": [
+    {
+      "id": "F01",
+      "headline": "has_function_privilege() answers true where calling the routine is actually refused",
+      "owning_script": "repro_privileges.py",
+      "reasons": [],
+      "file": "docs/upstream/findings/F01-has-function-privilege.md",
+      "file_present": true,
+      "labels_anywhere_in_file": [
+        "REPRODUCED-TODAY"
+      ],
+      "labels_declared": [
+        "REPRODUCED-TODAY"
+      ],
+      "label": "REPRODUCED-TODAY",
+      "arms": [
+        "REPRODUCED-TODAY"
+      ],
+      "has_version": true,
+      "has_tier": true,
+      "tier": "local single-node CCL",
+      "has_where_we_were_wrong": true,
+      "has_what_better": true,
+      "links_checked": 2,
+      "links_broken": [],
+      "script_present": true,
+      "script_exit_code": 0,
+      "claim_supported": true,
+      "claim_note": "re-run shows both halves: a hard 42501 refusal and has_function_privilege still answering true, plus the has_table_privilege control",
+      "verdict": "SURVIVES"
+    },
+    {
+      "id": "F02",
+      "headline": "two catalogue surfaces spell the same routine two ways, and nothing normalises between them",
+      "owning_script": "repro_privileges.py",
+      "reasons": [],
+      "file": "docs/upstream/findings/F02-show-grants-signature.md",
+      "file_present": true,
+      "labels_anywhere_in_file": [
+        "REPRODUCED-TODAY"
+      ],
+      "labels_declared": [
+        "REPRODUCED-TODAY"
+      ],
+      "label": "REPRODUCED-TODAY",
+      "arms": [
+        "REPRODUCED-TODAY"
+      ],
+      "has_version": true,
+      "has_tier": true,
+      "tier": "local single-node CCL",
+      "has_where_we_were_wrong": true,
+      "has_what_better": true,
+      "links_checked": 2,
+      "links_broken": [],
+      "script_present": true,
+      "script_exit_code": 0,
+      "claim_supported": true,
+      "claim_note": "re-run prints both catalogue spellings of the same routine, which is the whole finding",
+      "verdict": "SURVIVES"
+    },
+    {
+      "id": "F03",
+      "headline": "the vector index is not chosen by the planner at demo scale unless it is named",
+      "owning_script": "repro_vector_and_catalogue.py",
+      "reasons": [
+        "the finding file's own headline label is STRUCK"
+      ],
+      "file": "docs/upstream/findings/F03-vector-index-not-chosen.md",
+      "file_present": true,
+      "labels_anywhere_in_file": [
+        "ARCHIVED-EVIDENCE",
+        "STRUCK"
+      ],
+      "labels_declared": [
+        "STRUCK"
+      ],
+      "label": "STRUCK",
+      "arms": [
+        "STRUCK"
+      ],
+      "verdict": "DEMOTED"
+    },
+    {
+      "id": "F04",
+      "headline": "crdb_internal and system are closed on the tier a hackathon entrant actually uses",
+      "owning_script": "repro_vector_and_catalogue.py",
+      "reasons": [],
+      "file": "docs/upstream/findings/F04-crdb-internal-restricted.md",
+      "file_present": true,
+      "labels_anywhere_in_file": [
+        "ARCHIVED-EVIDENCE",
+        "REPRODUCED-TODAY"
+      ],
+      "labels_declared": [
+        "REPRODUCED-TODAY",
+        "ARCHIVED-EVIDENCE"
+      ],
+      "label": "REPRODUCED-TODAY",
+      "arms": [
+        "ARCHIVED-EVIDENCE",
+        "REPRODUCED-TODAY"
+      ],
+      "multi_arm": true,
+      "has_version": true,
+      "has_tier": true,
+      "tier": "both stated separately",
+      "has_where_we_were_wrong": true,
+      "has_what_better": true,
+      "links_checked": 0,
+      "links_broken": [],
+      "script_present": true,
+      "script_exit_code": 0,
+      "claim_supported": true,
+      "claim_note": "re-run output contains actual refusals; W5's own verifier was refused by the same restriction while listing roles, which is independent corroboration",
+      "verdict": "SURVIVES"
+    },
+    {
+      "id": "F05",
+      "headline": "the 20,000 schema-object cap surfaces as unrelated failures, not as a quota error",
+      "owning_script": "repro_limits.py",
+      "reasons": [],
+      "file": "docs/upstream/findings/F05-schema-object-cap.md",
+      "file_present": true,
+      "labels_anywhere_in_file": [
+        "ARCHIVED-EVIDENCE"
+      ],
+      "labels_declared": [
+        "ARCHIVED-EVIDENCE"
+      ],
+      "label": "ARCHIVED-EVIDENCE",
+      "arms": [
+        "ARCHIVED-EVIDENCE"
+      ],
+      "has_version": true,
+      "has_tier": true,
+      "tier": "local single-node CCL",
+      "has_where_we_were_wrong": true,
+      "has_what_better": true,
+      "links_checked": 0,
+      "links_broken": [],
+      "script_present": true,
+      "script_exit_code": 0,
+      "claim_supported": true,
+      "claim_note": "labelled ARCHIVED-EVIDENCE, which is honest: demonstrating a 20,000-object cap on demand means creating 20,000 objects, and our own finding is that this leaves mess behind",
+      "verdict": "SURVIVES"
+    },
+    {
+      "id": "F06",
+      "headline": "the garbage-collection retention window is narrower than documentation assumes",
+      "owning_script": "repro_limits.py",
+      "reasons": [],
+      "file": "docs/upstream/findings/F06-gc-ttlseconds.md",
+      "file_present": true,
+      "labels_anywhere_in_file": [
+        "REPRODUCED-TODAY"
+      ],
+      "labels_declared": [
+        "REPRODUCED-TODAY"
+      ],
+      "label": "REPRODUCED-TODAY",
+      "arms": [
+        "REPRODUCED-TODAY"
+      ],
+      "has_version": true,
+      "has_tier": true,
+      "tier": "both stated separately",
+      "has_where_we_were_wrong": true,
+      "has_what_better": true,
+      "links_checked": 0,
+      "links_broken": [],
+      "script_present": true,
+      "script_exit_code": 0,
+      "claim_supported": true,
+      "claim_note": "the sentence about a platform default is either absent or explicitly withdrawn where it appears; what remains is what was actually measured -- our own configured value read back",
+      "verdict": "SURVIVES"
+    },
+    {
+      "id": "F07",
+      "headline": "convert_from() returns a value split_part will not resolve without an explicit cast",
+      "owning_script": "repro_semantics_and_praise.py",
+      "reasons": [],
+      "file": "docs/upstream/findings/F07-convert-from-untyped.md",
+      "file_present": true,
+      "labels_anywhere_in_file": [
+        "REPRODUCED-TODAY"
+      ],
+      "labels_declared": [
+        "REPRODUCED-TODAY"
+      ],
+      "label": "REPRODUCED-TODAY",
+      "arms": [
+        "REPRODUCED-TODAY"
+      ],
+      "has_version": true,
+      "has_tier": true,
+      "tier": "both stated separately",
+      "has_where_we_were_wrong": true,
+      "has_what_better": true,
+      "links_checked": 6,
+      "links_broken": [],
+      "script_present": true,
+      "script_exit_code": 0,
+      "claim_supported": true,
+      "claim_note": "re-run shows convert_from feeding split_part and the typing behaviour that follows",
+      "verdict": "SURVIVES"
+    }
+  ],
+  "survivors": [
+    "F01",
+    "F02",
+    "F04",
+    "F05",
+    "F06",
+    "F07"
+  ],
+  "demoted": [
+    "F03"
+  ],
+  "strike_count": 1
+}
