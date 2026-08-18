@@ -190,12 +190,14 @@ do**. Timecodes run from the start of the film.
 **On screen:** the filled-in permit form, except the end of the work description. Cursor resting
 near **ISSUE**.
 
+**Where to be when you start:** scrolled to **section 5, *Description of work to be done and its
+limitations***, so the half-typed field is in frame. **Not** the top of the page.
+
 | time | what you do |
 |---|---|
-| 0:00 – 0:05.5 | Nothing moves. The form is simply there, being read. |
-| 0:05.5 – 0:08 | **Click into *Work to be done*** at the end of the existing text, and type the tail below, on camera, at a normal pace. |
-| 0:08 – 0:10 | One slow move to rest the cursor on **ISSUE**. |
-| 0:10 – 0:12 | **Stop moving.** |
+| 0:00 – 0:05.5 | Nothing moves. The half-filled field is simply there, being read. |
+| 0:05.5 – 0:08 | **Click into *Work and its limitations*** at the end of the existing text and type the tail below, on camera, at a normal pace. |
+| 0:08 – 0:12 | **Stop moving.** Caret left blinking in the field. |
 
 **Type this — it begins with a space:**
 
@@ -212,12 +214,17 @@ one line without wrapping.
 
 ## B0b · 0:12 – 0:20 · Same frame, nothing moves
 
+**This block is one slow scroll, and it is not filler.** The **ISSUE** button lives at the very
+foot of a thirteen-section form — it is nowhere near the field you just typed in. You have to
+travel, and the journey is the shot.
+
 | time | what you do |
 |---|---|
-| 0:12 – 0:20 | **Nothing.** Hand off the mouse. |
+| 0:12 – 0:20 | **One continuous slow scroll down**, from section 5 to the foot of the form. Arrive with **`1 obligation outstanding`** and the **ISSUE** button in frame, and stop. |
 
-Eight seconds of not touching anything while the voice explains why this matters. It feels long.
-It is supposed to.
+**Scroll slowly enough to read.** On the way down you pass section 6, the hazard card carrying
+`DEMO-INC-0001 · Stored energy release during intrusive work · 14 March 2019` — which is the exact
+thing the voice is describing while you scroll past it. Do not race it.
 
 ---
 
@@ -226,7 +233,7 @@ It is supposed to.
 | time | what you do |
 |---|---|
 | 0:20 – 0:21 | **Clear the Network list on camera** — the "no entry" circle at the left of the Network toolbar. Doing this on camera is what proves the row that follows belongs to *this* press. |
-| 0:21 – 0:22 | Cursor back to **ISSUE**. |
+| 0:21 – 0:22 | Cursor to **ISSUE**, at the foot of the form beside `1 obligation outstanding`. |
 | **0:22** | **Click 1 — press ISSUE.** |
 | 0:22 – 0:24.5 | The button shows its pending state. One row appears: `POST /v1/demo/gate-run`. Measured warm at about **2.5 s**. Touch nothing while it flies. |
 | 0:24.5 – 0:30 | The answer paints. **Stop moving.** |
@@ -252,15 +259,22 @@ It is supposed to.
 
 ## B3 · 0:44 – 1:02 · The memory loop — **the most important block**
 
-**On screen:** three labelled panels — **STORE**, **RETRIEVE**, **ACT** — with the two timestamps
-ten seconds apart, and the severity **4** the database wrote.
+**On screen:** the hazard card in section 6. **The panels are labelled `RECALLED`, `SHOWN TO` and
+`STATUS`** — those are the words actually on the page. *Store, retrieve, act* is our vocabulary for
+them, not theirs, so do not go hunting for those three words.
+
+This block does not fit in one frame, so it is **one slow continuous scroll** down the card.
 
 | time | what you do |
 |---|---|
-| 0:44 – 0:50 | Cursor rests on **STORE**. Do not tour the screen. |
-| 0:50 – 0:55 | One slow move to **RETRIEVE**. Rest. |
-| 0:55 – 0:59 | One slow move to **ACT**, landing near the severity **4**. |
+| 0:44 – 0:50 | Start on the severity comparison — **`ON THE OBLIGATION 4`** above **`IN THE BLAME CLOSURE 4`**, with `ORIGIN blame_ancestry` beneath. This is the *"nobody typed that four"* evidence, so it gets read first. |
+| 0:50 – 0:56 | Scroll slowly through **`RECALLED`** (the run that armed it) and **`SHOWN TO`** (`actor demo.signer`). |
+| 0:56 – 0:59 | Arrive on **`STATUS ● OPEN — unanswered on this permit — no disposition of it is live`**, with the **`RECALL RUN STARTED · 10 s · OBLIGATION MATERIALISED`** panel below it. Both in frame together. |
 | 0:59 – 1:02 | **Stop completely.** The voice says *"Nobody typed that four"* over a still frame. |
+
+**That `10 s` panel is the single most important thing in the film** — two timestamps ten seconds
+apart, one from the recall run and one from the obligation it created. Make sure it is legible and
+make sure it is still on screen when the block ends.
 
 **The contest rules specifically ask for footage showing the memory layer at work — this is that
 footage.** If you get only one block perfect, make it this one.
