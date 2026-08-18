@@ -1,0 +1,138 @@
+<!doctype html><html><head><meta charset="utf-8"><title>MAINLINE closing cards</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#0c0f14;overflow:hidden;
+ font-family:Consolas,"DejaVu Sans Mono",monospace;color:#e8eef7}
+.card{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+ padding:3.2vh 3.5vw;opacity:0;transition:opacity .35s ease}
+.card.on{display:flex;opacity:1}
+pre{white-space:pre;font-family:inherit;line-height:1.42;letter-spacing:.01em}
+#k1 pre.cols{font-size:1.34vw;color:#f2f6fc}
+.strap{margin-top:3.2vh;font-size:1.02vw;color:#8fd7a6;letter-spacing:.02em}
+.two{display:flex;gap:3vw;align-items:flex-start}
+.two pre{flex:1;font-size:.86vw;color:#dbe6f5}
+.two.small pre{font-size:.74vw}
+#k3 pre.limit{font-size:1.24vw;color:#ffd7a1;margin-bottom:2.6vh}
+pre.urls{margin-top:2.4vh;font-size:1.05vw;color:#7fb8ff}
+pre.urls.big{font-size:2.1vw;text-align:center;color:#7fb8ff;margin:0 auto}
+#end{justify-content:center;align-items:center}
+#hud{position:fixed;left:10px;bottom:8px;font-size:12px;color:#3d4a5c}
+#hud{color:#3d4a5c}
+body.rolling #hud{display:none}
+</style></head><body>
+<div class="card" id="k1"><pre class="cols">S T O R E                      R E T R I E V E                 A C T
+
+mainline.event                 mainline_meas.recall_run        mainline.permit
+mainline.blame_edge            mainline.clause_blame_current   CHECK gate_closed_when_issued
+mainline.clause_blame_closure    (view · DISTINCT ON, gen DESC)  -&gt; 23514
+  append-only, generation-                                     mainline.fn_permit_merge_gate
+  versioned; superseded,                                         -&gt; P0001
+  never deleted
+
+occurred_at                    started_at                      refused at
+2019-03-14T06:20:00Z           2026-08-02T03:00:00Z            &lt;THIS RUN&gt;
+
+                               obligation materialised
+                               2026-08-02T03:00:10Z
+                               ten seconds</pre><p class="strap">every date above is a column value · no AS OF SYSTEM TIME produced any frame of this film</p></div>
+<div class="card" id="k2"><div class="two"><pre>AWS  ·  IN THIS REQUEST
+
+  AWS Lambda                  arm64 · mainline-demo-api
+  Lambda Function URL         authorization_type = NONE   (the founder&#x27;s explicit choice)
+  SSM Parameter Store         /mainline/demo/cockroach_dsn
+  AWS IAM                     one execution role; one inline policy, GetParameter on that one name
+
+
+AWS  ·  IN THE APPLY THAT CREATED IT        24 created · 0 changed · 0 destroyed
+
+  Amazon S3                   Terraform state · versioned · SSE-S3 · public access blocked
+  CloudWatch alarms + SNS     the cost guard: three alarms on three timescales into one topic,
+  + AWS Budgets               a responder that sets reserved concurrency to zero, and the budget
+
+
+  Amazon Bedrock  —  EXERCISED IN THIS REPOSITORY.  IT IS NOT IN THIS REQUEST PATH.
+  Claude on au.* inference profiles and Titan v2 embeddings, ap-southeast-2 (Sydney).
+  The database is aws-ap-southeast-1 (Singapore).  There is no end-to-end Australian residency and we do not claim one.
+  The refusal you just watched involved no model at all, and that is the point.</pre><pre>CockroachDB  ·  IN THIS REQUEST                 CockroachDB  ·  IN THIS DATABASE, EARLIER
+
+CockroachDB Cloud (Basic)                       mainline.fn_check_project
+  aws-ap-southeast-1 (Singapore)                  a PL/pgSQL trigger function. It overwrote
+  CCL v26.2.5                                     this obligation&#x27;s severity and virulence
+  read live from GET /v1/health, not typed        from the blame closure when the row was
+                                                  written. The gate reads its output.
+SERIALIZABLE                                      It did not run in this request.
+  one transaction, three savepoints,
+  rolled back                                   recursive CTE  (WITH RECURSIVE)
+                                                  the blame-closure writer,
+CHECK constraint                                  db/queries/closure_write.sql:152.
+  gate_closed_when_issued        -&gt; 23514         THIS world&#x27;s closure row carries
+                                                  computed_by = demo_world.sql
+PL/pgSQL trigger function                         projector_ver = demo-1.
+  mainline.fn_permit_merge_gate  -&gt; P0001         It did not run in this request.
+
+user-defined enum                               42501
+  mainline.subject_state                          read back by this same client during the
+  ((state != &#x27;merged&#x27;:::mainline.subject_state)   deploy, one HTTP request at a time; and
+   OR (open_blocking = 0:::INT8))                 256/256 ungranted pairs refused in
+  the enum is inside the refusal message           privilege conformance.
+                                                  It did not run in this request.
+composite foreign keys
+  blocking_check -&gt; clause_version
+    (clause_uuid, commit_id)
+  permit_event -&gt; subject_transition
+    (subject_kind, from_state, to_state)
+
+
+One cluster.  One region.  This repository holds no load profile, and we do not claim scale.</pre></div></div>
+<div class="card" id="k3"><pre class="limit">THE LIMIT WE WILL NOT DRESS UP
+
+Nothing in this data model separates a considered disposition from a rubber stamp.
+It makes the question unavoidable, the record precise, the worst stamp non-representable.
+We measure deliberation and never threshold it.</pre><div class="two small"><pre>&quot;what makes agentic systems different from traditional apps?&quot;
+   -&gt; the database is in the reasoning loop, as the thing that constrains the agent
+
+&quot;Does the agent use the tools correctly and safely?&quot;
+   -&gt; persisted: false — this call is non-mutating by construction
+
+&quot;Is it used for more than toy queries ... at real scale?&quot;
+   -&gt; transactional state, read inside the same SERIALIZABLE transaction as the decision
+      — and no scale is claimed
+
+&quot;resilience, access control, and what happens when things go wrong?&quot;
+   -&gt; the refusal itself; 42501 on 256/256 ungranted pairs in privilege
+      conformance; a ledger that publishes what did not run</pre><pre>------------------------------------------------------------------------------------------------
+COCKROACHDB  ·  THE FOUR CONTEST TOOLS.  THE RULES REQUIRE TWO.   three EXERCISED, one DESIGNED
+
+Distributed Vector Indexing (C-SPANN)  EXERCISED  3 cspann, 4 VECTOR, 42809    evidence/aws/ann/
+Managed MCP Server                     EXERCISED  15 of 16, DIVERGED, published   evidence/mcp/
+CockroachDB Cloud + ccloud CLI         EXERCISED  cluster list -o json, parsed   evidence/ccloud/
+CockroachDB Agent Skills               DESIGNED   shipped, validated;  NO RUN IS COMMITTED  skills/</pre></div><pre class="urls">github.com/Shaugato/mainline
+https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws</pre></div>
+<div class="card" id="end"><pre class="urls big">github.com/Shaugato/mainline
+https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws</pre></div>
+<div id="hud">SPACE = start the 24 s run &nbsp;·&nbsp; &larr; &rarr; = step manually &nbsp;·&nbsp; H = hide this line</div>
+<script>
+const T = [{"id": "k1", "secs": 6}, {"id": "k2", "secs": 10}, {"id": "k3", "secs": 6}, {"id": "end", "secs": 2}];
+const els = T.map(t => document.getElementById(t.id));
+let i = 0, timer = null;
+function show(n){ els.forEach(e=>e.classList.remove('on')); i=Math.max(0,Math.min(T.length-1,n)); els[i].classList.add('on'); }
+function run(){
+  document.body.classList.add('rolling');
+  show(0);
+  let k = 0;
+  const step = () => {
+    k++;
+    if (k >= T.length) { return; }
+    show(k);
+    timer = setTimeout(step, T[k].secs*1000);
+  };
+  timer = setTimeout(step, T[0].secs*1000);
+}
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); clearTimeout(timer); run(); }
+  if (e.code === 'ArrowRight') { clearTimeout(timer); show(i+1); }
+  if (e.code === 'ArrowLeft')  { clearTimeout(timer); show(i-1); }
+  if (e.key.toLowerCase() === 'h') { document.getElementById('hud').style.display='none'; }
+});
+show(0);
+</script></body></html>

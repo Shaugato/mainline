@@ -8,6 +8,30 @@ SPDX-License-Identifier: CC-BY-4.0
 **Your screen recording ends at B10, 2:28.** The last twenty-four seconds are three cards plus an
 end card, and they are made in the edit. There is no screen to point a camera at.
 
+## THE CARDS ARE ALREADY BUILT — you just record them
+
+**`closing-cards.html` sits beside this file.** Open it in the browser you have been filming in,
+press `F11` for full screen, then:
+
+1. **Start your recorder.**
+2. **Press `SPACE`.** The four cards play themselves, on the exact timings: 6 s, 10 s, 6 s, 2 s.
+3. **Stop after 24 seconds.**
+
+That is the whole closing sequence, in one take, with nothing retyped by hand.
+
+`←` and `→` step through manually if you would rather hold each one and cut them yourself.
+`H` hides the help line at the bottom — **press it before you record.**
+
+> **`k1` is meant to sit over live picture.** If you have time in the edit, lay its three words
+> over your B3 memory-loop footage. If you do not, the card on its own is fine and claims nothing
+> different. Do not spend your last hour on it.
+
+---
+
+## The text, for reference
+
+If you would rather build the cards in your editor, everything is below.
+
 Every word below is transcribed from `ONSCREEN-TEXT.yaml`, which is the version of record. **Do
 not retype from memory and do not paraphrase** — several of these lines are the honesty
 disclosures the whole entry rests on, and they have been cleared word for word.
