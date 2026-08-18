@@ -185,8 +185,8 @@ carries the three defeater *codes*; nothing anywhere renders the prompt text a p
 
 *Next.* A disposition panel on both subject screens that lists the questions, takes one answer,
 and shows what that answer costs. Until it exists the demo film says a person signs a reply and
-does not put words in their mouth, because a prompt spoken over a frame that does not carry it is
-the kind of claim this project spends its credibility refusing to make
+puts no words in their mouth. A prompt spoken over a frame that does not carry it is the kind of
+claim this project spends its credibility refusing to make
 [src: docs/demo/film/CLAIMS-CLEARANCE.md D30].
 
 ### The gate itself
