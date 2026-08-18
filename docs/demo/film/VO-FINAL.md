@@ -20,7 +20,7 @@ line — your delivery is not the thing that gives.
 | B0b | 0:12 | 8 s | **re-record** |
 | B1 | 0:20 | 10 s | — |
 | B2 | 0:30 | 14 s | — |
-| B3 | 0:44 | 18 s | — |
+| B3 | 0:44 | 18 s | **re-record** |
 | B4 | 1:02 | 10 s | — |
 | B5 | 1:12 | 16 s | — |
 | B6 | 1:28 | 18 s | **re-record** |
@@ -59,11 +59,20 @@ line — your delivery is not the thing that gives.
 
 *Read CALM, not triumphant. Audible pause at the dash.*
 
-## B3 · 0:44 · 18 s
+## B3 · 0:44 · 18 s — **re-record**
 
-> An investigation blamed one paragraph. This permit leans on it. So a question is open here, with no live answer. Look at how serious the database rated it. Nobody typed that four.
+> An investigation blamed the rule this permit uses. A retrieval ran, and ten seconds later the question existed — open here, unanswered. The database set how serious. Nobody typed that four.
 
-*Stress "open **here**". Beat of silence before the last sentence.*
+*30 words. Stress "**ten seconds**" and "open **here**".
+Beat of silence before the last sentence. Let **Nobody typed that four** land on a still frame.*
+
+> **WHY THIS CHANGED.** The old line never said **ten seconds**, and the panel that proves it —
+> `RECALL RUN STARTED 03:00:00` · **10 s** · `OBLIGATION MATERIALISED 03:00:10` — is on screen in
+> this block and nowhere else. The film was saving its best evidence for `k1`, a summary card a
+> hundred seconds later. Now it lands while a viewer is looking at it.
+>
+> It also fixes a smaller thing: *"that four"* previously had nothing before it for the ear to
+> hold on to. **The database set how serious** now sets it up.
 
 ## B4 · 1:02 · 10 s
 
