@@ -290,6 +290,26 @@ This block does not fit in one frame, so it is **one slow continuous scroll** do
 apart, one from the recall run and one from the obligation it created. Make sure it is legible and
 make sure it is still on screen when the block ends.
 
+> **THIS SECTION LOOKS THE SAME BEFORE AND AFTER YOU PRESS ISSUE. THAT IS CORRECT, AND IT IS THE
+> POINT — DO NOT TRY TO MAKE IT CHANGE.**
+>
+> The obligation was created on **2026-08-02**: a recall run started at `03:00:00Z` and the
+> obligation existed at `03:00:10Z`. It has been sitting on this permit ever since. Pressing ISSUE
+> does not create it — the press is **refused because it already exists**.
+>
+> A system that raised the hazard *when you clicked submit* would be a validation rule. This one
+> had already remembered, days earlier, before any supervisor opened the form. **The fact that it
+> is waiting for you is the product.**
+>
+> The severity claim is about **who**, not **when**, and the page proves it in the SOURCE CITATION
+> line: the seed supplied `0, 'routine', 0` and a trigger, `fn_check_project (MI25)`, projected
+> `4` over the top. The card says so itself — *THE SEVERITY ON THIS OBLIGATION WAS NOT CHOSEN BY
+> WHOEVER RAISED IT*.
+>
+> **So do not say, or imply, that the press produced any of this.** The script does not, and the
+> reason B3 sits *after* the refusal is that a viewer should meet the memory as something already
+> there, not as an output.
+
 **The contest rules specifically ask for footage showing the memory layer at work — this is that
 footage.** If you get only one block perfect, make it this one.
 
