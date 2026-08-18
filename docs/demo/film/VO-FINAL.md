@@ -24,8 +24,8 @@ line — your delivery is not the thing that gives.
 | B4 | 1:02 | 10 s | — |
 | B5 | 1:12 | 16 s | — |
 | B6 | 1:28 | 18 s | **re-record** |
-| B7 | 1:46 | 12 s | — |
-| B8 | 1:58 | 6 s | — |
+| B7 | 1:46 | 12 s | **re-record** |
+| B8 | 1:58 | 6 s | **re-record** |
 | B9 | 2:04 | 12 s | — |
 | B10 | 2:16 | 12 s | — |
 | k1 | 2:28 | 6 s | — |
@@ -92,23 +92,30 @@ Beat of silence before the last sentence. Let **Nobody typed that four** land on
 
 ## B6 · 1:28 · 18 s — **re-record**
 
-> Not a tick in a box — an answer. A named person signs one reply to that one question. The count falls to zero, and the merge is tried again.
+> Not a tick in a box. Answering it writes one signed disposition — look at the columns the database insists on before it will store one. The count falls to zero.
 
-*Pause after "an answer". Land on **zero**.*
+*32 words. Pause after "one signed disposition". Land on **zero**.
+The `INSERT INTO mainline.disposition (…)` column list is the shot — signer, rank, credential,
+signature algorithm, competency snapshot, deliberation seconds. That list IS the argument.*
 
-## B7 · 1:46 · 12 s
+## B7 · 1:46 · 12 s — **re-record**
 
-> Admitted. The merge it refused twice now completes.
+> Admitted. The kind is "applied", not an override.
 
 *hold 0.4*
 
-> Nothing was overridden — the question was answered.
+> The merge it refused twice now completes, and the permit state reads merged.
 
-## B8 · 1:58 · 6 s
+*21 words. Both halves are values on your screen: `disposition kind applied`, `permit state
+merged`. "Not an override" is the load-bearing half — say it clearly.*
 
-> Persisted false. Written, then unwound, inside one transaction. Press it yourself.
+## B8 · 1:58 · 6 s — **re-record**
 
-*"Press it yourself" is an invitation — warm, not defensive.*
+> Zero rows survive. The whole database is unchanged. Press it yourself.
+
+*11 words. Your frame reads `minted disposition after rollback … 0 rows` and `whole database
+unchanged: true`. That is stronger than "persisted false" because it names what was written
+and then names what is left of it. "Press it yourself" is an invitation — warm, not defensive.*
 
 ## B9 · 2:04 · 12 s
 
