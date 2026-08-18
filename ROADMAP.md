@@ -170,10 +170,10 @@ dressed to look passing would be a fabricated exhibit
 *Next.* Build what each declined beat needs, then let it play. Filling them in ahead of that is
 the one shortcut this project will not take.
 
-### The question a person actually answers has no screen
+### The permit screen does not show the question; the change screen does
 
-**Not there yet: anywhere in the console that shows an obligation's questions.** The most human
-part of this system is the question a named person has to answer, and no screen displays one.
+**Not there yet: the permit screen showing its obligation's questions.** The change screen shows
+its three, in full, with a citation box under each. The permit screen shows none of its own.
 
 *Today.* The questions exist and the API serves them. A **disposition** is one named person's
 signed answer to one obligation, and the route that offers its options answers `200` with three
@@ -183,15 +183,15 @@ of them for each demo obligation. The permit's three read:
 > *Which stored-energy source was surveyed and found absent within this permit's boundary, and by whom?*
 > *Which task in this permit's scope was assessed as non-intrusive, and against which method statement?*
 
-The route is declared in the console's own resource table. **No feature calls it.** The change
-screen's payload carries the three answer *codes*, and nothing anywhere renders the prompt text
-a person would actually read.
+**The change screen calls that route and renders every word of it** — three questions, a citation
+box under each, and a note that there is no *not applicable* option because the vocabulary does
+not contain one. **The permit screen calls nothing of the sort**, so the same obligation is
+answerable on one screen and silent on the other.
 
-*Next.* A disposition panel on both subject screens that lists the questions, takes one answer,
-and shows what that answer costs. Until it exists the demo film says a person signs a reply and
-puts no words in their mouth. A prompt spoken over a frame that does not carry it is the kind of
-claim this project spends its credibility refusing to make
-[src: docs/demo/film/CLAIMS-CLEARANCE.md D30].
+*Next.* Give the permit screen the panel the change screen already has. Until it does, the demo
+film's permit beats say a person signs a reply and put no words in their mouth. A prompt spoken
+over a frame that does not carry it is the kind of claim this project spends its credibility
+refusing to make [src: docs/demo/film/CLAIMS-CLEARANCE.md D30].
 
 ### The gate itself
 
