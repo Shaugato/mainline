@@ -183,6 +183,20 @@ do**. Timecodes run from the start of the film.
 > **The most common mistake by far: moving the mouse during a hold.** When this sheet says stop
 > moving, take your hand off the mouse completely. A drifting cursor during a silence kills it.
 
+> **BLOCK BOUNDARIES ARE FOR THE VOICE, NOT FOR YOUR HANDS.** You stopped and started between
+> blocks while recording the voice. **Do not do that here.** Where the action runs straight
+> through a boundary, film straight through it and cut later.
+>
+> **Record these as single continuous takes:**
+>
+> * **B1 + B2 together — 0:20 to 0:44, 24 seconds.** Nothing happens at 0:30. You press at
+>   0:22, the refusal paints at about 0:25, and B2 is just you looking at it. There is no action
+>   to perform at the boundary, so stopping there is what makes it feel confusing.
+> * **B4 + B5 together — 1:02 to 1:28.** The reveal and the refusal it produces.
+> * **B9 + B10 together — 2:04 to 2:28.** The press and the answer.
+>
+> Everything else can be shot block by block.
+
 ---
 
 ## B0 · 0:00 – 0:12 · The permit form
@@ -286,12 +300,21 @@ read makes this block worse, not better.
 
 ## B4 · 1:02 – 1:12 · The attack
 
-**On screen:** the panel showing the counter forced to **zero** from outside.
+**On screen:** at the foot of the refusal panel there is a control reading, verbatim:
+
+```
+But the counter now reads 0 ▸
+```
+
+That is the beat-3 reveal. Clicking it opens the attack beat — it sends **no request**, it only
+discloses a beat that already came back in the single response from B1.
 
 | time | what you do |
 |---|---|
-| 1:02 – 1:06 | Cursor to the forced **0**. Rest on it. |
-| 1:06 – 1:12 | **Stop.** |
+| 1:02 – 1:04 | Cursor to **`But the counter now reads 0 ▸`**. |
+| **1:04** | **Click — open the reveal.** No network row appears. That is correct. |
+| 1:04 – 1:08 | The attack beat paints: the counter forced to **0**, out of band. |
+| 1:08 – 1:12 | Cursor rests on the forced **0**. **Stop.** |
 
 ---
 
@@ -436,7 +459,8 @@ have a clean handle to trim to.
 | **You clicked twice — two POST rows** | Re-take the block. Two mutating presses contradicts what the film says. |
 | **A request was slow and the block overran** | Keep going, re-take that block alone. **Never speed up your movements to catch up.** |
 | **You typed the wrong thing** | Re-take that block. Do not fix it off camera and carry on. |
-| **You reloaded the page by accident** | Back to pre-roll step 4, then redo steps 5 and 6. Everything typed is gone. |
+| **You need to re-shoot a block that involved a press** | Refresh the page — `F5`. The database is untouched (`persisted: false` is real, and it was verified after a live test press), so the demo resets perfectly. **But a refresh clears all three typed fields**, so redo pre-roll steps 5 and 6 before rolling again. |
+| **You reloaded the page by accident** | Same thing: redo pre-roll steps 5 and 6. Everything typed is gone; nothing else is. |
 | **DevTools got closed** | Stop. Reopen, dock right, Network, Preserve log — then re-take the block, because the page reflowed when it closed. |
 | **The refusal did not appear** | Stop, and tell me before recording anything else. Do not press again. |
 | **You moved the mouse during B5's silence** | Re-take B5. It is the best ten seconds in the film and it is worth the extra take. |
