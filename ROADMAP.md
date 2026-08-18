@@ -183,8 +183,8 @@ of them for each demo obligation. The permit's three read:
 > *Which stored-energy source was surveyed and found absent within this permit's boundary, and by whom?*
 > *Which task in this permit's scope was assessed as non-intrusive, and against which method statement?*
 
-**The change screen calls that route and renders every word of it** — three questions, a citation
-box under each, and a note that there is no *not applicable* option because the vocabulary does
+**The change screen calls that route and renders every word of it.** Three questions, a citation
+box under each, and a note that there is no *not applicable* option, because the vocabulary does
 not contain one. **The permit screen calls nothing of the sort**, so the same obligation is
 answerable on one screen and silent on the other.
 
