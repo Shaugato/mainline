@@ -55,11 +55,11 @@ Open the address below in any browser. There is nothing to install and nobody to
 |---|---|
 | **Demo URL** | `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws` |
 | **Judge access — free and unrestricted** | No account, no login, no credential of ours; the origin takes anonymous callers by design.[^src-open] Reading our ledger in your own SQL client is a separate read-only login, in [`docs/deploy/JUDGE-PACK.md`](docs/deploy/JUDGE-PACK.md) §2 |
-| **Video, under three minutes** | `UNRESOLVED` |
+| **Video, under three minutes** | `https://youtu.be/PmAjaesCMHE` — **2:59**, public, verified playable signed-out |
 | **Which CockroachDB tools and AWS services, and how** | [`docs/TOOL-USAGE.md`](docs/TOOL-USAGE.md) — every tool and every service with a file, a line number, and a verdict saying whether it has actually run |
 | **Repository and licence** | `https://github.com/Shaugato/mainline`, public since 2026-08-11; the root [`LICENSE`](LICENSE) is Apache-2.0 |
 
-Those rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMISSION.json), the one file where a submission address may be written; this page never edits it. `UNRESOLVED` is a **literal token** that file writes into every such field at birth, not a placeholder somebody forgot to replace. `video_url` still holds it because the film has not been recorded.[^src-video]
+Those rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMISSION.json), the one file where a submission address may be written; this page never edits it. That file writes the literal token `UNRESOLVED` into every such field at birth, so a blank is never mistaken for a forgotten placeholder. All three are resolved.[^src-video]
 
 **What a judge presses.** Each run is a short sequence of steps, and we call each step a **beat**. A **SQLSTATE** is the five-character code the database itself returns for a step; `00000` means the write went through. The refusal comes from a `CHECK` constraint — a rule the database enforces on every write, from every client. An **obligation** is a lesson from a past incident that this job has not answered yet. Beat three is an attack: the cached count of open obligations is forced to zero out of band, then the merge is tried again. `persisted: false` means the whole run rolls back and leaves the world as it found it.
 
@@ -85,7 +85,7 @@ Those rows render from [`docs/submission/SUBMISSION.json`](docs/submission/SUBMI
 [^src-story]: Every date, label and setpoint above is transcribed from `verticals/mainline/fixtures/corpus/answer-key/spine.json` — `dates`, `revisions` and `proposed_2026`. The quoted revision-history line is `commit_message_2013` in `verticals/mainline/demo/script/CAMERA-STRINGS.yaml`, whose own header calls the arrow and the em dash load-bearing; `verticals/mainline/demo/script/validate_shotlist.py` asserts it byte-equal across the shot list.
 [^src-gate]: `scripts/proof/gate_refusal.py` attempts the merge over SQL with no console and no application in the path, and records the refusal `23514 gate_closed_when_issued` [src: evidence/gate-refusal/proof-20260810T054407Z.json]. What that run does and does not entitle us to say is in the sections below.
 [^src-open]: `docs/submission/SUBMISSION.json#judge_access.how` — the Function URL is `authorization_type NONE`; `evidence/demo/live-beats.json#credentials_used` reads `none - no DSN, no AWS profile, no token; a stranger with the URL`.
-[^src-video]: `docs/submission/SUBMISSION.json#notes.video_url`. The long form of the sentinel story is [`docs/submission/JUDGE-START.md`](docs/submission/JUDGE-START.md), lines 485–502.
+[^src-video]: `docs/submission/SUBMISSION.json#notes.video_url`. Resolved 2026-08-19; verified signed-out before it was written — `playabilityStatus: OK`, `lengthSeconds` 179, which is 2:59 against the three-minute rule.
 
 ## How it works
 
