@@ -170,6 +170,25 @@ dressed to look passing would be a fabricated exhibit
 *Next.* Build what each declined beat needs, then let it play. Filling them in ahead of that is
 the one shortcut this project will not take.
 
+### The question a person actually answers has no screen
+
+**Not there yet: anywhere in the console that shows an obligation's questions.** The most human
+part of this system is the question a named person has to answer, and no screen displays one.
+
+*Today.* The questions exist and the API serves them. `GET /v1/checks/{check_id}/disposition`
+answers `200` with three options for each of the two demo obligations — for the permit, *"Which
+isolation point was locked, and who verified it at zero?"*, *"Which stored-energy source was
+surveyed and found absent within this permit's boundary, and by whom?"* and *"Which task in this
+permit's scope was assessed as non-intrusive, and against which method statement?"*. The route is
+declared in the console's own resource table. **No feature calls it.** The change screen's payload
+carries the three defeater *codes*; nothing anywhere renders the prompt text a person would read.
+
+*Next.* A disposition panel on both subject screens that lists the questions, takes one answer,
+and shows what that answer costs. Until it exists the demo film says a person signs a reply and
+does not put words in their mouth, because a prompt spoken over a frame that does not carry it is
+the kind of claim this project spends its credibility refusing to make
+[src: docs/demo/film/CLAIMS-CLEARANCE.md D30].
+
 ### The gate itself
 
 **Not there yet: a database-side check on the reason code.**
