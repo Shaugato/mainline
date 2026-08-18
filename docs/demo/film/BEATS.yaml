@@ -338,8 +338,16 @@ beats:
     vo_word_budget: 22
     never_cut: false
     on_screen: >-
-      ADMITTED, SQLSTATE 00000, and the permit screen turning from blocked to
-      issued with the subject's post-merge fields beside it.
+      ADMITTED, SQLSTATE 00000, and the subject's post-merge fields beside it.
+      THE PERMIT SCREEN DOES NOT TURN. The header still reads `dispositioned`,
+      ISSUE stays disabled with its lock note, and the admission and the lock are
+      in frame together. That contradiction is B8's setup and it is kept.
+    # CORRECTED 2026-08-18. This block previously read "the permit screen turning
+    # from blocked to issued" -- CLAIMS-CLEARANCE.md O5, the third of four places
+    # carrying one defect, REFUSED against A17.1. Measured at capture stage
+    # 04-admitted-and-proven the header, the action bar and ISSUE all stay put. A
+    # stage direction is an instruction to a builder, and that one instructed a
+    # render obtainable only by faking it.
 
   - beat_id: b8
     t: 118
@@ -700,8 +708,10 @@ cut_ladder:
       film_after_s: 161
       what_goes: The dwell on the post-merge fields.
       why: >-
-        ADMITTED and the screen turning from blocked to issued is the whole job of
-        this beat: it proves b2 was not a bug. Three seconds of dwell is not.
+        ADMITTED, beside the lock that has not moved, is the whole job of this beat:
+        it proves b2 was not a bug. Three seconds of dwell is not. (CORRECTED
+        2026-08-18 -- this rationale carried the barred 'turning from blocked to
+        issued' frame, CLAIMS-CLEARANCE.md §7.1.)
     - rank: 4
       beat_id: k3
       from_dur: 6

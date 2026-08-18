@@ -416,7 +416,10 @@ that line.
 
 **On screen:** `ADMITTED · 00000`; `state merged`, `open_blocking 0`, `head_seq 3`, the
 server-computed clearance digest **captioned as server-computed and never as a constant**, and
-the disposition's own kind, `applied`. The permit screen turns from blocked to issued.
+the disposition's own kind, `applied`. **The permit screen does not turn:** the header still
+reads `dispositioned`, `ISSUE` stays disabled with its lock note, and the admission and the
+lock are in frame together. That contradiction is B8's setup and it is kept.
+*(Corrected 2026-08-18 — CLAIMS-CLEARANCE.md §7.1 replacement 2, O9.)*
 
 **Delivery:** relief, briefly. Then straight into B8, which is cool.
 
