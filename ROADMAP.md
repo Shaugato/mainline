@@ -175,8 +175,9 @@ the one shortcut this project will not take.
 **Not there yet: anywhere in the console that shows an obligation's questions.** The most human
 part of this system is the question a named person has to answer, and no screen displays one.
 
-*Today.* The questions exist and the API serves them. `GET /v1/checks/{check_id}/disposition`
-answers `200` with three options for each of the two demo obligations. The permit's three read:
+*Today.* The questions exist and the API serves them. A **disposition** is one named person's
+signed answer to one obligation, and the route that offers its options answers `200` with three
+of them for each demo obligation. The permit's three read:
 
 > *Which isolation point was locked, and who verified it at zero?*
 > *Which stored-energy source was surveyed and found absent within this permit's boundary, and by whom?*
