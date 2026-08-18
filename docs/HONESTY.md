@@ -1101,7 +1101,7 @@ family is the seed artefact's owner's job, not this paragraph's.
   its headline Tier-2 command and no longer does.
 * **The repository is public**, since `2026-08-11`, which changes what a stale claim costs
   rather than what one is. Every number on this page is now checkable by a stranger with no
-  account, and the disclosure register of what the flip published — including the founder's
+  account, and the disclosure register of what the flip published — including my own
   local Windows account name in nine files, the AWS account id in commits already pushed,
   and the findings nobody has yet signed for — is `docs/submission/PUBLIC-READINESS.md`.
   None of it is a credential; all of it is disclosed on purpose or listed as owed.

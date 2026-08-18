@@ -346,7 +346,7 @@ by the Sponsor, Administrator and Judges". **A cost-guard stop in September is a
 not a saving.**
 
 And the exposure is not hypothetical, because the guard's own README names it: the Function
-URL has no authentication by the founder's explicit choice, so **anyone at all can trip the
+URL has no authentication because I chose that deliberately, so **anyone at all can trip the
 burst alarm and take the demo down** — including a judge running the beats a few times, or
 several judges arriving at once.
 
@@ -365,8 +365,8 @@ gh api repos/Shaugato/mainline/contents/docs/submission/SUBMISSION.json \
   --jq '.content' | base64 -d | jq -r .demo_url
 ```
 
-**This page records the obligation; it does not act on it.** The actions belong to the
-founder and the orchestrator, and none of them is a documentation edit:
+**This page records the obligation; it does not act on it.** The actions are mine, and none of
+them is a documentation edit:
 
 1. **Get `demo_url` onto `master`** so the hourly heartbeat starts asserting against the
    origin instead of failing for the wrong reason.

@@ -1,26 +1,23 @@
-<!doctype html><html><head><meta charset="utf-8"><title>MAINLINE closing cards</title>
-<style>
+<!doctype html><html><head><meta charset="utf-8"><title>MAINLINE — closing cards</title><style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;background:#0c0f14;overflow:hidden;
- font-family:Consolas,"DejaVu Sans Mono",monospace;color:#e8eef7}
-.card{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
- padding:3.2vh 3.5vw;opacity:0;transition:opacity .35s ease}
+html,body{width:100%;height:100%;background:#0b0e13;overflow:hidden;
+ font-family:Consolas,"DejaVu Sans Mono","Courier New",monospace;color:#e9eff8}
+.card{position:absolute;inset:0;display:none;align-items:center;justify-content:center;opacity:0;
+ transition:opacity .3s ease}
 .card.on{display:flex;opacity:1}
-pre{white-space:pre;font-family:inherit;line-height:1.42;letter-spacing:.01em}
-#k1 pre.cols{font-size:1.34vw;color:#f2f6fc}
-.strap{margin-top:3.2vh;font-size:1.02vw;color:#8fd7a6;letter-spacing:.02em}
-.two{display:flex;gap:3vw;align-items:flex-start}
-.two pre{flex:1;font-size:.86vw;color:#dbe6f5}
-.two.small pre{font-size:.74vw}
-#k3 pre.limit{font-size:1.24vw;color:#ffd7a1;margin-bottom:2.6vh}
-pre.urls{margin-top:2.4vh;font-size:1.05vw;color:#7fb8ff}
-pre.urls.big{font-size:2.1vw;text-align:center;color:#7fb8ff;margin:0 auto}
-#end{justify-content:center;align-items:center}
-#hud{position:fixed;left:10px;bottom:8px;font-size:12px;color:#3d4a5c}
-#hud{color:#3d4a5c}
+.fit{transform-origin:center center}
+pre{white-space:pre;font-family:inherit;font-size:16px;line-height:1.45;color:#dfe9f6}
+pre.hero{color:#ffd9a8;margin-bottom:26px}
+pre.strap{color:#87d9a2;margin-top:30px}
+pre.urls{color:#79b6ff;margin-top:26px}
+pre.urls.end{font-size:30px;text-align:center;margin:0}
+.row{display:flex;gap:54px;align-items:flex-start}
+.row.gap{gap:64px;margin-top:8px}
+#k1 pre.hero{color:#f4f8ff}
+#hud{position:fixed;left:12px;bottom:10px;font-size:12px;color:#46566e;font-family:sans-serif}
 body.rolling #hud{display:none}
 </style></head><body>
-<div class="card" id="k1"><pre class="cols">S T O R E                      R E T R I E V E                 A C T
+<div class="card" id="k1"><div class="fit"><pre class="hero">S T O R E                      R E T R I E V E                 A C T
 
 mainline.event                 mainline_meas.recall_run        mainline.permit
 mainline.blame_edge            mainline.clause_blame_current   CHECK gate_closed_when_issued
@@ -34,11 +31,11 @@ occurred_at                    started_at                      refused at
 
                                obligation materialised
                                2026-08-02T03:00:10Z
-                               ten seconds</pre><p class="strap">every date above is a column value · no AS OF SYSTEM TIME produced any frame of this film</p></div>
-<div class="card" id="k2"><div class="two"><pre>AWS  ·  IN THIS REQUEST
+                               ten seconds</pre><pre class="strap">every date above is a column value · no AS OF SYSTEM TIME produced any frame of this film</pre></div></div>
+<div class="card" id="k2"><div class="fit"><div class="row"><pre>AWS  ·  IN THIS REQUEST
 
   AWS Lambda                  arm64 · mainline-demo-api
-  Lambda Function URL         authorization_type = NONE   (the founder&#x27;s explicit choice)
+  Lambda Function URL         authorization_type = NONE   (my deliberate choice: a judge needs no credential)
   SSM Parameter Store         /mainline/demo/cockroach_dsn
   AWS IAM                     one execution role; one inline policy, GetParameter on that one name
 
@@ -83,12 +80,12 @@ composite foreign keys
     (subject_kind, from_state, to_state)
 
 
-One cluster.  One region.  This repository holds no load profile, and we do not claim scale.</pre></div></div>
-<div class="card" id="k3"><pre class="limit">THE LIMIT WE WILL NOT DRESS UP
+One cluster.  One region.  This repository holds no load profile, and we do not claim scale.</pre></div></div></div>
+<div class="card" id="k3"><div class="fit"><pre class="hero">THE LIMIT WE WILL NOT DRESS UP
 
 Nothing in this data model separates a considered disposition from a rubber stamp.
 It makes the question unavoidable, the record precise, the worst stamp non-representable.
-We measure deliberation and never threshold it.</pre><div class="two small"><pre>&quot;what makes agentic systems different from traditional apps?&quot;
+We measure deliberation and never threshold it.</pre><div class="row gap"><pre>&quot;what makes agentic systems different from traditional apps?&quot;
    -&gt; the database is in the reasoning loop, as the thing that constrains the agent
 
 &quot;Does the agent use the tools correctly and safely?&quot;
@@ -107,32 +104,42 @@ Distributed Vector Indexing (C-SPANN)  EXERCISED  3 cspann, 4 VECTOR, 42809    e
 Managed MCP Server                     EXERCISED  15 of 16, DIVERGED, published   evidence/mcp/
 CockroachDB Cloud + ccloud CLI         EXERCISED  cluster list -o json, parsed   evidence/ccloud/
 CockroachDB Agent Skills               DESIGNED   shipped, validated;  NO RUN IS COMMITTED  skills/</pre></div><pre class="urls">github.com/Shaugato/mainline
-https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws</pre></div>
-<div class="card" id="end"><pre class="urls big">github.com/Shaugato/mainline
-https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws</pre></div>
-<div id="hud">SPACE = start the 24 s run &nbsp;·&nbsp; &larr; &rarr; = step manually &nbsp;·&nbsp; H = hide this line</div>
+https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws</pre></div></div>
+<div class="card" id="end"><div class="fit"><pre class="urls end">github.com/Shaugato/mainline
+https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws</pre></div></div>
+<div id="hud">SPACE — play the 24 s run &nbsp;|&nbsp; &larr; &rarr; — step by hand &nbsp;|&nbsp; H — hide this line</div>
 <script>
-const T = [{"id": "k1", "secs": 6}, {"id": "k2", "secs": 10}, {"id": "k3", "secs": 6}, {"id": "end", "secs": 2}];
-const els = T.map(t => document.getElementById(t.id));
-let i = 0, timer = null;
-function show(n){ els.forEach(e=>e.classList.remove('on')); i=Math.max(0,Math.min(T.length-1,n)); els[i].classList.add('on'); }
+const T=[{"id": "k1", "secs": 6}, {"id": "k2", "secs": 10}, {"id": "k3", "secs": 6}, {"id": "end", "secs": 2}], PAD=0.055;
+const el=id=>document.getElementById(id);
+function fit(card){
+  const box=card.querySelector('.fit');
+  box.style.transform='scale(1)';
+  const aw=window.innerWidth*(1-PAD*2), ah=window.innerHeight*(1-PAD*2);
+  const r=box.getBoundingClientRect();
+  if(!r.width||!r.height) return;
+  const s=Math.min(aw/r.width, ah/r.height);
+  box.style.transform='scale('+s+')';
+}
+let i=0,timer=null;
+function show(n){
+  i=Math.max(0,Math.min(T.length-1,n));
+  T.forEach((t,k)=>el(t.id).classList.toggle('on',k===i));
+  fit(el(T[i].id));
+}
 function run(){
   document.body.classList.add('rolling');
-  show(0);
-  let k = 0;
-  const step = () => {
-    k++;
-    if (k >= T.length) { return; }
-    show(k);
-    timer = setTimeout(step, T[k].secs*1000);
-  };
-  timer = setTimeout(step, T[0].secs*1000);
+  let k=0; show(0);
+  const step=()=>{ k++; if(k>=T.length) return; show(k); timer=setTimeout(step,T[k].secs*1000); };
+  timer=setTimeout(step,T[0].secs*1000);
 }
-document.addEventListener('keydown', e => {
-  if (e.code === 'Space') { e.preventDefault(); clearTimeout(timer); run(); }
-  if (e.code === 'ArrowRight') { clearTimeout(timer); show(i+1); }
-  if (e.code === 'ArrowLeft')  { clearTimeout(timer); show(i-1); }
-  if (e.key.toLowerCase() === 'h') { document.getElementById('hud').style.display='none'; }
+addEventListener('resize',()=>fit(el(T[i].id)));
+addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault();clearTimeout(timer);run();}
+  if(e.code==='ArrowRight'){clearTimeout(timer);show(i+1);}
+  if(e.code==='ArrowLeft'){clearTimeout(timer);show(i-1);}
+  if(e.key&&e.key.toLowerCase()==='h'){el('hud').style.display='none';}
 });
+// every card must be laid out once before it can be measured
+T.forEach(t=>{const c=el(t.id);c.classList.add('on');fit(c);c.classList.remove('on');});
 show(0);
 </script></body></html>

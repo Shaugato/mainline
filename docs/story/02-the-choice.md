@@ -7,7 +7,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 By 2 August 2026 the research had five ideas left and time to build one.
 
-The founder threw out the scoring used until then and wrote the rules himself. Rank these
+I threw out the scoring used until then and wrote the rules myself. Rank these
 by whether each could become a company — that first. Then by whether each could win the
 hackathon. Then by whether anyone had built it before. And ignore how long each would take
 to build, so the answer would not depend on a calendar.
@@ -36,7 +36,7 @@ authored: no real incident, no real site, no real fatality.
 ## The reset
 
 Until then the five had been scored out of 50 against the hackathon's own criteria.
-Those totals were thrown out as stale: they priced a 14-day build clock the founder had
+Those totals were thrown out as stale: they priced a 14-day build clock I had
 since removed (`hackathon-research/research/04-final/judge-hackathon.md:3`). The replacement
 rules, in his order:
 
@@ -84,7 +84,7 @@ hackathon and 8.67 on novelty. Every rival is top-two on at most two of the thre
 The auditor who reviewed the panel is explicit that this is a **broad win, not a decisive
 one on any single axis**, and the arithmetic agrees:
 
-- On **startup** — the founder's own first criterion — the top two are 7.33 against 7.17.
+- On **startup** — my own first criterion — the top two are 7.33 against 7.17.
   That is a dead heat.
 - On the **hackathon** axis MAINLINE does not lead at all. Loop-ledger does, 8.83 against
   8.50, and the venture judge called it *"the portfolio's best demo"*
@@ -107,7 +107,7 @@ and it stated a throughput ceiling rather than claiming none existed
 The venture judge did not pick MAINLINE. It picked **memory-substrate**, for category-scale
 market size and the only route to customers needing no sales channel — open source plus
 protocol distribution, reaching many agent frameworks without a sales call. Against MAINLINE
-it recorded the opposite shape: the best buyer motive and founder fit in the set, but a
+it recorded the opposite shape: the best buyer motive and founder-fit in the set, but a
 ceiling — *"profitable at three customers"* reads as bootstrap, not venture, in a market
 where every credible entrant so far was incubated inside an operator, and with zero customer
 conversations held
@@ -123,7 +123,7 @@ second (`hackathon-research/DECISION.md`).
 Second, the disagreement was never resolved by argument, and the panel says so. The
 hackathon judge and the auditor isolate the same single flip condition, and it is a belief
 about the world rather than a weighting: is a named mining buyer genuinely reachable by a
-solo founder, or does protocol distribution substitute for the sales channel he lacks? If the
+solo founder, or does protocol distribution substitute for the sales channel they lack? If the
 buyer is unreachable **and** distribution works channel-free, memory-substrate takes first
 place, 7.65 against 7.40 (`hackathon-research/DECISION.md`). Only market contact settles it.
 

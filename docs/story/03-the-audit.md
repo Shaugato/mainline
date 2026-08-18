@@ -14,7 +14,7 @@ attack the result, and check me for bias.
 It found against him.
 
 Not against the answer — the winning idea stayed the winner. It found against the *reasoning*.
-The explanation the orchestrator gave the founder for changing his mind was, the auditor wrote,
+The explanation the orchestrator gave me for changing its mind was, the auditor wrote,
 contradicted by its own scoring record. The decision file had been written and dated **before**
 the evidence gathered to test it. Two of the three judges had been shown which idea was the
 incumbent favourite before they scored it. And the section of the decision file that explains why
@@ -34,7 +34,7 @@ the one contamination that cannot be cleaned.
   (would this be a company?), *hackathon* (would this win?), *novelty* (has anyone built it?).
 - **rubric** — the list of things being scored. Which axes are on it decides the answer as much as
   the scores do (finding 1).
-- **weighted mean** — the judges' totals averaged using the founder's stated weights: startup
+- **weighted mean** — the judges' totals averaged using my stated weights: startup
   potential `0.40`, hackathon `0.35`, originality `0.25`.
 - **blind judging** — a judge not told which candidate the organiser already favours. Ours were not
   blind (finding 3).
@@ -52,7 +52,7 @@ which are cited elsewhere to the artefacts that produced them.
 
 Earlier, under an assumed fourteen-day deadline, a different candidate (`loop-ledger`) ranked
 first. When the deadline assumption was dropped and the ranking changed, the orchestrator told the
-founder why: under a clock the tiebreakers were buildability and a three-minute demo, and removing
+me why: under a clock the tiebreakers were buildability and a three-minute demo, and removing
 the clock removed both.
 
 The auditor read the scorecards. Totals: `loop-ledger` 39, `safety-custody` 38, `person-owned` 38,
@@ -63,7 +63,7 @@ discounted the whole field equally rather than separating it. The stated reason 
 by its own record; the auditor's term was *"post-hoc rationalisation"* (`audit.md` §3.1).
 
 Then the larger defect, which nobody had stated. Those scorecards measured **only the hackathon's
-five judging criteria**. Startup potential — the founder's own first criterion, stated twice — was
+five judging criteria**. Startup potential — my own first criterion, stated twice — was
 never a scored axis at all, so the earlier #1 ranked on one of his three criteria only. That is a
 *wrong-rubric* artefact, worse than a deadline artefact, because the re-rank was necessary whether
 or not the deadline existed — *"for a reason the orchestrator did not give."*
@@ -78,10 +78,10 @@ That is the auditor's verdict, verbatim, on the decision to elevate MAINLINE to 
   table of yes / no / partly. A case file written later by a different agent had to correct it: the
   grade holds for one half of that objection, and the other half is structural.
 - **The most flattering argument in the corpus was orchestrator-introduced and never
-  independently scored.** The claim that the founder's digital-forensics background *is* chain of
+  independently scored.** The claim that my digital-forensics background *is* chain of
   custody appears in the pivot document and the decision file and nowhere in the earlier research.
   The auditor calls it *"the exact shape of a self-serving conclusion"* — then says it is
-  nonetheless true, and that judges reached it independently once told the founder's profile. Both
+  nonetheless true, and that judges reached it independently once told my profile. Both
   halves belong on the record.
 
 ## Finding 3 — judging was not blind, and the decision was dated before its own evidence

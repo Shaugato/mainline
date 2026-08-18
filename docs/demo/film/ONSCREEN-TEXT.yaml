@@ -3080,7 +3080,7 @@ beats:
           AWS  ·  IN THIS REQUEST
 
             AWS Lambda                  arm64 · mainline-demo-api
-            Lambda Function URL         authorization_type = NONE   (the founder's explicit choice)
+            Lambda Function URL         authorization_type = NONE   (my deliberate choice: a judge needs no credential)
             SSM Parameter Store         /mainline/demo/cockroach_dsn
             AWS IAM                     one execution role; one inline policy, GetParameter on that one name
 
