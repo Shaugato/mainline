@@ -356,18 +356,29 @@ The voice delivers *"An attacker who owns the counter does not own the gate"* in
 
 ## B6 · 1:28 – 1:46 · The question, and signing it
 
-**On screen:** the three question prompts, and the panel showing what each answer costs.
+**On screen:** at the foot of the `P0001` panel there is a control reading, verbatim:
+
+```
+Answer the obligation, then issue again ▸
+```
+
+That is the fourth and last reveal. Like the previous one it sends **no request** — it discloses
+the admission beat that already came back in B1's single response.
 
 | time | what you do |
 |---|---|
-| 1:28 – 1:34 | Cursor rests on the **first prompt** — which isolation point was locked, and who verified it at zero. |
-| 1:34 – 1:39 | One slow move down the cost rows — second signer, twelve-hour expiry. |
-| 1:39 – 1:42 | Move to the **sign** control. |
-| **1:42** | **Click 2 — sign.** |
-| 1:42 – 1:46 | Let it answer. **Stop moving.** |
+| 1:28 – 1:30 | Cursor to **`Answer the obligation, then issue again ▸`**. |
+| **1:30** | **Click — open the reveal.** No new network row. Still `1 requests`. |
+| 1:30 – 1:36 | The admission beat paints: one disposition signed, kind `applied`, and the open count at **0**. |
+| 1:36 – 1:46 | Cursor rests on the signed disposition and the count. **Stop.** |
 
-**Do not:** select a radio button on camera, and **do not** type into a citation box — this
-deployment carries no answer for one, so anything typed there would be a prop.
+> **THERE ARE NO QUESTION PROMPTS AND NO COST PANEL ON THIS SCREEN, AND THERE IS NO SIGN BUTTON.**
+> The three prompts and the cost lattice render on the **change** screen only; the permit screen
+> never asks for them. An earlier version of this sheet sent you looking for them and told you to
+> press a *sign* control — both wrong.
+>
+> **Do not** select a radio button on camera, and **do not** type into a citation box. This
+> deployment carries no answer for one, so anything typed there would be a prop.
 
 ---
 
@@ -377,8 +388,10 @@ deployment carries no answer for one, so anything typed there would be a prop.
 
 | time | what you do |
 |---|---|
-| 1:46 – 1:52 | Cursor rests on the **panel rows** reading `permit state merged`. |
+| 1:46 – 1:52 | Cursor rests on the merge record: **`permit_state merged`**, `head_seq 3`, `open_blocking 0`. |
 | 1:52 – 1:58 | **Stop.** |
+
+*Same reveal as B6 — you do not click anything here. B6 opened it; B7 is the dwell on what it says.*
 
 > **Keep the cursor on the panel rows — never on the permit header.**
 >

@@ -90,10 +90,16 @@ Beat of silence before the last sentence. **Nobody typed that four.** Let it sit
 
 ## B6 · 1:28 · 18 s
 
-> Not a checkbox — a question: which isolation point was locked, and who verified it at zero? Setting it aside instead costs a second signer, and the emergency route dies in twelve hours.
+> Not a tick in a box — an answer. A named person signs one reply to that one question. The count falls to zero, and the merge is tried again.
 
-*32 words. Real question intonation on "at zero?".
-Do not add anything about "not applicable" unless that sentence is on screen in your take.*
+*29 words. Keep the pause after "an answer" — that contrast is the line.
+Land on **zero**.*
+
+> **RE-RECORD THIS BLOCK.** It previously named an isolation point, a second signer and a
+> twelve-hour expiry. **None of those render on the permit screen** — the three prompts and the
+> cost lattice are on the *change* screen only, and the permit screen never requests them
+> (`CLAIMS-CLEARANCE.md` D30, a standing REFUSE). Every word of the new line is on screen in the
+> admission beat: one disposition signed, kind `applied`, count to `0`, then the merge retried.
 
 ---
 
