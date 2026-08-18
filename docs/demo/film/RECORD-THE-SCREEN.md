@@ -454,34 +454,26 @@ there is no room in this block, and reaching for it pushes your press past 2:14.
 
 ---
 
-## k1 · 2:28 – 2:34 · The loop card
+## THE SCREEN RECORDING ENDS AT B10 · 2:28
 
-**On screen:** the summary — the incident, the lookup, ten seconds later the question, refused.
+**Stop recording after B10.** Let it roll three extra seconds for a clean trim handle, then stop.
 
-Nothing moves. Hand off the mouse.
+The last twenty-four seconds — **k1**, **k2**, **k3** and the end card — are **not screens.** They
+are cards built in the edit, and there is nothing to point a camera at. Their text, transcribed
+word for word from the version of record, is in
+[`CLOSING-CARDS.md`](CLOSING-CARDS.md).
 
----
+| block | what it is | do you film it? |
+|---|---|---|
+| **k1** · 2:28–2:34 | STORE / RETRIEVE / ACT as an overlay **over live picture** | **No** — reuse your B3 memory-loop footage underneath |
+| **k2** · 2:34–2:44 | a full card, AWS and CockroachDB in two columns | **No** |
+| **k3** · 2:44–2:50 | a full card: the limit, the rail, the URLs | **No** |
+| **end** · 2:50–2:52 | two seconds, nothing moving | **No** |
 
-## k2 · 2:34 – 2:44 · The stack card
-
-**On screen:** the AWS and CockroachDB list, each row carrying its own verdict.
-
-Nothing moves.
-
----
-
-## k3 · 2:44 – 2:50 · The limit card
-
-**On screen:** the line naming what this does not do.
-
-Nothing moves.
-
----
-
-## End card · 2:50 – 2:52
-
-Two seconds, nothing moving. Then let it roll **three extra seconds** before you stop, so you
-have a clean handle to trim to.
+> **Do not trim a word out of those cards to make them fit.** They carry the honesty disclosures
+> the entry rests on — Bedrock is not in the request path, no residency is claimed, Agent Skills
+> is DESIGNED with no run committed, and nothing separates a considered decision from a rubber
+> stamp. Smaller type or a longer hold; never a shorter sentence.
 
 ---
 
