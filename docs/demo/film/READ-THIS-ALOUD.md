@@ -26,10 +26,14 @@ Then 2 seconds of silence while the cursor settles on ISSUE. That silence is the
 
 ## B0b · 0:12 · 8 s
 
-> Years ago a machine that should have been isolated wasn't. A procedure was tightened.
+> Years ago a machine that should have been isolated wasn't. The rule already existed.
 
 *14 words. Say "Years ago" flat — no year, no site, no injury, ever.
-Small pause before "A procedure".*
+Small pause before "The rule". Land on **existed** — that is the whole point.*
+
+> **RE-RECORD THIS BLOCK.** It previously read *"A procedure was tightened."* The deployed
+> page shows this clause with `CONTROL DELTA introduce` — it was written, not tightened — so
+> that line was contradicted by a frame the viewer can read.
 
 ---
 

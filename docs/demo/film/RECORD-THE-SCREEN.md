@@ -187,8 +187,8 @@ do**. Timecodes run from the start of the film.
 
 ## B0 · 0:00 – 0:12 · The permit form
 
-**On screen:** the filled-in permit form, except the end of the work description. Cursor resting
-near **ISSUE**.
+**On screen:** the permit form at section 5, with the work description half typed. **ISSUE is not
+in this frame** — it is at the foot of the form and you travel there in B0b.
 
 **Where to be when you start:** scrolled to **section 5, *Description of work to be done and its
 limitations***, so the half-typed field is in frame. **Not** the top of the page.
