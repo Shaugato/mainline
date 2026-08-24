@@ -81,18 +81,18 @@ jobs:
             registry.npmjs.org:443
             nodejs.org:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: pnpm, at the version package.json names
         # No `version:` input on purpose. The action reads `packageManager` out of
         # `package.json`, which makes that field the single place the version lives —
         # the same rule `compose.yaml` holds for the CockroachDB image.
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: verticals/mainline/apps/console/package.json
 
       - name: Node, with the pnpm store cached
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           # `engines.node` says ">=24.0.0"; 24 is the LTS line the lockfile was resolved
           # against and the version `pnpm run ci` was measured green on.
@@ -193,15 +193,15 @@ jobs:
             registry.npmjs.org:443
             nodejs.org:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: pnpm, at the version package.json names
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           package_json_file: verticals/mainline/apps/console/package.json
 
       - name: Node, with the pnpm store cached
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: pnpm
