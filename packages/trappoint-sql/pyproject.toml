@@ -44,7 +44,7 @@ trappoint-render = "trappoint_sql.cli:main"
 dev = ["pytest>=8.2", "mypy>=1.11", "ruff>=0.6"]
 
 [build-system]
-requires = ["hatchling>=1.27"]
+requires = ["hatchling>=1.32.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
