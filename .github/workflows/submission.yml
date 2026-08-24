@@ -84,9 +84,9 @@ jobs:
             objects.githubusercontent.com:443
             raw.githubusercontent.com:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -141,7 +141,7 @@ jobs:
             objects.githubusercontent.com:443
             raw.githubusercontent.com:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The `remote_sync` row compares HEAD against `origin/<branch>`. A shallow
           # single-commit checkout has no such ref, and the row would report NOT CHECKED —
@@ -149,7 +149,7 @@ jobs:
           # than a fact about the submission.
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -416,7 +416,7 @@ jobs:
         # existence of each file is already asserted, by name, in the step that produces
         # it, and a second red here would only ever fire on a run that is already failing.
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: submission-ready
           path: |
@@ -444,9 +444,9 @@ jobs:
             objects.githubusercontent.com:443
             raw.githubusercontent.com:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
