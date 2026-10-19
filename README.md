@@ -47,14 +47,14 @@ Two pages belong before the rest of this one. [`docs/HONESTY.md`](docs/HONESTY.m
 authored and what is not built; [`docs/submission/MUST-NOT-CLAIM.md`](docs/submission/MUST-NOT-CLAIM.md) lists the
 flattering sentences this project is not entitled to say, beside the true ones.
 
-## See it refuse — live, with no account
+## See it refuse
 
-Open the address below in any browser. There is nothing to install and nobody to sign up with.
+**The hosted demo is offline now, so the Demo URL below no longer answers.** It ran over the public internet during judging ([`evidence/deploy/LIVE.md`](evidence/deploy/LIVE.md), 15 Aug 2026). To see the refusal today, watch the 2:59 video below or run it yourself with the steps in [Check us](#check-us--clone-it-and-reproduce-the-refusal). The address-based commands further down this section need the hosted demo, so they no longer work.
 
 | Devpost asks for | This entry |
 |---|---|
-| **Demo URL** | `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws` |
-| **Judge access — free and unrestricted** | No account, no login, no credential of ours; the origin takes anonymous callers by design.[^src-open] Reading our ledger in your own SQL client is a separate read-only login, in [`docs/deploy/JUDGE-PACK.md`](docs/deploy/JUDGE-PACK.md) §2 |
+| **Demo URL (offline now)** | `https://ihuuyvm4z6nfuktihnkey77fpy0eyrhj.lambda-url.ap-southeast-1.on.aws` |
+| **Judge access — free and unrestricted** | While it was online, no account, no login, no credential of ours; the origin takes anonymous callers by design.[^src-open] Reading our ledger in your own SQL client is a separate read-only login, in [`docs/deploy/JUDGE-PACK.md`](docs/deploy/JUDGE-PACK.md) §2 |
 | **Video, under three minutes** | `https://youtu.be/PmAjaesCMHE` — **2:59**, public, verified playable signed-out |
 | **Which CockroachDB tools and AWS services, and how** | [`docs/TOOL-USAGE.md`](docs/TOOL-USAGE.md) — every tool and every service with a file, a line number, and a verdict saying whether it has actually run |
 | **Repository and licence** | `https://github.com/Shaugato/mainline`, public since 2026-08-11; the root [`LICENSE`](LICENSE) is Apache-2.0 |
