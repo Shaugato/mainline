@@ -231,7 +231,7 @@ jobs:
             github.com:443
             objects.githubusercontent.com:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: The checker registry
         run: |
@@ -311,7 +311,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up the workspace (uv only — do NOT sync)
         # `sync: false` matters. `uv sync` can rewrite `uv.lock`; checking the lockfile
@@ -369,7 +369,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -410,7 +410,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         # `--all-packages`: mypy follows real imports across distributions. A partial
@@ -471,7 +471,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         # import-linter builds a REAL import graph, so every root package must be
@@ -514,7 +514,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -553,7 +553,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -751,7 +751,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -1008,7 +1008,7 @@ jobs:
             files.pythonhosted.org:443
             astral.sh:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-workspace
         with:
@@ -1063,7 +1063,7 @@ jobs:
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install actionlint
         env:
@@ -1138,7 +1138,7 @@ jobs:
             api.github.com:443
             github.com:443
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: The ADR must name the run that was observed red
         # PL-2 is satisfied by a job that WAS OBSERVED RED, not by an intention to write
