@@ -59,7 +59,7 @@ trappoint-verify = "trappoint_verify.cli:main"
 Homepage = "https://github.com/Shaugato/mainline"
 
 [dependency-groups]
-dev = ["pytest>=8.2"]
+dev = ["pytest>=9.2.0"]
 
 [build-system]
 requires = ["hatchling>=1.27"]
